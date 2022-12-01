@@ -1,6 +1,7 @@
 # GlitterTS 
 - ## A hybrid framework for web/ios/android
-- 
+
+-------
 ### Step1.
 ### Add glitter plugin by npm
 -`npm install @jianzhi.wang/glitter`
