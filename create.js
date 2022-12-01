@@ -9,10 +9,16 @@ try {
             original=val.replace('/create.js','/')
         }
     });
-    console.log(original)
-    console.log(src)
     if(fsn.existsSync(src)){
-        console.log("Glitter already exist")
+        const checkExists=['glitterDeps.json','index.html','Entry.ts']
+        checkExists.map((dd)=>{
+            if(!fsn.existsSync(`${src}/${dd}`)){
+                fs.copySync(`${original}/lib/${dd}`,`${src}/${dd}`);
+            }
+        })
+
+        fs.copySync(`${original}/lib/glitterBundle`,`${src}/glitterBundle`);
+        console.log("Glitter already exist so update glitterBundle ")
     }else{
         fs.copySync(`${original}/lib`,src);
         fs.copySync(`${original}/static/tsconfig.json`,'tsconfig.json');
