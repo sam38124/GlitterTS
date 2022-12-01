@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link href="../src/app-modern.css" rel="stylesheet" type="text/css" id="light-style"/>
+    <script src="../ControlInstance.js"></script>
+</head>
+<style>
+    html {
+        width: 100%;
+        height: 100%;
+    }
+
+    body {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: 50%/cover no-repeat url("../img/registerBg.png")
+    }
+</style>
+<body>
+<script>
+    lifeCycle.onCreateView = function () {
+        return `<div class="account-pages mt-5 mb-5" style="width: 400px;max-width: 100%;">
+            <div class="container">
+                <div class="row justify-content-center ">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-body p-4">
+                                <div class="text-center w-75 m-auto">
+                                    <h4 class="text-dark-50 text-center mt-0 fw-bold">輸入您的後台金鑰</h4>
+                                </div>
+                                <div class="mt-4">
+                                    <div class="">
+                                        <label for="password" class="form-label">請輸入金鑰</label>
+                                        <div class="input-group input-group-merge">
+                                            <input type="password" id="password" class="form-control" placeholder="請輸入金鑰">
+                                        </div>
+                                    </div>
+                                    <div class="mt-4 text-center w-100">
+                                        <button class="btn btn-primary w-100" type="submit" onclick="${event(function () {
+            if ($('password').val() === '') {
+                alert('請輸入金鑰');
+            }else {
+                glitter.openDiaLog('glitterBundle/dialog/Dia_DataLoading.html', 'dataLoading', false, false, {})
+                glitter.webJsInterFace("editModeSignIn",{
+                    app:glitter.share.app,
+                    token:$('#password').val()
+                },function (response){
+                    glitter.closeDiaLogWithTag('dataLoading')
+                    if(response&&response.result){
+                        setTimeout(function (){
+                            glitter.htmlEditMode.app=glitter.share.app
+                            glitter.htmlEditMode.token=$('#password').val()
+                            glitter.setPro(`Token_${glitter.share.app}`, $('#password').val(),function () {
+                                glitter.openHtmlEditor();
+                            })
+
+                            },1000)
+                    }else{
+                        glitter.openDiaLog('glitterBundle/dialog/Dia_Error.html', 'Dia_Error', false, false, "登入失敗", function () {})
+                    }
+                })
+            }
+        })}"> 確認 </button>
+                                    </div>
+                                </div>
+                            </div> <!-- end card-body -->
+                        </div>
+                        <!-- end row -->
+
+                    </div> <!-- end col -->
+                </div>
+                <!-- end row -->
+            </div>
+            <!-- end container -->
+        </div>
+        <!-- end page -->
+
+        <footer class="footer footer-alt text-white">
+            2018 - 2021 © All rights reserved. Made by Lion Design
+        </footer>`
+    }
+</script>
+</body>
+</html>

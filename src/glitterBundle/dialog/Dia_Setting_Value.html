@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="../ControlInstance.js"></script>
+    <link href="../bootstrap.css" rel="stylesheet">
+    <!-- App css -->
+    <link href="../layout/css/app-modern.css" rel="stylesheet" type="text/css"/>
+    <script src="../plugins/moment.js"></script>
+</head>
+<style>
+    html {
+        width: 100%;
+        height: 100%;
+        background: none;
+    }
+
+    body {
+        background-color: rgb(0 0 0 / 25%);
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+</style>
+<body>
+<script>
+    var selectIndex = 0
+    var array = []
+
+    function initialForm() {
+        glitter.openDiaLog('glitterBundle/dialog/Dia_DataLoading.html', 'dataLoading', false, false, {})
+        glitter.share.postApi('getManagerData',{
+            app: glitter.htmlEditMode.app,
+            tag: `Setting_${array[selectIndex].value}`
+        }, function (response) {
+            if (response) {
+                glitter.closeDiaLogWithTag('dataLoading')
+                var json = glitter.toJson(response.data, [])
+                glitter.deBugMessage(response.data)
+                glitter.share.formEdit.copyValue(json, array[selectIndex].data)
+                notifyDataChange('formDiv')
+            } else {
+                initialForm()
+            }
+        })
+    }
+
+    lifeCycle.onCreate = function () {
+
+        addMtScript([
+            'https://kit.fontawesome.com/02e2dc09e3.js','../plugins/vendor.min.js'
+        ],()=>{
+            momenttoTW()
+            initialForm()
+        })
+
+    }
+    lifeCycle.onCreateView = function () {
+         array=glitter.share.getAppSettingInitial(window)
+        return `
+      <div class="rounded d-flex flex-column align-items-center position-relative mx-0 mx-sm-2" style="max-height: calc(100%);overflow-y: hidden;">
+        <i class="fal fa-times" aria-hidden="true"
+  style="width: 30px;height: 30px;font-size: 23px;position: absolute;top: 30px;right: 25px;z-index: 3;"
+  onclick="${event(function () {
+            glitter.closeDiaLog(getTag());
+        })}"></i>
+<div id="diaView" class="rounded d-flex flex-column align-items-center p-sm-4 p-2 position-relative mx-0 mx-sm-2"
+style="overflow-y:scroll;max-width: calc(100%);background: white;padding: 30px;box-sizing: border-box;width: 600px;height: auto;">
+<span class="border-bottom" style="font-weight: 400;width: 100%;font-size: 30px;margin-top: 10px;">管理員設定</span>
+<div class="alert alert-info alert-dismissible fade show mt-2 mx-0 w-100" role="alert">
+                                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                                    <strong>提醒您 - </strong> 按下儲存後請記得重新整理畫面，才能顯示變動過後的內容．
+                                                </div>
+<div class="dropdown w-100 my-1" id="dropDown">
+   ${bindView({
+            bind: 'dropDown',
+            view: function () {
+                return ` <button class="btn btn-warning  dropdown-toggle w-100" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
+>
+        ${array[selectIndex].title}
+    </button>
+    <div class="dropdown-menu w-100 bg-warning" aria-labelledby="dropdownMenuButton" style="background-color: lightgoldenrodyellow;">
+    ${glitter.print(function () {
+                    var html = ''
+                    array.map(function (dd, index) {
+                        html += ` <a class="dropdown-item" style="color: black;" onclick="${event(function () {
+                            selectIndex = index
+                            initialForm()
+                            notifyDataChange('dropDown')
+                        })}">${dd.title}</a>`
+                    })
+                    return html
+                })}
+    </div>`
+            }
+        })}
+</div>
+<div id="formDiv" class="w-100" style="min-height: 200px;">
+${bindView({
+            bind: 'formDiv',
+            view: function () {
+  return glitter.share.formEdit.generateFormV2(array[selectIndex].data, window, ()=>{}) + `<div class="w-100 d-flex justify-content-between mt-2  pb-2" style="">
+<button  class="btn btn-secondary" style="width: calc(50% - 10px);" onclick="${event(function () {
+                    glitter.closeDiaLog(getTag())
+                })}">取消</button>
+<button type="button" class="btn btn-warning  " style="width: calc(50% - 10px);" onclick="${event(function () {
+      var tempData = JSON.parse(JSON.stringify(array[selectIndex].data))
+      tempData = tempData.filter(function (d2) {
+          if(d2.elem==="BtnLink"){
+              d2.option=d2.option.map(function (d3){
+                  return {
+                      index:d3.index,
+                      value:d3.value,
+                      name:d3.name,
+                      formData:d3.formData
+                  }
+              })
+          }
+          return !d2.ignore
+      })
+
+      glitter.deBugMessage(JSON.stringify(tempData))
+      var dataID=glitter.getUUID()
+      glitter.openDiaLog('glitterBundle/dialog/Dia_DataLoading.html', dataID, false, false, {})
+      glitter.share.postApi("setManagerData",{
+          tag: `Setting_${array[selectIndex].value}`,
+          data: JSON.stringify(tempData)
+      }, function (response) {
+          glitter.closeDiaLogWithTag(dataID)
+          if (response && response.result) {
+              glitter.openDiaLog('glitterBundle/dialog/Dia_Success.html', 'Dia_Success', false, false, "儲存成功", function () {})
+
+          } else {
+              glitter.openDiaLog('glitterBundle/dialog/Dia_Error.html', 'Dia_Error', false, false, "儲存失敗", function () {
+              })
+          }
+      })
+  })}" data-gs-event-142="event">
+ <svg class="svg-inline--fa fa-floppy-disk me-2" aria-hidden="true" focusable="false" data-prefix="fas" data-icon="floppy-disk" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" data-fa-i2svg=""><path fill="currentColor" d="M433.1 129.1l-83.9-83.9C342.3 38.32 327.1 32 316.1 32H64C28.65 32 0 60.65 0 96v320c0 35.35 28.65 64 64 64h320c35.35 0 64-28.65 64-64V163.9C448 152.9 441.7 137.7 433.1 129.1zM224 416c-35.34 0-64-28.66-64-64s28.66-64 64-64s64 28.66 64 64S259.3 416 224 416zM320 208C320 216.8 312.8 224 304 224h-224C71.16 224 64 216.8 64 208v-96C64 103.2 71.16 96 80 96h224C312.8 96 320 103.2 320 112V208z"></path></svg><!-- <i class="fa-solid fa-floppy-disk me-2" aria-hidden="true"></i> -->
+儲存</button>
+</div>`
+            }
+        })}
+</div>
+</div>
+</div>
+        `
+    }
+</script>
+</body>
+</html>
