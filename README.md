@@ -1,6 +1,6 @@
 # GlitterTS
 
-### Glitter is a cross-platform hybrid development framework that can develop android, ios and web applications at the same time
+### Glitter is a cross-platform hybrid framework that can develop Android,IOS and Web applications at the same time
 
 -------
 
