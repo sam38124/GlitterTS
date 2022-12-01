@@ -22,6 +22,7 @@
 
 -```tsc --project tsconfig.json && tscpaths -p tsconfig.json -s ./src -o ./src && tsc -w```
 
+-------
 ### Dependency
 
 #### - Set up your dependencies in glitterDeps.json
@@ -36,11 +37,13 @@
 ```
 #### - Download your dependencies to glitterLib dir
 ```node install.js```
+
+-------
 ### Release project.
 
-#### ．Build your project to other dir and ignore ts file ：
+#### - Build your project to other dir and ignore ts file ：
 
--`node release.js  path=test`
+`node release.js  path=test`
 
 
 -------
