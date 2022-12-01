@@ -1,32 +1,62 @@
-# GlitterTS 
+# GlitterTS
+
 ### A hybrid framework for web/ios/android
 
 -------
+
 ### Step1.
+
 ### Add glitter plugin by npm
+
 -`npm install @jianzhi.wang/glitter`
-### Step2. 
+
+### Step2.
+
 #### Create an empty Glitter project：
+
 -`node create.js`
 
 ### Step3.
-#### Auto build your Glitter project：
--`tsc --project tsconfig.json && tscpaths -p tsconfig.json -s ./src -o ./src && tsc -w`
 
-### Optional.
-#### Build your project to other dir and ignore ts file ：
+#### Auto build your Glitter project：
+
+-```tsc --project tsconfig.json && tscpaths -p tsconfig.json -s ./src -o ./src && tsc -w```
+
+### Dependency
+
+#### - Set up your dependencies in glitterDeps.json
+``` {
+  "dependencies": [
+    {
+      "name": "test.js",
+      "path": "https://raw.githubusercontent.com/sam38124/GlitterForIOS/master/Package.resolved"
+    }
+  ]
+}  
+```
+#### - Download your dependencies to glitterLib dir
+```node install.js```
+### Release project.
+
+#### ．Build your project to other dir and ignore ts file ：
+
 -`node release.js  path=test`
 
+
 -------
+
 ### Sample
+
 ```
 "scripts": {
 
-"create": "node create.js",  
+"create": "node node_modules/@jianzhi.wang/glitter/create.js",  
 
 "start:tscAuto": "tsc --project tsconfig.json && tscpaths -p tsconfig.json -s ./src -o ./src && tsc -w",
 
-"release": "node release.js  path=test"
+"release": "node node_modules/@jianzhi.wang/glitter/release.js  path=test",
+
+"install": "node node_modules/@jianzhi.wang/glitter/install.js"
 
 }
 ```

@@ -1,0 +1,8 @@
+{
+  "dependencies": [
+    {
+      "name": "test.js",
+      "path": "https://raw.githubusercontent.com/sam38124/GlitterForIOS/master/Package.resolved"
+    }
+  ]
+}

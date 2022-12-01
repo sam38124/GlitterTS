@@ -17,7 +17,7 @@
 ;(function()
 {
 	// CommonJS
-	typeof(require) != 'undefined' ? SyntaxHighlighter = require('lib/glitterBundle/layout/js/shCore').SyntaxHighlighter : null;
+	typeof(require) != 'undefined' ? SyntaxHighlighter = require('src/glitterBundle/layout/js/shCore').SyntaxHighlighter : null;
 
 	function Brush()
 	{

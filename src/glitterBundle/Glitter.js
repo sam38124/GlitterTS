@@ -28,6 +28,7 @@ export class Glitter {
         this.animator = new Animator();
         this.webUrl = '';
         this.goBackStack = [];
+        this.parameter = { styleList: [], styleLinks: [] };
         this.callBackId = 0;
         this.callBackList = new Map();
         this.debugMode = false;
@@ -45,6 +46,7 @@ export class Glitter {
         this.getBoundingClientRect = {};
         this.changePageCallback = [];
         this.pageConfig = [];
+        this.waitChangePage = false;
         this.changeWait = function () {
         };
         this.ut = {
@@ -446,7 +448,10 @@ export class Glitter {
         switch ((_a = option.defineType) !== null && _a !== void 0 ? _a : glitter.deviceType) {
             case glitter.deviceTypeEnum.Web: {
                 if (option.webFunction) {
-                    callBack(option.webFunction(map));
+                    let data = option.webFunction(map, callBack);
+                    if (data) {
+                        callBack(data);
+                    }
                 }
                 else {
                     glitter.$.ajax({
@@ -534,6 +539,7 @@ export class Glitter {
             this.$(`#page` + this.pageConfig[index].id).show();
             this.$(`#` + this.pageConfig[index].id).show();
             this.pageConfig[index].createResource();
+            this.setUrlParameter('page', this.pageConfig[index].tag);
         }
         catch (e) {
         }
@@ -623,43 +629,50 @@ export class Glitter {
     }
     changePage(url, tag, goBack, obj) {
         const glitter = this;
-        const config = {
-            id: glitter.getUUID(),
-            obj: obj,
-            goBack: true,
-            src: url,
-            tag: tag,
-            deleteResource: () => {
-            },
-            createResource: () => { }
-        };
-        glitter.nowPageConfig = config;
-        for (let a = this.pageConfig.length - 1; a >= 0; a--) {
-            this.hidePageView(this.pageConfig[a].id);
-        }
-        let module = this.modelJsList.find((dd) => {
-            return dd.src === url;
-        });
-        glitter.getUUID();
-        if (module) {
-            module.create(this);
-            const search = glitter.setSearchParam(glitter.removeSearchParam(glitter.window.location.search, "page"), "page", tag);
-            glitter.window.history.pushState({}, glitter.document.title, search);
-            glitter.pageConfig.push(config);
-            glitter.setUrlParameter('page', tag);
+        if (glitter.waitChangePage) {
+            setTimeout(() => {
+                glitter.changePage(url, tag, goBack, obj);
+            }, 100);
         }
         else {
-            this.addMtScript([{
-                    src: url,
-                    type: 'module',
-                    id: config.id
-                }], () => {
+            glitter.waitChangePage = true;
+            const config = {
+                id: glitter.getUUID(),
+                obj: obj,
+                goBack: true,
+                src: url,
+                tag: tag,
+                deleteResource: () => {
+                },
+                createResource: () => { }
+            };
+            glitter.nowPageConfig = config;
+            let module = this.modelJsList.find((dd) => {
+                return dd.src === url;
+            });
+            if (module) {
+                module.create(this);
                 const search = glitter.setSearchParam(glitter.removeSearchParam(glitter.window.location.search, "page"), "page", tag);
                 glitter.window.history.pushState({}, glitter.document.title, search);
                 glitter.pageConfig.push(config);
-            }, () => {
-                console.log("can't find script src:" + url);
-            }, { multiple: true });
+                glitter.setUrlParameter('page', tag);
+                glitter.waitChangePage = false;
+            }
+            else {
+                this.addMtScript([{
+                        src: url,
+                        type: 'module',
+                        id: config.id
+                    }], () => {
+                    const search = glitter.setSearchParam(glitter.removeSearchParam(glitter.window.location.search, "page"), "page", tag);
+                    glitter.window.history.pushState({}, glitter.document.title, search);
+                    glitter.pageConfig.push(config);
+                    glitter.waitChangePage = false;
+                }, () => {
+                    console.log("can't find script src:" + url);
+                    glitter.waitChangePage = false;
+                }, { multiple: true });
+            }
         }
     }
     removePage(tag) {
@@ -892,16 +905,15 @@ export class Glitter {
         });
     }
     goMenu() {
-        const glitter = this;
-        let tempFrame = [];
-        tempFrame = tempFrame.concat(glitter.iframe[0]);
-        glitter.$('#' + glitter.iframe[0].pageIndex).show();
-        for (let i = 1; i < glitter.iframe.length; i++) {
-            glitter.$('#' + glitter.iframe[i].pageIndex).remove();
+        for (let a = this.pageConfig.length - 1; a >= 0; a--) {
+            if (a == 0) {
+                this.showPageView(this.pageConfig[a].id);
+                break;
+            }
+            else {
+                this.hidePageView(this.pageConfig[a].id, true);
+            }
         }
-        glitter.iframe = tempFrame;
-        glitter.goBackStack = [];
-        glitter.changePageListener(glitter.iframe[0].id);
     }
     addChangePageListener(callback) {
         this.changePageCallback.push(callback);
@@ -978,6 +990,41 @@ export class Glitter {
             d = Math.floor(d / 16);
             return "s" + (c === 'x' ? r : r & 0x3 | 0x8).toString(16);
         });
+    }
+    addStyle(style) {
+        const glitter = this;
+        let sl = {
+            id: glitter.getUUID(),
+            style: style
+        };
+        if (!glitter.parameter.styleList.find((dd) => {
+            return dd.style === style;
+        })) {
+            var css = document.createElement('style');
+            css.type = 'text/css';
+            css.id = sl.id;
+            if (css.styleSheet)
+                css.styleSheet.cssText = style;
+            else
+                css.appendChild(document.createTextNode(style));
+            document.getElementsByTagName("head")[0].appendChild(css);
+            glitter.parameter.styleList.push(sl);
+        }
+    }
+    addStyleLink(filePath) {
+        const gvc = this;
+        var head = document.head;
+        const id = gvc.getUUID();
+        var link = document.createElement("link");
+        link.type = "text/css";
+        link.rel = "stylesheet";
+        link.href = filePath;
+        link.id = id;
+        gvc.parameter.styleLinks.push({
+            id: id,
+            src: filePath
+        });
+        head.appendChild(link);
     }
     setCookie(key, value) {
         let oneYear = 2592000 * 12;

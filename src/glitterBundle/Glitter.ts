@@ -32,6 +32,7 @@ export class Glitter {
     public document: any;
     public webUrl: string = '';
     public goBackStack: (() => void)[] = [];
+    public parameter:any = {styleList:[],styleLinks:[]}
     public callBackId: number = 0;
     public callBackList = new Map();
     public location: any;
@@ -51,7 +52,7 @@ export class Glitter {
     public changePageCallback: ((tag: string) => void)[] = []
     public pageConfig: { id: string, obj: any, goBack: boolean, src: string, tag: string, createResource: () => void, deleteResource: () => void }[] = []
     public nowPageConfig?: { id: string, obj: any, goBack: boolean, src: string, tag: string, createResource: () => void, deleteResource: () => void }
-
+    public waitChangePage=false
     /*Getter*/
     get baseUrl() {
         var getUrl = window.location;
@@ -126,7 +127,7 @@ export class Glitter {
         }, callBack, option);
     };
 
-    public runJsInterFace(functionName: string, data: {}, callBack: (data: any) => void, option: { defineType?: any, webFunction?(data: {}): any } = {}) {
+    public runJsInterFace(functionName: string, data: {}, callBack: (data: any) => void, option: { defineType?: any, webFunction?(data: {},callback:(data:any)=>void): any } = {}) {
         const glitter = this
         let id = this.callBackId += 1;
         this.callBackList.set(id, callBack);
@@ -138,7 +139,10 @@ export class Glitter {
         switch (option.defineType ?? glitter.deviceType) {
             case glitter.deviceTypeEnum.Web: {
                 if (option.webFunction) {
-                    callBack(option.webFunction(map))
+                    let data=option.webFunction(map,callBack)
+                    if(data){
+                        callBack(data)
+                    }
                 } else {
                     glitter.$.ajax({
                         type: "POST",
@@ -230,6 +234,7 @@ export class Glitter {
             this.$(`#page` + this.pageConfig[index].id).show()
             this.$(`#` + this.pageConfig[index].id).show()
             this.pageConfig[index].createResource()
+            this.setUrlParameter('page', this.pageConfig[index].tag)
         } catch (e) {
         }
     }
@@ -321,45 +326,50 @@ export class Glitter {
     }
 
     public changePage(url: string, tag: string, goBack: boolean, obj: any) {
-        const glitter = this;
-        const config = {
-            id: glitter.getUUID(),
-            obj: obj,
-            goBack: true,
-            src: url,
-            tag: tag,
-            deleteResource: () => {
-            },
-            createResource: () => {}
-        }
-        glitter.nowPageConfig = config
-        for (let a = this.pageConfig.length - 1; a >= 0; a--) {
-            this.hidePageView(this.pageConfig[a].id)
-        }
-        let module=this.modelJsList.find((dd)=>{
-            return dd.src === url
-        })
-        glitter.getUUID()
-        if(module){
-            module.create(this)
-            const search = glitter.setSearchParam(glitter.removeSearchParam(glitter.window.location.search, "page"), "page", tag)
-            glitter.window.history.pushState({}, glitter.document.title, search);
-            glitter.pageConfig.push(config)
-            glitter.setUrlParameter('page', tag)
+        const glitter=this;
+        if(glitter.waitChangePage){
+            setTimeout(()=>{
+                glitter.changePage(url,tag,goBack,obj)
+            },100)
         }else{
-            this.addMtScript([{
+            glitter.waitChangePage=true
+            const config = {
+                id: glitter.getUUID(),
+                obj: obj,
+                goBack: true,
                 src: url,
-                type: 'module',
-                id: config.id
-            }], () => {
+                tag: tag,
+                deleteResource: () => {
+                },
+                createResource: () => {}
+            }
+            glitter.nowPageConfig = config
+            let module=this.modelJsList.find((dd)=>{
+                return dd.src === url
+            })
+            if(module){
+                module.create(this)
                 const search = glitter.setSearchParam(glitter.removeSearchParam(glitter.window.location.search, "page"), "page", tag)
                 glitter.window.history.pushState({}, glitter.document.title, search);
                 glitter.pageConfig.push(config)
-            }, () => {
-                console.log("can't find script src:" + url)
-            },{multiple:true})
+                glitter.setUrlParameter('page', tag)
+                glitter.waitChangePage=false
+            }else{
+                this.addMtScript([{
+                    src: url,
+                    type: 'module',
+                    id: config.id
+                }], () => {
+                    const search = glitter.setSearchParam(glitter.removeSearchParam(glitter.window.location.search, "page"), "page", tag)
+                    glitter.window.history.pushState({}, glitter.document.title, search);
+                    glitter.pageConfig.push(config)
+                    glitter.waitChangePage=false
+                }, () => {
+                    console.log("can't find script src:" + url)
+                    glitter.waitChangePage=false
+                },{multiple:true})
+            }
         }
-
     }
 
     public removePage(tag: string) {
@@ -590,16 +600,14 @@ export class Glitter {
     }
 
     public goMenu() {
-        const glitter = this;
-        let tempFrame: any[] = [];
-        tempFrame = tempFrame.concat(glitter.iframe[0]);
-        glitter.$('#' + glitter.iframe[0].pageIndex).show();
-        for (let i = 1; i < glitter.iframe.length; i++) {
-            glitter.$('#' + glitter.iframe[i].pageIndex).remove();
+        for (let a = this.pageConfig.length - 1; a >= 0; a--) {
+            if (a==0) {
+                this.showPageView(this.pageConfig[a].id)
+                break
+            } else {
+                this.hidePageView(this.pageConfig[a].id, true)
+            }
         }
-        glitter.iframe = tempFrame;
-        glitter.goBackStack = []
-        glitter.changePageListener(glitter.iframe[0].id);
     }
 
     public addChangePageListener(callback: (data: string) => void) {
@@ -692,6 +700,43 @@ export class Glitter {
         });
     }
 
+    public addStyle(style:string){
+        const glitter = this;
+        let sl = {
+            id: glitter.getUUID(),
+            style: style
+        }
+        if (!glitter.parameter.styleList.find((dd:any) => {
+            return dd.style === style
+        })) {
+            var css = document.createElement('style');
+            css.type = 'text/css';
+            css.id = sl.id
+            if ((css as any).styleSheet)
+                (css as any).styleSheet.cssText = style;
+            else
+                css.appendChild(document.createTextNode(style));
+            /* Append style to the tag name */
+            document.getElementsByTagName("head")[0].appendChild(css);
+            glitter.parameter.styleList.push(sl)
+        }
+    }
+
+    public addStyleLink(filePath: string) {
+        const gvc = this;
+        var head = document.head;
+        const id = gvc.getUUID()
+        var link = document.createElement("link");
+        link.type = "text/css";
+        link.rel = "stylesheet";
+        link.href = filePath;
+        link.id = id;
+        gvc.parameter.styleLinks.push({
+            id: id,
+            src: filePath
+        })
+        head.appendChild(link);
+    }
     /*util*/
     public ut = {
         glitter: this,

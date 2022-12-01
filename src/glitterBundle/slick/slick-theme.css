@@ -2,7 +2,7 @@
 /* Slider */
 .slick-loading .slick-list
 {
-    background: #fff url('lib/glitterBundle/slick/ajax-loader.gif') center center no-repeat;
+    background: #fff url('src/glitterBundle/slick/ajax-loader.gif') center center no-repeat;
 }
 
 /* Icons */
@@ -12,8 +12,8 @@
     font-weight: normal;
     font-style: normal;
 
-    src: url('lib/glitterBundle/slick/fonts/slick.eot');
-    src: url('lib/glitterBundle/slick/fonts/slick.eot?#iefix') format('embedded-opentype'), url('lib/glitterBundle/slick/fonts/slick.woff') format('woff'), url('lib/glitterBundle/slick/fonts/slick.ttf') format('truetype'), url('lib/glitterBundle/slick/fonts/slick.svg#slick') format('svg');
+    src: url('src/glitterBundle/slick/fonts/slick.eot');
+    src: url('src/glitterBundle/slick/fonts/slick.eot?#iefix') format('embedded-opentype'), url('src/glitterBundle/slick/fonts/slick.woff') format('woff'), url('src/glitterBundle/slick/fonts/slick.ttf') format('truetype'), url('src/glitterBundle/slick/fonts/slick.svg#slick') format('svg');
 }
 /* Arrows */
 .slick-prev,

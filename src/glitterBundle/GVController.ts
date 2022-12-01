@@ -203,7 +203,6 @@ export class GVC {
 
     public event(fun: (e: any,event:any) => void, noCycle?: string) {
             const gvc = this;
-        (window as any).clickMap = gvc.parameter.clickMap;
         if (noCycle === undefined) {
             gvc.parameter.clickID++
             gvc.parameter.clickMap[`${gvc.parameter.clickID}`] = {
@@ -355,15 +354,19 @@ export function init(fun: (gvc: GVC,glitter:Glitter, gBundle: any) => {
         $('#glitterPage').html('')
         $('.page-loading').remove();
     }
-    glitter.pageConfig.map((a) => {
-        $(`#page${a.id}`).hide()
-    })
-    $('#glitterPage').append(`<div id="page${gvc.parameter.pageConfig!.id}" style="min-width: 100%;min-height: 100%;">
+    $('#glitterPage').append(`<div id="page${gvc.parameter.pageConfig!.id}" style="min-width: 100%;min-height: 100%;position: absolute;left: 0;top: 0;background: transparent;display: none;">
 ${lifeCycle.onCreateView()}
 </div>`)
-    lifeCycle.onCreate()
+    glitter.pageConfig.map((a) => {
+        if(a.id !== gvc.parameter.pageConfig!.id){
+            glitter.hidePageView(a.id)
+        }
+    })
+    $(`#page${gvc.parameter.pageConfig!.id}`).show()
+    lifeCycle.onCreate();
+    (window as any).clickMap = gvc.parameter.clickMap;
     gvc.parameter.pageConfig!.createResource = () => {
-        (window as any).clickMap = gvc.parameter.clickMap
+        (window as any).clickMap = gvc.parameter.clickMap;
         var copyStyleList: { id: string, style: string }[] = JSON.parse(JSON.stringify(gvc.parameter.styleList))
         gvc.parameter.styleList = []
         copyStyleList.map((data) => {
