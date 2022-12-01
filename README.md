@@ -55,9 +55,9 @@
 
 "create": "node node_modules/@jianzhi.wang/glitter/create.js",  
 
-"start:tscAuto": "tsc --project tsconfig.json && tscpaths -p tsconfig.json -s ./src -o ./src && tsc -w",
+"start:tscAuto": "tsc --project tsconfig.json  && tsc -w",
 
-"release": "node node_modules/@jianzhi.wang/glitter/release.js  path=test",
+"release": "tsc --project tsconfig.json  && node node_modules/@jianzhi.wang/glitter/release.js  path=test",
 
 "install": "node node_modules/@jianzhi.wang/glitter/install.js"
 

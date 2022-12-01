@@ -16,7 +16,6 @@ try {
                 fs.copySync(`${original}/lib/${dd}`,`${src}/${dd}`);
             }
         })
-
         fs.copySync(`${original}/lib/glitterBundle`,`${src}/glitterBundle`);
         console.log("Glitter already exist so update glitterBundle ")
     }else{
