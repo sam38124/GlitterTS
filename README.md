@@ -1,5 +1,5 @@
 # GlitterTS 
-## A hybrid framework for web/ios/android
+### A hybrid framework for web/ios/android
 
 -------
 ### Step1.
