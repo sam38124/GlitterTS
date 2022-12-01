@@ -55,7 +55,7 @@ documents the different validators provided:
 
 ```js
 import React from 'react';
-import PropTypes from 'lib/glitterBundle/prop-types/prop-types';
+import PropTypes from 'src/glitterBundle/prop-types/prop-types';
 
 class MyComponent extends React.Component {
     render() {
