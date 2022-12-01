@@ -7,24 +7,26 @@
 -`npm install @jianzhi.wang/glitter`
 ### Step2. 
 #### Create an empty Glitter project：
--`
-"create": "node create.js",`
+-`node create.js`
 
 ### Step3.
 #### Auto build your Glitter project：
--`
-"start:tscAuto": "tsc --project tsconfig.json && tscpaths -p tsconfig.json -s ./src -o ./src && tsc -w"`
+-`tsc --project tsconfig.json && tscpaths -p tsconfig.json -s ./src -o ./src && tsc -w`
 
 ### Optional.
 #### Build your project to other dir and ignore ts file ：
--`"release": "node release.js  path=test"`
+-`node release.js  path=test`
 
 -------
 ### Sample
-`
+```
 "scripts": {
-"create": "node create.js",
+
+"create": "node create.js",  
+
 "start:tscAuto": "tsc --project tsconfig.json && tscpaths -p tsconfig.json -s ./src -o ./src && tsc -w",
+
 "release": "node release.js  path=test"
+
 }
-`
+```
