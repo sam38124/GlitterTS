@@ -20,7 +20,7 @@
 
 #### Auto build your Glitter project：
 
--```tsc --project tsconfig.json && tscpaths -p tsconfig.json -s ./src -o ./src && tsc -w```
+-```tsc --project tsconfig.json  && tsc -w```
 
 -------
 ### Dependency
