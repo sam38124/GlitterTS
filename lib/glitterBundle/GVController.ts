@@ -1,5 +1,5 @@
 "use strict";
-import {Glitter} from "./Glitter.js";
+import {Glitter} from './Glitter.js';
 
 const $: any = (window as any).$;
 
