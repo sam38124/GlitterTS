@@ -1,0 +1,17 @@
+/**
+ * Element parallax effect
+ * @requires https://github.com/dixonandmoe/rellax
+*/
+
+const elementParallax = (() => {
+  const el = document.querySelector('.rellax');
+
+  if (el === null) return;
+
+  const rellax = new Rellax('.rellax', {
+    horizontal: true
+  });
+
+})();
+
+export default elementParallax;
