@@ -160,7 +160,9 @@ export class GVC {
         }
     }
 
-    public bindView(map: (() => { view: () => string, bind: string, divCreate?: { elem?: string, style?: string, class?: string }, dataList?: [], onCreate?: () => void, initial?: () => void }) | { view: () => string, bind: string, divCreate?: { elem?: string, style?: string, class?: string }, dataList?: [], onCreate?: () => void, initial?: () => void }): string {
+    public bindView(map: (
+        () => { view: () => string, bind: string, divCreate?: { elem?: string, style?: string, class?: string }, dataList?: {obj:any,key:string}[], onCreate?: () => void, initial?: () => void }) |
+        { view: () => string, bind: string, divCreate?: { elem?: string, style?: string, class?: string }, dataList?:  {obj:any,key:string}[], onCreate?: () => void, initial?: () => void }): string {
         const gvc = this
 
         if (typeof map === "function") {

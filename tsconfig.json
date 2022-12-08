@@ -9,20 +9,17 @@
     "rootDir": "./src",
     "removeComments": true,
     "strict": true,
-    "baseUrl": "../lib",
+    "baseUrl": ".",
     "plugins": [
       { "transform": "typescript-transform-paths" },
       { "transform": "typescript-transform-paths", "afterDeclarations": true }
     ],
-    "paths": {
-      "@base/*": ["src/*"]
-    },
     "esModuleInterop": true,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true
   },
   "include": ["src"],
-  "exclude": ["node_modules"],
+  "exclude": ["node_modules","src/assets/vendor"],
   "ts-node": { "files": true }
 }
 

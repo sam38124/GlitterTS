@@ -170,7 +170,30 @@ export class Glitter {
             }
         }
     }
-
+    public postRequest (routName:string, functionName:string, data:any, callBack:(data:any)=>void, timeout?:number) {
+        const glitter=this
+        const $=this.$
+        let id = glitter.callBackId += 1;
+        glitter.callBackList.set(id, callBack);
+        let map = {
+            routName: routName,
+            functionName: functionName,
+            callBackId: id,
+            data: data
+        };
+        $.ajax({
+            type: "POST",
+            url: this.webUrl + "/PostApi",
+            data: JSON.stringify(map),
+            timeout: timeout,
+            success: function (data:any) {
+                callBack(JSON.parse(data));
+            },
+            error: function (data:any) {
+                callBack(undefined);
+            }
+        });
+    };
     public setSearchParam(search: string, name: string, value: string) {
         search = this.removeSearchParam(search, name);
         if (search === '') {

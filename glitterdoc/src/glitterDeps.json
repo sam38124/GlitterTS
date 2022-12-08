@@ -1,0 +1,8 @@
+{
+  "dependencies": [
+    {
+      "name": "slick.js",
+      "path": "https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.min.js"
+    }
+  ]
+}

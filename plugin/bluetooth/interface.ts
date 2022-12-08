@@ -8,7 +8,7 @@ interface Device {
     name: string
     address: string
     readHEX: string
-    readBytes: [number]
+    readBytes: number[]
     readUTF: string
 }
 
