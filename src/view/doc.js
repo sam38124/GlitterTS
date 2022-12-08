@@ -164,17 +164,17 @@ export class Doc {
         };
         this.addScript = () => {
             gvc.addMtScript([
-                'assets/vendor/bootstrap/dist/js/bootstrap.bundle.min.js',
-                'assets/vendor/smooth-scroll/dist/smooth-scroll.polyfills.min.js',
-                'assets/vendor/swiper/swiper-bundle.min.js',
-                'assets/vendor/prismjs/components/prism-core.min.js',
-                'assets/vendor/prismjs/components/prism-markup.min.js',
-                'assets/vendor/prismjs/components/prism-clike.min.js',
-                'assets/vendor/prismjs/plugins/toolbar/prism-toolbar.min.js',
-                'assets/vendor/prismjs/plugins/copy-to-clipboard/prism-copy-to-clipboard.min.js',
-                'assets/vendor/prismjs/plugins/line-numbers/prism-line-numbers.min.js',
+                './assets/vendor/bootstrap/dist/js/bootstrap.bundle.min.js',
+                './assets/vendor/smooth-scroll/dist/smooth-scroll.polyfills.min.js',
+                './assets/vendor/swiper/swiper-bundle.min.js',
+                './assets/vendor/prismjs/components/prism-core.min.js',
+                './assets/vendor/prismjs/components/prism-markup.min.js',
+                './assets/vendor/prismjs/components/prism-clike.min.js',
+                './assets/vendor/prismjs/plugins/toolbar/prism-toolbar.min.js',
+                './assets/vendor/prismjs/plugins/copy-to-clipboard/prism-copy-to-clipboard.min.js',
+                './assets/vendor/prismjs/plugins/line-numbers/prism-line-numbers.min.js',
                 'https://buttons.github.io/buttons.js',
-                'assets/js/theme.min.js',
+                './assets/js/theme.min.js',
                 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js'
             ].map((url) => { return { src: url }; }), () => {
                 try {
