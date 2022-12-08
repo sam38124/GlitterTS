@@ -18,7 +18,7 @@ export class Items {
                     },
                     {
                         text: 'Create', click: () => {
-                            location.href = 'index.html?page=getting-started/import'
+                             location.href = 'index.html?page=getting-started/import'
                         }
                     },
                     {
