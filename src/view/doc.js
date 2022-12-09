@@ -180,9 +180,11 @@ export class Doc {
                 return { src: url };
             }), () => {
                 try {
-                    document.querySelectorAll('pre code').forEach((el) => {
-                        window.hljs.highlightElement(el);
-                    });
+                    setTimeout(() => {
+                        document.querySelectorAll('pre code').forEach((el) => {
+                            window.hljs.highlightElement(el);
+                        });
+                    }, 100);
                 }
                 catch (_a) {
                 }
