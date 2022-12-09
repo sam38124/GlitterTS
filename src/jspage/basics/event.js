@@ -1,7 +1,7 @@
 import { init } from '../../glitterBundle/GVController.js';
-import { Doc } from "../../view/doc.js";
-import { Items } from "../page-config.js";
-import { Galary } from "../../view/galary.js";
+import { Doc } from '../../view/doc.js';
+import { Items } from '../page-config.js';
+import { Galary } from '../../view/galary.js';
 init((gvc, glitter, gBundle) => {
     const doc = new Doc(gvc);
     const gallary = new Galary(gvc);
@@ -25,10 +25,11 @@ init((gvc, glitter, gBundle) => {
             return gvc.bindView({
                 bind: glitter.getUUID(),
                 view: () => {
+                    const changeAccount=gvc.event((e, event) => {
+                        formData.account = e.value
+                    })
                     return \`<div class="d-flex flex-column">
-<input type="text" onchange="\${gvc.event((e, event) => {
-                                    formData.account = e.value
-                                })}" placeholder="please enter account"  value="\${formData.account}">
+<input type="text" onchange="\${changeAccount}" placeholder="please enter account"  value="\${formData.account}">
 <input type="password" onchange="\${gvc.event((e, event) => {
                                     formData.password = e.value
                                 })}" placeholder="please enter password" value="\${formData.password}">
@@ -43,8 +44,8 @@ init((gvc, glitter, gBundle) => {
     }
 })`, 'language-typescript')}
 </section>`;
-                    }
-                }
+                    },
+                },
             ];
             return doc.create(`
                  <div class="container-fluid px-xxl-5 px-lg-4 pt-4 pt-lg-5 pb-2 pb-lg-4" style="">
@@ -63,11 +64,11 @@ init((gvc, glitter, gBundle) => {
             })()}
       </div>
   
-            `, doc.asideScroller(sessions), new Items("Event", gvc));
+            `, doc.asideScroller(sessions), new Items('Event', gvc));
         },
         onCreate: () => {
             gallary.addScript();
             doc.addScript();
-        }
+        },
     };
 });
