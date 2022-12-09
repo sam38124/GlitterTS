@@ -197,9 +197,11 @@ export class Doc {
                 return {src: url}
             }), () => {
                 try {
-                    document.querySelectorAll('pre code').forEach((el) => {
-                        (window as any).hljs.highlightElement(el);
-                    });
+                    setTimeout(()=>{
+                        document.querySelectorAll('pre code').forEach((el) => {
+                            (window as any).hljs.highlightElement(el);
+                        });
+                    },100)
                 } catch {
 
                 }
