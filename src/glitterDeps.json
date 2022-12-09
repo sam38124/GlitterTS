@@ -3,6 +3,10 @@
     {
       "name": "slick.js",
       "path": "https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.min.js"
+    },
+    {
+      "name": "highlight.js",
+      "path": "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"
     }
   ]
 }

@@ -16,11 +16,11 @@ export class Galary {
         }
         this.addScript = () => {
             gvc.addMtScript([
-                'assets/vendor/lightgallery/lightgallery.min.js',
-                'assets/vendor/lightgallery/plugins/fullscreen/lg-fullscreen.min.js',
-                'assets/vendor/lightgallery/plugins/zoom/lg-zoom.min.js',
-                'assets/vendor/lightgallery/plugins/video/lg-video.min.js',
-                'assets/vendor/lightgallery/plugins/thumbnail/lg-thumbnail.min.js'].map((url)=>{
+                './assets/vendor/lightgallery/lightgallery.min.js',
+                './assets/vendor/lightgallery/plugins/fullscreen/lg-fullscreen.min.js',
+                './assets/vendor/lightgallery/plugins/zoom/lg-zoom.min.js',
+                './assets/vendor/lightgallery/plugins/video/lg-video.min.js',
+                './assets/vendor/lightgallery/plugins/thumbnail/lg-thumbnail.min.js'].map((url)=>{
                 return {src:url}
             }), () => {
             }, () => {

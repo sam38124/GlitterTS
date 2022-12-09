@@ -190,18 +190,21 @@ export class Doc {
                 './assets/vendor/prismjs/plugins/toolbar/prism-toolbar.min.js',
                 './assets/vendor/prismjs/plugins/copy-to-clipboard/prism-copy-to-clipboard.min.js',
                 './assets/vendor/prismjs/plugins/line-numbers/prism-line-numbers.min.js',
-                'https://buttons.github.io/buttons.js',
                 './assets/js/theme.min.js',
-                'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js'
-            ].map((url)=>{return {src:url}}), () => {
+                './glitterLib/highlight.js',
+                'https://buttons.github.io/buttons.js'
+            ].map((url) => {
+                return {src: url}
+            }), () => {
                 try {
                     document.querySelectorAll('pre code').forEach((el) => {
-                        ( window as any).hljs.highlightElement(el);
+                        (window as any).hljs.highlightElement(el);
                     });
-                }catch {
+                } catch {
 
                 }
-            }, () => { })
+            }, () => {
+            })
         }
         this.asideScroller = (item: { id: string, title: string }[]) => {
             let html = ''
@@ -244,24 +247,24 @@ ${gvc.bindView(() => {
             const id = glitter.getUUID()
             return `<div class="d-table">
             <ul class="nav nav-tabs-alt" role="tablist">
-              ${(()=>{
-                  var html=''
-                  data.previewString.map((dd,index)=>{
-                      html+=`<li class="nav-item">
-                <a class="nav-link ${(index == 0) ? "active":""}" href="#preview_${index}_${id}" data-bs-toggle="tab" role="tab" aria-controls="code_${index}_${id}" aria-selected="${index == 0}">
+              ${(() => {
+                var html = ''
+                data.previewString.map((dd, index) => {
+                    html += `<li class="nav-item">
+                <a class="nav-link ${(index == 0) ? "active" : ""}" href="#preview_${index}_${id}" data-bs-toggle="tab" role="tab" aria-controls="code_${index}_${id}" aria-selected="${index == 0}">
                   ${dd}
                 </a>
               </li>`
-                  })
-                  return html 
+                })
+                return html
             })()}
             </ul>
           </div>
           <div class="tab-content pt-1">
-             ${(()=>{
-                var html=''
-                data.tab.map((dd,index)=>{
-                    html+=`<div class="tab-pane fade ${(index == 0) ? "active":""} ${(index == 0) ? "show":""}" id="preview_${index}_${id}" role="tabpanel">
+             ${(() => {
+                var html = ''
+                data.tab.map((dd, index) => {
+                    html += `<div class="tab-pane fade ${(index == 0) ? "active" : ""} ${(index == 0) ? "show" : ""}" id="preview_${index}_${id}" role="tabpanel">
               ${dd}
             </div>`
                 })
@@ -270,8 +273,8 @@ ${gvc.bindView(() => {
           </div>`
         }
 
-        this.escape = (text:string)=>{
-            return text .replace(/&/g, "&")
+        this.escape = (text: string) => {
+            return text.replace(/&/g, "&")
                 .replace(/</g, "&lt;")
                 .replace(/>/g, "&gt;")
                 .replace(/"/g, "&quot;")

@@ -173,10 +173,12 @@ export class Doc {
                 './assets/vendor/prismjs/plugins/toolbar/prism-toolbar.min.js',
                 './assets/vendor/prismjs/plugins/copy-to-clipboard/prism-copy-to-clipboard.min.js',
                 './assets/vendor/prismjs/plugins/line-numbers/prism-line-numbers.min.js',
-                'https://buttons.github.io/buttons.js',
                 './assets/js/theme.min.js',
-                'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js'
-            ].map((url) => { return { src: url }; }), () => {
+                './glitterLib/highlight.js',
+                'https://buttons.github.io/buttons.js'
+            ].map((url) => {
+                return { src: url };
+            }), () => {
                 try {
                     document.querySelectorAll('pre code').forEach((el) => {
                         window.hljs.highlightElement(el);
@@ -184,7 +186,8 @@ export class Doc {
                 }
                 catch (_a) {
                 }
-            }, () => { });
+            }, () => {
+            });
         };
         this.asideScroller = (item) => {
             let html = '';
