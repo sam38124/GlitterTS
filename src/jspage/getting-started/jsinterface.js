@@ -34,7 +34,7 @@ init((gvc, glitter, gBundle) => {
             request.finish()
 })
         `, 'language-swift'),
-                                doc.codePlace(` glitterAct.addJavacScriptInterFace(interface: JavaScriptInterFace(functionName: "sample", function: {
+                                doc.codePlace(`glitterAct.addJavacScriptInterFace(interface: JavaScriptInterFace(functionName: "sample", function: {
             request in
             //Get data from javascript
             let message=request.receiveValue["message"]
@@ -57,8 +57,8 @@ init((gvc, glitter, gBundle) => {
                         return `
 <section id="${this.id}" class="border-bottom py-5 ps-lg-2 ps-xxl-0">
 <h2 class="h4">${this.title}</h2>
-<h2 class="fs-lg  fw-normal fw-500">Run glitter JavaScriptInterFace on webside.</h2>
-${doc.codePlace(` glitter.runJsInterFace("getDeviceType", {
+<h2 class="fs-lg  fw-normal fw-500">Run glitter JavaScriptInterFace on website.</h2>
+${doc.codePlace(` glitter.runJsInterFace("sample", {
             message: 'I am Glitter'
         }, function (response) {
             alert(\`Device type is \${response.data}\`)

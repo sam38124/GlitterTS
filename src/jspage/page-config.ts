@@ -24,6 +24,12 @@ export class Items {
                         },
                     },
                     {
+                        text: 'Backend Server',
+                        click: () => {
+                            location.href = 'index.html?page=getting-started/backend';
+                        },
+                    },
+                    {
                         text: 'Android',
                         click: () => {
                             location.href = 'index.html?page=getting-started/android';
@@ -34,13 +40,7 @@ export class Items {
                         click: () => {
                             location.href = 'index.html?page=getting-started/ios';
                         },
-                    },
-                    {
-                        text: 'JsInterFace',
-                        click: () => {
-                            location.href = 'index.html?page=getting-started/jsinterface';
-                        },
-                    },
+                    }
                 ],
             },
             {
@@ -94,6 +94,17 @@ export class Items {
                     //         location.href = 'index.html?page=test/use';
                     //     },
                     // },
+                ],
+            },
+            {
+                title: '<span class="text-danger me-1">★</span> Mobile',
+                option: [
+                    {
+                        text: 'JsInterFace',
+                        click: () => {
+                            location.href = 'index.html?page=getting-started/jsinterface';
+                        },
+                    }
                 ],
             }
         ];

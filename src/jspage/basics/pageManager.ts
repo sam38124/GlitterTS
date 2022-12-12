@@ -10,6 +10,40 @@ init((gvc, glitter, gBundle) => {
         onCreateView: () => {
             const sessions: { id: string; title: string; html: string }[] = [
                 {
+                    id:'URL Directly',
+                    title:'URL Directly',
+                    get html() {
+                        return `
+ <section id="${this.id}" class="border-bottom py-5 ps-lg-2 ps-xxl-0">
+                            <h2 class="h4">${this.title}</h2>
+                            <h2 class="fs-lg mb-2 fw-normal fw-500">You can change page by url link directly.</h2>
+                            ${doc.previewCode({
+                            previewString: [
+                                `<i class='bx bx-code fs-base opacity-70 me-2'></i>URL`,
+                                `<i class="bx bx-code fs-base opacity-70 me-2"></i>Entry`
+                            ],
+                            tab: [
+                                doc.codePlace(`location.href = 'index.html?page=getting-started/jsinterface';`, 'language-typescript'),
+                                doc.codePlace(`'use strict';
+import { Glitter } from './glitterBundle/Glitter.js';
+
+export class Entry {
+    public static onCreate(glitter: Glitter) {
+        // You can set home page directly by absolute path
+        glitter.setHome(
+            'jspage/' + (glitter.getUrlParameter('page') ?? 'jspage/home') + '.js',
+            glitter.getUrlParameter('page') ?? 'home',
+            {}
+        );
+    }
+}
+`, 'language-typescript'),
+                            ],
+                        })}
+                        </section>`;
+                    },
+                },
+                {
                     id: 'setHome',
                     title: 'Set Home',
                     get html() {
