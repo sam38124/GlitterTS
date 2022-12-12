@@ -21,18 +21,22 @@ init((gvc, glitter, gBundle) => {
            ${(() => {
                             var html = '';
                             var item = [
-                                'Using the SPA development mode it solves the high latency problem of embedded browsers with WebView',
-                                'Support MVC / MVVM / Databinding',
-                                '100% compatible - All JS / TS and native libraries like (SwiftPackage / JetPack / CocoPods) can be used through the Glitter javascript interface',
-                                'Glitter plugins can also be called on native code such as java / kotlin / swift / Objetive-C',
+                                'Build encapsulated components that manage their own lifecycle, then compose them to make complex UIs',
+                                'Using the SPA development mode it solves the high latency problem of embedded browsers with WebView.',
+                                'Support MVC / MVVM / Databinding.',
+                                '100% compatible - All JS/TS and native libraries like (SwiftPackage/JetPack/CocoPods) can be used through the Glitter javascript interface.',
+                                'Glitter plugins can also be called on native code such as java / kotlin / swift / Objetive-C.',
                                 'You can write additional plugins for your application for all development needs',
                                 'Very easy to do SEO management',
+                                'Very lightweight and easy to use'
                             ];
                             item.map((d3) => {
                                 html += `<h3 class="fs-lg fw-normal fw-500" style="line-height: 30px;">
-                       <i class="bx bxs-star text-warning me-1 mt-1" style="font-size: 20px;"> </i>
-                       ${d3}
-                   </h3>`;
+<i class='bx bxs-star text-warning' style="font-size: 20px;">
+
+</i>
+          ${d3}
+          </h3>`;
                             });
                             return html;
                         })()}
