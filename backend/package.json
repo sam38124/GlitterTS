@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start:local": "NODE_ENV=local nodemon --exec 'ts-node -r tsconfig-paths/register' ./src/index.ts"
+    "start:local": "NODE_ENV=local nodemon --exec 'ts-node -r tsconfig-paths/register' ../index.d.ts"
   },
   "author": "",
   "license": "ISC",

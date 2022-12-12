@@ -128,7 +128,7 @@ export class Glitter {
         }, callBack, option);
     };
 
-    public runJsInterFace(functionName: string, data: {}, callBack: (data: any) => void, option: { defineType?: any, webFunction?(data: {}, callback: (data: any) => void): any } = {}) {
+    public runJsInterFace(functionName: string, data: {}, callBack: (data: any) => void, option: { defineType?: any, webFunction?(data: any, callback: (data: any) => void): any } = {}) {
         const glitter = this
         let id = this.callBackId += 1;
         this.callBackList.set(id, callBack);

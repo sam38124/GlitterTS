@@ -1,22 +1,22 @@
 {
-  "name": "glitterts",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "create": "node node_modules/@jianzhi.wang/glitter/create.js",
-    "start:tscAuto": "tsc --project tsconfig.json  && tsc -w",
-    "release": "node node_modules/@jianzhi.wang/glitter/release.js  path=test",
-    "install": "node node_modules/@jianzhi.wang/glitter/install.js"
-  },
-  "author": "",
-  "license": "ISC",
-  "dependencies": {
-    "@types/jquery": "^3.5.14",
-    "@jianzhi.wang/glitter": "^1.0.36",
-    "ts-node": "^10.9.1",
-    "tscpaths": "^0.0.9",
-    "typescript": "~4.4.4"
-  }
+    "name": "glitterts",
+    "version": "1.0.0",
+    "description": "",
+    "main": "index.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "create": "node node_modules/@jianzhi.wang/glitter/create.js",
+        "start:tscAuto": "tsc --project tsconfig.json  && tsc -w",
+        "release": "node node_modules/@jianzhi.wang/glitter/release.js  path=test",
+        "install": "node node_modules/@jianzhi.wang/glitter/install.js"
+    },
+    "author": "",
+    "license": "ISC",
+    "dependencies": {
+        "@types/jquery": "^3.5.14",
+        "@jianzhi.wang/glitter": "^1.0.36",
+        "ts-node": "^10.9.1",
+        "tscpaths": "^0.0.9",
+        "typescript": "~4.4.4"
+    }
 }

@@ -5,6 +5,6 @@ export class Entry {
         window.mode = 'dark';
         window.root = document.getElementsByTagName('html')[0];
         window.root.classList.add('dark-mode');
-        glitter.setHome(`jspage/${(_a = glitter.getUrlParameter('page')) !== null && _a !== void 0 ? _a : "getting-started/introduction"}.js`, (_b = glitter.getUrlParameter('page')) !== null && _b !== void 0 ? _b : "getting-started/introduction", {});
+        glitter.setHome(`jspage/${(_a = glitter.getUrlParameter('page')) !== null && _a !== void 0 ? _a : 'getting-started/introduction'}.js`, (_b = glitter.getUrlParameter('page')) !== null && _b !== void 0 ? _b : 'getting-started/introduction', {});
     }
 }
