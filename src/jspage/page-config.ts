@@ -7,7 +7,6 @@ export class Items {
     }[];
 
     public constructor(selectItem: string, gvc: GVC) {
-        const glitter = gvc.glitter;
         this.items = [
             {
                 title: 'Getting started',
@@ -75,6 +74,12 @@ export class Items {
                         text: 'Components',
                         click: () => {
                             location.href = 'index.html?page=basics/components';
+                        },
+                    },
+                    {
+                        text: 'Method',
+                        click: () => {
+                            location.href = 'index.html?page=basics/method';
                         },
                     },
                     // {
