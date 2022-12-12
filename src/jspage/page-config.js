@@ -47,6 +47,12 @@ export class Items {
                         },
                     },
                     {
+                        text: 'Page Manager',
+                        click: () => {
+                            location.href = 'index.html?page=basics/pageManager';
+                        },
+                    },
+                    {
                         text: 'BindView',
                         click: () => {
                             location.href = 'index.html?page=basics/bindview';
@@ -62,12 +68,6 @@ export class Items {
                         text: 'Components',
                         click: () => {
                             location.href = 'index.html?page=basics/components';
-                        },
-                    },
-                    {
-                        text: 'test',
-                        click: () => {
-                            location.href = 'index.html?page=test/use';
                         },
                     },
                 ],

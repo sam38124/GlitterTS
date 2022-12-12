@@ -10,12 +10,12 @@ init((gvc, glitter, gBundle) => {
             const sessions = [
                 {
                     id: 'create',
-                    title: 'Create a component',
+                    title: 'Create a Component',
                     get html() {
                         return `
 <section id="${this.id}" class="border-bottom py-5 ps-lg-2 ps-xxl-0">
 <h2 class="h4">${this.title}</h2>
-<h2 class="fs-lg mb-2 fw-normal fw-500 mb-2 ">Import GVC, create a basic component.</h2>
+<h2 class="fs-lg mb-2 fw-normal fw-500">Import GVC, create a basic component.</h2>
 ${doc.codePlace(`
 /* 匯入 GVC */
 import { GVC } from '../../glitterBundle/GVController.js';
@@ -41,7 +41,7 @@ export class Hello {
                         return `
 <section id="${this.id}" class="border-bottom py-5 ps-lg-2 ps-xxl-0">
 <h2 class="h4">${this.title}</h2>
-<h2 class="fs-lg mb-2 fw-normal fw-500 mb-2 ">Import hello.js, new a class and call function.</h2>
+<h2 class="fs-lg mb-2 fw-normal fw-500">Import hello.js, new a class and call function.</h2>
 ${doc.codePlace(`
 /* 引入 Hello 的檔案與類別 */
 import { init } from '../../glitterBundle/GVController.js';
@@ -62,12 +62,12 @@ init((gvc, glitter, gBundle) => {
                 },
                 {
                     id: 'expand',
-                    title: 'Expand components',
+                    title: 'Expand Components',
                     get html() {
                         return `
 <section id="${this.id}" class="border-bottom py-5 ps-lg-2 ps-xxl-0">
 <h2 class="h4">${this.title}</h2>
-<h2 class="fs-lg mb-2 fw-normal fw-500 mb-2 ">Disassemble the component, different UIs give different methods</h2>
+<h2 class="fs-lg mb-2 fw-normal fw-500">Disassemble the component, different UIs give different methods</h2>
 ${doc.codePlace(`
     import { GVC } from '../../glitterBundle/GVController.js';
 
@@ -121,12 +121,12 @@ ${doc.codePlace(`
                 },
                 {
                     id: 'example',
-                    title: 'Show example',
+                    title: 'Show Example',
                     get html() {
                         return `
 <section id="${this.id}" class="border-bottom py-5 ps-lg-2 ps-xxl-0">
 <h2 class="h4">${this.title}</h2>
-<h2 class="fs-lg mb-2 fw-normal fw-500 mb-2 ">Get personal infomation (JSON), let code changes can be dynamic and manageable </h2>
+<h2 class="fs-lg mb-2 fw-normal fw-500">Get personal infomation (JSON), let code changes can be dynamic and manageable.</h2>
 ${doc.codePlace(`
 import { init } from '../../glitterBundle/GVController.js';
 import { Hello } from './hello.js';

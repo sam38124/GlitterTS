@@ -10,39 +10,48 @@ init((gvc, glitter, gBundle) => {
             const sessions = [
                 {
                     id: `AddEvent`,
-                    title: '<span class="text-danger me-1">★</span>Add event',
+                    title: '<span class="text-danger me-1">★</span>Add Event',
                     get html() {
                         return `
 <section id="${this.id}" class="border-bottom py-5 ps-lg-2 ps-xxl-0">
 <h2 class="h4">${this.title}</h2>
-<h2 class="fs-lg mb-2 fw-normal fw-500 mb-2 ">You can use gvc.event to receive event from element.</h2>
-${doc.codePlace(`import {init} from '../glitterBundle/GVController.js'
+<h2 class="fs-lg mb-2 fw-normal fw-500">You can use gvc.event to receive event from element.</h2>
+${doc.codePlace(`import { init } from '../glitterBundle/GVController.js';
 
 init((gvc, glitter, gBundle) => {
     return {
         onCreateView: () => {
-            const formData: { account: string, password: string } = {account:'memory account',password:'memory password'}
+            const formData: { account: string; password: string } = { account: 'memory account', password: 'memory password' };
             return gvc.bindView({
                 bind: glitter.getUUID(),
                 view: () => {
-                    const changeAccount=gvc.event((e, event) => {
-                        formData.account = e.value
-                    })
+                    const changeAccount = gvc.event((e, event) => {
+                        formData.account = e.value;
+                    });
                     return \`<div class="d-flex flex-column">
-<input type="text" onchange="\${changeAccount}" placeholder="please enter account"  value="\${formData.account}">
-<input type="password" onchange="\${gvc.event((e, event) => {
+                        <input type="text" onchange="\${changeAccount}" placeholder="please enter account" value="\${formData.account}" />
+                        <input
+                            type="password"
+                            onchange="\${gvc.event((e, event) => {
                                     formData.password = e.value
-                                })}" placeholder="please enter password" value="\${formData.password}">
-<button class="btn" onclick="\${gvc.event(() => {
-                                    console.log(JSON.stringify(formData))
-                                })}">submit</button>
-</div>\`
+                                })}"
+                            placeholder="please enter password"
+                            value="\${formData.password}"
+                        />
+                        <button
+                            class="btn"
+                            onclick="\${gvc.event(() => console.log(JSON.stringify(formData)))}"
+                        >
+                            submit
+                        </button>
+                    </div>\`;
                 },
-                divCreate: {}
-            })
+                divCreate: {},
+            });
         },
-    }
-})`, 'language-typescript')}
+    };
+});
+`, 'language-typescript')}
 </section>`;
                     },
                 },
@@ -52,7 +61,7 @@ init((gvc, glitter, gBundle) => {
         <div class="d-sm-flex align-items-end justify-content-between ps-lg-2 ps-xxl-0 mt-2 mt-lg-0 pt-4 mb-n3 border-bottom pb-2">
           <div class="me-4">
              <h1 class="pb-1">Event</h1>
-           <h2 class="fs-lg mb-2 fw-normal fw-500">Use gvc.event to define element operations</h2>
+           <h2 class="fs-lg mb-2 fw-normal fw-500">Use gvc.event to define element operations.</h2>
           </div>
         </div>
         ${(() => {
