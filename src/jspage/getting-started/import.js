@@ -16,7 +16,7 @@ init((gvc, glitter, gBundle) => {
 <section id="${this.id}" class="border-bottom py-5 ps-lg-2 ps-xxl-0">
 <h2 class="h4">${this.title}</h2>
 <h2 class="fs-lg mb-2 fw-normal fw-500 mb-2"> Add glitter plugin by npm.</h2>
-${doc.codePlace('npm install @jianzhi.wang/glitter', 'language-kotlin')}
+${doc.codePlace('npm install @jianzhi.wang/glitter', 'language-cmd')}
 </section>`;
                     },
                 },
@@ -35,7 +35,7 @@ ${doc.previewCode({
                             ],
                             tab: [
                                 `<img src="img/create/emptydir.png" class="rounded-3 " style="max-width: 100%;width: 500px;">`,
-                                doc.codePlace('node node_modules/@jianzhi.wang/glitter/create.js"', 'language-kotlin'),
+                                doc.codePlace('node node_modules/@jianzhi.wang/glitter/create.js"', 'language-cmd'),
                             ],
                         })}
 </section>`;
@@ -49,7 +49,7 @@ ${doc.previewCode({
 <section id="${this.id}" class="border-bottom py-5 ps-lg-2 ps-xxl-0">
 <h2 class="h4">${this.title}</h2>
 <h2 class="fs-lg mb-2 fw-normal fw-500 mb-2 ">Auto build your Glitter project.</h2>
-${doc.codePlace('tsc --project tsconfig.json && tsc -w', 'language-kotlin')}
+${doc.codePlace('tsc --project tsconfig.json && tsc -w', 'language-cmd')}
 </section>`;
                     },
                 },
@@ -88,8 +88,8 @@ ${doc.previewCode({
             "path": "https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.min.js"
         }
     ]
-}`, 'language-kotlin'),
-                                doc.codePlace(`"install": "node node_modules/@jianzhi.wang/glitter/install.js"`, 'language-kotlin'),
+}`, 'language-json'),
+                                doc.codePlace(`"install": "node node_modules/@jianzhi.wang/glitter/install.js"`, 'language-json'),
                                 `<img src="img/glitterdeps.png" class="rounded-3 " style="max-width: 100%;width: 500px;">`,
                             ],
                         })}
@@ -106,7 +106,7 @@ ${doc.previewCode({
 <h2 class="fs-lg mb-2 fw-normal fw-500 mb-2 ">Build your project to other dir and ignore ts file.</h2>
 ${doc.previewCode({
                             previewString: [`<i class="bx bx-code fs-base opacity-70 me-2"></i> script`],
-                            tab: [doc.codePlace(`"release": "node node_modules/@jianzhi.wang/glitter/release.js path=mypath"`, 'language-kotlin')],
+                            tab: [doc.codePlace(`"release": "node node_modules/@jianzhi.wang/glitter/release.js path=mypath"`, 'language-json')],
                         })}
 </section>`;
                     },

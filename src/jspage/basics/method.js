@@ -18,7 +18,7 @@ init((gvc, glitter, gBundle) => {
                     get html() {
                         return ` <section id="${this.id}" class="border-bottom py-5 ps-lg-2 ps-xxl-0">
                             <h2 class="h4">${this.title}</h2>
-                            <h2 class="fs-lg mb-2 fw-normal fw-500">Get a 8-4-4-4-12 format string is based on the record layout for the 16 bytes of the UUID</h2>
+                            <h2 class="fs-lg mb-2 fw-normal fw-500">Get a 8-4-4-4-12 format string is based on the record layout for the 16 bytes of the UUID.</h2>
                             ${doc.codePlace(`
 const mainID = glitter.getUUID();
 console.log(mainID);
@@ -65,10 +65,12 @@ glitter.removeCookie(['name', 'token', 'account']);
                             previewString: [
                                 `<i class='bx bx-code fs-base opacity-70 me-2'></i>Set`,
                                 `<i class="bx bx-code fs-base opacity-70 me-2"></i>Get`,
+                                `<i class="bx bx-code fs-base opacity-70 me-2"></i>Remove`,
                             ],
                             tab: [
                                 doc.codePlace(`glitter.setUrlParameter('name', 'John')`, 'language-typescript'),
                                 doc.codePlace(`glitter.getUrlParameter('name')`, 'language-typescript'),
+                                doc.codePlace(`glitter.removeSearchParam('name')`, 'language-typescript'),
                             ],
                         })}
                         </section>`;
@@ -76,7 +78,7 @@ glitter.removeCookie(['name', 'token', 'account']);
                 },
                 {
                     id: 'frSize',
-                    title: 'frSIZE?',
+                    title: 'Responsive Web Design & Data',
                     get html() {
                         return ` <section id="${this.id}" class="border-bottom py-5 ps-lg-2 ps-xxl-0">
                             <h2 class="h4">${this.title}</h2>
