@@ -11,5 +11,6 @@ export class Entry {
             glitter.getUrlParameter('page') ?? 'getting-started/introduction',
             {}
         );
+
     }
 }

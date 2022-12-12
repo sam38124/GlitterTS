@@ -28,6 +28,12 @@ export class Items {
                             location.href = 'index.html?page=getting-started/ios';
                         },
                     },
+                    {
+                        text: 'JsInterFace',
+                        click: () => {
+                            location.href = 'index.html?page=getting-started/jsinterface';
+                        },
+                    },
                 ],
             },
             {
@@ -76,7 +82,7 @@ export class Items {
                         },
                     },
                 ],
-            },
+            }
         ];
         this.items.map((dd) => {
             dd.option.map((d2) => {
