@@ -88,6 +88,12 @@ export class Items {
                             location.href = 'index.html?page=basics/method';
                         },
                     },
+                    {
+                        text: 'Funnel',
+                        click: () => {
+                            location.href = 'index.html?page=basics/funnel';
+                        },
+                    },
                     // {
                     //     text: 'test',
                     //     click: () => {
@@ -95,7 +101,7 @@ export class Items {
                     //     },
                     // },
                 ],
-            }
+            },
         ];
         this.items.map((dd) => {
             dd.option.map((d2) => {

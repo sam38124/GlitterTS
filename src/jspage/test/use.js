@@ -1,17 +1,19 @@
 import { init } from '../../glitterBundle/GVController.js';
-import { Hello } from './hello.js';
-init((gvc, glitter, gBundle) => {
+import { Funnel } from '../../glitterBundle/funnel.js';
+init((gvc) => {
+    const funnel = new Funnel(gvc);
     return {
         onCreateView: () => {
-            const hello = new Hello(gvc);
-            const info = {
-                name: 'Jackson Lee',
-                birthday: '1998-07-15',
-                age: 24,
-                license: true,
-                text: 'This is my info!',
-            };
-            return hello.introduction(info);
+            return funnel.optionSreach({
+                path: '127.0.0.1/api/order?title=',
+                key: 'name',
+                def: '001-205-ORDER',
+                height: 15,
+                setTime: 500,
+                multi: true,
+            }, (res) => {
+                const clickOption = res;
+            });
         },
     };
 });
