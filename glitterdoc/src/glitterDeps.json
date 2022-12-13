@@ -1,8 +1,12 @@
 {
-  "dependencies": [
-    {
-      "name": "slick.js",
-      "path": "https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.min.js"
-    }
-  ]
+    "dependencies": [
+        {
+            "name": "bluetooth.ts",
+            "path": "https://raw.githubusercontent.com/sam38124/GlitterTS/main/plugin/bluetooth/interface.ts"
+        },
+        {
+            "name": "highlight.js",
+            "path": "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"
+        }
+    ]
 }

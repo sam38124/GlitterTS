@@ -128,7 +128,7 @@ export class Glitter {
         }, callBack, option);
     };
 
-    public runJsInterFace(functionName: string, data: {}, callBack: (data: any) => void, option: { defineType?: any, webFunction?(data: {}, callback: (data: any) => void): any } = {}) {
+    public runJsInterFace(functionName: string, data: {}, callBack: (data: any) => void, option: { defineType?: any, webFunction?(data: any, callback: (data: any) => void): any } = {}) {
         const glitter = this
         let id = this.callBackId += 1;
         this.callBackList.set(id, callBack);
@@ -1027,10 +1027,10 @@ export class Glitter {
         this.document.cookie = `${key}=${value}; max-age=${oneYear}; path=/`;
     }
 
-    public removeCookie(keyList: string[] | string) {
+    public removeCookie(keyList?: string[]) {
         if (Array.isArray(keyList)) {
             keyList.map((k) => (this.document.cookie = `${k}=''; max-age=-99999999; path=/`));
-        } else if (keyList == '*') {
+        } else if (keyList === undefined) {
             let list = this.document.cookie.split('; ');
             list.map((l: any) => (this.document.cookie = `${l.split('=')[0]}=''; max-age=-99999999; path=/`));
         }

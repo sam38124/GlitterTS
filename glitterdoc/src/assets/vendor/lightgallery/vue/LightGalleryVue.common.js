@@ -2279,7 +2279,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
     if (descriptor && descriptor.get !== getCurrentScript && document.currentScript) {
       return document.currentScript
     }
-  
+
     // IE 8-10 support script readyState
     // IE 11+ & Firefox support stack trace
     try {
@@ -2297,24 +2297,24 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
         inlineScriptSourceRegExp,
         inlineScriptSource,
         scripts = document.getElementsByTagName('script'); // Live NodeList collection
-  
+
       if (scriptLocation === currentLocation) {
         pageSource = document.documentElement.outerHTML;
         inlineScriptSourceRegExp = new RegExp('(?:[^\\n]+?\\n){0,' + (line - 2) + '}[^<]*<script>([\\d\\D]*?)<\\/script>[\\d\\D]*', 'i');
         inlineScriptSource = pageSource.replace(inlineScriptSourceRegExp, '$1').trim();
       }
-  
+
       for (var i = 0; i < scripts.length; i++) {
         // If ready state is interactive, return the script tag
         if (scripts[i].readyState === 'interactive') {
           return scripts[i];
         }
-  
+
         // If src matches, return the script tag
         if (scripts[i].src === scriptLocation) {
           return scripts[i];
         }
-  
+
         // If inline source matches, return the script tag
         if (
           scriptLocation === currentLocation &&
@@ -2324,7 +2324,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
           return scripts[i];
         }
       }
-  
+
       // If no match, return null
       return null;
     }
@@ -8870,7 +8870,7 @@ var lightgallery_LightGallery = /*#__PURE__*/function () {
 
   return LightGallery;
 }();
-// CONCATENATED MODULE: ../src/index.ts
+// CONCATENATED MODULE: ../src/index.d.ts
 
 
 function lightGallery(el, options) {
@@ -9019,7 +9019,7 @@ LightGalleryvue_type_script_lang_ts_Lightgallery = __decorate([Options({
 })], LightGalleryvue_type_script_lang_ts_Lightgallery);
 /* harmony default export */ var LightGalleryvue_type_script_lang_ts = (LightGalleryvue_type_script_lang_ts_Lightgallery);
 // CONCATENATED MODULE: ./src/components/LightGallery.vue?vue&type=script&lang=ts
- 
+
 // CONCATENATED MODULE: ./src/components/LightGallery.vue
 
 
