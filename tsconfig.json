@@ -5,21 +5,24 @@
     "module": "es6",
     "declaration": false,
     "sourceMap": false,
-    "outDir": "",
-    "rootDir": "",
+    "outDir": "./src",
+    "rootDir": "./src",
     "removeComments": true,
     "strict": true,
-    "baseUrl": ".",
+    "baseUrl": "../lib",
     "plugins": [
       { "transform": "typescript-transform-paths" },
       { "transform": "typescript-transform-paths", "afterDeclarations": true }
     ],
+    "paths": {
+      "@base/*": ["src/*"]
+    },
     "esModuleInterop": true,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true
   },
-  "include": ["lib"],
-  "exclude": ["node_modules","src/assets/vendor"],
+  "include": ["src"],
+  "exclude": ["node_modules"],
   "ts-node": { "files": true }
 }
 
