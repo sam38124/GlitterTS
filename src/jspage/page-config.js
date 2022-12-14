@@ -87,6 +87,12 @@ export class Items {
                             location.href = 'index.html?page=basics/funnel';
                         },
                     },
+                    {
+                        text: 'test',
+                        click: () => {
+                            location.href = 'index.html?page=test/use';
+                        },
+                    },
                 ],
             },
             {
