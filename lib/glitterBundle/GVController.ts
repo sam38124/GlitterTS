@@ -324,6 +324,13 @@ export class GVC {
         return `${gvc.parameter.pageConfig!.id}${id}`
     }
 
+    public map(array:string[]){
+        let html=''
+        array.map((d)=>{
+            html+=d
+        })
+        return html
+    }
 }
 
 
