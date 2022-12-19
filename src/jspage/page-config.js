@@ -64,6 +64,12 @@ export class Items {
                         },
                     },
                     {
+                        text: 'GVC.Map',
+                        click: () => {
+                            location.href = 'index.html?page=basics/map';
+                        },
+                    },
+                    {
                         text: 'Event',
                         click: () => {
                             location.href = 'index.html?page=basics/event';
