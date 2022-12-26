@@ -37,6 +37,20 @@ export class Items {
                 ],
             },
             {
+                title: '<span class="text-danger me-1">★</span> Plugin',
+                option: [{
+                        text: 'Develop own plugin',
+                        click: () => {
+                            location.href = 'index.html?page=getting-started/jsinterface';
+                        },
+                    }, {
+                        text: 'Official plugin',
+                        click: () => {
+                            location.href = 'index.html?page=plugin/official';
+                        },
+                    }]
+            },
+            {
                 title: '<span class="text-danger me-1">★</span> Basics',
                 option: [
                     {
@@ -92,20 +106,9 @@ export class Items {
                         click: () => {
                             location.href = 'index.html?page=basics/funnel';
                         },
-                    },
+                    }
                 ],
-            },
-            {
-                title: '<span class="text-danger me-1">★</span> Mobile',
-                option: [
-                    {
-                        text: 'JsInterFace',
-                        click: () => {
-                            location.href = 'index.html?page=getting-started/jsinterface';
-                        },
-                    },
-                ],
-            },
+            }
         ];
         this.items.map((dd) => {
             dd.option.map((d2) => {
