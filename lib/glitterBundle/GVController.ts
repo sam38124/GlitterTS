@@ -204,7 +204,7 @@ export class GVC {
     }
 
     public event(fun: (e: any,event:any) => void, noCycle?: string) {
-            const gvc = this;
+        const gvc = this;
         if (noCycle === undefined) {
             gvc.parameter.clickID++
             gvc.parameter.clickMap[`${gvc.parameter.clickID}`] = {
@@ -363,7 +363,7 @@ export function init(fun: (gvc: GVC,glitter:Glitter, gBundle: any) => {
         $('#glitterPage').html('')
         $('.page-loading').remove();
     }
-    $('#glitterPage').append(`<div id="page${gvc.parameter.pageConfig!.id}" style="min-width: 100%;min-height: 100%;position: absolute;left: 0;top: 0;background: transparent;display: none;">
+    $('#glitterPage').append(`<div id="page${gvc.parameter.pageConfig!.id}" style="min-width: 100%;min-height: 100%;left: 0;top: 0;background: transparent;display: none;">
 ${lifeCycle.onCreateView()}
 </div>`)
     glitter.pageConfig.map((a) => {

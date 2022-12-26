@@ -44,6 +44,18 @@ Glitter.setUP(app, [{
                     },
                 },
                 {
+                    id: `Default`,
+                    title: 'Default',
+                    get html() {
+                        return `
+<section id="${this.id}" class="border-bottom py-5 ps-lg-2 ps-xxl-0">
+<h2 class="h4">${this.title}</h2>
+<h2 class="fs-lg mb-2 fw-normal fw-500 mb-2"> Or  use default config for express server in backend_default dir．</h2>
+   <img src="img/auto_backend.png" class="rounded-3 " style="max-width: 100%; width: 600px;" />
+</section>`;
+                    },
+                },
+                {
                     id: 'SEOManager',
                     title: 'SEOManager',
                     get html() {

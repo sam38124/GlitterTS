@@ -92,7 +92,7 @@ ${  doc.codePlace(
         <div class="d-sm-flex align-items-end justify-content-between ps-lg-2 ps-xxl-0 mt-2 mt-lg-0 pt-4 mb-n3 border-bottom pb-2">
           <div class="me-4">
              <h1 class="pb-1">JsInterface</h1>
-           <h2 class="fs-lg mb-2 fw-normal fw-500">Bridge native code by glitter jsInterface</h2>
+           <h2 class="fs-lg mb-2 fw-normal fw-500">You can develop plugin by youself and use jsInterface to bridge native code．</h2>
           </div>
         </div>
         ${(() => {
@@ -106,7 +106,7 @@ ${  doc.codePlace(
   
             `,
                 doc.asideScroller(sessions),
-                new Items('JsInterFace', gvc)
+                new Items('Develop own plugin', gvc)
             );
         },
         onCreate: () => {

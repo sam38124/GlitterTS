@@ -27,7 +27,7 @@ ${doc.codePlace('npm install @jianzhi.wang/glitter', 'language-cmd')}
                         return `
 <section id="${this.id}" class="border-bottom py-5 ps-lg-2 ps-xxl-0">
 <h2 class="h4">${this.title}</h2>
-<h2 class="fs-lg mb-2 fw-normal fw-500 mb-2 ">Create an empty glitter project.</h2>
+<h2 class="fs-lg mb-2 fw-normal fw-500 mb-2 ">Create or update glitter project.</h2>
 ${doc.previewCode({
                             previewString: [
                                 `<i class="bx bx-show-alt fs-base opacity-70 me-2"></i> result`,
@@ -35,7 +35,7 @@ ${doc.previewCode({
                             ],
                             tab: [
                                 `<img src="img/create/emptydir.png" class="rounded-3 " style="max-width: 100%;width: 500px;">`,
-                                doc.codePlace('node node_modules/@jianzhi.wang/glitter/create.js"', 'language-cmd'),
+                                doc.codePlace('node node_modules/@jianzhi.wang/glitter/create.js', 'language-cmd'),
                             ],
                         })}
 </section>`;

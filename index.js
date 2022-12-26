@@ -9,12 +9,12 @@ function setUP(express, rout) {
                 var fullPath = dd.path + req.path;
                 var data = fs.readFileSync(fullPath, 'utf8');
                 var seoPath = fs.readFileSync(fullPath.substring(0, fullPath.indexOf('/index.html')) + '/SEOManager.js', 'utf8');
-                var headerString = eval((seoPath) + "(header[\"" + req.query["page"] + "\"] ?? header[\"default\"])();");
+                var headerString = eval("".concat((seoPath), "(header[\"").concat(req.query["page"], "\"] ?? header[\"default\"])();"));
                 resp.header('Content-Type', 'text/html; charset=UTF-8');
                 return resp.send(data.replace('<%HEAD%>', headerString));
             }
             else {
-                return resp.sendFile((dd.path + req.path));
+                return resp.sendFile((dd.path + req.path.replace(/%20/g, " ")));
             }
         });
     });

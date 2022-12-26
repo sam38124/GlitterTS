@@ -1,11 +1,11 @@
 {
   "name": "@jianzhi.wang/glitter",
-  "version": "1.0.48",
+  "version": "1.0.53",
   "description": "",
   "main": "index.js",
   "scripts": {
     "create": "node create.js",
-    "start:tscAuto": "tsc",
+    "start:tscAuto": "tsc index.ts",
     "release": "node release.js  path=test",
     "install": "node install.js"
   },

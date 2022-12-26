@@ -33,8 +33,22 @@ export class Items {
                         click: () => {
                             location.href = 'index.html?page=getting-started/ios';
                         },
-                    }
+                    },
                 ],
+            },
+            {
+                title: '<span class="text-danger me-1">★</span> Plugin',
+                option: [{
+                        text: 'Develop own plugin',
+                        click: () => {
+                            location.href = 'index.html?page=getting-started/jsinterface';
+                        },
+                    }, {
+                        text: 'Official plugin',
+                        click: () => {
+                            location.href = 'index.html?page=plugin/official';
+                        },
+                    }]
             },
             {
                 title: '<span class="text-danger me-1">★</span> Basics',
@@ -64,6 +78,12 @@ export class Items {
                         },
                     },
                     {
+                        text: 'GVC.Map',
+                        click: () => {
+                            location.href = 'index.html?page=basics/map';
+                        },
+                    },
+                    {
                         text: 'Event',
                         click: () => {
                             location.href = 'index.html?page=basics/event';
@@ -81,15 +101,10 @@ export class Items {
                             location.href = 'index.html?page=basics/method';
                         },
                     },
-                ],
-            },
-            {
-                title: '<span class="text-danger me-1">★</span> Mobile',
-                option: [
                     {
-                        text: 'JsInterFace',
+                        text: 'Funnel',
                         click: () => {
-                            location.href = 'index.html?page=getting-started/jsinterface';
+                            location.href = 'index.html?page=basics/funnel';
                         },
                     }
                 ],

@@ -13,7 +13,7 @@ export function setUP(express: core.Express, rout: { rout: string, path: string 
                 resp.header('Content-Type', 'text/html; charset=UTF-8')
                 return resp.send(data.replace('<%HEAD%>', headerString))
             } else {
-                return resp.sendFile((dd.path + req.path))
+                return resp.sendFile((dd.path + req.path.replace(/%20/g," ")))
             }
 
         })

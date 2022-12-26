@@ -23,6 +23,7 @@ try {
         fs.copySync(`${original}/static/tsconfig.json`, 'tsconfig.json');
         console.log('Create finish');
     }
+    fs.copySync(`${original}/backend_default`, 'backend_default');
 } catch (e) {
     console.log(e);
 }
