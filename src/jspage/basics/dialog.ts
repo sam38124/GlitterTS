@@ -23,6 +23,8 @@ init((gvc, glitter, gBundle) => {
                             <h2 class="h4">${this.title}</h2>
                             <h2 class="fs-lg mb-2 fw-normal fw-500">Use glitter.openDiaLog to show dialog.</h2>
                             ${doc.codePlace(`glitter.openDiaLog('dialog/myDialog.js','myDialog',{})`, 'language-typescript')}
+                             <h2 class="fs-lg mb-2 fw-normal fw-500 mt-2">With animation.</h2>
+                             ${doc.codePlace(`glitter.openDiaLog('dialog/myDialog.js','myDialog',{},{animation:glitter.animation.fade})`, 'language-typescript')}
                         </section>`;
                     },
                 },
