@@ -79,21 +79,9 @@ export class Items {
                         },
                     },
                     {
-                        text: 'BindView',
+                        text: 'Dialog',
                         click: () => {
-                            location.href = 'index.html?page=basics/bindview';
-                        },
-                    },
-                    {
-                        text: 'GVC.Map',
-                        click: () => {
-                            location.href = 'index.html?page=basics/map';
-                        },
-                    },
-                    {
-                        text: 'Event',
-                        click: () => {
-                            location.href = 'index.html?page=basics/event';
+                            location.href = 'index.html?page=basics/dialog';
                         },
                     },
                     {

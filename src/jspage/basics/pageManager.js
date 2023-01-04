@@ -110,6 +110,58 @@ ${doc.codePlace(`glitter.goMenu();`, 'language-typescript')}
 </section>`;
                     },
                 },
+                {
+                    id: 'animation',
+                    title: 'Option-Animation',
+                    get html() {
+                        return `
+<section id="${this.id}" class="border-bottom py-5 ps-lg-2 ps-xxl-0">
+<h2 class="h4">${this.title}</h2>
+<h2 class="fs-lg mb-2 fw-normal fw-500">Change page with animation.</h2>
+    ${doc.previewCode({
+                            previewString: [
+                                `<i class='bx bx-code fs-base opacity-70 me-2'></i>Default`,
+                                `<i class="bx bx-code fs-base opacity-70 me-2"></i>Custom`
+                            ],
+                            tab: [
+                                doc.codePlace(`    /**
+    * The default animation you can use
+    * Slide - [glitter.animation.rightToLeft]
+    * Fade - [glitter.animation.fade]
+    * */
+        
+    //Function.1: Set default style for all page
+    glitter.defaultSetting.defaultAnimation = glitter.animation.fade
+    //Function.2: Set for specific page
+    glitter.changePage('page/mypage.js','mytag',true,{},{animation:glitter.animation.rightToLeft})
+                                `, 'language-typescript'),
+                                doc.codePlace(`     //Define your animation.
+     const fade = new AnimationConfig((page: PageConfig, finish: () => void) => {
+        page.getElement().css("opacity", "0.1")
+        page.getElement().animate({"opacity": "1"}, 500);
+        setTimeout(() => {
+            finish()
+        }, 500)
+    }, (page: PageConfig, finish: () => void) => {
+        page.getElement().addClass('position-absolute')
+        page.getElement().css("opacity", "1.0")
+        page.getElement().animate({"opacity": "0.1"}, 500);
+        setTimeout(() => {
+            finish()
+        }, 450)
+    })
+    
+    //Function.1: Set default style for all page
+    glitter.defaultSetting.defaultAnimation = fade
+    
+    //Function.2: Set for specific page
+    glitter.changePage('page/mypage.js','mytag',true,{},{animation:fade})
+`, 'language-typescript'),
+                            ],
+                        })}
+</section>`;
+                    },
+                },
             ];
             return doc.create(`
                     <div class="container-fluid px-xxl-5 px-lg-4 pt-4 pt-lg-5 pb-2 pb-lg-4" style="">

@@ -100,9 +100,7 @@ glitter.removeCookie(['name', 'token', 'account']);
                                     doc.codePlace(
                                         `
 <div
-    class="\${gvc.event(() => {
-        glitter.ut.frSize({ me: 'm-1' }, 'm-3');
-    })}"
+    class="\${glitter.ut.frSize({ me: 'm-1' }, 'm-3')}"
 ></div>
 `,
                                         'html'
