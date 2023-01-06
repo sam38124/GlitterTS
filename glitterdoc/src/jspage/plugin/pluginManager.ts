@@ -42,11 +42,10 @@ export class PluginManager {
         }
 
         this.support = (type: Type[]) => {
-
             return `
 <h3 class=" fw-500 fw-normal fs-lg d-flex align-items-center p-2 alert d-flex alert-primary"><i class="fa-regular fa-hammer me-2 bg-danger p-2 rounded"></i> 
 FOR -
-<div class="d-flex ms-2">
+<div class="d-flex ms-2">   
 ${
                 gvc.map(type.map((dd) => {
                     switch (dd) {

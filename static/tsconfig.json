@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "incremental": true,
-    "target": "ES2017",
+    "target": "es5",
     "module": "es6",
     "declaration": false,
     "sourceMap": false,
@@ -21,7 +21,7 @@
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true
   },
-  "include": ["./src/**/*.ts", "./src/*.ts", "./src/**/*.d.ts", "./src/*.d.ts"],
+  "include": ["./**/*.ts", "./*.ts", "./**/*.d.ts", "./*.d.ts"],
   "exclude": ["node_modules"],
   "ts-node": { "files": true }
 }

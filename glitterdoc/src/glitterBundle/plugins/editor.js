@@ -194,16 +194,6 @@ export class Editor {
                                             ? `<div
                                                   class="btn btn-outline-primary"
                                                   onclick="${gvc.event(() => {
-                                                glitter.openDiaLog('dialog/Dia_Check_Mail.html', 'Dia_Check_Mail', false, false, {
-                                                    mail: dd.value,
-                                                    callback: function (result) {
-                                                        if (result) {
-                                                            glitter.share.dia.success('驗證成功');
-                                                            dd.needAuth = false;
-                                                            gvc.notifyDataChange(id);
-                                                        }
-                                                    },
-                                                }, function () { });
                                             })}"
                                               >
                                                   <span>驗證</span>
@@ -225,16 +215,6 @@ export class Editor {
                                             ? ` <div
                                                       class="btn btn-outline-primary"
                                                       onclick="${gvc.event(() => {
-                                                glitter.openDiaLog('dialog/Dia_Check_Code.html', 'Dia_Check_Code', false, false, {
-                                                    phone: '+886' + dd.value.substring(1, 10),
-                                                    callback: function (result) {
-                                                        if (result) {
-                                                            glitter.share.dia.success('驗證成功');
-                                                            dd.needAuth = false;
-                                                            gvc.notifyDataChange(id);
-                                                        }
-                                                    },
-                                                }, function () { });
                                             })}"
                                                   >
                                                       <span>驗證</span>
@@ -328,20 +308,6 @@ export class Editor {
                                                             class="form-control"
                                                             ${dd.readonly ? `readonly` : ``}
                                                             onclick="${gvc.event(() => {
-                                                    glitter.openDiaLog('dialog/Dia_Date_Picker.html', 'Dia_Date_Picker', false, false, {
-                                                        callback: function (text) {
-                                                            dd.value = text.substring(text);
-                                                            callback(text), gvc.notifyDataChange(pickerID);
-                                                        },
-                                                        data: {
-                                                            date: false,
-                                                            time: true,
-                                                            nowButton: false,
-                                                            clearButton: false,
-                                                            format: 'HH:mm',
-                                                            lang: 'zh-cn',
-                                                        },
-                                                    }, () => { });
                                                 })}"
                                                         >
                                                             ${(_a = dd.value) !== null && _a !== void 0 ? _a : `<span style="color: gray">

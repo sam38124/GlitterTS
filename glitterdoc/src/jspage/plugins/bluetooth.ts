@@ -47,7 +47,7 @@ maven { url 'https://jitpack.io' }
                              <a href="https://github.com/sam38124/Glitter_IOS " class="btn btn-icon btn-secondary btn-github">
   <i class="bx bxl-github"></i>
 </a>
-<a class="ms-2" href="https://github.com/sam38124/Glitter_IOS">https://github.com/sam38124/Glitter_IOS</a>   </div>  
+<a class="ms-2" href="https://github.com/sam38124/Glitter_IOS_Plugin_Bluetooth">https://github.com/sam38124/Glitter_IOS_Plugin_Bluetooth</a>   </div>  
                              <h2 class="fs-lg mb-2 fw-normal fw-500 mt-3"><span class="text-danger">Step 2.</span> Add into your glitter activity.</h2>${doc.codePlace(`Glitter_BLE(act:glitterAct).create()`, 'language-swift')}
                         </section>`;
                     },

@@ -1,6 +1,6 @@
 "use strict";
 import {Glitter} from './Glitter.js';
-
+import {PageConfig,GVCType} from "./module/PageManager.js";
 const $: any = (window as any).$;
 
 class LifeCycle {
@@ -28,9 +28,11 @@ class LifeCycle {
 }
 
 export class GVC {
+    public glitter = (window as any).glitter as Glitter
+
     public parameter: {
         clickMap: any
-        pageConfig?: { id: string, obj: any, goBack: boolean, src: string, tag: string, createResource: () => void, deleteResource: () => void },
+        pageConfig?: PageConfig,
         bindViewList: any,
         clickID: number,
         styleList: { id: string, style: string }[],
@@ -45,17 +47,17 @@ export class GVC {
         jsList: [],
         styleLinks: [],
     }
-    public glitter = (window as any).glitter as Glitter
+
 
     public notifyDataChange(id: any) {
         const gvc = this
         try {
-            function refresh(id: string) {
+            const refresh = (id: string) => {
                 $(`#${gvc.parameter.pageConfig!.id}${id}`).html(gvc.parameter.bindViewList[id].view())
                 if (gvc.parameter.bindViewList[id].onCreate) {
                     gvc.parameter.bindViewList[id].onCreate()
                 }
-            }
+            };
 
             if (typeof id === 'object') {
                 id.map(function (id: string) {
@@ -211,13 +213,13 @@ export class GVC {
                 fun: fun,
                 noCycle: false
             }
-            return `clickMap['${gvc.parameter.clickID}'].fun(this,event);" data-gs-event-${gvc.parameter.clickID}="event`
+            return `clickMap['${gvc.parameter.pageConfig!.id}']['${gvc.parameter.clickID}'].fun(this,event);" data-gs-event-${gvc.parameter.clickID}="event`
         } else {
             gvc.parameter.clickMap[noCycle] = {
                 fun: fun,
                 noCycle: true
             }
-            return `clickMap['${noCycle}'].fun(this,event);"  data-gs-event-${noCycle}="event`
+            return `clickMap['${gvc.parameter.pageConfig!.id}']['${noCycle}'].fun(this,event);"  data-gs-event-${noCycle}="event`
         }
     }
 
@@ -363,19 +365,25 @@ export function init(fun: (gvc: GVC,glitter:Glitter, gBundle: any) => {
         $('#glitterPage').html('')
         $('.page-loading').remove();
     }
-    $('#glitterPage').append(`<div id="page${gvc.parameter.pageConfig!.id}" style="min-width: 100%;min-height: 100%;left: 0;top: 0;background: transparent;display: none;">
+    (window as any).clickMap = (window as any).clickMap ?? {}
+    switch (gvc.parameter.pageConfig?.type){
+        case GVCType.Dialog:
+            $('#glitterPage').append(`<div  id="page${gvc.parameter.pageConfig!.id}" style="width:100vw;height:100vh;background: transparent;display: none;position: absolute;top: 0;left: 0;z-index: 999999;">
 ${lifeCycle.onCreateView()}
 </div>`)
-    glitter.pageConfig.map((a) => {
-        if(a.id !== gvc.parameter.pageConfig!.id){
-            glitter.hidePageView(a.id)
-        }
-    })
-    $(`#page${gvc.parameter.pageConfig!.id}`).show()
+            glitter.setAnimation(gvc.parameter.pageConfig)
+            break
+        case GVCType.Page:
+            $('#glitterPage').append(`<div id="page${gvc.parameter.pageConfig!.id}" style="min-width: 100vw;min-height: 100vh;left: 0;top: 0;background: ${glitter.defaultSetting.pageBgColor};display: none;z-index: 999999;">
+${lifeCycle.onCreateView()}
+</div>`)
+            glitter.setAnimation(gvc.parameter.pageConfig)
+            break
+    }
+    (window as any).clickMap[gvc.parameter.pageConfig!.id] = gvc.parameter.clickMap;
     lifeCycle.onCreate();
-    (window as any).clickMap = gvc.parameter.clickMap;
     gvc.parameter.pageConfig!.createResource = () => {
-        (window as any).clickMap = gvc.parameter.clickMap;
+        (window as any).clickMap[gvc.parameter.pageConfig!.id] = gvc.parameter.clickMap;
         var copyStyleList: { id: string, style: string }[] = JSON.parse(JSON.stringify(gvc.parameter.styleList))
         gvc.parameter.styleList = []
         copyStyleList.map((data) => {
@@ -393,6 +401,7 @@ ${lifeCycle.onCreateView()}
         lifeCycle.onResume()
     }
     gvc.parameter.pageConfig!.deleteResource = () => {
+        (window as any).clickMap[gvc.parameter.pageConfig!.id]=undefined
         lifeCycle.onPause()
         gvc.parameter.styleLinks.map((dd) => {
             $(`#${dd.id}`).remove()
@@ -404,4 +413,6 @@ ${lifeCycle.onCreateView()}
             $(`#${dd.id}`).remove()
         })
     }
+    glitter.waitChangePage =false
+
 }
