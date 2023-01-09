@@ -85,6 +85,12 @@ export class Items {
                         },
                     },
                     {
+                        text:'TransitionManager',
+                        click:()=>{
+                            location.href = 'index.html?page=basics/transitionManager';
+                        }
+                    },
+                    {
                         text: 'Components',
                         click: () => {
                             location.href = 'index.html?page=basics/components';
