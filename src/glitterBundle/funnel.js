@@ -207,6 +207,9 @@ export class Funnel {
                 [hour, min].join(symbol ? symbol.time : ':') +
                 (apm ? meridiem : ':' + sec));
         };
+        this.randomHexColor = () => `#${Math.floor(Math.random() * 0xffffff).toString(16)}`;
+        this.getImgix = (text, bg, txtclr) => `https://assets.imgix.net/~text?bg=${bg !== null && bg !== void 0 ? bg : Math.floor(Math.random() * 0xffffff).toString(16)}&txtclr=${txtclr !== null && txtclr !== void 0 ? txtclr : Math.floor(Math.random() * 0xffffff).toString(16)}&w=240&h=240&txtsize=120&txt=${text}&txtfont=Helvetica&txtalign=middle,center`;
+        this.cutString = (text, limit) => (text.length > limit ? text.substring(0, limit) + '...' : text);
         this.optionSreach = (set, callback, arg) => {
             const funnel = this;
             let ra = this.randomString(7);

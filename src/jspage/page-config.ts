@@ -44,6 +44,23 @@ export class Items {
                 ],
             },
             {
+                title: '<span class="text-danger me-1">★</span> Plugin',
+                option: [
+                    {
+                        text: 'Develop own plugin',
+                        click: () => {
+                            location.href = 'index.html?page=getting-started/jsinterface';
+                        },
+                    },
+                    {
+                        text: 'Official plugin',
+                        click: () => {
+                            location.href = 'index.html?page=plugin/official';
+                        },
+                    },
+                ],
+            },
+            {
                 title: '<span class="text-danger me-1">★</span> Basics',
                 option: [
                     {
@@ -65,15 +82,15 @@ export class Items {
                         },
                     },
                     {
-                        text: 'BindView',
+                        text: 'Dialog',
                         click: () => {
-                            location.href = 'index.html?page=basics/bindview';
+                            location.href = 'index.html?page=basics/dialog';
                         },
                     },
                     {
-                        text: 'Event',
+                        text: 'TransitionManager',
                         click: () => {
-                            location.href = 'index.html?page=basics/event';
+                            location.href = 'index.html?page=basics/transitionManager';
                         },
                     },
                     {
@@ -92,23 +109,6 @@ export class Items {
                         text: 'Funnel',
                         click: () => {
                             location.href = 'index.html?page=basics/funnel';
-                        },
-                    },
-                    {
-                        text: 'test',
-                        click: () => {
-                            location.href = 'index.html?page=test/use';
-                        },
-                    },
-                ],
-            },
-            {
-                title: '<span class="text-danger me-1">★</span> Mobile',
-                option: [
-                    {
-                        text: 'JsInterFace',
-                        click: () => {
-                            location.href = 'index.html?page=getting-started/jsinterface';
                         },
                     },
                 ],

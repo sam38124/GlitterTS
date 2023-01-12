@@ -8,9 +8,11 @@ export class Doc {
     public previewCode: (data: { previewString: string[]; tab: string[] }) => string;
     public addScript: () => void;
     public escape: (text: string) => string;
+    public jitPackVersion: (link: string) => string;
 
     constructor(gvc: GVC) {
         const glitter = gvc.glitter;
+        const $ = gvc.glitter.$;
         gvc.addStyle(`
             .tab-pane {
                 word-break: break-word;
@@ -211,7 +213,7 @@ export class Doc {
                         </div>
                     </aside>
                     <!-- Page container -->
-                    <main class="docs-container pt-5">${html}</main>
+                    <main class="docs-container pt-5" >${html}</main>
                     ${aside}
                     <!-- Back to top button -->
                     <a href="#top" class="btn-scroll-top" data-scroll>
@@ -339,6 +341,34 @@ ${gvc.bindView(() => {
         };
         this.escape = (text: string) => {
             return text.replace(/&/g, '&').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, "'");
+        };
+        this.jitPackVersion = (link: string) => {
+            return gvc.bindView(() => {
+                const id = glitter.getUUID();
+                let tag = '';
+                $.ajax({
+                    url: `https://api.github.com/repos/sam38124/${link}/releases/latest`,
+                    type: 'GET',
+                    contentType: 'application/json; charset=utf-8',
+                    success: (resposnse: any) => {
+                        tag = resposnse.tag_name;
+                        gvc.notifyDataChange(id);
+                    },
+                    error: () => {},
+                });
+                return {
+                    bind: id,
+                    view: () => {
+                        return this.codePlace(
+                            `dependencies {
+\t\timplementation 'com.github.sam38124:${link}:${tag}'
+\t}`,
+                            'language-kotlin'
+                        );
+                    },
+                    divCreate: {},
+                };
+            });
         };
     }
 }

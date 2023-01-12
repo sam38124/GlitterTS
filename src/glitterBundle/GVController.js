@@ -317,6 +317,13 @@ export class GVC {
         const gvc = this;
         return `${gvc.parameter.pageConfig.id}${id}`;
     }
+    map(array) {
+        let html = '';
+        array.map((d) => {
+            html += d;
+        });
+        return html;
+    }
 }
 export function init(fun, gt) {
     var _a, _b, _c, _d, _e, _f, _g;
