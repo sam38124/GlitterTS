@@ -70,6 +70,8 @@ glitter.animation.fade`, 'language-typescript')}
 glitter.defaultSetting.pageAnimation = glitter.animation.fade
 //Function.2: Set for specific page
 glitter.changePage('page/mypage.js','mytag',true,{},{animation:glitter.animation.rightToLeft})`, 'language-typescript')}
+                              <h2 class="fs-lg mt-4 mb-4 fw-normal fw-500">Show Sample.</h2>
+                              ${doc.video('img/sample/pageTransationS.mov')}
                         </section>`;
                     },
                 },
@@ -84,6 +86,8 @@ glitter.changePage('page/mypage.js','mytag',true,{},{animation:glitter.animation
 glitter.defaultSetting.dialogAnimation = glitter.animation.fade
 //Function.2: Set for specific dialog
 glitter.openDiaLog('dialog/myDialog.js','myDialog',{},{animation:glitter.animation.fade})`, 'language-typescript')}
+                           <h2 class="fs-lg mt-4 mb-4 fw-normal fw-500">Show Sample.</h2>
+                              ${doc.video('img/sample/dialogTransation.mov')}
                         </section>`;
                     },
                 },

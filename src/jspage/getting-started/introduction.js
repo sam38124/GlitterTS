@@ -116,6 +116,52 @@ init((gvc, glitter, gBundle) => {
                     },
                 },
                 {
+                    id: `Contributors`,
+                    title: 'Contributors',
+                    get html() {
+                        return `<section id="${this.id}" class="border-bottom py-5 ps-lg-2 ps-xxl-0">
+         <h2 class="h4">${this.title}</h2>
+         <div class="row">  ${gvc.map([{
+                                name: "Jianzhi Wang",
+                                career: "Team leader",
+                                src: 'img/developer/S__2162716.jpg',
+                                social: ` <div class="d-flex justify-content-center">
+    <div class="btn btn-icon btn-outline-secondary btn-facebook btn-sm me-2" onclick="${gvc.event(() => {
+                                    glitter.openNewTab(`https://www.facebook.com/sam38124/`);
+                                })}">
+      <i class="bx bxl-facebook"></i>
+    </div>
+  <div  class="btn btn-icon btn-outline-secondary btn-github btn-sm me-2" onclick="${gvc.event(() => {
+                                    glitter.openNewTab(`https://github.com/sam38124`);
+                                })}">
+  <i class="bx bxl-github"></i>
+</div>
+
+  </div>`
+                            }, {
+                                name: "Daniel",
+                                career: "Developer",
+                                src: 'https://squarestudio.tw/LionDesign/page/plugin/lionDesign/img/index/lin.jpg',
+                                social: ``
+                            }, {
+                                name: "Zack",
+                                career: "Developer",
+                                src: 'img/developer/messageImage_1673540198329.jpg',
+                                social: ``
+                            }].map((dd) => {
+                            return `<div class="card card-body card-hover bg-light border-0 text-center col-12 col-sm-4">
+ 
+  <div class="d-block rounded-circle mx-auto mb-3" style="background: 50% / cover url('${dd.src}');height: 200px;width: 200px;"></div>
+  <h5 class="fw-medium fs-lg mb-1 text-primary">${dd.name}</h5>
+  <p class="fs-sm mb-3 fw-bold text-light">${dd.career}</p>
+ ${dd.social}
+</div>`;
+                        }))}</div>
+     
+</section>`;
+                    },
+                },
+                {
                     id: `App`,
                     title: 'Developed by this Framework',
                     get html() {
@@ -131,7 +177,10 @@ init((gvc, glitter, gBundle) => {
                                     src: `https://sam38124.github.io/Glitter_DOC.github.io/img/logo_%E8%89%B2%E7%A8%BF.png`,
                                 },
                                 { title: `HOMEE`, src: `img/appicons/homee.png` },
-                                { title: `高醫校友會`, src: `https://sam38124.github.io/Glitter_DOC.github.io/images/scholl.png` },
+                                {
+                                    title: `高醫校友會`,
+                                    src: `https://sam38124.github.io/Glitter_DOC.github.io/images/scholl.png`
+                                },
                                 {
                                     title: `無線胎檢系統`,
                                     src: `https://sam38124.github.io/Glitter_DOC.github.io/images/ixontruxk.png`,
@@ -170,7 +219,10 @@ init((gvc, glitter, gBundle) => {
                                 },
                                 { title: `建大輪胎`, src: `img/appicons/kenda.png` },
                                 { title: `Proshake`, src: `img/appicons/proshake.png` },
-                                { title: `奇樂旅行社`, src: `https://sam38124.github.io/Glitter_DOC.github.io/images/kilo.png` },
+                                {
+                                    title: `奇樂旅行社`,
+                                    src: `https://sam38124.github.io/Glitter_DOC.github.io/images/kilo.png`
+                                },
                                 { title: `百壽理`, src: `https://sam38124.github.io/Glitter_DOC.github.io/img/biosole.png` },
                                 {
                                     title: `t-sport體育平台`,
