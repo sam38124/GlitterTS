@@ -419,4 +419,16 @@ export class Funnel {
             (apm ? meridiem : ':' + sec)
         );
     };
+
+    // 回傳隨機色碼
+    randomHexColor = () => `#${Math.floor(Math.random() * 0xffffff).toString(16)}`;
+
+    // 單字頭貼
+    getImgix = (text: string, bg?: string, txtclr?: string) =>
+        `https://assets.imgix.net/~text?bg=${bg ?? Math.floor(Math.random() * 0xffffff).toString(16)}&txtclr=${
+            txtclr ?? Math.floor(Math.random() * 0xffffff).toString(16)
+        }&w=240&h=240&txtsize=120&txt=${text}&txtfont=Helvetica&txtalign=middle,center`;
+
+    // 限制字數
+    cutString = (text: string, limit: number) => (text.length > limit ? text.substring(0, limit) + '...' : text);
 }
