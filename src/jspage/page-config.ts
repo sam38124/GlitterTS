@@ -94,6 +94,12 @@ export class Items {
                         },
                     },
                     {
+                        text: 'DrawerLayout',
+                        click:()=>{
+                            location.href = 'index.html?page=basics/drawer';
+                        }
+                    },
+                    {
                         text: 'Components',
                         click: () => {
                             location.href = 'index.html?page=basics/components';

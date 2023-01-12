@@ -9,6 +9,7 @@ export class Doc {
     public addScript: () => void;
     public escape: (text: string) => string;
     public jitPackVersion: (link: string) => string;
+    public video: (link: string) => string;
 
     constructor(gvc: GVC) {
         const glitter = gvc.glitter;
@@ -250,7 +251,8 @@ export class Doc {
                         }, 100);
                     } catch {}
                 },
-                () => {}
+                () => {
+                }
             );
         };
         this.asideScroller = (item: { id: string; title: string }[]) => {
@@ -366,9 +368,16 @@ ${gvc.bindView(() => {
                             'language-kotlin'
                         );
                     },
-                    divCreate: {},
-                };
-            });
-        };
+                    divCreate:{}
+                }
+            })
+        }
+        this.video = (link:string)=>{
+            return `    <div class="gallery" data-video="true" style="width: 400px;max-width: 100%;">
+  <a  data-video='{"source": [{"src":"${link}", "type":"video/mp4"}], "tracks": [{"src": "{/videos/title.txt", "kind":"captions", "srclang": "en", "label": "English", "default": "true"}], "attributes": {"preload": false, "playsinline": true, "controls": true}}' class="gallery-item video-item is-hovered rounded-3" data-sub-html=''>
+     <img src="img/glitterBanner.png" alt="Gallery thumbnail">
+  </a>
+</div>`
+        }
     }
 }

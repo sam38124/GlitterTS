@@ -33,10 +33,35 @@ ${doc.codePlace('npm install @jianzhi.wang/glitter', 'language-cmd')}
                             <h2 class="fs-lg mb-2 fw-normal fw-500">Set up router by Glitter.setUP function.</h2>
                             ${doc.codePlace(`import * as Glitter from '@jianzhi.wang/glitter';
                             
-Glitter.setUP(app, [{
-    rout: '/BackManagerTS',
-    path: path.resolve(__dirname, '../frontEnd/Back_Manager_ts/src')
-}]);`, 'language-typescript')}
+Glitter.setUP(app, [
+    {
+        rout: '/BackManager',
+        path: path.resolve(__dirname, '../frontEnd/Back_Manager_ts/src'),
+        seoManager: (urlParameter: any) => {
+            switch (urlParameter['page']) {
+                case 'login':
+                    return \`<meta charset="UTF-8" />
+            <title>登入</title>\`;
+
+                case 'article':
+                    const data = getArticle(urlParameter["artID"]);
+                    
+                    return \`<meta charset="UTF-8" />
+            <title>Article</title>
+            <link rel="icon" href="img/homee.png" type="image/png" sizes="128x128" />
+            <meta property="og:image" content="\${data.title}" />
+            <meta property="og:title" content="\${data.content}" />
+            <meta name="description" content="\${data.description}" />
+         \`;
+
+                default :
+                    return \`<meta charset="UTF-8" />
+            <title>首頁</title>
+           \`;
+            }
+        }
+    },
+]);`, 'language-typescript')}
                         </section>`;
                     },
                 },
@@ -51,40 +76,7 @@ Glitter.setUP(app, [{
    <img src="img/auto_backend.png" class="rounded-3 " style="max-width: 100%; width: 600px;" />
 </section>`;
                     },
-                },
-                {
-                    id: 'SEOManager',
-                    title: 'SEOManager',
-                    get html() {
-                        return ` <section id="${this.id}" class="border-bottom py-5 ps-lg-2 ps-xxl-0">
-                            <h2 class="h4">${this.title}</h2>
-                            <h2 class="fs-lg mb-2 fw-normal fw-500">Set up SEO in SEOManager.ts</h2>
-                            ${doc.codePlace(`const header={
-    //Relative path is 'http://127.0.0.1/BackManagerTS/index.html?page=default'
-    default:()=>{
-        return \`<meta charset="UTF-8">
-    <title>HOMEE 後台系統</title>
-    <meta name="keywords" content="APP_KEYWOARDS" />
-    <link rel="icon" href="img/homee.png" type="image/png" sizes="128x128">
-    <meta property="og:image" content="TOP_BANNER">
-    <meta property="og:title" content="APP_Description">
-    <meta name="description" content="APP_Description">\`
-    },
-    //Relative path is 'http://127.0.0.1/BackManagerTS/index.html?page=login'
-    login:()=>{
-        return \`<meta charset="UTF-8">
-    <title>登入</title>
-    <meta name="keywords" content="APP_KEYWOARDS" />
-    <link rel="icon" href="img/homee.png" type="image/png" sizes="128x128">
-    <meta property="og:image" content="TOP_BANNER">
-    <meta property="og:title" content="APP_Description">
-    <meta name="description" content="APP_Description">\`
-    }
-}
-`, 'language-typescript')}
-                        </section>`;
-                    },
-                },
+                }
             ];
             return doc.create(`
                     <div class="container-fluid px-xxl-5 px-lg-4 pt-4 pt-lg-5 pb-2 pb-lg-4">

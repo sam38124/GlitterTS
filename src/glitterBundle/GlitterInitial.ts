@@ -27,17 +27,6 @@ function glitterInitial() {
     if (glitter.deviceType !== glitter.deviceTypeEnum.Android) {
         window.addEventListener('popstate', function (e) {
             glitter.goBack();
-            if (glitter.iframe.length > 1) {
-                let search = glitter.setSearchParam(
-                    glitter.removeSearchParam(window.location.search, 'page'),
-                    'page',
-                    glitter.iframe[glitter.iframe.length - 1].id
-                );
-                try {
-                    window.history.pushState(null, '', search);
-                } catch (e) {
-                }
-            }
         });
     }
 

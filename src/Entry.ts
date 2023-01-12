@@ -1,5 +1,6 @@
 'use strict';
 import { Glitter } from './glitterBundle/Glitter.js';
+import path from "path";
 
 export class Entry {
     public static onCreate(glitter: Glitter) {
@@ -10,7 +11,8 @@ export class Entry {
         glitter.setHome(
             `jspage/${glitter.getUrlParameter('page') ?? 'getting-started/introduction'}.js`,
             glitter.getUrlParameter('page') ?? 'getting-started/introduction',
-            {}
+            {},
+            {backGroundColor:`transparent;`}
         );
         // $.ajax({
         //     url: `https://api.github.com/repos/sam38124/Glitter_Plugin_Bluetooth/releases/latest`,

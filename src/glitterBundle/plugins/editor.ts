@@ -226,7 +226,7 @@ export class Editor{
                                         ? /*html*/ ` <div
                                                       class="btn btn-outline-primary"
                                                       onclick="${gvc.event(() => {
-                                          
+                                       
                                         })}"
                                                   >
                                                       <span>驗證</span>
@@ -321,6 +321,7 @@ export class Editor{
                                                             class="form-control"
                                                             ${dd.readonly ? `readonly` : ``}
                                                             onclick="${gvc.event(() => {
+                                  
                                         })}"
                                                         >
                                                             ${

@@ -202,9 +202,10 @@ init((gvc, glitter, gBundle) => {
                         <div
                             class="d-sm-flex align-items-end justify-content-between ps-lg-2 ps-xxl-0 mt-2 mt-lg-0 pt-4 mb-n3 border-bottom pb-2"
                         >
-                            <div class="me-4">
-                                <h1 class="pb-1">GlitterTS</h1>
-                                <h2 class="fs-lg mb-2 fw-normal fw-500">
+                            <div class="">
+                                <img class="rounded mx-auto" style="max-width: 100%;max-height: 80vh;" src="img/glitterBanner.png">
+                               
+                                <h2 class="fs-lg mb-2 fw-normal fw-500 mt-4">
                                     A powerful framework to let you use typescript to creat your
                                     <span class="text-success fw-bold">Android</span> / <span class="text-danger bold fw-bold">IOS</span> /
                                     <span class="text-primary bold fw-bold">WEB</span> applications at once time.

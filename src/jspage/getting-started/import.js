@@ -30,12 +30,12 @@ ${doc.codePlace('npm install @jianzhi.wang/glitter', 'language-cmd')}
 <h2 class="fs-lg mb-2 fw-normal fw-500 mb-2 ">Create or update glitter project.</h2>
 ${doc.previewCode({
                             previewString: [
-                                `<i class="bx bx-show-alt fs-base opacity-70 me-2"></i> result`,
                                 `<i class='bx bx-code fs-base opacity-70 me-2'></i>script`,
+                                `<i class="bx bx-show-alt fs-base opacity-70 me-2"></i> result`,
                             ],
                             tab: [
-                                `<img src="img/create/emptydir.png" class="rounded-3 " style="max-width: 100%;width: 500px;">`,
                                 doc.codePlace('node node_modules/@jianzhi.wang/glitter/create.js', 'language-cmd'),
+                                `<img src="img/create/emptydir.png" class="rounded-3 " style="max-width: 100%;width: 500px;">`,
                             ],
                         })}
 </section>`;
@@ -89,7 +89,7 @@ ${doc.previewCode({
         }
     ]
 }`, 'language-json'),
-                                doc.codePlace(`"install": "node node_modules/@jianzhi.wang/glitter/install.js"`, 'language-json'),
+                                doc.codePlace(`node node_modules/@jianzhi.wang/glitter/install.js`, 'language-json'),
                                 `<img src="img/glitterdeps.png" class="rounded-3 " style="max-width: 100%;width: 500px;">`,
                             ],
                         })}
@@ -106,7 +106,8 @@ ${doc.previewCode({
 <h2 class="fs-lg mb-2 fw-normal fw-500 mb-2 ">Build your project to other dir and ignore ts file.</h2>
 ${doc.previewCode({
                             previewString: [`<i class="bx bx-code fs-base opacity-70 me-2"></i> script`],
-                            tab: [doc.codePlace(`"release": "node node_modules/@jianzhi.wang/glitter/release.js path=mypath"`, 'language-json')],
+                            tab: [doc.codePlace(`//Set the path you want to compile.
+node node_modules/@jianzhi.wang/glitter/release.js path=mypath`, 'language-json')],
                         })}
 </section>`;
                     },

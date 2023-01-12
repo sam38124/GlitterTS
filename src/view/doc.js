@@ -234,7 +234,8 @@ export class Doc {
                     }, 100);
                 }
                 catch (_a) { }
-            }, () => { });
+            }, () => {
+            });
         };
         this.asideScroller = (item) => {
             let html = '';
@@ -344,9 +345,16 @@ ${gvc.bindView(() => {
 \t\timplementation 'com.github.sam38124:${link}:${tag}'
 \t}`, 'language-kotlin');
                     },
-                    divCreate: {},
+                    divCreate: {}
                 };
             });
+        };
+        this.video = (link) => {
+            return `    <div class="gallery" data-video="true" style="width: 400px;max-width: 100%;">
+  <a  data-video='{"source": [{"src":"${link}", "type":"video/mp4"}], "tracks": [{"src": "{/videos/title.txt", "kind":"captions", "srclang": "en", "label": "English", "default": "true"}], "attributes": {"preload": false, "playsinline": true, "controls": true}}' class="gallery-item video-item is-hovered rounded-3" data-sub-html=''>
+     <img src="img/glitterBanner.png" alt="Gallery thumbnail">
+  </a>
+</div>`;
         };
     }
 }
