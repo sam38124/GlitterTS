@@ -25,11 +25,11 @@ init((gvc, glitter, gBundle) => {
                             ${doc.previewCode({
                             previewString: [
                                 `<img class="rounded rounded-circle me-2 bg-white p-1" src="img/android.png" style="width: 30px;height: 30px;"/>Android`,
-                                `<img class="rounded rounded-circle me-2 bg-white p-1" src="img/ios.png" style="width: 30px;height: 30px;"/>IOS`,
-                                `<i class="fa-regular fa-globe text-primary p-1 bg-white rounded-circle me-2" style="width: 23px;height: 23px;"></i>WEB`,
+                                `<img class="rounded rounded-circle me-2 bg-white p-1" src="img/ios.png" style="width: 30px;height: 30px;"/>IOS`
                             ],
                             tab: [
-                                pluginManager.getFrameWork(Type.Android), pluginManager.getFrameWork(Type.IOS), pluginManager.getFrameWork(Type.WEB)
+                                pluginManager.getFrameWork(Type.Android),
+                                pluginManager.getFrameWork(Type.IOS)
                             ],
                         })}
                         </section>`;

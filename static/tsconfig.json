@@ -1,8 +1,8 @@
 {
   "compilerOptions": {
     "incremental": true,
-    "target": "es5",
-    "module": "es6",
+    "target": "ES2017",
+    "module": "es2020",
     "declaration": false,
     "sourceMap": false,
     "outDir": "./src",
@@ -10,18 +10,16 @@
     "removeComments": true,
     "strict": true,
     "baseUrl": ".",
+    "skipLibCheck": true,
     "plugins": [
       { "transform": "typescript-transform-paths" },
       { "transform": "typescript-transform-paths", "afterDeclarations": true }
     ],
-    "paths": {
-      "@base/*": ["src/*"]
-    },
     "esModuleInterop": true,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true
   },
-  "include": ["./**/*.ts", "./*.ts", "./**/*.d.ts", "./*.d.ts"],
+  "include": ["src"],
   "exclude": ["node_modules"],
   "ts-node": { "files": true }
 }

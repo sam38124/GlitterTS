@@ -190,6 +190,7 @@ export class Funnel {
             link.setAttribute('download', fileName);
             link.click();
         };
+        this.cutString = (text, limit) => (text.length > limit ? text.substring(0, limit) + '...' : text);
         this.optionSreach = (set, callback, arg) => {
             const funnel = this;
             let ra = this.randomString(7);

@@ -9,9 +9,11 @@ export class Doc {
     public addScript: () => void;
     public escape: (text: string) => string;
     public jitPackVersion: (link: string) => string;
+    public video: (link: string) => string;
 
     constructor(gvc: GVC) {
         const glitter = gvc.glitter;
+        const $ = gvc.glitter.$;
         gvc.addStyle(`
             .tab-pane {
                 word-break: break-word;
@@ -176,27 +178,90 @@ export class Doc {
                         >
                             <div class="swiper-wrapper">
                                 ${gvc.bindView(() => {
-                                    const id = glitter.getUUID();
+                                    const vid = glitter.getUUID();
+                                    function clearSelect(){
+                                        items.map((dd)=>{
+                                            function clear(dd:any){
+                                                dd.select=false
+                                                if(dd.option){
+                                                    dd.option.map((d2:any)=>{
+                                                        clear(d2)
+                                                    })
+                                                } 
+                                            }
+                                            clear(dd)
+                                        })
+                                    }
                                     return {
-                                        bind: id,
+                                        bind: vid,
                                         view: () => {
                                             var html = '';
                                             items.map((dd) => {
                                                 html += `<h3 class="fs-lg">${dd.title}</h3>
                                                     <div class="list-group list-group-flush border-bottom pb-3 mb-4 mx-n4">
                                                         ${(() => {
-                                                            let innerHtml = '';
-                                                            dd.option.map((d2) => {
-                                                                innerHtml += `<a
+                                                            function convertInner(d2:any,inner:boolean){
+                                                                if(d2.option){
+                                                                    const id=glitter.getUUID()
+                                                                  return  `
+                                                                    <a
                                                                     class="list-group-item list-group-item-action border-0 py-2 px-4 ${
-                                                                        d2.select ? `active` : ``
-                                                                    }"
-                                                                    onclick="${gvc.event(() => d2.click())}"
+                                                                      (d2.option.find((d3:any)=>{
+                                                                          return d3.select
+                                                                      })) || d2.select  ? `active` : ``
+                                                                  }"
+                                                                    onclick="${gvc.event(() => {
+                                                                        const tg=!d2.select
+                                                                      clearSelect()
+                                                                      d2.select=tg
+                                                                      if(d2.select){
+                                                                          $(`#${id}`).collapse('show')
+                                                                      }else{
+                                                                          $(`#${id}`).collapse('hide')
+                                                                      }
+                                                                      if(!(d2.option.find((d3:any)=>{
+                                                                          return d3.select
+                                                                      }))){
+                                                                          d2.option[0].select=true
+                                                                      }
+                                                                      setTimeout(()=>{
+                                                                          gvc.notifyDataChange(vid)
+                                                                      },250)
+                                                                  })}"
                                                                     style="cursor:pointer"
+                                                                    >${d2.text}</a>
+                                                                    <div class="collapse multi-collapse ${(d2.select) ? `show`:''}" style="margin-left: 10px;" id="${id}">
+                                                                    ${
+                                                                      gvc.map(
+                                                                          d2.option.map((d4:any)=>{
+                                                                              return  convertInner(d4,true)
+                                                                          })
+                                                                      )
+                                                                  }
+</div>
+                                                                    `
+                                                                }else{
+                                                                    return `<a
+                                                                    class=" list-group-item list-group-item-action border-0 py-2 px-4 ${
+                                                                        d2.select ? `${(inner) ? `bg-warning`:`active`}` : ``
+                                                                    }"
+                                                                    onclick="${gvc.event(() => {
+                                                                        clearSelect()
+                                                                        d2.select=true
+                                                                        gvc.notifyDataChange(vid)
+                                                                        d2.click()
+                                                                    })}"
+                                                                    style="cursor:pointer;${(inner) ? `background-color: #FFDC6A !important;color:black !important;`:``}"
                                                                     >${d2.text}</a
                                                                 >`;
-                                                            });
-                                                            return innerHtml;
+                                                                }
+                                                            }
+                                                            
+                                                            return gvc.map(
+                                                                dd.option.map((d2) => {
+                                                                    return convertInner(d2,false)
+                                                                })
+                                                            );
                                                         })()}
                                                     </div>`;
                                             });
@@ -249,7 +314,8 @@ export class Doc {
                         }, 100);
                     } catch {}
                 },
-                () => {}
+                () => {
+                }
             );
         };
         this.asideScroller = (item: { id: string; title: string }[]) => {
@@ -341,31 +407,40 @@ ${gvc.bindView(() => {
         this.escape = (text: string) => {
             return text.replace(/&/g, '&').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, "'");
         };
-        this.jitPackVersion = (link:string)=>{
-            return gvc.bindView(()=>{
-                const id=glitter.getUUID()
-                let tag=''
+        this.jitPackVersion = (link: string) => {
+            return gvc.bindView(() => {
+                const id = glitter.getUUID();
+                let tag = '';
                 $.ajax({
                     url: `https://api.github.com/repos/sam38124/${link}/releases/latest`,
                     type: 'GET',
                     contentType: 'application/json; charset=utf-8',
                     success: (resposnse: any) => {
-                        tag=resposnse.tag_name
-                        gvc.notifyDataChange(id)
+                        tag = resposnse.tag_name;
+                        gvc.notifyDataChange(id);
                     },
-                    error: () => {
-                    },
+                    error: () => {},
                 });
                 return {
-                    bind:id,
-                    view:()=>{
-                        return this.codePlace(`dependencies {
+                    bind: id,
+                    view: () => {
+                        return this.codePlace(
+                            `dependencies {
 \t\timplementation 'com.github.sam38124:${link}:${tag}'
-\t}`, 'language-kotlin')
+\t}`,
+                            'language-kotlin'
+                        );
                     },
                     divCreate:{}
                 }
             })
+        }
+        this.video = (link:string)=>{
+            return `    <div class="gallery" data-video="true" style="width: 400px;max-width: 100%;">
+  <a  data-video='{"source": [{"src":"${link}", "type":"video/mp4"}], "tracks": [{"src": "{/videos/title.txt", "kind":"captions", "srclang": "en", "label": "English", "default": "true"}], "attributes": {"preload": false, "playsinline": true, "controls": true}}' class="gallery-item video-item is-hovered rounded-3" data-sub-html=''>
+     <img src="img/glitterBanner.png" alt="Gallery thumbnail">
+  </a>
+</div>`
         }
     }
 }

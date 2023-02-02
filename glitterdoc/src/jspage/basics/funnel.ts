@@ -278,6 +278,24 @@ return funnel.optionSreach(
                         </section>`;
                     },
                 },
+                {
+                    id: 'encodeFileBase64',
+                    title: 'File to Base64',
+                    get html() {
+                        return /*html*/ ` <section id="${this.id}" class="border-bottom py-5 ps-lg-2 ps-xxl-0">
+                            <h2 class="h4">${this.title}</h2>
+                            <h2 class="fs-lg mb-2 fw-normal fw-500">Let the file encode to Base64 format.</h2>
+                            ${doc.codePlace(
+                                `
+funnel.encodeFileBase64(file, function (res) {
+    const b64_data = res;
+});
+                            `,
+                                'language-typescript'
+                            )}
+                        </section>`;
+                    },
+                },
             ];
 
             return doc.create(

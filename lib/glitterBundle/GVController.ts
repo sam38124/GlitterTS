@@ -74,6 +74,8 @@ export class GVC {
             }
         }
     }
+    public recreateView=()=>{
+    }
 
     public addObserver(obj: any, callback: () => void, viewBind?: string) {
         const gvc = this
@@ -163,8 +165,8 @@ export class GVC {
     }
 
     public bindView(map: (
-        () => { view: () => string, bind: string, divCreate?: { elem?: string, style?: string, class?: string }, dataList?: {obj:any,key:string}[], onCreate?: () => void, initial?: () => void }) |
-        { view: () => string, bind: string, divCreate?: { elem?: string, style?: string, class?: string }, dataList?:  {obj:any,key:string}[], onCreate?: () => void, initial?: () => void }): string {
+        () => { view: () => string, bind: string, divCreate?: { elem?: string, style?: string, class?: string,option?:{key:string,value:string}[] }, dataList?: {obj:any,key:string}[], onCreate?: () => void, initial?: () => void }) |
+        { view: () => string, bind: string, divCreate?: { elem?: string, style?: string, class?: string,option?:{key:string,value:string}[]}, dataList?:  {obj:any,key:string}[], onCreate?: () => void, initial?: () => void }): string {
         const gvc = this
 
         if (typeof map === "function") {
@@ -199,7 +201,13 @@ export class GVC {
             (map as any).inital()
         }
         if ((map as any).divCreate) {
-            return `<${(map as any).divCreate.elem ?? 'div'} id="${gvc.parameter.pageConfig?.id}${map.bind}" class="${(map as any).divCreate.class ?? ""}" style="${(map as any).divCreate.style ?? ""}">${map.view()}</${(map as any).divCreate.elem ?? 'div'}>`
+            return `
+<${(map as any).divCreate.elem ?? 'div'} id="${gvc.parameter.pageConfig?.id}${map.bind}" class="${(map as any).divCreate.class ?? ""}" style="${(map as any).divCreate.style ?? ""}" 
+${gvc.map(((map as any).divCreate.option ?? []).map((dd:any)=>{
+                return ` ${dd.key}="${dd.value}"`
+            }))}
+>${map.view()}</${(map as any).divCreate.elem ?? 'div'}>
+`
         } else {
             return map.view()
         }
@@ -361,6 +369,9 @@ export function init(fun: (gvc: GVC,glitter:Glitter, gBundle: any) => {
     lifeCycle.onCreate = pageData.onCreate ?? lifeCycle.onCreate;
     lifeCycle.onCreateView = pageData.onCreateView;
     lifeCycle.cssInitial = pageData.cssInitial ?? lifeCycle.cssInitial
+    gvc.recreateView=()=>{
+        $(`#page${gvc.parameter.pageConfig!.id}`).html(lifeCycle.onCreateView())
+    }
     if ($('.page-loading').length > 0) {
         $('#glitterPage').html('')
         $('.page-loading').remove();
@@ -368,18 +379,21 @@ export function init(fun: (gvc: GVC,glitter:Glitter, gBundle: any) => {
     (window as any).clickMap = (window as any).clickMap ?? {}
     switch (gvc.parameter.pageConfig?.type){
         case GVCType.Dialog:
-            $('#glitterPage').append(`<div  id="page${gvc.parameter.pageConfig!.id}" style="width:100vw;height:100vh;background: transparent;display: none;position: absolute;top: 0;left: 0;z-index: 999999;">
+            $('#glitterPage').append(`<div  id="page${gvc.parameter.pageConfig!.id}" style="width:100vw;height:100vh;
+background: transparent;display: none;position: absolute;top: 0;left: 0;z-index: 999999;overflow: hidden;">
 ${lifeCycle.onCreateView()}
 </div>`)
             glitter.setAnimation(gvc.parameter.pageConfig)
             break
         case GVCType.Page:
-            $('#glitterPage').append(`<div id="page${gvc.parameter.pageConfig!.id}" style="min-width: 100vw;min-height: 100vh;left: 0;top: 0;background: ${glitter.defaultSetting.pageBgColor};display: none;z-index: 999999;">
+            $('#glitterPage').append(`<div id="page${gvc.parameter.pageConfig!.id}" style="min-width: 100vw;min-height: 100vh;left: 0;top: 0;
+background: ${gvc.parameter.pageConfig!.backGroundColor};display: none;z-index: 999999;overflow: hidden;">
 ${lifeCycle.onCreateView()}
 </div>`)
             glitter.setAnimation(gvc.parameter.pageConfig)
             break
     }
+
     (window as any).clickMap[gvc.parameter.pageConfig!.id] = gvc.parameter.clickMap;
     lifeCycle.onCreate();
     gvc.parameter.pageConfig!.createResource = () => {

@@ -2,6 +2,7 @@
 import {Animation, AnimationConfig} from "./module/Animation.js";
 import {PageConfig, GVCType, PageManager, DefaultSetting} from "./module/PageManager.js";
 import {AppearType} from "./module/Enum.js"
+import {HtmlGenerate} from "./module/Html_generate.js"
 
 
 export class Glitter {
@@ -11,8 +12,13 @@ export class Glitter {
     public deviceTypeEnum = AppearType;
     public animation = Animation;
     /*DefaultSetting*/
-    public defaultSetting = new DefaultSetting("white", Animation.none)
+    public defaultSetting = new DefaultSetting({
+        pageBgColor: "white",
+        pageAnimation: this.animation.none,
+        dialogAnimation: this.animation.none
+    })
     /*Parameter*/
+    public htmlGenerate=HtmlGenerate
     public window: Window;
     public $: any;
     public document: any;
@@ -218,7 +224,7 @@ export class Glitter {
         }
     }
 
-    public setNavigation(src: string, callback: () => void) {
+    public setDrawer(src: string, callback: () => void) {
         const gliter = this;
         this.$("#Navigation").html(src);
         if ((window as any).drawer === undefined) {
@@ -231,7 +237,7 @@ export class Glitter {
         }
     };
 
-    public openNavigation() {
+    public openDrawer() {
         if ((window as any).drawer !== undefined) {
             (window as any).drawer.open();
         } else {
@@ -244,12 +250,12 @@ export class Glitter {
         }
     }; //關閉側滑選單
 
-    public closeNavigation() {
+    public closeDrawer() {
         (window as any).drawer.close();
     }; //開關側滑選單
 
 
-    public toggleNavigation() {
+    public toggleDrawer() {
         (window as any).drawer.toggle();
     }; //按鈕監聽
 
@@ -316,6 +322,8 @@ export class Glitter {
                             script.onreadystatechange = null;
                             index++
                             addScript()
+                        }else{
+                            alert(script.readyState)
                         }
                     }
                 } else {
@@ -327,16 +335,21 @@ export class Glitter {
                         }
                     }
                 }
+                script.addEventListener('error',()=>{
+                    error("")
+                });
                 if (scritem.type === 'text/babel') {
                     glitter.$('body').append(`<script type="text/babel" src="${scritem.src}"></script>`)
                 } else if (scritem.type !== undefined) {
                     script.setAttribute('type', scritem.type);
                     script.setAttribute('src', scritem.src ?? undefined);
+                    script.setAttribute('crossorigin',true)
                     script.setAttribute('id', scritem.id ?? undefined);
                     document.getElementsByTagName("head")[0].appendChild(script);
                 } else {
                     script.setAttribute('src', scritem.src ?? scritem);
                     script.setAttribute('id', scritem.id ?? undefined);
+                    script.setAttribute('crossorigin',true)
                     document.getElementsByTagName("head")[0].appendChild(script);
                 }
 
@@ -560,7 +573,7 @@ export class Glitter {
                 return xxl
             }
         },
-        chooseMediaCallback(option: { single?: boolean, accept: string, callback(data: { data: any, type: string, name: string, extension: string }[]): void }) {
+        chooseMediaCallback(option: { single?: boolean, accept: string, callback(data: { data: any,file:any, type: string, name: string, extension: string }[]): void }) {
             const $ = this.glitter.$
             $('#imageSelect').remove()
             if (!document.getElementById("imageSelect")) {
@@ -573,6 +586,7 @@ export class Glitter {
                         reader.readAsDataURL(files[a]);
                         reader.onload = function getFileInfo(evt: any) {
                             imageMap = imageMap.concat({
+                                file:files[a],
                                 data: evt.target.result,
                                 type: option.accept,
                                 name: files[a].name,

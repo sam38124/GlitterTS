@@ -8,7 +8,7 @@ export class Items {
                         text: 'Introduction',
                         click: () => {
                             location.href = 'index.html?page=getting-started/introduction';
-                        },
+                        }
                     },
                     {
                         text: 'Create',
@@ -34,21 +34,30 @@ export class Items {
                             location.href = 'index.html?page=getting-started/ios';
                         },
                     },
+                    {
+                        text: 'LowCode',
+                        click: () => {
+                            location.href = 'index.html?page=lowcode/main';
+                        },
+                    },
                 ],
             },
             {
-                title: '<span class="text-danger me-1">★</span> Plugin',
-                option: [{
+                title: '<span class="text-danger me-1">★</span>Mobile Plugin',
+                option: [
+                    {
                         text: 'Develop own plugin',
                         click: () => {
                             location.href = 'index.html?page=getting-started/jsinterface';
                         },
-                    }, {
+                    },
+                    {
                         text: 'Official plugin',
                         click: () => {
                             location.href = 'index.html?page=plugin/official';
                         },
-                    }]
+                    },
+                ],
             },
             {
                 title: '<span class="text-danger me-1">★</span> Basics',
@@ -78,6 +87,18 @@ export class Items {
                         },
                     },
                     {
+                        text: 'TransitionManager',
+                        click: () => {
+                            location.href = 'index.html?page=basics/transitionManager';
+                        },
+                    },
+                    {
+                        text: 'DrawerLayout',
+                        click: () => {
+                            location.href = 'index.html?page=basics/drawer';
+                        }
+                    },
+                    {
                         text: 'Components',
                         click: () => {
                             location.href = 'index.html?page=basics/components';
@@ -94,9 +115,9 @@ export class Items {
                         click: () => {
                             location.href = 'index.html?page=basics/funnel';
                         },
-                    }
+                    },
                 ],
-            }
+            },
         ];
         this.items.map((dd) => {
             dd.option.map((d2) => {

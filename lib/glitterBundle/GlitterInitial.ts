@@ -20,7 +20,6 @@ glitter.$(document).ready(function () {
     } else if (navigator.userAgent === 'iosGlitter') {
         glitter.deviceType = glitter.deviceTypeEnum.Ios;
     }
-    glitter.addStyleLink(`glitterBundle/bootstrap.css`)
     Entry.onCreate(glitter);
 });
 

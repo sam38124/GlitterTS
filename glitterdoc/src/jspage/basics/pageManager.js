@@ -131,7 +131,7 @@ ${doc.codePlace(`glitter.goMenu();`, 'language-typescript')}
     * */
         
     //Function.1: Set default style for all page
-    glitter.defaultSetting.defaultAnimation = glitter.animation.fade
+    glitter.defaultSetting.pageAnimation = glitter.animation.fade
     //Function.2: Set for specific page
     glitter.changePage('page/mypage.js','mytag',true,{},{animation:glitter.animation.rightToLeft})
                                 `, 'language-typescript'),

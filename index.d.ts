@@ -3,7 +3,7 @@ import cors from 'cors';
 import * as core from "express-serve-static-core";
 import * as fs from "fs";
 
-export function setUP(express: core.Express, rout: { rout: string, path: string }[]):any;
+export function setUP(express: core.Express, rout: { rout: string, path: string,seoManager:(map:any)=>string }[]):any;
 
 /*test*/
 // const app = express();

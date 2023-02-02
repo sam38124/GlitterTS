@@ -1,31 +1,19 @@
 "use strict";
-class AppearType {
-    constructor() {
-        this.Web = 0;
-        this.Android = 1;
-        this.Ios = 2;
-    }
-}
-class HtmlType {
-    constructor() {
-        this.Page = 0;
-        this.Dialog = 1;
-        this.Frag = 2;
-    }
-}
-class Animator {
-    constructor() {
-        this.translation = "translation";
-        this.rotation = 1;
-        this.verticalTranslation = 2;
-        this.none = undefined;
-    }
-}
+import { Animation } from "./module/Animation.js";
+import { GVCType, PageManager, DefaultSetting } from "./module/PageManager.js";
+import { AppearType } from "./module/Enum.js";
+import { HtmlGenerate } from "./module/Html_generate.js";
 export class Glitter {
     constructor(window) {
-        this.deviceTypeEnum = new AppearType();
-        this.htmlType = new HtmlType();
-        this.animator = new Animator();
+        this.gvcType = GVCType;
+        this.deviceTypeEnum = AppearType;
+        this.animation = Animation;
+        this.defaultSetting = new DefaultSetting({
+            pageBgColor: "white",
+            pageAnimation: this.animation.none,
+            dialogAnimation: this.animation.none
+        });
+        this.htmlGenerate = HtmlGenerate;
         this.webUrl = '';
         this.goBackStack = [];
         this.parameter = { styleList: [], styleLinks: [] };
@@ -34,21 +22,29 @@ export class Glitter {
         this.debugMode = false;
         this.publicBeans = {};
         this.share = {};
-        this.defaultAnimator = this.animator.none;
         this.deviceType = this.deviceTypeEnum.Web;
-        this.iframe = [];
-        this.ifrag = [];
-        this.dialog = [];
-        this.sheetList = [];
-        this.webPro = {};
         this.modelJsList = [];
         this.pageIndex = 0;
         this.getBoundingClientRect = {};
         this.changePageCallback = [];
         this.pageConfig = [];
         this.waitChangePage = false;
-        this.changeWait = function () {
-        };
+        this.hidePageView = PageManager.hidePageView;
+        this.showPageView = PageManager.showPageView;
+        this.setHome = PageManager.setHome;
+        this.setLoadingView = PageManager.setLoadingView;
+        this.changePageListener = PageManager.changePageListener;
+        this.showLoadingView = PageManager.showLoadingView;
+        this.changeWait = PageManager.changeWait;
+        this.setAnimation = PageManager.setAnimation;
+        this.changePage = PageManager.changePage;
+        this.removePage = PageManager.removePage;
+        this.openDiaLog = PageManager.openDiaLog;
+        this.closeDiaLog = PageManager.closeDiaLog;
+        this.hideLoadingView = PageManager.hideLoadingView;
+        this.goBack = PageManager.goBack;
+        this.goMenu = PageManager.goMenu;
+        this.addChangePageListener = PageManager.addChangePageListener;
         this.ut = {
             glitter: this,
             clock() {
@@ -159,6 +155,7 @@ export class Glitter {
                             reader.readAsDataURL(files[a]);
                             reader.onload = function getFileInfo(evt) {
                                 imageMap = imageMap.concat({
+                                    file: files[a],
                                     data: evt.target.result,
                                     type: option.accept,
                                     name: files[a].name,
@@ -369,6 +366,7 @@ export class Glitter {
         this.windowUtil.es = window;
         this.window = window;
         this.document = window.document;
+        Glitter.glitter = this;
     }
     get baseUrl() {
         var getUrl = window.location;
@@ -394,16 +392,6 @@ export class Glitter {
         }
         return uuid;
     }
-    changePageListener(tag) {
-        for (const data of this.changePageCallback) {
-            try {
-                data(tag);
-            }
-            catch (e) {
-            }
-        }
-    }
-    ;
     parseCookie() {
         var cookieObj = {};
         var cookieAry = this.document.cookie.split(';');
@@ -508,102 +496,6 @@ export class Glitter {
         }
         return search;
     }
-    showLoadingView() {
-        this.$('#loadingView').show();
-    }
-    ;
-    hidePageView(id, del = false) {
-        try {
-            const index = this.pageConfig.map((data) => {
-                return data.id;
-            }).indexOf(id);
-            this.pageConfig[index].deleteResource();
-            if (del) {
-                this.$(`#page` + this.pageConfig[index].id).remove();
-                this.$(`#` + this.pageConfig[index].id).remove();
-                this.pageConfig.splice(index, 1);
-            }
-            else {
-                this.$(`#page` + this.pageConfig[index].id).hide();
-                this.$(`#` + this.pageConfig[index].id).hide();
-            }
-        }
-        catch (e) {
-        }
-    }
-    showPageView(id) {
-        try {
-            const index = this.pageConfig.map((data) => {
-                return data.id;
-            }).indexOf(id);
-            this.$(`#page` + this.pageConfig[index].id).show();
-            this.$(`#` + this.pageConfig[index].id).show();
-            this.pageConfig[index].createResource();
-            this.setUrlParameter('page', this.pageConfig[index].tag);
-        }
-        catch (e) {
-        }
-    }
-    setHome(url, tag, obj) {
-        const glitter = this;
-        for (let a = glitter.pageConfig.length - 1; a >= 0; a--) {
-            glitter.hidePageView(glitter.pageConfig[a].id, true);
-        }
-        const config = {
-            id: glitter.getUUID(),
-            obj: obj,
-            goBack: true,
-            src: url,
-            tag: tag,
-            createResource: () => {
-            },
-            deleteResource: () => {
-            }
-        };
-        glitter.nowPageConfig = config;
-        let module = this.modelJsList.find((dd) => {
-            return dd.src === url;
-        });
-        if (module) {
-            module.create(this);
-            const search = glitter.setSearchParam(glitter.removeSearchParam(glitter.window.location.search, "page"), "page", tag);
-            try {
-                glitter.window.history.pushState({}, glitter.document.title, search);
-            }
-            catch (e) {
-            }
-            glitter.pageConfig = [];
-            glitter.pageConfig.push(config);
-            glitter.setUrlParameter('page', tag);
-        }
-        else {
-            this.addMtScript([{
-                    src: url,
-                    type: 'module',
-                    id: config.id
-                }], () => {
-                const search = glitter.setSearchParam(glitter.removeSearchParam(glitter.window.location.search, "page"), "page", tag);
-                try {
-                    glitter.window.history.pushState({}, glitter.document.title, search);
-                }
-                catch (e) {
-                }
-                glitter.pageConfig = [];
-                glitter.pageConfig.push(config);
-                glitter.setUrlParameter('page', tag);
-            }, () => {
-                console.log("can't find script src:" + url);
-            }, { multiple: true });
-        }
-    }
-    ;
-    setLoadingView(link) {
-        this.$('#loadingView').hide();
-        this.$('#loadingView').append('<iframe  src="' + link + '" style="width: 100%;height: 100%;background-color: rgba(0, 0, 0, 0.5);"></iframe>');
-    }
-    hideLoadingView() {
-        this.$('#loadingView').hide();
-    }
     rootRout() {
         return this.location.href.substring(0, this.location.href.indexOf('index.html'));
     }
@@ -628,168 +520,40 @@ export class Glitter {
         catch (e) {
         }
     }
-    changePage(url, tag, goBack, obj) {
-        const glitter = this;
-        if (glitter.waitChangePage) {
-            setTimeout(() => {
-                glitter.changePage(url, tag, goBack, obj);
-            }, 100);
+    setDrawer(src, callback) {
+        const gliter = this;
+        this.$("#Navigation").html(src);
+        if (window.drawer === undefined) {
+            gliter.addMtScript(['glitterBundle/plugins/NaviGation.js'], () => {
+                callback();
+            }, () => {
+            });
         }
         else {
-            glitter.waitChangePage = true;
-            const config = {
-                id: glitter.getUUID(),
-                obj: obj,
-                goBack: true,
-                src: url,
-                tag: tag,
-                deleteResource: () => {
-                },
-                createResource: () => {
-                }
-            };
-            glitter.nowPageConfig = config;
-            let module = this.modelJsList.find((dd) => {
-                return dd.src === url;
-            });
-            if (module) {
-                module.create(this);
-                const search = glitter.setSearchParam(glitter.removeSearchParam(glitter.window.location.search, "page"), "page", tag);
-                glitter.window.history.pushState({}, glitter.document.title, search);
-                glitter.pageConfig.push(config);
-                glitter.setUrlParameter('page', tag);
-                glitter.waitChangePage = false;
-            }
-            else {
-                this.addMtScript([{
-                        src: url,
-                        type: 'module',
-                        id: config.id
-                    }], () => {
-                    const search = glitter.setSearchParam(glitter.removeSearchParam(glitter.window.location.search, "page"), "page", tag);
-                    glitter.window.history.pushState({}, glitter.document.title, search);
-                    glitter.pageConfig.push(config);
-                    glitter.waitChangePage = false;
-                }, () => {
-                    console.log("can't find script src:" + url);
-                    glitter.waitChangePage = false;
-                }, { multiple: true });
-            }
-        }
-    }
-    removePage(tag) {
-        const pg = this.pageConfig.find((dd) => {
-            return dd.tag === tag;
-        });
-        if (pg) {
-            this.hidePageView(pg.id, true);
+            callback();
         }
     }
     ;
-    openDiaLog(url, tag, swipe, cancelable, obj, dismiss) {
-        const glitter = this;
-        if (glitter.dialog.filter(function (item) {
-            return item.id === `Dialog-${tag}`;
-        }).length !== 0) {
-            return;
+    openDrawer() {
+        if (window.drawer !== undefined) {
+            window.drawer.open();
         }
-        const map = {
-            id: `Dialog-${tag}`,
-            obj: obj,
-            dismiss: dismiss,
-            pageIndex: glitter.pageIndex++,
-            cancelable: cancelable
-        };
-        glitter.dialog.push(map);
-        glitter.$('#diaPlace').show();
-        glitter.$('#diaPlace').append(`<iframe name="${map.id}" src="${url}?tag=${map.id}&pageIndex=${map.pageIndex}&type=Dialog"  id="${map.id}" style="display: none;z-index:${map.pageIndex};position: absolute;"></iframe>`);
-        let element = document.getElementById(map.id);
-        if (!swipe) {
-            element.style.backgroundColor = "rgba(0, 0, 0, 0.5)";
-        }
-        glitter.changeWait = function () {
-            glitter.$(`#${map.id}`).show();
-        };
-    }
-    ;
-    closeDiaLog(tag) {
-        const glitter = this;
-        if (tag !== undefined) {
-            glitter.closeDiaLogWithTag(tag);
-            return;
-        }
-        var tempDialog = glitter.dialog;
-        glitter.dialog = [];
-        for (var i = 0; i < tempDialog.length; i++) {
-            if (tempDialog[i].dismiss !== undefined) {
-                tempDialog[i].dismiss();
-            }
-            try {
-                glitter.document.getElementById(`#${tempDialog[i].id}`).contentWindow.lifeCycle.onDestroy();
-            }
-            catch (e) {
-            }
-            glitter.$(`#${tempDialog[i].id}`).remove();
-        }
-        glitter.$('#diaPlace').html('');
-        glitter.$('#diaPlace').hide();
-    }
-    closeDiaLogWithTag(tag) {
-        const glitter = this;
-        let tempArray = [];
-        for (var i = 0; i < glitter.dialog.length; i++) {
-            var id = glitter.dialog[i].id;
-            if (id === `Dialog-${tag}` || id === tag) {
-                if (glitter.dialog[i].dismiss !== undefined) {
-                    glitter.dialog[i].dismiss();
+        else {
+            var timer = setInterval(function () {
+                if (window.drawer !== undefined) {
+                    window.drawer.open();
+                    clearInterval(timer);
                 }
-                try {
-                    glitter.document.getElementById(`#${id}`).contentWindow.lifeCycle.onDestroy();
-                }
-                catch (e) {
-                }
-                glitter.$('#' + id).remove();
-            }
-            else {
-                tempArray = tempArray.concat(glitter.dialog[i]);
-            }
-        }
-        glitter.dialog = tempArray;
-        if (glitter.dialog.length === 0) {
-            glitter.$('#diaPlace').html('');
-            glitter.$('#diaPlace').hide();
+            }, 100);
         }
     }
     ;
-    getDialog(tag) {
-        const glitter = this;
-        for (let i = 0; i < glitter.dialog.length; i++) {
-            if (glitter.dialog[i].id === `Dialog-${tag}` || (glitter.dialog[i].id === tag)) {
-                return this.dialog[i];
-            }
-        }
+    closeDrawer() {
+        window.drawer.close();
     }
     ;
-    goBack(tag = undefined) {
-        if (tag === undefined && this.pageConfig.length > 1) {
-            const pageHide = this.pageConfig[this.pageConfig.length - 1];
-            const pageShow = this.pageConfig[this.pageConfig.length - 2];
-            this.hidePageView(pageHide.id, true);
-            this.showPageView(pageShow.id);
-        }
-        else if (this.pageConfig.find((dd) => {
-            return dd.tag === tag;
-        })) {
-            for (let a = this.pageConfig.length - 1; a >= 0; a--) {
-                if (this.pageConfig[a].tag == tag) {
-                    this.showPageView(this.pageConfig[a].id);
-                    break;
-                }
-                else {
-                    this.hidePageView(this.pageConfig[a].id, true);
-                }
-            }
-        }
+    toggleDrawer() {
+        window.drawer.toggle();
     }
     ;
     addScript(url, success, error) {
@@ -906,28 +670,6 @@ export class Glitter {
         glitter.runJsInterFace("closeAPP", {}, function (response) {
         });
     }
-    goMenu() {
-        for (let a = this.pageConfig.length - 1; a >= 0; a--) {
-            if (a == 0) {
-                this.showPageView(this.pageConfig[a].id);
-                break;
-            }
-            else {
-                this.hidePageView(this.pageConfig[a].id, true);
-            }
-        }
-    }
-    addChangePageListener(callback) {
-        this.changePageCallback.push(callback);
-    }
-    showToast(string, sec) {
-        const glitter = this;
-        this.$('#toast').html(string);
-        this.$('#toast').show();
-        setTimeout(function () {
-            glitter.$('#toast').hide();
-        }, sec === undefined ? 2000 : sec);
-    }
     getUrlParameter(sParam) {
         let sPageURL = window.location.search.substring(1), sURLVariables = sPageURL.split('&'), sParameterName, i;
         for (i = 0; i < sURLVariables.length; i++) {
@@ -964,23 +706,6 @@ export class Glitter {
         else {
             return fun();
         }
-    }
-    getPage(tag) {
-        const glitter = this;
-        var page = undefined;
-        for (var a = 0; a < glitter.iframe.length; a++) {
-            if (glitter.iframe[a].id === tag) {
-                return glitter.document.getElementById(glitter.iframe[a].pageIndex).contentWindow;
-            }
-        }
-        return page;
-    }
-    getNowPage() {
-        const glitter = this;
-        return {
-            tag: glitter.iframe[glitter.iframe.length - 1].id,
-            window: glitter.document.getElementById(glitter.iframe[glitter.iframe.length - 1].pageIndex).contentWindow
-        };
     }
     getUUID() {
         let d = Date.now();
@@ -1046,7 +771,7 @@ export class Glitter {
         if (Array.isArray(keyList)) {
             keyList.map((k) => (this.document.cookie = `${k}=''; max-age=-99999999; path=/`));
         }
-        else if (keyList == '*') {
+        else if (keyList === undefined) {
             let list = this.document.cookie.split('; ');
             list.map((l) => (this.document.cookie = `${l.split('=')[0]}=''; max-age=-99999999; path=/`));
         }

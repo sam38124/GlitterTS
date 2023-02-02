@@ -395,4 +395,5 @@ export class Funnel {
         link.setAttribute('download', fileName);
         link.click();
     };
+    cutString = (text: string, limit: number) => (text.length > limit ? text.substring(0, limit) + '...' : text);
 }
