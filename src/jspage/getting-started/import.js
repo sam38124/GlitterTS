@@ -16,7 +16,7 @@ init((gvc, glitter, gBundle) => {
 <section id="${this.id}" class="border-bottom py-5 ps-lg-2 ps-xxl-0">
 <h2 class="h4">${this.title}</h2>
 <h2 class="fs-lg mb-2 fw-normal fw-500 mb-2"> Add glitter plugin by npm.</h2>
-${doc.codePlace('npm install @jianzhi.wang/glitter', 'language-cmd')}
+${doc.codePlace('npm install ts-glitter', 'language-cmd')}
 </section>`;
                     },
                 },
@@ -34,7 +34,7 @@ ${doc.previewCode({
                                 `<i class="bx bx-show-alt fs-base opacity-70 me-2"></i> result`,
                             ],
                             tab: [
-                                doc.codePlace('node node_modules/@jianzhi.wang/glitter/create.js', 'language-cmd'),
+                                doc.codePlace('node -r ts-glitter/create.js', 'language-cmd'),
                                 `<img src="img/create/emptydir.png" class="rounded-3 " style="max-width: 100%;width: 500px;">`,
                             ],
                         })}
@@ -89,7 +89,7 @@ ${doc.previewCode({
         }
     ]
 }`, 'language-json'),
-                                doc.codePlace(`node node_modules/@jianzhi.wang/glitter/install.js`, 'language-json'),
+                                doc.codePlace(`node -r ts-glitter/install.js`, 'language-json'),
                                 `<img src="img/glitterdeps.png" class="rounded-3 " style="max-width: 100%;width: 500px;">`,
                             ],
                         })}
@@ -107,7 +107,7 @@ ${doc.previewCode({
 ${doc.previewCode({
                             previewString: [`<i class="bx bx-code fs-base opacity-70 me-2"></i> script`],
                             tab: [doc.codePlace(`//Set the path you want to compile.
-node node_modules/@jianzhi.wang/glitter/release.js path=mypath`, 'language-json')],
+node -r ts-glitter/release.js path=mypath`, 'language-json')],
                         })}
 </section>`;
                     },
@@ -134,7 +134,7 @@ node node_modules/@jianzhi.wang/glitter/release.js path=mypath`, 'language-json'
                 return html;
             })()}
                     </div>
-                `, doc.asideScroller(sessions), new Items('Create', gvc));
+                `, doc.asideScroller(sessions), new Items('scripts', gvc));
         },
         onCreate: () => {
             gallary.addScript();

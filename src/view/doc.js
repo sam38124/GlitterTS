@@ -165,25 +165,49 @@ export class Doc {
                         >
                             <div class="swiper-wrapper">
                                 ${gvc.bindView(() => {
-                const id = glitter.getUUID();
+                const vid = glitter.getUUID();
                 return {
-                    bind: id,
+                    bind: vid,
                     view: () => {
                         var html = '';
                         items.map((dd) => {
                             html += `<h3 class="fs-lg">${dd.title}</h3>
                                                     <div class="list-group list-group-flush border-bottom pb-3 mb-4 mx-n4">
                                                         ${(() => {
-                                let innerHtml = '';
-                                dd.option.map((d2) => {
-                                    innerHtml += `<a
-                                                                    class="list-group-item list-group-item-action border-0 py-2 px-4 ${d2.select ? `active` : ``}"
-                                                                    onclick="${gvc.event(() => d2.click())}"
+                                function convertInner(d2, inner) {
+                                    if (d2.option) {
+                                        const id = glitter.getUUID();
+                                        return `
+                                                                    <a
+                                                                    class="list-group-item list-group-item-action border-0 py-2 px-4 ${(d2.option.find((d3) => {
+                                            return d3.select;
+                                        })) || d2.select ? `active` : ``}"
+                                                                    onclick="${gvc.event(() => {
+                                            d2.click();
+                                        })}"
                                                                     style="cursor:pointer"
+                                                                    >${d2.text}</a>
+                                                                    <div class="collapse multi-collapse ${(d2.select) ? `show` : ''}" style="margin-left: 10px;" id="${id}">
+                                                                    ${gvc.map(d2.option.map((d4) => {
+                                            return convertInner(d4, true);
+                                        }))}
+</div>
+                                                                    `;
+                                    }
+                                    else {
+                                        return `<a
+                                                                    class=" list-group-item list-group-item-action border-0 py-2 px-4 ${d2.select ? `${(inner) ? `bg-warning` : `active`}` : ``}"
+                                                                    onclick="${gvc.event(() => {
+                                            d2.click();
+                                        })}"
+                                                                    style="cursor:pointer;${(inner && d2.select) ? `background-color: #FFDC6A !important;color:black !important;` : ``}"
                                                                     >${d2.text}</a
                                                                 >`;
-                                });
-                                return innerHtml;
+                                    }
+                                }
+                                return gvc.map(dd.option.map((d2) => {
+                                    return convertInner(d2, false);
+                                }));
                             })()}
                                                     </div>`;
                         });

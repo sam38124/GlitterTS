@@ -34,6 +34,8 @@ export class GVC {
             jsList: [],
             styleLinks: [],
         };
+        this.recreateView = () => {
+        };
     }
     notifyDataChange(id) {
         const gvc = this;
@@ -151,7 +153,7 @@ export class GVC {
         }
     }
     bindView(map) {
-        var _a, _b, _c, _d, _e, _f, _g;
+        var _a, _b, _c, _d, _e, _f, _g, _h;
         const gvc = this;
         if (typeof map === "function") {
             map = map();
@@ -185,7 +187,13 @@ export class GVC {
             map.inital();
         }
         if (map.divCreate) {
-            return `<${(_c = map.divCreate.elem) !== null && _c !== void 0 ? _c : 'div'} id="${(_d = gvc.parameter.pageConfig) === null || _d === void 0 ? void 0 : _d.id}${map.bind}" class="${(_e = map.divCreate.class) !== null && _e !== void 0 ? _e : ""}" style="${(_f = map.divCreate.style) !== null && _f !== void 0 ? _f : ""}">${map.view()}</${(_g = map.divCreate.elem) !== null && _g !== void 0 ? _g : 'div'}>`;
+            return `
+<${(_c = map.divCreate.elem) !== null && _c !== void 0 ? _c : 'div'} id="${(_d = gvc.parameter.pageConfig) === null || _d === void 0 ? void 0 : _d.id}${map.bind}" class="${(_e = map.divCreate.class) !== null && _e !== void 0 ? _e : ""}" style="${(_f = map.divCreate.style) !== null && _f !== void 0 ? _f : ""}" 
+${gvc.map(((_g = map.divCreate.option) !== null && _g !== void 0 ? _g : []).map((dd) => {
+                return ` ${dd.key}="${dd.value}"`;
+            }))}
+>${map.view()}</${(_h = map.divCreate.elem) !== null && _h !== void 0 ? _h : 'div'}>
+`;
         }
         else {
             return map.view();
@@ -330,10 +338,11 @@ export function init(fun, gt) {
         glitter.modelJsList.push({
             src: glitter.nowPageConfig.src,
             create: (glitter) => {
-                init(fun, glitter);
+                init(fun, window.glitter);
             }
         });
     }
+    console.log(JSON.stringify(glitter.modelJsList));
     const lifeCycle = new LifeCycle();
     lifeCycle.onResume = (_c = pageData.onResume) !== null && _c !== void 0 ? _c : lifeCycle.onResume;
     lifeCycle.onPause = (_d = pageData.onPause) !== null && _d !== void 0 ? _d : lifeCycle.onPause;
@@ -341,6 +350,9 @@ export function init(fun, gt) {
     lifeCycle.onCreate = (_f = pageData.onCreate) !== null && _f !== void 0 ? _f : lifeCycle.onCreate;
     lifeCycle.onCreateView = pageData.onCreateView;
     lifeCycle.cssInitial = (_g = pageData.cssInitial) !== null && _g !== void 0 ? _g : lifeCycle.cssInitial;
+    gvc.recreateView = () => {
+        $(`#page${gvc.parameter.pageConfig.id}`).html(lifeCycle.onCreateView());
+    };
     if ($('.page-loading').length > 0) {
         $('#glitterPage').html('');
         $('.page-loading').remove();
@@ -349,14 +361,14 @@ export function init(fun, gt) {
     switch ((_j = gvc.parameter.pageConfig) === null || _j === void 0 ? void 0 : _j.type) {
         case GVCType.Dialog:
             $('#glitterPage').append(`<div  id="page${gvc.parameter.pageConfig.id}" style="width:100vw;height:100vh;
-background: transparent;display: none;position: absolute;top: 0;left: 0;z-index: 999999;">
+background: transparent;display: none;position: absolute;top: 0;left: 0;z-index: 999999;overflow: scroll;">
 ${lifeCycle.onCreateView()}
 </div>`);
             glitter.setAnimation(gvc.parameter.pageConfig);
             break;
         case GVCType.Page:
             $('#glitterPage').append(`<div id="page${gvc.parameter.pageConfig.id}" style="min-width: 100vw;min-height: 100vh;left: 0;top: 0;
-background: ${gvc.parameter.pageConfig.backGroundColor};display: none;z-index: 999999;">
+background: ${gvc.parameter.pageConfig.backGroundColor};display: none;z-index: 999999;overflow: scroll;">
 ${lifeCycle.onCreateView()}
 </div>`);
             glitter.setAnimation(gvc.parameter.pageConfig);
@@ -364,24 +376,6 @@ ${lifeCycle.onCreateView()}
     }
     window.clickMap[gvc.parameter.pageConfig.id] = gvc.parameter.clickMap;
     lifeCycle.onCreate();
-    gvc.parameter.pageConfig.createResource = () => {
-        window.clickMap[gvc.parameter.pageConfig.id] = gvc.parameter.clickMap;
-        var copyStyleList = JSON.parse(JSON.stringify(gvc.parameter.styleList));
-        gvc.parameter.styleList = [];
-        copyStyleList.map((data) => {
-            gvc.addStyle(data.style);
-        });
-        var copyStyleLink = JSON.parse(JSON.stringify(gvc.parameter.styleLinks));
-        gvc.parameter.styleLinks = [];
-        copyStyleLink.map((data) => {
-            gvc.addStyleLink(data.src);
-        });
-        var copyJsList = JSON.parse(JSON.stringify(gvc.parameter.jsList));
-        gvc.addMtScript(copyJsList, () => {
-        }, () => {
-        });
-        lifeCycle.onResume();
-    };
     gvc.parameter.pageConfig.deleteResource = () => {
         window.clickMap[gvc.parameter.pageConfig.id] = undefined;
         lifeCycle.onPause();
@@ -395,5 +389,4 @@ ${lifeCycle.onCreateView()}
             $(`#${dd.id}`).remove();
         });
     };
-    glitter.waitChangePage = false;
 }

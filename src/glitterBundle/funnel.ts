@@ -395,40 +395,5 @@ export class Funnel {
         link.setAttribute('download', fileName);
         link.click();
     };
-
-    formatDatetime = (date?: string | Date, symbol?: { date: string; time: string } | false, apm?: boolean) => {
-        let d = date === undefined || date === null || date == '' ? new Date() : new Date(date),
-            month = '' + (d.getMonth() + 1),
-            day = '' + d.getDate(),
-            year = d.getFullYear(),
-            hour = (apm && d.getHours() > 12 ? d.getHours() - 12 : d.getHours()).toString(),
-            min = '' + d.getMinutes(),
-            sec = '' + d.getSeconds(),
-            meridiem = d.getHours() < 12 ? ' AM' : ' PM';
-
-        if (month.length < 2) month = '0' + month;
-        if (day.length < 2) day = '0' + day;
-        if (hour.length < 2) hour = '0' + hour;
-        if (min.length < 2) min = '0' + min;
-        if (sec.length < 2) sec = '0' + sec;
-
-        return (
-            [year, month, day].join(symbol ? symbol.date : '-') +
-            ' ' +
-            [hour, min].join(symbol ? symbol.time : ':') +
-            (apm ? meridiem : ':' + sec)
-        );
-    };
-
-    // 回傳隨機色碼
-    randomHexColor = () => `#${Math.floor(Math.random() * 0xffffff).toString(16)}`;
-
-    // 單字頭貼
-    getImgix = (text: string, bg?: string, txtclr?: string) =>
-        `https://assets.imgix.net/~text?bg=${bg ?? Math.floor(Math.random() * 0xffffff).toString(16)}&txtclr=${
-            txtclr ?? Math.floor(Math.random() * 0xffffff).toString(16)
-        }&w=240&h=240&txtsize=120&txt=${text}&txtfont=Helvetica&txtalign=middle,center`;
-
-    // 限制字數
     cutString = (text: string, limit: number) => (text.length > limit ? text.substring(0, limit) + '...' : text);
 }

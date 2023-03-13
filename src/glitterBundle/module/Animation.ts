@@ -20,24 +20,24 @@ export class Animation {
 
     public static fade = new AnimationConfig((page: PageConfig, finish: () => void) => {
         page.getElement().css("opacity", "0.1")
-        page.getElement().animate({"opacity": "1"}, 500);
+        page.getElement().animate({"opacity": "1"}, 300);
         setTimeout(() => {
             finish()
-        }, 500)
+        }, 250)
     }, (page: PageConfig, finish: () => void) => {
-        page.getElement().addClass('position-absolute')
+        page.getElement().addClass('position-fixed')
         page.getElement().css("opacity", "1.0")
-        page.getElement().animate({"opacity": "0.1"}, 500);
+        page.getElement().animate({"opacity": "0.1"}, 300);
         setTimeout(() => {
             finish()
-        }, 450)
+        }, 250)
     })
 
     public static rightToLeft = new AnimationConfig((pageConfig, finish) => {
         Glitter.glitter.addStyle(`.inRightToLeft{
-    animation:RightToLeft 0.5s ; /*IE*/
-    -moz-animation:RightToLeft 0.5s; /*FireFox*/
-    -webkit-animation:RightToLeft 0.5s ; /*Chrome, Safari*/
+    animation:RightToLeft 0.3s ; /*IE*/
+    -moz-animation:RightToLeft 0.3s; /*FireFox*/
+    -webkit-animation:RightToLeft 0.3s ; /*Chrome, Safari*/
 }
 
 @keyframes RightToLeft{
@@ -55,9 +55,9 @@ export class Animation {
     to {left:0%;}
 }`)
         Glitter.glitter.addStyle(`.inRightToLeftDismiss{
-    animation:RightToLeftD 0.5s ; /*IE*/
-    -moz-animation:RightToLeftD 0.5s; /*FireFox*/
-    -webkit-animation:RightToLeftD 0.5s ; /*Chrome, Safari*/
+    animation:RightToLeftD 0.3s ; /*IE*/
+    -moz-animation:RightToLeftD 0.3s; /*FireFox*/
+    -webkit-animation:RightToLeftD 0.3s ; /*Chrome, Safari*/
 }
 
 @keyframes RightToLeftD{
@@ -78,20 +78,20 @@ export class Animation {
         setTimeout(() => {
             pageConfig.getElement().removeClass('inRightToLeft')
             finish()
-        }, 500)
+        }, 300)
     }, (pageConfig: PageConfig, finish: () => void) => {
-        pageConfig.getElement().addClass('position-absolute')
+        pageConfig.getElement().addClass('position-fixed')
         pageConfig.getElement().addClass(`inRightToLeftDismiss`)
         setTimeout(() => {
             finish()
-        }, 450)
+        }, 250)
     })
 
     public static topToBottom = new AnimationConfig((pageConfig, finish) => {
         Glitter.glitter.addStyle(`.inTopToBottom{
-    animation:TopToBtn 0.5s ; /*IE*/
-    -moz-animation:TopToBtn 0.5s; /*FireFox*/
-    -webkit-animation:TopToBtn 0.5s ; /*Chrome, Safari*/
+    animation:TopToBtn 0.3s ; /*IE*/
+    -moz-animation:TopToBtn 0.3s; /*FireFox*/
+    -webkit-animation:TopToBtn 0.3s ; /*Chrome, Safari*/
 }
 
 @keyframes TopToBtn{
@@ -109,9 +109,9 @@ export class Animation {
     to {top:0%;}
 }`)
         Glitter.glitter.addStyle(`.TopToBtnDismiss{
-    animation:TopToBtnD 0.5s ; /*IE*/
-    -moz-animation:TopToBtnD 0.5s; /*FireFox*/
-    -webkit-animation:TopToBtnD 0.5s ; /*Chrome, Safari*/
+    animation:TopToBtnD 0.3s ; /*IE*/
+    -moz-animation:TopToBtnD 0.3s; /*FireFox*/
+    -webkit-animation:TopToBtnD 0.3s ; /*Chrome, Safari*/
 }
 
 @keyframes TopToBtnD{
@@ -132,13 +132,13 @@ export class Animation {
         setTimeout(() => {
             pageConfig.getElement().removeClass('inTopToBottom')
             finish()
-        }, 500)
+        }, 300)
     }, (pageConfig: PageConfig, finish: () => void) => {
-        pageConfig.getElement().addClass('position-absolute')
+        pageConfig.getElement().addClass('position-fixed')
         pageConfig.getElement().addClass(`TopToBtnDismiss`)
         setTimeout(() => {
             finish()
-        }, 450)
+        }, 250)
     })
 
 

@@ -190,25 +190,6 @@ export class Funnel {
             link.setAttribute('download', fileName);
             link.click();
         };
-        this.formatDatetime = (date, symbol, apm) => {
-            let d = date === undefined || date === null || date == '' ? new Date() : new Date(date), month = '' + (d.getMonth() + 1), day = '' + d.getDate(), year = d.getFullYear(), hour = (apm && d.getHours() > 12 ? d.getHours() - 12 : d.getHours()).toString(), min = '' + d.getMinutes(), sec = '' + d.getSeconds(), meridiem = d.getHours() < 12 ? ' AM' : ' PM';
-            if (month.length < 2)
-                month = '0' + month;
-            if (day.length < 2)
-                day = '0' + day;
-            if (hour.length < 2)
-                hour = '0' + hour;
-            if (min.length < 2)
-                min = '0' + min;
-            if (sec.length < 2)
-                sec = '0' + sec;
-            return ([year, month, day].join(symbol ? symbol.date : '-') +
-                ' ' +
-                [hour, min].join(symbol ? symbol.time : ':') +
-                (apm ? meridiem : ':' + sec));
-        };
-        this.randomHexColor = () => `#${Math.floor(Math.random() * 0xffffff).toString(16)}`;
-        this.getImgix = (text, bg, txtclr) => `https://assets.imgix.net/~text?bg=${bg !== null && bg !== void 0 ? bg : Math.floor(Math.random() * 0xffffff).toString(16)}&txtclr=${txtclr !== null && txtclr !== void 0 ? txtclr : Math.floor(Math.random() * 0xffffff).toString(16)}&w=240&h=240&txtsize=120&txt=${text}&txtfont=Helvetica&txtalign=middle,center`;
         this.cutString = (text, limit) => (text.length > limit ? text.substring(0, limit) + '...' : text);
         this.optionSreach = (set, callback, arg) => {
             const funnel = this;

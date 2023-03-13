@@ -9,7 +9,8 @@ interface Device {
     address: string
     readHEX: string
     readBytes: number[]
-    readUTF: string
+    readUTF: string,
+    rssi:string
 }
 
 export class BLEHelper {

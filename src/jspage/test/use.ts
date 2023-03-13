@@ -6,7 +6,7 @@ init((gvc) => {
 
     return {
         onCreateView: () => {
-            return funnel.formatDatetime();
+            return `funnel.formatDatetime();`
         },
     };
 });

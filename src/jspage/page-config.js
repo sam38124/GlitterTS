@@ -8,19 +8,41 @@ export class Items {
                         text: 'Introduction',
                         click: () => {
                             location.href = 'index.html?page=getting-started/introduction';
-                        },
+                        }
                     },
                     {
                         text: 'Create',
                         click: () => {
                             location.href = 'index.html?page=getting-started/import';
                         },
+                        option: [
+                            {
+                                text: 'create-ts-glitter',
+                                click: () => {
+                                    location.href = 'index.html?page=getting-started/create-glitter-app';
+                                },
+                            },
+                            {
+                                text: 'scripts',
+                                click: () => {
+                                    location.href = 'index.html?page=getting-started/import';
+                                },
+                            }
+                        ]
                     },
                     {
                         text: 'Backend Server',
                         click: () => {
                             location.href = 'index.html?page=getting-started/backend';
                         },
+                        option: [
+                            {
+                                text: 'Add to existing',
+                                click: () => {
+                                    location.href = 'index.html?page=getting-started/backend';
+                                },
+                            }
+                        ]
                     },
                     {
                         text: 'Android',
@@ -37,7 +59,7 @@ export class Items {
                 ],
             },
             {
-                title: '<span class="text-danger me-1">★</span> Plugin',
+                title: '<span class="text-danger me-1" style="">★</span>Mobile Plugin',
                 option: [
                     {
                         text: 'Develop own plugin',
@@ -113,10 +135,19 @@ export class Items {
                 ],
             },
         ];
+        function checkSelected(d2) {
+            d2.select = d2.text === selectItem;
+            if (d2.option) {
+                d2.option.map((d3) => {
+                    if (!d2.select) {
+                        d2.select = checkSelected(d3);
+                    }
+                });
+            }
+            return d2.select;
+        }
         this.items.map((dd) => {
-            dd.option.map((d2) => {
-                d2.select = d2.text === selectItem;
-            });
+            checkSelected(dd);
         });
     }
 }

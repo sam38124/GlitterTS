@@ -20,7 +20,7 @@ init((gvc, glitter, gBundle) => {
 <section id="${this.id}" class="border-bottom py-5 ps-lg-2 ps-xxl-0">
 <h2 class="h4">${this.title}</h2>
 <h2 class="fs-lg mb-2 fw-normal fw-500 mb-2"> Add glitter plugin by npm.</h2>
-${doc.codePlace('npm install @jianzhi.wang/glitter', 'language-cmd')}
+${doc.codePlace('npm install ts-glitter', 'language-cmd')}
 </section>`;
                     },
                 },
@@ -31,7 +31,7 @@ ${doc.codePlace('npm install @jianzhi.wang/glitter', 'language-cmd')}
                         return `<section id="${this.id}" class="border-bottom py-5 ps-lg-2 ps-xxl-0">
                             <h2 class="h4">${this.title}</h2>
                             <h2 class="fs-lg mb-2 fw-normal fw-500">Set up router by Glitter.setUP function.</h2>
-                            ${doc.codePlace(`import * as Glitter from '@jianzhi.wang/glitter';
+                            ${doc.codePlace(`import * as Glitter from 'ts-glitter';
                             
 Glitter.setUP(app, [
     {
