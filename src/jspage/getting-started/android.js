@@ -29,7 +29,7 @@ init((gvc, glitter, gBundle) => {
                         return `
 <section id="${this.id}" class="border-bottom py-5 ps-lg-2 ps-xxl-0">
 <h2 class="h4">${this.title}</h2>
-<h2 class="fs-lg mb-2 fw-normal fw-500 mb-2">Run npm release to get dist and copy your glitter dist dir to asset route.</h2>
+<h2 class="fs-lg mb-2 fw-normal fw-500 mb-2">Run npm release.js to build your .ts project to .js file to your asset  route.</h2>
             <img src="img/android_asset.png" class="rounded-3 mt-2" style="max-width: 100%;width: 500px;">
 </section>`;
                     },

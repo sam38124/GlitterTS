@@ -21,6 +21,19 @@ ${doc.codePlace('npx create-ts-glitter', 'language-cmd')}
                     },
                 },
                 {
+                    id: `Finish`,
+                    title: 'Finish',
+                    get html() {
+                        return `
+<section id="${this.id}" class="border-bottom py-5 ps-lg-2 ps-xxl-0">
+<h2 class="h4">${this.title}</h2>
+<h2 class="fs-lg mb-2 fw-normal fw-500 mb-3">Open the index.html file.</h2>
+<img src="img/create/index.png" class="rounded-3 " style="max-width: 100%;width: 500px;">
+<h2 class="fs-lg  fw-normal fw-500 mb-2 mt-4">👍<span class="me-2"></span>Great job! Now you can start your coding.</h2>
+</section>`;
+                    },
+                },
+                {
                     id: `Guide`,
                     title: 'Guide',
                     get html() {
@@ -54,7 +67,7 @@ ${doc.codePlace('npx create-ts-glitter', 'language-cmd')}
                 return html;
             })()}
                     </div>
-                `, doc.asideScroller(sessions), new Items('create-ts-glitter', gvc));
+                `, doc.asideScroller(sessions), new Items('Create', gvc));
         },
         onCreate: () => {
             gallary.addScript();

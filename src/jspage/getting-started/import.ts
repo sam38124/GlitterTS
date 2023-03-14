@@ -10,32 +10,20 @@ init((gvc, glitter, gBundle) => {
         onCreateView: () => {
             const sessions: { id: string; title: string; html: string }[] = [
                 {
-                    id: `Step1`,
-                    title: 'Step. 1',
+                    id: `update`,
+                    title: 'Update.',
                     get html() {
                         return `
 <section id="${this.id}" class="border-bottom py-5 ps-lg-2 ps-xxl-0">
 <h2 class="h4">${this.title}</h2>
-<h2 class="fs-lg mb-2 fw-normal fw-500 mb-2"> Add glitter plugin by npm.</h2>
-${doc.codePlace('npm install ts-glitter', 'language-cmd')}
-</section>`;
-                    },
-                },
-                {
-                    id: `Step2`,
-                    title: 'Step. 2',
-                    get html() {
-                        return `
-<section id="${this.id}" class="border-bottom py-5 ps-lg-2 ps-xxl-0">
-<h2 class="h4">${this.title}</h2>
-<h2 class="fs-lg mb-2 fw-normal fw-500 mb-2 ">Create or update glitter project.</h2>
+<h2 class="fs-lg mb-2 fw-normal fw-500 mb-2 ">Update your glitter project.</h2>
 ${doc.previewCode({
     previewString: [
         `<i class='bx bx-code fs-base opacity-70 me-2'></i>script`,
         `<i class="bx bx-show-alt fs-base opacity-70 me-2"></i> result`,
     ],
     tab: [
-        doc.codePlace('node -r ts-glitter/create.js', 'language-cmd'),
+        doc.codePlace('node -r ts-glitter/update.js', 'language-cmd'),
         `<img src="img/create/emptydir.png" class="rounded-3 " style="max-width: 100%;width: 500px;">`,
     ],
 })}
@@ -43,27 +31,30 @@ ${doc.previewCode({
                     },
                 },
                 {
-                    id: `Step3`,
-                    title: 'Step. 3',
+                    id: `auto-build`,
+                    title: 'Build.',
                     get html() {
                         return `
 <section id="${this.id}" class="border-bottom py-5 ps-lg-2 ps-xxl-0">
 <h2 class="h4">${this.title}</h2>
-<h2 class="fs-lg mb-2 fw-normal fw-500 mb-2 ">Auto build your Glitter project.</h2>
+<h2 class="fs-lg mb-2 fw-normal fw-500 mb-2 ">Auto build your glitter project.</h2>
 ${doc.codePlace('tsc --project tsconfig.json && tsc -w', 'language-cmd')}
 </section>`;
                     },
                 },
                 {
-                    id: `Finish`,
-                    title: 'Finish',
+                    id: `Option2`,
+                    title: 'Release',
                     get html() {
                         return `
 <section id="${this.id}" class="border-bottom py-5 ps-lg-2 ps-xxl-0">
 <h2 class="h4">${this.title}</h2>
-<h2 class="fs-lg mb-2 fw-normal fw-500 mb-3">Open the index.html file.</h2>
-<img src="img/create/index.png" class="rounded-3 " style="max-width: 100%;width: 500px;">
-<h2 class="fs-lg  fw-normal fw-500 mb-2 mt-4">👍<span class="me-2"></span>Great job! Now you can start your coding.</h2>
+<h2 class="fs-lg mb-2 fw-normal fw-500 mb-2 ">Build your .ts project to .js file to specified path.</h2>
+${doc.previewCode({
+                            previewString: [`<i class="bx bx-code fs-base opacity-70 me-2"></i> script`],
+                            tab: [doc.codePlace(`//Set the path you want to compile.
+node -r ts-glitter/release.js path=mypath`, 'language-json')],
+                        })}
 </section>`;
                     },
                 },
@@ -74,7 +65,7 @@ ${doc.codePlace('tsc --project tsconfig.json && tsc -w', 'language-cmd')}
                         return `
 <section id="${this.id}" class="border-bottom py-5 ps-lg-2 ps-xxl-0">
 <h2 class="h4">${this.title}</h2>
-<h2 class="fs-lg mb-2 fw-normal fw-500 mb-2 ">Set up your dependencies in glitterDeps.json.</h2>
+<h2 class="fs-lg mb-2 fw-normal fw-500 mb-2 ">Manage your dependencies in glitterDeps.json.</h2>
 ${doc.previewCode({
     previewString: [
         `<i class='bx bx-code fs-base opacity-70 me-2'></i>glitterDeps.json`,
@@ -99,23 +90,7 @@ ${doc.previewCode({
 })}
 </section>`;
                     },
-                },
-                {
-                    id: `Option2`,
-                    title: 'Option - Release',
-                    get html() {
-                        return `
-<section id="${this.id}" class="border-bottom py-5 ps-lg-2 ps-xxl-0">
-<h2 class="h4">${this.title}</h2>
-<h2 class="fs-lg mb-2 fw-normal fw-500 mb-2 ">Build your project to other dir and ignore ts file.</h2>
-${doc.previewCode({
-    previewString: [`<i class="bx bx-code fs-base opacity-70 me-2"></i> script`],
-    tab: [doc.codePlace(`//Set the path you want to compile.
-node -r ts-glitter/release.js path=mypath`, 'language-json')],
-})}
-</section>`;
-                    },
-                },
+                }
             ];
 
             return doc.create(
@@ -142,7 +117,7 @@ node -r ts-glitter/release.js path=mypath`, 'language-json')],
                     </div>
                 `,
                 doc.asideScroller(sessions),
-                new Items('scripts', gvc)
+                new Items('Shell scripts', gvc)
             );
         },
         onCreate: () => {

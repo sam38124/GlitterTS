@@ -13,29 +13,27 @@ export class Items {
                     {
                         text: 'Create',
                         click: () => {
-                            location.href = 'index.html?page=getting-started/import';
+                            location.href = 'index.html?page=getting-started/create-glitter-app';
                         },
-                        option: [
-                            {
-                                text: 'create-ts-glitter',
-                                click: () => {
-                                    location.href = 'index.html?page=getting-started/create-glitter-app';
-                                },
-                            },
-                            {
-                                text: 'scripts',
-                                click: () => {
-                                    location.href = 'index.html?page=getting-started/import';
-                                },
-                            }
-                        ]
                     },
                     {
-                        text: 'Backend Server',
+                        text: 'Shell scripts',
                         click: () => {
-                            location.href = 'index.html?page=getting-started/backend';
+                            location.href = 'index.html?page=getting-started/import';
+                        },
+                    },
+                    {
+                        text: 'Backend',
+                        click: () => {
+                            location.href = 'index.html?page=getting-started/backend_default';
                         },
                         option: [
+                            {
+                                text: 'Default server',
+                                click: () => {
+                                    location.href = 'index.html?page=getting-started/backend_default';
+                                },
+                            },
                             {
                                 text: 'Add to existing',
                                 click: () => {

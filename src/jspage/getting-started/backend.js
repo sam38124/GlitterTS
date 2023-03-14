@@ -30,7 +30,7 @@ ${doc.codePlace('npm install ts-glitter', 'language-cmd')}
                     get html() {
                         return `<section id="${this.id}" class="border-bottom py-5 ps-lg-2 ps-xxl-0">
                             <h2 class="h4">${this.title}</h2>
-                            <h2 class="fs-lg mb-2 fw-normal fw-500">Set up router by Glitter.setUP function.</h2>
+                            <h2 class="fs-lg mb-2 fw-normal fw-500">Set up route by glitter.setUP function.</h2>
                             ${doc.codePlace(`import * as Glitter from 'ts-glitter';
                             
 Glitter.setUP(app, [
@@ -64,18 +64,6 @@ Glitter.setUP(app, [
 ]);`, 'language-typescript')}
                         </section>`;
                     },
-                },
-                {
-                    id: `Default`,
-                    title: 'Default',
-                    get html() {
-                        return `
-<section id="${this.id}" class="border-bottom py-5 ps-lg-2 ps-xxl-0">
-<h2 class="h4">${this.title}</h2>
-<h2 class="fs-lg mb-2 fw-normal fw-500 mb-2"> Or  use default config for express server in backend_default dir．</h2>
-   <img src="img/auto_backend.png" class="rounded-3 " style="max-width: 100%; width: 600px;" />
-</section>`;
-                    },
                 }
             ];
             return doc.create(`
@@ -97,7 +85,7 @@ Glitter.setUP(app, [
                 return html;
             })()}
                     </div>
-                `, doc.asideScroller(sessions), new Items(topTitle.title, gvc));
+                `, doc.asideScroller(sessions), new Items("Add to existing", gvc));
         },
         onCreate: () => {
             gallary.addScript();
