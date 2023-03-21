@@ -1,6 +1,7 @@
 "use strict";
 import {Glitter} from './Glitter.js';
-import {PageConfig,GVCType} from "./module/PageManager.js";
+import {PageConfig, GVCType} from "./module/PageManager.js";
+
 const $: any = (window as any).$;
 
 class LifeCycle {
@@ -66,15 +67,16 @@ export class GVC {
             } else {
                 refresh(id)
             }
-        } catch (e:any) {
-            if(gvc.glitter.debugMode){
+        } catch (e: any) {
+            if (gvc.glitter.debugMode) {
                 console.log(e);
                 console.log(e.stack);  // this will work on chrome, FF. will no not work on safari
                 console.log(e.line);
             }
         }
     }
-    public recreateView=()=>{
+
+    public recreateView = () => {
     }
 
     public addObserver(obj: any, callback: () => void, viewBind?: string) {
@@ -165,8 +167,8 @@ export class GVC {
     }
 
     public bindView(map: (
-        () => { view: () => string, bind: string, divCreate?: { elem?: string, style?: string, class?: string,option?:{key:string,value:string}[] }, dataList?: {obj:any,key:string}[], onCreate?: () => void, initial?: () => void }) |
-        { view: () => string, bind: string, divCreate?: { elem?: string, style?: string, class?: string,option?:{key:string,value:string}[]}, dataList?:  {obj:any,key:string}[], onCreate?: () => void, initial?: () => void }): string {
+        () => { view: () => string, bind: string, divCreate?: { elem?: string, style?: string, class?: string, option?: { key: string, value: string }[] }, dataList?: { obj: any, key: string }[], onCreate?: () => void, initial?: () => void }) |
+        { view: () => string, bind: string, divCreate?: { elem?: string, style?: string, class?: string, option?: { key: string, value: string }[] }, dataList?: { obj: any, key: string }[], onCreate?: () => void, initial?: () => void }): string {
         const gvc = this
 
         if (typeof map === "function") {
@@ -203,7 +205,7 @@ export class GVC {
         if ((map as any).divCreate) {
             return `
 <${(map as any).divCreate.elem ?? 'div'} id="${gvc.parameter.pageConfig?.id}${map.bind}" class="${(map as any).divCreate.class ?? ""}" style="${(map as any).divCreate.style ?? ""}" 
-${gvc.map(((map as any).divCreate.option ?? []).map((dd:any)=>{
+${gvc.map(((map as any).divCreate.option ?? []).map((dd: any) => {
                 return ` ${dd.key}="${dd.value}"`
             }))}
 >${map.view()}</${(map as any).divCreate.elem ?? 'div'}>
@@ -213,7 +215,7 @@ ${gvc.map(((map as any).divCreate.option ?? []).map((dd:any)=>{
         }
     }
 
-    public event(fun: (e: any,event:any) => void, noCycle?: string) {
+    public event(fun: (e: any, event: any) => void, noCycle?: string) {
         const gvc = this;
         if (noCycle === undefined) {
             gvc.parameter.clickID++
@@ -253,20 +255,36 @@ ${gvc.map(((map as any).divCreate.option ?? []).map((dd:any)=>{
         }
     }
 
-    public addStyleLink(filePath: string) {
+    public async addStyleLink(fs: string | string[]) {
         const gvc = this;
-        var head = document.head;
-        const id = gvc.glitter.getUUID()
-        var link = document.createElement("link");
-        link.type = "text/css";
-        link.rel = "stylesheet";
-        link.href = filePath;
-        link.id = id;
-        gvc.parameter.styleLinks.push({
-            id: id,
-            src: filePath
-        })
-        head.appendChild(link);
+
+        function add(filePath: string) {
+            var head = document.head;
+            const id = gvc.glitter.getUUID()
+            var link = document.createElement("link");
+            link.type = "text/css";
+            link.rel = "stylesheet";
+            link.href = filePath;
+            link.id = id;
+            if(!gvc.parameter.styleLinks.find((dd)=>{
+                return dd.src===filePath
+            })){
+                gvc.parameter.styleLinks.push({
+                    id: id,
+                    src: filePath
+                })
+                head.appendChild(link);
+            }
+        }
+
+        if (typeof fs === 'string') {
+            add(fs)
+        } else {
+            fs.map((dd) => {
+                add(dd)
+            })
+        }
+
     }
 
     public addMtScript(urlArray: any[], success: () => void, error: (message: string) => void) {
@@ -334,34 +352,35 @@ ${gvc.map(((map as any).divCreate.option ?? []).map((dd:any)=>{
         return `${gvc.parameter.pageConfig!.id}${id}`
     }
 
-    public map(array:string[]){
-        let html=''
-        array.map((d)=>{
-            html+=d
+    public map(array: string[]) {
+        let html = ''
+        array.map((d) => {
+            html += d
         })
         return html
     }
 }
 
 
-export function init(fun: (gvc: GVC,glitter:Glitter, gBundle: any) => {
-    onCreateView: () => string,onResume?: () => void, onPause?: () => void, onDestroy?: () => void, onCreate?: () => void, cssInitial?: () => string
+export function init(fun: (gvc: GVC, glitter: Glitter, gBundle: any) => {
+    onCreateView: () => string, onResume?: () => void, onPause?: () => void, onDestroy?: () => void, onCreate?: () => void, cssInitial?: () => string
 }, gt?: Glitter) {
     const glitter: Glitter = (gt) ?? ((window as any).glitter as Glitter)
     const gvc = new GVC();
     gvc.glitter = glitter;
     gvc.parameter.pageConfig = glitter.nowPageConfig
-    const pageData = fun(gvc,glitter,glitter.nowPageConfig?.obj)
+    const pageData = fun(gvc, glitter, glitter.nowPageConfig?.obj)
     if (!glitter.modelJsList.find((data) => {
         return data.src === glitter.nowPageConfig?.src
     })) {
         glitter.modelJsList.push({
             src: glitter.nowPageConfig!.src,
             create: (glitter: Glitter) => {
-                init(fun, glitter)
+                init(fun, ((window as any).glitter as Glitter))
             }
         })
     }
+    console.log(JSON.stringify(glitter.modelJsList))
     const lifeCycle: LifeCycle = new LifeCycle()
     lifeCycle.onResume = pageData.onResume ?? lifeCycle.onResume;
     lifeCycle.onPause = pageData.onPause ?? lifeCycle.onPause;
@@ -369,53 +388,28 @@ export function init(fun: (gvc: GVC,glitter:Glitter, gBundle: any) => {
     lifeCycle.onCreate = pageData.onCreate ?? lifeCycle.onCreate;
     lifeCycle.onCreateView = pageData.onCreateView;
     lifeCycle.cssInitial = pageData.cssInitial ?? lifeCycle.cssInitial
-    gvc.recreateView=()=>{
+    gvc.recreateView = () => {
         $(`#page${gvc.parameter.pageConfig!.id}`).html(lifeCycle.onCreateView())
     }
     if ($('.page-loading').length > 0) {
-        $('#glitterPage').html('')
         $('.page-loading').remove();
     }
     (window as any).clickMap = (window as any).clickMap ?? {}
-    switch (gvc.parameter.pageConfig?.type){
+    switch (gvc.parameter.pageConfig?.type) {
         case GVCType.Dialog:
-            $('#glitterPage').append(`<div  id="page${gvc.parameter.pageConfig!.id}" style="width:100vw;height:100vh;
-background: transparent;display: none;position: absolute;top: 0;left: 0;z-index: 999999;overflow: hidden;">
-${lifeCycle.onCreateView()}
-</div>`)
+            $('#page' + gvc.parameter.pageConfig!.id).html(lifeCycle.onCreateView())
             glitter.setAnimation(gvc.parameter.pageConfig)
             break
         case GVCType.Page:
-            $('#glitterPage').append(`<div id="page${gvc.parameter.pageConfig!.id}" style="min-width: 100vw;min-height: 100vh;left: 0;top: 0;
-background: ${gvc.parameter.pageConfig!.backGroundColor};display: none;z-index: 999999;overflow: hidden;">
-${lifeCycle.onCreateView()}
-</div>`)
+            $('#page' + gvc.parameter.pageConfig!.id).html(lifeCycle.onCreateView())
             glitter.setAnimation(gvc.parameter.pageConfig)
             break
     }
 
     (window as any).clickMap[gvc.parameter.pageConfig!.id] = gvc.parameter.clickMap;
     lifeCycle.onCreate();
-    gvc.parameter.pageConfig!.createResource = () => {
-        (window as any).clickMap[gvc.parameter.pageConfig!.id] = gvc.parameter.clickMap;
-        var copyStyleList: { id: string, style: string }[] = JSON.parse(JSON.stringify(gvc.parameter.styleList))
-        gvc.parameter.styleList = []
-        copyStyleList.map((data) => {
-            gvc.addStyle(data.style)
-        })
-        var copyStyleLink: { id: string, src: string }[] = JSON.parse(JSON.stringify(gvc.parameter.styleLinks))
-        gvc.parameter.styleLinks = []
-        copyStyleLink.map((data) => {
-            gvc.addStyleLink(data.src)
-        })
-        var copyJsList: { id: string, src: string }[] = JSON.parse(JSON.stringify(gvc.parameter.jsList))
-        gvc.addMtScript(copyJsList, () => {
-        }, () => {
-        })
-        lifeCycle.onResume()
-    }
     gvc.parameter.pageConfig!.deleteResource = () => {
-        (window as any).clickMap[gvc.parameter.pageConfig!.id]=undefined
+        (window as any).clickMap[gvc.parameter.pageConfig!.id] = undefined
         lifeCycle.onPause()
         gvc.parameter.styleLinks.map((dd) => {
             $(`#${dd.id}`).remove()
@@ -427,6 +421,4 @@ ${lifeCycle.onCreateView()}
             $(`#${dd.id}`).remove()
         })
     }
-    glitter.waitChangePage =false
-
 }

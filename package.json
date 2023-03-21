@@ -1,6 +1,6 @@
 {
-  "name": "@jianzhi.wang/glitter",
-  "version": "1.0.88",
+  "name": "ts-glitter",
+  "version": "1.4.6",
   "description": "",
   "main": "index.js",
   "scripts": {

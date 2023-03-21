@@ -8,7 +8,7 @@ const fs2 = require("fs-extra");
 const  obj={
     create:()=>{
         try {
-            var original='node_modules/@jianzhi.wang/glitter'
+            var original='node_modules/ts-glitter'
             var src='src'
             process.argv.forEach(function (val, index, array) {
                 console.log("for--"+val)

@@ -2,21 +2,19 @@
   "compilerOptions": {
     "incremental": true,
     "target": "ES2017",
-    "module": "es6",
+    "module": "es2020",
     "declaration": false,
     "sourceMap": false,
     "outDir": "./src",
     "rootDir": "./src",
     "removeComments": true,
     "strict": true,
-    "baseUrl": "../lib",
+    "baseUrl": ".",
+    "skipLibCheck": true,
     "plugins": [
       { "transform": "typescript-transform-paths" },
       { "transform": "typescript-transform-paths", "afterDeclarations": true }
     ],
-    "paths": {
-      "@base/*": ["src/*"]
-    },
     "esModuleInterop": true,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true

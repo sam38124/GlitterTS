@@ -15,7 +15,9 @@ export class Glitter {
     public defaultSetting = new DefaultSetting({
         pageBgColor: "white",
         pageAnimation: this.animation.none,
-        dialogAnimation: this.animation.none
+        dialogAnimation: this.animation.none,
+        pageLoading:()=>{},
+        pageLoadingFinish:()=>{}
     })
     /*Parameter*/
     public htmlGenerate=HtmlGenerate
@@ -109,7 +111,14 @@ export class Glitter {
         return value;
     }
 
-    public setPro(tag: string, data: string, callBack: (data: {}) => void, option: { defineType?: any, webFunction: (data: {}) => any }) {
+    public setPro(tag: string, data: string = "", callBack: (data: {}) => void, option:
+        { defineType?: any, webFunction: (data: any, callback: (data: any) => void) => any }
+        = {
+        webFunction: (data: any, callback: (data: any) => void) => {
+            Glitter.glitter.setCookie(tag, data.data.data)
+            callback({result: true})
+        }
+    }) {
         this.runJsInterFace("setPro", {
             uuid: this.uuid,
             name: tag,
@@ -117,7 +126,12 @@ export class Glitter {
         }, callBack, option);
     }
 
-    public getPro(tag: string, callBack: (data: {}) => void, option: { defineType?: any, webFunction: (data: {}) => any }) {
+    public getPro(tag: string, callBack: (data: {}) => void, option: { defineType?: any, webFunction: (data: any, callback: (data: any) => void) => any }
+        = {
+        webFunction: (data: any,callback: (data: any) => void) => {
+            callback({result: true,data:Glitter.glitter.getCookieByName(tag)})
+        }
+    }) {
         this.runJsInterFace("getPro", {
             uuid: this.uuid,
             name: tag
@@ -817,6 +831,7 @@ export class Glitter {
         this.window = window;
         this.document = window.document
         Glitter.glitter = this
+        Glitter.glitter.share.htmlExtension=Glitter.glitter.share.htmlExtension??{}
     }
 }
 

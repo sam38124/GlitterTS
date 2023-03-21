@@ -8,7 +8,7 @@
 
 ### Add glitter plugin by npm
 
--`npm install @jianzhi.wang/glitter`
+-`npm install ts-glitter`
 
 ### Step2.
 
@@ -53,13 +53,13 @@
 ```
 "scripts": {
 
-"create": "node node_modules/@jianzhi.wang/glitter/create.js",  
+"create": "node node_modules/ts-glitter/create.js",  
 
 "start:tscAuto": "tsc --project tsconfig.json  && tsc -w",
 
-"release": "tsc --project tsconfig.json  && node node_modules/@jianzhi.wang/glitter/release.js  path=test",
+"release": "tsc --project tsconfig.json  && node node_modules/ts-glitter/release.js  path=test",
 
-"install": "node node_modules/@jianzhi.wang/glitter/install.js"
+"install": "node node_modules/ts-glitter/install.js"
 
 }
 ```

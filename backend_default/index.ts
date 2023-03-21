@@ -1,4 +1,4 @@
-import * as Glitter from '@jianzhi.wang/glitter';
+import * as Glitter from 'ts-glitter';
 import path from "path";
 import express from 'express';
 import cors from 'cors';
