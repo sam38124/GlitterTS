@@ -1,6 +1,6 @@
-node_modules
-.idea
-dist
-.hintrc
-.vscode
-tsconfig.tsbuildinfo
+./node_modules/
+./backend_default/node_modules/
+./.idea/
+/node_modules/
+/backend_default//node_modules/
+/src/node_modules/

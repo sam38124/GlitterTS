@@ -1,0 +1,59 @@
+//
+// Offcanvas
+// --------------------------------------------------
+
+
+// Header and footer
+
+.offcanvas-header,
+.offcanvas-footer {
+  padding: $offcanvas-padding-y * .75 $offcanvas-padding-x;
+}
+
+
+// Styles for expanded offcanvas only
+
+.offcanvas-expand {
+  @each $breakpoint in map-keys($grid-breakpoints) {
+    $next: breakpoint-next($breakpoint, $grid-breakpoints);
+    $infix: breakpoint-infix($next, $grid-breakpoints);
+
+    &#{$infix} {
+      @include media-breakpoint-up($next) {
+        position: inherit;
+        bottom: 0;
+        flex-grow: 1;
+        transform: none;
+        width: auto;
+        @include transition(none);
+        background-color: transparent;
+        border-right: 0;
+        border-left: 0;
+        @include box-shadow(none);
+        visibility: visible !important;
+        z-index: 1;
+
+        .offcanvas-header,
+        .offcanvas-footer {
+          display: none;
+        }
+
+        .offcanvas-top,
+        .offcanvas-bottom {
+          height: auto;
+          border-top: 0;
+          border-bottom: 0;
+        }
+
+        .offcanvas-body {
+          padding: 0;
+          overflow-y: visible;
+        }
+
+        &.position-fixed {
+          z-index: $zindex-fixed + 1;
+        }
+      }
+    }
+  }
+}

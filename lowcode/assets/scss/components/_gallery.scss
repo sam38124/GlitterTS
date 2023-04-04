@@ -1,0 +1,117 @@
+//
+// Gallery
+// based on https://github.com/sachinchoolur/lightgallery.js
+// --------------------------------------------------
+
+
+.gallery-item {
+  display: block;
+  position: relative;
+  text-decoration: none !important;
+  overflow: hidden;
+  -webkit-mask-image: -webkit-radial-gradient(white, black);
+
+  > img {
+    display: block;
+    width: 100%;
+  }
+
+  // Overlay
+  &::before {
+    display: block;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    transition: opacity .3s ease-in-out;
+    background-color: $gallery-overlay-bg;
+    content: '';
+    opacity: 0;
+    z-index: 1;
+  }
+
+  // Indicator
+  &::after {
+    display: block;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: $gallery-indicator-size;
+    height: $gallery-indicator-size;
+    margin: {
+      top: -($gallery-indicator-size * .5);
+      left: -($gallery-indicator-size * .5);
+    }
+    transform: scale(.3);
+    color: $gallery-image-indicator-color;
+    font: {
+      family: 'boxicons';
+      size: $gallery-image-indicator-font-size;
+    }
+    text-align: center;
+    line-height: $gallery-indicator-size;
+    content: '\ec90';
+    z-index: 5;
+  }
+
+  // Item caption
+  .gallery-item-caption {
+    display: block;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    padding: $spacer;
+    transform: translateY(.5rem);
+    color: $gallery-caption-color;
+    z-index: 5;
+  }
+
+  &::after,
+  .gallery-item-caption {
+    transition: all .3s ease-in-out;
+    opacity: 0;
+  }
+  
+  // Hover state
+  &:hover, &.is-hovered {
+    &::before, &::after,
+    .gallery-item-caption {
+      transform: none;
+      opacity: 1;
+    }
+  }
+
+  // Video item
+  &.video-item {
+    &::after {
+      padding: {
+        top: .0625rem;
+        left: .25rem;
+      }
+      transform: none;
+      border-radius: 50%;
+      background-color: $gallery-video-indicator-bg;
+      color: $gallery-video-indicator-color;
+      font-size: $gallery-video-indicator-font-size;
+      opacity: 1;
+      @include box-shadow($gallery-video-indicator-box-shadow);
+      content: '\ebbd';
+    }
+    &:hover::after {
+      background-color: $gallery-video-indicator-hover-bg;
+      color: $gallery-video-indicator-hover-color;
+      @include box-shadow($gallery-video-indicator-hover-box-shadow);
+    }
+  }
+}
+.lg-backdrop { z-index: $zindex-modal-backdrop + 5; }
+.lg-outer {
+  z-index: $zindex-modal + 5;
+  .lg-thumb-item:hover,
+  .lg-thumb-item.active {
+    border-color: $primary;
+  }
+}
+.lg-on { overflow: hidden; }
+.lg-item:focus, .lg:focus, .lg-outer:focus,
+.lg-inner:focus { outline: none; }

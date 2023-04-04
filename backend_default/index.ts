@@ -10,16 +10,17 @@ const app = express();
         methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
         allowedHeaders: ['Content-Type', 'Authorization'],
     };
-
     app.use(cors(corsOptions));
-    await app.listen(3090);
+    await app.listen(4000);
 })();
-Glitter.setUP(app, [
+Glitter.set_frontend(app, [
     {
         rout: '/test',
         path: path.resolve(__dirname, '../../src'),
-        seoManager:()=>{
-            return ''
+        seoManager:(req,resp)=>{
+            return new Promise((resolve, reject)=>{
+                resolve('')
+            })
         }
     },
 ]);

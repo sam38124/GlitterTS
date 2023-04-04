@@ -1,0 +1,26 @@
+{
+  "compilerOptions": {
+    "incremental": true,
+    "target": "ES2017",
+    "module": "es2020",
+    "declaration": false,
+    "sourceMap": false,
+    "outDir": "./",
+    "rootDir": "./",
+    "removeComments": true,
+    "strict": true,
+    "baseUrl": ".",
+    "skipLibCheck": true,
+    "plugins": [
+      { "transform": "typescript-transform-paths" },
+      { "transform": "typescript-transform-paths", "afterDeclarations": true }
+    ],
+    "esModuleInterop": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true
+  },
+  "include": ["./"],
+  "exclude": ["node_modules", "frontEnd","assets","css","assets/vendor"],
+  "ts-node": { "files": true }
+}
+

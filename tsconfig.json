@@ -2,25 +2,38 @@
   "compilerOptions": {
     "incremental": true,
     "target": "ES2017",
-    "module": "es2020",
-    "declaration": false,
+    "module": "commonjs",
+    "declaration": true,
     "sourceMap": false,
     "outDir": "./src",
     "rootDir": "./src",
     "removeComments": true,
     "strict": true,
     "baseUrl": ".",
-    "skipLibCheck": true,
     "plugins": [
-      { "transform": "typescript-transform-paths" },
-      { "transform": "typescript-transform-paths", "afterDeclarations": true }
+      {
+        "transform": "typescript-transform-paths"
+      },
+      {
+        "transform": "typescript-transform-paths",
+        "afterDeclarations": true
+      }
     ],
+    "paths": {},
     "esModuleInterop": true,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true
   },
-  "include": ["src"],
-  "exclude": ["node_modules"],
-  "ts-node": { "files": true }
+  "include": [
+    "src"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "lib",
+    "frontEnd"
+  ],
+  "ts-node": {
+    "files": true
+  }
 }
-

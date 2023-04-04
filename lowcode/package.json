@@ -1,0 +1,21 @@
+
+{
+    "name": "glitterts",
+    "version": "1.0.0",
+    "description": "",
+    "main": "index.js",
+    "scripts": {
+        "create": "node node_modules/ts-glitter/create.js",
+        "build:tscAuto": "tsc --project tsconfig.json  && tsc -w",
+        "release": "node node_modules/ts-glitter/release.js  path=test"
+    },
+    "author": "",
+    "license": "ISC",
+    "dependencies": {
+        "@types/jquery": "^3.5.14",
+        "ts-glitter": "^1.5.1",
+        "ts-node": "^10.9.1",
+        "tscpaths": "^0.0.9",
+        "typescript": "~4.4.4"
+    }
+}
