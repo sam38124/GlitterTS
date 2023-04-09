@@ -21,7 +21,7 @@ exports.saasConfig = {
     get SAAS_NAME() {
         return process.env.GLITTER_DB;
     },
-    DEF_DEADLINE: 7
+    DEF_DEADLINE: 365
 };
 exports.config = {
     SECRET_KEY: 'dsklkmsadl',

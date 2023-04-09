@@ -20,13 +20,12 @@ export class ClickEvent {
 
     public static create(url: string, event: {
         [name: string]: {
-            title: string, fun: (gvc: GVC, widget: HtmlJson, obj: any) => {
+            title: string, fun: (gvc: GVC, widget: HtmlJson, obj: any,subData?:any) => {
                 editor: () => string,
                 event: () => void
             }
         }
     }) {
-
         const glitter = (window as any).glitter
         glitter.share.clickEvent = glitter.share.clickEvent ?? {}
         glitter.share.clickEvent[url] = event
@@ -34,7 +33,7 @@ export class ClickEvent {
 
 
     public static trigger(oj: {
-        gvc: GVC, widget: HtmlJson, clickEvent: any
+        gvc: GVC, widget: HtmlJson, clickEvent: any,subData?:any
     }) {
         const glitter = (window as any).glitter
         const event: { src: string, route: string } = oj.clickEvent.clickEvent
@@ -52,7 +51,7 @@ export class ClickEvent {
                     })
                 })
             }
-            oj.gvc.glitter.share.clickEvent[glitter.htmlGenerate.resourceHook(event.src)][event.route].fun(oj.gvc, oj.widget, oj.clickEvent).event()
+            oj.gvc.glitter.share.clickEvent[glitter.htmlGenerate.resourceHook(event.src)][event.route].fun(oj.gvc, oj.widget, oj.clickEvent,oj.subData).event()
         }
 
         run().then()

@@ -39,5 +39,39 @@ export const styleAttr: { tag: string, title: string, innerHtml: (gvc: GVC, data
                 }
             })
         }
+    },
+    {
+        tag:"background-image",title:"背景圖片",innerHtml: (gvc, data) =>{
+            data["background-image"]= data["background-image"]??""
+            data["background-repeat"]=data["background-repeat"]??"repeat"
+            return  gvc.bindView(()=>{
+                const id=gvc.glitter.getUUID()
+                return {
+                    bind:id,
+                    view:()=>{
+                        return gvc.map([EditorElem.uploadImage({
+                            gvc: gvc,
+                            title: `背景圖`,
+                            def: data["background-image"],
+                            callback: (dd:any) => {
+                                if(dd.indexOf(`url('`)===-1){
+                                    data["background-image"] = `url('${dd}')`;
+                                }
+                                gvc.notifyDataChange(id)
+                            },
+                        }),EditorElem.select({
+                            title: '是否重複繪圖',
+                            gvc: gvc,
+                            def: data["background-repeat"],
+                            callback: (text: string) => {
+                                data["background-repeat"]=text
+                            },
+                            array: [{title:"是",value:"repeat"},{title:"否",value:"no-repeat"}],
+                        })])
+                    },
+                    divCreate:{}
+                }
+            })
+        }
     }
 ]

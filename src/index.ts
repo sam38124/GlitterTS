@@ -121,7 +121,9 @@ window.location.href='?page=${redirect}';
 window.appName='${dd.appName}';
 </script>`
                 }catch (e){
-                    return  ``
+                    return  `<script>
+window.appName='${dd.appName}';
+</script>`
                 }
 
             }

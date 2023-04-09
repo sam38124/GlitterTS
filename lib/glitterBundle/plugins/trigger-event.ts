@@ -1,7 +1,7 @@
 import {HtmlJson} from "./plugin-creater.js"
 import {GVC} from "../GVController.js";
 
-export class ClickEvent {
+export class TriggerEvent {
     public static getUrlParameter(url: string, sParam: string) {
         try{
             let sPageURL = url.split("?")[1], sURLVariables = sPageURL.split('&'), sParameterName, i;
@@ -20,13 +20,12 @@ export class ClickEvent {
 
     public static create(url: string, event: {
         [name: string]: {
-            title: string, fun: (gvc: GVC, widget: HtmlJson, obj: any) => {
+            title: string, fun: (gvc: GVC, widget: HtmlJson, obj: any,subData?:any) => {
                 editor: () => string,
                 event: () => void
             }
         }
     }) {
-
         const glitter = (window as any).glitter
         glitter.share.clickEvent = glitter.share.clickEvent ?? {}
         glitter.share.clickEvent[url] = event
@@ -34,7 +33,7 @@ export class ClickEvent {
 
 
     public static trigger(oj: {
-        gvc: GVC, widget: HtmlJson, clickEvent: any
+        gvc: GVC, widget: HtmlJson, clickEvent: any,subData?:any
     }) {
         const glitter = (window as any).glitter
         const event: { src: string, route: string } = oj.clickEvent.clickEvent
@@ -52,7 +51,7 @@ export class ClickEvent {
                     })
                 })
             }
-            oj.gvc.glitter.share.clickEvent[glitter.htmlGenerate.resourceHook(event.src)][event.route].fun(oj.gvc, oj.widget, oj.clickEvent).event()
+            oj.gvc.glitter.share.clickEvent[glitter.htmlGenerate.resourceHook(event.src)][event.route].fun(oj.gvc, oj.widget, oj.clickEvent,oj.subData).event()
         }
 
         run().then()
@@ -79,13 +78,13 @@ export class ClickEvent {
                                 obj.clickEvent = undefined
                             } else {
                                 obj.clickEvent = JSON.parse(e.value)
-                                obj.clickEvent.src = ClickEvent.getUrlParameter(obj.clickEvent.src,'resource') ?? obj.clickEvent.src
+                                obj.clickEvent.src = TriggerEvent.getUrlParameter(obj.clickEvent.src,'resource') ?? obj.clickEvent.src
                             }
-                            widget.refreshAll()
+                           gvc.notifyDataChange(selectID)
                         })}">
                         
                         ${gvc.map(Object.keys(glitter.share?.clickEvent || {}).filter((dd)=>{
-                            return  ClickEvent.getUrlParameter(dd,"resource") !== undefined
+                            return  TriggerEvent.getUrlParameter(dd,"resource") !== undefined
                         }).map((key) => {
                             const value = glitter.share.clickEvent[key]
                             return gvc.map(Object.keys(value).map((v2) => {
@@ -96,7 +95,7 @@ export class ClickEvent {
                                 }
                                 const value2 = value[v2]
                                 const selected = JSON.stringify({
-                                    src: ClickEvent.getUrlParameter(key,'resource') ?? obj.clickEvent.src,
+                                    src: TriggerEvent.getUrlParameter(key,'resource') ?? obj.clickEvent.src,
                                     route: v2
                                 }) === JSON.stringify(obj.clickEvent)
                                 select = selected || select

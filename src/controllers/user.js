@@ -13,8 +13,7 @@ router.post('/register', async (req, resp) => {
             throw exception_1.default.BadRequestError('BAD_REQUEST', 'user is already exists.', null);
         }
         else {
-            await user_1.User.createUser(req.body.account, req.body.pwd);
-            return response_1.default.succ(resp, { result: true });
+            return response_1.default.succ(resp, { result: true, token: (await user_1.User.createUser(req.body.account, req.body.pwd)).token });
         }
     }
     catch (err) {
@@ -29,6 +28,14 @@ router.post('/login', async (req, resp) => {
         else {
             return response_1.default.succ(resp, { userData: await user_1.User.login(req.body.account, req.body.pwd) });
         }
+    }
+    catch (err) {
+        return response_1.default.fail(resp, err);
+    }
+});
+router.get('/checkToken', async (req, resp) => {
+    try {
+        return response_1.default.succ(resp, { result: true });
     }
     catch (err) {
         return response_1.default.fail(resp, err);

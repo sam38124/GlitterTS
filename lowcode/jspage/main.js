@@ -23,9 +23,11 @@ init((gvc, glitter, gBundle) => {
         data: undefined,
         loading: true,
         selectItem: undefined,
+        initialStyle: [],
         pluginList: [],
         initialJS: [],
         initialCode: '',
+        initialList: [],
         homePage: ''
     };
     const swal = new Swal(gvc);
@@ -66,8 +68,10 @@ init((gvc, glitter, gBundle) => {
                     var _a, _b;
                     const data = await ApiPageConfig.getPlugin(gBundle.appName);
                     if (data.result) {
+                        viewModel.initialList = data.response.data.initialList;
                         viewModel.initialJS = data.response.data.eventPlugin;
                         viewModel.pluginList = data.response.data.pagePlugin;
+                        viewModel.initialStyle = data.response.data.initialStyle;
                         viewModel.initialCode = (_a = data.response.data.initialCode) !== null && _a !== void 0 ? _a : "";
                         viewModel.homePage = (_b = data.response.data.homePage) !== null && _b !== void 0 ? _b : "";
                         async function load() {
@@ -144,8 +148,10 @@ init((gvc, glitter, gBundle) => {
                         const api = await ApiPageConfig.setPlugin(gBundle.appName, {
                             pagePlugin: viewModel.pluginList,
                             eventPlugin: viewModel.initialJS,
+                            initialStyle: viewModel.initialStyle,
                             initialCode: viewModel.initialCode,
-                            homePage: viewModel.homePage
+                            homePage: viewModel.homePage,
+                            initialList: viewModel.initialList
                         });
                         resolve(api.result);
                     });
@@ -567,7 +573,7 @@ ${(() => {
                                         setTimeout(() => {
                                             var _a;
                                             $('#jumpToNav').scrollTop((_a = parseInt(glitter.getCookieByName('jumpToNavScroll'), 10)) !== null && _a !== void 0 ? _a : 0);
-                                        }, 300);
+                                        }, 1000);
                                     }
                                 };
                             }));

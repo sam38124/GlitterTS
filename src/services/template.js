@@ -7,7 +7,6 @@ exports.Template = void 0;
 const database_1 = __importDefault(require("../modules/database"));
 const config_1 = require("../config");
 const exception_1 = __importDefault(require("../modules/exception"));
-const index_1 = require("../index");
 class Template {
     constructor(token) {
         this.token = token;
@@ -36,7 +35,6 @@ class Template {
                 config.name,
                 config.config
             ]);
-            await (0, index_1.createAPP)(config);
             return true;
         }
         catch (e) {

@@ -7,12 +7,20 @@ export class User{
 
     public static async createUser(account:string,pwd:string){
         try {
+            const userID=generateUserID();
             await db.execute(`INSERT INTO \`${saasConfig.SAAS_NAME}\`.\`user\` (\`userID\`,\`account\`, \`pwd\`, \`userData\`) VALUES (?,?, ?, ?);`,[
-                generateUserID(),
+                userID,
                 account,
                 await tool.hashPwd(pwd),
                 {}
             ])
+            return {
+                token:await UserUtil.generateToken({
+                    user_id: parseInt(userID,10),
+                    account:account,
+                    userData: {}
+                })
+            }
         }catch (e){
             throw exception.BadRequestError('BAD_REQUEST', 'Register Error:'+e, null);
         }

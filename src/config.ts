@@ -17,7 +17,7 @@ export let saasConfig = {
     get SAAS_NAME() {
         return process.env.GLITTER_DB
     },
-    DEF_DEADLINE: 7
+    DEF_DEADLINE: 365
 }
 
 export let config = {

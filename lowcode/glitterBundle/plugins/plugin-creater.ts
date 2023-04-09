@@ -45,7 +45,10 @@ export class Plugin {
     }) {
         const glitter = (window as any).glitter
         const val=fun(glitter, (window.parent as any).editerData !== undefined)
-        glitter.share.componentCallback[url](val)
+        try{
+            glitter.share.componentCallback[url](val)
+        }catch (e){}
+        return val;
     }
 
     public static setComponent(original:string,url: URL):(gvc: GVC, widget: HtmlJson, setting: HtmlJson[], hoverID: string[]) => {
@@ -71,7 +74,7 @@ export class Plugin {
             return {
                 view: () => {
                     if(!val){
-                        return `<h3 style="color: black;">asdsadm</h3>`
+                        return ``
                     }
                     return val.render(gvc, widget, setting, hoverID)
                         .view();

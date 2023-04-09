@@ -1,7 +1,8 @@
 import { GVC } from '../GVController.js';
 import { Glitter } from '../Glitter.js';
 import { EditorElem } from '../plugins/editor-elem.js';
-
+//@ts-ignore
+import autosize from '../plugins/autosize.js'
 export interface HtmlJson {
     route: string;
     type: string;
@@ -113,10 +114,28 @@ export class HtmlGenerate {
     }
 
     public static editeText(obj: { gvc: GVC; title: string; default: string; placeHolder: string; callback: (text: string) => void }) {
+
+        const id=obj.gvc.glitter.getUUID()
         return `<h3 style="color: white;font-size: 16px;margin-bottom: 10px;" class="mt-2">${obj.title}</h3>
-<textarea class="form-control" placeholder="${obj.placeHolder}" onchange="${obj.gvc.event((e) => {
-            obj.callback(e.value);
-        })}" style="height: 100px;">${obj.default ?? ''}</textarea>`;
+${obj.gvc.bindView({
+            bind:id,
+            view:()=>{
+                return obj.default ?? ''
+            },
+            divCreate:{
+                elem:`textArea`,
+                style:`max-height:400px!important;min-height:100px;`,
+                class:`form-control`,option:[
+                    {key:'placeholder',value:obj.placeHolder},
+                    {key:'onchange',value:obj.gvc.event((e)=>{
+                            obj.callback(e.value);
+                        })}
+                ]
+            },
+            onCreate:()=>{
+                autosize($('#'+obj.gvc.id(id)))   
+            }
+        })}`;
     }
 
     public setting: HtmlJson[];
@@ -214,7 +233,7 @@ export class HtmlGenerate {
                                             .view()
                                     } catch (e: any) {
                                         HtmlGenerate.share.false[dd.js]=(HtmlGenerate.share.false[dd.js] ?? 0)+1
-                                        console.log('解析錯誤:${e.message}<br>${e.stack}<br>${e.line}')
+                                        console.log(`解析錯誤:${e.message}<br>${e.stack}<br>${e.line}`)
                                         if(HtmlGenerate.share.false[dd.js]<10){
                                             setTimeout(()=>{
                                                 getData()
@@ -260,11 +279,12 @@ export class HtmlGenerate {
                                                 let k = ['margin-top', 'margin-bottom', 'margin-left', 'margin-right'];
                                                 return `${k[index]}:${dd.data[d2] && dd.data[d2] !== '' ? dd.data[d2] : '0'};`;
                                             })
-                                        )} ${dd.style ?? ''} ${
+                                        )} ${
                                             hover.indexOf(dd.id) !== -1
                                                 ? `border: 4px solid dodgerblue;border-radius: 5px;box-sizing: border-box;`
                                                 : ``
                                         }
+                                        ${HtmlGenerate.styleEditor(dd).style()}
                                     `,
                                         class: `position-relative ${dd.class ?? ''}`,
                                     },
@@ -555,7 +575,7 @@ ${e.line}
                                     })}</div>`;
                                 } catch (e: any) {
                                     HtmlGenerate.share.false[dd.js]=(HtmlGenerate.share.false[dd.js] ?? 0)+1
-                                    console.log('解析錯誤:${e.message}<br>${e.stack}<br>${e.line}')
+                                    console.log(`解析錯誤:${e.message}<br>${e.stack}<br>${e.line}`)
                                     if(HtmlGenerate.share.false[dd.js]<10){
                                         setTimeout(()=>{
                                             getData()

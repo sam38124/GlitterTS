@@ -7,65 +7,99 @@ import {ApiPageConfig} from "./api/pageConfig.js";
 
 export class Entry {
     public static onCreate(glitter: Glitter) {
+
+
         (window as any).saasConfig = {
-            config: (window as any).config=config,
-            api:ApiPageConfig
+            config: (window as any).config = config,
+            api: ApiPageConfig
         }
 
-        ApiPageConfig.getPlugin(config.appName).then((data) => {
-            const plugin = Plugin
-            try {
-                eval(data.response.data.initialCode)
-            } catch (e) {
-                console.log(e)
-            }
-            if(glitter.getUrlParameter("type")==='editor'){
-                toBackendEditor(glitter)
-            }else if(glitter.getUrlParameter("type")==='htmlEditor'){
-                glitter.addStyleLink('glitterBundle/bootstrap.css');
-                glitter.htmlGenerate.setHome(
-                    {
-                        page_config: (window.parent as any).page_config ?? {},
-                        config: (window.parent as any).editerData.setting,
-                        editMode: (window.parent as any).editerData,
-                        data: {},
-                        tag: 'htmlEditor'
+        ApiPageConfig.getPlugin(config.appName).then((dd) => {
+            const plugin = Plugin;
+            (async () => {
+                return new Promise(async (resolve, reject) => {
+                    setTimeout(() => {
+                        resolve(true)
+                    }, 4000)
+                    for (const data of (dd.response.data.initialList ?? [])) {
+                        try {
+                            if (data.type === 'script') {
+                                const url =new URL(glitter.htmlGenerate.resourceHook(data.src.link))
+                                glitter.share.callBackList=glitter.share.callBackList??{}
+                                const callbackID=glitter.getUUID()
+                                url.searchParams.set('callback',callbackID)
+                                glitter.share.callBackList[callbackID]=(()=>{
+                                    resolve(true)
+                                })
+                                await new Promise((resolve, reject) => {
+                                    glitter.addMtScript([{
+                                        src:url.href , type: 'module'
+                                    }], () => { }, () => {
+                                        resolve(true)
+                                    })
+                                })
+                            } else {
+                                const dd = await eval(data.src.official)
+                                console.log(`typeOf:` + typeof dd)
+                            }
+                        } catch (e) {
+                            console.log(e)
+                        }
                     }
-                );
-            }else{
-                async function render() {
-                    let data = await ApiPageConfig.getPage(config.appName, glitter.getUrlParameter('page'))
-                    if (data.response.result.length === 0) {
-                        const url=new URL("./",location.href)
-                        url.searchParams.set('page','home')
-                        location.href=url.href;
-                        return
-                    }
+                    resolve(true)
+                })
+            })().then(() => {
+                if (glitter.getUrlParameter("type") === 'editor') {
+                    toBackendEditor(glitter)
+                } else if (glitter.getUrlParameter("type") === 'htmlEditor') {
+                    glitter.addStyleLink('glitterBundle/bootstrap.css');
                     glitter.htmlGenerate.setHome(
                         {
-                            page_config: data.response.result[0].page_config,
-                            config: data.response.result[0].config,
+                            page_config: (window.parent as any).page_config ?? {},
+                            config: (window.parent as any).editerData.setting,
+                            editMode: (window.parent as any).editerData,
                             data: {},
-                            tag: glitter.getUrlParameter('page')
+                            tag: 'htmlEditor'
                         }
                     );
-                }
+                } else {
+                    async function render() {
+                        let data = await ApiPageConfig.getPage(config.appName, glitter.getUrlParameter('page') ?? glitter.getUUID())
+                        console.log(JSON.stringify(data))
+                        if (data.response.result.length === 0) {
+                            const url = new URL("./", location.href)
 
-                render().then()
-            }
+                            url.searchParams.set('page', data.response.redirect)
+                            location.href = url.href;
+                            return
+                        }
+                        glitter.htmlGenerate.setHome(
+                            {
+                                page_config: data.response.result[0].page_config,
+                                config: data.response.result[0].config,
+                                data: {},
+                                tag: glitter.getUrlParameter('page')
+                            }
+                        );
+                    }
+
+                    render().then()
+                }
+            });
+
+
         })
     }
 }
 
 function toBackendEditor(glitter: Glitter) {
     async function running() {
-        const data = await ApiUser.login({
-            "account": "rdtest",
-            "pwd": "12345"
-        })
-        // alert(data.result)
-        config.token = data.response.userData.token
-
+        // const data = await ApiUser.login({
+        //     "account": "rdtest",
+        //     "pwd": "12345"
+        // })
+        // // alert(data.result)
+        config.token = glitter.getCookieByName('glitterToken')
         glitter.addStyleLink([
             'assets/vendor/boxicons/css/boxicons.min.css',
             'assets/css/theme.min.css',
@@ -96,13 +130,36 @@ function toBackendEditor(glitter: Glitter) {
     (window as any).mode = 'dark';
     (window as any).root = document.getElementsByTagName('html')[0];
     (window as any).root.classList.add('dark-mode');
-    running().then(r => {
-        glitter.setHome('jspage/main.js', glitter.getUrlParameter('page'), {
-            appName: config.appName
-        }, {
-            backGroundColor: `transparent;`
-        });
-    })
+     function toNext(){
+        running().then(r => {
+            glitter.setHome('jspage/main.js', glitter.getUrlParameter('page'), {
+                appName: config.appName
+            }, {
+                backGroundColor: `transparent;`
+            });
+        })
+    }
+    if(glitter.getUrlParameter('account')){
+        ApiUser.login({
+            "account": glitter.getUrlParameter('account'),
+            "pwd": glitter.getUrlParameter('pwd')
+        }).then((re)=>{
+            if(re.result){
+                glitter.setCookie('glitterToken',re.response.userData.token)
+                toNext()
+            }else{
+                const url=new URL(glitter.location.href)
+                location.href=`${url.origin}/glitter/?page=signin`
+            }
+        })
+    }else{
+        if(!glitter.getCookieByName('glitterToken')){
+            const url=new URL(glitter.location.href)
+            location.href=`${url.origin}/glitter/?page=signin`
+        }else{
+            toNext()
+        }
+    }
 }
 
 

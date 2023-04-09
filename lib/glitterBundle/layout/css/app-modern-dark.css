@@ -11534,7 +11534,8 @@ input[data-switch="dark"]:checked + label {
 
 .cta-box {
   background-image: url(../images/bg-pattern.png);
-  background-size: cover; }
+  background-size: cover;
+}
   .cta-box .cta-box-title {
     font-size: 20px;
     line-height: 30px; }

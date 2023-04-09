@@ -66,7 +66,7 @@ ${gvc.map([
                     }
                 }),
                 `
-${EditorElem.h3("設計樣式")}
+${EditorElem.h3("設計特徵")}
 ${gvc.bindView(() => {
                         const idl = glitter.getUUID()
 
@@ -157,7 +157,7 @@ ${gvc.bindView(() => {
                                                 }
                                             })}           
 `
-                                        })
+                                        })()
                                     })}`
                                 }).join('<div class="my-2"></div>')}
 ${EditorElem.plusBtn("添加特徵", gvc.event((e, event) => {

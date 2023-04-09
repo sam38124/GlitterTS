@@ -29,16 +29,20 @@ init((gvc, glitter, gBundle) => {
         selectItem: any,
         initialJS: { name: string, src: { official: string, open: boolean }, route: string }[],
         pluginList: { name: string, src: { staging: string, official: string, open: boolean }, route: string }[],
+        initialStyle:{ name: string, src: {src:string}, route: string }[],
         initialCode: any,
+        initialList:any,
         homePage:string
     } = {
         dataList: undefined,
         data: undefined,
         loading: true,
         selectItem: undefined,
+        initialStyle:[],
         pluginList: [],
         initialJS: [],
         initialCode: '',
+        initialList:[],
         homePage:''
     };
     const swal = new Swal(gvc);
@@ -77,8 +81,10 @@ init((gvc, glitter, gBundle) => {
                 return await new Promise(async (resolve) => {
                     const data = await ApiPageConfig.getPlugin(gBundle.appName)
                     if (data.result) {
+                        viewModel.initialList=data.response.data.initialList;
                         viewModel.initialJS = data.response.data.eventPlugin;
                         viewModel.pluginList = data.response.data.pagePlugin;
+                        viewModel.initialStyle=data.response.data.initialStyle;
                         viewModel.initialCode = data.response.data.initialCode ?? "";
                         viewModel.homePage=data.response.data.homePage ?? ""
                         async function load() {
@@ -161,8 +167,10 @@ init((gvc, glitter, gBundle) => {
                         const api = await ApiPageConfig.setPlugin(gBundle.appName, {
                             pagePlugin: viewModel.pluginList,
                             eventPlugin: viewModel.initialJS,
+                            initialStyle:viewModel.initialStyle,
                             initialCode: viewModel.initialCode,
-                            homePage:viewModel.homePage
+                            homePage:viewModel.homePage,
+                            initialList:viewModel.initialList
                         })
                         resolve(api.result)
                     });
@@ -607,7 +615,7 @@ ${(() => {
                                         onCreate: () => {
                                             setTimeout(() => {
                                                 $('#jumpToNav').scrollTop(parseInt(glitter.getCookieByName('jumpToNavScroll'), 10) ?? 0)
-                                            }, 300)
+                                            }, 1000)
                                         }
                                     };
                                 })

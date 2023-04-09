@@ -12,12 +12,20 @@ const UserUtil_1 = __importDefault(require("../utils/UserUtil"));
 class User {
     static async createUser(account, pwd) {
         try {
+            const userID = generateUserID();
             await database_1.default.execute(`INSERT INTO \`${config_1.saasConfig.SAAS_NAME}\`.\`user\` (\`userID\`,\`account\`, \`pwd\`, \`userData\`) VALUES (?,?, ?, ?);`, [
-                generateUserID(),
+                userID,
                 account,
                 await tool_1.default.hashPwd(pwd),
                 {}
             ]);
+            return {
+                token: await UserUtil_1.default.generateToken({
+                    user_id: parseInt(userID, 10),
+                    account: account,
+                    userData: {}
+                })
+            };
         }
         catch (e) {
             throw exception_1.default.BadRequestError('BAD_REQUEST', 'Register Error:' + e, null);

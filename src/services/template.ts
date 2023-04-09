@@ -33,7 +33,6 @@ export class Template {
                 config.name,
                 config.config
             ])
-            await createAPP(config)
             return true
         } catch (e: any) {
             throw exception.BadRequestError("Forbidden", "This page already exists.", null);

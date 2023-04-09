@@ -1,4 +1,5 @@
 import { Glitter } from '../Glitter.js';
+import autosize from '../plugins/autosize.js';
 export class HtmlGenerate {
     constructor(setting, hover = []) {
         var _a;
@@ -76,7 +77,7 @@ export class HtmlGenerate {
                     }
                     else {
                         return gvc.map(setting.map((dd) => {
-                            var _a, _b;
+                            var _a;
                             const component = gvc.glitter.getUUID();
                             dd.refreshAllParameter.view1 = () => {
                                 gvc.notifyDataChange(container);
@@ -93,7 +94,7 @@ export class HtmlGenerate {
                                 }
                                 catch (e) {
                                     HtmlGenerate.share.false[dd.js] = ((_a = HtmlGenerate.share.false[dd.js]) !== null && _a !== void 0 ? _a : 0) + 1;
-                                    console.log('解析錯誤:${e.message}<br>${e.stack}<br>${e.line}');
+                                    console.log(`解析錯誤:${e.message}<br>${e.stack}<br>${e.line}`);
                                     if (HtmlGenerate.share.false[dd.js] < 10) {
                                         setTimeout(() => {
                                             getData();
@@ -136,11 +137,12 @@ export class HtmlGenerate {
                                     ${gvc.map(['marginT', 'marginB', 'marginL', 'marginR'].map((d2, index) => {
                                         let k = ['margin-top', 'margin-bottom', 'margin-left', 'margin-right'];
                                         return `${k[index]}:${dd.data[d2] && dd.data[d2] !== '' ? dd.data[d2] : '0'};`;
-                                    }))} ${(_a = dd.style) !== null && _a !== void 0 ? _a : ''} ${hover.indexOf(dd.id) !== -1
+                                    }))} ${hover.indexOf(dd.id) !== -1
                                         ? `border: 4px solid dodgerblue;border-radius: 5px;box-sizing: border-box;`
                                         : ``}
+                                        ${HtmlGenerate.styleEditor(dd).style()}
                                     `,
-                                    class: `position-relative ${(_b = dd.class) !== null && _b !== void 0 ? _b : ''}`,
+                                    class: `position-relative ${(_a = dd.class) !== null && _a !== void 0 ? _a : ''}`,
                                 },
                                 onCreate: () => {
                                     if (hover.indexOf(dd.id) !== -1 && lastIndex !== dd.id) {
@@ -412,7 +414,7 @@ ${e.line}
                             }
                             catch (e) {
                                 HtmlGenerate.share.false[dd.js] = ((_c = HtmlGenerate.share.false[dd.js]) !== null && _c !== void 0 ? _c : 0) + 1;
-                                console.log('解析錯誤:${e.message}<br>${e.stack}<br>${e.line}');
+                                console.log(`解析錯誤:${e.message}<br>${e.stack}<br>${e.line}`);
                                 if (HtmlGenerate.share.false[dd.js] < 10) {
                                     setTimeout(() => {
                                         getData();
@@ -483,11 +485,28 @@ ${e.line}
         })}" value="${(_a = obj.default) !== null && _a !== void 0 ? _a : ''}">`;
     }
     static editeText(obj) {
-        var _a;
+        const id = obj.gvc.glitter.getUUID();
         return `<h3 style="color: white;font-size: 16px;margin-bottom: 10px;" class="mt-2">${obj.title}</h3>
-<textarea class="form-control" placeholder="${obj.placeHolder}" onchange="${obj.gvc.event((e) => {
-            obj.callback(e.value);
-        })}" style="height: 100px;">${(_a = obj.default) !== null && _a !== void 0 ? _a : ''}</textarea>`;
+${obj.gvc.bindView({
+            bind: id,
+            view: () => {
+                var _a;
+                return (_a = obj.default) !== null && _a !== void 0 ? _a : '';
+            },
+            divCreate: {
+                elem: `textArea`,
+                style: `max-height:400px!important;min-height:100px;`,
+                class: `form-control`, option: [
+                    { key: 'placeholder', value: obj.placeHolder },
+                    { key: 'onchange', value: obj.gvc.event((e) => {
+                            obj.callback(e.value);
+                        }) }
+                ]
+            },
+            onCreate: () => {
+                autosize($('#' + obj.gvc.id(id)));
+            }
+        })}`;
     }
 }
 HtmlGenerate.share = {};

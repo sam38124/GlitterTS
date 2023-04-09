@@ -15,6 +15,27 @@ router.post('/', async (req, resp) => {
         return response_1.default.fail(resp, err);
     }
 });
+router.get('/', async (req, resp) => {
+    try {
+        const app = new app_1.App(req.body.token);
+        return response_1.default.succ(resp, { result: await app.getAPP() });
+    }
+    catch (err) {
+        return response_1.default.fail(resp, err);
+    }
+});
+router.delete('/', async (req, resp) => {
+    try {
+        const app = new app_1.App(req.body.token);
+        await app.deleteAPP({
+            appName: req.body.appName
+        });
+        return response_1.default.succ(resp, { result: true });
+    }
+    catch (err) {
+        return response_1.default.fail(resp, err);
+    }
+});
 router.get('/plugin', async (req, resp) => {
     try {
         const app = new app_1.App(req.body.token);
