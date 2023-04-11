@@ -79,7 +79,6 @@ async function createAppRoute() {
     }
 }
 async function createAPP(dd) {
-    console.log(`encodeURI(dd.appName)+${encodeURI(dd.appName)}`);
     return await Glitter.setUP(app, [
         {
             rout: '/' + encodeURI(dd.appName),

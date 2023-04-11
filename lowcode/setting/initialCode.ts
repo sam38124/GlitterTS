@@ -62,11 +62,12 @@ export function initialCode(gvc:GVC,viewModel:any,id:string){
                                                       }
                                                   })
                                               }else if(dd.type==="event"){
+                                                  dd.src.event=dd.src.event ?? {};
                                                   return  TriggerEvent.editer(gvc,({
                                                       refreshComponent:()=>{
                                                           gvc.notifyDataChange(cid)
                                                       }
-                                                  } as any),dd)
+                                                  } as any),dd.src.event)
                                               }else{
                                                   return gvc.map([
                                                       HtmlGenerate.editeText({

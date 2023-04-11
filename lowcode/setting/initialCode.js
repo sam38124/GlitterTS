@@ -48,7 +48,7 @@ export function initialCode(gvc, viewModel, id) {
                                             }
                                         })}
                                           ${(() => {
-                                            var _a;
+                                            var _a, _b;
                                             if (dd.type === 'script') {
                                                 return HtmlGenerate.editeInput({
                                                     gvc,
@@ -61,11 +61,12 @@ export function initialCode(gvc, viewModel, id) {
                                                 });
                                             }
                                             else if (dd.type === "event") {
+                                                dd.src.event = (_b = dd.src.event) !== null && _b !== void 0 ? _b : {};
                                                 return TriggerEvent.editer(gvc, {
                                                     refreshComponent: () => {
                                                         gvc.notifyDataChange(cid);
                                                     }
-                                                }, dd);
+                                                }, dd.src.event);
                                             }
                                             else {
                                                 return gvc.map([
