@@ -1,6 +1,7 @@
 import {HtmlGenerate} from "../glitterBundle/module/Html_generate.js";
 import {GVC} from "../glitterBundle/GVController.js";
 import {EditorElem} from "../glitterBundle/plugins/editor-elem.js";
+import {TriggerEvent} from "../glitterBundle/plugins/trigger-event.js";
 
 export function initialCode(gvc:GVC,viewModel:any,id:string){
     const glitter=gvc.glitter;
@@ -36,7 +37,7 @@ export function initialCode(gvc:GVC,viewModel:any,id:string){
                                                       dd.type =text
                                                       gvc.notifyDataChange(cid)
                                                   },
-                                                  array: [{title:"自定義",value:"code"},{title:"路徑",value:"script"}],
+                                                  array: [{title:"自定義",value:"code"},{title:"程式碼路徑",value:"script"},{title:"觸發事件",value:"event"}],
                                               })
                                           }
                                           ${HtmlGenerate.editeInput({
@@ -60,6 +61,12 @@ export function initialCode(gvc:GVC,viewModel:any,id:string){
                                                           dd.src.link = text;
                                                       }
                                                   })
+                                              }else if(dd.type==="event"){
+                                                  return  TriggerEvent.editer(gvc,({
+                                                      refreshComponent:()=>{
+                                                          gvc.notifyDataChange(cid)
+                                                      }
+                                                  } as any),dd)
                                               }else{
                                                   return gvc.map([
                                                       HtmlGenerate.editeText({

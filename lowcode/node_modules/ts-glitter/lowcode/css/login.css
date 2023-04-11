@@ -1,0 +1,15 @@
+body {
+    overflow-y: hidden;
+}
+
+.card {
+    margin: 5% 33%;
+    padding: 5%;
+    border-top: 0.3rem solid rgb(98, 62, 190);
+}
+
+@media screen and (max-width: 960px) {
+    .card {
+        margin: 5% 10%;
+    }
+}

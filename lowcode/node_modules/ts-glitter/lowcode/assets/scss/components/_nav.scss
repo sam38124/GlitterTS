@@ -1,0 +1,148 @@
+//
+// Nav (Navigation components)
+// --------------------------------------------------
+
+
+// Base styles
+
+.nav-item { margin-bottom: 0; }
+
+.nav-link {
+  display: flex;
+  align-items: center;
+  &.active { color: $nav-link-active-color; }
+  &.active:not([data-bs-toggle='dropdown']) {
+    pointer-events: none;
+    cursor: default;
+  }
+}
+
+
+// Nav tabs
+
+.nav-tabs {
+  margin-bottom: ($spacer * .75);
+
+  .nav-item {
+    margin-bottom: $spacer * .75;
+  }
+
+  .nav-link {
+    @include border-radius($nav-tabs-border-radius);
+    background-color: $nav-tabs-link-bg;
+    color: $nav-tabs-link-color;
+
+    &:hover:not(.active),
+    &.show:not(.active) {
+      background-color: $nav-tabs-link-hover-bg;
+      color: $nav-tabs-link-hover-color;
+    }
+    &.disabled,
+    &[disabled] {
+      background-color: $nav-tabs-link-disabled-bg;
+    }
+  }
+
+  .dropdown-menu {
+    @include border-top-radius($dropdown-border-radius);
+  }
+}
+
+
+// Alternative tabs
+
+.nav-tabs-alt {
+  margin-bottom: $spacer * 1.5;
+  border-bottom: $border-width solid $border-color;
+  .nav-item {
+    margin-bottom: -$border-width;
+  }
+  .nav-link {
+    padding: $nav-link-padding-y * 1.5 $nav-link-padding-x;
+    border-bottom: $border-width solid transparent;
+    &.active {
+      border-bottom-color: $nav-link-active-color;
+    }
+  }
+} 
+
+
+// Spacing
+
+.nav-tabs,
+.nav-pills {
+  .nav-item {
+    margin-right: ($spacer * .75);
+    &:last-child { margin-right: 0; }
+  }
+  &.justify-content-center .nav-item {
+    margin: {
+      right: ($spacer * .375);
+      left: ($spacer * .375);
+    }
+  }
+  &.justify-content-end .nav-item {
+    margin: {
+      right: 0;
+      left: ($spacer * .75);
+    }
+  }
+  &.flex-column {
+    .nav-item {
+      margin: {
+        right: 0;
+        bottom: ($spacer * .75);
+        left: 0;
+      }
+      &:last-child { margin-bottom: 0; }
+    }
+  }
+}
+
+
+// Sidebar navigation
+
+.side-nav {
+  padding: $side-nav-padding-y $side-nav-padding-x;
+
+  .nav {
+    flex-direction: column;
+    margin: {
+      right: -$side-nav-padding-x;
+      left: -$side-nav-padding-x;
+    }
+  }
+  .nav-link {
+    padding: $side-nav-link-padding-y $side-nav-link-padding-x;
+    transition: $side-nav-link-trnasition;
+    font-size: $side-nav-link-font-size;
+  }
+
+  &.side-nav-start {
+    border-right: $side-nav-border-width solid $side-nav-border-color;
+    .nav-link {
+      margin-right: -$side-nav-border-width;
+      border-right: $side-nav-border-width solid transparent;
+    }
+  }
+  &.side-nav-end {
+    border-left: $side-nav-border-width solid $side-nav-border-color;
+    .nav-link {
+      margin-left: -$side-nav-border-width;
+      border-left: $side-nav-border-width solid transparent;
+    }
+  }
+
+  .active > .nav-link,
+  .nav-link.active { border-color: $nav-link-active-color; }
+}
+
+
+// Faded primary background on hover
+
+.bg-faded-primary-hover {
+  transition: background-color .2s ease-in-out;
+  &:hover {
+    background-color: map-get($theme-faded-colors, 'primary') !important;
+  }
+}

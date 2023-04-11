@@ -63,7 +63,7 @@ async function createAppRoute() {
 export async function createAPP(dd: any) {
     return await Glitter.setUP(app, [
         {
-            rout: '/' + dd.appName,
+            rout: '/' + encodeURI(dd.appName),
             path: path.resolve( __dirname,'../lowcode'),
             seoManager: async (req, resp) => {
                 try {

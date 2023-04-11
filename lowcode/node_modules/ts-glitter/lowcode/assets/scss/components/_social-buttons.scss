@@ -1,0 +1,394 @@
+//
+// Social buttons
+// --------------------------------------------------
+
+
+// Facebook
+.btn-facebook {
+  &:hover, &:focus, &:active {
+    border-color: #1877f2 !important;
+    background-color: #1877f2 !important;
+    color: $white !important;
+    box-shadow: 0 .375rem 1.125rem -.375rem rgba(#1877f2, .8) !important;
+  }
+}
+
+// Twitter
+.btn-twitter {
+  &:hover, &:focus, &:active {
+    border-color: #1da1f2 !important;
+    background-color: #1da1f2 !important;
+    color: $white !important;
+    box-shadow: 0 .375rem 1.125rem -.375rem rgba(#1da1f2, .8) !important;
+  }
+}
+
+// Instagram
+.btn-instagram {
+  &:hover, &:focus, &:active {
+    border-color: #405de6 !important;
+    background-color: #405de6 !important;
+    color: $white !important;
+    box-shadow: 0 .375rem 1.125rem -.375rem rgba(#405de6, .8) !important;
+  }
+}
+
+// TikTok
+.btn-tiktok {
+  &:hover, &:focus, &:active {
+    border-color: #fe2c55 !important;
+    background-color: #fe2c55 !important;
+    color: $white !important;
+    box-shadow: 0 .375rem 1.125rem -.375rem rgba(#fe2c55, .8) !important;
+  }
+}
+
+// YouTube
+.btn-youtube {
+  &:hover, &:focus, &:active {
+    border-color: #ff0000 !important;
+    background-color: #ff0000 !important;
+    color: $white !important;
+    box-shadow: 0 .375rem 1.125rem -.375rem rgba(#ff0000, .8) !important;
+  }
+}
+
+// LinkedIn
+.btn-linkedin {
+  &:hover, &:focus, &:active {
+    border-color: #0077b5 !important;
+    background-color: #0077b5 !important;
+    color: $white !important;
+    box-shadow: 0 .375rem 1.125rem -.375rem rgba(#0077b5, .8) !important;
+  }
+}
+
+// Pinterest
+.btn-pinterest {
+  &:hover, &:focus, &:active {
+    border-color: #e60023 !important;
+    background-color: #e60023 !important;
+    color: $white !important;
+    box-shadow: 0 .375rem 1.125rem -.375rem rgba(#e60023, .8) !important;
+  }
+}
+
+// Behance
+.btn-behance {
+  &:hover, &:focus, &:active {
+    border-color: #1769ff !important;
+    background-color: #1769ff !important;
+    color: $white !important;
+    box-shadow: 0 .375rem 1.125rem -.375rem rgba(#1769ff, .8) !important;
+  }
+}
+
+// Dribbble
+.btn-dribbble {
+  &:hover, &:focus, &:active {
+    border-color: #ea4c89 !important;
+    background-color: #ea4c89 !important;
+    color: $white !important;
+    box-shadow: 0 .375rem 1.125rem -.375rem rgba(#ea4c89, .8) !important;
+  }
+}
+
+// Vimeo
+.btn-vimeo {
+  &:hover, &:focus, &:active {
+    border-color: #1ab7ea !important;
+    background-color: #1ab7ea !important;
+    color: $white !important;
+    box-shadow: 0 .375rem 1.125rem -.375rem rgba(#1ab7ea, .8) !important;
+  }
+}
+
+// Reddit
+.btn-reddit {
+  &:hover, &:focus, &:active {
+    border-color: #ff4500 !important;
+    background-color: #ff4500 !important;
+    color: $white !important;
+    box-shadow: 0 .375rem 1.125rem -.375rem rgba(#ff4500, .8) !important;
+  }
+}
+
+// Discord
+.btn-discord {
+  &:hover, &:focus, &:active {
+    border-color: #7289da !important;
+    background-color: #7289da !important;
+    color: $white !important;
+    box-shadow: 0 .375rem 1.125rem -.375rem rgba(#7289da, .8) !important;
+  }
+}
+
+// Slack
+.btn-slack {
+  &:hover, &:focus, &:active {
+    border-color: #611f69 !important;
+    background-color: #611f69 !important;
+    color: $white !important;
+    box-shadow: 0 .375rem 1.125rem -.375rem rgba(#611f69, .8) !important;
+  }
+}
+
+// Telegram
+.btn-telegram {
+  &:hover, &:focus, &:active {
+    border-color: #0088cc !important;
+    background-color: #0088cc !important;
+    color: $white !important;
+    box-shadow: 0 .375rem 1.125rem -.375rem rgba(#0088cc, .8) !important;
+  }
+}
+
+// Skype
+.btn-skype {
+  &:hover, &:focus, &:active {
+    border-color: #00aff0 !important;
+    background-color: #00aff0 !important;
+    color: $white !important;
+    box-shadow: 0 .375rem 1.125rem -.375rem rgba(#00aff0, .8) !important;
+  }
+}
+
+// WhatsApp
+.btn-whatsapp {
+  &:hover, &:focus, &:active {
+    border-color: #128c7e !important;
+    background-color: #128c7e !important;
+    color: $white !important;
+    box-shadow: 0 .375rem 1.125rem -.375rem rgba(#128c7e, .8) !important;
+  }
+}
+
+// Messenger
+.btn-messenger {
+  &:hover, &:focus, &:active {
+    border-color: #0084ff !important;
+    background-color: #0084ff !important;
+    color: $white !important;
+    box-shadow: 0 .375rem 1.125rem -.375rem rgba(#0084ff, .8) !important;
+  }
+}
+
+// VKontakte
+.btn-vk {
+  &:hover, &:focus, &:active {
+    border-color: #45668e !important;
+    background-color: #45668e !important;
+    color: $white !important;
+    box-shadow: 0 .375rem 1.125rem -.375rem rgba(#45668e, .8) !important;
+  }
+}
+
+// Odnoklassniki
+.btn-ok {
+  &:hover, &:focus, &:active {
+    border-color: #ed812b !important;
+    background-color: #ed812b !important;
+    color: $white !important;
+    box-shadow: 0 .375rem 1.125rem -.375rem rgba(#ed812b, .8) !important;
+  }
+}
+
+// Google
+.btn-google {
+  &:hover, &:focus, &:active {
+    border-color: #ea4335 !important;
+    background-color: #ea4335 !important;
+    color: $white !important;
+    box-shadow: 0 .375rem 1.125rem -.375rem rgba(#ea4335, .8) !important;
+  }
+}
+
+// Tumblr
+.btn-tumblr {
+  &:hover, &:focus, &:active {
+    border-color: #35465c !important;
+    background-color: #35465c !important;
+    color: $white !important;
+    box-shadow: 0 .375rem 1.125rem -.375rem rgba(#35465c, .8) !important;
+  }
+}
+
+// Medium
+.btn-medium {
+  &:hover, &:focus, &:active {
+    border-color: #00ab6c !important;
+    background-color: #00ab6c !important;
+    color: $white !important;
+    box-shadow: 0 .375rem 1.125rem -.375rem rgba(#00ab6c, .8) !important;
+  }
+}
+
+// Snapchat
+.btn-snapchat {
+  &:hover, &:focus, &:active {
+    border-color: #fffc00 !important;
+    background-color: #fffc00 !important;
+    color: $gray-900 !important;
+    box-shadow: 0 .375rem 1.125rem -.375rem rgba(#fffc00, .8) !important;
+  }
+}
+
+// Blogger
+.btn-blogger {
+  &:hover, &:focus, &:active {
+    border-color: #f57d00 !important;
+    background-color: #f57d00 !important;
+    color: $white !important;
+    box-shadow: 0 .375rem 1.125rem -.375rem rgba(#f57d00, .8) !important;
+  }
+}
+
+// Twitch
+.btn-twitch {
+  &:hover, &:focus, &:active {
+    border-color: #9146ff !important;
+    background-color: #9146ff !important;
+    color: $white !important;
+    box-shadow: 0 .375rem 1.125rem -.375rem rgba(#9146ff, .8) !important;
+  }
+}
+
+// Flickr
+.btn-flickr {
+  &:hover, &:focus, &:active {
+    border-color: #0063dc !important;
+    background-color: #0063dc !important;
+    color: $white !important;
+    box-shadow: 0 .375rem 1.125rem -.375rem rgba(#0063dc, .8) !important;
+  }
+}
+
+// Stack Overflow
+.btn-stack-overflow {
+  &:hover, &:focus, &:active {
+    border-color: #f48024 !important;
+    background-color: #f48024 !important;
+    color: $white !important;
+    box-shadow: 0 .375rem 1.125rem -.375rem rgba(#f48024, .8) !important;
+  }
+}
+
+// GitHub
+.btn-github {
+  &:hover, &:focus, &:active {
+    border-color: #4078c0 !important;
+    background-color: #4078c0 !important;
+    color: $white !important;
+    box-shadow: 0 .375rem 1.125rem -.375rem rgba(#4078c0, .8) !important;
+  }
+}
+
+// GitLab
+.btn-gitlab {
+  &:hover, &:focus, &:active {
+    border-color: #fc6d26 !important;
+    background-color: #fc6d26 !important;
+    color: $white !important;
+    box-shadow: 0 .375rem 1.125rem -.375rem rgba(#fc6d26, .8) !important;
+  }
+}
+
+// CodePen
+.btn-codepen {
+  &:hover, &:focus, &:active {
+    border-color: #0ebeff !important;
+    background-color: #0ebeff !important;
+    color: $white !important;
+    box-shadow: 0 .375rem 1.125rem -.375rem rgba(#0ebeff, .8) !important;
+  }
+}
+
+// Dropbox
+.btn-dropbox {
+  &:hover, &:focus, &:active {
+    border-color: #007ee5 !important;
+    background-color: #007ee5 !important;
+    color: $white !important;
+    box-shadow: 0 .375rem 1.125rem -.375rem rgba(#007ee5, .8) !important;
+  }
+}
+
+// Zoom
+.btn-zoom {
+  &:hover, &:focus, &:active {
+    border-color: #2d8cff !important;
+    background-color: #2d8cff !important;
+    color: $white !important;
+    box-shadow: 0 .375rem 1.125rem -.375rem rgba(#2d8cff, .8) !important;
+  }
+}
+
+// Steam
+.btn-steam {
+  &:hover, &:focus, &:active {
+    border-color: #00adee !important;
+    background-color: #00adee !important;
+    color: $white !important;
+    box-shadow: 0 .375rem 1.125rem -.375rem rgba(#00adee, .8) !important;
+  }
+}
+
+// Patreon
+.btn-patreon {
+  &:hover, &:focus, &:active {
+    border-color: #f96854 !important;
+    background-color: #f96854 !important;
+    color: $white !important;
+    box-shadow: 0 .375rem 1.125rem -.375rem rgba(#f96854, .8) !important;
+  }
+}
+
+// Product Hunt
+.btn-product-hunt {
+  &:hover, &:focus, &:active {
+    border-color: #da552f !important;
+    background-color: #da552f !important;
+    color: $white !important;
+    box-shadow: 0 .375rem 1.125rem -.375rem rgba(#da552f, .8) !important;
+  }
+}
+
+// Kickstarter
+.btn-kickstarter {
+  &:hover, &:focus, &:active {
+    border-color: #2bde73 !important;
+    background-color: #2bde73 !important;
+    color: $white !important;
+    box-shadow: 0 .375rem 1.125rem -.375rem rgba(#2bde73, .8) !important;
+  }
+}
+
+// Airbnb
+.btn-airbnb {
+  &:hover, &:focus, &:active {
+    border-color: #fd5c63 !important;
+    background-color: #fd5c63 !important;
+    color: $white !important;
+    box-shadow: 0 .375rem 1.125rem -.375rem rgba(#fd5c63, .8) !important;
+  }
+}
+
+// Foursquare
+.btn-foursquare {
+  &:hover, &:focus, &:active {
+    border-color: #f94877 !important;
+    background-color: #f94877 !important;
+    color: $white !important;
+    box-shadow: 0 .375rem 1.125rem -.375rem rgba(#f94877, .8) !important;
+  }
+}
+
+// TripAvisor
+.btn-trip-advisor {
+  &:hover, &:focus, &:active {
+    border-color: #00af87 !important;
+    background-color: #00af87 !important;
+    color: $white !important;
+    box-shadow: 0 .375rem 1.125rem -.375rem rgba(#00af87, .8) !important;
+  }
+}
