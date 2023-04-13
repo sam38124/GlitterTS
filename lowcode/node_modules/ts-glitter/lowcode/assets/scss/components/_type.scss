@@ -1,0 +1,31 @@
+//
+// Typography
+// --------------------------------------------------
+
+
+// Headings line height
+
+h4, .h4, .fs-4,
+h5, .h5, .fs-5,
+h6, .h6, .fs-6 { line-height: $line-height-sm; }
+
+
+// Link inside headings
+
+h1, .h1, h2, .h2, h3, .h3,
+h4, .h4, h5, .h5, h6, .h6 {
+  > a {
+    color: $gray-800;
+    text-decoration: none;
+    &:hover {
+      color: $link-color;
+    }
+  }
+}
+
+
+// Description lists
+
+dt {
+  color: $headings-color;
+}

@@ -5,6 +5,7 @@ import {Plugin} from "../glitterBundle/plugins/plugin-creater.js";
 import {Glitter} from "../glitterBundle/Glitter.js";
 import {ApiUser} from "../api/user.js";
 import {TriggerEvent} from "../glitterBundle/plugins/trigger-event.js";
+import {BaseApi} from "../api/base.js";
 
 init((gvc, glitter, gBundle)=>{
     return {
@@ -52,7 +53,6 @@ init((gvc, glitter, gBundle)=>{
                                     }
                                 }else{
                                     const dd = await eval(data.src.official)
-                                    console.log(`typeOf:` + typeof dd)
                                 }
                             } catch (e) {
                                 console.log(e)
@@ -77,7 +77,6 @@ init((gvc, glitter, gBundle)=>{
                     } else {
                         async function render() {
                             let data = await ApiPageConfig.getPage(config.appName, glitter.getUrlParameter('page') ?? glitter.getUUID())
-                            console.log(JSON.stringify(data))
                             if (data.response.result.length === 0) {
                                 const url = new URL("./", location.href)
 
@@ -165,7 +164,24 @@ function toBackendEditor(glitter: Glitter) {
             const url=new URL(glitter.location.href)
             location.href=`${url.origin}/glitter/?page=signin`
         }else{
-            toNext()
+            BaseApi.create({
+                "url": config.url + `/api/v1/user/checkToken`,
+                "type": "GET",
+                "timeout": 0,
+                "headers": {
+                    "Content-Type": "application/json",
+                    "Authorization":glitter.getCookieByName('glitterToken')
+                }
+            }).then((d2) => {
+                console.log(d2)
+                if (!d2.result) {
+                    const url=new URL(glitter.location.href)
+                    location.href=`${url.origin}/glitter/?page=signin`
+                }else{
+                    toNext()
+                }
+            })
+
         }
     }
 }

@@ -25,7 +25,7 @@ export class Plugin {
     public static create(url: string, fun: (
         glitter: Glitter, editMode: boolean) => {
         [name: string]: {
-            defaultData?: any, render: ((gvc: GVC, widget: HtmlJson, setting: HtmlJson[], hoverID: string[]) => {
+            defaultData?: any, render: ((gvc: GVC, widget: HtmlJson, setting: HtmlJson[], hoverID: string[],subData?:any) => {
                 view: () => (Promise<string> | string),
                 editor: () => Promise<string> | string
             })
@@ -38,52 +38,73 @@ export class Plugin {
 
     public static createComponent(url: string, fun: (
         glitter: Glitter, editMode: boolean) => {
-        defaultData?: any, render: ((gvc: GVC, widget: HtmlJson, setting: HtmlJson[], hoverID: string[]) => {
+        defaultData?: any, render: ((gvc: GVC, widget: HtmlJson, setting: HtmlJson[], hoverID: string[],subData?:any) => {
             view: () => (Promise<string> | string),
             editor: () => Promise<string> | string
         })
     }) {
         const glitter = (window as any).glitter
         const val=fun(glitter, (window.parent as any).editerData !== undefined)
-        try{
-            glitter.share.componentCallback[url](val)
-        }catch (e){}
+        let fal=0
+        function tryLoop(){
+            try{
+                let delete2=0;
+                glitter.share.componentCallback[url].map((dd:any,index:number)=>{
+                    dd(val)
+                    delete2=index
+                })
+                glitter.share.componentCallback[url].splice(0,delete2)
+            }catch (e){
+                if(fal<10){
+                    setTimeout(()=>{
+                        tryLoop()
+                    },100)
+                }
+                fal+=1
+                console.log('error'+url)
+            }
+        }
+        tryLoop()
         return val;
     }
 
-    public static setComponent(original:string,url: URL):(gvc: GVC, widget: HtmlJson, setting: HtmlJson[], hoverID: string[]) => {
+    public static setComponent(original:string,url: URL):(gvc: GVC, widget: HtmlJson, setting: HtmlJson[], hoverID: string[],subData?:any) => {
         view: () => (Promise<string> | string),
         editor: () => Promise<string> | string
     } {
         const glitter = (window as any).glitter
         url.searchParams.set("original",original)
-        return (gvc: GVC, widget: HtmlJson, setting: HtmlJson[], hoverID: string[]) => {
+        return (gvc: GVC, widget: HtmlJson, setting: HtmlJson[], hoverID: string[],subData?:any) => {
             glitter.share.componentData=glitter.share.componentData??{}
             let val:any=glitter.share.componentData[url.href]
             glitter.share.componentCallback=glitter.share.componentCallback??{}
-            glitter.share.componentCallback[url.href]=(dd:any)=>{
+            glitter.share.componentCallback[url.href]=glitter.share.componentCallback[url.href]??[]
+            glitter.share.componentCallback[url.href].push((dd:any)=>{
                 glitter.share.componentData[url.href]=dd
                 widget.refreshComponent()
-            }
+            })
             gvc.glitter.addMtScript([
                 {
                     src: url,
                     type: 'module'
                 }
-            ], () => { }, () => {})
+            ], () => {
+                val=glitter.share.componentData[url.href]
+                console.log('setComponent-->'+url)
+            }, () => {})
             return {
                 view: () => {
                     if(!val){
                         return ``
                     }
-                    return val.render(gvc, widget, setting, hoverID)
+                    return val.render(gvc, widget, setting, hoverID,subData)
                         .view();
                 },
                 editor: () => {
                     if(!val){
                         return ``
                     }
-                    return val.render(gvc, widget, setting, hoverID)
+                    return val.render(gvc, widget, setting, hoverID,subData)
                         .editor();
                 }
             }

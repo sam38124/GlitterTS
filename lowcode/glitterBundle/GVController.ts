@@ -380,7 +380,6 @@ export function init(fun: (gvc: GVC, glitter: Glitter, gBundle: any) => {
             }
         })
     }
-    console.log(JSON.stringify(glitter.modelJsList))
     const lifeCycle: LifeCycle = new LifeCycle()
     lifeCycle.onResume = pageData.onResume ?? lifeCycle.onResume;
     lifeCycle.onPause = pageData.onPause ?? lifeCycle.onPause;

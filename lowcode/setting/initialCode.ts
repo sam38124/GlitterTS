@@ -67,7 +67,11 @@ export function initialCode(gvc:GVC,viewModel:any,id:string){
                                                       refreshComponent:()=>{
                                                           gvc.notifyDataChange(cid)
                                                       }
-                                                  } as any),dd.src.event)
+                                                  } as any),dd.src.event,{
+                                                      title:"觸發事件",
+                                                      hover:false,
+                                                      option:[]
+                                                  })
                                               }else{
                                                   return gvc.map([
                                                       HtmlGenerate.editeText({

@@ -1,0 +1,45 @@
+.order-container {
+    padding-left: 15%;
+    padding-right: 15%;
+}
+
+.item,
+.addr {
+    border: 2px solid rgb(168, 168, 168);
+    margin-bottom: 2rem;
+    padding: 0.7rem;
+}
+
+.item h1,
+.item h3,
+.addr h1 {
+    text-align: center;
+    margin-bottom: 0.5rem;
+    color: var(--ct-body-color);
+}
+
+.addr h2 {
+    padding-left: 1rem;
+    margin: 1rem 0;
+}
+
+.addr h3,
+.addr h4,
+.addr h5 {
+    padding-left: 1rem;
+    margin-bottom: 0.7rem;
+    font-weight: normal;
+}
+
+.fff {
+    display: flex;
+    justify-content: space-between;
+    font-size: 16px;
+    margin: 1.5rem 1rem;
+}
+
+@media only screen and (max-width: 600px) {
+    .order-container {
+        padding: 2%;
+    }
+}

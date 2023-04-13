@@ -1,0 +1,37 @@
+//
+// Alert
+// --------------------------------------------------
+
+// Secondary / light alert
+
+.alert-secondary {
+  background-color: lighten($secondary, 1%);
+}
+.alert-secondary,
+.alert-light {
+  border-color: $border-color;
+  color: $gray-800;
+  .alert-link { color: $gray-900; }
+}
+
+
+// Dark alert
+
+.alert-dark {
+  border-color: $dark;
+  background-color: $dark;
+  color: $white;
+  .alert-link { color: $white; }
+}
+
+
+// Dismissible alerts
+
+.alert-dismissible .btn-close {
+  padding: $alert-padding-y * 1.375 $alert-padding-x;
+}
+@each $color, $value in map-remove($theme-colors, 'secondary', 'light', 'dark') {
+  .alert-#{$color} .btn-close {
+    background: transparent escape-svg(url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='#{darken($value, 18%)}'><path d='M.293.293a1 1 0 011.414 0L8 6.586 14.293.293a1 1 0 111.414 1.414L9.414 8l6.293 6.293a1 1 0 01-1.414 1.414L8 9.414l-6.293 6.293a1 1 0 01-1.414-1.414L6.586 8 .293 1.707a1 1 0 010-1.414z'/></svg>")) center / $btn-close-width auto no-repeat;
+  }
+}

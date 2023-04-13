@@ -66,7 +66,11 @@ export function initialCode(gvc, viewModel, id) {
                                                     refreshComponent: () => {
                                                         gvc.notifyDataChange(cid);
                                                     }
-                                                }, dd.src.event);
+                                                }, dd.src.event, {
+                                                    title: "觸發事件",
+                                                    hover: false,
+                                                    option: []
+                                                });
                                             }
                                             else {
                                                 return gvc.map([

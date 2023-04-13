@@ -1,7 +1,7 @@
 import { Glitter } from '../Glitter.js';
 import autosize from '../plugins/autosize.js';
 export class HtmlGenerate {
-    constructor(setting, hover = []) {
+    constructor(setting, hover = [], subData) {
         var _a;
         this.setting = setting;
         HtmlGenerate.share.false = (_a = HtmlGenerate.share.false) !== null && _a !== void 0 ? _a : {};
@@ -89,12 +89,12 @@ export class HtmlGenerate {
                                 loading = true;
                                 try {
                                     data = gvc.glitter.share.htmlExtension[gvc.glitter.htmlGenerate.resourceHook(dd.js)][dd.type]
-                                        .render(gvc, dd, setting, hover)
+                                        .render(gvc, dd, setting, hover, subData)
                                         .view();
                                 }
                                 catch (e) {
                                     HtmlGenerate.share.false[dd.js] = ((_a = HtmlGenerate.share.false[dd.js]) !== null && _a !== void 0 ? _a : 0) + 1;
-                                    console.log(`解析錯誤:${e.message}<br>${e.stack}<br>${e.line}`);
+                                    console.log(`component:${dd.type}==解析錯誤:${e.message}<br>${e.stack}<br>${e.line}`);
                                     if (HtmlGenerate.share.false[dd.js] < 10) {
                                         setTimeout(() => {
                                             getData();
@@ -114,6 +114,7 @@ export class HtmlGenerate {
                                     });
                                 }
                             }
+                            console.log(`type===${dd.type}`);
                             getData();
                             dd.refreshComponentParameter.view1 = () => {
                                 getData();
@@ -317,7 +318,7 @@ ${gvc.bindView(() => {
                                         loading = true;
                                         try {
                                             data = gvc.glitter.share.htmlExtension[gvc.glitter.htmlGenerate.resourceHook(dd.js)][dd.type]
-                                                .render(gvc, dd, setting, hover)
+                                                .render(gvc, dd, setting, hover, subData)
                                                 .editor();
                                         }
                                         catch (e) {
@@ -381,7 +382,7 @@ ${gvc.bindView(() => {
                                                             view: () => {
                                                                 return gvc.glitter.htmlGenerate.styleEditor(dd).editor(gvc, () => {
                                                                     option.refreshAll();
-                                                                }, '容器設計樣式');
+                                                                }, '父層設計樣式');
                                                             },
                                                             divCreate: { class: 'mt-2' },
                                                         };
@@ -397,7 +398,7 @@ ${gvc.bindView(() => {
                                                 ]);
                                             }
                                             catch (e) {
-                                                return `<div class="alert alert-danger mt-2" role="alert" style="word-break: break-word;white-space: normal;">
+                                                return `<div class="alert alert-danger mt-2 " role="alert" style="word-break: break-word;white-space: normal;">
   <i class="fa-duotone fa-triangle-exclamation"></i>
   <br>
 解析錯誤:${e.message}

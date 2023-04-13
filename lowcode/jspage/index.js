@@ -4,6 +4,7 @@ import { ApiPageConfig } from "../api/pageConfig.js";
 import { Plugin } from "../glitterBundle/plugins/plugin-creater.js";
 import { ApiUser } from "../api/user.js";
 import { TriggerEvent } from "../glitterBundle/plugins/trigger-event.js";
+import { BaseApi } from "../api/base.js";
 init((gvc, glitter, gBundle) => {
     return {
         onCreateView: () => {
@@ -159,7 +160,24 @@ function toBackendEditor(glitter) {
             location.href = `${url.origin}/glitter/?page=signin`;
         }
         else {
-            toNext();
+            BaseApi.create({
+                "url": config.url + `/api/v1/user/checkToken`,
+                "type": "GET",
+                "timeout": 0,
+                "headers": {
+                    "Content-Type": "application/json",
+                    "Authorization": glitter.getCookieByName('glitterToken')
+                }
+            }).then((d2) => {
+                console.log(d2);
+                if (!d2.result) {
+                    const url = new URL(glitter.location.href);
+                    location.href = `${url.origin}/glitter/?page=signin`;
+                }
+                else {
+                    toNext();
+                }
+            });
         }
     }
 }

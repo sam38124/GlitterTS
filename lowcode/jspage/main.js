@@ -305,7 +305,7 @@ onclick="${gvc.event(() => {
                                                             const needUpdate = d2.select;
                                                             clearSelect();
                                                             d2.select = true;
-                                                            $(`#${id}`).collapse('toggle');
+                                                            $(`#${id}`).collapse('show');
                                                             parentCallback();
                                                             d2.click();
                                                             gvc.notifyDataChange(['htmlGenerate', 'showView']);
@@ -338,13 +338,13 @@ onclick="${gvc.event(() => {
                                                             >
                                                                       ${d2.text}
                                                                       <button class=" btn-warning round  ms-3 " style="height: 30px;color:black;width: 30px;" onclick="${gvc.event(() => {
-                                                            glitter.openDiaLog('jsPage/lowcode/dialog/caddDialog.js', 'caddDialog', {
+                                                            glitter.openDiaLog('dialog/caddDialog.js', 'caddDialog', {
                                                                 callback: (data) => {
-                                                                    console.log(d2);
                                                                     d2.setting.push(data);
                                                                     glitter.setCookie('lastSelect', data.id);
                                                                     gvc.notifyDataChange(createID);
-                                                                }
+                                                                },
+                                                                appName: gBundle.appName
                                                             });
                                                         })}">
 <i class="fa-sharp fa-solid fa-circle-plus " ></i>
