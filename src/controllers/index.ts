@@ -30,6 +30,7 @@ const whiteList:{}[] = [
     { url: config.getRoute(config.route.user)+"/register", method: 'POST' },
     { url: config.getRoute(config.route.app)+"/plugin", method: 'GET' },
     { url: config.getRoute(config.route.template), method: 'GET' },
+    { url: config.getRoute(config.route.fileManager)+"/upload", method: 'POST' },
 ];
 async function doAuthAction(req: express.Request, resp: express.Response, next: express.NextFunction) {
     const logger = new Logger();

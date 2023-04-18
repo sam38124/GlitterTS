@@ -53,7 +53,6 @@ init((gvc, glitter, gBundle) => {
                                 }
                                 else {
                                     const dd = await eval(data.src.official);
-                                    console.log(`typeOf:` + typeof dd);
                                 }
                             }
                             catch (e) {
@@ -81,7 +80,6 @@ init((gvc, glitter, gBundle) => {
                         async function render() {
                             var _a;
                             let data = await ApiPageConfig.getPage(config.appName, (_a = glitter.getUrlParameter('page')) !== null && _a !== void 0 ? _a : glitter.getUUID());
-                            console.log(JSON.stringify(data));
                             if (data.response.result.length === 0) {
                                 const url = new URL("./", location.href);
                                 url.searchParams.set('page', data.response.redirect);

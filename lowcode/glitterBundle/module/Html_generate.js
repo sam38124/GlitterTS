@@ -1,9 +1,10 @@
 import { Glitter } from '../Glitter.js';
 import autosize from '../plugins/autosize.js';
 export class HtmlGenerate {
-    constructor(setting, hover = [], subData) {
+    constructor(setting, hover = [], subdata) {
         var _a;
         this.setting = setting;
+        subdata = subdata !== null && subdata !== void 0 ? subdata : {};
         HtmlGenerate.share.false = (_a = HtmlGenerate.share.false) !== null && _a !== void 0 ? _a : {};
         const editContainer = window.glitter.getUUID();
         let lastIndex = undefined;
@@ -89,12 +90,12 @@ export class HtmlGenerate {
                                 loading = true;
                                 try {
                                     data = gvc.glitter.share.htmlExtension[gvc.glitter.htmlGenerate.resourceHook(dd.js)][dd.type]
-                                        .render(gvc, dd, setting, hover, subData)
+                                        .render(gvc, dd, setting, hover, subdata)
                                         .view();
                                 }
                                 catch (e) {
                                     HtmlGenerate.share.false[dd.js] = ((_a = HtmlGenerate.share.false[dd.js]) !== null && _a !== void 0 ? _a : 0) + 1;
-                                    console.log(`component:${dd.type}==解析錯誤:${e.message}<br>${e.stack}<br>${e.line}`);
+                                    console.log(`解析錯誤:${e.message}<br>${e.stack}<br>${e.line}`);
                                     if (HtmlGenerate.share.false[dd.js] < 10) {
                                         setTimeout(() => {
                                             getData();
@@ -114,7 +115,6 @@ export class HtmlGenerate {
                                     });
                                 }
                             }
-                            console.log(`type===${dd.type}`);
                             getData();
                             dd.refreshComponentParameter.view1 = () => {
                                 getData();
@@ -131,19 +131,12 @@ export class HtmlGenerate {
                                 },
                                 divCreate: {
                                     style: `
-                                    ${gvc.map(['paddingT', 'paddingB', 'paddingL', 'paddingR'].map((d2, index) => {
-                                        let k = ['padding-top', 'padding-bottom', 'padding-left', 'padding-right'];
-                                        return `${k[index]}:${dd.data[d2] && dd.data[d2] !== '' ? dd.data[d2] : '0'};`;
-                                    }))} 
-                                    ${gvc.map(['marginT', 'marginB', 'marginL', 'marginR'].map((d2, index) => {
-                                        let k = ['margin-top', 'margin-bottom', 'margin-left', 'margin-right'];
-                                        return `${k[index]}:${dd.data[d2] && dd.data[d2] !== '' ? dd.data[d2] : '0'};`;
-                                    }))} ${hover.indexOf(dd.id) !== -1
+                                         ${hover.indexOf(dd.id) !== -1
                                         ? `border: 4px solid dodgerblue;border-radius: 5px;box-sizing: border-box;`
                                         : ``}
                                         ${HtmlGenerate.styleEditor(dd).style()}
                                     `,
-                                    class: `position-relative ${(_a = dd.class) !== null && _a !== void 0 ? _a : ''}`,
+                                    class: `position-relative ${(_a = dd.class) !== null && _a !== void 0 ? _a : ''} glitterTag${dd.hashTag}`,
                                 },
                                 onCreate: () => {
                                     if (hover.indexOf(dd.id) !== -1 && lastIndex !== dd.id) {
@@ -318,7 +311,7 @@ ${gvc.bindView(() => {
                                         loading = true;
                                         try {
                                             data = gvc.glitter.share.htmlExtension[gvc.glitter.htmlGenerate.resourceHook(dd.js)][dd.type]
-                                                .render(gvc, dd, setting, hover, subData)
+                                                .render(gvc, dd, setting, hover, subdata)
                                                 .editor();
                                         }
                                         catch (e) {
@@ -371,6 +364,17 @@ ${gvc.bindView(() => {
                                                             dd.refreshAll();
                                                         },
                                                     }),
+                                                    HtmlGenerate.editeInput({
+                                                        gvc: gvc,
+                                                        title: '輸入HashTag標籤',
+                                                        default: dd.hashTag,
+                                                        placeHolder: 'hashtag標籤',
+                                                        callback: (text) => {
+                                                            dd.hashTag = text;
+                                                            option.refreshAll();
+                                                            dd.refreshAll();
+                                                        },
+                                                    }),
                                                     gvc.bindView(() => {
                                                         const uid = gvc.glitter.getUUID();
                                                         const toggleEvent = gvc.event(() => {
@@ -382,7 +386,7 @@ ${gvc.bindView(() => {
                                                             view: () => {
                                                                 return gvc.glitter.htmlGenerate.styleEditor(dd).editor(gvc, () => {
                                                                     option.refreshAll();
-                                                                }, '父層設計樣式');
+                                                                }, '容器設計樣式');
                                                             },
                                                             divCreate: { class: 'mt-2' },
                                                         };
@@ -398,7 +402,7 @@ ${gvc.bindView(() => {
                                                 ]);
                                             }
                                             catch (e) {
-                                                return `<div class="alert alert-danger mt-2 " role="alert" style="word-break: break-word;white-space: normal;">
+                                                return `<div class="alert alert-danger mt-2" role="alert" style="word-break: break-word;white-space: normal;">
   <i class="fa-duotone fa-triangle-exclamation"></i>
   <br>
 解析錯誤:${e.message}

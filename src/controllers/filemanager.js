@@ -9,11 +9,12 @@ const config_1 = require("../config");
 const logger_1 = __importDefault(require("../modules/logger"));
 const router = express_1.default.Router();
 router.post('/upload', async (req, resp) => {
+    var _a, _b;
     try {
         const TAG = `[AWS-S3][Upload]`;
         const logger = new logger_1.default();
         const s3bucketName = config_1.config.AWS_S3_NAME;
-        const userID = req.body.token.userID;
+        const userID = (_b = ((_a = req.body.token) !== null && _a !== void 0 ? _a : {}).userID) !== null && _b !== void 0 ? _b : "guest";
         const name = req.body.fileName;
         const s3path = `file/${userID}/${new Date().getTime() + '-' + name}`;
         const fullUrl = config_1.config.AWS_S3_PREFIX_DOMAIN_NAME + s3path;

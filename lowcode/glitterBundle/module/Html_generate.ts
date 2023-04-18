@@ -7,6 +7,7 @@ export interface HtmlJson {
     route: string;
     type: string;
     id: string;
+    hashTag:string;
     label: string;
     data: any;
     js: string;
@@ -140,8 +141,9 @@ ${obj.gvc.bindView({
 
     public setting: HtmlJson[];
 
-    constructor(setting: HtmlJson[], hover: string[] = [],subData?:any) {
+    constructor(setting: HtmlJson[], hover: string[] = [],subdata?:any) {
         this.setting = setting;
+        subdata=subdata??{}
         HtmlGenerate.share.false=HtmlGenerate.share.false ?? {}
         const editContainer = (window as any).glitter.getUUID();
         let lastIndex: any = undefined;
@@ -229,11 +231,11 @@ ${obj.gvc.bindView({
                                         data=gvc.glitter.share.htmlExtension[gvc.glitter.htmlGenerate.resourceHook(dd.js)][
                                             dd.type
                                             ]
-                                            .render(gvc, dd, setting, hover,subData)
+                                            .render(gvc, dd, setting, hover,subdata)
                                             .view()
                                     } catch (e: any) {
                                         HtmlGenerate.share.false[dd.js]=(HtmlGenerate.share.false[dd.js] ?? 0)+1
-                                        console.log(`component:${dd.type}==解析錯誤:${e.message}<br>${e.stack}<br>${e.line}`)
+                                        console.log(`解析錯誤:${e.message}<br>${e.stack}<br>${e.line}`)
                                         if(HtmlGenerate.share.false[dd.js]<10){
                                             setTimeout(()=>{
                                                 getData()
@@ -246,8 +248,6 @@ ${obj.gvc.bindView({
                                         loading=false
                                         gvc.notifyDataChange(component)
                                     }else{
-
-
                                         data.then((dd)=>{
                                             data=dd
                                             loading=false
@@ -255,7 +255,6 @@ ${obj.gvc.bindView({
                                         })
                                     }
                                 }
-                                console.log(`type===${dd.type}`)
                                 getData()
                                 dd.refreshComponentParameter!.view1 = () => {
                                     getData()
@@ -271,25 +270,14 @@ ${obj.gvc.bindView({
                                     },
                                     divCreate: {
                                         style: `
-                                    ${gvc.map(
-                                            ['paddingT', 'paddingB', 'paddingL', 'paddingR'].map((d2, index) => {
-                                                let k = ['padding-top', 'padding-bottom', 'padding-left', 'padding-right'];
-                                                return `${k[index]}:${dd.data[d2] && dd.data[d2] !== '' ? dd.data[d2] : '0'};`;
-                                            })
-                                        )} 
-                                    ${gvc.map(
-                                            ['marginT', 'marginB', 'marginL', 'marginR'].map((d2, index) => {
-                                                let k = ['margin-top', 'margin-bottom', 'margin-left', 'margin-right'];
-                                                return `${k[index]}:${dd.data[d2] && dd.data[d2] !== '' ? dd.data[d2] : '0'};`;
-                                            })
-                                        )} ${
+                                         ${
                                             hover.indexOf(dd.id) !== -1
                                                 ? `border: 4px solid dodgerblue;border-radius: 5px;box-sizing: border-box;`
                                                 : ``
                                         }
                                         ${HtmlGenerate.styleEditor(dd).style()}
                                     `,
-                                        class: `position-relative ${dd.class ?? ''}`,
+                                        class: `position-relative ${dd.class ?? ''} glitterTag${dd.hashTag}`,
                                     },
                                     onCreate: () => {
                                         if (hover.indexOf(dd.id) !== -1 && lastIndex !== dd.id) {
@@ -437,7 +425,6 @@ ${gvc.bindView({
                                                         });
                                                     }
                                                 }
-
                                                 checkDelete(oset);
                                                 option.refreshAll!();
                                                 dd.refreshAll!();
@@ -481,7 +468,7 @@ ${gvc.bindView(()=>{
                                                 data=gvc.glitter.share.htmlExtension[gvc.glitter.htmlGenerate.resourceHook(dd.js)][
                                                     dd.type
                                                     ]
-                                                    .render(gvc, dd, setting, hover,subData)
+                                                    .render(gvc, dd, setting, hover,subdata)
                                                     .editor()
                                             } catch (e: any) {
                                                 HtmlGenerate.share.false[dd.js]=(HtmlGenerate.share.false[dd.js] ?? 0)+1
@@ -533,6 +520,17 @@ ${gvc.bindView(()=>{
                             dd.refreshAll!();
                         },
                     }),
+                    HtmlGenerate.editeInput({
+                        gvc: gvc,
+                        title: '輸入HashTag標籤',
+                        default:  dd.hashTag,
+                        placeHolder: 'hashtag標籤',
+                        callback: (text) => {
+                            dd.hashTag = text;
+                            option.refreshAll!();
+                            dd.refreshAll!();
+                        },
+                    }),
                     gvc.bindView(() => {
                         const uid = gvc.glitter.getUUID();
                         const toggleEvent = gvc.event(() => {
@@ -547,7 +545,7 @@ ${gvc.bindView(()=>{
                                     () => {
                                         option.refreshAll();
                                     },
-                                    '父層設計樣式'
+                                    '容器設計樣式'
                                 );
                             },
                             divCreate: { class: 'mt-2' },
@@ -562,7 +560,7 @@ ${gvc.bindView(()=>{
                     })()
                 ]);
             } catch (e: any) {
-                return `<div class="alert alert-danger mt-2 " role="alert" style="word-break: break-word;white-space: normal;">
+                return `<div class="alert alert-danger mt-2" role="alert" style="word-break: break-word;white-space: normal;">
   <i class="fa-duotone fa-triangle-exclamation"></i>
   <br>
 解析錯誤:${e.message}
