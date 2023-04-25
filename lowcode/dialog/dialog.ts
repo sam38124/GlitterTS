@@ -20,6 +20,9 @@ init((gvc, glitter, gBundle) => {
          <h3 id="info" style="font-size: 14px;margin-top: 0px;width: calc(100% - 10px);text-align: center;white-space: normal;word-break: break-all;" class="mx-auto">${gBundle.obj.text ?? "錯誤!"}</h3>
          <div class="w-100 border-top d-flex align-items-center justify-content-center" style="height: 40px;font-size: 14px;margin-top: 10px;" onclick="${
                         gvc.event(() => {
+                            try {
+                                gBundle.callback()
+                            }catch (e){}
                             glitter.closeDiaLog(gvc.parameter.pageConfig?.tag)
                         })
                     }">
@@ -34,11 +37,17 @@ init((gvc, glitter, gBundle) => {
          <h3 id="info" style="font-size: 14px;margin-top: 0px;width: calc(100% - 10px);text-align: center;white-space: normal;word-break: break-all;" class="mx-auto text-success">${gBundle.obj.text ?? "成功!"}</h3>
          <div class="w-100 border-top d-flex align-items-center justify-content-center" style="height: 40px;font-size: 14px;margin-top: 10px;" onclick="${
                         gvc.event(() => {
+                            try {
+                                gBundle.callback()
+                            }catch (e){}
                             glitter.closeDiaLog(gvc.parameter.pageConfig?.tag)
                         })
                     }">
              <h3  style="font-size: 14px;margin:auto;width: 100%;text-align: center;" class="text-success" onclick="${
                         gvc.event(() => {
+                            try {
+                                gBundle.callback()
+                            }catch (e){}
                             glitter.closeDiaLog(gvc.parameter.pageConfig?.tag)
                         })
                     }">確認</h3>

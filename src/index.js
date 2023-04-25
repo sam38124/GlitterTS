@@ -37,6 +37,7 @@ const database_1 = __importDefault(require("./modules/database"));
 const saas_table_check_1 = require("./services/saas-table-check");
 const database_2 = __importDefault(require("./modules/database"));
 const AWSLib_1 = require("./modules/AWSLib");
+const aws_sdk_1 = __importDefault(require("aws-sdk"));
 const app = (0, express_1.default)();
 const logger = new logger_1.default();
 const corsOptions = {
@@ -64,6 +65,85 @@ async function initial(serverPort) {
     })();
 }
 exports.initial = initial;
+async function createDomain(domainName) {
+    const route53domains = new aws_sdk_1.default.Route53Domains();
+    const contact = {
+        FirstName: 'jianzhi',
+        LastName: 'wang',
+        ContactType: 'PERSON',
+        OrganizationName: 'liondesign',
+        AddressLine1: 'No. 12, Lane 15, Lane 150, Section 3, Changming Road, Tanzi District, Taichung City',
+        City: 'Taichung',
+        CountryCode: 'TW',
+        ZipCode: '427',
+        PhoneNumber: '+886.978028730',
+        Email: 'sam38124@gmail.com'
+    };
+    const domainParams = {
+        DomainName: domainName,
+        DurationInYears: 1,
+        AutoRenew: true,
+        AdminContact: contact,
+        RegistrantContact: contact,
+        TechContact: contact,
+        PrivacyProtectAdminContact: true,
+        PrivacyProtectRegistrantContact: true,
+        PrivacyProtectTechContact: true
+    };
+    await route53domains.registerDomain(domainParams, (err, data) => {
+        if (err) {
+            console.error(err);
+        }
+        else {
+            console.log('域名注册成功：', data);
+        }
+    });
+}
+async function setDNS(domainName) {
+    const route53 = new aws_sdk_1.default.Route53();
+    const domainParams = {
+        Name: domainName,
+        CallerReference: Date.now().toString()
+    };
+    await route53.createHostedZone(domainParams, async (err, data) => {
+        if (err) {
+            console.error(err);
+        }
+        else {
+            console.log(`Domain ${domainName} created with ID ${data.HostedZone.Id}`);
+            const resourceRecordSet = {
+                Name: domainName,
+                Type: 'A',
+                ResourceRecords: [
+                    {
+                        Value: `3.36.55.11`
+                    }
+                ],
+                TTL: 300
+            };
+            const changeBatch = {
+                Changes: [
+                    {
+                        Action: 'UPSERT',
+                        ResourceRecordSet: resourceRecordSet
+                    }
+                ]
+            };
+            const changeParams = {
+                HostedZoneId: data.HostedZone.Id,
+                ChangeBatch: changeBatch
+            };
+            await route53.changeResourceRecordSets(changeParams, (err, data) => {
+                if (err) {
+                    console.error(err);
+                }
+                else {
+                    console.log(`A record created for ${domainName} with ID ${data.ChangeInfo.Id}`);
+                }
+            });
+        }
+    });
+}
 function createContext(req, res, next) {
     const uuid = (0, uuid_1.v4)();
     const ip = req.ip;
@@ -86,40 +166,43 @@ async function createAPP(dd) {
             seoManager: async (req, resp) => {
                 var _a;
                 try {
-                    let data = (await database_2.default.execute(`SELECT page_config,\`${config_1.saasConfig.SAAS_NAME}\`.app_config.\`config\`
-                                              FROM \`${config_1.saasConfig.SAAS_NAME}\`.page_config, \`${config_1.saasConfig.SAAS_NAME}\`.app_config
-                                              where \`${config_1.saasConfig.SAAS_NAME}\`.page_config.appName = ${database_2.default.escape(dd.appName)}
-                                                and tag = ${database_2.default.escape(req.query.page)}
-and \`${config_1.saasConfig.SAAS_NAME}\`.page_config.appName = \`${config_1.saasConfig.SAAS_NAME}\`.app_config.appName;
-`, []))[0];
+                    let data = (await database_2.default.execute(`SELECT page_config, \`${config_1.saasConfig.SAAS_NAME}\`.app_config.\`config\`
+                                                  FROM \`${config_1.saasConfig.SAAS_NAME}\`.page_config,
+                                                       \`${config_1.saasConfig.SAAS_NAME}\`.app_config
+                                                  where \`${config_1.saasConfig.SAAS_NAME}\`.page_config.appName = ${database_2.default.escape(dd.appName)}
+                                                    and tag = ${database_2.default.escape(req.query.page)}
+                                                    and \`${config_1.saasConfig.SAAS_NAME}\`.page_config.appName = \`${config_1.saasConfig.SAAS_NAME}\`.app_config.appName;
+                    `, []))[0];
                     let redirect = '';
                     if (data && data.page_config) {
                         const d = (_a = data.page_config.seo) !== null && _a !== void 0 ? _a : {};
                         if (d.type !== 'custom') {
-                            data = (await database_2.default.execute(`SELECT page_config,\`${config_1.saasConfig.SAAS_NAME}\`.app_config.\`config\`
-                                              FROM \`${config_1.saasConfig.SAAS_NAME}\`.page_config, \`${config_1.saasConfig.SAAS_NAME}\`.app_config
-                                              where \`${config_1.saasConfig.SAAS_NAME}\`.page_config.appName = ${database_2.default.escape(dd.appName)}
-                                                and tag = ${database_2.default.escape(data.config.homePage)}
-and \`${config_1.saasConfig.SAAS_NAME}\`.page_config.appName = \`${config_1.saasConfig.SAAS_NAME}\`.app_config.appName;
-`, []))[0];
+                            data = (await database_2.default.execute(`SELECT page_config, \`${config_1.saasConfig.SAAS_NAME}\`.app_config.\`config\`
+                                                      FROM \`${config_1.saasConfig.SAAS_NAME}\`.page_config,
+                                                           \`${config_1.saasConfig.SAAS_NAME}\`.app_config
+                                                      where \`${config_1.saasConfig.SAAS_NAME}\`.page_config.appName = ${database_2.default.escape(dd.appName)}
+                                                        and tag = ${database_2.default.escape(data.config.homePage)}
+                                                        and \`${config_1.saasConfig.SAAS_NAME}\`.page_config.appName = \`${config_1.saasConfig.SAAS_NAME}\`.app_config.appName;
+                            `, []))[0];
                         }
                     }
                     else {
                         const config = (await database_2.default.execute(`SELECT \`${config_1.saasConfig.SAAS_NAME}\`.app_config.\`config\`
-                                              FROM \`${config_1.saasConfig.SAAS_NAME}\`.app_config
-                                              where \`${config_1.saasConfig.SAAS_NAME}\`.app_config.appName = ${database_2.default.escape(dd.appName)}
-`, []))[0]['config'];
+                                                          FROM \`${config_1.saasConfig.SAAS_NAME}\`.app_config
+                                                          where \`${config_1.saasConfig.SAAS_NAME}\`.app_config.appName = ${database_2.default.escape(dd.appName)}
+                        `, []))[0]['config'];
                         if (config && ((await database_2.default.execute(`SELECT count(1)
-                                              FROM \`${config_1.saasConfig.SAAS_NAME}\`.page_config
-                                              where \`${config_1.saasConfig.SAAS_NAME}\`.page_config.appName = ${database_2.default.escape(dd.appName)} and tag=${database_2.default.escape(config['homePage'])}
-`, []))[0]["count(1)"] === 1)) {
+                                                          FROM \`${config_1.saasConfig.SAAS_NAME}\`.page_config
+                                                          where \`${config_1.saasConfig.SAAS_NAME}\`.page_config.appName = ${database_2.default.escape(dd.appName)}
+                                                            and tag = ${database_2.default.escape(config['homePage'])}
+                        `, []))[0]["count(1)"] === 1)) {
                             redirect = config['homePage'];
                         }
                         else {
                             redirect = (await database_2.default.execute(`SELECT tag
-                                              FROM \`${config_1.saasConfig.SAAS_NAME}\`.page_config
-                                              where \`${config_1.saasConfig.SAAS_NAME}\`.page_config.appName = ${database_2.default.escape(dd.appName)} limit 0,1
-`, []))[0]['tag'];
+                                                          FROM \`${config_1.saasConfig.SAAS_NAME}\`.page_config
+                                                          where \`${config_1.saasConfig.SAAS_NAME}\`.page_config.appName = ${database_2.default.escape(dd.appName)} limit 0,1
+                            `, []))[0]['tag'];
                         }
                     }
                     return (() => {

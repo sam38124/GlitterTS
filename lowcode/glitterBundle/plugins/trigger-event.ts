@@ -51,10 +51,12 @@ export class TriggerEvent {
                     })
                 })
             }
-            oj.gvc.glitter.share.clickEvent[glitter.htmlGenerate.resourceHook(event.src)][event.route].fun(oj.gvc, oj.widget, oj.clickEvent,oj.subData).event()
+            const data=await (oj.gvc.glitter.share.clickEvent[glitter.htmlGenerate.resourceHook(event.src)][event.route].fun(oj.gvc, oj.widget, oj.clickEvent,oj.subData).event())
         }
-
-        run().then()
+        return new Promise(async (resolve, reject)=>{
+            await run()
+            resolve(true)
+        })
     }
 
     public static editer(gvc: GVC, widget: HtmlJson, obj: any, option: {
@@ -80,7 +82,7 @@ export class TriggerEvent {
                                 obj.clickEvent = JSON.parse(e.value)
                                 obj.clickEvent.src = TriggerEvent.getUrlParameter(obj.clickEvent.src,'resource') ?? obj.clickEvent.src
                             }
-                           gvc.notifyDataChange(selectID)
+                            gvc.notifyDataChange(selectID)
                         })}">
                         
                         ${gvc.map(Object.keys(glitter.share?.clickEvent || {}).filter((dd)=>{

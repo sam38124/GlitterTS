@@ -45,7 +45,7 @@ init((gvc, glitter, gBundle)=>{
                                     })
                                 } else if(data.type === 'event'){
                                     try {
-                                         TriggerEvent.trigger({
+                                        await TriggerEvent.trigger({
                                             gvc:gvc,widget:dd as any,clickEvent:data.src.event
                                         })
                                     }catch (e) {

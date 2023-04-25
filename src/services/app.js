@@ -18,7 +18,7 @@ class App {
             const count = await database_1.default.execute(`
                 select count(1)
                 from \`${config_1.saasConfig.SAAS_NAME}\`.app_config
-                where appName = ${database_1.default.escape(config.appName)} || \`domain\`=${database_1.default.escape(config.domain)}
+                where appName = ${database_1.default.escape(config.appName)} || \`domain\` = ${database_1.default.escape(config.domain)}
             `, []);
             if (count[0]["count(1)"] === 1) {
                 throw exception_1.default.BadRequestError('Forbidden', 'This app already be used.', null);
@@ -30,12 +30,13 @@ class App {
                                                  from \`${config_1.saasConfig.SAAS_NAME}\`.app_config
                                                  where appName = ${database_1.default.escape(config.copyApp)}`, []))[0];
                 copyPageData = (await database_1.default.execute(`select *
-                                                 from \`${config_1.saasConfig.SAAS_NAME}\`.page_config
-                                                 where appName = ${database_1.default.escape(config.copyApp)}`, []));
+                                                  from \`${config_1.saasConfig.SAAS_NAME}\`.page_config
+                                                  where appName = ${database_1.default.escape(config.copyApp)}`, []));
             }
             const trans = await database_1.default.Transaction.build();
             await trans.execute(`insert into \`${config_1.saasConfig.SAAS_NAME}\`.app_config (domain, user, appName, dead_line, \`config\`)
-                                 values (?, ?, ?, ?,${database_1.default.escape(JSON.stringify((copyAppData && copyAppData.config) || {}))})`, [
+                                 values (?, ?, ?, ?,
+                                         ${database_1.default.escape(JSON.stringify((copyAppData && copyAppData.config) || {}))})`, [
                 config.domain,
                 this.token.userID,
                 config.appName,
@@ -44,9 +45,11 @@ class App {
             if (copyPageData) {
                 for (const dd of copyPageData) {
                     await trans.execute(`
-                insert into \`${config_1.saasConfig.SAAS_NAME}\`.page_config (userID, appName, tag, \`group\`, \`name\`, \`config\`, \`page_config\`)
-                values (?, ?, ?, ?, ?, ${database_1.default.escape(JSON.stringify(dd.config))},${database_1.default.escape(JSON.stringify(dd.page_config))});
-            `, [
+                        insert into \`${config_1.saasConfig.SAAS_NAME}\`.page_config (userID, appName, tag, \`group\`, \`name\`,
+                                                                             \`config\`, \`page_config\`)
+                        values (?, ?, ?, ?, ?, ${database_1.default.escape(JSON.stringify(dd.config))},
+                                ${database_1.default.escape(JSON.stringify(dd.page_config))});
+                    `, [
                         this.token.userID,
                         config.appName,
                         dd.tag,
@@ -57,9 +60,10 @@ class App {
             }
             else {
                 await trans.execute(`
-                insert into \`${config_1.saasConfig.SAAS_NAME}\`.page_config (userID, appName, tag, \`group\`, \`name\`, \`config\`,\`page_config\`)
-                values (?, ?, ?, ?, ?, ${database_1.default.escape(JSON.stringify({}))},${database_1.default.escape(JSON.stringify({}))});
-            `, [
+                    insert into \`${config_1.saasConfig.SAAS_NAME}\`.page_config (userID, appName, tag, \`group\`, \`name\`,
+                                                                         \`config\`, \`page_config\`)
+                    values (?, ?, ?, ?, ?, ${database_1.default.escape(JSON.stringify({}))}, ${database_1.default.escape(JSON.stringify({}))});
+                `, [
                     this.token.userID,
                     config.appName,
                     'index',

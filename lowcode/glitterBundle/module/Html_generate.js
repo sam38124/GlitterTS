@@ -483,11 +483,11 @@ ${e.line}
         };
     }
     static editeInput(obj) {
-        var _a;
+        var _a, _b;
         return `<h3 style="color: white;font-size: 16px;margin-bottom: 10px;" class="mt-2">${obj.title}</h3>
-<input class="form-control" placeholder="${obj.placeHolder}" onchange="${obj.gvc.event((e) => {
+<input class="form-control" type="${(_a = obj.type) !== null && _a !== void 0 ? _a : 'text'}" placeholder="${obj.placeHolder}" onchange="${obj.gvc.event((e) => {
             obj.callback(e.value);
-        })}" value="${(_a = obj.default) !== null && _a !== void 0 ? _a : ''}">`;
+        })}" value="${(_b = obj.default) !== null && _b !== void 0 ? _b : ''}">`;
     }
     static editeText(obj) {
         const id = obj.gvc.glitter.getUUID();

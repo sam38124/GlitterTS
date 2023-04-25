@@ -42,7 +42,8 @@ export class ApiPageConfig{
         "group"?:string,
         "name"?:string,
         "config"?:[],
-        "page_config"?:any
+        "page_config"?:any,
+        "copy"?:string
     }){
 
         return BaseApi.create({

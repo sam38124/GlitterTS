@@ -289,7 +289,7 @@ init((gvc, glitter, gBundle) => {
                                             };
                                             let indexCounter = 9999;
                                             items.map((dd, index) => {
-                                                html += `<h3 class="fs-lg">${dd.title}<button class=" btn-warning   ms-3 " style="height: 30px;width: 30px;"
+                                                html += `<h3 class="fs-lg d-flex align-items-center">${dd.title}<button class="rounded-circle btn-warning  btn  ms-2 d-flex align-items-center justify-content-center p-0" style="height: 25px;width: 25px;"
 onclick="${gvc.event(() => {
                                                     glitter.openDiaLog('dialog/caddDialog.js', 'caddDialog', {
                                                         callback: (data: any) => {
@@ -331,7 +331,7 @@ onclick="${gvc.event(() => {
                                                             return `<li
                                                                     class="list-group-item list-group-item-action border-0 py-2 px-4 ${
                                                                 checkOptionSelect(d2) ? `active` : ``
-                                                            } position-relative"
+                                                            } position-relative d-flex align-items-center"
                                                                     onclick="${gvc.event(() => {
                                                                 const needUpdate = d2.select;
                                                                 clearSelect();
@@ -369,7 +369,7 @@ onclick="${gvc.event(() => {
                                                             })}"
                                                             >
                                                                       ${d2.text}
-                                                                      <button class=" btn-warning round  ms-3 " style="height: 30px;color:black;width: 30px;" onclick="${gvc.event(() => {
+                                                                      <button  class="rounded-circle btn-warning  btn  ms-2 d-flex align-items-center justify-content-center p-0" style="height: 25px;width: 25px;" onclick="${gvc.event(() => {
                                                                 glitter.openDiaLog('dialog/caddDialog.js', 'caddDialog', {
                                                                     callback: (data: any) => {
                                                                         d2.setting.push(data);
@@ -379,7 +379,7 @@ onclick="${gvc.event(() => {
                                                                     appName: gBundle.appName
                                                                 });
                                                             })}">
-<i class="fa-sharp fa-solid fa-circle-plus " ></i>
+<i class="fa-sharp fa-solid fa-circle-plus " style="color:black;" ></i>
 </button>
                                                                      </li>
                                                                 <ul class="collapse multi-collapse ${checkOptionSelect(d2) ? `show` : ''} position-relative" style="margin-left: 0px;" id="${id}">

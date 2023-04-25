@@ -7,6 +7,8 @@ export declare class Template {
         group: string;
         name: string;
         config: any;
+        page_config: any;
+        copy: any;
     }): Promise<boolean>;
     updatePage(config: {
         appName: string;

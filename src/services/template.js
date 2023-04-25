@@ -20,20 +20,31 @@ class Template {
         return count[0]["count(1)"] === 1;
     }
     async createPage(config) {
+        var _a, _b;
         if (!(await this.verifyPermission(config.appName))) {
             throw exception_1.default.BadRequestError("Forbidden", "No Permission.", null);
         }
+        if (config.copy) {
+            const data = (await database_1.default.execute(`
+                select \`${config_1.saasConfig.SAAS_NAME}\`.page_config.page_config,
+                       \`${config_1.saasConfig.SAAS_NAME}\`.page_config.config 
+                from  \`${config_1.saasConfig.SAAS_NAME}\`.page_config where tag=${database_1.default.escape(config.copy)}
+            `, []))[0];
+            config.page_config = data['page_config'];
+            config.config = data['config'];
+        }
         try {
             await database_1.default.execute(`
-                insert into \`${config_1.saasConfig.SAAS_NAME}\`.page_config (userID, appName, tag, \`group\`, \`name\`, config)
-                values (?, ?, ?, ?, ?, ?);
+                insert into \`${config_1.saasConfig.SAAS_NAME}\`.page_config (userID, appName, tag, \`group\`, \`name\`, config,page_config)
+                values (?, ?, ?, ?, ?, ?,?);
             `, [
                 this.token.userID,
                 config.appName,
                 config.tag,
                 config.group,
                 config.name,
-                config.config
+                (_a = config.config) !== null && _a !== void 0 ? _a : [],
+                (_b = config.page_config) !== null && _b !== void 0 ? _b : {}
             ]);
             return true;
         }

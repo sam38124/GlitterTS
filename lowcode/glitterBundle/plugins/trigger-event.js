@@ -37,9 +37,12 @@ export class TriggerEvent {
                     });
                 });
             }
-            oj.gvc.glitter.share.clickEvent[glitter.htmlGenerate.resourceHook(event.src)][event.route].fun(oj.gvc, oj.widget, oj.clickEvent, oj.subData).event();
+            const data = await (oj.gvc.glitter.share.clickEvent[glitter.htmlGenerate.resourceHook(event.src)][event.route].fun(oj.gvc, oj.widget, oj.clickEvent, oj.subData).event());
         }
-        run().then();
+        return new Promise(async (resolve, reject) => {
+            await run();
+            resolve(true);
+        });
     }
     static editer(gvc, widget, obj, option = { hover: false, option: [] }) {
         var _a, _b;

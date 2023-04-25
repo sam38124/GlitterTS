@@ -20,6 +20,10 @@ init((gvc, glitter, gBundle) => {
          <h3 id="info" style="font-size: 14px;margin-top: 0px;width: calc(100% - 10px);text-align: center;white-space: normal;word-break: break-all;" class="mx-auto">${(_b = gBundle.obj.text) !== null && _b !== void 0 ? _b : "錯誤!"}</h3>
          <div class="w-100 border-top d-flex align-items-center justify-content-center" style="height: 40px;font-size: 14px;margin-top: 10px;" onclick="${gvc.event(() => {
                         var _a;
+                        try {
+                            gBundle.callback();
+                        }
+                        catch (e) { }
                         glitter.closeDiaLog((_a = gvc.parameter.pageConfig) === null || _a === void 0 ? void 0 : _a.tag);
                     })}">
              <h3  style="font-size: 14px;margin:auto;width: 100%;text-align: center;">確認</h3>
@@ -33,10 +37,18 @@ init((gvc, glitter, gBundle) => {
          <h3 id="info" style="font-size: 14px;margin-top: 0px;width: calc(100% - 10px);text-align: center;white-space: normal;word-break: break-all;" class="mx-auto text-success">${(_c = gBundle.obj.text) !== null && _c !== void 0 ? _c : "成功!"}</h3>
          <div class="w-100 border-top d-flex align-items-center justify-content-center" style="height: 40px;font-size: 14px;margin-top: 10px;" onclick="${gvc.event(() => {
                         var _a;
+                        try {
+                            gBundle.callback();
+                        }
+                        catch (e) { }
                         glitter.closeDiaLog((_a = gvc.parameter.pageConfig) === null || _a === void 0 ? void 0 : _a.tag);
                     })}">
              <h3  style="font-size: 14px;margin:auto;width: 100%;text-align: center;" class="text-success" onclick="${gvc.event(() => {
                         var _a;
+                        try {
+                            gBundle.callback();
+                        }
+                        catch (e) { }
                         glitter.closeDiaLog((_a = gvc.parameter.pageConfig) === null || _a === void 0 ? void 0 : _a.tag);
                     })}">確認</h3>
          </div>

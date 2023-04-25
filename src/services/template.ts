@@ -16,22 +16,32 @@ export class Template {
     }
 
     public async createPage(config: {
-        appName: string, tag: string, group: string, name: string, config: any
+        appName: string, tag: string, group: string, name: string, config: any,page_config:any,copy:any
     }) {
         if (!(await this.verifyPermission(config.appName))) {
             throw exception.BadRequestError("Forbidden", "No Permission.", null);
         }
+        if(config.copy){
+            const data=(await db.execute(`
+                select \`${saasConfig.SAAS_NAME}\`.page_config.page_config,
+                       \`${saasConfig.SAAS_NAME}\`.page_config.config 
+                from  \`${saasConfig.SAAS_NAME}\`.page_config where tag=${db.escape(config.copy)}
+            `, []))[0];
+            config.page_config=data['page_config']
+            config.config=data['config']
+        }
         try {
             await db.execute(`
-                insert into \`${saasConfig.SAAS_NAME}\`.page_config (userID, appName, tag, \`group\`, \`name\`, config)
-                values (?, ?, ?, ?, ?, ?);
+                insert into \`${saasConfig.SAAS_NAME}\`.page_config (userID, appName, tag, \`group\`, \`name\`, config,page_config)
+                values (?, ?, ?, ?, ?, ?,?);
             `, [
                 this.token.userID,
                 config.appName,
                 config.tag,
                 config.group,
                 config.name,
-                config.config
+                config.config ?? [],
+                config.page_config ?? {}
             ])
             return true
         } catch (e: any) {
