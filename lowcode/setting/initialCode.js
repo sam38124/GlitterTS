@@ -6,7 +6,7 @@ export function initialCode(gvc, viewModel, id) {
     const glitter = gvc.glitter;
     viewModel.initialList = (_a = viewModel.initialList) !== null && _a !== void 0 ? _a : [];
     return `
-<div class="alert alert-danger " style="white-space: normal;word-break:break-all;">初始化代碼會在頁面載入之前執行，通常處理一些基本配置行為，例如設定後端路由等。這些初始化代碼會按照順序執行。</div>
+<div class="alert alert-warning " style="white-space: normal;word-break:break-all;">初始化代碼會在頁面載入之前執行，通常處理一些基本配置行為，例如設定後端API路徑...等。這些初始化代碼會按照順序執行。</div>
                         ${gvc.bindView(() => {
         const id = glitter.getUUID();
         return {
@@ -18,7 +18,7 @@ export function initialCode(gvc, viewModel, id) {
                     title: '文字區塊內容',
                     array: viewModel.initialList.map((dd, index) => {
                         return {
-                            title: `<span style="color:#ffba08;">${dd.name || `區塊:${index}`}</span>`,
+                            title: `<span style="color:black;">${dd.name || `區塊:${index}`}</span>`,
                             innerHtml: `
                                                     ${gvc.bindView(() => {
                                 const cid = glitter.getUUID();
@@ -124,9 +124,5 @@ export function initialCode(gvc, viewModel, id) {
             divCreate: {}
         };
     })}
-      <button class="btn btn-warning w-100 mt-4" style="flex: 1;height: 50px;color:black;" onclick="${gvc.event(() => {
-        glitter.closeDiaLog();
-        glitter.htmlGenerate.saveEvent();
-    })}">儲存</button>
                                              `;
 }

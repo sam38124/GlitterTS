@@ -37,6 +37,11 @@ export class GVC {
         this.recreateView = () => {
         };
     }
+    getBundle() {
+        var _a, _b;
+        this.parameter.pageConfig.obj = (_a = this.parameter.pageConfig.obj) !== null && _a !== void 0 ? _a : {};
+        return (_b = this.parameter.pageConfig) === null || _b === void 0 ? void 0 : _b.obj;
+    }
     notifyDataChange(id) {
         const gvc = this;
         try {

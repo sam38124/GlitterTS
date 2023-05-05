@@ -316,13 +316,11 @@ export class Glitter {
             }
             var scritem: any = urlArray[index]
             var haveURL = false
-            if (!option ?? {multiple: false}.multiple) {
-                glitter.$('head').children().map(function (data: any) {
-                    if (glitter.$('head').children().get(data).src === (scritem.src ?? scritem)) {
-                        haveURL = true
-                    }
-                })
-            }
+            glitter.$('head').children().map(function (data: any) {
+                if (glitter.$('head').children().get(data).src === (scritem.src ?? scritem)) {
+                    haveURL = true
+                }
+            })
             if (haveURL) {
                 index++
                 addScript()
@@ -480,16 +478,24 @@ export class Glitter {
         const id = gvc.getUUID()
 
         function add(filePath: string) {
-            var link = document.createElement("link");
-            link.type = "text/css";
-            link.rel = "stylesheet";
-            link.href = filePath;
-            link.id = id;
-            gvc.parameter.styleLinks.push({
-                id: id,
-                src: filePath
+            var haveURL = false
+            Glitter.glitter.$('head').children().map(function (data: any) {
+                if (Glitter.glitter.$('head').children().get(data).src === (filePath)) {
+                    haveURL = true
+                }
             })
-            head.appendChild(link);
+            if(!haveURL){
+                var link = document.createElement("link");
+                link.type = "text/css";
+                link.rel = "stylesheet";
+                link.href = filePath;
+                link.id = id;
+                gvc.parameter.styleLinks.push({
+                    id: id,
+                    src: filePath
+                })
+                head.appendChild(link);
+            }
         }
 
         if (typeof data == "string") {

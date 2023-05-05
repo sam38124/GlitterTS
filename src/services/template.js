@@ -85,6 +85,23 @@ class Template {
             throw exception_1.default.BadRequestError("Forbidden", "No permission." + e, null);
         }
     }
+    async deletePage(config) {
+        if (!(await this.verifyPermission(config.appName))) {
+            throw exception_1.default.BadRequestError("Forbidden", "No Permission.", null);
+        }
+        try {
+            const params = {};
+            let sql = `
+                delete from \`${config_1.saasConfig.SAAS_NAME}\`.page_config
+                WHERE appName = ${database_1.default.escape(config.appName)} and id=${database_1.default.escape(config.id)}`;
+            console.log(sql);
+            await database_1.default.execute(sql, []);
+            return true;
+        }
+        catch (e) {
+            throw exception_1.default.BadRequestError("Forbidden", "No permission." + e, null);
+        }
+    }
     async getPage(config) {
         try {
             let sql = `select *

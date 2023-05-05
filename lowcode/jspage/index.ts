@@ -26,6 +26,17 @@ init((gvc, glitter, gBundle)=>{
                         setTimeout(() => {
                             resolve(true)
                         }, 4000)
+                        for (const data of (dd.response.data.initialStyleSheet ?? [])) {
+                            try {
+                                if (data.type === 'script') {
+                                   glitter.addStyleLink(data.src.link)
+                                } else{
+                                    glitter.addStyle(data.src.official)
+                                }
+                            } catch (e) {
+                                console.log(e)
+                            }
+                        }
                         for (const data of (dd.response.data.initialList ?? [])) {
                             try {
                                 if (data.type === 'script') {
@@ -33,9 +44,7 @@ init((gvc, glitter, gBundle)=>{
                                     glitter.share.callBackList=glitter.share.callBackList??{}
                                     const callbackID=glitter.getUUID()
                                     url.searchParams.set('callback',callbackID)
-                                    glitter.share.callBackList[callbackID]=(()=>{
-                                        resolve(true)
-                                    })
+                                    glitter.share.callBackList[callbackID]=(()=>{resolve(true)})
                                     await new Promise((resolve, reject) => {
                                         glitter.addMtScript([{
                                             src:url.href , type: 'module'
@@ -134,9 +143,9 @@ function toBackendEditor(glitter: Glitter) {
         return
     }
 
-    (window as any).mode = 'dark';
+    (window as any).mode = 'light';
     (window as any).root = document.getElementsByTagName('html')[0];
-    (window as any).root.classList.add('dark-mode');
+    (window as any).root.classList.add('light-mode');
     function toNext(){
         running().then(r => {
             glitter.setHome('jspage/main.js', glitter.getUrlParameter('page'), {

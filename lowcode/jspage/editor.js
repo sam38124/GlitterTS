@@ -1,3 +1,6 @@
+import { Main_editor } from "./main_editor.js";
+import { Page_editor } from "./page_editor.js";
+import { Setting_editor } from "./setting_editor.js";
 var ViewType;
 (function (ViewType) {
     ViewType["mobile"] = "mobile";
@@ -95,11 +98,13 @@ export class Editor {
  ${data.dataList.filter((d2) => {
                                             return d2.group === dd;
                                         }).map((d3) => {
+                                            const url = new URL(location.href);
+                                            url.searchParams.set('page', d3.tag);
                                             if (d3.tag !== glitter.getUrlParameter('page')) {
-                                                return `<a href="index.html?type=editor&page=${d3.tag}"  class=" list-group-item list-group-item-action border-0 py-2 px-4"  style="border-radius: 0px;">${d3.name}</a>`;
+                                                return `<a href="${url.href}"  class=" list-group-item list-group-item-action border-0 py-2 px-4"  style="border-radius: 0px;">${d3.name}</a>`;
                                             }
                                             else {
-                                                return `<a href="index.html?type=editor&page=${d3.tag}"  class=" list-group-item list-group-item-action border-0 py-2 px-4 bg-warning"  style="cursor:pointer;background-color: #FFDC6A !important;color:black !important;border-radius: 0px;">${d3.name}</a>`;
+                                                return `<a href="${url.href}"  class=" list-group-item list-group-item-action border-0 py-2 px-4 bg-warning"  style="cursor:pointer;background-color: #FFDC6A !important;color:black !important;border-radius: 0px;">${d3.name}</a>`;
                                             }
                                         }).join('')}
 </div>`;
@@ -115,12 +120,7 @@ export class Editor {
   </div>
 </div>
                                 <div class="flex-fill"></div>
-                                <i class="fa-regular fa-gear text-white  me-4" style="font-size: 24px;cursor: pointer;" onclick="${gvc.event(() => {
-                glitter.openDiaLog('dialog/dialog_setting.js', 'dialog_setting', {
-                    vm: data
-                });
-            })}"></i>
-                         <i class="fa-solid fa-eye text-white  me-4" style="font-size: 24px;cursor: pointer;" onclick="${gvc.event(() => {
+                         <i class="fa-solid fa-eye   me-4" style="font-size: 24px;cursor: pointer;" onclick="${gvc.event(() => {
                 const url = new URL("", location.href);
                 url.searchParams.delete('type');
                 url.searchParams.set("page", glitter.getUrlParameter("page"));
@@ -132,12 +132,12 @@ export class Editor {
                 view: () => {
                     glitter.setCookie("ViewType", viewModel.type);
                     if (viewModel.type === ViewType.mobile) {
-                        return `<i class="fa-regular fa-mobile text-white mt-1" style="font-size: 24px;cursor: pointer;" onclick="${gvc.event(() => {
+                        return `<i class="fa-regular fa-mobile  mt-1" style="font-size: 24px;cursor: pointer;" onclick="${gvc.event(() => {
                             viewModel.type = ViewType.desktop;
                         })}"></i>`;
                     }
                     else {
-                        return `<i class="fa-solid fa-desktop text-white mt-1" style="font-size: 24px;cursor: pointer;" onclick="${gvc.event(() => {
+                        return `<i class="fa-solid fa-desktop  mt-1" style="font-size: 24px;cursor: pointer;" onclick="${gvc.event(() => {
                             viewModel.type = ViewType.mobile;
                         })}"></i>`;
                     }
@@ -167,9 +167,9 @@ export class Editor {
                                     class="bg-white  rounded-circle d-flex align-items-center justify-content-center me-2"
                                     style="box-sizing: border-box;width: 40px;height: 40px;margin-left: 15px;"
                                 >
-                                    <img src="assets/img/glitter (1).png" width="30" alt="Silicon" style="height: 25px!important;"/>
+                                    <img src="img/色稿01.png" class="shadow rounded-circle" alt="Silicon" />
                                 </div>
-                                Glitter 星澄基地
+                                Glitter Editor
                             </div>
                         </div>
                         <div class="offcanvas-header d-block d-lg-none border-bottom">
@@ -193,17 +193,15 @@ export class Editor {
                 dataList: [{ obj: viewModel, key: "type" }],
                 bind: `showView`,
                 view: () => {
-                    if (viewModel.type === ViewType.mobile) {
-                        return `<div class="d-flex align-items-center justify-content-center flex-column mx-auto" style="width: 414px;height: calc(100vh - 20px);padding-top: 0px;">
-                 <div class="bg-white" style="width:414px;height: calc(100% - 60px);">
-                 <iframe class="w-100 h-100 rounded" src="index.html?type=htmlEditor&page=${glitter.getUrlParameter('page')}"></iframe>
-                </div>`;
-                    }
-                    else {
-                        return `<div class="d-flex align-items-center justify-content-center flex-column" style="width: calc(100% - 20px);margin-left:10px;height: calc(100vh - 20px);padding-top: 20px;">
-                 <div class="bg-white" style="width:100%;height: calc(100% - 50px);">
-                 <iframe class="w-100 h-100 rounded" src="index.html?type=htmlEditor&page=${glitter.getUrlParameter('page')}"></iframe>
-                </div>`;
+                    var _a;
+                    let selectPosition = (_a = glitter.getUrlParameter('editorPosition')) !== null && _a !== void 0 ? _a : "0";
+                    switch (selectPosition) {
+                        case Setting_editor.index:
+                            return Setting_editor.center(gvc, data, 'showView');
+                        case Page_editor.index:
+                            return Page_editor.center(data, gvc, 'showView');
+                        default:
+                            return Main_editor.center(viewModel, gvc);
                     }
                 },
                 divCreate: {}
@@ -211,7 +209,7 @@ export class Editor {
                     <aside
                 id="jumpToNav"
                 class="side-nav side-nav-end d-none d-xxl-block position-fixed top-0 end-0 vh-100 py-5 px-2"
-                style="width: 20rem;background-color: #1a183a;overflow-y: scroll;"
+                style="width: 20rem;overflow-y: scroll;"
             >
             <div class="w-100" style="padding-top: 20px;">
              ${right}

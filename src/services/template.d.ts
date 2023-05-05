@@ -19,6 +19,10 @@ export declare class Template {
         page_config: any;
         id?: string;
     }): Promise<boolean>;
+    deletePage(config: {
+        appName: string;
+        id?: string;
+    }): Promise<boolean>;
     getPage(config: {
         appName: string;
         tag?: string;

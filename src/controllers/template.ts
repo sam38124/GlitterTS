@@ -23,6 +23,14 @@ router.put('/', async (req: express.Request, resp: express.Response) => {
     }
 });
 
+router.delete('/', async (req: express.Request, resp: express.Response) => {
+    try {
+        return response.succ(resp, {result: (await (new Template(req.body.token).deletePage(req.body)))});
+    } catch (err) {
+        return response.fail(resp, err);
+    }
+});
+
 router.get('/', async (req: express.Request, resp: express.Response) => {
     try {
         const result= (await (new Template(req.body.token).getPage({

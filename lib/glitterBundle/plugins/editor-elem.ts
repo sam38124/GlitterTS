@@ -216,13 +216,13 @@ export class EditorElem {
             </div>`;
     }
     public static h3(title: string) {
-        return /*html*/ `<h3 style="color: white;font-size: 16px;margin-bottom: 10px;" class="mt-2">${title}</h3>`;
+        return /*html*/ `<h3 style="color: black;font-size: 16px;margin-bottom: 10px;" class="mt-2">${title}</h3>`;
     }
     public static plusBtn(title: string, event: any) {
-        return /*html*/ `<div class="w-100 my-3" style="background: white;height: 1px;"></div>
+        return /*html*/ `<div class="w-100 my-3" style="background: black;height: 1px;"></div>
             <div
-                class="text-white align-items-center justify-content-center d-flex p-1 rounded mt-3"
-                style="border: 2px dashed white;"
+                class="fw-bold text-dark align-items-center justify-content-center d-flex p-1 rounded mt-3"
+                style="border: 2px dashed #004281;color:#004281;"
                 onclick="${event}"
             >
                 ${title}
@@ -265,7 +265,7 @@ export class EditorElem {
             })
         );
     }
-    public static toggleExpand(obj: { gvc: any; title: string; data: any; innerText: string; color?: string }) {
+    public static toggleExpand(obj: { gvc: any; title: string; data: any; innerText: string | (()=>string); color?: string }) {
         const color = obj.color ?? `#4144b0;`;
         const glitter = (window as any).glitter;
         return /*html*/ `${obj.gvc.bindView(() => {
@@ -274,7 +274,7 @@ export class EditorElem {
                 bind: id,
                 view: () => {
                     if (obj.data.expand) {
-                        return /*html*/ `<div class="w-100  rounded p-2 " style="background: ${color}; ">
+                        return /*html*/ `<div class=" w-100  rounded p-2 " style="background: ${color}; ">
                             <div
                                 class="d-flex p-0 align-items-center mb-2 w-100"
                                 onclick="${obj.gvc.event(() => {
@@ -283,11 +283,11 @@ export class EditorElem {
                         })}"
                                 style="cursor: pointer;"
                             >
-                                <h3 style="font-size: 16px;color: lightpink;width: calc(100% - 60px);" class="m-0 p-0">${obj.title}</h3>
+                                <h3 style="font-size: 16px;color: black;width: calc(100% - 60px);" class="m-0 p-0">${obj.title}</h3>
                                 <div class="flex-fill"></div>
-                                <div style="cursor: pointer;">收合<i class="fa-solid fa-up ms-2 text-white"></i></div>
+                                <div class="text-dark fw-bold" style="cursor: pointer;">收合<i class="fa-solid fa-up ms-2 text-dark"></i></div>
                             </div>
-                            ${obj.innerText}
+                            ${(typeof obj.innerText === 'string') ? obj.innerText:obj.innerText()}
                         </div>`;
                     }
                     return /*html*/ `<div class="w-100  rounded p-2 " style="background-color: ${color};">
@@ -299,9 +299,9 @@ export class EditorElem {
                     })}"
                             style="cursor: pointer;"
                         >
-                            <h3 style="font-size: 16px;color: lightpink;width: calc(100% - 60px);" class="m-0 p-0">${obj.title}</h3>
+                            <h3 style="font-size: 16px;color: black;width: calc(100% - 60px);" class="m-0 p-0">${obj.title}</h3>
                             <div class="flex-fill"></div>
-                            <div style="cursor: pointer;">展開<i class="fa-solid fa-down ms-2 text-white"></i></div>
+                            <span class="text-dark fw-bold" style="cursor: pointer;">展開<i class="fa-solid fa-down ms-2 text-dark"></i></span>
                         </div>
                     </div>`;
                 },
@@ -312,7 +312,7 @@ export class EditorElem {
     public static minusTitle(title: string, event: string) {
         return /*html*/ `<div class="d-flex align-items-center">
             <i class="fa-regular fa-circle-minus text-danger me-2" style="font-size: 20px;cursor: pointer;" onclick="${event}"></i>
-            <h3 style="color: white;font-size: 16px;" class="m-0">${title}</h3>
+            <h3 style="color: black;font-size: 16px;" class="m-0">${title}</h3>
         </div>`;
     }
 
@@ -433,7 +433,7 @@ export class EditorElem {
     public static arrayItem(obj: {
         gvc: any;
         title: string;
-        array: { title: string; innerHtml: string; expand: any; minus: string }[];
+        array: { title: string; innerHtml: string | (()=>string); expand: any; minus: string }[];
         originalArray:any,
         expand: any;
         plus: {
@@ -463,10 +463,10 @@ export class EditorElem {
                     })}" >${EditorElem.minusTitle(dd.title, dd.minus)}</div>`,
                     data: dd.expand,
                     innerText: dd.innerHtml,
-                    color: `#2b115d`,
+                    color: `wheat`,
                 });
             })
-            .join('<div class="my-2"></div>') + EditorElem.plusBtn(obj.plus.title, obj.plus.event)
+            .join('<div class="my-3" style="color:wheat"></div>') + EditorElem.plusBtn(obj.plus.title, obj.plus.event)
         if(obj.expand===undefined){
             return  innerText
         }
@@ -477,7 +477,7 @@ export class EditorElem {
                 title: obj.title,
                 data: obj.expand,
                 innerText:innerText,
-                color: `#3333a2`,
+                color: `wheat`,
             })
         );
     }

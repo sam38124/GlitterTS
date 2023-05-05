@@ -1,31 +1,64 @@
 import { init } from '../GVController.js';
 import { TriggerEvent } from "./trigger-event.js";
 init((gvc, glitter, gBundle) => {
-    var _a, _b;
+    var _a;
     glitter.share.htmlExtension = (_a = glitter.share.htmlExtension) !== null && _a !== void 0 ? _a : {};
-    ((_b = gBundle.page_config.initialList) !== null && _b !== void 0 ? _b : []).map((dd) => {
-        if (dd.when === 'initial') {
-            if (dd.type === 'script') {
+    const vm = {
+        loading: true
+    };
+    async function load() {
+        var _a;
+        await (new Promise(async (resolve, reject) => {
+            var _a;
+            ((_a = gBundle.page_config.initialList) !== null && _a !== void 0 ? _a : []).map((dd) => {
+                if (dd.when === 'initial') {
+                    if (dd.type === 'script') {
+                        try {
+                            TriggerEvent.trigger({
+                                gvc: gvc, widget: undefined, clickEvent: dd
+                            });
+                        }
+                        catch (e) { }
+                    }
+                    else {
+                        try {
+                            eval(dd.src.official);
+                        }
+                        catch (e) {
+                        }
+                    }
+                }
+            });
+            resolve(true);
+        }));
+        ((_a = gBundle.page_config.initialStyleSheet) !== null && _a !== void 0 ? _a : []).map(async (data) => {
+            if (data.type === 'script') {
                 try {
-                    TriggerEvent.trigger({
-                        gvc: gvc, widget: undefined, clickEvent: dd
-                    });
+                    gvc.addStyleLink(data);
                 }
                 catch (e) { }
             }
             else {
                 try {
-                    eval(dd.src.official);
+                    gvc.addStyle(data.src.official);
                 }
                 catch (e) { }
             }
-        }
+        });
+    }
+    ;
+    load().then(() => {
+        vm.loading = false;
+        gvc.notifyDataChange('main');
     });
     return {
         onCreateView: () => {
             return gvc.bindView({
                 bind: 'main',
                 view: () => {
+                    if (vm.loading) {
+                        return ``;
+                    }
                     return (gBundle.editMode && gBundle.editMode.render(gvc))
                         ||
                             new glitter.htmlGenerate(gBundle.config, []).render(gvc);

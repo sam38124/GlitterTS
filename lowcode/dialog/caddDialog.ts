@@ -41,11 +41,11 @@ init((gvc, glitter, gBundle) => {
             const tabID = glitter.getUUID();
             const docID = glitter.getUUID();
             return `
-            <div  class="w-100 h-100 d-flex flex-column align-items-center justify-content-center" style="background-color: rgba(255,255,255,0.5);" >
-            <div class="bg-dark m-auto rounded" style="max-width: 100%;max-height: 100%;width: 720px;height: 800px;">
+            <div  class="w-100 h-100 d-flex flex-column align-items-center justify-content-center" style="background-color: rgba(0,0,0,0.5);" >
+            <div class="m-auto bg-white shadow rounded" style="max-width: 100%;max-height: 100%;width: 720px;height: 800px;">
         <div class="w-100 d-flex align-items-center border-bottom justify-content-center position-relative" style="height: 68px;">
-        <h3 class="modal-title fs-4" >選擇元件</h3>
-        <i class="fa-solid fa-xmark text-white position-absolute " style="font-size:20px;transform: translateY(-50%);right: 20px;top: 50%;cursor: pointer;"
+        <h3 class="modal-title fs-4 " >選擇元件</h3>
+        <i class="fa-solid fa-xmark text-dark position-absolute " style="font-size:20px;transform: translateY(-50%);right: 20px;top: 50%;cursor: pointer;"
         onclick="${gvc.event(() => {
                 glitter.closeDiaLog();
             })}"></i>
@@ -53,10 +53,10 @@ init((gvc, glitter, gBundle) => {
 ${gvc.bindView({
                 bind: tabID,
                 view: () => {
-                    if(viewModel.loading){
-                        return  ``
+                    if (viewModel.loading) {
+                        return ``
                     }
-                    return  gvc.map(viewModel.pluginList.map((dd,index)=>{
+                    return gvc.map(viewModel.pluginList.map((dd, index) => {
                         viewModel.selectSource = viewModel.selectSource ?? getSource(dd);
                         return `
                  <li class="nav-item">
@@ -81,12 +81,15 @@ ${gvc.bindView({
                             return defaults;
                         }
                     }
-                    if(!viewModel.selectSource){return  ``}
-                    const obg = glitter.share.htmlExtension[glitter.htmlGenerate.resourceHook(viewModel.selectSource!)];
-                    if(!obg){
-                        return  ``
+
+                    if (!viewModel.selectSource) {
+                        return ``
                     }
-                   
+                    const obg = glitter.share.htmlExtension[glitter.htmlGenerate.resourceHook(viewModel.selectSource!)];
+                    if (!obg) {
+                        return ``
+                    }
+
                     return gvc.map(Object.keys(glitter.share.htmlExtension[glitter.htmlGenerate.resourceHook(viewModel.selectSource!)]).filter((dd) => {
                         return dd !== 'document';
                     }).map((dd) => {
@@ -109,17 +112,17 @@ ${gvc.bindView({
                             }, '')
                         }</p>
     <a onclick="${gvc.event(() => {
-                          const ob=JSON.parse(JSON.stringify(obg))
+                            const ob = JSON.parse(JSON.stringify(obg))
                             gBundle.callback({
                                 'id': glitter.getUUID(),
                                 'data': ob[dd].defaultData ?? {},
-                                'style':ob[dd].style,
-                                'class':ob[dd].class,
+                                'style': ob[dd].style,
+                                'class': ob[dd].class,
                                 'type': dd,
                                 'label': tryReturn(() => {
                                     return ob[dd].title;
                                 }, dd),
-                                'js':viewModel.selectSource
+                                'js': viewModel.selectSource
                             });
                             glitter.closeDiaLog()
                         })}" class="btn btn-sm btn-primary w-100">插入</a>
@@ -133,18 +136,18 @@ ${gvc.bindView({
                 divCreate: {
                     class: `row w-100 p-0 m-0`
                 },
-                onCreate:()=>{
-                    if(viewModel.selectSource){
-                        if(!glitter.share.htmlExtension[glitter.htmlGenerate.resourceHook(viewModel.selectSource!)]){
+                onCreate: () => {
+                    if (viewModel.selectSource) {
+                        if (!glitter.share.htmlExtension[glitter.htmlGenerate.resourceHook(viewModel.selectSource!)]) {
                             glitter.addMtScript([
-                                {src: glitter.htmlGenerate.resourceHook(viewModel.selectSource!),type:'module'}
+                                {src: glitter.htmlGenerate.resourceHook(viewModel.selectSource!), type: 'module'}
                             ], () => {
                                 gvc.notifyDataChange(docID);
                             }, () => {
                             });
                         }
                     }
-                   
+
                 }
             })}
 </div>

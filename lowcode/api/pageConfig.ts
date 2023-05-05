@@ -67,6 +67,23 @@ export class ApiPageConfig{
             }
         })
     }
+
+    public static deletePage(data:{
+        "id":number
+        "appName":"lionDesign"
+    }){
+
+        return BaseApi.create({
+            "url": config.url+`/api/v1/template`,
+            "type": "DELETE",
+            "timeout": 0,
+            "headers": {
+                "Content-Type": "application/json",
+                "Authorization":config.token
+            },
+            data:JSON.stringify(data)
+        })
+    }
     public static setPlugin(appName:string,obj:any){
         return BaseApi.create({
             "url": config.url+`/api/v1/app/plugin`,

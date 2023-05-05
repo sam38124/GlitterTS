@@ -24,6 +24,14 @@ router.put('/', async (req, resp) => {
         return response_1.default.fail(resp, err);
     }
 });
+router.delete('/', async (req, resp) => {
+    try {
+        return response_1.default.succ(resp, { result: (await (new template_1.Template(req.body.token).deletePage(req.body))) });
+    }
+    catch (err) {
+        return response_1.default.fail(resp, err);
+    }
+});
 router.get('/', async (req, resp) => {
     var _a;
     try {

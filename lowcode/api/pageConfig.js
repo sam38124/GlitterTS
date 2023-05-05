@@ -46,6 +46,18 @@ export class ApiPageConfig {
             }
         });
     }
+    static deletePage(data) {
+        return BaseApi.create({
+            "url": config.url + `/api/v1/template`,
+            "type": "DELETE",
+            "timeout": 0,
+            "headers": {
+                "Content-Type": "application/json",
+                "Authorization": config.token
+            },
+            data: JSON.stringify(data)
+        });
+    }
     static setPlugin(appName, obj) {
         return BaseApi.create({
             "url": config.url + `/api/v1/app/plugin`,

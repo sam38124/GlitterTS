@@ -20,9 +20,9 @@ export class TriggerEvent {
 
     public static create(url: string, event: {
         [name: string]: {
-            title: string, fun: (gvc: GVC, widget: HtmlJson, obj: any,subData?:any) => {
+            title: string, fun: (gvc: GVC, widget: HtmlJson, obj: any,subData?:any,element?:{e:any,event:any}) => {
                 editor: () => string,
-                event: () => void
+                event: (() => void) | Promise<any>
             }
         }
     }) {
@@ -31,13 +31,12 @@ export class TriggerEvent {
         glitter.share.clickEvent[url] = event
     }
 
-
     public static trigger(oj: {
-        gvc: GVC, widget: HtmlJson, clickEvent: any,subData?:any
+        gvc: GVC, widget: HtmlJson, clickEvent: any,subData?:any,element?:{e:any,event:any}
     }) {
         const glitter = (window as any).glitter
         const event: { src: string, route: string } = oj.clickEvent.clickEvent
-
+        let returnData=''
         async function run() {
             oj.gvc.glitter.share.clickEvent = oj.gvc.glitter.share.clickEvent ?? {}
             if (!oj.gvc.glitter.share.clickEvent[event.src]) {
@@ -51,10 +50,14 @@ export class TriggerEvent {
                     })
                 })
             }
-            oj.gvc.glitter.share.clickEvent[glitter.htmlGenerate.resourceHook(event.src)][event.route].fun(oj.gvc, oj.widget, oj.clickEvent,oj.subData).event()
+            returnData=await oj.gvc.glitter.share.clickEvent[glitter.htmlGenerate.resourceHook(event.src)][event.route].fun(oj.gvc, oj.widget, oj.clickEvent,oj.subData,oj.element).event()
         }
 
-        run().then()
+
+        return new Promise(async (resolve, reject)=>{
+            await run()
+            resolve(returnData)
+        })
     }
 
     public static editer(gvc: GVC, widget: HtmlJson, obj: any, option: {
@@ -65,7 +68,7 @@ export class TriggerEvent {
         gvc.glitter.share.clickEvent = gvc.glitter.share.clickEvent ?? {}
         const glitter = gvc.glitter
         const selectID = glitter.getUUID()
-        return `<div class="mt-2 ${(option.hover) ? `alert alert-dark` : ``}">
+        return `<div class="mt-2 ${(option.hover) ? `alert alert-primary` : ``}">
  <h3 class="m-0" style="font-size: 16px;">${option.title ?? "點擊事件"}</h3>
  ${
             gvc.bindView(() => {
@@ -80,7 +83,7 @@ export class TriggerEvent {
                                 obj.clickEvent = JSON.parse(e.value)
                                 obj.clickEvent.src = TriggerEvent.getUrlParameter(obj.clickEvent.src,'resource') ?? obj.clickEvent.src
                             }
-                           gvc.notifyDataChange(selectID)
+                            gvc.notifyDataChange(selectID)
                         })}">
                         
                         ${gvc.map(Object.keys(glitter.share?.clickEvent || {}).filter((dd)=>{

@@ -19,20 +19,31 @@ init((gvc, glitter, gBundle) => {
                 const plugin = Plugin;
                 (async () => {
                     return new Promise(async (resolve, reject) => {
-                        var _a, _b;
+                        var _a, _b, _c;
                         setTimeout(() => {
                             resolve(true);
                         }, 4000);
-                        for (const data of ((_a = dd.response.data.initialList) !== null && _a !== void 0 ? _a : [])) {
+                        for (const data of ((_a = dd.response.data.initialStyleSheet) !== null && _a !== void 0 ? _a : [])) {
+                            try {
+                                if (data.type === 'script') {
+                                    glitter.addStyleLink(data.src.link);
+                                }
+                                else {
+                                    glitter.addStyle(data.src.official);
+                                }
+                            }
+                            catch (e) {
+                                console.log(e);
+                            }
+                        }
+                        for (const data of ((_b = dd.response.data.initialList) !== null && _b !== void 0 ? _b : [])) {
                             try {
                                 if (data.type === 'script') {
                                     const url = new URL(glitter.htmlGenerate.resourceHook(data.src.link));
-                                    glitter.share.callBackList = (_b = glitter.share.callBackList) !== null && _b !== void 0 ? _b : {};
+                                    glitter.share.callBackList = (_c = glitter.share.callBackList) !== null && _c !== void 0 ? _c : {};
                                     const callbackID = glitter.getUUID();
                                     url.searchParams.set('callback', callbackID);
-                                    glitter.share.callBackList[callbackID] = (() => {
-                                        resolve(true);
-                                    });
+                                    glitter.share.callBackList[callbackID] = (() => { resolve(true); });
                                     await new Promise((resolve, reject) => {
                                         glitter.addMtScript([{
                                                 src: url.href, type: 'module'
@@ -125,9 +136,9 @@ function toBackendEditor(glitter) {
         });
         return;
     }
-    window.mode = 'dark';
+    window.mode = 'light';
     window.root = document.getElementsByTagName('html')[0];
-    window.root.classList.add('dark-mode');
+    window.root.classList.add('light-mode');
     function toNext() {
         running().then(r => {
             glitter.setHome('jspage/main.js', glitter.getUrlParameter('page'), {

@@ -2,86 +2,114 @@ import { HtmlGenerate } from "../glitterBundle/module/Html_generate.js";
 import { EditorElem } from "../glitterBundle/plugins/editor-elem.js";
 import { ShareDialog } from "../dialog/ShareDialog.js";
 import { TriggerEvent } from "../glitterBundle/plugins/trigger-event.js";
+import { initialStylePage } from "./initialStyle.js";
+import { ApiPageConfig } from "../api/pageConfig.js";
 export function pageManager(gvc, viewModel, id) {
     var _a;
     const glitter = gvc.glitter;
     viewModel.data.page_config.seo = (_a = viewModel.data.page_config.seo) !== null && _a !== void 0 ? _a : {};
     const seo = viewModel.data.page_config.seo;
-    return `
-    <ul class="nav nav-tabs border-bottom" id="myTab" role="tablist">
-  <li class="nav-item" role="presentation">
-    <button class="nav-link active" id="home-tab" data-bs-toggle="tab" data-bs-target="#home" type="button" role="tab" aria-controls="home" aria-selected="true">頁面設定</button>
-  </li>
-  <li class="nav-item" role="presentation">
-    <button class="nav-link" id="profile-tab" data-bs-toggle="tab" data-bs-target="#profile" type="button" role="tab" aria-controls="profile" aria-selected="false">配置檔</button>
-  </li>
-  <li class="nav-item" role="presentation">
-    <button class="nav-link" id="contact-tab" data-bs-toggle="tab" data-bs-target="#contact" type="button" role="tab" aria-controls="contact" aria-selected="false">程式碼</button>
-  </li>
-</ul>
-<div class="tab-content" id="myTabContent">
-  <div class="tab-pane fade show active" id="home" role="tabpanel" aria-labelledby="home-tab">${gvc.map([
-        [
-            `<div class=" m-0 d-flex align-items-center " style="border-radius: 0px;">
-<h3 style="color: white;font-size: 16px;width: 100px;" class="m-0">首頁設定:</h3>
+    const tabIndex = [
+        {
+            title: '基本設定 / Basic',
+            index: 'pageSet',
+            html: `<div class="row pt-0 justify-content-start" >
+${EditorElem.h3("<span style='font-size:20px;color:orangered;'>基本設定</span>")}
+  ${[
+                `<div class=" m-0 d-flex align-items-center " style="border-radius: 0px;">
+<h3 style="font-size: 16px;width: 100px;" class="m-0">首頁設定:</h3>
 <select onchange="${gvc.event((e) => {
-                if (e.value === 'true') {
-                    viewModel.homePage = viewModel.data.tag;
-                }
-            })}" class="form-control form-select">
+                    if (e.value === 'true') {
+                        viewModel.homePage = viewModel.data.tag;
+                    }
+                })}" class="form-control form-select">
 
 <option value="false">否</option>
 <option value="true" ${(viewModel.homePage === viewModel.data.tag) ? `selected` : ``}>是</option>
 </select>
 </div>`,
-            `<div class="w-100 d-flex align-items-center justify-content-center" style="">
-<h3 style="color: white;font-size: 16px;width: 100px;" class="m-0">容器樣式:</h3>
+                `<div class="w-100 d-flex align-items-center justify-content-center" style="">
+<h3 style="font-size: 16px;width: 100px;" class="m-0">容器樣式:</h3>
 ${glitter.htmlGenerate.styleEditor(viewModel.data.page_config).editor(gvc, () => {
-            }, "設定樣式")}</div>`,
-            `<div class="w-100 d-flex align-items-center justify-content-center" style="">
-<h3 style="color: white;font-size: 16px;width: 100px;" class="m-0">頁面連結:</h3>
+                }, "設定樣式", { class: 'mt-0' })}</div>`,
+                `<div class="w-100 d-flex align-items-center justify-content-center" style="">
+<h3 style="font-size: 16px;width: 100px;" class="m-0">頁面連結:</h3>
 ${glitter.htmlGenerate.editeInput({
-                gvc: gvc,
-                title: '',
-                placeHolder: `請輸入頁面標籤`,
-                default: viewModel.data.tag,
-                callback: (text) => {
-                    viewModel.data.tag = text;
-                }
-            })}</div>`,
-            `<div class="w-100 d-flex align-items-center justify-content-center" style="">
-<h3 style="color: white;font-size: 16px;width: 100px;" class="m-0">頁面名稱:</h3>
+                    gvc: gvc,
+                    title: '',
+                    placeHolder: `請輸入頁面標籤`,
+                    default: viewModel.data.tag,
+                    callback: (text) => {
+                        viewModel.data.tag = text;
+                    }
+                })}</div>`,
+                `<div class="w-100 d-flex align-items-center justify-content-center" style="">
+<h3 style="font-size: 16px;width: 100px;" class="m-0">頁面名稱:</h3>
 ${glitter.htmlGenerate.editeInput({
-                gvc: gvc,
-                title: '',
-                placeHolder: `請輸入頁面名稱`,
-                default: viewModel.data.name,
-                callback: (text) => {
-                    viewModel.data.name = text;
-                }
-            })}</div>`,
-            `<div class="w-100 d-flex align-items-center justify-content-center" style="">
-<h3 style="color: white;font-size: 16px;width: 100px;" class="m-0 ">頁面分類:</h3>
+                    gvc: gvc,
+                    title: '',
+                    placeHolder: `請輸入頁面名稱`,
+                    default: viewModel.data.name,
+                    callback: (text) => {
+                        viewModel.data.name = text;
+                    }
+                })}</div>`,
+                `<div class="w-100 d-flex align-items-center justify-content-center" style="">
+<h3 style="font-size: 16px;width: 100px;" class="m-0 ">頁面分類:</h3>
 ${EditorElem.searchInput({
-                title: "",
-                gvc: gvc,
-                def: viewModel.data.group,
-                array: (() => {
-                    let group = [];
-                    viewModel.dataList.map((dd) => {
-                        if (group.indexOf(dd.group) === -1) {
-                            group.push(dd.group);
+                    title: "",
+                    gvc: gvc,
+                    def: viewModel.data.group,
+                    array: (() => {
+                        let group = [];
+                        viewModel.dataList.map((dd) => {
+                            if (group.indexOf(dd.group) === -1) {
+                                group.push(dd.group);
+                            }
+                        });
+                        return group;
+                    })(),
+                    callback: (text) => {
+                        viewModel.data.group = text;
+                        gvc.notifyDataChange(id);
+                    },
+                    placeHolder: "請輸入頁面分類"
+                })}</div>`, `
+               ${(() => {
+                    var deleteText = '';
+                    return ` <div class="w-100 d-flex align-items-center justify-content-center" style="">
+<h3 style="font-size: 16px;width: 100px;white-space: nowrap;" class="m-0 me-2 mb-2">刪除頁面:</h3>
+${glitter.htmlGenerate.editeInput({
+                        gvc: gvc,
+                        title: '',
+                        placeHolder: `請輸入「我要刪除」`,
+                        default: '',
+                        callback: (text) => {
+                            deleteText = text;
                         }
-                    });
-                    return group;
-                })(),
-                callback: (text) => {
-                    viewModel.data.group = text;
-                    gvc.notifyDataChange(id);
-                },
-                placeHolder: "請輸入頁面分類"
-            })}</div>`,
-            EditorElem.h3("<span style='color:#ff5d24;'>SEO參數設定</span>") + gvc.bindView(() => {
+                    })}
+<button class="btn btn-danger ms-2 mt-0 mb-2" style="width:100px;" onclick="${gvc.event(() => {
+                        if (deleteText === '我要刪除') {
+                            const dialog = new ShareDialog(glitter);
+                            dialog.dataLoading({ visible: true });
+                            ApiPageConfig.deletePage({
+                                "id": viewModel.data.id,
+                                "appName": gvc.getBundle().appName,
+                            }).then((data) => {
+                                dialog.dataLoading({ visible: false });
+                                location.reload();
+                            });
+                        }
+                    })}">確認</button>
+</div>`;
+                })()}
+                `
+            ].map((dd) => {
+                return `<div class="col-sm-6 pb-2  pt-3">${dd}</div>`;
+            }).join(``)}
+  <div class="col-12 mt-4 mb-2 bg-dark" style="height:2px;"></div>
+  <div class="col-12">
+  ${gvc.bindView(() => {
                 const id = glitter.getUUID();
                 return {
                     bind: id,
@@ -92,6 +120,7 @@ ${EditorElem.searchInput({
                             seo.type = 'custom';
                         }
                         return `
+${EditorElem.h3("<span style='font-size:20px;color:orangered;'>SEO參數設定</span>")}
 <select class="form-select form-control ${(viewModel.data.tag === viewModel.homePage) && 'd-none'}" onchange="${gvc.event((e) => {
                             seo.type = e.value;
                             gvc.notifyDataChange(id);
@@ -99,8 +128,7 @@ ${EditorElem.searchInput({
 <option value="def" ${(seo.type === "def") ? `selected` : ``}>依照首頁</option>
 <option value="custom" ${(seo.type === "custom") ? `selected` : ``}>自定義</option>
 </select>
-<div class="alert alert-dark p-0 px-2 pb-2 mt-2 ${(seo.type === "def") ? `d-none` : ``}">
-${gvc.map([uploadImage({
+${(seo.type === "def") ? `` : gvc.map([uploadImage({
                                 gvc: gvc,
                                 title: `網頁logo`,
                                 def: (_b = seo.logo) !== null && _b !== void 0 ? _b : "",
@@ -144,169 +172,205 @@ ${gvc.map([uploadImage({
                                 }
                             })
                         ])}
-</div>`;
+`;
                     },
-                    divCreate: {}
+                    divCreate: {
+                        class: '-2'
+                    }
                 };
-            })
-        ].join(`<div class="my-2 border-bottom w-100"></div>`)
-    ])}<button class="btn btn-warning w-100 mt-2" style="color: black;" onclick="${gvc.event(() => {
-        glitter.closeDiaLog();
-        glitter.htmlGenerate.saveEvent();
-    })}">儲存</button> </div>
-  <div class="tab-pane fade" id="profile" role="tabpanel" aria-labelledby="profile-tab">
-<div class="alert alert-danger " style="white-space: normal;word-break:break-all;">此頁面的配置檔包含所有設計模組和觸發事件的項目。建議由熟悉程式開發的工程師進行編輯。</div>
-${(() => {
-        const json = JSON.parse(JSON.stringify(viewModel.data.config));
-        json.map((dd) => {
-            dd.refreshAllParameter = undefined;
-            dd.refreshComponentParameter = undefined;
-        });
-        let value = '';
-        return ` <textArea class="form-control " style="overflow-x: scroll;height: 450px;" onchange="${gvc.event((e) => {
-            value = e.value;
-        })}">${JSON.stringify(json, null, '\t')}</textArea>
- <div class="d-flex w-100 mt-2 justify-content-between">
- <button class="btn btn-primary " style="width:calc(50% - 10px);" onclick="${gvc.event(() => {
-            navigator.clipboard.writeText(JSON.stringify(json, null, '\t'));
-        })}">複製到剪貼簿</button>
-  <button class="btn btn-warning " style="width:calc(50% - 10px);color:black; " onclick="${gvc.event(() => {
-            const dialog = new ShareDialog(gvc.glitter);
-            try {
-                viewModel.data.config = JSON.parse(value);
-                glitter.closeDiaLog();
-                glitter.htmlGenerate.saveEvent();
-            }
-            catch (e) {
-                dialog.errorMessage({ text: "代碼輸入錯誤" });
-                console.log(`${e}${e.stack}${e.line}`);
-            }
-        })}">儲存</button>
+            })}
 </div>
-                        `;
-    })()}</div>
-  <div class="tab-pane fade" id="contact" role="tabpanel" aria-labelledby="contact-tab">
-  <div class="alert alert-danger " style="white-space: normal;word-break:break-all;">此頁面的代碼涉及到頁面上所需執行的行為。建議由熟悉程式開發的工程師進行編輯。</div>
-  ${(() => {
-        var _a;
-        viewModel.data.page_config.initialList = (_a = viewModel.data.page_config.initialList) !== null && _a !== void 0 ? _a : [];
-        return gvc.bindView(() => {
-            const id = glitter.getUUID();
-            return {
-                bind: id,
-                view: () => {
-                    return EditorElem.arrayItem({
-                        originalArray: viewModel.data.page_config.initialList,
-                        gvc: gvc,
-                        title: '文字區塊內容',
-                        array: viewModel.data.page_config.initialList.map((dd, index) => {
-                            return {
-                                title: `<span style="color:#ffba08;">${dd.name || `區塊:${index}`}</span>`,
-                                innerHtml: `${gvc.bindView(() => {
-                                    const cid = glitter.getUUID();
-                                    return {
-                                        bind: cid,
-                                        view: () => {
-                                            var _a;
-                                            return ` 
-                                                 ${EditorElem.select({
-                                                title: "執行時機",
-                                                gvc: gvc,
-                                                def: dd.when,
-                                                array: [{
-                                                        title: "頁面渲染前", value: "initial"
-                                                    },
-                                                    {
-                                                        title: "頁面渲染後", value: "onCreate"
-                                                    }],
-                                                callback: (text) => {
-                                                    dd.when = text;
-                                                    gvc.notifyDataChange(id);
-                                                }
-                                            })}
-                                                 ${HtmlGenerate.editeInput({
-                                                gvc,
-                                                title: '自定義程式區塊名稱',
-                                                default: dd.name,
-                                                placeHolder: '自定義程式區塊名稱',
-                                                callback: (text) => {
-                                                    dd.name = text;
-                                                    gvc.notifyDataChange(cid);
-                                                }
-                                            })}
-                                                  ${EditorElem.select({
-                                                title: '類型',
-                                                gvc: gvc,
-                                                def: (_a = dd.type) !== null && _a !== void 0 ? _a : 'code',
-                                                callback: (text) => {
-                                                    dd.type = text;
-                                                    gvc.notifyDataChange(cid);
-                                                },
-                                                array: [{ title: "自定義", value: "code" }, { title: "觸發事件", value: "script" }],
-                                            })}
-                                                  ${(() => {
-                                                if (dd.type === 'script') {
-                                                    return TriggerEvent.editer(gvc, {
-                                                        refreshComponent: () => {
-                                                            gvc.notifyDataChange(cid);
-                                                        }
-                                                    }, dd);
-                                                }
-                                                else {
-                                                    return gvc.map([
-                                                        HtmlGenerate.editeText({
-                                                            gvc,
-                                                            title: '區塊代碼',
-                                                            default: dd.src.official,
-                                                            placeHolder: '請輸入代碼',
-                                                            callback: (text) => {
-                                                                dd.src.official = text;
-                                                            }
-                                                        })
-                                                    ]);
-                                                }
-                                            })()}  `;
-                                        },
-                                        divCreate: {
-                                            class: `w-100`,
-                                            style: `border-bottom: 1px solid lightgrey;padding-bottom: 10px;margin-bottom: 10px;`
-                                        }
-                                    };
-                                })}`,
-                                expand: dd,
-                                minus: gvc.event(() => {
-                                    viewModel.data.page_config.initialList.splice(index, 1);
-                                    gvc.notifyDataChange(id);
-                                })
-                            };
-                        }),
-                        expand: undefined,
-                        plus: {
-                            title: '添加代碼區塊',
-                            event: gvc.event(() => {
-                                viewModel.data.page_config.initialList.push({
-                                    name: '代碼區塊',
-                                    src: {
-                                        official: '',
-                                        staging: '',
-                                        open: true
-                                    },
-                                    when: 'onCreate'
-                                });
-                                gvc.notifyDataChange(id);
-                            }),
-                        },
-                        refreshComponent: () => {
-                            gvc.notifyDataChange(id);
-                        }
-                    }) + `<button class="btn btn-warning w-100 mt-4" style="color: black;" onclick="${gvc.event(() => {
+</div>`
+        }, {
+            title: '配置檔 / Config',
+            index: 'pageConfig',
+            html: `
+${(() => {
+                const json = JSON.parse(JSON.stringify(viewModel.data.config));
+                json.map((dd) => {
+                    dd.refreshAllParameter = undefined;
+                    dd.refreshComponentParameter = undefined;
+                });
+                let value = JSON.stringify(json, null, '\t');
+                return `
+
+<div class="d-flex w-100 my-2 justify-content-end" style="gap:10px;">
+<div class="alert alert-danger flex-fill m-0" style="white-space: normal;word-break:break-all;">此頁面的配置檔包含所有設計模組和觸發事件的項目。建議由熟悉程式開發的工程師進行編輯。</div>
+ <button class="btn btn-primary h-auto"   onclick="${gvc.event(() => {
+                    navigator.clipboard.writeText(JSON.stringify(json, null, '\t'));
+                })}"><i class="fa-regular fa-copy me-2"></i>複製到剪貼簿</button>
+  <button class="btn btn-warning " style="color:black; " onclick="${gvc.event(() => {
+                    const dialog = new ShareDialog(gvc.glitter);
+                    try {
+                        viewModel.data.config = JSON.parse(value);
                         glitter.closeDiaLog();
                         glitter.htmlGenerate.saveEvent();
-                    })}">儲存</button> `;
-                },
-                divCreate: {}
-            };
-        });
+                    }
+                    catch (e) {
+                        dialog.errorMessage({ text: "代碼輸入錯誤" });
+                        console.log(`${e}${e.stack}${e.line}`);
+                    }
+                })}"><i class="fa-regular fa-floppy-disk me-2"></i>儲存</button>
+</div>
+ <textArea class="form-control " style="overflow-x: scroll;height: calc(100vh - 250px);" onchange="${gvc.event((e) => {
+                    value = e.value;
+                })}">${JSON.stringify(json, null, '\t')}</textArea>
+                        `;
+            })()}`
+        }, {
+            title: '程式碼 / Code',
+            index: 'pageCode',
+            html: `<div class="alert alert-danger " style="white-space: normal;word-break:break-all;">此頁面的代碼涉及到頁面上所需執行的行為。建議由熟悉程式開發的工程師進行編輯。</div>
+  ${(() => {
+                var _a;
+                viewModel.data.page_config.initialList = (_a = viewModel.data.page_config.initialList) !== null && _a !== void 0 ? _a : [];
+                return gvc.bindView(() => {
+                    const id = glitter.getUUID();
+                    return {
+                        bind: id,
+                        view: () => {
+                            return EditorElem.arrayItem({
+                                originalArray: viewModel.data.page_config.initialList,
+                                gvc: gvc,
+                                title: '文字區塊內容',
+                                array: viewModel.data.page_config.initialList.map((dd, index) => {
+                                    return {
+                                        title: dd.name || `區塊:${index}`,
+                                        innerHtml: `${gvc.bindView(() => {
+                                            const cid = glitter.getUUID();
+                                            return {
+                                                bind: cid,
+                                                view: () => {
+                                                    var _a;
+                                                    return ` 
+                                                 ${EditorElem.select({
+                                                        title: "執行時機",
+                                                        gvc: gvc,
+                                                        def: dd.when,
+                                                        array: [{
+                                                                title: "頁面渲染前", value: "initial"
+                                                            },
+                                                            {
+                                                                title: "頁面渲染後", value: "onCreate"
+                                                            }],
+                                                        callback: (text) => {
+                                                            dd.when = text;
+                                                            gvc.notifyDataChange(id);
+                                                        }
+                                                    })}
+                                                 ${HtmlGenerate.editeInput({
+                                                        gvc,
+                                                        title: '自定義程式區塊名稱',
+                                                        default: dd.name,
+                                                        placeHolder: '自定義程式區塊名稱',
+                                                        callback: (text) => {
+                                                            dd.name = text;
+                                                            gvc.notifyDataChange(cid);
+                                                        }
+                                                    })}
+                                                  ${EditorElem.select({
+                                                        title: '類型',
+                                                        gvc: gvc,
+                                                        def: (_a = dd.type) !== null && _a !== void 0 ? _a : 'code',
+                                                        callback: (text) => {
+                                                            dd.type = text;
+                                                            gvc.notifyDataChange(cid);
+                                                        },
+                                                        array: [{ title: "自定義", value: "code" }, {
+                                                                title: "觸發事件",
+                                                                value: "script"
+                                                            }],
+                                                    })}
+                                                  ${(() => {
+                                                        if (dd.type === 'script') {
+                                                            return TriggerEvent.editer(gvc, {
+                                                                refreshComponent: () => {
+                                                                    gvc.notifyDataChange(cid);
+                                                                }
+                                                            }, dd, {
+                                                                option: [],
+                                                                hover: false,
+                                                                title: '觸發事件'
+                                                            });
+                                                        }
+                                                        else {
+                                                            return gvc.map([
+                                                                HtmlGenerate.editeText({
+                                                                    gvc,
+                                                                    title: '區塊代碼',
+                                                                    default: dd.src.official,
+                                                                    placeHolder: '請輸入代碼',
+                                                                    callback: (text) => {
+                                                                        dd.src.official = text;
+                                                                    }
+                                                                })
+                                                            ]);
+                                                        }
+                                                    })()}  `;
+                                                },
+                                                divCreate: {
+                                                    class: `w-100`,
+                                                    style: `border-bottom: 1px solid lightgrey;padding-bottom: 10px;margin-bottom: 10px;`
+                                                }
+                                            };
+                                        })}`,
+                                        expand: dd,
+                                        minus: gvc.event(() => {
+                                            viewModel.data.page_config.initialList.splice(index, 1);
+                                            gvc.notifyDataChange(id);
+                                        })
+                                    };
+                                }),
+                                expand: undefined,
+                                plus: {
+                                    title: '添加代碼區塊',
+                                    event: gvc.event(() => {
+                                        viewModel.data.page_config.initialList.push({
+                                            name: '代碼區塊',
+                                            src: {
+                                                official: '',
+                                                staging: '',
+                                                open: true
+                                            },
+                                            when: 'onCreate'
+                                        });
+                                        gvc.notifyDataChange(id);
+                                    }),
+                                },
+                                refreshComponent: () => {
+                                    gvc.notifyDataChange(id);
+                                }
+                            });
+                        },
+                        divCreate: {}
+                    };
+                });
+            })()}`
+        }, {
+            title: '頁面設計 / Style',
+            index: 'pageStyle',
+            html: (() => {
+                return `<div class="alert shadow" style="background-image: linear-gradient(120deg, #a1c4fd 0%, #c2e9fb 100%);white-space: normal;word-break: break-all;">${initialStylePage(gvc, viewModel, id)}</div>`;
+            })()
+        }
+    ];
+    return `
+ <div class="w-100">
+    <ul class="nav nav-tabs border-bottom" id="myTab" role="tablist">
+    ${(() => {
+        return tabIndex.map((dd, index) => {
+            return `<li class="nav-item" role="presentation">
+    <button class="nav-link ${(index === 0) ? `active` : ``}"  data-bs-toggle="tab" data-bs-target="#${dd.index}" type="button" role="tab" aria-controls="${dd.index}" aria-selected="${index === 0}">${dd.title}</button>
+  </li>`;
+        }).join('');
+    })()}
+</ul>
+<div class="tab-content" id="myTabContent">
+  ${(() => {
+        return tabIndex.map((dd, index) => {
+            return `<div class="tab-pane ${(index === 0) ? `show active` : `fade`}" id="${dd.index}" role="tabpanel" aria-labelledby="profile-tab">
+${dd.html}</div>`;
+        }).join('');
     })()}
 </div>
 </div>
@@ -320,14 +384,14 @@ function uploadImage(obj) {
         return {
             bind: id,
             view: () => {
-                return `<h3 style="color: white;font-size: 16px;margin-bottom: 10px;" class="mt-2">${obj.title}</h3>
+                return `<h3 style="font-size: 16px;margin-bottom: 10px;" class="mt-2">${obj.title}</h3>
                             <div class="d-flex align-items-center mb-3">
                                 <input class="flex-fill form-control "  placeholder="請輸入圖片連結" value="${obj.def}" onchange="${obj.gvc.event((e) => {
                     obj.callback(e.value);
                     obj.gvc.notifyDataChange(id);
                 })}">
-                                <div class="" style="width: 1px;height: 25px;background-color: white;"></div>
-                                <i class="fa-regular fa-upload text-white ms-2" style="cursor: pointer;" onclick="${obj.gvc.event(() => {
+                                <div class="" style="width: 1px;height: 25px;background-"></div>
+                                <i class="fa-regular fa-upload text-dark ms-2" style="cursor: pointer;" onclick="${obj.gvc.event(() => {
                     glitter.ut.chooseMediaCallback({
                         single: true,
                         accept: 'json,image/*',

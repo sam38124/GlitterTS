@@ -36,11 +36,11 @@ init((gvc, glitter, gBundle) => {
         onCreateView: () => {
             const styleContainer = glitter.getUUID()
             return `
-            <div  class="w-100 h-100 d-flex flex-column align-items-center justify-content-center" style="background-color: rgba(255,255,255,0.5);" >
-            <div class="bg-dark m-auto rounded" style="max-width: 100%;max-height: 100%;width: 480px;overflow-y: scroll;">
+            <div  class="w-100 h-100 d-flex flex-column align-items-center justify-content-center" style="background-color: rgba(0,0,0,0.3);" >
+            <div class="bg-light m-auto rounded shadow" style="max-width: 100%;max-height: 100%;width: 480px;overflow-y: scroll;">
         <div class="w-100 d-flex align-items-center border-bottom justify-content-center position-relative" style="height: 68px;">
         <h3 class="modal-title fs-4" >設計樣式</h3>
-        <i class="fa-solid fa-xmark text-white position-absolute " style="font-size:20px;transform: translateY(-50%);right: 20px;top: 50%;cursor: pointer;"
+        <i class="fa-solid fa-xmark text-dark position-absolute " style="font-size:20px;transform: translateY(-50%);right: 20px;top: 50%;cursor: pointer;"
         onclick="${gvc.event(() => {
                 glitter.closeDiaLog(gvc.parameter.pageConfig?.tag)
             })}"></i>
@@ -68,111 +68,112 @@ ${gvc.map([
                 `
 ${EditorElem.h3("設計特徵")}
 ${gvc.bindView(() => {
-                        const idl = glitter.getUUID()
+                    const idl = glitter.getUUID()
 
-                        return {
-                            bind: idl,
-                            view: () => {
-                                return `<div class="alert-dark alert ">
+                    return {
+                        bind: idl,
+                        view: () => {
+                            return `<div class="alert-success alert ">
 ${design.styleList.map((dd, index) => {
-                                    let title = (styleAttr.find((d2) => {
-                                        return dd.tag === d2.tag
-                                    }) ?? {}).title ?? "尚未設定";
-                                    return `
+                                let title = (styleAttr.find((d2) => {
+                                    return dd.tag === d2.tag
+                                }) ?? {}).title ?? "尚未設定";
+                                return `
     ${EditorElem.toggleExpand({
-                                        gvc: gvc, title: EditorElem.minusTitle(title, gvc.event(() => {
-                                            design.styleList.splice(index, 1)
-                                            gvc.notifyDataChange(idl)
-                                        })), data: dd, innerText: (()=>{
-                                            return `
+                                    gvc: gvc, title: EditorElem.minusTitle(title, gvc.event(() => {
+                                        design.styleList.splice(index, 1)
+                                        gvc.notifyDataChange(idl)
+                                    })), data: dd, innerText: (() => {
+                                        return `
 <div class="mb-2">
 </div>
-<div class="btn-group dropdown w-100">
+<div class="btn-group dropdown w-100" style="">
   ${(() => {
-                                                let title = (styleAttr.find((d2) => {
-                                                    return dd.tag === d2.tag
-                                                }) ?? {}).title ?? "";
-                                                const id = glitter.getUUID()
-                                                const id2 = glitter.getUUID()
+                                            let title = (styleAttr.find((d2) => {
+                                                return dd.tag === d2.tag
+                                            }) ?? {}).title ?? "";
+                                            const id = glitter.getUUID()
+                                            const id2 = glitter.getUUID()
 
-                                                return `
-${gvc.bindView(() => {
-                                                    return {
-                                                        bind: id2,
-                                                        view: () => {
-                                                            return `<input class="form-control w-100" style="height: 40px;" placeholder="關鍵字搜尋" onfocus="${gvc.event(() => {
-                                                                $('#' + gvc.id(id)).addClass(`show`)
-                                                            })}" onblur="${gvc.event(() => {
-                                                                setTimeout(() => {
-                                                                    $('#' + gvc.id(id)).removeClass(`show`)
-                                                                }, 300)
-                                                            })}" oninput="${gvc.event((e) => {
-                                                                title = e.value
-                                                                dd.tag = (styleAttr.find((d2) => {
-                                                                    return d2.title == e.value
-                                                                }) ?? {}).tag
-                                                                gvc.notifyDataChange(styleContainer)
-                                                                gvc.notifyDataChange(id)
-                                                            })}" value="${title}">`
-                                                        },
-                                                        divCreate: {class: `w-100`}
-                                                    }
-                                                })}
-${gvc.bindView(() => {
-                                                    return {
-                                                        bind: id,
-                                                        view: () => {
-                                                            return styleAttr.filter((d2) => {
-                                                                return d2.title.indexOf(title) !== -1
-                                                            }).map((d3) => {
-                                                                return `<button  class="dropdown-item" onclick="${gvc.event(() => {
-                                                                    dd.tag = d3.tag
-                                                                    title = d3.title
-                                                                    gvc.notifyDataChange(idl)
-                                                                })}">${d3.title}</button>`
-                                                            }).join('')
-                                                        },
-                                                        divCreate: {
-                                                            class: `dropdown-menu`, style: `transform: translateY(40px);`
-                                                        }
-                                                    }
-                                                })}                                 
-                                            `
-                                            })()}
-</div>
+                                            return `
 ${gvc.bindView(() => {
                                                 return {
-                                                    bind: styleContainer,
+                                                    bind: id2,
                                                     view: () => {
-                                                        let data=(styleAttr.find((d2) => {
-                                                            return dd.tag === d2.tag
-                                                        }))
-                                                        if(data){
-                                                            return data!.innerHtml(gvc,dd.data)
-                                                        }else{
-                                                            return  ``
-                                                        }
+                                                        return `<input class="form-control w-100" style="height: 40px;" placeholder="關鍵字搜尋" onfocus="${gvc.event(() => {
+                                                            $('#' + gvc.id(id)).addClass(`show`)
+                                                        })}" onblur="${gvc.event(() => {
+                                                            setTimeout(() => {
+                                                                $('#' + gvc.id(id)).removeClass(`show`)
+                                                            }, 300)
+                                                        })}" oninput="${gvc.event((e) => {
+                                                            title = e.value
+                                                            dd.tag = (styleAttr.find((d2) => {
+                                                                return d2.title == e.value
+                                                            }) ?? {}).tag
+                                                            gvc.notifyDataChange(styleContainer)
+                                                            gvc.notifyDataChange(id)
+                                                        })}" value="${title}">`
                                                     },
-                                                    divCreate: {}
+                                                    divCreate: {class: `w-100`}
                                                 }
-                                            })}           
+                                            })}
+${gvc.bindView(() => {
+                                                return {
+                                                    bind: id,
+                                                    view: () => {
+                                                        return styleAttr.filter((d2) => {
+                                                            return d2.title.indexOf(title) !== -1
+                                                        }).map((d3) => {
+                                                            return `<button  class="dropdown-item" onclick="${gvc.event(() => {
+                                                                dd.tag = d3.tag
+                                                                title = d3.title
+                                                                gvc.notifyDataChange(idl)
+                                                            })}">${d3.title}</button>`
+                                                        }).join('')
+                                                    },
+                                                    divCreate: {
+                                                        class: `dropdown-menu`,
+                                                        style: `transform: translateY(40px);max-height: 200px;overflow-y:scroll;`
+                                                    }
+                                                }
+                                            })}                                 
+                                            `
+                                        })()}
+</div>
+${gvc.bindView(() => {
+                                            return {
+                                                bind: styleContainer,
+                                                view: () => {
+                                                    let data = (styleAttr.find((d2) => {
+                                                        return dd.tag === d2.tag
+                                                    }))
+                                                    if (data) {
+                                                        return data!.innerHtml(gvc, dd.data)
+                                                    } else {
+                                                        return ``
+                                                    }
+                                                },
+                                                divCreate: {}
+                                            }
+                                        })}           
 `
-                                        })()
-                                    })}`
-                                }).join('<div class="my-2"></div>')}
+                                    })()
+                                })}`
+                            }).join('<div class="my-2"></div>')}
 ${EditorElem.plusBtn("添加特徵", gvc.event((e, event) => {
-                                    design.styleList.push({
-                                        tag: "",
-                                        data: {}
-                                    })
-                                    gvc.notifyDataChange(idl)
-                                }))}
+                                design.styleList.push({
+                                    tag: "",
+                                    data: {}
+                                })
+                                gvc.notifyDataChange(idl)
+                            }))}
 </div>`
-                            },
-                            divCreate: {}
-                        }
-                    })}
-                <button class="w-100 btn btn-primary" onclick="${gvc.event(()=>{
+                        },
+                        divCreate: {}
+                    }
+                })}
+                <button class="w-100 btn btn-primary" onclick="${gvc.event(() => {
                     gBundle.callback()
                     glitter.closeDiaLog(gvc.parameter.pageConfig?.tag)
                 })}">

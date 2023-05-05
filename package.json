@@ -1,10 +1,11 @@
 {
   "name": "ts-glitter",
-  "version": "1.8.6",
+  "version": "1.8.9",
   "description": "",
   "main": "index.js",
   "scripts": {
     "start": "NODE_ENV=staging && npm run build && node ./src/run.js ",
+    "exportTest": "NODE_ENV=staging && npm run build && node ./src/test/exportApp.js ",
     "create": "node create.js",
     "start:tscAuto": "tsc index.ts",
     "build": "tsc --project tsconfig.json && tscpaths -p tsconfig.json -s ./src -o ./dist",

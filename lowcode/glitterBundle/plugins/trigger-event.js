@@ -23,6 +23,7 @@ export class TriggerEvent {
     static trigger(oj) {
         const glitter = window.glitter;
         const event = oj.clickEvent.clickEvent;
+        let returnData = '';
         async function run() {
             var _a;
             oj.gvc.glitter.share.clickEvent = (_a = oj.gvc.glitter.share.clickEvent) !== null && _a !== void 0 ? _a : {};
@@ -37,11 +38,11 @@ export class TriggerEvent {
                     });
                 });
             }
-            const data = await (oj.gvc.glitter.share.clickEvent[glitter.htmlGenerate.resourceHook(event.src)][event.route].fun(oj.gvc, oj.widget, oj.clickEvent, oj.subData).event());
+            returnData = await oj.gvc.glitter.share.clickEvent[glitter.htmlGenerate.resourceHook(event.src)][event.route].fun(oj.gvc, oj.widget, oj.clickEvent, oj.subData, oj.element).event();
         }
         return new Promise(async (resolve, reject) => {
             await run();
-            resolve(true);
+            resolve(returnData);
         });
     }
     static editer(gvc, widget, obj, option = { hover: false, option: [] }) {
@@ -49,7 +50,7 @@ export class TriggerEvent {
         gvc.glitter.share.clickEvent = (_a = gvc.glitter.share.clickEvent) !== null && _a !== void 0 ? _a : {};
         const glitter = gvc.glitter;
         const selectID = glitter.getUUID();
-        return `<div class="mt-2 ${(option.hover) ? `alert alert-dark` : ``}">
+        return `<div class="mt-2 ${(option.hover) ? `alert alert-primary` : ``}">
  <h3 class="m-0" style="font-size: 16px;">${(_b = option.title) !== null && _b !== void 0 ? _b : "點擊事件"}</h3>
  ${gvc.bindView(() => {
             return {

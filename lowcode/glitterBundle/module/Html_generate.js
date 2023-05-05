@@ -259,31 +259,13 @@ ${gvc.bindView({
                                     bind: toggleView,
                                     view: () => {
                                         return `<div class="d-flex align-items-center" style="${option.return_ && !dd.expand ? `` : `margin-bottom: 10px;`};cursor: pointer;" >
-<i class="fa-regular fa-circle-minus text-danger me-2" style="font-size: 20px;cursor: pointer;" onclick="${gvc.event(() => {
-                                            function checkDelete(setting) {
-                                                const index = setting.findIndex((x) => x.id === dd.id);
-                                                if (index !== -1) {
-                                                    setting.splice(index, 1);
-                                                }
-                                                else {
-                                                    setting.map((d2) => {
-                                                        if (d2.type === 'container') {
-                                                            checkDelete(d2.data.setting);
-                                                        }
-                                                    });
-                                                }
-                                            }
-                                            checkDelete(oset);
-                                            option.refreshAll();
-                                            dd.refreshAll();
-                                            option.deleteEvent();
-                                        })}"></i>
-<h3 style="color: white;font-size: 16px;" class="m-0">${dd.label}</h3>
+
+<h3 style="font-size: 16px;" class="m-0">${dd.label}</h3>
 <div class="flex-fill"></div>
 ${option.return_
                                             ? dd.expand
-                                                ? `<div style="cursor: pointer;" onclick="${toggleEvent}">收合<i class="fa-solid fa-up ms-2 text-white"></i></div>`
-                                                : `<div style="cursor: pointer;" onclick="${toggleEvent}">展開<i class="fa-solid fa-down ms-2 text-white"></i></div>\``
+                                                ? `<div class="text-white" style="cursor: pointer;" onclick="${toggleEvent}">收合<i class="fa-solid fa-up ms-2 text-white"></i></div>`
+                                                : `<div class="text-white" style="cursor: pointer;" onclick="${toggleEvent}">展開<i class="fa-solid fa-down ms-2 text-white"></i></div>\``
                                             : ``}
 </div>
 ${false
@@ -347,11 +329,11 @@ ${gvc.bindView(() => {
                                             }
                                             try {
                                                 return gvc.map([
-                                                    `<div class="alert-dark alert">
-<h3 class="text-white  m-1" style="font-size: 16px;">模塊路徑</h3>
-<h3 class="text-warning alert-primary  m-1" style="font-size: 14px;">${dd.js}</h3>
-<h3 class="text-white  m-1 mt-2" style="font-size: 16px;">函式路徑</h3>
-<h3 class="text-warning alert-primary m-1" style="font-size: 14px;">${dd.type}</h3>
+                                                    `<div class="alert-warning alert">
+<h3 class="text-dark  m-1" style="font-size: 16px;">模塊路徑</h3>
+<h3 class="text-primary alert-primary  m-1 fw-bold rounded p2-" style="font-size: 16px;">${dd.js}</h3>
+<h3 class="text-dark  m-1 mt-2" style="font-size: 16px;">函式路徑</h3>
+<h3 class="text-primary alert-primary m-1 fw-bold rounded p2-" style="font-size: 16px;">${dd.type}</h3>
 </div>`,
                                                     HtmlGenerate.editeInput({
                                                         gvc: gvc,
@@ -364,6 +346,7 @@ ${gvc.bindView(() => {
                                                             dd.refreshAll();
                                                         },
                                                     }),
+                                                    `<div class="mb-2"></div>`,
                                                     HtmlGenerate.editeInput({
                                                         gvc: gvc,
                                                         title: '輸入HashTag標籤',
@@ -386,9 +369,9 @@ ${gvc.bindView(() => {
                                                             view: () => {
                                                                 return gvc.glitter.htmlGenerate.styleEditor(dd).editor(gvc, () => {
                                                                     option.refreshAll();
-                                                                }, '容器設計樣式');
+                                                                }, '父層設計樣式');
                                                             },
-                                                            divCreate: { class: 'mt-2' },
+                                                            divCreate: { class: 'mt-2 mb-2' },
                                                         };
                                                     }),
                                                     (() => {
@@ -449,10 +432,11 @@ ${e.line}
     }
     static styleEditor(data) {
         return {
-            editor: (gvc, widget, title) => {
+            editor: (gvc, widget, title, option) => {
+                var _a;
                 const glitter = window.glitter;
                 return `
-<button type="button" class="btn  w-100 mt-2" style="background-image: linear-gradient(135deg, #667eea 0%, #764ba2 100%);" onclick="${gvc.event(() => {
+<button type="button" class="btn  w-100  shadow ${(_a = (option !== null && option !== void 0 ? option : {}).class) !== null && _a !== void 0 ? _a : "mt-2"}" style="background-image: linear-gradient(135deg, #667eea 0%, #764ba2 100%);" onclick="${gvc.event(() => {
                     glitter.openDiaLog("glitterBundle/plugins/dialog-style-editor.js", "dialog-style-editor", {
                         callback: () => {
                             if (typeof widget === 'function') {
@@ -484,14 +468,14 @@ ${e.line}
     }
     static editeInput(obj) {
         var _a, _b;
-        return `<h3 style="color: white;font-size: 16px;margin-bottom: 10px;" class="mt-2">${obj.title}</h3>
-<input class="form-control" type="${(_a = obj.type) !== null && _a !== void 0 ? _a : 'text'}" placeholder="${obj.placeHolder}" onchange="${obj.gvc.event((e) => {
+        return `<h3 class="text-dark mt-2" style="font-size: 16px;margin-bottom: 10px;" >${obj.title}</h3>
+<input class="form-control mb-2" type="${(_a = obj.type) !== null && _a !== void 0 ? _a : 'text'}" placeholder="${obj.placeHolder}" onchange="${obj.gvc.event((e) => {
             obj.callback(e.value);
         })}" value="${(_b = obj.default) !== null && _b !== void 0 ? _b : ''}">`;
     }
     static editeText(obj) {
         const id = obj.gvc.glitter.getUUID();
-        return `<h3 style="color: white;font-size: 16px;margin-bottom: 10px;" class="mt-2">${obj.title}</h3>
+        return `<h3 style="font-size: 16px;margin-bottom: 10px;" class="mt-2 text-dark">${obj.title}</h3>
 ${obj.gvc.bindView({
             bind: id,
             view: () => {
@@ -532,11 +516,12 @@ HtmlGenerate.setHome = (obj) => {
     }, (_b = obj.option) !== null && _b !== void 0 ? _b : {});
 };
 HtmlGenerate.changePage = (obj) => {
-    var _a;
+    var _a, _b;
     const glitter = Glitter.glitter;
     glitter.changePage('glitterBundle/plugins/html-render.js', obj.tag, obj.goBack, {
+        page_config: (_a = obj.page_config) !== null && _a !== void 0 ? _a : {},
         config: obj.config,
         editMode: obj.editMode,
         data: obj.data,
-    }, (_a = obj.option) !== null && _a !== void 0 ? _a : {});
+    }, (_b = obj.option) !== null && _b !== void 0 ? _b : {});
 };

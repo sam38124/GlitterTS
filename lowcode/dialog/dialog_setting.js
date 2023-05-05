@@ -96,7 +96,7 @@ init((gvc, glitter, gBundle) => {
             <div  class="w-100 h-100 d-flex flex-column align-items-center justify-content-center" style="background-color: rgba(255,255,255,0.5);" >
             <div class="bg-dark m-auto rounded overflow-scroll" style="max-width: 100%;max-height: calc(100% - 50px);width: 480px;">
         <div class="w-100 d-flex align-items-center border-bottom justify-content-center position-relative" style="height: 68px;">
-        <h3 class="modal-title fs-4" >設定</h3>
+        <h3 class="modal-title fs-4 text-white" >設定</h3>
         <i class="fa-solid fa-xmark text-white position-absolute " style=" font-size:20px;transform: translateY(-50%);right: 20px;top: 50%;cursor: pointer; "
         onclick="${gvc.event(() => {
                 glitter.closeDiaLog();

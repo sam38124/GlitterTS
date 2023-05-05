@@ -604,21 +604,19 @@ export class Glitter {
         const glitter = this;
         let index = 0;
         function addScript() {
-            var _a, _b, _c, _d, _e;
+            var _a, _b, _c, _d;
             if (index === urlArray.length) {
                 success();
                 return;
             }
             var scritem = urlArray[index];
             var haveURL = false;
-            if ((_a = !option) !== null && _a !== void 0 ? _a : { multiple: false }.multiple) {
-                glitter.$('head').children().map(function (data) {
-                    var _a;
-                    if (glitter.$('head').children().get(data).src === ((_a = scritem.src) !== null && _a !== void 0 ? _a : scritem)) {
-                        haveURL = true;
-                    }
-                });
-            }
+            glitter.$('head').children().map(function (data) {
+                var _a;
+                if (glitter.$('head').children().get(data).src === ((_a = scritem.src) !== null && _a !== void 0 ? _a : scritem)) {
+                    haveURL = true;
+                }
+            });
             if (haveURL) {
                 index++;
                 addScript();
@@ -654,14 +652,14 @@ export class Glitter {
                 }
                 else if (scritem.type !== undefined) {
                     script.setAttribute('type', scritem.type);
-                    script.setAttribute('src', (_b = scritem.src) !== null && _b !== void 0 ? _b : undefined);
+                    script.setAttribute('src', (_a = scritem.src) !== null && _a !== void 0 ? _a : undefined);
                     script.setAttribute('crossorigin', true);
-                    script.setAttribute('id', (_c = scritem.id) !== null && _c !== void 0 ? _c : undefined);
+                    script.setAttribute('id', (_b = scritem.id) !== null && _b !== void 0 ? _b : undefined);
                     document.getElementsByTagName("head")[0].appendChild(script);
                 }
                 else {
-                    script.setAttribute('src', (_d = scritem.src) !== null && _d !== void 0 ? _d : scritem);
-                    script.setAttribute('id', (_e = scritem.id) !== null && _e !== void 0 ? _e : undefined);
+                    script.setAttribute('src', (_c = scritem.src) !== null && _c !== void 0 ? _c : scritem);
+                    script.setAttribute('id', (_d = scritem.id) !== null && _d !== void 0 ? _d : undefined);
                     script.setAttribute('crossorigin', true);
                     document.getElementsByTagName("head")[0].appendChild(script);
                 }
@@ -764,16 +762,24 @@ export class Glitter {
         var head = document.head;
         const id = gvc.getUUID();
         function add(filePath) {
-            var link = document.createElement("link");
-            link.type = "text/css";
-            link.rel = "stylesheet";
-            link.href = filePath;
-            link.id = id;
-            gvc.parameter.styleLinks.push({
-                id: id,
-                src: filePath
+            var haveURL = false;
+            Glitter.glitter.$('head').children().map(function (data) {
+                if (Glitter.glitter.$('head').children().get(data).src === (filePath)) {
+                    haveURL = true;
+                }
             });
-            head.appendChild(link);
+            if (!haveURL) {
+                var link = document.createElement("link");
+                link.type = "text/css";
+                link.rel = "stylesheet";
+                link.href = filePath;
+                link.id = id;
+                gvc.parameter.styleLinks.push({
+                    id: id,
+                    src: filePath
+                });
+                head.appendChild(link);
+            }
         }
         if (typeof data == "string") {
             add(data);

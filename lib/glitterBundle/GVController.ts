@@ -48,6 +48,11 @@ export class GVC {
         jsList: [],
         styleLinks: [],
     }
+   public getBundle(){
+        this.parameter.pageConfig!.obj=this.parameter.pageConfig!.obj??{}
+        return this.parameter.pageConfig?.obj
+   }
+
 
 
     public notifyDataChange(id: any) {
