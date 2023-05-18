@@ -14,6 +14,99 @@ export class TriggerEvent {
             return undefined;
         }
     }
+    static setEventRouter(original, relative) {
+        const glitter = window.glitter;
+        const url = new URL(relative, original);
+        url.searchParams.set("original", original);
+        return (gvc, widget, obj, subData, element) => {
+            var _a, _b, _c;
+            const editViewId = glitter.getUUID();
+            glitter.share.componentData = (_a = glitter.share.componentData) !== null && _a !== void 0 ? _a : {};
+            let val = glitter.share.componentData[url.href];
+            glitter.share.componentCallback = (_b = glitter.share.componentCallback) !== null && _b !== void 0 ? _b : {};
+            glitter.share.componentCallback[url.href] = (_c = glitter.share.componentCallback[url.href]) !== null && _c !== void 0 ? _c : [];
+            glitter.share.componentCallback[url.href].push((dd) => {
+                glitter.share.componentData[url.href] = dd;
+                gvc.notifyDataChange(editViewId);
+            });
+            gvc.glitter.addMtScript([
+                {
+                    src: url,
+                    type: 'module'
+                }
+            ], () => {
+                val = glitter.share.componentData[url.href];
+                console.log('setComponent-->' + url);
+            }, () => {
+            });
+            return {
+                event: () => {
+                    return new Promise(async (resolve, reject) => {
+                        const event = await (new Promise((resolve, reject) => {
+                            const timer = setInterval(() => {
+                                if (val) {
+                                    resolve(val);
+                                    clearInterval(timer);
+                                }
+                            }, 20);
+                            setTimeout(() => {
+                                clearInterval(timer);
+                                resolve(false);
+                            }, 3000);
+                        }));
+                        if (event) {
+                            resolve((await val.fun(gvc, widget, obj, subData, element).event()));
+                        }
+                        else {
+                            resolve(false);
+                        }
+                    });
+                },
+                editor: () => {
+                    return gvc.bindView(() => {
+                        return {
+                            bind: editViewId,
+                            view: () => {
+                                if (!val) {
+                                    return ``;
+                                }
+                                else {
+                                    return val.fun(gvc, widget, obj, subData, element).editor();
+                                }
+                            },
+                            divCreate: {}
+                        };
+                    });
+                }
+            };
+        };
+    }
+    static createSingleEvent(url, fun) {
+        const glitter = window.glitter;
+        const val = fun(glitter);
+        let fal = 0;
+        function tryLoop() {
+            try {
+                let delete2 = 0;
+                glitter.share.componentCallback[url].map((dd, index) => {
+                    dd(val);
+                    delete2 = index;
+                });
+                glitter.share.componentCallback[url].splice(0, delete2);
+            }
+            catch (e) {
+                if (fal < 10) {
+                    setTimeout(() => {
+                        tryLoop();
+                    }, 100);
+                }
+                fal += 1;
+                console.log('error' + url);
+            }
+        }
+        tryLoop();
+        return val;
+    }
     static create(url, event) {
         var _a;
         const glitter = window.glitter;

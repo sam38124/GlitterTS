@@ -22,7 +22,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createAPP = exports.initial = void 0;
+exports.createAPP = exports.initial = exports.app = void 0;
 const Glitter = __importStar(require("ts-glitter"));
 const path_1 = __importDefault(require("path"));
 const express_1 = __importDefault(require("express"));
@@ -38,18 +38,18 @@ const saas_table_check_1 = require("./services/saas-table-check");
 const database_2 = __importDefault(require("./modules/database"));
 const AWSLib_1 = require("./modules/AWSLib");
 const aws_sdk_1 = __importDefault(require("aws-sdk"));
-const app = (0, express_1.default)();
+exports.app = (0, express_1.default)();
 const logger = new logger_1.default();
 const corsOptions = {
     origin: '*',
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     allowedHeaders: ['Content-Type', 'Authorization'],
 };
-app.use((0, cors_1.default)(corsOptions));
-app.use(express_1.default.raw());
-app.use(express_1.default.json({ limit: '50MB' }));
-app.use(createContext);
-app.use(contollers);
+exports.app.use((0, cors_1.default)(corsOptions));
+exports.app.use(express_1.default.raw());
+exports.app.use(express_1.default.json({ limit: '50MB' }));
+exports.app.use(createContext);
+exports.app.use(contollers);
 async function initial(serverPort) {
     await (async () => {
         await database_1.default.createPool();
@@ -59,7 +59,7 @@ async function initial(serverPort) {
         await (0, AWSLib_1.listBuckets)();
         await (0, AWSLib_1.createBucket)(config_1.config.AWS_S3_NAME);
         logger.info('[Init]', `Server start with env: ${process.env.NODE_ENV || 'local'}`);
-        await app.listen(serverPort);
+        await exports.app.listen(serverPort);
         logger.info('[Init]', `Server is listening on port: ${serverPort}`);
         console.log('Starting up the server now.');
     })();
@@ -159,7 +159,7 @@ async function createAppRoute() {
     }
 }
 async function createAPP(dd) {
-    return await Glitter.setUP(app, [
+    return await Glitter.setUP(exports.app, [
         {
             rout: '/' + encodeURI(dd.appName),
             path: path_1.default.resolve(__dirname, '../lowcode'),

@@ -4,6 +4,7 @@ import response from "../modules/response";
 import db from '../modules/database';
 import {config, saasConfig} from "../config";
 import Logger from "../modules/logger";
+import {IToken} from "../models/Auth.js";
 const router: express.Router = express.Router();
 export = router;
 
@@ -16,13 +17,23 @@ router.post('/upload', async (req: express.Request, resp: express.Response) => {
         const name=req.body.fileName
         const s3path = `file/${userID}/${new Date().getTime()+'-'+name}`;
         const fullUrl = config.AWS_S3_PREFIX_DOMAIN_NAME + s3path;
+
         const params = {
             Bucket: s3bucketName,
             Key: s3path,
             Expires: 300,
             //If you use other contentType will response 403 error
-            ContentType: 'application/x-www-form-urlencoded; charset=UTF-8',
+            ContentType: (()=>{
+                switch (fullUrl.split('.').pop()){
+                    case 'svg':
+                        return 'image/svg+xml';
+                    default:
+                        return 'application/x-www-form-urlencoded; charset=UTF-8';
+                }
+            })(),
+            ACL: 'public-read'
         };
+        console.log(`fullUrl:${params.ContentType}`)
         await s3bucket.getSignedUrl('putObject', params, async (err:any, url:any) => {
             if (err) {
                 logger.error(TAG, String(err));

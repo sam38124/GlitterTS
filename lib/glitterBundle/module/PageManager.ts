@@ -99,9 +99,6 @@ export class PageManager {
             if(glitter.pageConfig[index].type === GVCType.Page){
                 Glitter.glitter.$('html').stop().animate({scrollTop:glitter.pageConfig[index].scrollTop});
             }
-            //
-            //
-            // console.log('scrollTop'+glitter.pageConfig[index].scrollTop)
         } catch (e) {
         }
     }
@@ -238,7 +235,6 @@ background: ${config!.backGroundColor};display: none;z-index: 999999;overflow: h
                         lastPage.scrollTop = glitter.$('html').get(0).scrollTop;
                         console.log('lastPage.scrollTop:'+lastPage.scrollTop)
                     }
-                    console.log('scrollTop--'+page)
                     glitter.$('html').stop().animate({scrollTop: 0 }, 0);
                 }
             }, 100);

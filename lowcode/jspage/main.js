@@ -25,11 +25,15 @@ init((gvc, glitter, gBundle) => {
         backendPlugins: [],
         homePage: '',
         selectContainer: undefined,
-        selectIndex: undefined
+        selectIndex: undefined,
+        waitCopy: undefined
     };
     const swal = new Swal(gvc);
     const doc = new Editor(gvc, viewModel);
-    const createID = glitter.getUUID();
+    const createID = `HtmlEditorContainer`;
+    glitter.share.refreshAllContainer = () => {
+        gvc.notifyDataChange(createID);
+    };
     async function lod() {
         swal.loading('加載中...');
         const waitGetData = [
@@ -175,15 +179,16 @@ init((gvc, glitter, gBundle) => {
         var clipboardData = event.clipboardData || window.clipboardData;
         var pastedData = clipboardData.getData('text/plain');
         if (pastedData === 'glitter-copyEvent') {
-            var copy = JSON.parse(JSON.stringify(viewModel.selectItem));
+            var copy = JSON.parse(JSON.stringify(viewModel.waitCopy));
             function checkId(dd) {
                 copy.id = glitter.getUUID();
                 if (dd.type === 'container') {
-                    dd.setting.map((d2) => {
+                    dd.data.setting.map((d2) => {
                         checkId(d2);
                     });
                 }
             }
+            console.log(JSON.stringify(viewModel.selectContainer));
             checkId(copy);
             glitter.setCookie('lastSelect', copy.id);
             viewModel.selectContainer.splice(viewModel.selectIndex + 1, 0, copy);
@@ -202,22 +207,24 @@ init((gvc, glitter, gBundle) => {
                     }
                     else {
                         try {
-                            return doc.create(`<div class="d-flex vh-100" >
+                            return doc.create(`<div class="d-flex overflow-hidden"  style="height:100vh;">
 <div style="width:60px;gap:20px;padding-top: 15px;" class="h-100 border-end d-flex flex-column align-items-center " >
-${[{ src: `fa-table-layout`, index: Main_editor.index }, {
-                                    src: `fa-sharp fa-regular fa-file-dashed-line`,
-                                    index: Page_editor.index
-                                }, { src: `fa-solid fa-list-check`, index: Setting_editor.index },
-                                { src: `fa-regular fa-folders`, index: '3' }].map((da, index) => {
+${[
+                                { src: `fa-table-layout`, index: Main_editor.index },
+                                { src: `fa-sharp fa-regular fa-file-dashed-line`, index: Page_editor.index },
+                                { src: `fa-solid fa-list-check`, index: Setting_editor.index },
+                                { src: `fa-regular fa-folders d-none`, index: '3' }
+                            ].map((da, index) => {
                                 return `<i class="fa-regular ${da.src} fs-4 fw-bold ${(selectPosition === `${da.index}`) ? `text-primary` : ``}  p-2 rounded" style="cursor:pointer;${(selectPosition === `${da.index}`) ? `background-color: rgba(10,83,190,0.1);` : ``}"
 onclick="${gvc.event(() => {
+                                    viewModel.waitCopy = undefined;
                                     viewModel.selectItem = undefined;
                                     glitter.setUrlParameter(`editorPosition`, `${da.index}`);
                                     gvc.notifyDataChange(createID);
                                 })}"></i>`;
                             }).join('')}
 </div>
-<div class="offcanvas-body swiper scrollbar-hover overflow-hidden w-100 ${(() => {
+<div class="offcanvas-body swiper scrollbar-hover  w-100 ${(() => {
                                 switch (selectPosition) {
                                     case Setting_editor.index:
                                     case Main_editor.index:
@@ -227,8 +234,8 @@ onclick="${gvc.event(() => {
                                     default:
                                         return `p-0`;
                                 }
-                            })()}">
-                            <div class="swiper-wrapper">
+                            })()}" style="overflow-y: auto;">
+                            <div class="swiper-wrapper" style="">
                                 ${(() => {
                                 switch (selectPosition) {
                                     case Setting_editor.index:

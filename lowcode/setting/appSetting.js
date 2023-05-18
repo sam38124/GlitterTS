@@ -258,15 +258,188 @@ ${dd.html}</div>`;
     `;
 }
 export function appCreate(gvc, viewModel, id) {
+    const saasConfig = window.saasConfig;
     const glitter = window.glitter;
-    const postVM = {
+    let postVM = {
         appName: '',
+        storeName: '',
+        storeTitle: '',
         bundleName: '',
-        logo: ''
+        keyWord: '',
+        logo: '',
+        logo_stored: '',
+        prmote_string: '',
+        privacy: ''
     };
+    const dialog = new ShareDialog(gvc.glitter);
+    function submit() {
+        dialog.dataLoading({ text: '設定中', visible: true });
+        saasConfig.api.setPrivateConfig(saasConfig.config.appName, "glitter_appPost", postVM).then((r) => {
+            dialog.dataLoading({ visible: false });
+            if (r.response) {
+                dialog.successMessage({ text: "送審成功" });
+            }
+            else {
+                dialog.errorMessage({ text: "送審失敗" });
+            }
+        });
+    }
+    function save() {
+        dialog.dataLoading({ text: '設定中', visible: true });
+        saasConfig.api.setPrivateConfig(saasConfig.config.appName, "glitter_appPost", postVM).then((r) => {
+            dialog.dataLoading({ visible: false });
+            if (r.response) {
+                dialog.successMessage({ text: "儲存成功" });
+            }
+            else {
+                dialog.errorMessage({ text: "送審失敗" });
+            }
+        });
+    }
     const tabIndex = [
         {
             title: 'IOS 應用生成',
+            index: 'Create IOS',
+            html: (() => {
+                const id = glitter.getUUID();
+                let load = false;
+                saasConfig.api.getPrivateConfig(saasConfig.config.appName, "glitter_appPost").then((r) => {
+                    if (r.response.result[0]) {
+                        postVM = r.response.result[0].value;
+                    }
+                    load = true;
+                    gvc.notifyDataChange(id);
+                });
+                return gvc.bindView(() => {
+                    return {
+                        bind: id,
+                        view: () => {
+                            var _a, _b;
+                            if (!load) {
+                                return `                                        <div class="d-flex align-items-center justify-content-center w-100 flex-column">
+                                        <div class="spinner-border" role="status">
+  <span class="sr-only"></span>
+</div>
+<span class="mt-2">加載中...</span>
+</div>`;
+                            }
+                            return `${EditorElem.h3("<span style='font-size:20px;color:orangered;'>基本設定</span>")}
+  ${[
+                                `<div class="w-100 d-flex align-items-center justify-content-center" style="">
+<h3 style="font-size: 16px;min-width: 80px;" class="mb-2 ">APP名稱</h3>
+${glitter.htmlGenerate.editeInput({
+                                    gvc: gvc,
+                                    title: '',
+                                    placeHolder: `請輸入APP名稱`,
+                                    default: postVM.appName,
+                                    callback: (text) => {
+                                        postVM.appName = text;
+                                    }
+                                })}</div>`,
+                                `<div class="w-100 d-flex align-items-center justify-content-center" style="">
+<h3 style="font-size: 16px;min-width: 80px;" class="mb-2 ">BundleID</h3>
+${glitter.htmlGenerate.editeInput({
+                                    gvc: gvc,
+                                    title: '',
+                                    placeHolder: `請輸入BundleID`,
+                                    default: postVM.bundleName,
+                                    callback: (text) => {
+                                        postVM.bundleName = text;
+                                    }
+                                })}</div>`,
+                                `<div class="w-100 d-flex align-items-center justify-content-center" style="">
+<h3 style="font-size: 16px;min-width: 80px;" class="m-0 ">LOGO</h3>
+${uploadImage({
+                                    gvc: gvc,
+                                    title: ``,
+                                    def: (_a = postVM.logo) !== null && _a !== void 0 ? _a : "",
+                                    callback: (data) => {
+                                        postVM.logo = data;
+                                    }
+                                })}</div>`,
+                            ].map((dd) => {
+                                return `<div class="col-sm-6 pb-2  pt-3">${dd}</div>`;
+                            }).join(``)}
+  <div class="col-12 mt-4 mb-2 bg-dark" style="height:2px;"></div>
+<div class="row pt-0 justify-content-start" >
+${EditorElem.h3("<span style='font-size:20px;color:orangered;'>上架設定</span>")}
+  ${[
+                                `<div class="w-100 d-flex align-items-center justify-content-center" style="">
+<h3 style="font-size: 16px;min-width: 80px;" class="mb-2 ">商店名稱</h3>
+${glitter.htmlGenerate.editeInput({
+                                    gvc: gvc,
+                                    title: '',
+                                    placeHolder: `請輸入商店顯示名稱`,
+                                    default: postVM.storeName,
+                                    callback: (text) => {
+                                        postVM.storeName = text;
+                                    }
+                                })}</div>`,
+                                `<div class="w-100 d-flex align-items-center justify-content-center" style="">
+<h3 style="font-size: 16px;min-width: 80px;" class="mb-2 ">關鍵字</h3>
+${glitter.htmlGenerate.editeInput({
+                                    gvc: gvc,
+                                    title: '',
+                                    placeHolder: `請輸入商店顯示關鍵字`,
+                                    default: postVM.keyWord,
+                                    callback: (text) => {
+                                        postVM.keyWord = text;
+                                    }
+                                })}</div>`,
+                                `<div class="w-100 d-flex align-items-center justify-content-center" style="">
+<h3 style="font-size: 16px;min-width: 80px;" class="m-0 ">商店Logo</h3>
+${uploadImage({
+                                    gvc: gvc,
+                                    title: ``,
+                                    def: (_b = postVM.logo_stored) !== null && _b !== void 0 ? _b : "",
+                                    callback: (data) => {
+                                        postVM.logo_stored = data;
+                                    }
+                                })}</div>`
+                            ].map((dd) => {
+                                return `<div class="col-sm-6 pb-2  pt-3">${dd}</div>`;
+                            }).join(``)}
+  <div class="w-100 my-3" style="height:1px;background:lightgray;"></div>
+  <div class="w-100 col-12 d-flex flex-column  justify-content-start align-items-start mt-2" style="">
+<h3 style="font-size: 16px;min-width: 80px;" class="mb-0 mt-0 ">行銷描述</h3>
+${glitter.htmlGenerate.editeText({
+                                gvc: gvc,
+                                title: '',
+                                placeHolder: `請輸入行銷描述`,
+                                default: postVM.prmote_string,
+                                callback: (text) => {
+                                    postVM.prmote_string = text;
+                                }
+                            })}
+<h3 style="font-size: 16px;min-width: 80px;" class="mb-0 mt-2 ">隱私權政策</h3>
+${glitter.htmlGenerate.editeText({
+                                gvc: gvc,
+                                title: '',
+                                placeHolder: `請輸入隱私權政策`,
+                                default: postVM.privacy,
+                                callback: (text) => {
+                                    postVM.privacy = text;
+                                }
+                            })}
+</div>
+</div>
+</div>
+<div class="d-flex justify-content-end mt-2" style="padding-right: 30px;">
+<button class="btn btn-warning text-dark rounded mt-2 me-2" onclick="${gvc.event(() => {
+                                save();
+                            })}"><i class="fa-regular fa-floppy-disk me-2"></i>儲存</button>
+<button class="btn btn-primary  rounded mt-2 " onclick="${gvc.event(() => {
+                                submit();
+                            })}">提交審核</button></div>`;
+                        },
+                        divCreate: {
+                            class: `row pt-0 justify-content-start`
+                        }
+                    };
+                });
+            })()
+        }, {
+            title: 'Android 應用生成',
             index: 'Create IOS',
             html: (() => {
                 var _a, _b;
@@ -314,17 +487,6 @@ ${EditorElem.h3("<span style='font-size:20px;color:orangered;'>上架設定</spa
   ${[
                     `<div class="w-100 d-flex align-items-center justify-content-center" style="">
 <h3 style="font-size: 16px;min-width: 80px;" class="mb-2 ">商店名稱</h3>
-${glitter.htmlGenerate.editeInput({
-                        gvc: gvc,
-                        title: '',
-                        placeHolder: `請輸入APP名稱`,
-                        default: postVM.appName,
-                        callback: (text) => {
-                            postVM.appName = text;
-                        }
-                    })}</div>`,
-                    `<div class="w-100 d-flex align-items-center justify-content-center" style="">
-<h3 style="font-size: 16px;min-width: 80px;" class="mb-2 ">商店標題</h3>
 ${glitter.htmlGenerate.editeInput({
                         gvc: gvc,
                         title: '',
@@ -387,7 +549,7 @@ ${glitter.htmlGenerate.editeText({
         }).join('');
     })()}
 </ul>
-<div class="tab-content" id="pills-tabContent">
+<div class="tab-content" id="pills-tabContent" style="overflow-x:hidden;">
    ${(() => {
         return tabIndex.map((dd, index) => {
             return `<div class="tab-pane ${(index === 0) ? `show active` : `fade`}" id="${dd.index}" role="tabpanel" aria-labelledby="profile-tab">
@@ -395,6 +557,111 @@ ${dd.html}</div>`;
         }).join('');
     })()}
 </div>
+    `;
+}
+export function fileManager(gvc, viewModel, id) {
+    const glitter = gvc.glitter;
+    let fileVm = {
+        data: []
+    };
+    const saasConfig = window.saasConfig;
+    const dialog = new ShareDialog(gvc.glitter);
+    function save() {
+        dialog.dataLoading({ text: '設定中', visible: true });
+        saasConfig.api.setPrivateConfig(saasConfig.config.appName, "glitter_fileStored", fileVm).then((r) => {
+            dialog.dataLoading({ visible: false });
+            if (r.response) {
+                dialog.successMessage({ text: "儲存成功" });
+            }
+            else {
+                dialog.errorMessage({ text: "送審失敗" });
+            }
+        });
+    }
+    return `
+    <h3 class="fw-bold" style="font-size:25px;color:orangered;">檔案資源管理</h3>
+${gvc.bindView(() => {
+        const id = glitter.getUUID();
+        let load = false;
+        saasConfig.api.getPrivateConfig(saasConfig.config.appName, "glitter_fileStored").then((r) => {
+            if (r.response.result[0]) {
+                fileVm = r.response.result[0].value;
+            }
+            load = true;
+            gvc.notifyDataChange(id);
+        });
+        return {
+            bind: id,
+            view: () => {
+                if (!load) {
+                    return `                                        <div class="d-flex align-items-center justify-content-center w-100 flex-column">
+                                        <div class="spinner-border" role="status">
+  <span class="sr-only"></span>
+</div>
+<span class="mt-2">加載中...</span>
+</div>`;
+                }
+                return EditorElem.arrayItem({
+                    gvc: gvc,
+                    outside: false,
+                    title: "檔案管理",
+                    array: fileVm.data.map((dd, index) => {
+                        var _a;
+                        return {
+                            title: (_a = dd.title) !== null && _a !== void 0 ? _a : ('資源:' + (index + 1)),
+                            innerHtml: () => {
+                                var _a, _b;
+                                return [
+                                    glitter.htmlGenerate.editeInput({
+                                        gvc: gvc,
+                                        title: "標題",
+                                        default: (_a = dd.title) !== null && _a !== void 0 ? _a : "",
+                                        placeHolder: "資源標題",
+                                        callback: (text) => {
+                                            dd.title = text;
+                                            gvc.notifyDataChange(id);
+                                        }
+                                    }),
+                                    EditorElem.uploadFile({
+                                        gvc: gvc,
+                                        title: `圖片上傳`,
+                                        def: (_b = dd.src) !== null && _b !== void 0 ? _b : "",
+                                        callback: (d2) => {
+                                            dd.src = d2;
+                                            gvc.notifyDataChange(id);
+                                        },
+                                    })
+                                ].join('');
+                            },
+                            expand: dd,
+                            minus: gvc.event(() => {
+                                fileVm.data.splice(index, 1);
+                                gvc.notifyDataChange(id);
+                            })
+                        };
+                    }),
+                    originalArray: fileVm.data,
+                    expand: fileVm,
+                    plus: {
+                        title: "添加資源",
+                        event: gvc.event(() => {
+                            fileVm.data.push({});
+                            gvc.notifyDataChange(id);
+                        })
+                    },
+                    refreshComponent: () => {
+                    }
+                });
+            },
+            divCreate: {
+                elem: `div`, class: `alert-secondary alert`
+            }
+        };
+    })}
+<div class="d-flex justify-content-end mt-2 " style="">
+<button class="btn btn-warning text-dark rounded mt-2 " onclick="${gvc.event(() => {
+        save();
+    })}"><i class="fa-regular fa-floppy-disk me-2"></i>儲存</button></div>
     `;
 }
 function uploadImage(obj) {

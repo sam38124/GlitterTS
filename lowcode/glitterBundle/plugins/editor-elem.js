@@ -3,7 +3,7 @@ export class EditorElem {
     static uploadImage(obj) {
         const glitter = window.glitter;
         const $ = glitter.$;
-        return `<h3 style="color: white;font-size: 16px;margin-bottom: 10px;" class="mt-2">${obj.title}</h3>
+        return `<h3 style="font-size: 16px;margin-bottom: 10px;" class="mt-2">${obj.title}</h3>
             <div class="d-flex align-items-center mb-3">
                 <input
                     class="flex-fill form-control "
@@ -15,7 +15,7 @@ export class EditorElem {
                 />
                 <div class="" style="width: 1px;height: 25px;background-color: white;"></div>
                 <i
-                    class="fa-regular fa-upload text-white ms-2"
+                    class="fa-regular fa-upload  ms-2"
                     style="cursor: pointer;"
                     onclick="${obj.gvc.event(() => {
             glitter.ut.chooseMediaCallback({
@@ -55,7 +55,7 @@ export class EditorElem {
     static uploadFile(obj) {
         const glitter = window.glitter;
         const $ = glitter.$;
-        return `<h3 style="color: white;font-size: 16px;margin-bottom: 10px;" class="mt-2">${obj.title}</h3>
+        return `<h3 style="font-size: 16px;margin-bottom: 10px;" class="mt-2">${obj.title}</h3>
             <div class="d-flex align-items-center mb-3">
                 <input
                     class="flex-fill form-control "
@@ -67,12 +67,12 @@ export class EditorElem {
                 />
                 <div class="" style="width: 1px;height: 25px;background-color: white;"></div>
                 <i
-                    class="fa-regular fa-upload text-white ms-2"
+                    class="fa-regular fa-upload  ms-2"
                     style="cursor: pointer;"
                     onclick="${obj.gvc.event(() => {
             glitter.ut.chooseMediaCallback({
                 single: true,
-                accept: 'json,image/*,video/*',
+                accept: '*',
                 callback(data) {
                     const saasConfig = window.saasConfig;
                     const dialog = new ShareDialog(obj.gvc.glitter);
@@ -432,6 +432,9 @@ export class EditorElem {
         })
             .join('<div class="my-3" style="color:wheat"></div>') + EditorElem.plusBtn(obj.plus.title, obj.plus.event);
         if (obj.expand === undefined) {
+            return innerText;
+        }
+        if (obj.outside === false) {
             return innerText;
         }
         return (`<div class="mb-2"></div>` +

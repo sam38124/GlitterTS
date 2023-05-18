@@ -5,6 +5,7 @@ import tool from "./tool";
 import UserUtil from "../utils/UserUtil";
 import {createAPP} from "../index.js";
 import AWS from "aws-sdk";
+import {IToken} from "../models/Auth.js";
 
 export class App {
     public token: IToken;

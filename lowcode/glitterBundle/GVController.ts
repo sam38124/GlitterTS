@@ -59,7 +59,13 @@ export class GVC {
         const gvc = this
         try {
             const refresh = (id: string) => {
-                $(`#${gvc.parameter.pageConfig!.id}${id}`).html(gvc.parameter.bindViewList[id].view())
+                gvc.parameter.bindViewList[id].divCreate=gvc.parameter.bindViewList[id].divCreate??{}
+                $(`#${gvc.parameter.pageConfig!.id}${id}`).attr('class',gvc.parameter.bindViewList[id].divCreate.class ?? "");
+                $(`#${gvc.parameter.pageConfig!.id}${id}`).attr('style',gvc.parameter.bindViewList[id].divCreate.style ?? "");
+                (gvc.parameter.bindViewList[id].divCreate.option ?? []).map((dd:any)=>{
+                    $(`#${gvc.parameter.pageConfig!.id}${id}`).attr(dd.key,dd.value);
+                })
+                $(`#${gvc.parameter.pageConfig!.id}${id}`).html(gvc.parameter.bindViewList[id].view());
                 if (gvc.parameter.bindViewList[id].onCreate) {
                     gvc.parameter.bindViewList[id].onCreate()
                 }

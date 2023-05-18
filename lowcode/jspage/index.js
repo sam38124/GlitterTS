@@ -140,12 +140,19 @@ function toBackendEditor(glitter) {
     window.root = document.getElementsByTagName('html')[0];
     window.root.classList.add('light-mode');
     function toNext() {
-        running().then(r => {
-            glitter.setHome('jspage/main.js', glitter.getUrlParameter('page'), {
-                appName: config.appName
-            }, {
-                backGroundColor: `transparent;`
-            });
+        running().then(async () => {
+            var _a;
+            {
+                let data = await ApiPageConfig.getPage(config.appName, (_a = glitter.getUrlParameter('page')) !== null && _a !== void 0 ? _a : glitter.getUUID());
+                if (data.response.result.length === 0) {
+                    glitter.setUrlParameter('page', data.response.redirect);
+                }
+                glitter.setHome('jspage/main.js', glitter.getUrlParameter('page'), {
+                    appName: config.appName
+                }, {
+                    backGroundColor: `transparent;`
+                });
+            }
         });
     }
     if (glitter.getUrlParameter('account')) {
@@ -178,7 +185,6 @@ function toBackendEditor(glitter) {
                     "Authorization": glitter.getCookieByName('glitterToken')
                 }
             }).then((d2) => {
-                console.log(d2);
                 if (!d2.result) {
                     const url = new URL(glitter.location.href);
                     location.href = `${url.origin}/glitter/?page=signin`;

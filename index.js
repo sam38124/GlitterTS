@@ -87,7 +87,7 @@ function set_backend_editor(envPath, serverPort) {
                     return [4 /*yield*/, (0, index_1.initial)(serverPort)];
                 case 1:
                     _a.sent();
-                    return [2 /*return*/];
+                    return [2 /*return*/, index_1.app];
             }
         });
     });

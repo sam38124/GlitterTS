@@ -74,7 +74,9 @@ export let config = {
         user: "/user",
         template: "/template",
         app: "/app",
-        fileManager: "/fileManager"
+        fileManager: "/fileManager",
+        private:"/private",
+        ai:"/ai"
     }
 }
 export default config;

@@ -1,8 +1,8 @@
 import * as core from "express-serve-static-core";
 import express from 'express';
 import * as fs from "fs";
-import {initial} from "./src/index";
-import { ConfigSetting} from "./src/config";
+import {initial, app} from "./src/index";
+import {ConfigSetting} from "./src/config";
 import path from "path";
 
 
@@ -26,8 +26,9 @@ export async function set_frontend(express: core.Express, rout: { rout: string, 
     }
 }
 
-export async function set_backend_editor(envPath:string,serverPort:number=3090) {
+export async function set_backend_editor(envPath: string, serverPort: number = 3090): Promise<core.Express> {
     ConfigSetting.setConfig(envPath)
     await initial(serverPort);
+    return app
 }
 

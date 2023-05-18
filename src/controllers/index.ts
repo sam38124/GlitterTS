@@ -6,23 +6,28 @@ import db from '../modules/database';
 import path from 'path';
 import {config, saasConfig} from "../config";
 const router: express.Router = express.Router();
-
 import Logger from "../modules/logger";
 import _ from "underscore";
 import exception from "../modules/exception";
 
 /*********SET UP Router*************/
 import userRouter=require('./user');
+import privateConfig=require('./private_config');
+import ai=require('./ai');
 import template=require('./template');
 import app=require('./app');
 import filemanager=require('./filemanager')
 import * as fs from "fs";
 import {Express} from "express-serve-static-core";
+import {IToken} from "../models/Auth.js";
 router.use('/api/*', doAuthAction);
 router.use(config.getRoute(config.route.user), userRouter);
 router.use(config.getRoute(config.route.template), template);
 router.use(config.getRoute(config.route.app), app);
 router.use(config.getRoute(config.route.fileManager),filemanager)
+router.use(config.getRoute(config.route.private),privateConfig)
+router.use(config.getRoute(config.route.private),privateConfig)
+router.use(config.getRoute(config.route.ai),ai)
 /******************************/
 
 const whiteList:{}[] = [
@@ -30,7 +35,7 @@ const whiteList:{}[] = [
     { url: config.getRoute(config.route.user)+"/register", method: 'POST' },
     { url: config.getRoute(config.route.app)+"/plugin", method: 'GET' },
     { url: config.getRoute(config.route.template), method: 'GET' },
-    { url: config.getRoute(config.route.fileManager)+"/upload", method: 'POST' },
+    { url: config.getRoute(config.route.fileManager)+"/upload", method: 'POST' }
 ];
 async function doAuthAction(req: express.Request, resp: express.Response, next: express.NextFunction) {
     const logger = new Logger();

@@ -2,6 +2,7 @@ import db from '../modules/database';
 import {saasConfig} from "../config";
 import exception from "../modules/exception";
 import {createAPP} from "../index";
+import {IToken} from "../models/Auth.js";
 
 export class Template {
     public token: IToken;

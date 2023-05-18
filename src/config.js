@@ -72,7 +72,9 @@ exports.config = {
         user: "/user",
         template: "/template",
         app: "/app",
-        fileManager: "/fileManager"
+        fileManager: "/fileManager",
+        private: "/private",
+        ai: "/ai"
     }
 };
 exports.default = exports.config;

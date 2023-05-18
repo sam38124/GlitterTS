@@ -8,6 +8,7 @@ import redis from '../modules/redis';
 import config from '../config';
 import axios from 'axios';
 import { Crypter } from '../modules/CryptoJS';
+import {IToken} from "../models/Auth.js";
 
 export default class UserUtil {
     static async insertNewUser(

@@ -1,4 +1,4 @@
-import { appCreate, appSetting } from "../setting/appSetting.js";
+import { appCreate, appSetting, fileManager } from "../setting/appSetting.js";
 export class Setting_editor {
     static left(gvc, viewModel, createID, gBundle) {
         const glitter = gvc.glitter;
@@ -17,7 +17,14 @@ export class Setting_editor {
                             select: true
                         }, {
                             tag: 'pushApp',
-                            text: `<i class="fa-light fa-mobile me-2 d-flex align-items-center justify-content-center" style="width:25px;"></i>應用程式產出`,
+                            text: `<i class="fa-light fa-mobile me-2 d-flex align-items-center justify-content-center" style="width:25px;"></i>APP上架送審`,
+                            click: () => {
+                                gvc.notifyDataChange(createID);
+                            },
+                            select: false
+                        }, {
+                            tag: 'fileManager',
+                            text: `<i class="fa-regular fa-folders me-2 d-flex align-items-center justify-content-center" style="width:25px;"></i>資源管理`,
                             click: () => {
                                 gvc.notifyDataChange(createID);
                             },
@@ -110,6 +117,11 @@ export class Setting_editor {
         if (glitter.getUrlParameter('selectItem') === 'pushApp') {
             return `<div class=" mx-auto" style="width: calc(100% - 20px);height: calc(100vh - 50px);padding-top: 40px;overflow-y: scroll;">
                   ${appCreate(gvc, viewModel, createID)}
+                </div>`;
+        }
+        else if (glitter.getUrlParameter('selectItem') === 'fileManager') {
+            return `<div class=" mx-auto" style="width: calc(100% - 20px);height: calc(100vh - 50px);padding-top: 40px;overflow-y: scroll;">
+                  ${fileManager(gvc, viewModel, createID)}
                 </div>`;
         }
         else {

@@ -72,6 +72,31 @@ export class ApiPageConfig {
             })
         });
     }
+    static setPrivateConfig(appName, key, value) {
+        return BaseApi.create({
+            "url": config.url + `/api/v1/private`,
+            "type": "POST",
+            "headers": {
+                "Content-Type": "application/json",
+                "Authorization": config.token
+            },
+            data: JSON.stringify({
+                appName: appName,
+                key: key,
+                value: value
+            })
+        });
+    }
+    static getPrivateConfig(appName, key) {
+        return BaseApi.create({
+            "url": config.url + `/api/v1/private?appName=${appName}&key=${key}`,
+            "type": "GET",
+            "headers": {
+                "Content-Type": "application/json",
+                "Authorization": config.token
+            }
+        });
+    }
     static uploadFile(fileName) {
         return BaseApi.create({
             "url": config.url + `/api/v1/fileManager/upload`,

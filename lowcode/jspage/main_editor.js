@@ -21,14 +21,22 @@ export class Main_editor {
                         'text': dd.label, option: dd.data.setting.map((d4, index) => {
                             return addItems(d4, dd.data.setting, index);
                         }),
+                        copy: () => {
+                            viewModel.waitCopy = dd;
+                            navigator.clipboard.writeText('glitter-copyEvent');
+                            swal.toast({
+                                icon: 'success',
+                                title: "複製成功，選擇容器按下control+V即可貼上．"
+                            });
+                        },
                         click: () => {
                             if (viewModel.selectItem === dd) {
                                 return;
                             }
                             glitter.setCookie('lastSelect', dd.id);
                             viewModel.selectItem = dd;
-                            viewModel.selectContainer = array;
-                            viewModel.selectIndex = index2;
+                            viewModel.selectContainer = dd.data.setting;
+                            viewModel.selectIndex = 0;
                             gvc.notifyDataChange('showView');
                             gvc.notifyDataChange(['htmlGenerate', 'showView']);
                         },
@@ -51,6 +59,14 @@ export class Main_editor {
                 else {
                     return {
                         'text': dd.label,
+                        copy: () => {
+                            viewModel.waitCopy = dd;
+                            navigator.clipboard.writeText('glitter-copyEvent');
+                            swal.toast({
+                                icon: 'success',
+                                title: "複製成功，選擇容器按下control+V即可貼上．"
+                            });
+                        },
                         click: () => {
                             if (viewModel.selectItem === dd) {
                                 return;
@@ -149,13 +165,12 @@ onclick="${gvc.event(() => {
                                 if (d2.option) {
                                     const id = glitter.getUUID();
                                     const dragID2 = glitter.getUUID();
-                                    return `<li
-                                                                    class="list-group-item list-group-item-action border-0 py-2 px-4 ${checkOptionSelect(d2) ? `active` : ``} position-relative d-flex align-items-center"
+                                    return `<li class="list-group-item list-group-item-action border-0 py-2 px-4 ${checkOptionSelect(d2) ? `active` : ``} position-relative d-flex align-items-center"
                                                                     onclick="${gvc.event(() => {
                                         const needUpdate = d2.select;
                                         clearSelect();
                                         d2.select = true;
-                                        $(`#${id}`).collapse('show');
+                                        $(`#${id}`).toggleClass('show');
                                         parentCallback();
                                         d2.click();
                                         gvc.notifyDataChange(['htmlGenerate', 'showView']);
@@ -186,7 +201,8 @@ onclick="${gvc.event(() => {
                                     })}"
                                                             >
                                                                       ${d2.text}
-                                                                      <button  class="rounded-circle btn-warning  btn  ms-2 d-flex align-items-center justify-content-center p-0" style="height: 25px;width: 25px;" onclick="${gvc.event(() => {
+                                                                      <button  class="rounded-circle btn-warning  btn  ms-2 d-flex align-items-center justify-content-center p-0" style="height: 25px;width: 25px;" onclick="${gvc.event((e, event) => {
+                                        event.stopPropagation();
                                         glitter.openDiaLog('dialog/caddDialog.js', 'caddDialog', {
                                             callback: (data) => {
                                                 d2.setting.push(data);
@@ -200,7 +216,7 @@ onclick="${gvc.event(() => {
 </button>
 <div class="flex-fill"></div>
 <i class="fa-regular fa-copy me-2  ${d2.select ? `` : `d-none`}" onclick="${gvc.event((e, event) => {
-                                        navigator.clipboard.writeText('glitter-copyEvent');
+                                        d2.copy();
                                     })}"></i>
 <i class="fa-regular fa-trash-can ${d2.select ? `` : `d-none`}" style="color:white;" onclick="${gvc.event((e, event) => {
                                         event.stopPropagation();
@@ -208,7 +224,7 @@ onclick="${gvc.event(() => {
                                     })}"></i>
 
                                                                      </li>
-                                                                <ul class="collapse multi-collapse ${checkOptionSelect(d2) ? `show` : ''} position-relative" style="margin-left: 0px;" id="${id}">
+                                                                <ul class="collapse multi-collapse ${checkOptionSelect(d2) ? `show` : ''} position-relative ps-2" style="margin-left: 0px;" id="${id}">
                                                                     ${gvc.map(d2.option.map((d4, index) => {
                                         return convertInner(d4, true, () => {
                                             d2.select = true;
@@ -260,11 +276,7 @@ onclick="${gvc.event(() => {
                                                                  >${d2.text}
                                                                  <div class="flex-fill"></div>
                                                                  <i class="fa-regular fa-copy me-2  ${d2.select ? `` : `d-none`}" onclick="${gvc.event((e, event) => {
-                                        navigator.clipboard.writeText('glitter-copyEvent');
-                                        swal.toast({
-                                            icon: 'success',
-                                            title: "複製成功，選擇容器按下control+V即可貼上．"
-                                        });
+                                        d2.copy();
                                     })}"></i>
 <i class="fa-regular fa-trash-can ${d2.select ? `` : `d-none`}" onclick="${gvc.event((e, event) => {
                                         event.stopPropagation();

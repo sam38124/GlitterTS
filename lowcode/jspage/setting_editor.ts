@@ -1,6 +1,6 @@
 import {GVC} from "../glitterBundle/GVController.js";
 import {pageManager} from "../setting/pageManager.js";
-import {appCreate, appSetting} from "../setting/appSetting.js";
+import {appCreate, appSetting, fileManager} from "../setting/appSetting.js";
 
 export class Setting_editor {
     public static index = '2'
@@ -8,7 +8,7 @@ export class Setting_editor {
     public static left(gvc: GVC, viewModel: any, createID: string, gBundle: any) {
         const glitter = gvc.glitter
         return gvc.bindView(() => {
-            glitter.setUrlParameter('selectItem',glitter.getUrlParameter('selectItem') ?? 'pageDesign')
+            glitter.setUrlParameter('selectItem', glitter.getUrlParameter('selectItem') ?? 'pageDesign')
             let items: any[] = [
                 {
                     title: `後台管理系統`,
@@ -19,14 +19,21 @@ export class Setting_editor {
                             gvc.notifyDataChange(createID)
                         },
                         select: true
-                    },{
+                    }, {
                         tag: 'pushApp',
-                        text: `<i class="fa-light fa-mobile me-2 d-flex align-items-center justify-content-center" style="width:25px;"></i>應用程式產出`,
+                        text: `<i class="fa-light fa-mobile me-2 d-flex align-items-center justify-content-center" style="width:25px;"></i>APP上架送審`,
                         click: () => {
                             gvc.notifyDataChange(createID)
                         },
                         select: false
-                    }].map((dd)=>{
+                    }, {
+                        tag: 'fileManager',
+                        text: `<i class="fa-regular fa-folders me-2 d-flex align-items-center justify-content-center" style="width:25px;"></i>資源管理`,
+                        click: () => {
+                            gvc.notifyDataChange(createID)
+                        },
+                        select: false
+                    }].map((dd) => {
                         dd.select = (glitter.getUrlParameter('selectItem') === dd.tag)
                         return dd
                     })
@@ -88,10 +95,10 @@ export class Setting_editor {
                                     d2.select ? `${(inner) ? `bg-warning` : `active`}` : ``
                                 } position-relative d-flex"
                                                                     onclick="${gvc.event(() => {
-                                                                        
+
                                     clearSelect();
                                     d2.select = true;
-                                    glitter.setUrlParameter('selectItem',d2.tag)
+                                    glitter.setUrlParameter('selectItem', d2.tag)
                                     parentCallback();
                                     gvc.notifyDataChange(createID);
                                     d2.click();
@@ -100,6 +107,7 @@ export class Setting_editor {
                                                                  >${d2.text}
                                                                  </li>`;
                             }
+
                             return gvc.map(
                                 dd.option.map((d2: any, index: number) => {
                                     return convertInner(d2, false, () => {
@@ -122,11 +130,15 @@ export class Setting_editor {
 
     public static center(gvc: GVC, viewModel: any, createID: string) {
         const glitter = gvc.glitter
-        if(glitter.getUrlParameter('selectItem')==='pushApp'){
+        if (glitter.getUrlParameter('selectItem') === 'pushApp') {
             return `<div class=" mx-auto" style="width: calc(100% - 20px);height: calc(100vh - 50px);padding-top: 40px;overflow-y: scroll;">
                   ${appCreate(gvc, viewModel, createID)}
                 </div>`
-        }else{
+        } else if (glitter.getUrlParameter('selectItem') === 'fileManager') {
+            return `<div class=" mx-auto" style="width: calc(100% - 20px);height: calc(100vh - 50px);padding-top: 40px;overflow-y: scroll;">
+                  ${fileManager(gvc, viewModel, createID)}
+                </div>`
+        } else {
             return `<div class=" mx-auto" style="width: calc(100% - 20px);height: calc(100vh - 50px);padding-top: 40px;overflow-y: scroll;">
                   ${appSetting(gvc, viewModel, createID)}
                 </div>`

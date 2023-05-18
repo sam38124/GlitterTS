@@ -1,3 +1,4 @@
+import { IToken } from "../models/Auth.js";
 export declare class App {
     token: IToken;
     createApp(config: {

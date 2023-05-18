@@ -46,6 +46,13 @@ export class GVC {
         const gvc = this;
         try {
             const refresh = (id) => {
+                var _a, _b, _c, _d;
+                gvc.parameter.bindViewList[id].divCreate = (_a = gvc.parameter.bindViewList[id].divCreate) !== null && _a !== void 0 ? _a : {};
+                $(`#${gvc.parameter.pageConfig.id}${id}`).attr('class', (_b = gvc.parameter.bindViewList[id].divCreate.class) !== null && _b !== void 0 ? _b : "");
+                $(`#${gvc.parameter.pageConfig.id}${id}`).attr('style', (_c = gvc.parameter.bindViewList[id].divCreate.style) !== null && _c !== void 0 ? _c : "");
+                ((_d = gvc.parameter.bindViewList[id].divCreate.option) !== null && _d !== void 0 ? _d : []).map((dd) => {
+                    $(`#${gvc.parameter.pageConfig.id}${id}`).attr(dd.key, dd.value);
+                });
                 $(`#${gvc.parameter.pageConfig.id}${id}`).html(gvc.parameter.bindViewList[id].view());
                 if (gvc.parameter.bindViewList[id].onCreate) {
                     gvc.parameter.bindViewList[id].onCreate();

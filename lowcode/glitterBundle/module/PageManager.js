@@ -197,7 +197,6 @@ background: ${config.backGroundColor};display: none;z-index: 999999;overflow: hi
                         lastPage.scrollTop = glitter.$('html').get(0).scrollTop;
                         console.log('lastPage.scrollTop:' + lastPage.scrollTop);
                     }
-                    console.log('scrollTop--' + page);
                     glitter.$('html').stop().animate({ scrollTop: 0 }, 0);
                 }
             }, 100);

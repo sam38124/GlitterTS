@@ -7,6 +7,7 @@ export interface HtmlJson {
         src: string,
         route: string
     },
+    hashTag: string;
     rout: string,
     type: string,
     id: string,

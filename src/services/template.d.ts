@@ -1,3 +1,4 @@
+import { IToken } from "../models/Auth.js";
 export declare class Template {
     token: IToken;
     verifyPermission(appName: string): Promise<boolean>;

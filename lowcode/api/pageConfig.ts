@@ -98,6 +98,31 @@ export class ApiPageConfig{
             })
         })
     }
+    public static setPrivateConfig(appName:string,key:any,value:any){
+        return BaseApi.create({
+            "url": config.url+`/api/v1/private`,
+            "type": "POST",
+            "headers": {
+                "Content-Type": "application/json",
+                "Authorization":config.token
+            },
+            data:JSON.stringify({
+                appName:appName,
+                key:key,
+                value:value
+            })
+        })
+    }
+    public static getPrivateConfig(appName:string,key:any){
+        return BaseApi.create({
+            "url": config.url+`/api/v1/private?appName=${appName}&key=${key}`,
+            "type": "GET",
+            "headers": {
+                "Content-Type": "application/json",
+                "Authorization":config.token
+            }
+        })
+    }
 
     public static uploadFile(fileName:string){
         return BaseApi.create({

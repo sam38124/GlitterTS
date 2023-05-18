@@ -32,6 +32,8 @@ export declare let config: {
         template: string;
         app: string;
         fileManager: string;
+        private: string;
+        ai: string;
     };
 };
 export default config;

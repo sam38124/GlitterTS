@@ -14,7 +14,7 @@ import db from './modules/database';
 import {createBucket, listBuckets} from "./modules/AWSLib";
 import AWS from "aws-sdk";
 //Glitter FrontEnd Rout
-const app = express();
+export const app = express();
 const logger = new Logger();
 
 const corsOptions = {

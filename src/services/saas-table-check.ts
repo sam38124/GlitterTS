@@ -134,6 +134,39 @@ export const SaasScheme = {
                                  \`user\`
                              )
             ) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE =utf8mb4_unicode_ci`, {})
+        await trans.execute(`CREATE TABLE if not exists \`${saasConfig.SAAS_NAME}\`.\`private_config\`
+        (
+            \`id\`
+            int
+            NOT
+            NULL
+            AUTO_INCREMENT,
+            \`app_name\`
+            varchar
+                             (
+            45
+                             ) COLLATE utf8mb4_unicode_ci NOT NULL,
+            \`key\` varchar
+                             (
+                                 100
+                             ) COLLATE utf8mb4_unicode_ci NOT NULL,
+            \`value\` json NOT NULL,
+            \`updated_at\` datetime NOT NULL,
+            PRIMARY KEY
+                             (
+                                 \`id\`
+                             ),
+            UNIQUE KEY \`index2\`
+                             (
+                                 \`app_name\`,
+                                 \`key\`
+                             ),
+            KEY \`index3\`
+                             (
+                                 \`key\`
+                             )
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE =utf8mb4_unicode_ci
+`,{})
         await trans.commit()
     }
 }

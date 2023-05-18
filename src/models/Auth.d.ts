@@ -1,7 +1,7 @@
-interface IToken {
-    account: string,
+export interface IToken {
+    account: string;
     iat: number;
     exp: number;
-    userData:any;
-    userID:number;
+    userData: any;
+    userID: number;
 }

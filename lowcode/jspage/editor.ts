@@ -115,9 +115,7 @@ export class Editor {
                         divCreate:{}
                     }
                 })
-           
             })()}
-
 </ul>
 
   </div>
@@ -155,11 +153,9 @@ export class Editor {
                         </div>
                        
                     </header>
-<!--                  -->
-  <!-- Main sidebar navigation -->
                     <aside
                         id="componentsNav"
-                        class="offcanvas offcanvas-start offcanvas-expand-lg position-fixed top-0 start-0 vh-100 bg-light border-end-lg"
+                        class="offcanvas offcanvas-start offcanvas-expand-lg position-fixed top-0 start-0 vh-100 bg-light border-end-lg overflow-auto"
                         style="width: 21rem;"
                     >
                         <div class="offcanvas-header d-none d-lg-flex justify-content-start border-bottom" style="height: 56px;">
