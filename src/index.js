@@ -189,7 +189,7 @@ async function createAPP(dd) {
                     else {
                         const config = (await database_2.default.execute(`SELECT \`${config_1.saasConfig.SAAS_NAME}\`.app_config.\`config\`
                                                           FROM \`${config_1.saasConfig.SAAS_NAME}\`.app_config
-                                                          where \`${config_1.saasConfig.SAAS_NAME}\`.app_config.appName = ${database_2.default.escape(dd.appName)}
+                                                          where \`${config_1.saasConfig.SAAS_NAME}\`.app_config.appName = ${database_2.default.escape(dd.appName)} limit 0,1
                         `, []))[0]['config'];
                         if (config && ((await database_2.default.execute(`SELECT count(1)
                                                           FROM \`${config_1.saasConfig.SAAS_NAME}\`.page_config
@@ -204,6 +204,13 @@ async function createAPP(dd) {
                                                           where \`${config_1.saasConfig.SAAS_NAME}\`.page_config.appName = ${database_2.default.escape(dd.appName)} limit 0,1
                             `, []))[0]['tag'];
                         }
+                        data = (await database_2.default.execute(`SELECT page_config, \`${config_1.saasConfig.SAAS_NAME}\`.app_config.\`config\`
+                                                  FROM \`${config_1.saasConfig.SAAS_NAME}\`.page_config,
+                                                       \`${config_1.saasConfig.SAAS_NAME}\`.app_config
+                                                  where \`${config_1.saasConfig.SAAS_NAME}\`.page_config.appName = ${database_2.default.escape(dd.appName)}
+                                                    and tag = ${database_2.default.escape(redirect)}
+                                                    and \`${config_1.saasConfig.SAAS_NAME}\`.page_config.appName = \`${config_1.saasConfig.SAAS_NAME}\`.app_config.appName;
+                        `, []))[0];
                     }
                     return (() => {
                         var _a, _b, _c, _d, _e, _f, _g, _h, _j;
@@ -216,7 +223,18 @@ async function createAPP(dd) {
     <link rel="icon" href="${(_f = d.logo) !== null && _f !== void 0 ? _f : ""}" type="image/png" sizes="128x128">
     <meta property="og:image" content="${(_g = d.image) !== null && _g !== void 0 ? _g : ""}">
     <meta property="og:title" content="${(_h = d.title) !== null && _h !== void 0 ? _h : ""}">
-    <meta name="description" content="${(_j = d.content) !== null && _j !== void 0 ? _j : ""}">`;
+    <meta name="description" content="${(_j = d.content) !== null && _j !== void 0 ? _j : ""}">
+${(() => {
+                                if (redirect) {
+                                    return `<script>
+window.location.href='?page=${redirect}';
+</script>`;
+                                }
+                                else {
+                                    return ``;
+                                }
+                            })()}
+`;
                         }
                         else {
                             return `<script>

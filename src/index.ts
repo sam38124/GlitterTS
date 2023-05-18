@@ -45,11 +45,12 @@ export async function initial(serverPort: number) {
         console.log('Starting up the server now.');
     })();
 }
-async function createDomain(domainName:string){
+
+async function createDomain(domainName: string) {
 // 创建 Route 53 Domains 实例
     const route53domains = new AWS.Route53Domains();
 // 定义注册域名的参数
-    const contact={ // 管理员联系信息
+    const contact = { // 管理员联系信息
         FirstName: 'jianzhi',
         LastName: 'wang',
         ContactType: 'PERSON',
@@ -66,7 +67,7 @@ async function createDomain(domainName:string){
         DurationInYears: 1, // 注册的年限
         AutoRenew: true, // 是否自动续费
         AdminContact: contact,
-        RegistrantContact:contact,
+        RegistrantContact: contact,
         TechContact: contact,
         PrivacyProtectAdminContact: true, // 是否开启管理员联系信息的隐私保护
         PrivacyProtectRegistrantContact: true, // 是否开启注册人联系信息的隐私保护
@@ -83,7 +84,8 @@ async function createDomain(domainName:string){
         }
     });
 }
-async function setDNS(domainName:string) {
+
+async function setDNS(domainName: string) {
     const route53 = new AWS.Route53();
     const domainParams = {
         Name: domainName,
@@ -134,7 +136,6 @@ async function setDNS(domainName:string) {
 }
 
 
-
 function createContext(req: express.Request, res: express.Response, next: express.NextFunction) {
     const uuid = uuidv4();
     const ip = req.ip;
@@ -180,7 +181,7 @@ export async function createAPP(dd: any) {
                     } else {
                         const config = (await db.execute(`SELECT \`${saasConfig.SAAS_NAME}\`.app_config.\`config\`
                                                           FROM \`${saasConfig.SAAS_NAME}\`.app_config
-                                                          where \`${saasConfig.SAAS_NAME}\`.app_config.appName = ${db.escape(dd.appName)}
+                                                          where \`${saasConfig.SAAS_NAME}\`.app_config.appName = ${db.escape(dd.appName)} limit 0,1
                         `, []))[0]['config']
                         if (config && ((await db.execute(`SELECT count(1)
                                                           FROM \`${saasConfig.SAAS_NAME}\`.page_config
@@ -194,6 +195,13 @@ export async function createAPP(dd: any) {
                                                           where \`${saasConfig.SAAS_NAME}\`.page_config.appName = ${db.escape(dd.appName)} limit 0,1
                             `, []))[0]['tag']
                         }
+                        data = (await db.execute(`SELECT page_config, \`${saasConfig.SAAS_NAME}\`.app_config.\`config\`
+                                                  FROM \`${saasConfig.SAAS_NAME}\`.page_config,
+                                                       \`${saasConfig.SAAS_NAME}\`.app_config
+                                                  where \`${saasConfig.SAAS_NAME}\`.page_config.appName = ${db.escape(dd.appName)}
+                                                    and tag = ${db.escape(redirect)}
+                                                    and \`${saasConfig.SAAS_NAME}\`.page_config.appName = \`${saasConfig.SAAS_NAME}\`.app_config.appName;
+                        `, []))[0]
                     }
                     return (() => {
                         data.page_config = data.page_config ?? {}
@@ -205,7 +213,17 @@ export async function createAPP(dd: any) {
     <link rel="icon" href="${d.logo ?? ""}" type="image/png" sizes="128x128">
     <meta property="og:image" content="${d.image ?? ""}">
     <meta property="og:title" content="${d.title ?? ""}">
-    <meta name="description" content="${d.content ?? ""}">`
+    <meta name="description" content="${d.content ?? ""}">
+${(() => {
+                                if (redirect) {
+                                    return `<script>
+window.location.href='?page=${redirect}';
+</script>`
+                                } else {
+                                    return ``
+                                }
+                            })()}
+`
                         } else {
                             return `<script>
 window.location.href='?page=${redirect}';

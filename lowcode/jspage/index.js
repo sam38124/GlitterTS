@@ -78,7 +78,6 @@ init((gvc, glitter, gBundle) => {
                         toBackendEditor(glitter);
                     }
                     else if (glitter.getUrlParameter("type") === 'htmlEditor') {
-                        glitter.addStyleLink('glitterBundle/bootstrap.css');
                         glitter.htmlGenerate.setHome({
                             page_config: (_a = window.parent.page_config) !== null && _a !== void 0 ? _a : {},
                             config: window.parent.editerData.setting,
