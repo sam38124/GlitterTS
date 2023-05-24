@@ -1,0 +1,28 @@
+//
+// Toasts
+// --------------------------------------------------
+
+
+.toast-header {
+  position: relative;
+  border: 0;
+  font-weight: $headings-font-weight;
+
+  &::after {
+    position: absolute;
+    left: $toast-padding-x;
+    bottom: -$toast-border-width;
+    width: calc(100% - #{$toast-padding-x * 2});
+    height: $toast-border-width;
+    background-color: $toast-header-border-color;
+    content: '';
+  }
+
+  &[class^='bg-']::after,
+  &[class*=' bg-']::after {
+    display: none;
+  }
+  .btn-close {
+    margin-right: 0;
+  }
+}

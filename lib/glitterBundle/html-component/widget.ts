@@ -13,23 +13,11 @@ export const widgetComponent = {
         const id = subData.widgetComponentID
         subData = subData ?? {}
         let formData = subData
-        if((widget.data.dataFrom==="code")){
-            widget.data.innerEvenet=widget.data.innerEvenet??{}
-            TriggerEvent.trigger({
-                gvc: gvc,
-                widget: widget,
-                clickEvent: widget.data.innerEvenet
-            }).then((data) => {
-                if(widget.data.elem === 'select'){
-                    formData[widget.data.key]=data
-                }
-                widget.data.inner=data
-                gvc.notifyDataChange(id)
-            })
-        }
 
         return {
             view: () => {
+                let re=false
+
                 function getCreateOption(){
                     let option=widget.data.attr.map((dd: any) => {
                         if (dd.type === 'par') {
@@ -50,12 +38,14 @@ export const widgetComponent = {
                     })
                     if(widget.data.elem==='img'){
                         option.push({key: 'src', value: widget.data.inner})
+                    }else if(widget.data.elem==='input'){
+                        option.push({key: 'value', value: widget.data.inner})
                     }
                     return {
                         elem: widget.data.elem,
                         class: glitter.htmlGenerate.styleEditor(widget.data).class()+` glitterTag${widget.hashTag}`,
                         style: glitter.htmlGenerate.styleEditor(widget.data).style()+`   ${hoverID.indexOf(widget.id) !== -1 ? `border: 4px solid dodgerblue;border-radius: 5px;box-sizing: border-box;` : ``}`,
-                        option: option,
+                        option: option.concat(subData.option),
                     }
                 }
                 if(widget.type==='container'){
@@ -74,6 +64,7 @@ export const widgetComponent = {
                         },
                         data: []
                     }
+
                     if (widget.data.elem === 'select' && widget.data.selectType === 'api') {
                         widget.data.selectAPI = widget.data.selectAPI ?? {}
                         TriggerEvent.trigger({
@@ -81,11 +72,10 @@ export const widgetComponent = {
                         })
                     }
 
-
                     return {
                         bind: id,
                         view: () => {
-
+                           console.log('render')
                             switch (widget.data.elem) {
                                 case 'select':
                                     formData[widget.data.key]=widget.data.inner
@@ -113,19 +103,66 @@ export const widgetComponent = {
                                         }).join('')
                                     }
                                 case 'img':
+                                case 'input':
                                     return  ``
                                 default:
                                     return widget.data.inner
                             }
-
                         },
-                        divCreate: getCreateOption()
+                        divCreate: getCreateOption,
+                        onCreate:()=>{
+                            if (hoverID.indexOf(widget.id) !== -1 ) {
+                                gvc.glitter.$('html').get(0).scrollTo({
+                                    top: 0,
+                                    left: 0,
+                                    behavior: 'instant',
+                                });
+                                const scrollTOP =
+                                    gvc.glitter.$('#' + gvc.id(id)).offset().top -
+                                    gvc.glitter.$('html').offset().top +
+                                    gvc.glitter.$('html').scrollTop();
+                                gvc.glitter
+                                    .$('html')
+                                    .get(0)
+                                    .scrollTo({
+                                        top: scrollTOP - gvc.glitter.$('html').height() / 2,
+                                        left: 0,
+                                        behavior: 'instant',
+                                    });
+                            }
+                        },
+                        onInitial:()=>{
+                            if((widget.data.dataFrom==="code")){
+                                if(widget.data.elem !== 'select'){
+                                    widget.data.inner=''
+                                }
+                                widget.data.innerEvenet=widget.data.innerEvenet??{}
+                                TriggerEvent.trigger({
+                                    gvc: gvc,
+                                    widget: widget,
+                                    clickEvent: widget.data.innerEvenet,
+                                    subData
+                                }).then((data) => {
+                                    if(widget.data.elem === 'select'){
+                                        formData[widget.data.key]=data
+                                    }
+                                    widget.data.inner=data
+                                    re=true
+                                    setInterval(()=>{
+
+                                        gvc.notifyDataChange(id)
+                                    },1000)
+
+                                })
+                            }
+                            console.log('sss')
+                        }
                     }
                 })
             },
             editor: () => {
                 widget.type = widget.type ?? "elem"
-                widget.data.elemExpand = widget.data.elemExpand ?? []
+                widget.data.elemExpand = widget.data.elemExpand ?? {}
                 widget.data.atrExpand = widget.data.atrExpand ?? {}
                 return gvc.map([
                     `<div class="mt-2"></div>`,
@@ -142,7 +179,7 @@ export const widgetComponent = {
                                     title: 'HTML元素標籤',
                                     gvc: gvc,
                                     def: widget.data.elem,
-                                    array: ['button', 'h1', 'h2', 'h3', 'h4', 'h5', 'li', 'ul', 'table', 'div', 'header', 'section', 'span', 'p', 'a', 'img'
+                                    array: ['button', 'h1', 'h2', 'h3', 'h4', 'h5', 'li', 'ul', 'table', 'div', 'header', 'section', 'span', 'p', 'a', 'img','style'
                                         , 'input', 'select'],
                                     callback: (text: string) => {
                                         widget.data.elem = text
@@ -151,6 +188,9 @@ export const widgetComponent = {
                                     placeHolder: "請輸入元素標籤"
                                 }),
                                 (() => {
+                                    if(widget.type==='container'){
+                                        return  ``
+                                    }
                                     switch (widget.data.elem) {
                                         case 'select':
                                             widget.data.selectList = widget.data.selectList ?? []
@@ -366,7 +406,16 @@ export const widgetComponent = {
                                                 })()
                                             ])
                                     }
-                                })()
+                                })(),
+                                glitter.htmlGenerate.editeText({
+                                    gvc: gvc,
+                                    title: "備註",
+                                    default: widget.data.note ?? "",
+                                    placeHolder: "請輸入元件備註內容",
+                                    callback: (text: string) => {
+                                        widget.data.note = text
+                                    }
+                                })
                             ])
                         }
                     }),

@@ -2,7 +2,7 @@ import { TriggerEvent } from "../plugins/trigger-event.js";
 import { Editor } from "./editor.js";
 export const widgetComponent = {
     render: (gvc, widget, setting, hoverID, subData) => {
-        var _a, _b, _c, _d;
+        var _a, _b, _c;
         const glitter = gvc.glitter;
         widget.data.elem = (_a = widget.data.elem) !== null && _a !== void 0 ? _a : "h3";
         widget.data.inner = (_b = widget.data.inner) !== null && _b !== void 0 ? _b : "";
@@ -10,22 +10,9 @@ export const widgetComponent = {
         const id = subData.widgetComponentID;
         subData = subData !== null && subData !== void 0 ? subData : {};
         let formData = subData;
-        if ((widget.data.dataFrom === "code")) {
-            widget.data.innerEvenet = (_d = widget.data.innerEvenet) !== null && _d !== void 0 ? _d : {};
-            TriggerEvent.trigger({
-                gvc: gvc,
-                widget: widget,
-                clickEvent: widget.data.innerEvenet
-            }).then((data) => {
-                if (widget.data.elem === 'select') {
-                    formData[widget.data.key] = data;
-                }
-                widget.data.inner = data;
-                gvc.notifyDataChange(id);
-            });
-        }
         return {
             view: () => {
+                let re = false;
                 function getCreateOption() {
                     let option = widget.data.attr.map((dd) => {
                         if (dd.type === 'par') {
@@ -47,6 +34,9 @@ export const widgetComponent = {
                     });
                     if (widget.data.elem === 'img') {
                         option.push({ key: 'src', value: widget.data.inner });
+                    }
+                    else if (widget.data.elem === 'input') {
+                        option.push({ key: 'value', value: widget.data.inner });
                     }
                     return {
                         elem: widget.data.elem,
@@ -77,6 +67,7 @@ export const widgetComponent = {
                     return {
                         bind: id,
                         view: () => {
+                            console.log('render');
                             switch (widget.data.elem) {
                                 case 'select':
                                     formData[widget.data.key] = widget.data.inner;
@@ -107,12 +98,13 @@ export const widgetComponent = {
                                         }).join('');
                                     }
                                 case 'img':
+                                case 'input':
                                     return ``;
                                 default:
                                     return widget.data.inner;
                             }
                         },
-                        divCreate: getCreateOption(),
+                        divCreate: getCreateOption,
                         onCreate: () => {
                             if (hoverID.indexOf(widget.id) !== -1) {
                                 gvc.glitter.$('html').get(0).scrollTo({
@@ -132,6 +124,31 @@ export const widgetComponent = {
                                     behavior: 'instant',
                                 });
                             }
+                        },
+                        onInitial: () => {
+                            var _a;
+                            if ((widget.data.dataFrom === "code")) {
+                                if (widget.data.elem !== 'select') {
+                                    widget.data.inner = '';
+                                }
+                                widget.data.innerEvenet = (_a = widget.data.innerEvenet) !== null && _a !== void 0 ? _a : {};
+                                TriggerEvent.trigger({
+                                    gvc: gvc,
+                                    widget: widget,
+                                    clickEvent: widget.data.innerEvenet,
+                                    subData
+                                }).then((data) => {
+                                    if (widget.data.elem === 'select') {
+                                        formData[widget.data.key] = data;
+                                    }
+                                    widget.data.inner = data;
+                                    re = true;
+                                    setInterval(() => {
+                                        gvc.notifyDataChange(id);
+                                    }, 1000);
+                                });
+                            }
+                            console.log('sss');
                         }
                     };
                 });
@@ -148,6 +165,7 @@ export const widgetComponent = {
                         title: '元件設定',
                         data: widget.data.elemExpand,
                         innerText: () => {
+                            var _a;
                             return gvc.map([
                                 glitter.htmlGenerate.styleEditor(widget.data).editor(gvc, () => {
                                     widget.refreshComponent();
@@ -389,7 +407,16 @@ export const widgetComponent = {
                                                 })()
                                             ]);
                                     }
-                                })()
+                                })(),
+                                glitter.htmlGenerate.editeText({
+                                    gvc: gvc,
+                                    title: "備註",
+                                    default: (_a = widget.data.note) !== null && _a !== void 0 ? _a : "",
+                                    placeHolder: "請輸入元件備註內容",
+                                    callback: (text) => {
+                                        widget.data.note = text;
+                                    }
+                                })
                             ]);
                         }
                     }),

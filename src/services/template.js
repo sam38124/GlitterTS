@@ -28,7 +28,7 @@ class Template {
             const data = (await database_1.default.execute(`
                 select \`${config_1.saasConfig.SAAS_NAME}\`.page_config.page_config,
                        \`${config_1.saasConfig.SAAS_NAME}\`.page_config.config 
-                from  \`${config_1.saasConfig.SAAS_NAME}\`.page_config where tag=${database_1.default.escape(config.copy)}
+                from  \`${config_1.saasConfig.SAAS_NAME}\`.page_config where tag=${database_1.default.escape(config.copy)} and appName = ${database_1.default.escape(config.appName)}
             `, []))[0];
             config.page_config = data['page_config'];
             config.config = data['config'];
@@ -67,9 +67,7 @@ class Template {
             let sql = `
                 UPDATE \`${config_1.saasConfig.SAAS_NAME}\`.page_config
                 SET ?
-                WHERE 1 = 1
-                 
-                  
+                WHERE 1 = 1 
             `;
             if (config.id) {
                 sql += ` and \`id\` = ${config.id} `;

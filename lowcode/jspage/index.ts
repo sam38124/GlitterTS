@@ -23,20 +23,6 @@ init((gvc, glitter, gBundle)=>{
                 const plugin = Plugin;
                 (async () => {
                     return new Promise(async (resolve, reject) => {
-                        setTimeout(() => {
-                            resolve(true)
-                        }, 4000)
-                        for (const data of (dd.response.data.initialStyleSheet ?? [])) {
-                            try {
-                                if (data.type === 'script') {
-                                   glitter.addStyleLink(data.src.link)
-                                } else{
-                                    glitter.addStyle(data.src.official)
-                                }
-                            } catch (e) {
-                                console.log(e)
-                            }
-                        }
                         for (const data of (dd.response.data.initialList ?? [])) {
                             try {
                                 if (data.type === 'script') {
@@ -48,7 +34,9 @@ init((gvc, glitter, gBundle)=>{
                                     await new Promise((resolve, reject) => {
                                         glitter.addMtScript([{
                                             src:url.href , type: 'module'
-                                        }], () => { }, () => {
+                                        }], () => {
+                                            resolve(true)
+                                        }, () => {
                                             resolve(true)
                                         })
                                     })
@@ -67,7 +55,26 @@ init((gvc, glitter, gBundle)=>{
                                 console.log(e)
                             }
                         }
-                        resolve(true)
+                        if (glitter.getUrlParameter("type") !== 'editor') {
+                            setTimeout(() => {
+                                resolve(true)
+                            }, 4000)
+                            for (const data of (dd.response.data.initialStyleSheet ?? [])) {
+                                try {
+                                    if (data.type === 'script') {
+                                        gvc.glitter.addStyleLink(data.src.link)
+                                    } else{
+                                        gvc.glitter.addStyle(data.src.official)
+                                    }
+                                } catch (e) {
+                                    console.log(e)
+                                }
+                            }
+                            resolve(true)
+                        }else{
+                            resolve(true)
+                        }
+
                     })
                 })().then(() => {
                     if (glitter.getUrlParameter("type") === 'editor') {

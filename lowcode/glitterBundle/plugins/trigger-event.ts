@@ -142,25 +142,49 @@ export class TriggerEvent {
         let returnData = ''
 
         async function run() {
-            oj.gvc.glitter.share.clickEvent = oj.gvc.glitter.share.clickEvent ?? {}
-            if (!oj.gvc.glitter.share.clickEvent[event.src]) {
-                await new Promise((resolve, reject) => {
-                    oj.gvc.glitter.addMtScript([
-                        {src: `${glitter.htmlGenerate.resourceHook(event.src)}`, type: 'module'}
-                    ], () => {
-                        resolve(true)
-                    }, () => {
-                        resolve(false)
-                    })
-                })
-            }
-            returnData = await oj.gvc.glitter.share.clickEvent[glitter.htmlGenerate.resourceHook(event.src)][event.route].fun(oj.gvc, oj.widget, oj.clickEvent, oj.subData, oj.element).event()
+           return new Promise<boolean>(async (resolve, reject)=>{
+               async function pass(){
+                   try {
+                       returnData = await oj.gvc.glitter.share.clickEvent[glitter.htmlGenerate.resourceHook(event.src)][event.route].fun(oj.gvc, oj.widget, oj.clickEvent, oj.subData, oj.element).event()
+                       resolve(true)
+                   }catch (e){
+                       resolve(false)
+                   }
+               }
+               oj.gvc.glitter.share.clickEvent = oj.gvc.glitter.share.clickEvent ?? {}
+               if (!oj.gvc.glitter.share.clickEvent[event.src]) {
+                   await new Promise((resolve, reject) => {
+                       oj.gvc.glitter.addMtScript([
+                           {src: `${glitter.htmlGenerate.resourceHook(event.src)}`, type: 'module'}
+                       ], () => {
+                           pass()
+                       }, () => {
+                           resolve(false)
+                       })
+                   })
+               }else {
+                   pass()
+               }
+           })
         }
 
 
         return new Promise(async (resolve, reject) => {
-            await run()
-            resolve(returnData)
+            let fal=10
+            function check(){
+                run().then((res)=>{
+                    if(res||(fal===0)){
+                        resolve(returnData)
+                    }else{
+                        setTimeout(()=>{
+                            fal-=1
+                            check()
+                        },100)
+                    }
+                })
+            }
+           check()
+
         })
     }
 
@@ -217,6 +241,9 @@ export class TriggerEvent {
 </select>
 ${gvc.bindView(() => {
                             const id = glitter.getUUID()
+                            setTimeout(()=>{
+                                gvc.notifyDataChange(id)
+                            },200)
                             return {
                                 bind: id,
                                 view: () => {
@@ -233,15 +260,17 @@ ${gvc.bindView(() => {
                                 onCreate: () => {
                                     glitter.share.clickEvent = glitter.share.clickEvent ?? {}
                                     try {
-
-                                        if (!glitter.share.clickEvent[glitter.htmlGenerate.resourceHook(obj.clickEvent.src)]) {
+                                        if (!glitter.share.clickEvent[glitter.htmlGenerate.resourceHook(obj.clickEvent.src)]) {-
                                             glitter.addMtScript([
                                                 {
                                                     src: glitter.htmlGenerate.resourceHook(obj.clickEvent.src),
                                                     type: 'module'
                                                 }
                                             ], () => {
-                                                gvc.notifyDataChange(selectID)
+                                                setTimeout(()=>{
+                                                    gvc.notifyDataChange(id)
+                                                },200)
+                                               
                                             }, () => {
                                                 console.log(`loadingError:` + obj.clickEvent.src)
                                             })

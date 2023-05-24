@@ -70,8 +70,12 @@ const setHashmap = (key: string, obj: any) => {
 
 const getValue = (key: string) => {
     return new Promise(async (resolve, reject) => {
-        const data=await redisClient.get(key)
-        return resolve(data);
+        try {
+            const data=await redisClient.get(key)
+            return resolve(data);
+        }catch (e){
+            return resolve(undefined);
+        }
     });
 };
 

@@ -1,16 +1,19 @@
 import {GVC} from "../glitterBundle/GVController.js";
 import {Swal} from "../modules/sweetAlert.js";
 import {Lan} from "./language.js";
+
 enum ViewType {
     mobile = "mobile",
     desktop = "desktop"
 }
-export class Main_editor{
-    public static left(gvc:GVC,viewModel:any,createID:string,gBundle:any){
+
+export class Main_editor {
+    public static left(gvc: GVC, viewModel: any, createID: string, gBundle: any) {
         const swal = new Swal(gvc);
-        const glitter=gvc.glitter
+        const glitter = gvc.glitter
         return gvc.bindView(() => {
             let items: any[] = [];
+
             function addItems(dd: any, array: any, index2: number) {
                 if (glitter.getCookieByName('lastSelect') === dd.id) {
                     viewModel.selectItem = dd;
@@ -22,16 +25,16 @@ export class Main_editor{
                         'text': dd.label, option: dd.data.setting.map((d4: any, index: number) => {
                             return addItems(d4, dd.data.setting, index);
                         }),
-                        copy:()=>{
-                            viewModel.waitCopy=dd
-                            navigator.clipboard.writeText('glitter-copyEvent');
+                        copy: () => {
+                            viewModel.waitCopy = dd
+                            navigator.clipboard.writeText('glitter-copyEvent'+JSON.stringify(viewModel.waitCopy));
                             swal.toast({
-                                icon:'success',
-                                title:"複製成功，選擇容器按下control+V即可貼上．"
+                                icon: 'success',
+                                title: "複製成功，選擇容器按下control+V即可貼上．"
                             })
                         },
                         click: () => {
-                            if(viewModel.selectItem === dd){
+                            if (viewModel.selectItem === dd) {
                                 return
                             }
                             glitter.setCookie('lastSelect', dd.id);
@@ -41,10 +44,10 @@ export class Main_editor{
                             gvc.notifyDataChange('showView');
                             gvc.notifyDataChange(['htmlGenerate', 'showView']);
                         },
-                        minus:()=>{
-                            array.splice(index2,1)
-                            const index=((viewModel.selectIndex-1) > 0) ? viewModel.selectIndex-1:0
-                            if(array[index]){
+                        minus: () => {
+                            array.splice(index2, 1)
+                            const index = ((viewModel.selectIndex - 1) > 0) ? viewModel.selectIndex - 1 : 0
+                            if (array[index]) {
                                 glitter.setCookie('lastSelect', array[index].id);
                                 viewModel.selectItem = array[index];
                                 viewModel.selectIndex = index
@@ -53,22 +56,26 @@ export class Main_editor{
                             gvc.notifyDataChange(createID)
                         },
                         dataArray: array,
+                        changeIndex: (index: number) => {
+                            index2 = index
+                        },
+                        index: index2,
                         setting: dd.data.setting,
                         select: glitter.getCookieByName('lastSelect') === dd.id
                     };
                 } else {
                     return {
                         'text': dd.label,
-                        copy:()=>{
-                            viewModel.waitCopy=dd
-                            navigator.clipboard.writeText('glitter-copyEvent');
+                        copy: () => {
+                            viewModel.waitCopy = dd
+                            navigator.clipboard.writeText('glitter-copyEvent'+JSON.stringify(viewModel.waitCopy));
                             swal.toast({
-                                icon:'success',
-                                title:"複製成功，選擇容器按下control+V即可貼上．"
+                                icon: 'success',
+                                title: "複製成功，選擇容器按下control+V即可貼上．"
                             })
                         },
                         click: () => {
-                            if(viewModel.selectItem === dd){
+                            if (viewModel.selectItem === dd) {
                                 return
                             }
                             viewModel.selectItem = dd;
@@ -78,10 +85,10 @@ export class Main_editor{
                             gvc.notifyDataChange('showView');
                             gvc.notifyDataChange(['htmlGenerate', 'showView']);
                         },
-                        minus:()=>{
-                            array.splice(index2,1)
-                            const index=((viewModel.selectIndex-1) > 0) ? viewModel.selectIndex-1:0
-                            if(array[index]){
+                        minus: () => {
+                            array.splice(index2, 1)
+                            const index = ((viewModel.selectIndex - 1) > 0) ? viewModel.selectIndex - 1 : 0
+                            if (array[index]) {
                                 glitter.setCookie('lastSelect', array[index].id);
                                 viewModel.selectItem = array[index];
                                 viewModel.selectIndex = index
@@ -90,6 +97,9 @@ export class Main_editor{
                             gvc.notifyDataChange(createID)
                         },
                         dataArray: array,
+                        changeIndex: (index: number) => {
+                            index2 = index
+                        },
                         select: glitter.getCookieByName('lastSelect') === dd.id
                     };
                 }
@@ -132,8 +142,13 @@ export class Main_editor{
                     };
                     let indexCounter = 9999;
                     items.map((dd, index) => {
-                        html += `<h3 class="fs-lg d-flex align-items-center">${dd.title}<button class="rounded-circle btn-warning  btn  ms-2 d-flex align-items-center justify-content-center p-0" style="height: 25px;width: 25px;"
-onclick="${gvc.event(() => {
+                        html += `<h3 class="fs-lg d-flex align-items-center" style="cursor: pointer;" onclick="${gvc.event(() => {
+                            glitter.setCookie('lastSelect', '');
+                            viewModel.selectItem=undefined
+                            viewModel.selectContainer = (viewModel.data! as any).config
+                            gvc.notifyDataChange(createID)
+                        })}">${dd.title}<button class="rounded-circle btn-warning  btn  ms-2 d-flex align-items-center justify-content-center p-0" style="height: 25px;width: 25px;"
+onclick="${gvc.event((e, event) => {
                             glitter.openDiaLog('dialog/caddDialog.js', 'caddDialog', {
                                 callback: (data: any) => {
                                     (viewModel.data! as any).config.push(data);
@@ -213,8 +228,8 @@ onclick="${gvc.event(() => {
                                     })}"
                                                             >
                                                                       ${d2.text}
-                                                                      <button  class="rounded-circle btn-warning  btn  ms-2 d-flex align-items-center justify-content-center p-0" style="height: 25px;width: 25px;" onclick="${gvc.event((e,event) => {
-                                        event.stopPropagation();                                   
+                                                                      <button  class="rounded-circle btn-warning  btn  ms-2 d-flex align-items-center justify-content-center p-0" style="height: 25px;width: 25px;" onclick="${gvc.event((e, event) => {
+                                        event.stopPropagation();
                                         glitter.openDiaLog('dialog/caddDialog.js', 'caddDialog', {
                                             callback: (data: any) => {
                                                 d2.setting.push(data);
@@ -227,10 +242,10 @@ onclick="${gvc.event(() => {
 <i class="fa-sharp fa-solid fa-circle-plus " style="color:black;" ></i>
 </button>
 <div class="flex-fill"></div>
-<i class="fa-regular fa-copy me-2  ${d2.select ? `` : `d-none`}" onclick="${gvc.event((e,event)=>{
-                                      d2.copy()
+<i class="fa-regular fa-copy me-2  ${d2.select ? `` : `d-none`}" onclick="${gvc.event((e, event) => {
+                                        d2.copy()
                                     })}"></i>
-<i class="fa-regular fa-trash-can ${d2.select ? `` : `d-none`}" style="color:white;" onclick="${gvc.event((e, event)=>{
+<i class="fa-regular fa-trash-can ${d2.select ? `` : `d-none`}" style="color:white;" onclick="${gvc.event((e, event) => {
                                         event.stopPropagation();
                                         d2.minus()
                                     })}"></i>
@@ -249,9 +264,7 @@ onclick="${gvc.event(() => {
                                                     changeIndex: (n1, n2) => {
                                                         swapArr(d4.dataArray, n1, n2);
                                                         swapArr(d2.option, n1, n2);
-                                                        gvc.notifyDataChange(vid);
-                                                        gvc.notifyDataChange('showView');
-                                                        gvc.notifyDataChange(['htmlGenerate', 'showView']);
+                                                        gvc.notifyDataChange(createID);
                                                         ;
                                                     }
                                                 });
@@ -278,7 +291,6 @@ onclick="${gvc.event(() => {
                                     })}"
                                                                     draggable="true"
                                                                     ondragenter="${gvc.event((e, event) => {
-                                        console.log('ondragenter-' + dragOption.index);
                                         if (dragm.div === dragOption.dragId) {
                                             dragm.end = dragOption.index;
                                         }
@@ -293,10 +305,10 @@ onclick="${gvc.event(() => {
                                     })}"
                                                                  >${d2.text}
                                                                  <div class="flex-fill"></div>
-                                                                 <i class="fa-regular fa-copy me-2  ${d2.select ? `` : `d-none`}" onclick="${gvc.event((e,event)=>{
-                                     d2.copy()
+                                                                 <i class="fa-regular fa-copy me-2  ${d2.select ? `` : `d-none`}" onclick="${gvc.event((e, event) => {
+                                        d2.copy()
                                     })}"></i>
-<i class="fa-regular fa-trash-can ${d2.select ? `` : `d-none`}" onclick="${gvc.event((e, event)=>{
+<i class="fa-regular fa-trash-can ${d2.select ? `` : `d-none`}" onclick="${gvc.event((e, event) => {
                                         event.stopPropagation();
                                         d2.minus()
                                     })}"></i>
@@ -314,9 +326,7 @@ onclick="${gvc.event(() => {
                                         changeIndex: (n1, n2) => {
                                             swapArr(d2.dataArray, n1, n2);
                                             swapArr(dd.option, n1, n2);
-                                            gvc.notifyDataChange(vid);
-                                            gvc.notifyDataChange('showView');
-                                            gvc.notifyDataChange(['htmlGenerate', 'showView']);
+                                            gvc.notifyDataChange(createID);
                                         }
                                     });
                                 })
@@ -334,8 +344,9 @@ onclick="${gvc.event(() => {
             };
         })
     }
-    public static right(gvc:GVC,viewModel:any,createID:string,gBundle:any){
-        const glitter=gvc.glitter
+
+    public static right(gvc: GVC, viewModel: any, createID: string, gBundle: any) {
+        const glitter = gvc.glitter
         return gvc.bindView(() => {
             let haveAdd = true;
             return {
@@ -359,7 +370,7 @@ onclick="${gvc.event(() => {
 <h3>請於左側選擇元件編輯</h3>
 </div>`
                     }
-                     return htmlGenerate.editor(gvc, {
+                    return htmlGenerate.editor(gvc, {
                         return_: false,
                         refreshAll: () => {
                             if (viewModel.selectItem) {
@@ -389,7 +400,7 @@ onclick="${gvc.event(() => {
         })
     }
 
-    public static center(viewModel:any,gvc:GVC){
+    public static center(viewModel: any, gvc: GVC) {
         if (viewModel.type === ViewType.mobile) {
             return `<div class="d-flex align-items-center justify-content-center flex-column mx-auto" style="width: 414px;height: calc(100vh - 20px);padding-top: 0px;">
                  <div class="bg-white" style="width:414px;height: calc(100% - 60px);">
@@ -402,8 +413,10 @@ onclick="${gvc.event(() => {
                 </div></div>`
         }
     }
-    public static index='0'
+
+    public static index = '0'
 }
+
 function swapArr(arr: any, index1: number, index2: number) {
     const data = arr[index1];
     arr.splice(index1, 1);

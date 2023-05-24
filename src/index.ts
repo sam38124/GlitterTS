@@ -8,11 +8,13 @@ import {v4 as uuidv4} from 'uuid';
 import {asyncHooks as asyncHook} from './modules/hooks';
 import {config, saasConfig} from "./config";
 import contollers = require('./controllers');
+import public_contollers = require('./api-public/controllers');
 import database from "./modules/database";
 import {SaasScheme} from "./services/saas-table-check";
 import db from './modules/database';
 import {createBucket, listBuckets} from "./modules/AWSLib";
 import AWS from "aws-sdk";
+import {Live_source} from "./live_source.js";
 //Glitter FrontEnd Rout
 export const app = express();
 const logger = new Logger();
@@ -28,6 +30,7 @@ app.use(express.raw());
 app.use(express.json({limit: '50MB'}));
 app.use(createContext);
 app.use(contollers);
+app.use(public_contollers);
 
 export async function initial(serverPort: number) {
     await (async () => {
@@ -153,6 +156,7 @@ async function createAppRoute() {
 }
 
 export async function createAPP(dd: any) {
+    Live_source.liveAPP.push(dd.appName)
     return await Glitter.setUP(app, [
         {
             rout: '/' + encodeURI(dd.appName),
@@ -202,6 +206,9 @@ export async function createAPP(dd: any) {
                                                     and tag = ${db.escape(redirect)}
                                                     and \`${saasConfig.SAAS_NAME}\`.page_config.appName = \`${saasConfig.SAAS_NAME}\`.app_config.appName;
                         `, []))[0]
+                        if(req.query.type){
+                            redirect+=`&type=${req.query.type}`
+                        }
                     }
                     return (() => {
                         data.page_config = data.page_config ?? {}
@@ -214,7 +221,7 @@ export async function createAPP(dd: any) {
     <meta property="og:image" content="${d.image ?? ""}">
     <meta property="og:title" content="${d.title ?? ""}">
     <meta name="description" content="${d.content ?? ""}">
-${(() => {
+    ${(() => {
                                 if (redirect) {
                                     return `<script>
 window.location.href='?page=${redirect}';

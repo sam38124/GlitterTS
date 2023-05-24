@@ -5,6 +5,7 @@ import db from '../modules/database';
 import {config, saasConfig} from "../config";
 import Logger from "../modules/logger";
 import {IToken} from "../models/Auth.js";
+const mime = require('mime');
 const router: express.Router = express.Router();
 export = router;
 
@@ -24,12 +25,7 @@ router.post('/upload', async (req: express.Request, resp: express.Response) => {
             Expires: 300,
             //If you use other contentType will response 403 error
             ContentType: (()=>{
-                switch (fullUrl.split('.').pop()){
-                    case 'svg':
-                        return 'image/svg+xml';
-                    default:
-                        return 'application/x-www-form-urlencoded; charset=UTF-8';
-                }
+                return  mime.getType(fullUrl.split('.').pop())
             })(),
             ACL: 'public-read'
         };
@@ -42,7 +38,7 @@ router.post('/upload', async (req: express.Request, resp: express.Response) => {
 
                 return response.fail(resp, err);
             } else {
-                return response.succ(resp, { url, fullUrl });
+                return response.succ(resp, { url, fullUrl,type:params.ContentType });
             }
         })
     } catch (err) {

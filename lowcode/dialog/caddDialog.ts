@@ -3,6 +3,7 @@ import {ApiPageConfig} from "../api/pageConfig.js";
 import {BaseApi} from "../api/base.js";
 import {config} from "../config.js";
 import {ShareDialog} from "../dialog/ShareDialog.js";
+import {EditorElem} from "../glitterBundle/plugins/editor-elem.js";
 
 init((gvc, glitter, gBundle) => {
     return {
@@ -233,9 +234,29 @@ ${gvc.bindView({
 function codeEditor(gvc: GVC) {
     const glitter = gvc.glitter
     let code = ''
+    let relativePath = ''
+    let copyElem = [
+        {
+            elem: 'all',
+            title: '全部',
+            check: true
+        },
+        {
+            elem: 'html',
+            title: 'Html標籤',
+            check: false
+        }, {
+            elem: 'style',
+            title: 'Style',
+            check: false
+        }, {
+            elem: 'script',
+            title: 'Script',
+            check: false
+        }]
     return `<div class="m-auto bg-white shadow rounded" style="max-width: 100%;max-height: 100%;width:480px;">
   <div class="w-100 d-flex align-items-center border-bottom justify-content-center position-relative" style="height: 68px;">
-        <h3 class="modal-title fs-4" >請輸入HTML代碼</h3>
+        <h3 class="modal-title fs-4" >代碼複製</h3>
         <i class="fa-solid fa-xmark text-dark position-absolute " style="font-size:20px;transform: translateY(-50%);right: 20px;top: 50%;cursor: pointer;"
         onclick="${gvc.event(() => {
         glitter.closeDiaLog();
@@ -243,21 +264,69 @@ function codeEditor(gvc: GVC) {
 </div>    
 <!-- Your code -->
 <div class="p-2">
+<div>
+${EditorElem.h3("複製的項目")}
+${
+        gvc.bindView(() => {
+            const id = glitter.getUUID()
+            return {
+                bind: id,
+                view: () => {
+                    return copyElem.map((dd) => {
+                        return `<div class="form-check form-check-inline">
+  <input id="check-${dd.elem}"  class="form-check-input" type="checkbox"  onchange="${gvc.event((e, event) => {
+                            if ((dd.elem === 'all')) {
+                                copyElem.map((dd) => {
+                                    dd.check = false
+                                })
+                            }
+                            copyElem.find((dd) => {
+                                return dd.elem === 'all'
+                            })!.check = false
+                            if (copyElem.filter((dd) => {
+                                return dd.check
+                            }).length > 1) {
+                                dd.check = !dd.check
+                            } else {
+                                dd.check = true
+                            }
+
+                            gvc.notifyDataChange(id)
+                        })}" ${(dd.check) ? `checked` : ``}>
+  <label class="form-check-label" for="check-${dd.elem}">${dd.title}</label>
+</div>`
+                    }).join('')
+                },
+                divCreate: {class: `d-flex flex-wrap`}
+            }
+        })
+    }
+</div>
+${glitter.htmlGenerate.editeInput({
+        gvc: gvc,
+        title: `資源相對路徑`,
+        default: relativePath,
+        placeHolder: `請輸入資源相對路徑-[為空則以當前網址作為相對路徑]`,
+        callback: (text: string) => {
+            relativePath = text
+        }
+    })}
 ${glitter.htmlGenerate.editeText({
         gvc: gvc,
-        title: '',
-        default: '',
+        title: '複製的代碼內容',
+        default: code,
         placeHolder: `請輸入HTML代碼`,
         callback: (text: string) => {
             code = text
         }
     })}
 </div>
+
 <div class="d-flex p-2 align-content-end justify-content-end">
 <button class="btn btn-warning text-dark " onclick="${gvc.event(() => {
         const html = document.createElement('body');
         html.innerHTML = code;
-        saveHTML(traverseHTML(html), gvc);
+        saveHTML(traverseHTML(html), relativePath, gvc, copyElem);
     })}"><i class="fa-regular fa-floppy-disk me-2"></i> 儲存</button>
 </div>
 </div>`
@@ -293,11 +362,11 @@ ${glitter.htmlGenerate.editeText({
 <div class="d-flex p-2 align-content-end justify-content-end">
 <button class="btn btn-warning text-dark " onclick="${gvc.event(() => {
         const dialog = new ShareDialog(glitter)
-        if(!code){
-            dialog.errorMessage({text:"請輸入描述語句"})
+        if (!code) {
+            dialog.errorMessage({text: "請輸入描述語句"})
             return
         }
-    glitter.openDiaLog('dialog/ai-progress.js','ai-progress',{})
+        glitter.openDiaLog('dialog/ai-progress.js', 'ai-progress', {})
         BaseApi.create({
             "url": config.url + `/api/v1/ai/generate-html`,
             "type": "POST",
@@ -313,7 +382,7 @@ ${glitter.htmlGenerate.editeText({
             if (re.result) {
                 const html = document.createElement('body');
                 html.innerHTML = re.response.data;
-                saveHTML(traverseHTML(html), gvc);
+                saveHTML(traverseHTML(html), '', gvc);
             } else {
                 dialog.errorMessage({text: "轉換失敗，請輸入其他文案"})
             }
@@ -329,7 +398,6 @@ function traverseHTML(element: any) {
 
     // 取得元素的標籤名稱
     result.tag = element.tagName;
-
     // 取得元素的屬性
     var attributes = element.attributes;
     if (attributes.length > 0) {
@@ -338,34 +406,210 @@ function traverseHTML(element: any) {
             result.attributes[attributes[i].name] = attributes[i].value;
         }
     }
-
     // 取得元素的子元素
-    var children = element.children;
+    let children = element.children;
     if (children.length > 0) {
         result.children = [];
-        for (var j = 0; j < children.length; j++) {
+        for (let j = 0; j < children.length; j++) {
             result.children.push(traverseHTML(children[j]));
         }
-    } else {
-        result.innerText = element.innerHTML
     }
-
+    let trimmedStr = element.innerHTML.replace(/\n/,'').replace(/^\s+|\s+$/g, "");
+    let trimmedStr2 = element.innerText.replace(/\n/,'').replace(/^\s+|\s+$/g, "");
+    result.textIndex=trimmedStr.indexOf(trimmedStr2)
+    result.innerText=element.innerText.replace(/\n/,'').replace(/^\s+|\s+$/g, "")
     // 返回 JSON 結果
     return result;
 }
 
-function saveHTML(json: any, gvc: GVC) {
+async function saveHTML(json: any, relativePath: string, gvc: GVC, elem?: {
+    elem: string,
+    title: string,
+    check: boolean
+}[]) {
+    const dialog = new ShareDialog(gvc.glitter)
+    dialog.dataLoading({visible: true, text: "解析資源中"})
     const glitter = gvc.glitter
+    let addSheet = elem?.find((dd) => {
+        return (dd.elem === 'all' && dd.check) || (dd.elem === 'style' && dd.check)
+    }) || (elem === undefined)
+    let addHtml = elem?.find((dd) => {
+        return (dd.elem === 'all' && dd.check) || (dd.elem === 'html' && dd.check)
+    }) || (elem === undefined)
+    let addScript = elem?.find((dd) => {
+        return (dd.elem === 'all' && dd.check) || (dd.elem === 'script' && dd.check)
+    }) || (elem === undefined)
+    const styleSheet: any = {
+        "id": glitter.getUUID(),
+        "js": "https://sam38124.github.io/One-page-plugin/src/official.js",
+        "css": {"class": {}, "style": {}},
+        "data": {
+            "elem": "glitterStyle",
+            "dataFrom": "static",
+            "atrExpand": {"expand": false},
+            "elemExpand": {"expand": true},
+            "innerEvenet": {},
+            "setting": []
+        },
+        "type": "container",
+        "label": "所有設計樣式",
+    }
+    const jsLink: any = {
+        "id": glitter.getUUID(),
+        "js": "https://sam38124.github.io/One-page-plugin/src/official.js",
+        "css": {"class": {}, "style": {}},
+        "data": {
+            "elem": "glitterJS",
+            "dataFrom": "static",
+            "atrExpand": {"expand": false},
+            "elemExpand": {"expand": true},
+            "innerEvenet": {},
+            "setting": []
+        },
+        "type": "container",
+        "label": "所有JS資源",
+    }
 
-    function convert(obj: any) {
+    async function convert(obj: any) {
         obj.attributes = obj.attributes ?? {}
-        const x = {
+        const originalHref = obj.attributes.href
+        const originalSrc = obj.attributes.src
+        obj.innerText = obj.innerText ?? ""
+        const a = await new Promise((resolve, reject) => {
+            try {
+                if (obj.tag.toLowerCase() === 'link' && obj.attributes.rel === 'stylesheet' && addSheet) {
+                    const src = obj.attributes.href
+                    const url = new URL(src, relativePath)
+                    $.ajax({
+                        url: url.href,
+                        type: 'get',
+                        crossDomain: true,
+                        processData: false,
+                        success: (data2) => {
+                            const saasConfig: { config: any; api: any } = (window as any).saasConfig;
+                            saasConfig.api.uploadFile(
+                                glitter.getUUID() + ".css"
+                            ).then((data: any) => {
+                                const data1 = data.response;
+                                $.ajax({
+                                    url: data1.url,
+                                    type: 'put',
+                                    data: data2,
+                                    headers: {
+                                        "Content-Type": data1.type
+                                    },
+                                    processData: false,
+                                    crossDomain: true,
+                                    success: () => {
+                                        obj.attributes.href = data1.fullUrl;
+                                        resolve(true)
+                                    },
+                                    error: () => {
+                                        resolve(true)
+                                    },
+                                });
+                            });
+                        },
+                        error: (err) => {
+                            resolve(true)
+                        },
+                    });
+                } else if (obj.tag.toLowerCase() === 'script' && obj.attributes.src && addScript) {
+                    const src = obj.attributes.src
+                    const url = new URL(src, relativePath)
+                    alert(url.href)
+                    $.ajax({
+                        url: url.href,
+                        processData: false,
+                        type: 'get',
+                        crossDomain: true,
+                        success: (data2) => {
+                            const saasConfig: { config: any; api: any } = (window as any).saasConfig;
+                            saasConfig.api.uploadFile(
+                                glitter.getUUID() + ".js"
+                            ).then((data: any) => {
+                                const data1 = data.response;
+                                $.ajax({
+                                    url: data1.url,
+                                    type: 'put',
+                                    data: data2,
+                                    headers: {
+                                        "Content-Type": data1.type
+                                    },
+                                    processData: false,
+                                    crossDomain: true,
+                                    success: () => {
+                                        alert('data1.fullUrl')
+                                        obj.attributes.src = data1.fullUrl;
+                                        resolve(true)
+                                    },
+                                    error: (jqXHR, textStatus, errorThrown) => {
+                                        alert(errorThrown)
+                                        resolve(true)
+                                    },
+                                });
+                            });
+                        },
+                        error: (err) => {
+                            resolve(true)
+                            console.log(err)
+                        },
+                    });
+                } else {
+                    resolve(true)
+                }
+            } catch (e) {
+                resolve(true)
+            }
+
+        })
+        let setting: any = []
+        if (obj.textIndex===0&&(obj.innerText.replace(/ /g, '').replace(/\n/g, '').length > 0 && ((obj.children ?? []).length > 0))) {
+            setting.push(await convert({
+                tag: 'span',
+                innerText: obj.innerText
+            }))
+        }
+        if(obj.children.length>0){
+            obj.innerText=''
+        }
+        for (const dd of (obj.children ?? [])) {
+            const data = await convert(dd)
+            if (data.data.elem !== 'meta') {
+                if (data.data.elem === 'style' || (data.data.elem === 'link' && (obj.attributes.rel === 'stylesheet'))) {
+                    if ((data.data.elem === 'link' && (obj.attributes.rel === 'stylesheet'))) {
+                        data.data.note = "源代碼路徑:" + originalHref
+                    }
+                    if (addSheet) {
+                        styleSheet.data.setting.push(data)
+                    }
+                } else if (data.data.elem === 'script') {
+                    if ((obj.attributes.src)) {
+                        data.data.note = "源代碼路徑:" + originalSrc
+                    }
+                    if (addScript) {
+                        jsLink.data.setting.push(data)
+                    }
+                } else {
+                    if (addHtml) {
+                        setting.push(data)
+                    }
+                }
+            }
+        }
+        if (obj.textIndex>0&&(obj.innerText.replace(/ /g, '').replace(/\n/g, '').length > 0 && ((obj.children ?? []).length > 0))) {
+            setting.push(await convert({
+                tag: 'span',
+                innerText: obj.innerText
+            }))
+        }
+        let x = {
             "id": glitter.getUUID(),
             "js": "https://sam38124.github.io/One-page-plugin/src/official.js",
             "css": {"class": {}, "style": {}},
             "data": {
                 "class": obj.attributes.class ?? "",
-                "style": (obj.attributes.style ?? "")+";",
+                "style": (obj.attributes.style ?? "") ,
                 "attr": Object.keys(obj.attributes).filter((key) => {
                     return key !== 'class' && key !== 'style' && key !== 'id'
                 }).map((dd) => {
@@ -380,65 +624,106 @@ function saveHTML(json: any, gvc: GVC) {
                 "elem": obj.tag.toLowerCase(),
                 "inner": obj.innerText ?? "",
                 "dataFrom": "static",
-                "atrExpand": {"expand": false},
+                "atrExpand": {"expand": true},
                 "elemExpand": {"expand": true},
                 "innerEvenet": {},
-                "setting": (obj.children ?? []).map((dd: any) => {
-                    return convert(dd)
-                })
+                "setting": setting
             },
             "type": (obj.children && obj.children.length > 0) ? "container" : "widget",
             "label": (() => {
-                const la = (() => {
-                    let lab = obj.innerText ?? ((obj.type === 'container') ? `HTML容器` : `HTML元件`)
-                    lab = lab.trim().replace(/&nbsp;/g, '')
-                    if (lab.length > 10) {
-                        return lab.substring(0, 10)
+                if (obj.tag.toLowerCase() === 'link' && (obj.attributes.rel === 'stylesheet')) {
+                    return `style資源`
+                }
+                const source = ['script', 'style'].indexOf(obj.tag.toLowerCase())
+                if (source >= 0) {
+                    return ['script資源', 'style資源'][source]
+                }
+                let lab = obj.innerText ?? ((obj.type === 'container') ? `HTML容器` : `HTML元件`)
+                lab = lab.trim().replace(/&nbsp;/g, '')
+                if (lab.length > 10) {
+                    return lab.substring(0, 10)
+                } else {
+                    if (lab.length === 0) {
+                        return ((obj.type === 'container') ? `HTML容器` : `HTML元件`)
                     } else {
-                        if (lab.length === 0) {
-                            return ((obj.type === 'container') ? `HTML容器` : `HTML元件`)
-                        } else {
-                            return lab
-                        }
+                        return lab
                     }
-                })()
-                return la
+                }
             })(),
             "styleList": []
+        }
+        if(x.data.style.length>0){
+            x.data.style+=";"
         }
         if (x.data.elem === 'img') {
             x.data.inner = (x.data.attr.find((dd) => {
                 return dd.attr === 'src'
-            }) ?? {value:""}).value
-            x.data.attr=x.data.attr.filter((dd)=>{
-                return dd.attr!=='src'
+            }) ?? {value: ""}).value
+            x.data.attr = x.data.attr.filter((dd) => {
+                return dd.attr !== 'src'
             })
         }
-
         if ((x.data.elem === 'html') || (x.data.elem === 'head')) {
-            x.data.elem='div'
+            x.data.elem = 'div'
         }
-        if ((x.data.elem === 'style') ) {
-            x.label='設計區塊'
-        }
-        return x
+        return new Promise<any>((resolve, reject) => {
+            resolve(x)
+        })
     }
 
-    json.children.map((dd: any) => {
+    let waitPush: any = []
+    for (const dd of json.children) {
         if ((dd.tag.toLowerCase() !== 'title')) {
-            const obj = convert(dd)
-            gvc.getBundle().callback(obj);
-        }
-    })
+            dd.attributes = dd.attributes ?? {}
+            const originalHref = dd.attributes.href
+            const originalSrc = dd.attributes.src
+            const obj = await convert(dd)
+            if (obj.data.elem !== 'meta' && !(((obj.data.elem === 'link') && (dd.attributes.rel !== 'stylesheet')))) {
+                if (obj.data.elem === 'style' || ((obj.data.elem === 'link') && (dd.attributes.rel === 'stylesheet'))) {
+                    if ((obj.data.elem === 'link' && (dd.attributes.rel === 'stylesheet'))) {
+                        obj.data.note = "源代碼路徑:" + originalHref
+                    }
+                    if (addSheet) {
+                        styleSheet.data.setting.push(obj)
+                    }
+                } else if (obj.data.elem === 'script') {
+                    if (addScript) {
+                        obj.data.note = "源代碼路徑:" + originalSrc
+                        jsLink.data.setting.push(obj)
+                    }
+                } else {
+                    if (addHtml) {
+                        waitPush.push(obj)
+                    }
+                }
+            }
 
-    glitter.closeDiaLog()
+        }
+    }
+    if (styleSheet.data.setting.length > 0) {
+        styleSheet.data.setting.map((dd: any) => {
+            gvc.getBundle().callback(dd);
+        })
+    }
+    if (jsLink.data.setting.length > 0) {
+        gvc.getBundle().callback(jsLink);
+    }
+
+    waitPush.map((obj: any) => {
+        gvc.getBundle().callback(obj);
+    })
+    setTimeout((() => {
+        dialog.dataLoading({visible: false})
+        glitter.closeDiaLog()
+    }), 1000)
+
 }
 
 function empty(gvc: GVC) {
 
     const glitter = gvc.glitter
 
-    return `<div class="m-auto bg-white shadow rounded" style="max-width: 100%;max-height: 100%;">
+    return `<div class="m-auto bg-white shadow rounded  " style="max-width: 100%;max-height: 100%;">
   <div class="w-100 d-flex align-items-center border-bottom justify-content-center position-relative" style="height: 68px;">
         <h3 class="modal-title fs-4 " >選擇元件添加方式</h3>
         <i class="fa-solid fa-xmark text-dark position-absolute " style="font-size:20px;transform: translateY(-50%);right: 20px;top: 50%;cursor: pointer;"

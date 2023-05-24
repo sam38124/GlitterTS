@@ -35,7 +35,10 @@ export function initialStyle(gvc, viewModel, id) {
                                                     dd.type = text;
                                                     gvc.notifyDataChange(cid);
                                                 },
-                                                array: [{ title: "自定義", value: "code" }, { title: "檔案路徑", value: "script" }],
+                                                array: [{ title: "自定義", value: "code" }, {
+                                                        title: "檔案路徑",
+                                                        value: "script"
+                                                    }],
                                             })}
                                           ${HtmlGenerate.editeInput({
                                                 gvc,
@@ -50,13 +53,13 @@ export function initialStyle(gvc, viewModel, id) {
                                           ${(() => {
                                                 var _a, _b;
                                                 if (dd.type === 'script') {
-                                                    return HtmlGenerate.editeInput({
-                                                        gvc,
-                                                        title: '路徑連結',
-                                                        default: (_a = dd.src.link) !== null && _a !== void 0 ? _a : "",
-                                                        placeHolder: '請輸入路徑連結',
+                                                    return EditorElem.uploadFile({
+                                                        title: "輸入或上傳路徑連結",
+                                                        gvc: gvc,
+                                                        def: (_a = dd.src.link) !== null && _a !== void 0 ? _a : "",
                                                         callback: (text) => {
                                                             dd.src.link = text;
+                                                            gvc.notifyDataChange(id);
                                                         }
                                                     });
                                                 }
@@ -160,7 +163,10 @@ export function initialStylePage(gvc, viewModel, id) {
                                                     dd.type = text;
                                                     gvc.notifyDataChange(cid);
                                                 },
-                                                array: [{ title: "自定義", value: "code" }, { title: "檔案路徑", value: "script" }],
+                                                array: [{ title: "自定義", value: "code" }, {
+                                                        title: "檔案路徑",
+                                                        value: "script"
+                                                    }],
                                             })}
                                           ${HtmlGenerate.editeInput({
                                                 gvc,
@@ -175,13 +181,13 @@ export function initialStylePage(gvc, viewModel, id) {
                                           ${(() => {
                                                 var _a, _b;
                                                 if (dd.type === 'script') {
-                                                    return HtmlGenerate.editeInput({
-                                                        gvc,
-                                                        title: '路徑連結',
-                                                        default: (_a = dd.src.link) !== null && _a !== void 0 ? _a : "",
-                                                        placeHolder: '請輸入路徑連結',
+                                                    return EditorElem.uploadFile({
+                                                        title: "輸入或上傳路徑連結",
+                                                        gvc: gvc,
+                                                        def: (_a = dd.src.link) !== null && _a !== void 0 ? _a : "",
                                                         callback: (text) => {
                                                             dd.src.link = text;
+                                                            gvc.notifyDataChange(id);
                                                         }
                                                     });
                                                 }

@@ -1,0 +1,31 @@
+//
+// Breadcrumb
+// --------------------------------------------------
+
+
+.breadcrumb {
+  font-weight: $breadcrumb-font-weight;
+}
+
+.breadcrumb-item {
+  display: flex;
+  align-items: center;
+  + .breadcrumb-item::before {
+    margin-top: .15em;
+    font: {
+      family: $icons-font-family;
+      size: $breadcrumb-divider-font-size;
+      weight: normal;
+    }
+    line-height: 1;
+  }
+  > a {
+    display: flex;
+    align-items: center;
+    color: $breadcrumb-color;    
+    text-decoration: none;
+  }
+  &:hover > a {
+    color: $breadcrumb-hover-color;
+  }
+}

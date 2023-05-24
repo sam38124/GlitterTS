@@ -23,6 +23,7 @@ export let saasConfig = {
 export let config = {
     SECRET_KEY: 'dsklkmsadl',
     API_PREFIX: "/api/v1",
+    API_PUBLIC_PREFIX: "/api-public/v1",
     PARAMS_NEED_ENCRYPT_IN_LOG: ['pwd', 'email'],
     PWD_SALT_ROUND: 5,
     LOG_PATH: path.resolve("../../log"),
@@ -67,8 +68,16 @@ export let config = {
     },
 
     /********/
-    getRoute: (r: string) => {
-        return config.API_PREFIX + r
+    getRoute: (r: string,type:'public'|'normal'='normal') => {
+        if(type==='normal'){
+            return config.API_PREFIX + r
+        }else{
+            return config.API_PUBLIC_PREFIX + r
+        }
+
+    },
+    public_route:{
+      user:  '/user'
     },
     route: {
         user: "/user",

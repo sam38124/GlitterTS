@@ -168,6 +168,7 @@ init((gvc, glitter, gBundle) => {
                             group: (viewModel.data as any).group,
                             page_config: viewModel.data.page_config
                         })
+
                         resolve(api.result)
                     });
                 }),
@@ -190,6 +191,8 @@ init((gvc, glitter, gBundle) => {
             ];
             for (const a of waitSave) {
                 if (!await a()) {
+                    swal.nextStep(`連結不可重複`, () => {
+                    },'error');
                     return;
                 }
             }
@@ -208,8 +211,8 @@ init((gvc, glitter, gBundle) => {
         var pastedData = clipboardData.getData('text/plain');
 
         // 在控制台输出粘贴的内容
-        if (pastedData === 'glitter-copyEvent') {
-            var copy = JSON.parse(JSON.stringify(viewModel.waitCopy))
+        if (pastedData.indexOf('glitter-copyEvent')===0) {
+            var copy = JSON.parse(pastedData.replace('glitter-copyEvent',''))
             function checkId(dd: any) {
                 copy.id = glitter.getUUID()
                 if (dd.type === 'container') {

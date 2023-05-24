@@ -68,10 +68,22 @@ export class HtmlGenerate {
                 }">${title ?? "設計樣式"}</button>`;
             },
             class: () => {
-                return data.class ?? '';
+                let classs=''
+                try {
+                    classs=eval(data.class)
+                }catch (e){
+                    classs=data.class
+                }
+                return classs;
             },
             style: () => {
-                let styleString: string[] = [data.style as string];
+                let styles=''
+                try {
+                    styles=eval(data.style)
+                }catch (e){
+                    styles=data.style
+                }
+                let styleString: string[] = [styles];
                 (data.styleList ?? []).map((dd: any) => {
                     Object.keys(dd.data).map((d2) => {
                         styleString.push([d2, dd.data[d2]].join(':'));
@@ -127,7 +139,8 @@ export class HtmlGenerate {
     public static editeText(obj: { gvc: GVC; title: string; default: string; placeHolder: string; callback: (text: string) => void }) {
         obj.title = obj.title ?? ""
         const id = obj.gvc.glitter.getUUID()
-        return `<h3 style="font-size: 16px;margin-bottom: 10px;" class="mt-2 text-dark">${obj.title}</h3>
+        return `<h3 style="font-size: 16px;margin-bottom: 10px;" class="mt-2 text-dark d-flex align-items-center">${obj.title}</h3>
+
 ${obj.gvc.bindView({
             bind: id,
             view: () => {
@@ -253,7 +266,7 @@ ${obj.gvc.bindView({
                                  dd.refreshAllParameter!.view1 = () => {
                                      getPageData()
                                  };
-
+                             const hovId=dd.id
                                  function loadingFinish() {
                                      const getHt = (() => {
 
@@ -262,6 +275,19 @@ ${obj.gvc.bindView({
                                              dd.refreshComponentParameter!.view1 = () => {
                                                  getPageData()
                                              };
+                                             const option:any=[]
+                                             subdata.option=option
+                                             if((window.parent as any).editerData !== undefined){
+                                                 option.push({
+                                                     key:"onclick",value:gvc.event((e,event)=>{
+                                                         try{
+                                                             (window.parent as any).glitter.setCookie('lastSelect',dd.id);
+                                                             (window.parent as any).glitter.share.refreshAllContainer()
+                                                         }catch{}
+                                                         event.stopPropagation()
+                                                     })
+                                                 })
+                                             }
                                              return widgetComponent.render(gvc, dd as any, setting as any, hover, subdata)
                                                  .view() as string
                                          } else {
@@ -277,7 +303,11 @@ ${obj.gvc.bindView({
                                                  dd.refreshComponentParameter!.view1 = () => {
                                                      getdd()
                                                  };
-                                                 getdd()
+                                                 getdd();
+                                                 let option:any=[]
+                                                 console.log('ss')
+
+
                                                  return {
                                                      bind: component!,
                                                      view: () => {
@@ -289,6 +319,7 @@ ${obj.gvc.bindView({
                                         ${HtmlGenerate.styleEditor(dd).style()}
                                     `,
                                                          class: `position-relative ${dd.class ?? ''} glitterTag${dd.hashTag}`,
+                                                         option:option
                                                      },
                                                      onCreate: () => {
                                                          if (hover.indexOf(dd.id) !== -1 && lastIndex !== dd.id) {

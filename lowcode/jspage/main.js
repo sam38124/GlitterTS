@@ -164,6 +164,8 @@ init((gvc, glitter, gBundle) => {
             ];
             for (const a of waitSave) {
                 if (!await a()) {
+                    swal.nextStep(`連結不可重複`, () => {
+                    }, 'error');
                     return;
                 }
             }
@@ -178,8 +180,8 @@ init((gvc, glitter, gBundle) => {
     document.addEventListener("paste", function (event) {
         var clipboardData = event.clipboardData || window.clipboardData;
         var pastedData = clipboardData.getData('text/plain');
-        if (pastedData === 'glitter-copyEvent') {
-            var copy = JSON.parse(JSON.stringify(viewModel.waitCopy));
+        if (pastedData.indexOf('glitter-copyEvent') === 0) {
+            var copy = JSON.parse(pastedData.replace('glitter-copyEvent', ''));
             function checkId(dd) {
                 copy.id = glitter.getUUID();
                 if (dd.type === 'container') {

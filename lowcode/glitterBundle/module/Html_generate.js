@@ -115,13 +115,13 @@ export class HtmlGenerate {
                                             subdata.option = option;
                                             if (window.parent.editerData !== undefined) {
                                                 option.push({
-                                                    key: "onclick", value: gvc.event((e) => {
+                                                    key: "onclick", value: gvc.event((e, event) => {
                                                         try {
                                                             window.parent.glitter.setCookie('lastSelect', dd.id);
                                                             window.parent.glitter.share.refreshAllContainer();
                                                         }
-                                                        catch (_a) {
-                                                        }
+                                                        catch (_a) { }
+                                                        event.stopPropagation();
                                                     })
                                                 });
                                             }
@@ -533,12 +533,25 @@ ${e.line}
                 })}">${title !== null && title !== void 0 ? title : "設計樣式"}</button>`;
             },
             class: () => {
-                var _a;
-                return (_a = data.class) !== null && _a !== void 0 ? _a : '';
+                let classs = '';
+                try {
+                    classs = eval(data.class);
+                }
+                catch (e) {
+                    classs = data.class;
+                }
+                return classs;
             },
             style: () => {
                 var _a;
-                let styleString = [data.style];
+                let styles = '';
+                try {
+                    styles = eval(data.style);
+                }
+                catch (e) {
+                    styles = data.style;
+                }
+                let styleString = [styles];
                 ((_a = data.styleList) !== null && _a !== void 0 ? _a : []).map((dd) => {
                     Object.keys(dd.data).map((d2) => {
                         styleString.push([d2, dd.data[d2]].join(':'));

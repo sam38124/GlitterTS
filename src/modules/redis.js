@@ -56,8 +56,13 @@ const setHashmap = (key, obj) => {
 };
 const getValue = (key) => {
     return new Promise(async (resolve, reject) => {
-        const data = await redisClient.get(key);
-        return resolve(data);
+        try {
+            const data = await redisClient.get(key);
+            return resolve(data);
+        }
+        catch (e) {
+            return resolve(undefined);
+        }
     });
 };
 const setValue = (key, value) => {

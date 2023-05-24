@@ -36,6 +36,9 @@ export class EditorElem {
                             url: data1.url,
                             type: 'put',
                             data: file,
+                            headers: {
+                                "Content-Type": data1.type
+                            },
                             processData: false,
                             crossDomain: true,
                             success: () => {
@@ -89,6 +92,9 @@ export class EditorElem {
                             url: data1.url,
                             type: 'put',
                             data: file,
+                            headers: {
+                                "Content-Type": data1.type
+                            },
                             processData: false,
                             crossDomain: true,
                             success: () => {
@@ -140,6 +146,9 @@ export class EditorElem {
                             type: 'put',
                             data: file,
                             processData: false,
+                            headers: {
+                                "Content-Type": data1.type
+                            },
                             crossDomain: true,
                             success: () => {
                                 dialog.dataLoading({visible: false});
@@ -199,6 +208,9 @@ export class EditorElem {
                         $.ajax({
                             url: data1.url,
                             type: 'put',
+                            headers: {
+                                "Content-Type": data1.type
+                            },
                             data: file,
                             processData: false,
                             crossDomain: true,

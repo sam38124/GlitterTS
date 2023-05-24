@@ -108,7 +108,7 @@ export class PageManager {
                 animation: (_b = option.animation) !== null && _b !== void 0 ? _b : glitter.animation.none
             });
             $('#glitterPage').append(`<div id="page${config.id}" style="min-width: 100vw;min-height: 100vh;left: 0;top: 0;
-background: ${config.backGroundColor};display: none;z-index: 999999;overflow: hidden;">
+background: ${config.backGroundColor};display: none;z-index: 999999;overflow: hidden;width:100vw;overflow-x:auto;">
 </div>`);
             glitter.nowPageConfig = config;
             let module = glitter.modelJsList.find((dd) => {
@@ -230,7 +230,7 @@ background: ${config.backGroundColor};display: none;z-index: 999999;overflow: hi
             });
             $('#glitterPage').append(`<div  id="page${config.id}" style="
 min-width: 100vw; min-height: 100vh;  z-index: 999999; overflow: hidden
-background: transparent;background: ${config.backGroundColor};display: none;position: absolute;top: 0;left: 0;">
+background: transparent;background: ${config.backGroundColor};display: none;position: absolute;top: 0;left: 0;width:100vw;overflow-x:auto;">
 </div>`);
             config.scrollTop = glitter.$('html').get(0).scrollTop;
             glitter.nowPageConfig = config;
@@ -295,7 +295,7 @@ background: transparent;background: ${config.backGroundColor};display: none;posi
                 animation: (_b = option.animation) !== null && _b !== void 0 ? _b : glitter.defaultSetting.dialogAnimation
             });
             $('#glitterPage').append(`<div id="page${config.id}" style="min-width: 100vw;min-height: 100vh;left: 0;top: 0;
-background: ${config.backGroundColor};display: none;z-index: 999999;overflow: hidden;position: fixed;width:100vw;height: 100vh;" >
+background: ${config.backGroundColor};display: none;z-index: 999999;overflow: hidden;position: fixed;width:100vw;height: 100vh;overflow-x:auto;" >
 </div>`);
             glitter.nowPageConfig = config;
             let module = glitter.modelJsList.find((dd) => {

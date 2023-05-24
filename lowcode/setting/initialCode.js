@@ -50,13 +50,13 @@ export function initialCode(gvc, viewModel, id) {
                                           ${(() => {
                                             var _a, _b;
                                             if (dd.type === 'script') {
-                                                return HtmlGenerate.editeInput({
+                                                return EditorElem.uploadFile({
                                                     gvc,
-                                                    title: '路徑連結',
-                                                    default: (_a = dd.src.link) !== null && _a !== void 0 ? _a : "",
-                                                    placeHolder: '請輸入路徑連結',
+                                                    title: '輸入或上傳路徑連結',
+                                                    def: (_a = dd.src.link) !== null && _a !== void 0 ? _a : "",
                                                     callback: (text) => {
                                                         dd.src.link = text;
+                                                        gvc.notifyDataChange(cid);
                                                     }
                                                 });
                                             }

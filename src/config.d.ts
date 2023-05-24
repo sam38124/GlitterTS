@@ -9,6 +9,7 @@ export declare let saasConfig: {
 export declare let config: {
     SECRET_KEY: string;
     API_PREFIX: string;
+    API_PUBLIC_PREFIX: string;
     PARAMS_NEED_ENCRYPT_IN_LOG: string[];
     PWD_SALT_ROUND: number;
     LOG_PATH: string;
@@ -26,7 +27,10 @@ export declare let config: {
     readonly AWS_ACCESS_KEY: string | undefined;
     readonly AWS_SecretAccessKey: string | undefined;
     readonly AWS_S3_PREFIX_DOMAIN_NAME: string;
-    getRoute: (r: string) => string;
+    getRoute: (r: string, type?: 'public' | 'normal') => string;
+    public_route: {
+        user: string;
+    };
     route: {
         user: string;
         template: string;

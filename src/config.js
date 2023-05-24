@@ -26,6 +26,7 @@ exports.saasConfig = {
 exports.config = {
     SECRET_KEY: 'dsklkmsadl',
     API_PREFIX: "/api/v1",
+    API_PUBLIC_PREFIX: "/api-public/v1",
     PARAMS_NEED_ENCRYPT_IN_LOG: ['pwd', 'email'],
     PWD_SALT_ROUND: 5,
     LOG_PATH: path_1.default.resolve("../../log"),
@@ -65,8 +66,16 @@ exports.config = {
     get AWS_S3_PREFIX_DOMAIN_NAME() {
         return `https://${process.env.AWS_S3_NAME}.s3.amazonaws.com/`;
     },
-    getRoute: (r) => {
-        return exports.config.API_PREFIX + r;
+    getRoute: (r, type = 'normal') => {
+        if (type === 'normal') {
+            return exports.config.API_PREFIX + r;
+        }
+        else {
+            return exports.config.API_PUBLIC_PREFIX + r;
+        }
+    },
+    public_route: {
+        user: '/user'
     },
     route: {
         user: "/user",

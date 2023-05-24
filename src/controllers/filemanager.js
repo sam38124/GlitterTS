@@ -7,6 +7,7 @@ const express_1 = __importDefault(require("express"));
 const response_1 = __importDefault(require("../modules/response"));
 const config_1 = require("../config");
 const logger_1 = __importDefault(require("../modules/logger"));
+const mime = require('mime');
 const router = express_1.default.Router();
 router.post('/upload', async (req, resp) => {
     var _a, _b;
@@ -23,12 +24,7 @@ router.post('/upload', async (req, resp) => {
             Key: s3path,
             Expires: 300,
             ContentType: (() => {
-                switch (fullUrl.split('.').pop()) {
-                    case 'svg':
-                        return 'image/svg+xml';
-                    default:
-                        return 'application/x-www-form-urlencoded; charset=UTF-8';
-                }
+                return mime.getType(fullUrl.split('.').pop());
             })(),
             ACL: 'public-read'
         };
@@ -40,7 +36,7 @@ router.post('/upload', async (req, resp) => {
                 return response_1.default.fail(resp, err);
             }
             else {
-                return response_1.default.succ(resp, { url, fullUrl });
+                return response_1.default.succ(resp, { url, fullUrl, type: params.ContentType });
             }
         });
     }

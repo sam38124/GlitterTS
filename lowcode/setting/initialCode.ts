@@ -52,13 +52,13 @@ export function initialCode(gvc:GVC,viewModel:any,id:string){
                                           })}
                                           ${(()=>{
                                               if(dd.type==='script'){
-                                                  return  HtmlGenerate.editeInput({
+                                                  return  EditorElem.uploadFile({
                                                       gvc,
-                                                      title: '路徑連結',
-                                                      default: dd.src.link ?? "",
-                                                      placeHolder: '請輸入路徑連結',
+                                                      title: '輸入或上傳路徑連結',
+                                                      def: dd.src.link ?? "",
                                                       callback: (text) => {
                                                           dd.src.link = text;
+                                                          gvc.notifyDataChange(cid)
                                                       }
                                                   })
                                               }else if(dd.type==="event"){

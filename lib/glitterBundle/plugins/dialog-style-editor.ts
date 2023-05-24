@@ -47,20 +47,34 @@ init((gvc, glitter, gBundle) => {
 </div>    
 <div class="w-100 p-3">
 ${gvc.map([
-                glitter.htmlGenerate.editeInput({
+                glitter.htmlGenerate.editeText({
                     gvc: gvc,
                     title: 'Class參數',
                     default: design.class,
-                    placeHolder: "輸入Class",
+                    placeHolder: `請輸入Class樣式或程式碼\n譬如:
+        -(()=>{
+        const a=true
+        if(abc){
+        return 'text-dark'
+        }else{
+         return 'text-white'
+        }
+        })()．`,
                     callback: (text) => {
                         design.class = text
                     }
                 }),
                 glitter.htmlGenerate.editeText({
                     gvc: gvc,
-                    title: 'Style樣式',
+                    title: `Style樣式`,
                     default: design.style,
-                    placeHolder: "輸入Style樣式",
+                    placeHolder: `輸入Style樣式或者程式碼\n譬如:
+        -(()=>{ const a=true
+        if(abc){
+        return 'color:red;font-size:20px;'
+        }else{
+         return 'color:red;'
+        }})()`,
                     callback: (text) => {
                         design.style = text
                     }

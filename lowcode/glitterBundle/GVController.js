@@ -48,10 +48,15 @@ export class GVC {
             const refresh = (id) => {
                 var _a, _b, _c, _d;
                 gvc.parameter.bindViewList[id].divCreate = (_a = gvc.parameter.bindViewList[id].divCreate) !== null && _a !== void 0 ? _a : {};
-                $(`#${gvc.parameter.pageConfig.id}${id}`).attr('class', (_b = gvc.parameter.bindViewList[id].divCreate.class) !== null && _b !== void 0 ? _b : "");
-                $(`#${gvc.parameter.pageConfig.id}${id}`).attr('style', (_c = gvc.parameter.bindViewList[id].divCreate.style) !== null && _c !== void 0 ? _c : "");
-                ((_d = gvc.parameter.bindViewList[id].divCreate.option) !== null && _d !== void 0 ? _d : []).map((dd) => {
-                    $(`#${gvc.parameter.pageConfig.id}${id}`).attr(dd.key, dd.value);
+                const divCreate = (typeof gvc.parameter.bindViewList[id].divCreate === "function") ? gvc.parameter.bindViewList[id].divCreate() : gvc.parameter.bindViewList[id].divCreate;
+                $(`#${gvc.parameter.pageConfig.id}${id}`).attr('class', (_b = divCreate.class) !== null && _b !== void 0 ? _b : "");
+                $(`#${gvc.parameter.pageConfig.id}${id}`).attr('style', (_c = divCreate.style) !== null && _c !== void 0 ? _c : "");
+                ((_d = divCreate.option) !== null && _d !== void 0 ? _d : []).map((dd) => {
+                    try {
+                        console.log(JSON.stringify(dd));
+                        $(`#${gvc.parameter.pageConfig.id}${id}`).attr(dd.key, dd.value);
+                    }
+                    catch (e) { }
                 });
                 $(`#${gvc.parameter.pageConfig.id}${id}`).html(gvc.parameter.bindViewList[id].view());
                 if (gvc.parameter.bindViewList[id].onCreate) {
@@ -187,24 +192,25 @@ export class GVC {
         if (document.getElementById(((_a = gvc.parameter.pageConfig) === null || _a === void 0 ? void 0 : _a.id) + map.bind)) {
             $(`#${(_b = gvc.parameter.pageConfig) === null || _b === void 0 ? void 0 : _b.id}${map.bind}`).html(map.view());
         }
-        if (map.onCreate) {
-            var timer = setInterval(function () {
-                if (document.getElementById(gvc.parameter.pageConfig.id + map.bind)) {
-                    map.onCreate();
-                    clearInterval(timer);
+        const timer = setInterval(function () {
+            if (document.getElementById(gvc.parameter.pageConfig.id + map.bind)) {
+                if (map.onInitial) {
+                    map.onInitial();
                 }
-            }, 100);
-        }
-        if (map.inital) {
-            map.inital();
-        }
-        if (map.divCreate) {
+                if (map.onCreate) {
+                    map.onCreate();
+                }
+                clearInterval(timer);
+            }
+        }, 100);
+        const divCreate = (typeof map.divCreate === "function") ? map.divCreate() : map.divCreate;
+        if (divCreate) {
             return `
-<${(_c = map.divCreate.elem) !== null && _c !== void 0 ? _c : 'div'} id="${(_d = gvc.parameter.pageConfig) === null || _d === void 0 ? void 0 : _d.id}${map.bind}" class="${(_e = map.divCreate.class) !== null && _e !== void 0 ? _e : ""}" style="${(_f = map.divCreate.style) !== null && _f !== void 0 ? _f : ""}" 
-${gvc.map(((_g = map.divCreate.option) !== null && _g !== void 0 ? _g : []).map((dd) => {
+<${(_c = divCreate.elem) !== null && _c !== void 0 ? _c : 'div'} id="${(_d = gvc.parameter.pageConfig) === null || _d === void 0 ? void 0 : _d.id}${map.bind}" class="${(_e = divCreate.class) !== null && _e !== void 0 ? _e : ""}" style="${(_f = divCreate.style) !== null && _f !== void 0 ? _f : ""}" 
+${gvc.map(((_g = divCreate.option) !== null && _g !== void 0 ? _g : []).map((dd) => {
                 return ` ${dd.key}="${dd.value}"`;
             }))}
->${map.view()}</${(_h = map.divCreate.elem) !== null && _h !== void 0 ? _h : 'div'}>
+>${map.view()}</${(_h = divCreate.elem) !== null && _h !== void 0 ? _h : 'div'}>
 `;
         }
         else {
@@ -219,14 +225,14 @@ ${gvc.map(((_g = map.divCreate.option) !== null && _g !== void 0 ? _g : []).map(
                 fun: fun,
                 noCycle: false
             };
-            return `clickMap['${gvc.parameter.pageConfig.id}']['${gvc.parameter.clickID}'].fun(this,event);" data-gs-event-${gvc.parameter.clickID}="event`;
+            return `clickMap['${gvc.parameter.pageConfig.id}']['${gvc.parameter.clickID}'].fun(this,event);`;
         }
         else {
             gvc.parameter.clickMap[noCycle] = {
                 fun: fun,
                 noCycle: true
             };
-            return `clickMap['${gvc.parameter.pageConfig.id}']['${noCycle}'].fun(this,event);"  data-gs-event-${noCycle}="event`;
+            return `clickMap['${gvc.parameter.pageConfig.id}']['${noCycle}'].fun(this,event);`;
         }
     }
     addStyle(style) {

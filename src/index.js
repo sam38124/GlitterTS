@@ -33,11 +33,13 @@ const uuid_1 = require("uuid");
 const hooks_1 = require("./modules/hooks");
 const config_1 = require("./config");
 const contollers = require("./controllers");
+const public_contollers = require("./api-public/controllers");
 const database_1 = __importDefault(require("./modules/database"));
 const saas_table_check_1 = require("./services/saas-table-check");
 const database_2 = __importDefault(require("./modules/database"));
 const AWSLib_1 = require("./modules/AWSLib");
 const aws_sdk_1 = __importDefault(require("aws-sdk"));
+const live_source_js_1 = require("./live_source.js");
 exports.app = (0, express_1.default)();
 const logger = new logger_1.default();
 const corsOptions = {
@@ -50,6 +52,7 @@ exports.app.use(express_1.default.raw());
 exports.app.use(express_1.default.json({ limit: '50MB' }));
 exports.app.use(createContext);
 exports.app.use(contollers);
+exports.app.use(public_contollers);
 async function initial(serverPort) {
     await (async () => {
         await database_1.default.createPool();
@@ -159,6 +162,7 @@ async function createAppRoute() {
     }
 }
 async function createAPP(dd) {
+    live_source_js_1.Live_source.liveAPP.push(dd.appName);
     return await Glitter.setUP(exports.app, [
         {
             rout: '/' + encodeURI(dd.appName),
@@ -211,6 +215,9 @@ async function createAPP(dd) {
                                                     and tag = ${database_2.default.escape(redirect)}
                                                     and \`${config_1.saasConfig.SAAS_NAME}\`.page_config.appName = \`${config_1.saasConfig.SAAS_NAME}\`.app_config.appName;
                         `, []))[0];
+                        if (req.query.type) {
+                            redirect += `&type=${req.query.type}`;
+                        }
                     }
                     return (() => {
                         var _a, _b, _c, _d, _e, _f, _g, _h, _j;
@@ -224,7 +231,7 @@ async function createAPP(dd) {
     <meta property="og:image" content="${(_g = d.image) !== null && _g !== void 0 ? _g : ""}">
     <meta property="og:title" content="${(_h = d.title) !== null && _h !== void 0 ? _h : ""}">
     <meta name="description" content="${(_j = d.content) !== null && _j !== void 0 ? _j : ""}">
-${(() => {
+    ${(() => {
                                 if (redirect) {
                                     return `<script>
 window.location.href='?page=${redirect}';

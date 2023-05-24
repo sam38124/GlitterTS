@@ -68,10 +68,22 @@ export class HtmlGenerate {
                 }">${title ?? "設計樣式"}</button>`;
             },
             class: () => {
-                return data.class ?? '';
+                let classs=''
+                try {
+                    classs=eval(data.class)
+                }catch (e){
+                    classs=data.class
+                }
+                return classs;
             },
             style: () => {
-                let styleString: string[] = [data.style as string];
+                let styles=''
+                try {
+                    styles=eval(data.style)
+                }catch (e){
+                    styles=data.style
+                }
+                let styleString: string[] = [styles];
                 (data.styleList ?? []).map((dd: any) => {
                     Object.keys(dd.data).map((d2) => {
                         styleString.push([d2, dd.data[d2]].join(':'));
@@ -267,13 +279,12 @@ ${obj.gvc.bindView({
                                              subdata.option=option
                                              if((window.parent as any).editerData !== undefined){
                                                  option.push({
-                                                     key:"onclick",value:gvc.event((e)=>{
+                                                     key:"onclick",value:gvc.event((e,event)=>{
                                                          try{
                                                              (window.parent as any).glitter.setCookie('lastSelect',dd.id);
                                                              (window.parent as any).glitter.share.refreshAllContainer()
-                                                         }catch{
-
-                                                         }
+                                                         }catch{}
+                                                         event.stopPropagation()
                                                      })
                                                  })
                                              }

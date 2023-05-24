@@ -20,34 +20,20 @@ init((gvc, glitter, gBundle) => {
                 (async () => {
                     return new Promise(async (resolve, reject) => {
                         var _a, _b, _c;
-                        setTimeout(() => {
-                            resolve(true);
-                        }, 4000);
-                        for (const data of ((_a = dd.response.data.initialStyleSheet) !== null && _a !== void 0 ? _a : [])) {
-                            try {
-                                if (data.type === 'script') {
-                                    glitter.addStyleLink(data.src.link);
-                                }
-                                else {
-                                    glitter.addStyle(data.src.official);
-                                }
-                            }
-                            catch (e) {
-                                console.log(e);
-                            }
-                        }
-                        for (const data of ((_b = dd.response.data.initialList) !== null && _b !== void 0 ? _b : [])) {
+                        for (const data of ((_a = dd.response.data.initialList) !== null && _a !== void 0 ? _a : [])) {
                             try {
                                 if (data.type === 'script') {
                                     const url = new URL(glitter.htmlGenerate.resourceHook(data.src.link));
-                                    glitter.share.callBackList = (_c = glitter.share.callBackList) !== null && _c !== void 0 ? _c : {};
+                                    glitter.share.callBackList = (_b = glitter.share.callBackList) !== null && _b !== void 0 ? _b : {};
                                     const callbackID = glitter.getUUID();
                                     url.searchParams.set('callback', callbackID);
                                     glitter.share.callBackList[callbackID] = (() => { resolve(true); });
                                     await new Promise((resolve, reject) => {
                                         glitter.addMtScript([{
                                                 src: url.href, type: 'module'
-                                            }], () => { }, () => {
+                                            }], () => {
+                                            resolve(true);
+                                        }, () => {
                                             resolve(true);
                                         });
                                     });
@@ -70,7 +56,28 @@ init((gvc, glitter, gBundle) => {
                                 console.log(e);
                             }
                         }
-                        resolve(true);
+                        if (glitter.getUrlParameter("type") !== 'editor') {
+                            setTimeout(() => {
+                                resolve(true);
+                            }, 4000);
+                            for (const data of ((_c = dd.response.data.initialStyleSheet) !== null && _c !== void 0 ? _c : [])) {
+                                try {
+                                    if (data.type === 'script') {
+                                        gvc.glitter.addStyleLink(data.src.link);
+                                    }
+                                    else {
+                                        gvc.glitter.addStyle(data.src.official);
+                                    }
+                                }
+                                catch (e) {
+                                    console.log(e);
+                                }
+                            }
+                            resolve(true);
+                        }
+                        else {
+                            resolve(true);
+                        }
                     });
                 })().then(() => {
                     var _a;

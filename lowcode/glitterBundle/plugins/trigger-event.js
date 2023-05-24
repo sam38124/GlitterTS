@@ -118,24 +118,50 @@ export class TriggerEvent {
         const event = oj.clickEvent.clickEvent;
         let returnData = '';
         async function run() {
-            var _a;
-            oj.gvc.glitter.share.clickEvent = (_a = oj.gvc.glitter.share.clickEvent) !== null && _a !== void 0 ? _a : {};
-            if (!oj.gvc.glitter.share.clickEvent[event.src]) {
-                await new Promise((resolve, reject) => {
-                    oj.gvc.glitter.addMtScript([
-                        { src: `${glitter.htmlGenerate.resourceHook(event.src)}`, type: 'module' }
-                    ], () => {
+            return new Promise(async (resolve, reject) => {
+                var _a;
+                async function pass() {
+                    try {
+                        returnData = await oj.gvc.glitter.share.clickEvent[glitter.htmlGenerate.resourceHook(event.src)][event.route].fun(oj.gvc, oj.widget, oj.clickEvent, oj.subData, oj.element).event();
                         resolve(true);
-                    }, () => {
+                    }
+                    catch (e) {
                         resolve(false);
+                    }
+                }
+                oj.gvc.glitter.share.clickEvent = (_a = oj.gvc.glitter.share.clickEvent) !== null && _a !== void 0 ? _a : {};
+                if (!oj.gvc.glitter.share.clickEvent[event.src]) {
+                    await new Promise((resolve, reject) => {
+                        oj.gvc.glitter.addMtScript([
+                            { src: `${glitter.htmlGenerate.resourceHook(event.src)}`, type: 'module' }
+                        ], () => {
+                            pass();
+                        }, () => {
+                            resolve(false);
+                        });
                     });
-                });
-            }
-            returnData = await oj.gvc.glitter.share.clickEvent[glitter.htmlGenerate.resourceHook(event.src)][event.route].fun(oj.gvc, oj.widget, oj.clickEvent, oj.subData, oj.element).event();
+                }
+                else {
+                    pass();
+                }
+            });
         }
         return new Promise(async (resolve, reject) => {
-            await run();
-            resolve(returnData);
+            let fal = 10;
+            function check() {
+                run().then((res) => {
+                    if (res || (fal === 0)) {
+                        resolve(returnData);
+                    }
+                    else {
+                        setTimeout(() => {
+                            fal -= 1;
+                            check();
+                        }, 100);
+                    }
+                });
+            }
+            check();
         });
     }
     static editer(gvc, widget, obj, option = { hover: false, option: [] }) {
@@ -190,6 +216,9 @@ export class TriggerEvent {
 </select>
 ${gvc.bindView(() => {
                         const id = glitter.getUUID();
+                        setTimeout(() => {
+                            gvc.notifyDataChange(id);
+                        }, 200);
                         return {
                             bind: id,
                             view: () => {
@@ -209,13 +238,15 @@ ${gvc.bindView(() => {
                                 glitter.share.clickEvent = (_a = glitter.share.clickEvent) !== null && _a !== void 0 ? _a : {};
                                 try {
                                     if (!glitter.share.clickEvent[glitter.htmlGenerate.resourceHook(obj.clickEvent.src)]) {
-                                        glitter.addMtScript([
+                                        -glitter.addMtScript([
                                             {
                                                 src: glitter.htmlGenerate.resourceHook(obj.clickEvent.src),
                                                 type: 'module'
                                             }
                                         ], () => {
-                                            gvc.notifyDataChange(selectID);
+                                            setTimeout(() => {
+                                                gvc.notifyDataChange(id);
+                                            }, 200);
                                         }, () => {
                                             console.log(`loadingError:` + obj.clickEvent.src);
                                         });

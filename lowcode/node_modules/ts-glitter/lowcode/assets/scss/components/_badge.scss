@@ -1,0 +1,28 @@
+//
+// Badge
+// --------------------------------------------------
+
+
+// Fix badge colors
+
+.badge {
+  color: $white;
+}
+.badge.bg-secondary,
+.badge.bg-light {
+  color: $gray-800;
+}
+
+
+// Badge link
+
+a.badge {
+  text-decoration: none;
+}
+
+
+// Fix badge alignment inside button
+
+.btn .badge {
+  top: 1px;
+}

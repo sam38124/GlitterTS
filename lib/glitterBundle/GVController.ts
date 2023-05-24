@@ -60,10 +60,15 @@ export class GVC {
         try {
             const refresh = (id: string) => {
                 gvc.parameter.bindViewList[id].divCreate=gvc.parameter.bindViewList[id].divCreate??{}
-                $(`#${gvc.parameter.pageConfig!.id}${id}`).attr('class',gvc.parameter.bindViewList[id].divCreate.class ?? "");
-                $(`#${gvc.parameter.pageConfig!.id}${id}`).attr('style',gvc.parameter.bindViewList[id].divCreate.style ?? "");
-                (gvc.parameter.bindViewList[id].divCreate.option ?? []).map((dd:any)=>{
-                    $(`#${gvc.parameter.pageConfig!.id}${id}`).attr(dd.key,dd.value);
+                const divCreate=(typeof gvc.parameter.bindViewList[id].divCreate === "function") ? gvc.parameter.bindViewList[id].divCreate() : gvc.parameter.bindViewList[id].divCreate
+                $(`#${gvc.parameter.pageConfig!.id}${id}`).attr('class',divCreate.class ?? "");
+                $(`#${gvc.parameter.pageConfig!.id}${id}`).attr('style',divCreate.style ?? "");
+                    (divCreate.option ?? []).map((dd:any)=>{
+                        try{
+                            console.log(JSON.stringify(dd))
+                            $(`#${gvc.parameter.pageConfig!.id}${id}`).attr(dd.key,dd.value);
+                        }catch (e){}
+
                 })
                 $(`#${gvc.parameter.pageConfig!.id}${id}`).html(gvc.parameter.bindViewList[id].view());
                 if (gvc.parameter.bindViewList[id].onCreate) {
@@ -178,8 +183,8 @@ export class GVC {
     }
 
     public bindView(map: (
-        () => { view: () => string, bind: string, divCreate?: { elem?: string, style?: string, class?: string, option?: { key: string, value: string }[] }, dataList?: { obj: any, key: string }[], onCreate?: () => void, initial?: () => void }) |
-        { view: () => string, bind: string, divCreate?: { elem?: string, style?: string, class?: string, option?: { key: string, value: string }[] }, dataList?: { obj: any, key: string }[], onCreate?: () => void, initial?: () => void }): string {
+        () => { view: () => string, bind: string, divCreate?: { elem?: string, style?: string, class?: string, option?:{ key: string, value: string }[] } | (()=>({ elem?: string, style?: string, class?: string, option?:{ key: string, value: string }[] })), dataList?: { obj: any, key: string }[], onCreate?: () => void, onInitial?: () => void }) |
+        { view: () => string, bind: string, divCreate?: { elem?: string, style?: string, class?: string, option?:{ key: string, value: string }[] } |(()=>({ elem?: string, style?: string, class?: string, option?:{ key: string, value: string }[] })), dataList?: { obj: any, key: string }[], onCreate?: () => void, onInitial?: () => void }): string {
         const gvc = this
 
         if (typeof map === "function") {
@@ -202,24 +207,25 @@ export class GVC {
         if (document.getElementById(gvc.parameter.pageConfig?.id + map.bind)) {
             $(`#${gvc.parameter.pageConfig?.id}${map.bind}`).html(map.view())
         }
-        if ((map as any).onCreate) {
-            var timer = setInterval(function () {
-                if (document.getElementById(gvc.parameter.pageConfig!.id + map.bind)) {
-                    (map as any).onCreate()
-                    clearInterval(timer)
+        const timer = setInterval(function () {
+            if (document.getElementById(gvc.parameter.pageConfig!.id + map.bind)) {
+                if ((map as any).onInitial) {
+                    (map as any).onInitial()
                 }
-            }, 100)
-        }
-        if ((map as any).inital) {
-            (map as any).inital()
-        }
-        if ((map as any).divCreate) {
+                if ((map as any).onCreate) {
+                    (map as any).onCreate()
+                }
+                clearInterval(timer)
+            }
+        }, 100)
+        const divCreate=(typeof (map as any).divCreate === "function") ?  (map as any).divCreate(): (map as any).divCreate
+        if (divCreate) {
             return `
-<${(map as any).divCreate.elem ?? 'div'} id="${gvc.parameter.pageConfig?.id}${map.bind}" class="${(map as any).divCreate.class ?? ""}" style="${(map as any).divCreate.style ?? ""}" 
-${gvc.map(((map as any).divCreate.option ?? []).map((dd: any) => {
+<${divCreate.elem ?? 'div'} id="${gvc.parameter.pageConfig?.id}${map.bind}" class="${divCreate.class ?? ""}" style="${divCreate.style ?? ""}" 
+${gvc.map((divCreate.option ?? []).map((dd: any) => {
                 return ` ${dd.key}="${dd.value}"`
             }))}
->${map.view()}</${(map as any).divCreate.elem ?? 'div'}>
+>${map.view()}</${divCreate.elem ?? 'div'}>
 `
         } else {
             return map.view()
@@ -234,13 +240,13 @@ ${gvc.map(((map as any).divCreate.option ?? []).map((dd: any) => {
                 fun: fun,
                 noCycle: false
             }
-            return `clickMap['${gvc.parameter.pageConfig!.id}']['${gvc.parameter.clickID}'].fun(this,event);" data-gs-event-${gvc.parameter.clickID}="event`
+            return `clickMap['${gvc.parameter.pageConfig!.id}']['${gvc.parameter.clickID}'].fun(this,event);`
         } else {
             gvc.parameter.clickMap[noCycle] = {
                 fun: fun,
                 noCycle: true
             }
-            return `clickMap['${gvc.parameter.pageConfig!.id}']['${noCycle}'].fun(this,event);"  data-gs-event-${noCycle}="event`
+            return `clickMap['${gvc.parameter.pageConfig!.id}']['${noCycle}'].fun(this,event);`
         }
     }
 
