@@ -122,6 +122,9 @@ export class TriggerEvent {
                 var _a;
                 async function pass() {
                     try {
+                        setTimeout(() => {
+                            resolve(true);
+                        }, 4000);
                         returnData = await oj.gvc.glitter.share.clickEvent[glitter.htmlGenerate.resourceHook(event.src)][event.route].fun(oj.gvc, oj.widget, oj.clickEvent, oj.subData, oj.element).event();
                         resolve(true);
                     }

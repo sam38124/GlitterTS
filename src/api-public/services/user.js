@@ -68,6 +68,19 @@ class User {
             throw exception_1.default.BadRequestError('BAD_REQUEST', 'Login Error:' + e, null);
         }
     }
+    async updateUserData(userID, par) {
+        try {
+            par = {
+                account: par.account,
+                userData: JSON.stringify(par.userData)
+            };
+            console.log(userID);
+            return await database_1.default.query(`update \`${this.app}\`.user SET ? WHERE 1 = 1 and userID = ?`, [par, userID]);
+        }
+        catch (e) {
+            throw exception_1.default.BadRequestError('BAD_REQUEST', 'Login Error:' + e, null);
+        }
+    }
     async checkUserExists(account) {
         try {
             return (await database_1.default.execute(`select count(1)

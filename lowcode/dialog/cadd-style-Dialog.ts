@@ -8,71 +8,89 @@ import {EditorElem} from "../glitterBundle/plugins/editor-elem.js";
 init((gvc, glitter, gBundle) => {
     return {
         onCreateView: () => {
-            let progress = 0
             const style = {
                 style1: `background:linear-gradient(135deg, #667eea 0%, #764ba2 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;`,
                 style2: `background:linear-gradient(135deg, #667eea 0%, #764ba2 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;`
             }
-            return gvc.bindView(() => {
-                const id = glitter.getUUID()
-                return {
-                    bind: id,
-                    view: () => {
-                        if (progress === 0) {
-                            return `<div class="m-auto bg-white shadow rounded" style="max-width: 100%;max-height: 100%;">
+            return `
+
+<div class="100 h-100 d-flex flex-column align-items-center justify-content-center" style="background-color: rgba(0,0,0,0.5);">
+<div class="m-auto bg-white shadow rounded" style="max-width: 100%;max-height: 100%;">
   <div class="w-100 d-flex align-items-center border-bottom justify-content-center position-relative" style="height: 68px;">
-        <h3 class="modal-title fs-4 " >選擇元件添加方式</h3>
+        <h3 class="modal-title fs-4 " >選擇類型</h3>
         <i class="fa-solid fa-xmark text-dark position-absolute " style="font-size:20px;transform: translateY(-50%);right: 20px;top: 50%;cursor: pointer;"
         onclick="${gvc.event(() => {
-                                glitter.closeDiaLog();
-                            })}"></i>
+                glitter.closeDiaLog();
+            })}"></i>
 </div>    
 <div class="row m-2">
-<div class="border-0 text-center col-12 col-sm-4 bg-none d-flex flex-column align-items-center justify-content-center" onclick="${gvc.event(() => {
-                                progress = 1
-                                gvc.notifyDataChange(id)
-                            })}">
-<div class="rounded-circle d-flex align-items-center justify-content-center" style="height: 100px;width: 100px; background:whitesmoke;">
-<i class="fa-solid fa-puzzle-piece-simple   fs-2" style="${style.style1}"></i>
-</div>
-  <h5 class="fw-medium fs-lg mb-1  mt-2" style="${style.style1}">頁面模塊</h5>
-</div>
-<div class="border-0 text-center col-12 col-sm-4 bg-none d-flex flex-column align-items-center justify-content-center"  onclick="${gvc.event(() => {
-                                progress = 2
-                                gvc.notifyDataChange(id)
-                            })}">
-<div class="rounded-circle d-flex align-items-center justify-content-center" style="height: 100px;width: 100px; background:whitesmoke;">
-<i class="fa-solid fa-code   fs-2" style="${style.style2}"></i>
-</div>
-  <h5 class="fw-medium fs-lg mb-1  mt-2" style="${style.style2}">程式碼</h5>
-</div>
-<div class="border-0 text-center col-12 col-sm-4 bg-none d-flex flex-column align-items-center justify-content-center" onclick="${gvc.event(() => {
-                                progress = 3
-                                gvc.notifyDataChange(id)
-                            })}">
-<div class="rounded-circle d-flex align-items-center justify-content-center" style="height: 100px;width: 100px; background:whitesmoke;">
-<i class="fa-light fa-microchip-ai   fs-2 text-gradient-primary" ></i>
-</div>
-  <h5 class="fw-medium fs-lg mb-1  mt-2 text-gradient-primary" >AI生成</h5>
-</div>
-</div>
-</div>`
-                        } else if (progress === 1) {
-                            return cAdd(gvc)
-                        } else if (progress === 2) {
-                            return codeEditor(gvc)
-                        } else if (progress === 3) {
-                            return aiEditor(gvc)
-                        } else {
-                            return ``
-                        }
+<div class="border-0 text-center col-6 col-sm-6 bg-none d-flex flex-column align-items-center justify-content-center" >
+<div class="rounded-circle d-flex align-items-center justify-content-center" style="height: 100px;width: 100px; background:whitesmoke;" onclick="${gvc.event(() => {
+                gvc.getBundle().callback({
+                    'id': glitter.getUUID(),
+                    "data": {
+                        "attr": [],
+                        "elem": "style",
+                        "inner": "/***請輸入設計代碼***/",
+                        "dataFrom": "static",
+                        "atrExpand": {
+                            "expand": true
+                        },
+                        "elemExpand": {
+                            "expand": true
+                        },
+                        "innerEvenet": {}
                     },
-                    divCreate: {
-                        class: `w-100 h-100 d-flex flex-column align-items-center justify-content-center`,
-                        style: "background-color: rgba(0,0,0,0.5);"
-                    }
-                }
-            })
+                    'type': 'widget',
+                    'label': 'style代碼',
+                    'js': '$style1/official.js'
+                });
+                glitter.closeDiaLog()
+            })}">
+<i class="fa-solid fa-code   fs-2" style="${style.style1}"></i>
+</div>
+  <h5 class="fw-medium fs-lg mb-1  mt-2" style="${style.style1}">Style區塊</h5>
+</div>
+<div class="border-0 text-center col-6 col-sm-6 bg-none d-flex flex-column align-items-center justify-content-center"  >
+<div class="rounded-circle d-flex align-items-center justify-content-center" style="height: 100px;width: 100px; background:whitesmoke;" onclick="${gvc.event(() => {
+                gvc.getBundle().callback({
+                    "id": glitter.getUUID(),
+                    "js": "https://sam38124.github.io/One-page-plugin/src/official.js",
+                    "css": {"class": {}, "style": {}},
+                    "data": {
+                        "class": "",
+                        "style": "",
+                        "attr": [{
+                            "attr": "href",
+                            "type": "par",
+                            "value": "",
+                            "expand": false
+                        }, {"attr": "rel", "type": "par", "value": "stylesheet", "expand": false}],
+                        "elem": "link",
+                        "inner": "",
+                        "dataFrom": "static",
+                        "atrExpand": {"expand": true},
+                        "elemExpand": {"expand": true},
+                        "innerEvenet": {},
+                        "setting": [],
+                        "note": ""
+                    },
+                    "type": "widget",
+                    "label": "stylesheet",
+                    "styleList": [],
+                    "refreshAllParameter": {},
+                    "refreshComponentParameter": {}
+                });
+                glitter.closeDiaLog()
+            })}">
+<i class="fa-solid fa-link   fs-2" style="${style.style2}"></i>
+</div>
+  <h5 class="fw-medium fs-lg mb-1  mt-2" style="${style.style2}">資源連結</h5>
+</div>
+</div>
+</div>
+</div>
+`
         }
     };
 });
@@ -414,12 +432,10 @@ function traverseHTML(element: any) {
             result.children.push(traverseHTML(children[j]));
         }
     }
-    element.innerHTML=element.innerHTML??"";
-    element.innerText=element.innerText??"";
-    let trimmedStr = element.innerHTML.replace(/\n/,'').replace(/^\s+|\s+$/g, "");
-    let trimmedStr2 = element.innerText.replace(/\n/,'').replace(/^\s+|\s+$/g, "");
-    result.textIndex=trimmedStr.indexOf(trimmedStr2)
-    result.innerText=element.innerText.replace(/\n/,'').replace(/^\s+|\s+$/g, "")
+    let trimmedStr = element.innerHTML.replace(/\n/, '').replace(/^\s+|\s+$/g, "");
+    let trimmedStr2 = element.innerText.replace(/\n/, '').replace(/^\s+|\s+$/g, "");
+    result.textIndex = trimmedStr.indexOf(trimmedStr2)
+    result.innerText = element.innerText.replace(/\n/, '').replace(/^\s+|\s+$/g, "")
     // 返回 JSON 結果
     return result;
 }
@@ -473,7 +489,7 @@ async function saveHTML(json: any, relativePath: string, gvc: GVC, elem?: {
     }
 
     async function convert(obj: any) {
-        obj.children=obj.children??[]
+        obj.children = obj.children ?? []
         obj.attributes = obj.attributes ?? {}
         const originalHref = obj.attributes.href
         const originalSrc = obj.attributes.src
@@ -567,14 +583,14 @@ async function saveHTML(json: any, relativePath: string, gvc: GVC, elem?: {
 
         })
         let setting: any = []
-        if (obj.textIndex===0&&(obj.innerText.replace(/ /g, '').replace(/\n/g, '').length > 0 && ((obj.children ?? []).length > 0))) {
+        if (obj.textIndex === 0 && (obj.innerText.replace(/ /g, '').replace(/\n/g, '').length > 0 && ((obj.children ?? []).length > 0))) {
             setting.push(await convert({
                 tag: 'span',
                 innerText: obj.innerText
             }))
         }
-        if(obj.children.length>0){
-            obj.innerText=''
+        if (obj.children.length > 0) {
+            obj.innerText = ''
         }
         for (const dd of (obj.children ?? [])) {
             const data = await convert(dd)
@@ -600,7 +616,7 @@ async function saveHTML(json: any, relativePath: string, gvc: GVC, elem?: {
                 }
             }
         }
-        if (obj.textIndex>0&&(obj.innerText.replace(/ /g, '').replace(/\n/g, '').length > 0 && ((obj.children ?? []).length > 0))) {
+        if (obj.textIndex > 0 && (obj.innerText.replace(/ /g, '').replace(/\n/g, '').length > 0 && ((obj.children ?? []).length > 0))) {
             setting.push(await convert({
                 tag: 'span',
                 innerText: obj.innerText
@@ -612,7 +628,7 @@ async function saveHTML(json: any, relativePath: string, gvc: GVC, elem?: {
             "css": {"class": {}, "style": {}},
             "data": {
                 "class": obj.attributes.class ?? "",
-                "style": (obj.attributes.style ?? "") ,
+                "style": (obj.attributes.style ?? ""),
                 "attr": Object.keys(obj.attributes).filter((key) => {
                     return key !== 'class' && key !== 'style' && key !== 'id'
                 }).map((dd) => {
@@ -655,8 +671,8 @@ async function saveHTML(json: any, relativePath: string, gvc: GVC, elem?: {
             })(),
             "styleList": []
         }
-        if(x.data.style.length>0){
-            x.data.style+=";"
+        if (x.data.style.length > 0) {
+            x.data.style += ";"
         }
         if (x.data.elem === 'img') {
             x.data.inner = (x.data.attr.find((dd) => {

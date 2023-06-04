@@ -7,6 +7,8 @@ import {ApiPageConfig} from "./api/pageConfig.js";
 
 export class Entry {
     public static onCreate(glitter: Glitter) {
+        glitter.debugMode=true
+
         glitter.setHome('jspage/index.js',glitter.getUrlParameter('page'),{});
     }
 }

@@ -25,9 +25,12 @@ router.post('/upload', async (req: express.Request, resp: express.Response) => {
             Expires: 300,
             //If you use other contentType will response 403 error
             ContentType: (()=>{
-                return  mime.getType(fullUrl.split('.').pop())
-            })(),
-            ACL: 'public-read'
+                if(config.SINGLE_TYPE){
+                  return  `application/x-www-form-urlencoded; charset=UTF-8`
+                }else{
+                    return  mime.getType(fullUrl.split('.').pop())
+                }
+            })()
         };
         console.log(`fullUrl:${params.ContentType}`)
         await s3bucket.getSignedUrl('putObject', params, async (err:any, url:any) => {

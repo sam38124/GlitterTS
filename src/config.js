@@ -66,6 +66,9 @@ exports.config = {
     get AWS_S3_PREFIX_DOMAIN_NAME() {
         return `https://${process.env.AWS_S3_NAME}.s3.amazonaws.com/`;
     },
+    get SINGLE_TYPE() {
+        return `${process.env.SINGLE_TYPE}` == "true";
+    },
     getRoute: (r, type = 'normal') => {
         if (type === 'normal') {
             return exports.config.API_PREFIX + r;
@@ -75,7 +78,8 @@ exports.config = {
         }
     },
     public_route: {
-        user: '/user'
+        user: '/user',
+        post: '/post'
     },
     route: {
         user: "/user",

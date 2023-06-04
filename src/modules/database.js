@@ -22,6 +22,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.limit = void 0;
 const promise_1 = __importDefault(require("mysql2/promise"));
 const config_1 = __importStar(require("../config"));
 const logger_1 = __importDefault(require("./logger"));
@@ -81,6 +82,10 @@ const execute = async (sql, params) => {
         throw exception_1.default.ServerError('INTERNAL_SERVER_ERROR', 'Failed to execute statement.');
     }
 };
+const limit = (map) => {
+    return ` limit ${parseInt(map.page, 10) * parseInt(map.limit, 10)}, ${parseInt(map.page, 10) * parseInt(map.limit, 10) + parseInt(map.limit, 10)} `;
+};
+exports.limit = limit;
 const query = async (sql, params) => {
     const logger = new logger_1.default();
     const TAG = '[Database][Query]';

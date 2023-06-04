@@ -31,7 +31,7 @@ init((gvc, glitter, gBundle) => {
         selectContainer: any,
         backendPlugins: any,
         selectIndex: any,
-        waitCopy:any
+        waitCopy: any
     } = {
         dataList: undefined,
         data: undefined,
@@ -47,14 +47,15 @@ init((gvc, glitter, gBundle) => {
         homePage: '',
         selectContainer: undefined,
         selectIndex: undefined,
-        waitCopy:undefined
+        waitCopy: undefined
     };
     const swal = new Swal(gvc);
     const doc = new Editor(gvc, viewModel);
     const createID = `HtmlEditorContainer`;
-    glitter.share.refreshAllContainer=()=>{
+    glitter.share.refreshAllContainer = () => {
         gvc.notifyDataChange(createID);
     }
+
     async function lod() {
         swal.loading('加載中...');
         const waitGetData = [
@@ -135,7 +136,6 @@ init((gvc, glitter, gBundle) => {
     }
 
     glitter.htmlGenerate.saveEvent = () => {
-
         glitter.setCookie("jumpToNavScroll", $(`#jumpToNav`).scrollTop())
         swal.loading('更新中...');
 
@@ -192,7 +192,7 @@ init((gvc, glitter, gBundle) => {
             for (const a of waitSave) {
                 if (!await a()) {
                     swal.nextStep(`連結不可重複`, () => {
-                    },'error');
+                    }, 'error');
                     return;
                 }
             }
@@ -211,8 +211,9 @@ init((gvc, glitter, gBundle) => {
         var pastedData = clipboardData.getData('text/plain');
 
         // 在控制台输出粘贴的内容
-        if (pastedData.indexOf('glitter-copyEvent')===0) {
-            var copy = JSON.parse(pastedData.replace('glitter-copyEvent',''))
+        if (pastedData.indexOf('glitter-copyEvent') === 0) {
+            var copy = JSON.parse(pastedData.replace('glitter-copyEvent', ''))
+
             function checkId(dd: any) {
                 copy.id = glitter.getUUID()
                 if (dd.type === 'container') {
@@ -221,6 +222,7 @@ init((gvc, glitter, gBundle) => {
                     })
                 }
             }
+
             console.log(JSON.stringify(viewModel.selectContainer))
             checkId(copy)
             glitter.setCookie('lastSelect', copy.id);
@@ -229,7 +231,6 @@ init((gvc, glitter, gBundle) => {
 
         }
     });
-
     return {
         onCreateView: () => {
             return gvc.bindView({
@@ -244,13 +245,14 @@ init((gvc, glitter, gBundle) => {
 <div style="width:60px;gap:20px;padding-top: 15px;" class="h-100 border-end d-flex flex-column align-items-center " >
 ${[
                                     {src: `fa-table-layout`, index: Main_editor.index},
-                                    {src: `fa-sharp fa-regular fa-file-dashed-line`, index: Page_editor.index}
-                                    , {src: `fa-solid fa-list-check`, index: Setting_editor.index},
-                                    {src: `fa-regular fa-folders d-none`, index: '3'}].map((da: any, index: number) => {
+                                    {src: `fa-sharp fa-regular fa-file-dashed-line`, index: Page_editor.index},
+                                    {src: `fa-solid fa-list-check`, index: Setting_editor.index},
+                                    {src: `fa-regular fa-folders d-none`, index: '3'}
+                                ].map((da: any, index: number) => {
                                     return `<i class="fa-regular ${da.src} fs-4 fw-bold ${(selectPosition === `${da.index}`) ? `text-primary` : ``}  p-2 rounded" style="cursor:pointer;${(selectPosition === `${da.index}`) ? `background-color: rgba(10,83,190,0.1);` : ``}"
 onclick="${gvc.event(() => {
                                         viewModel.waitCopy = undefined
-                                        viewModel.selectItem=undefined
+                                        viewModel.selectItem = undefined
                                         glitter.setUrlParameter(`editorPosition`, `${da.index}`)
                                         gvc.notifyDataChange(createID)
                                     })}"></i>`
@@ -260,7 +262,7 @@ onclick="${gvc.event(() => {
                                     switch (selectPosition) {
                                         case Setting_editor.index:
                                         case Main_editor.index:
-                                            return `p-4`
+                                            return `p-4 pt-0`
                                         case Page_editor.index:
                                             return `p-0`
                                         default:

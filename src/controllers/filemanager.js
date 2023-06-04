@@ -24,9 +24,13 @@ router.post('/upload', async (req, resp) => {
             Key: s3path,
             Expires: 300,
             ContentType: (() => {
-                return mime.getType(fullUrl.split('.').pop());
-            })(),
-            ACL: 'public-read'
+                if (config_1.config.SINGLE_TYPE) {
+                    return `application/x-www-form-urlencoded; charset=UTF-8`;
+                }
+                else {
+                    return mime.getType(fullUrl.split('.').pop());
+                }
+            })()
         };
         console.log(`fullUrl:${params.ContentType}`);
         await AWSLib_1.default.getSignedUrl('putObject', params, async (err, url) => {

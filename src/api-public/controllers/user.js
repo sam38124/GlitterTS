@@ -39,4 +39,14 @@ router.get('/', async (req, resp) => {
         return response_1.default.fail(resp, err);
     }
 });
+router.put('/', async (req, resp) => {
+    try {
+        const user = new user_1.User(req.get('g-app'));
+        console.log(req.body.userData);
+        return response_1.default.succ(resp, (await user.updateUserData(req.body.token.userID, req.body.userData)));
+    }
+    catch (err) {
+        return response_1.default.fail(resp, err);
+    }
+});
 module.exports = router;

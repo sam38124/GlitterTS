@@ -11,6 +11,7 @@ import Logger from "../../modules/logger";
 import _ from "underscore";
 import exception from "../../modules/exception";
 import userRouter = require('./user');
+import postRouter = require('./post');
 import {Live_source} from "../../live_source.js";
 import {IToken} from "../models/Auth.js";
 import {ApiPublic} from "../services/public-table-check.js";
@@ -19,10 +20,14 @@ import {ApiPublic} from "../services/public-table-check.js";
 /*********SET UP Router*************/
 router.use('/api-public/*', doAuthAction);
 router.use(config.getRoute(config.public_route.user, 'public'), userRouter);
+router.use(config.getRoute(config.public_route.post, 'public'), postRouter);
+
 /******************************/
 const whiteList: {}[] = [
-    {url: config.getRoute(config.public_route.user+"/register", 'public'), method: 'POST'},
-    {url: config.getRoute(config.public_route.user+"/login", 'public'), method: 'POST'},
+    {url: config.getRoute(config.public_route.user + "/register", 'public'), method: 'POST'},
+    {url: config.getRoute(config.public_route.user + "/login", 'public'), method: 'POST'},
+    {url: config.getRoute(config.public_route.post + "/post", 'public'), method: 'GET'},
+    {url: config.getRoute(config.public_route.post + "/post", 'public'), method: 'POST'}
 ];
 
 async function doAuthAction(req: express.Request, resp: express.Response, next: express.NextFunction) {

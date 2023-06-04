@@ -48,26 +48,31 @@ export class GVC {
         jsList: [],
         styleLinks: [],
     }
-   public getBundle(){
-        this.parameter.pageConfig!.obj=this.parameter.pageConfig!.obj??{}
-        return this.parameter.pageConfig?.obj
-   }
 
+    public closeDialog() {
+        this.glitter.closeDiaLog(this.parameter.pageConfig?.tag)
+    }
+
+    public getBundle() {
+        this.parameter.pageConfig!.obj = this.parameter.pageConfig!.obj ?? {}
+        return this.parameter.pageConfig?.obj
+    }
 
 
     public notifyDataChange(id: any) {
         const gvc = this
         try {
             const refresh = (id: string) => {
-                gvc.parameter.bindViewList[id].divCreate=gvc.parameter.bindViewList[id].divCreate??{}
-                const divCreate=(typeof gvc.parameter.bindViewList[id].divCreate === "function") ? gvc.parameter.bindViewList[id].divCreate() : gvc.parameter.bindViewList[id].divCreate
-                $(`#${gvc.parameter.pageConfig!.id}${id}`).attr('class',divCreate.class ?? "");
-                $(`#${gvc.parameter.pageConfig!.id}${id}`).attr('style',divCreate.style ?? "");
-                    (divCreate.option ?? []).map((dd:any)=>{
-                        try{
-                            console.log(JSON.stringify(dd))
-                            $(`#${gvc.parameter.pageConfig!.id}${id}`).attr(dd.key,dd.value);
-                        }catch (e){}
+                gvc.parameter.bindViewList[id].divCreate = gvc.parameter.bindViewList[id].divCreate ?? {}
+                const divCreate = (typeof gvc.parameter.bindViewList[id].divCreate === "function") ? gvc.parameter.bindViewList[id].divCreate() : gvc.parameter.bindViewList[id].divCreate
+                $(`#${gvc.parameter.pageConfig!.id}${id}`).attr('class', divCreate.class ?? "");
+                $(`#${gvc.parameter.pageConfig!.id}${id}`).attr('style', divCreate.style ?? "");
+                (divCreate.option ?? []).map((dd: any) => {
+                    try {
+                        console.log(JSON.stringify(dd))
+                        $(`#${gvc.parameter.pageConfig!.id}${id}`).attr(dd.key, dd.value);
+                    } catch (e) {
+                    }
 
                 })
                 $(`#${gvc.parameter.pageConfig!.id}${id}`).html(gvc.parameter.bindViewList[id].view());
@@ -183,14 +188,14 @@ export class GVC {
     }
 
     public bindView(map: (
-        () => { view: () => string, bind: string, divCreate?: { elem?: string, style?: string, class?: string, option?:{ key: string, value: string }[] } | (()=>({ elem?: string, style?: string, class?: string, option?:{ key: string, value: string }[] })), dataList?: { obj: any, key: string }[], onCreate?: () => void, onInitial?: () => void }) |
-        { view: () => string, bind: string, divCreate?: { elem?: string, style?: string, class?: string, option?:{ key: string, value: string }[] } |(()=>({ elem?: string, style?: string, class?: string, option?:{ key: string, value: string }[] })), dataList?: { obj: any, key: string }[], onCreate?: () => void, onInitial?: () => void }): string {
+        () =>
+        { view: () => (string), bind: string, divCreate?: { elem?: string, style?: string, class?: string, option?: { key: string, value: string }[] } | (() => ({ elem?: string, style?: string, class?: string, option?: { key: string, value: string }[] })), dataList?: { obj: any, key: string }[], onCreate?: () => void, onInitial?: () => void }) |
+        { view: () => (string), bind: string, divCreate?: { elem?: string, style?: string, class?: string, option?: { key: string, value: string }[] } | (() => ({ elem?: string, style?: string, class?: string, option?: { key: string, value: string }[] })), dataList?: { obj: any, key: string }[], onCreate?: () => void, onInitial?: () => void }
+    ): string {
         const gvc = this
-
         if (typeof map === "function") {
             map = map()
         }
-
         if (map.dataList) {
             map.dataList.map(function (data) {
                 $(`#${gvc.parameter.pageConfig?.id}${map.bind}`).html((map as any).view())
@@ -202,11 +207,7 @@ export class GVC {
                 })
             })
         }
-
         gvc.parameter.bindViewList[map.bind] = map
-        if (document.getElementById(gvc.parameter.pageConfig?.id + map.bind)) {
-            $(`#${gvc.parameter.pageConfig?.id}${map.bind}`).html(map.view())
-        }
         const timer = setInterval(function () {
             if (document.getElementById(gvc.parameter.pageConfig!.id + map.bind)) {
                 if ((map as any).onInitial) {
@@ -218,18 +219,14 @@ export class GVC {
                 clearInterval(timer)
             }
         }, 100)
-        const divCreate=(typeof (map as any).divCreate === "function") ?  (map as any).divCreate(): (map as any).divCreate
-        if (divCreate) {
-            return `
-<${divCreate.elem ?? 'div'} id="${gvc.parameter.pageConfig?.id}${map.bind}" class="${divCreate.class ?? ""}" style="${divCreate.style ?? ""}" 
+        const divCreate = ((typeof (map as any).divCreate === "function") ? (map as any).divCreate() : (map as any).divCreate) ?? {elem: 'div'};
+        const data = map.view()
+        return `<${divCreate.elem ?? 'div'} id="${gvc.parameter.pageConfig?.id}${map.bind}" class="${divCreate.class ?? ""}" style="${divCreate.style ?? ""}" 
 ${gvc.map((divCreate.option ?? []).map((dd: any) => {
-                return ` ${dd.key}="${dd.value}"`
-            }))}
->${map.view()}</${divCreate.elem ?? 'div'}>
-`
-        } else {
-            return map.view()
-        }
+            return ` ${dd.key}="${dd.value}"`
+        }))}
+>${data}</${divCreate.elem ?? 'div'}>`
+
     }
 
     public event(fun: (e: any, event: any) => void, noCycle?: string) {
@@ -283,9 +280,9 @@ ${gvc.map((divCreate.option ?? []).map((dd: any) => {
             link.rel = "stylesheet";
             link.href = filePath;
             link.id = id;
-            if(!gvc.parameter.styleLinks.find((dd)=>{
-                return dd.src===filePath
-            })){
+            if (!gvc.parameter.styleLinks.find((dd) => {
+                return dd.src === filePath
+            })) {
                 gvc.parameter.styleLinks.push({
                     id: id,
                     src: filePath

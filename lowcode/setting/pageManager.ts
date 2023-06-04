@@ -416,6 +416,9 @@ function uploadImage(obj: {
                                     url: data1.url,
                                     type: 'put',
                                     data: file,
+                                    headers: {
+                                        "Content-Type": data1.type
+                                    },
                                     processData: false,
                                     crossDomain: true,
                                     success: (data2) => {

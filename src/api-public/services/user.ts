@@ -60,6 +60,19 @@ export class User {
         }
     }
 
+    public async updateUserData(userID: string,par:any) {
+        try {
+            par={
+                account:par.account,
+                userData:JSON.stringify(par.userData)
+            }
+            console.log(userID)
+            return (await db.query(`update \`${this.app}\`.user SET ? WHERE 1 = 1 and userID = ?`, [par,userID]) as any)
+        } catch (e) {
+            throw exception.BadRequestError('BAD_REQUEST', 'Login Error:' + e, null);
+        }
+    }
+
     public async checkUserExists(account: string) {
         try {
             return (await db.execute(`select count(1)

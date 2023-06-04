@@ -1,4 +1,5 @@
 import mysql from "mysql2/promise";
+export declare const limit: (map: any) => string;
 declare class Transaction {
     private trans;
     connectionId: any;

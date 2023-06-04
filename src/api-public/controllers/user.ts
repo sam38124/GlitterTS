@@ -40,6 +40,16 @@ router.get('/', async (req: express.Request, resp: express.Response) => {
     }
 });
 
+router.put('/', async (req: express.Request, resp: express.Response) => {
+    try {
+        const user = new User(req.get('g-app') as string);
+        console.log(req.body.userData);
+        return response.succ(resp, (await user.updateUserData(req.body.token.userID,req.body.userData)));
+    } catch (err) {
+        return response.fail(resp, err);
+    }
+});
+
 
 
 

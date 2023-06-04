@@ -381,6 +381,7 @@ ${glitter.htmlGenerate.editeText({
 </div>`;
 }
 function traverseHTML(element) {
+    var _a, _b;
     var result = {};
     result.tag = element.tagName;
     var attributes = element.attributes;
@@ -397,6 +398,8 @@ function traverseHTML(element) {
             result.children.push(traverseHTML(children[j]));
         }
     }
+    element.innerHTML = (_a = element.innerHTML) !== null && _a !== void 0 ? _a : "";
+    element.innerText = (_b = element.innerText) !== null && _b !== void 0 ? _b : "";
     let trimmedStr = element.innerHTML.replace(/\n/, '').replace(/^\s+|\s+$/g, "");
     let trimmedStr2 = element.innerText.replace(/\n/, '').replace(/^\s+|\s+$/g, "");
     result.textIndex = trimmedStr.indexOf(trimmedStr2);
@@ -448,11 +451,12 @@ async function saveHTML(json, relativePath, gvc, elem) {
         "label": "所有JS資源",
     };
     async function convert(obj) {
-        var _a, _b, _c, _d, _e, _f, _g, _h, _j;
-        obj.attributes = (_a = obj.attributes) !== null && _a !== void 0 ? _a : {};
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k;
+        obj.children = (_a = obj.children) !== null && _a !== void 0 ? _a : [];
+        obj.attributes = (_b = obj.attributes) !== null && _b !== void 0 ? _b : {};
         const originalHref = obj.attributes.href;
         const originalSrc = obj.attributes.src;
-        obj.innerText = (_b = obj.innerText) !== null && _b !== void 0 ? _b : "";
+        obj.innerText = (_c = obj.innerText) !== null && _c !== void 0 ? _c : "";
         const a = await new Promise((resolve, reject) => {
             try {
                 if (obj.tag.toLowerCase() === 'link' && obj.attributes.rel === 'stylesheet' && addSheet) {
@@ -540,7 +544,7 @@ async function saveHTML(json, relativePath, gvc, elem) {
             }
         });
         let setting = [];
-        if (obj.textIndex === 0 && (obj.innerText.replace(/ /g, '').replace(/\n/g, '').length > 0 && (((_c = obj.children) !== null && _c !== void 0 ? _c : []).length > 0))) {
+        if (obj.textIndex === 0 && (obj.innerText.replace(/ /g, '').replace(/\n/g, '').length > 0 && (((_d = obj.children) !== null && _d !== void 0 ? _d : []).length > 0))) {
             setting.push(await convert({
                 tag: 'span',
                 innerText: obj.innerText
@@ -549,7 +553,7 @@ async function saveHTML(json, relativePath, gvc, elem) {
         if (obj.children.length > 0) {
             obj.innerText = '';
         }
-        for (const dd of ((_d = obj.children) !== null && _d !== void 0 ? _d : [])) {
+        for (const dd of ((_e = obj.children) !== null && _e !== void 0 ? _e : [])) {
             const data = await convert(dd);
             if (data.data.elem !== 'meta') {
                 if (data.data.elem === 'style' || (data.data.elem === 'link' && (obj.attributes.rel === 'stylesheet'))) {
@@ -575,7 +579,7 @@ async function saveHTML(json, relativePath, gvc, elem) {
                 }
             }
         }
-        if (obj.textIndex > 0 && (obj.innerText.replace(/ /g, '').replace(/\n/g, '').length > 0 && (((_e = obj.children) !== null && _e !== void 0 ? _e : []).length > 0))) {
+        if (obj.textIndex > 0 && (obj.innerText.replace(/ /g, '').replace(/\n/g, '').length > 0 && (((_f = obj.children) !== null && _f !== void 0 ? _f : []).length > 0))) {
             setting.push(await convert({
                 tag: 'span',
                 innerText: obj.innerText
@@ -586,8 +590,8 @@ async function saveHTML(json, relativePath, gvc, elem) {
             "js": "https://sam38124.github.io/One-page-plugin/src/official.js",
             "css": { "class": {}, "style": {} },
             "data": {
-                "class": (_f = obj.attributes.class) !== null && _f !== void 0 ? _f : "",
-                "style": ((_g = obj.attributes.style) !== null && _g !== void 0 ? _g : ""),
+                "class": (_g = obj.attributes.class) !== null && _g !== void 0 ? _g : "",
+                "style": ((_h = obj.attributes.style) !== null && _h !== void 0 ? _h : ""),
                 "attr": Object.keys(obj.attributes).filter((key) => {
                     return key !== 'class' && key !== 'style' && key !== 'id';
                 }).map((dd) => {
@@ -600,7 +604,7 @@ async function saveHTML(json, relativePath, gvc, elem) {
                     };
                 }),
                 "elem": obj.tag.toLowerCase(),
-                "inner": (_h = obj.innerText) !== null && _h !== void 0 ? _h : "",
+                "inner": (_j = obj.innerText) !== null && _j !== void 0 ? _j : "",
                 "dataFrom": "static",
                 "atrExpand": { "expand": true },
                 "elemExpand": { "expand": true },
@@ -637,9 +641,9 @@ async function saveHTML(json, relativePath, gvc, elem) {
             x.data.style += ";";
         }
         if (x.data.elem === 'img') {
-            x.data.inner = ((_j = x.data.attr.find((dd) => {
+            x.data.inner = ((_k = x.data.attr.find((dd) => {
                 return dd.attr === 'src';
-            })) !== null && _j !== void 0 ? _j : { value: "" }).value;
+            })) !== null && _k !== void 0 ? _k : { value: "" }).value;
             x.data.attr = x.data.attr.filter((dd) => {
                 return dd.attr !== 'src';
             });

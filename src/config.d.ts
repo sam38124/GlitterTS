@@ -27,9 +27,11 @@ export declare let config: {
     readonly AWS_ACCESS_KEY: string | undefined;
     readonly AWS_SecretAccessKey: string | undefined;
     readonly AWS_S3_PREFIX_DOMAIN_NAME: string;
+    readonly SINGLE_TYPE: boolean;
     getRoute: (r: string, type?: 'public' | 'normal') => string;
     public_route: {
         user: string;
+        post: string;
     };
     route: {
         user: string;

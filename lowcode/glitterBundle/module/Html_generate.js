@@ -40,7 +40,10 @@ export class HtmlGenerate {
             };
             return dd;
         });
-        this.render = (gvc, option = { class: ``, style: `` }, createOption) => {
+        this.render = (gvc, option = {
+            class: ``,
+            style: ``
+        }, createOption) => {
             var _a;
             gvc.glitter.share.loaginR = ((_a = gvc.glitter.share.loaginR) !== null && _a !== void 0 ? _a : 0) + 1;
             const container = gvc.glitter.getUUID();
@@ -70,7 +73,8 @@ export class HtmlGenerate {
                         var _a;
                         let index = 0;
                         for (const dd of setting) {
-                            const a = (await new Promise(async (resolve, reject) => {
+                            (await new Promise(async (resolve, reject) => {
+                                const component = gvc.glitter.getUUID();
                                 function getHtml(callback) {
                                     var _a;
                                     let data = '';
@@ -99,12 +103,40 @@ export class HtmlGenerate {
                                         });
                                     }
                                 }
-                                const component = gvc.glitter.getUUID();
                                 dd.refreshAllParameter.view1 = () => {
                                     getPageData();
                                 };
-                                const hovId = dd.id;
-                                function loadingFinish() {
+                                async function loadingFinish() {
+                                    await new Promise((resolve, reject) => {
+                                        if (dd.data.elem === 'style') {
+                                            gvc.addStyle(dd.data.inner);
+                                            resolve(true);
+                                        }
+                                        else if ((dd.data.elem === 'link') && (dd.data.attr.find((dd) => {
+                                            return dd.attr === 'rel' && dd.value === 'stylesheet';
+                                        }))) {
+                                            gvc.addStyleLink(dd.data.attr.find((dd) => {
+                                                return dd.attr === 'href';
+                                            }).value);
+                                            resolve(true);
+                                        }
+                                        else if (((dd.data.elem === 'script')) && dd.data.attr.find((dd) => {
+                                            return dd.attr === 'src';
+                                        })) {
+                                            gvc.addMtScript([{
+                                                    src: dd.data.attr.find((dd) => {
+                                                        return dd.attr === 'src';
+                                                    }).value
+                                                }], () => {
+                                                resolve(true);
+                                            }, () => {
+                                                resolve(false);
+                                            });
+                                        }
+                                        else {
+                                            resolve(true);
+                                        }
+                                    });
                                     const getHt = (() => {
                                         if ((dd.type === 'widget') || (dd.type === 'container')) {
                                             subdata.widgetComponentID = component;
@@ -120,7 +152,8 @@ export class HtmlGenerate {
                                                             window.parent.glitter.setCookie('lastSelect', dd.id);
                                                             window.parent.glitter.share.refreshAllContainer();
                                                         }
-                                                        catch (_a) { }
+                                                        catch (_a) {
+                                                        }
                                                         event.stopPropagation();
                                                     })
                                                 });
@@ -143,7 +176,6 @@ export class HtmlGenerate {
                                                 };
                                                 getdd();
                                                 let option = [];
-                                                console.log('ss');
                                                 return {
                                                     bind: component,
                                                     view: () => {

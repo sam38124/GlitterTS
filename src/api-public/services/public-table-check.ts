@@ -49,6 +49,46 @@ export class ApiPublic  {
             )
                 ) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE =utf8mb4_unicode_ci
         `, {})
+        await trans.execute(`
+            CREATE TABLE if not exists \`${appName}\`.\`t_post\`
+            (
+                \`id\`
+                int
+                NOT
+                NULL
+                AUTO_INCREMENT,
+                \`userID\`
+                int
+                NOT
+                NULL,
+                \`content\`
+                json
+                DEFAULT
+                NULL,
+                \`created_time\`
+                datetime
+                NOT
+                NULL
+                DEFAULT
+                CURRENT_TIMESTAMP,
+                \`updated_time\`
+                datetime
+                NOT
+                NULL
+                DEFAULT
+                CURRENT_TIMESTAMP,
+                PRIMARY
+                KEY
+            (
+                \`id\`
+            ),
+                KEY \`index2\`
+            (
+                \`userID\`
+            )
+                ) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE =utf8mb4_unicode_ci
+        `, {})
+
         await trans.commit()
         ApiPublic.checkApp.push(appName)
     }

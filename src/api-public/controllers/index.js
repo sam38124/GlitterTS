@@ -12,13 +12,17 @@ const logger_1 = __importDefault(require("../../modules/logger"));
 const underscore_1 = __importDefault(require("underscore"));
 const exception_1 = __importDefault(require("../../modules/exception"));
 const userRouter = require("./user");
+const postRouter = require("./post");
 const live_source_js_1 = require("../../live_source.js");
 const public_table_check_js_1 = require("../services/public-table-check.js");
 router.use('/api-public/*', doAuthAction);
 router.use(config_1.config.getRoute(config_1.config.public_route.user, 'public'), userRouter);
+router.use(config_1.config.getRoute(config_1.config.public_route.post, 'public'), postRouter);
 const whiteList = [
     { url: config_1.config.getRoute(config_1.config.public_route.user + "/register", 'public'), method: 'POST' },
     { url: config_1.config.getRoute(config_1.config.public_route.user + "/login", 'public'), method: 'POST' },
+    { url: config_1.config.getRoute(config_1.config.public_route.post + "/post", 'public'), method: 'GET' },
+    { url: config_1.config.getRoute(config_1.config.public_route.post + "/post", 'public'), method: 'POST' }
 ];
 async function doAuthAction(req, resp, next) {
     var _a;

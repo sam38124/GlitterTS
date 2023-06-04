@@ -46,6 +46,9 @@ export class Editor {
                                         data: file,
                                         processData: false,
                                         crossDomain: true,
+                                        headers: {
+                                            'Content-Type': data1.type,
+                                        },
                                         success: () => {
                                             dialog.dataLoading({ visible: false });
                                             obj.callback(data1.fullUrl);
@@ -85,12 +88,12 @@ export class Editor {
                 />
                 <div class="" style="width: 1px;height: 25px;background-color: white;"></div>
                 <i
-                    class="fa-regular fa-upload  ms-2"
+                    class="fa-regular fa-upload  ms-2 text-dark"
                     style="cursor: pointer;"
                     onclick="${obj.gvc.event(() => {
             glitter.ut.chooseMediaCallback({
                 single: true,
-                accept: 'json,image/*,video/*',
+                accept: '*',
                 callback(data) {
                     const saasConfig = window.saasConfig;
                     const dialog = new ShareDialog(obj.gvc.glitter);
@@ -105,6 +108,9 @@ export class Editor {
                             type: 'put',
                             data: file,
                             processData: false,
+                            headers: {
+                                'Content-Type': data1.type,
+                            },
                             crossDomain: true,
                             success: () => {
                                 dialog.dataLoading({ visible: false });
@@ -149,6 +155,9 @@ export class Editor {
                             type: 'put',
                             data: file,
                             processData: false,
+                            headers: {
+                                'Content-Type': data1.type,
+                            },
                             crossDomain: true,
                             success: () => {
                                 dialog.dataLoading({ visible: false });
@@ -210,6 +219,9 @@ export class Editor {
                             data: file,
                             processData: false,
                             crossDomain: true,
+                            headers: {
+                                'Content-Type': data1.type,
+                            },
                             success: () => {
                                 dialog.dataLoading({ visible: false });
                                 obj.callback(data1.fullUrl);
@@ -357,6 +369,7 @@ export class Editor {
                                         oninput="${gvc.event((e) => {
                             obj.def = e.value;
                             gvc.notifyDataChange(id);
+                            $('#' + obj.gvc.id(id)).addClass(`show`);
                         })}"
                                         value="${obj.def}"
                                         onchange="${gvc.event((e) => {
