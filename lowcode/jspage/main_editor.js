@@ -136,6 +136,7 @@ onclick="${gvc.event(() => {
                             gvc.notifyDataChange(createID);
                         })}"
 >Style 設計樣式<button class="rounded-circle btn-warning  btn  ms-2 d-flex align-items-center justify-content-center p-0" style="height: 25px;width: 25px;" onclick="${gvc.event((e, event) => {
+                            event.stopPropagation();
                             glitter.openDiaLog('dialog/cadd-style-Dialog.js', 'caddStyleDialog', {
                                 callback: (data) => {
                                     viewModel.data.config.push(data);
@@ -177,6 +178,7 @@ onclick="${gvc.event(() => {
                         })}"
 >Script 資源<button class="rounded-circle btn-warning  btn  ms-2 d-flex align-items-center justify-content-center p-0" style="height: 25px;width: 25px;"
 onclick="${gvc.event((e, event) => {
+                            event.stopPropagation();
                             glitter.openDiaLog('dialog/cadd-script-Dialog.js', 'addScript', {
                                 callback: (data) => {
                                     viewModel.data.config.push(data);
@@ -278,12 +280,15 @@ onclick="${gvc.event((e, event) => {
                                 if (d2.option) {
                                     const id = glitter.getUUID();
                                     const dragID2 = glitter.getUUID();
-                                    return `<li class="ms-2 list-group-item list-group-item-action border-0 py-2 px-4 ${checkOptionSelect(d2) ? `active` : ``} position-relative d-flex align-items-center groupG-${index} d-none"
-                                     onclick="${gvc.event(() => {
+                                    const toggleID = glitter.getUUID();
+                                    let act = checkOptionSelect(d2);
+                                    const toggle = gvc.event((e, event) => {
                                         const needUpdate = d2.select;
                                         clearSelect();
                                         d2.select = true;
-                                        $(`#${id}`).toggleClass('show');
+                                        act = !act;
+                                        $(`#${id}`).slideToggle('slow');
+                                        gvc.notifyDataChange(toggleID);
                                         parentCallback();
                                         d2.click();
                                         gvc.notifyDataChange(['htmlGenerate', 'showView']);
@@ -292,7 +297,9 @@ onclick="${gvc.event((e, event) => {
                                                 gvc.notifyDataChange(vid);
                                             }, 250);
                                         }
-                                    })}"
+                                        event.stopPropagation();
+                                    });
+                                    return `<li class="ms-2 list-group-item list-group-item-action border-0 py-2 px-4 ${checkOptionSelect(d2) ? `active` : ``} position-relative d-flex align-items-center groupG-${index} d-none"
                                                                     style="cursor:pointer;z-index: ${indexCounter--} !important;"
                                                                      ondragover="${gvc.event((e, event) => {
                                         event.preventDefault();
@@ -312,9 +319,37 @@ onclick="${gvc.event((e, event) => {
                                                             ondragend="${gvc.event(() => {
                                         dragOption.changeIndex(dragm.start, dragm.end);
                                     })}"
+                                                            onclick="${gvc.event((e, event) => {
+                                        const needUpdate = d2.select;
+                                        clearSelect();
+                                        d2.select = true;
+                                        851124;
+                                        gvc.notifyDataChange(toggleID);
+                                        parentCallback();
+                                        d2.click();
+                                        gvc.notifyDataChange(['htmlGenerate', 'showView']);
+                                        if (!needUpdate) {
+                                            setTimeout(() => {
+                                                gvc.notifyDataChange(vid);
+                                            }, 250);
+                                        }
+                                        event.stopPropagation();
+                                    })}"
                                                             >
+                                                            ${gvc.bindView(() => {
+                                        return {
+                                            bind: toggleID,
+                                            view: () => {
+                                                return (act) ? `<i class="fa-solid fa-caret-up me-2" onclick="${toggle}"></i>` : `
+                                                              <i class="fa-sharp fa-solid fa-caret-down me-2" onclick="${toggle}"></i>
+                                                            `;
+                                            },
+                                            divCreate: {}
+                                        };
+                                    })}
+                                                          
                                                                       ${d2.text}
-                                                                      <button  class="rounded-circle btn-warning  btn  ms-2 d-flex align-items-center justify-content-center p-0" style="height: 25px;width: 25px;" onclick="${gvc.event((e, event) => {
+  <button  class="rounded-circle btn-warning  btn  ms-2 d-flex align-items-center justify-content-center p-0" style="height: 25px;width: 25px;" onclick="${gvc.event((e, event) => {
                                         event.stopPropagation();
                                         glitter.openDiaLog('dialog/caddDialog.js', 'caddDialog', {
                                             callback: (data) => {
@@ -337,7 +372,7 @@ onclick="${gvc.event((e, event) => {
                                     })}"></i>
 
                                                                      </li>
-                                                                <ul class="collapse multi-collapse ${checkOptionSelect(d2) ? `show` : ''} position-relative ps-2" style="margin-left: 0px;" id="${id}">
+                                                                <ul class="collapse multi-collapse ${checkOptionSelect(d2) ? `show` : ''} position-relative ps-2" style="margin-left: 0px;" id="${id}" >
                                                                     ${gvc.map(d2.option.map((d4, index) => {
                                         return convertInner(d4, true, () => {
                                             d2.select = true;

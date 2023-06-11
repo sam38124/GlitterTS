@@ -25,7 +25,7 @@ export class Plugin {
                     }, 100);
                 }
                 fal += 1;
-                console.log('error' + url);
+                glitter.deBugMessage(`error` + url);
             }
         }
         tryLoop();
@@ -51,7 +51,7 @@ export class Plugin {
                 }
             ], () => {
                 val = glitter.share.componentData[url.href];
-                console.log('setComponent-->' + url);
+                glitter.deBugMessage('setComponent-->' + url);
             }, () => { });
             return {
                 view: () => {

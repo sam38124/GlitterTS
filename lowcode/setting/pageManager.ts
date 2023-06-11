@@ -348,12 +348,6 @@ ${(() => {
                     })
                 })()
             }`
-        },{
-            title: '頁面設計 / Style',
-            index: 'pageStyle',
-            html: (()=>{
-                return `<div class="alert shadow" style="background-image: linear-gradient(120deg, #a1c4fd 0%, #c2e9fb 100%);white-space: normal;word-break: break-all;">${initialStylePage(gvc, viewModel, id)}</div>`
-            })()
         }]
     return `
  <div class="w-100">

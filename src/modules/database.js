@@ -83,7 +83,7 @@ const execute = async (sql, params) => {
     }
 };
 const limit = (map) => {
-    return ` limit ${parseInt(map.page, 10) * parseInt(map.limit, 10)}, ${parseInt(map.page, 10) * parseInt(map.limit, 10) + parseInt(map.limit, 10)} `;
+    return ` limit ${parseInt(map.page, 10) * parseInt(map.limit, 10)}, ${parseInt(map.limit, 10)} `;
 };
 exports.limit = limit;
 const query = async (sql, params) => {

@@ -26,15 +26,23 @@ exports.Post = void 0;
 const database_1 = __importStar(require("../../modules/database"));
 const exception_1 = __importDefault(require("../../modules/exception"));
 class Post {
-    constructor(app) {
+    constructor(app, token) {
         this.app = app;
+        this.token = token;
     }
     async postContent(content) {
         try {
-            console.log(content);
-            return await database_1.default.query(`INSERT INTO \`${this.app}\`.\`t_post\` SET ?`, [
+            const data = await database_1.default.query(`INSERT INTO \`${this.app}\`.\`t_post\`
+                                         SET ?`, [
                 content
             ]);
+            const reContent = JSON.parse(content.content);
+            reContent.id = data.insertId;
+            content.content = JSON.stringify(reContent);
+            await database_1.default.query(`update \`${this.app}\`.t_post
+                            SET ?
+                            WHERE id = ${data.insertId}`, [content]);
+            return data;
         }
         catch (e) {
             throw exception_1.default.BadRequestError('BAD_REQUEST', 'PostContent Error:' + e, null);
@@ -42,11 +50,66 @@ class Post {
     }
     async getContent(content) {
         try {
+            let userData = {};
+            let query = ``;
+            const app = this.app;
+            function getQueryString(dd) {
+                var _a;
+                if (!dd || dd.length === 0) {
+                    return ``;
+                }
+                if (dd.type === 'relative_post') {
+                    dd.query = (_a = dd.query) !== null && _a !== void 0 ? _a : [];
+                    return ` and JSON_EXTRACT(content, '$.${dd.key}') in (SELECT JSON_EXTRACT(content, '$.${dd.value}') AS datakey
+ from \`${app}\`.t_post where 1=1 ${dd.query.map((dd) => {
+                        return getQueryString(dd);
+                    }).join(` and `)})`;
+                }
+                else if (dd.type) {
+                    return ` and JSON_EXTRACT(content, '$.${dd.key}') ${dd.type} ${(typeof dd.value === 'string') ? `'${dd.value}'` : dd.value}`;
+                }
+                else {
+                    return ` and JSON_EXTRACT(content, '$.${dd.key}') LIKE '%${dd.value}%'`;
+                }
+            }
+            if (content.query) {
+                content.query = JSON.parse(content.query);
+                content.query.map((dd) => {
+                    query += getQueryString(dd);
+                });
+            }
+            console.log(query);
+            if (content.datasource) {
+                content.datasource = JSON.parse(content.datasource);
+                if (content.datasource.length > 0) {
+                    query += ` and userID in ('${content.datasource.map((dd) => {
+                        return dd;
+                    }).join("','")}')`;
+                }
+            }
+            const data = (await database_1.default.query(`select *
+                                          from \`${this.app}\`.\`t_post\`
+                                          where userID in (select userID
+                                                           from \`${this.app}\`.\`user\`)
+                                              ${query}
+                                          order by id desc ${(0, database_1.limit)(content)}`, [
+                content
+            ]));
+            for (const dd of data) {
+                if (!userData[dd.userID]) {
+                    userData[dd.userID] = (await database_1.default.query(`select userData
+                                                           from \`${this.app}\`.\`user\`
+                                                           where userID = ${dd.userID}`, []))[0]['userData'];
+                }
+                dd.userData = userData[dd.userID];
+            }
             return {
-                data: await database_1.default.query(`select * from \`${this.app}\`.\`t_post\` order by id desc ${(0, database_1.limit)(content)}`, [
-                    content
-                ]),
-                count: (await database_1.default.query(`select count(1) from \`${this.app}\`.\`t_post\``, [
+                data: data,
+                count: (await database_1.default.query(`select count(1)
+                                        from \`${this.app}\`.\`t_post\`
+                                        where userID in (select userID
+                                                         from \`${this.app}\`.\`user\`)
+                                            ${query}`, [
                     content
                 ]))[0]["count(1)"]
             };

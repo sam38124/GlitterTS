@@ -13,6 +13,53 @@ window.addEventListener('resize', function () {
         }
     }
 });
+function listenElementChange() {
+    const targetElement = document.querySelector('#glitterPage');
+    const observer = new MutationObserver(function (mutationsList) {
+        for (let mutation of mutationsList) {
+            if (mutation.addedNodes.length > 0) {
+                for (const b of mutation.addedNodes) {
+                    traverseHTML($(b).get(0));
+                }
+            }
+        }
+    });
+    observer.observe(targetElement, { childList: true, subtree: true });
+}
+function traverseHTML(element) {
+    var _a;
+    let result = {};
+    result.tag = element.tagName;
+    var attributes = (_a = element.attributes) !== null && _a !== void 0 ? _a : [];
+    if (attributes.length > 0) {
+        result.attributes = {};
+        for (var i = 0; i < attributes.length; i++) {
+            result.attributes[attributes[i].name] = attributes[i].value;
+        }
+    }
+    let children = element.children;
+    if (children && children.length > 0) {
+        result.children = [];
+        for (let j = 0; j < children.length; j++) {
+            result.children.push(traverseHTML(children[j]));
+        }
+    }
+    if ($(element).attr('glem') === 'bindView') {
+        try {
+            $(element).html(glitter.elementCallback[$(element).attr('id')].getView());
+        }
+        catch (e) { }
+        try {
+            glitter.elementCallback[$(element).attr('id')].onInitial();
+        }
+        catch (e) { }
+        try {
+            glitter.elementCallback[$(element).attr('id')].onCreate();
+        }
+        catch (e) { }
+    }
+    return result;
+}
 glitter.$(document).ready(function () {
     if (window.GL !== undefined) {
         glitter.deviceType = glitter.deviceTypeEnum.Android;
@@ -20,6 +67,7 @@ glitter.$(document).ready(function () {
     else if (navigator.userAgent === 'iosGlitter') {
         glitter.deviceType = glitter.deviceTypeEnum.Ios;
     }
+    listenElementChange();
     Entry.onCreate(glitter);
 });
 function glitterInitial() {

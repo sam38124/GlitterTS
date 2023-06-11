@@ -163,7 +163,7 @@ export async function createAPP(dd: any) {
             path: path.resolve(__dirname, '../lowcode'),
             seoManager: async (req, resp) => {
                 try {
-                    let data = (await db.execute(`SELECT page_config, \`${saasConfig.SAAS_NAME}\`.app_config.\`config\`
+                    let data = (await db.execute(`SELECT page_config, \`${saasConfig.SAAS_NAME}\`.app_config.\`config\`,tag
                                                   FROM \`${saasConfig.SAAS_NAME}\`.page_config,
                                                        \`${saasConfig.SAAS_NAME}\`.app_config
                                                   where \`${saasConfig.SAAS_NAME}\`.page_config.appName = ${db.escape(dd.appName)}
@@ -174,7 +174,7 @@ export async function createAPP(dd: any) {
                     if (data && data.page_config) {
                         const d = data.page_config.seo ?? {}
                         if (d.type !== 'custom') {
-                            data = (await db.execute(`SELECT page_config, \`${saasConfig.SAAS_NAME}\`.app_config.\`config\`
+                            data = (await db.execute(`SELECT page_config, \`${saasConfig.SAAS_NAME}\`.app_config.\`config\`,tag
                                                       FROM \`${saasConfig.SAAS_NAME}\`.page_config,
                                                            \`${saasConfig.SAAS_NAME}\`.app_config
                                                       where \`${saasConfig.SAAS_NAME}\`.page_config.appName = ${db.escape(dd.appName)}
@@ -199,7 +199,7 @@ export async function createAPP(dd: any) {
                                                           where \`${saasConfig.SAAS_NAME}\`.page_config.appName = ${db.escape(dd.appName)} limit 0,1
                             `, []))[0]['tag']
                         }
-                        data = (await db.execute(`SELECT page_config, \`${saasConfig.SAAS_NAME}\`.app_config.\`config\`
+                        data = (await db.execute(`SELECT page_config, \`${saasConfig.SAAS_NAME}\`.app_config.\`config\`,tag
                                                   FROM \`${saasConfig.SAAS_NAME}\`.page_config,
                                                        \`${saasConfig.SAAS_NAME}\`.app_config
                                                   where \`${saasConfig.SAAS_NAME}\`.page_config.appName = ${db.escape(dd.appName)}
@@ -215,6 +215,7 @@ export async function createAPP(dd: any) {
                         if (data && data.page_config) {
                             const d = data.page_config.seo ?? {}
                             return `<title>${d.title ?? "尚未設定標題"}</title>
+ <link rel="canonical" href="./?page=${data.tag}">
     <meta name="keywords" content="${d.keywords ?? "尚未設定關鍵字"}" />
     <link id="appImage" rel="shortcut icon" href="${d.logo ?? ""}" type="image/x-icon">
     <link rel="icon" href="${d.logo ?? ""}" type="image/png" sizes="128x128">

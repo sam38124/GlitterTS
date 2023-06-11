@@ -82,9 +82,18 @@ init((gvc, glitter, gBundle) => {
                 })().then(() => {
                     var _a;
                     if (glitter.getUrlParameter("type") === 'editor') {
+                        glitter.share.evalPlace = ((evals) => {
+                            return eval(evals);
+                        });
                         toBackendEditor(glitter);
                     }
                     else if (glitter.getUrlParameter("type") === 'htmlEditor') {
+                        window.parent.glitter.share.evalPlace = ((evals) => {
+                            return eval(evals);
+                        });
+                        glitter.share.evalPlace = ((evals) => {
+                            return eval(evals);
+                        });
                         glitter.htmlGenerate.setHome({
                             page_config: (_a = window.parent.page_config) !== null && _a !== void 0 ? _a : {},
                             config: window.parent.editerData.setting,
@@ -94,6 +103,9 @@ init((gvc, glitter, gBundle) => {
                         });
                     }
                     else {
+                        glitter.share.evalPlace = ((evals) => {
+                            return eval(evals);
+                        });
                         async function render() {
                             var _a;
                             let data = await ApiPageConfig.getPage(config.appName, (_a = glitter.getUrlParameter('page')) !== null && _a !== void 0 ? _a : glitter.getUUID());
@@ -153,11 +165,21 @@ function toBackendEditor(glitter) {
                 if (data.response.result.length === 0) {
                     glitter.setUrlParameter('page', data.response.redirect);
                 }
-                glitter.setHome('jspage/main.js', glitter.getUrlParameter('page'), {
-                    appName: config.appName
-                }, {
-                    backGroundColor: `transparent;`
-                });
+                glitter.ut.frSize({
+                    sm: () => {
+                        glitter.setHome('jspage/main.js', glitter.getUrlParameter('page'), {
+                            appName: config.appName
+                        }, {
+                            backGroundColor: `transparent;`
+                        });
+                    }
+                }, () => {
+                    glitter.setHome('jspage/nosupport.js', glitter.getUrlParameter('page'), {
+                        appName: config.appName
+                    }, {
+                        backGroundColor: `transparent;`
+                    });
+                })();
             }
         });
     }

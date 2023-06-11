@@ -49,32 +49,37 @@ export class GVC {
     notifyDataChange(id) {
         const gvc = this;
         try {
+            gvc.initialElemCallback(gvc.id(id));
             const refresh = (id) => {
                 var _a, _b, _c, _d;
                 gvc.parameter.bindViewList[id].divCreate = (_a = gvc.parameter.bindViewList[id].divCreate) !== null && _a !== void 0 ? _a : {};
                 const divCreate = (typeof gvc.parameter.bindViewList[id].divCreate === "function") ? gvc.parameter.bindViewList[id].divCreate() : gvc.parameter.bindViewList[id].divCreate;
-                $(`#${gvc.parameter.pageConfig.id}${id}`).attr('class', (_b = divCreate.class) !== null && _b !== void 0 ? _b : "");
-                $(`#${gvc.parameter.pageConfig.id}${id}`).attr('style', (_c = divCreate.style) !== null && _c !== void 0 ? _c : "");
+                $(`#${gvc.id(id)}`).attr('class', (_b = divCreate.class) !== null && _b !== void 0 ? _b : "");
+                $(`#${gvc.id(id)}`).attr('style', (_c = divCreate.style) !== null && _c !== void 0 ? _c : "");
                 ((_d = divCreate.option) !== null && _d !== void 0 ? _d : []).map((dd) => {
                     try {
-                        console.log(JSON.stringify(dd));
-                        $(`#${gvc.parameter.pageConfig.id}${id}`).attr(dd.key, dd.value);
+                        $(`#${gvc.id(id)}`).attr(dd.key, dd.value);
                     }
                     catch (e) {
                     }
                 });
-                $(`#${gvc.parameter.pageConfig.id}${id}`).html(gvc.parameter.bindViewList[id].view());
+                $(`#${gvc.id(id)}`).html(gvc.parameter.bindViewList[id].view());
                 if (gvc.parameter.bindViewList[id].onCreate) {
                     gvc.parameter.bindViewList[id].onCreate();
                 }
             };
-            if (typeof id === 'object') {
-                id.map(function (id) {
+            function convID() {
+                if (typeof id === 'object') {
+                    id.map(function (id) {
+                        refresh(id);
+                    });
+                }
+                else {
                     refresh(id);
-                });
+                }
             }
-            else {
-                refresh(id);
+            if ($(`#${gvc.id(id)}`).length !== 0) {
+                convID();
             }
         }
         catch (e) {
@@ -174,12 +179,27 @@ export class GVC {
             gvc.glitter.deBugMessage(e.line);
         }
     }
+    initialElemCallback(id) {
+        var _a;
+        const gvc = this;
+        gvc.glitter.elementCallback[id] = (_a = gvc.glitter.elementCallback[id]) !== null && _a !== void 0 ? _a : {
+            onCreate: () => {
+            },
+            onInitial: () => {
+            },
+            notifyDataChange: () => {
+            },
+            getView: () => {
+            }
+        };
+    }
     bindView(map) {
-        var _a, _b, _c, _d, _e, _f, _g;
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j;
         const gvc = this;
         if (typeof map === "function") {
             map = map();
         }
+        gvc.initialElemCallback(gvc.id(map.bind));
         if (map.dataList) {
             map.dataList.map(function (data) {
                 var _a;
@@ -194,24 +214,16 @@ export class GVC {
             });
         }
         gvc.parameter.bindViewList[map.bind] = map;
-        const timer = setInterval(function () {
-            if (document.getElementById(gvc.parameter.pageConfig.id + map.bind)) {
-                if (map.onInitial) {
-                    map.onInitial();
-                }
-                if (map.onCreate) {
-                    map.onCreate();
-                }
-                clearInterval(timer);
-            }
-        }, 100);
-        const divCreate = (_a = ((typeof map.divCreate === "function") ? map.divCreate() : map.divCreate)) !== null && _a !== void 0 ? _a : { elem: 'div' };
-        const data = map.view();
-        return `<${(_b = divCreate.elem) !== null && _b !== void 0 ? _b : 'div'} id="${(_c = gvc.parameter.pageConfig) === null || _c === void 0 ? void 0 : _c.id}${map.bind}" class="${(_d = divCreate.class) !== null && _d !== void 0 ? _d : ""}" style="${(_e = divCreate.style) !== null && _e !== void 0 ? _e : ""}" 
-${gvc.map(((_f = divCreate.option) !== null && _f !== void 0 ? _f : []).map((dd) => {
+        gvc.glitter.elementCallback[gvc.parameter.pageConfig.id + map.bind].onInitial = (_a = map.onInitial) !== null && _a !== void 0 ? _a : (() => { });
+        gvc.glitter.elementCallback[gvc.parameter.pageConfig.id + map.bind].onCreate = (_b = map.onCreate) !== null && _b !== void 0 ? _b : (() => { });
+        gvc.glitter.elementCallback[gvc.parameter.pageConfig.id + map.bind].getView = map.view;
+        const divCreate = (_c = ((typeof map.divCreate === "function") ? map.divCreate() : map.divCreate)) !== null && _c !== void 0 ? _c : { elem: 'div' };
+        return `<${(_d = divCreate.elem) !== null && _d !== void 0 ? _d : 'div'} id="${(_e = gvc.parameter.pageConfig) === null || _e === void 0 ? void 0 : _e.id}${map.bind}" class="${(_f = divCreate.class) !== null && _f !== void 0 ? _f : ""}" style="${(_g = divCreate.style) !== null && _g !== void 0 ? _g : ""}" 
+${gvc.map(((_h = divCreate.option) !== null && _h !== void 0 ? _h : []).map((dd) => {
             return ` ${dd.key}="${dd.value}"`;
         }))}
->${data}</${(_g = divCreate.elem) !== null && _g !== void 0 ? _g : 'div'}>`;
+glem="bindView"
+></${(_j = divCreate.elem) !== null && _j !== void 0 ? _j : 'div'}>`;
     }
     event(fun, noCycle) {
         const gvc = this;
@@ -396,7 +408,7 @@ export function init(fun, gt) {
     }
     window.clickMap[gvc.parameter.pageConfig.id] = gvc.parameter.clickMap;
     lifeCycle.onCreate();
-    gvc.parameter.pageConfig.deleteResource = () => {
+    gvc.parameter.pageConfig.deleteResource = (destroy) => {
         window.clickMap[gvc.parameter.pageConfig.id] = undefined;
         lifeCycle.onPause();
         gvc.parameter.styleLinks.map((dd) => {
@@ -408,5 +420,8 @@ export function init(fun, gt) {
         gvc.parameter.jsList.map((dd) => {
             $(`#${dd.id}`).remove();
         });
+        if (destroy) {
+            lifeCycle.onDestroy();
+        }
     };
 }

@@ -61,8 +61,8 @@ export class Editor {
                             <div class="d-flex align-items-center w-100">
                              <div class="flex-fill"></div>
                                <div class="btn-group " style=width:300px;">
-  <button type="button" class="btn btn-outline-secondary rounded" onclick="${gvc.event(()=>{
-      $('#topd').toggle()
+  <button type="button" class="btn btn-outline-secondary rounded" onclick="${gvc.event(() => {
+                $('#topd').toggle()
             })}">
     ${data.data.name}
     <i class="fa-sharp fa-solid fa-caret-down position-absolute translate-middle-y" style="top: 50%;right: 20px;"></i>
@@ -71,48 +71,48 @@ export class Editor {
   <button href="" class="dropdown-item d-flex align-items-center "
   onclick="${gvc.event(() => {
                 glitter.openDiaLog('dialog/addTemplate.js', 'addTemplate', {
-                    vm:data
+                    vm: data
                 });
             })}"><i class="d-flex align-items-center justify-content-center fa-solid fa-plus  bg-warning rounded-circle p-1 me-2 " style="width: 30px;height: 30px;"></i>添加頁面</button>
 <ul class="list-group list-group-flush border-bottom mt-2">
     ${(() => {
                 let group: string[] = [];
-                let selectGroup=''
-                let id=glitter.getUUID()
+                let selectGroup = ''
+                let id = glitter.getUUID()
                 data.dataList.map((dd: any) => {
-                    if(dd.tag===glitter.getUrlParameter('page')){
-                        selectGroup=dd.group
+                    if (dd.tag === glitter.getUrlParameter('page')) {
+                        selectGroup = dd.group
                     }
                     if (group.indexOf(dd.group) === -1) {
                         group.push(dd.group)
                     }
                 })
-                return  gvc.bindView(()=>{
+                return gvc.bindView(() => {
                     return {
-                        bind:id,
-                        view:()=>{
-                            return group.map((dd)=>{
-                                return `<l1 onclick="${gvc.event(()=>{
-                                        selectGroup=dd
+                        bind: id,
+                        view: () => {
+                            return group.map((dd) => {
+                                return `<l1 onclick="${gvc.event(() => {
+                                        selectGroup = dd
                                         gvc.notifyDataChange(id)
-                                    })}"  class="list-group-item list-group-item-action border-0 py-2 ${(selectGroup===dd) && 'active'} position-relative " style="border-radius: 0px;cursor: pointer;">${dd || "未分類"}</l1>`
+                                    })}"  class="list-group-item list-group-item-action border-0 py-2 ${(selectGroup === dd) && 'active'} position-relative " style="border-radius: 0px;cursor: pointer;">${dd || "未分類"}</l1>`
                                     +
-                                    `<div class="collapse multi-collapse ${(selectGroup===dd) && 'show'}" style="margin-left: 10px;">
- ${      data.dataList.filter((d2:any)=>{
-                                        return d2.group===dd
-                                    }).map((d3:any)=>{
-                                        const url=new URL(location.href)
-                                        url.searchParams.set('page',d3.tag)
-                                        if(d3.tag!==glitter.getUrlParameter('page')){
+                                    `<div class="collapse multi-collapse ${(selectGroup === dd) && 'show'}" style="margin-left: 10px;">
+ ${data.dataList.filter((d2: any) => {
+                                        return d2.group === dd
+                                    }).map((d3: any) => {
+                                        const url = new URL(location.href)
+                                        url.searchParams.set('page', d3.tag)
+                                        if (d3.tag !== glitter.getUrlParameter('page')) {
                                             return `<a href="${url.href}"  class=" list-group-item list-group-item-action border-0 py-2 px-4"  style="border-radius: 0px;">${d3.name}</a>`
-                                        }else {
+                                        } else {
                                             return `<a href="${url.href}"  class=" list-group-item list-group-item-action border-0 py-2 px-4 bg-warning"  style="cursor:pointer;background-color: #FFDC6A !important;color:black !important;border-radius: 0px;">${d3.name}</a>`
                                         }
                                     }).join('')}
 </div>`
                             }).join('')
                         },
-                        divCreate:{}
+                        divCreate: {}
                     }
                 })
             })()}
@@ -121,7 +121,19 @@ export class Editor {
   </div>
 </div>
                                 <div class="flex-fill"></div>
-                         <i class="fa-solid fa-eye   me-4" style="font-size: 24px;cursor: pointer;" onclick="${gvc.event(() => {
+                                <i  class="fa-regular fa-microchip-ai    
+  me-4" style="font-size: 28px;cursor: pointer;background: #1e3050;background-clip: text;-webkit-background-clip: text; color: transparent;" onclick="${gvc.event(() => {
+                glitter.openDiaLog(new URL('../dialog/ai-microphone.js', import.meta.url).href, 'microphone', {
+                    callback: (data2: any) => {
+                        data.selectContainer.push(data2);
+                        glitter.setCookie('lastSelect', data2.id);
+                        gvc.notifyDataChange('HtmlEditorContainer')
+                    },
+                    appName: data.appName
+                }, {})
+            })}"></i>
+                         <i class="fa-solid fa-eye   me-4 " style="font-size: 24px;cursor: pointer;
+                         background: #1e3050;background-clip: text;-webkit-background-clip: text; color: transparent;" onclick="${gvc.event(() => {
                 const url = new URL("", location.href)
                 url.searchParams.delete('type')
                 url.searchParams.set("page", glitter.getUrlParameter("page"))
@@ -134,11 +146,13 @@ export class Editor {
                 view: () => {
                     glitter.setCookie("ViewType", viewModel.type)
                     if (viewModel.type === ViewType.mobile) {
-                        return `<i class="fa-regular fa-mobile  mt-1" style="font-size: 24px;cursor: pointer;" onclick="${gvc.event(() => {
+                        return `<i class="fa-regular fa-mobile  mt-1 " style="font-size: 24px;cursor: pointer;
+background: #1e3050;background-clip: text;-webkit-background-clip: text; color: transparent;" onclick="${gvc.event(() => {
                             viewModel.type = ViewType.desktop
                         })}"></i>`
                     } else {
-                        return `<i class="fa-solid fa-desktop  mt-1" style="font-size: 24px;cursor: pointer;" onclick="${gvc.event(() => {
+                        return `<i class="fa-solid fa-desktop  mt-1 " style="font-size: 24px;cursor: pointer;
+background: #0c3483;background-clip: text;-webkit-background-clip: text; color: transparent;" onclick="${gvc.event(() => {
                             viewModel.type = ViewType.mobile
                         })}"></i>`
                     }
@@ -195,11 +209,11 @@ export class Editor {
                     let selectPosition = glitter.getUrlParameter('editorPosition') ?? "0"
                     switch (selectPosition) {
                         case Setting_editor.index:
-                            return Setting_editor.center(gvc,data,'showView')
+                            return Setting_editor.center(gvc, data, 'showView')
                         case Page_editor.index:
-                            return Page_editor.center(data,gvc,'showView')
+                            return Page_editor.center(data, gvc, 'showView')
                         default:
-                            return Main_editor.center(viewModel,gvc)
+                            return Main_editor.center(viewModel, gvc)
                     }
                 },
                 divCreate: {}

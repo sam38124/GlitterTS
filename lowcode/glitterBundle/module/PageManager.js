@@ -43,7 +43,7 @@ export class PageManager {
                 return data.id;
             }).indexOf(id);
             if (del) {
-                glitter.pageConfig[index].deleteResource();
+                glitter.pageConfig[index].deleteResource(true);
                 glitter.$(`#page` + glitter.pageConfig[index].id).remove();
                 glitter.$(`#` + glitter.pageConfig[index].id).remove();
                 glitter.pageConfig.splice(index, 1);
@@ -411,4 +411,10 @@ PageManager.clock = {
     zeroing: function () {
         this.start = new Date();
     }
+};
+PageManager.innerDialog = (html, tag) => {
+    const glitter = Glitter.glitter;
+    glitter.openDiaLog(new URL('../dialog/dialog_inner.js', import.meta.url).href, tag, {
+        getView: html
+    });
 };

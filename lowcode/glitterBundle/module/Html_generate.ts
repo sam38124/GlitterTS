@@ -47,7 +47,8 @@ export class HtmlGenerate {
         alert('save');
     };
 
-    public static styleEditor(data: any) {
+    public static styleEditor(data: any, gvc?: GVC, widget?: HtmlJson, subData?: any) {
+        const glitter = (gvc ?? (window as any)).glitter
         return {
             editor: (gvc: GVC, widget: HtmlJson | (() => void), title?: string, option?: any) => {
                 const glitter = (window as any).glitter;
@@ -139,7 +140,7 @@ export class HtmlGenerate {
     public static editeText(obj: { gvc: GVC; title: string; default: string; placeHolder: string; callback: (text: string) => void }) {
         obj.title = obj.title ?? ""
         const id = obj.gvc.glitter.getUUID()
-        return `<h3 style="font-size: 16px;margin-bottom: 10px;" class="mt-2 text-dark d-flex align-items-center">${obj.title}</h3>
+        return `<h3 style="font-size: 16px;margin-bottom: 10px;" class="mt-2 text-dark d-flex align-items-center  ${(!obj.title) ? `d-none` : ``}">${obj.title}</h3>
 
 ${obj.gvc.bindView({
             bind: id,
@@ -159,6 +160,7 @@ ${obj.gvc.bindView({
                 ]
             },
             onCreate: () => {
+                //@ts-ignore
                 autosize($('#' + obj.gvc.id(id)))
             }
         })}`;
@@ -240,8 +242,6 @@ ${obj.gvc.bindView({
                     new Promise<void>(async (resolve, reject) => {
                         let index = 0
                         for (const dd of setting) {
-
-                            // console.log(`index-w:${index}-${dd.id}`)
                             (await new Promise<boolean>(async (resolve, reject) => {
                                 const component = gvc.glitter.getUUID();
 
@@ -386,6 +386,7 @@ ${obj.gvc.bindView({
                                     })
                                     resolve(true)
                                 }
+
                                 function getResource() {
                                     if ((dd.type === 'widget') || (dd.type === 'container')) {
                                         loadingFinish()
@@ -401,16 +402,16 @@ ${obj.gvc.bindView({
                                         if (HtmlGenerate.share.false[dd.js] < 10) {
                                             setTimeout(() => {
                                                 getResource()
-                                            }, 200)
+                                            }, 100)
                                         }
                                         return ``;
                                     }
                                 }
+
                                 getResource()
                             }))
                             index = index + 1
                         }
-                        resolve()
                         gvc.glitter.defaultSetting.pageLoadingFinish();
                         gvc.notifyDataChange(container);
                         gvc.glitter.share.loaginfC = (gvc.glitter.share.loaginfC ?? 0) + 1;
@@ -423,11 +424,18 @@ ${obj.gvc.bindView({
             return gvc.bindView({
                 bind: container,
                 view: () => {
-                    return htmlList.map((dd) => {
+                    const text = htmlList.map((dd) => {
                         return dd.fun()
                     }).join('')
+
+                    return text
                 },
-                divCreate: createOption ?? {class: option.class, style: option.style},
+                divCreate: createOption ?? {
+                    class: option.class, style: option.style, option: [{
+                        key: `gl_type`,
+                        value: "container"
+                    }]
+                },
                 onCreate: () => {
 
                 },
@@ -585,9 +593,7 @@ ${gvc.bindView(() => {
                                             }
                                             loading = true
                                             try {
-                                                data = gvc.glitter.share.htmlExtension[gvc.glitter.htmlGenerate.resourceHook(dd.js)][
-                                                    dd.type
-                                                    ]
+                                                data = gvc.glitter.share.htmlExtension[gvc.glitter.htmlGenerate.resourceHook(dd.js)][dd.type]
                                                     .render(gvc, dd, setting, hover, subdata)
                                                     .editor()
                                             } catch (e: any) {
@@ -596,7 +602,7 @@ ${gvc.bindView(() => {
                                                 if (HtmlGenerate.share.false[dd.js] < 10) {
                                                     setTimeout(() => {
                                                         getData()
-                                                    }, 500)
+                                                    }, 100)
                                                 }
                                             }
                                             if (typeof data === 'string') {
@@ -614,7 +620,7 @@ ${gvc.bindView(() => {
                                         dd.refreshComponentParameter!.view2 = () => {
                                             getData();
                                         };
-                                        getData();
+                                        getData()
                                         return {
                                             bind: component!,
                                             view: () => {

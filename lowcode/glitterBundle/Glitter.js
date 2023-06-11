@@ -13,8 +13,10 @@ export class Glitter {
             pageBgColor: "white",
             pageAnimation: this.animation.none,
             dialogAnimation: this.animation.none,
-            pageLoading: () => { },
-            pageLoadingFinish: () => { }
+            pageLoading: () => {
+            },
+            pageLoadingFinish: () => {
+            }
         });
         this.htmlGenerate = HtmlGenerate;
         this.webUrl = '';
@@ -32,6 +34,7 @@ export class Glitter {
         this.changePageCallback = [];
         this.pageConfig = [];
         this.waitChangePage = false;
+        this.elementCallback = {};
         this.hidePageView = PageManager.hidePageView;
         this.showPageView = PageManager.showPageView;
         this.setHome = PageManager.setHome;
@@ -43,6 +46,7 @@ export class Glitter {
         this.changePage = PageManager.changePage;
         this.removePage = PageManager.removePage;
         this.openDiaLog = PageManager.openDiaLog;
+        this.innerDialog = PageManager.innerDialog;
         this.closeDiaLog = PageManager.closeDiaLog;
         this.hideLoadingView = PageManager.hideLoadingView;
         this.goBack = PageManager.goBack;
@@ -120,7 +124,7 @@ export class Glitter {
             },
             frSize(sizeMap, def) {
                 var _a, _b, _c, _d, _e;
-                var wi = this.glitter.$('html').width();
+                var wi = $('html').width();
                 var sm = ((_a = sizeMap.sm) !== null && _a !== void 0 ? _a : def);
                 var me = ((_b = sizeMap.me) !== null && _b !== void 0 ? _b : sm);
                 var lg = ((_c = sizeMap.lg) !== null && _c !== void 0 ? _c : me);
@@ -601,26 +605,24 @@ export class Glitter {
     }
     ;
     addMtScript(urlArray, success, error, option) {
+        var _a;
+        Glitter.glitter.share.scriptMemory = (_a = Glitter.glitter.share.scriptMemory) !== null && _a !== void 0 ? _a : [];
         const glitter = this;
         let index = 0;
         function addScript() {
-            var _a, _b, _c, _d;
+            var _a, _b, _c, _d, _e, _f;
             if (index === urlArray.length) {
                 success();
                 return;
             }
             var scritem = urlArray[index];
-            var haveURL = false;
-            glitter.$('head').children().map(function (data) {
-                var _a;
-                if (glitter.$('head').children().get(data).src === ((_a = scritem.src) !== null && _a !== void 0 ? _a : scritem)) {
-                    haveURL = true;
-                }
-            });
-            if (haveURL) {
+            if (Glitter.glitter.share.scriptMemory.indexOf(((_a = scritem.src) !== null && _a !== void 0 ? _a : scritem)) !== -1) {
                 index++;
                 addScript();
                 return;
+            }
+            else {
+                Glitter.glitter.share.scriptMemory.push(((_b = scritem.src) !== null && _b !== void 0 ? _b : scritem));
             }
             let script = document.createElement('script');
             try {
@@ -652,14 +654,14 @@ export class Glitter {
                 }
                 else if (scritem.type !== undefined) {
                     script.setAttribute('type', scritem.type);
-                    script.setAttribute('src', (_a = scritem.src) !== null && _a !== void 0 ? _a : undefined);
+                    script.setAttribute('src', (_c = scritem.src) !== null && _c !== void 0 ? _c : undefined);
                     script.setAttribute('crossorigin', true);
-                    script.setAttribute('id', (_b = scritem.id) !== null && _b !== void 0 ? _b : undefined);
+                    script.setAttribute('id', (_d = scritem.id) !== null && _d !== void 0 ? _d : undefined);
                     document.getElementsByTagName("head")[0].appendChild(script);
                 }
                 else {
-                    script.setAttribute('src', (_c = scritem.src) !== null && _c !== void 0 ? _c : scritem);
-                    script.setAttribute('id', (_d = scritem.id) !== null && _d !== void 0 ? _d : undefined);
+                    script.setAttribute('src', (_e = scritem.src) !== null && _e !== void 0 ? _e : scritem);
+                    script.setAttribute('id', (_f = scritem.id) !== null && _f !== void 0 ? _f : undefined);
                     script.setAttribute('crossorigin', true);
                     document.getElementsByTagName("head")[0].appendChild(script);
                 }

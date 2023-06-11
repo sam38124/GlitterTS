@@ -2,27 +2,92 @@ import db, {limit} from '../../modules/database';
 import exception from "../../modules/exception";
 import tool from "../../services/tool";
 import UserUtil from "../../utils/UserUtil";
+import {IToken} from "../models/Auth.js";
 
 export class Post {
     public app: string
+    public token: IToken
 
     public async postContent(content: any) {
         try {
-            console.log(content)
-            return  await db.query(`INSERT INTO \`${this.app}\`.\`t_post\` SET ?`, [
+            const data = await db.query(`INSERT INTO \`${this.app}\`.\`t_post\`
+                                         SET ?`, [
                 content
             ])
+            const reContent = JSON.parse(content.content)
+            reContent.id = data.insertId
+            content.content = JSON.stringify(reContent)
+            await db.query(`update \`${this.app}\`.t_post
+                            SET ?
+                            WHERE id = ${data.insertId}`, [content])
+            return data
         } catch (e) {
             throw exception.BadRequestError('BAD_REQUEST', 'PostContent Error:' + e, null);
         }
     }
+
     public async getContent(content: any) {
         try {
-            return  {
-                data:await db.query(`select * from \`${this.app}\`.\`t_post\` order by id desc ${limit(content)}`, [
-                    content
-                ]),
-                count:(await db.query(`select count(1) from \`${this.app}\`.\`t_post\``, [
+            let userData: any = {}
+            let query = ``;
+            const app = this.app
+
+            function getQueryString(dd: any): any {
+                if (!dd || dd.length === 0) {
+                    return ``
+                }
+                if (dd.type === 'relative_post') {
+                    dd.query=dd.query??[]
+                    return ` and JSON_EXTRACT(content, '$.${dd.key}') in (SELECT JSON_EXTRACT(content, '$.${dd.value}') AS datakey
+ from \`${app}\`.t_post where 1=1 ${dd.query.map((dd:any)=>{
+     return getQueryString(dd)
+                    }).join(` and `)})`
+                } else if (dd.type) {
+                    return ` and JSON_EXTRACT(content, '$.${dd.key}') ${dd.type} ${(typeof dd.value === 'string') ? `'${dd.value}'` : dd.value}`
+                } else {
+                    return ` and JSON_EXTRACT(content, '$.${dd.key}') LIKE '%${dd.value}%'`
+                }
+            }
+
+            if (content.query) {
+                content.query = JSON.parse(content.query)
+                content.query.map((dd: any) => {
+                    query += getQueryString(dd)
+                })
+            }
+            console.log(query)
+            if (content.datasource) {
+                content.datasource = JSON.parse(content.datasource)
+                if (content.datasource.length > 0) {
+                    query += ` and userID in ('${content.datasource.map((dd: any) => {
+                        return dd
+                    }).join("','")}')`
+                }
+            }
+            const data = (await db.query(`select *
+                                          from \`${this.app}\`.\`t_post\`
+                                          where userID in (select userID
+                                                           from \`${this.app}\`.\`user\`)
+                                              ${query}
+                                          order by id desc ${limit(content)}`, [
+                content
+            ]))
+
+            for (const dd of data) {
+                if (!userData[dd.userID]) {
+                    userData[dd.userID] = (await db.query(`select userData
+                                                           from \`${this.app}\`.\`user\`
+                                                           where userID = ${dd.userID}`, []))[0]['userData']
+                }
+                dd.userData = userData[dd.userID]
+            }
+            return {
+                data: data,
+                count: (await db.query(`select count(1)
+                                        from \`${this.app}\`.\`t_post\`
+                                        where userID in (select userID
+                                                         from \`${this.app}\`.\`user\`)
+                                            ${query}`, [
                     content
                 ]))[0]["count(1)"]
             }
@@ -31,8 +96,9 @@ export class Post {
         }
     }
 
-    constructor(app: string) {
+    constructor(app: string, token: IToken) {
         this.app = app
+        this.token = token
     }
 }
 

@@ -47,8 +47,7 @@ init((gvc, glitter, gBundle) => {
   <h5 class="fw-medium fs-lg mb-1  mt-2" style="${style.style2}">程式碼</h5>
 </div>
 <div class="border-0 text-center col-12 col-sm-4 bg-none d-flex flex-column align-items-center justify-content-center" onclick="${gvc.event(() => {
-                                progress = 3
-                                gvc.notifyDataChange(id)
+                                glitter.openDiaLog(new URL('../dialog/ai-microphone.js',import.meta.url).href,'microphone',gBundle,{})
                             })}">
 <div class="rounded-circle d-flex align-items-center justify-content-center" style="height: 100px;width: 100px; background:whitesmoke;">
 <i class="fa-light fa-microchip-ai   fs-2 text-gradient-primary" ></i>

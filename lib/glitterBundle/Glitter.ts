@@ -16,11 +16,13 @@ export class Glitter {
         pageBgColor: "white",
         pageAnimation: this.animation.none,
         dialogAnimation: this.animation.none,
-        pageLoading:()=>{},
-        pageLoadingFinish:()=>{}
+        pageLoading: () => {
+        },
+        pageLoadingFinish: () => {
+        }
     })
     /*Parameter*/
-    public htmlGenerate=HtmlGenerate
+    public htmlGenerate = HtmlGenerate
     public window: Window;
     public $: any;
     public document: any;
@@ -41,6 +43,7 @@ export class Glitter {
     public pageConfig: PageConfig[] = []
     public nowPageConfig?: PageConfig
     public waitChangePage = false
+    public elementCallback: {[name:string]:{onCreate:()=>void,onInitial:()=>void,notifyDataChange:()=>void,getView:()=>string}} = {}
 
     /*Getter*/
     get baseUrl() {
@@ -84,6 +87,7 @@ export class Glitter {
     public changePage = PageManager.changePage
     public removePage = PageManager.removePage
     public openDiaLog = PageManager.openDiaLog
+    public innerDialog = PageManager.innerDialog
     public closeDiaLog = PageManager.closeDiaLog
     public hideLoadingView = PageManager.hideLoadingView
     public goBack = PageManager.goBack
@@ -128,8 +132,8 @@ export class Glitter {
 
     public getPro(tag: string, callBack: (data: {}) => void, option: { defineType?: any, webFunction: (data: any, callback: (data: any) => void) => any }
         = {
-        webFunction: (data: any,callback: (data: any) => void) => {
-            callback({result: true,data:Glitter.glitter.getCookieByName(tag)})
+        webFunction: (data: any, callback: (data: any) => void) => {
+            callback({result: true, data: Glitter.glitter.getCookieByName(tag)})
         }
     }) {
         this.runJsInterFace("getPro", {
@@ -306,6 +310,7 @@ export class Glitter {
     };
 
     public addMtScript(urlArray: any[], success: () => void, error: (message: string) => void, option?: { multiple?: boolean }) {
+        Glitter.glitter.share.scriptMemory = Glitter.glitter.share.scriptMemory ?? []
         const glitter = this;
         let index = 0
 
@@ -315,16 +320,17 @@ export class Glitter {
                 return
             }
             var scritem: any = urlArray[index]
-            var haveURL = false
-            glitter.$('head').children().map(function (data: any) {
-                if (glitter.$('head').children().get(data).src === (scritem.src ?? scritem)) {
-                    haveURL = true
-                }
-            })
-            if (haveURL) {
+            // glitter.$('head').children().map(function (data: any) {
+            //     if (glitter.$('head').children().get(data).src === (scritem.src ?? scritem)) {
+            //         haveURL = true
+            //     }
+            // })
+            if (Glitter.glitter.share.scriptMemory.indexOf((scritem.src ?? scritem)) !== -1) {
                 index++
                 addScript()
                 return;
+            } else {
+                Glitter.glitter.share.scriptMemory.push((scritem.src ?? scritem));
             }
             let script: any = document.createElement('script');
             try {
@@ -334,7 +340,7 @@ export class Glitter {
                             script.onreadystatechange = null;
                             index++
                             addScript()
-                        }else{
+                        } else {
                             alert(script.readyState)
                         }
                     }
@@ -347,7 +353,7 @@ export class Glitter {
                         }
                     }
                 }
-                script.addEventListener('error',()=>{
+                script.addEventListener('error', () => {
                     error("")
                 });
                 if (scritem.type === 'text/babel') {
@@ -355,13 +361,13 @@ export class Glitter {
                 } else if (scritem.type !== undefined) {
                     script.setAttribute('type', scritem.type);
                     script.setAttribute('src', scritem.src ?? undefined);
-                    script.setAttribute('crossorigin',true)
+                    script.setAttribute('crossorigin', true)
                     script.setAttribute('id', scritem.id ?? undefined);
                     document.getElementsByTagName("head")[0].appendChild(script);
                 } else {
                     script.setAttribute('src', scritem.src ?? scritem);
                     script.setAttribute('id', scritem.id ?? undefined);
-                    script.setAttribute('crossorigin',true)
+                    script.setAttribute('crossorigin', true)
                     document.getElementsByTagName("head")[0].appendChild(script);
                 }
 
@@ -484,7 +490,7 @@ export class Glitter {
                     haveURL = true
                 }
             })
-            if(!haveURL){
+            if (!haveURL) {
                 var link = document.createElement("link");
                 link.type = "text/css";
                 link.rel = "stylesheet";
@@ -573,7 +579,7 @@ export class Glitter {
             document.body.removeChild(link);
         },
         frSize(sizeMap: any, def: any) {
-            var wi = this.glitter.$('html').width()
+            var wi = $('html').width() as number
             var sm = (sizeMap.sm ?? def)
             var me = (sizeMap.me ?? sm)
             var lg = (sizeMap.lg ?? me)
@@ -593,7 +599,7 @@ export class Glitter {
                 return xxl
             }
         },
-        chooseMediaCallback(option: { single?: boolean, accept: string, callback(data: { data: any,file:any, type: string, name: string, extension: string }[]): void }) {
+        chooseMediaCallback(option: { single?: boolean, accept: string, callback(data: { data: any, file: any, type: string, name: string, extension: string }[]): void }) {
             const $ = this.glitter.$
             $('#imageSelect').remove()
             if (!document.getElementById("imageSelect")) {
@@ -606,7 +612,7 @@ export class Glitter {
                         reader.readAsDataURL(files[a]);
                         reader.onload = function getFileInfo(evt: any) {
                             imageMap = imageMap.concat({
-                                file:files[a],
+                                file: files[a],
                                 data: evt.target.result,
                                 type: option.accept,
                                 name: files[a].name,
@@ -837,7 +843,7 @@ export class Glitter {
         this.window = window;
         this.document = window.document
         Glitter.glitter = this
-        Glitter.glitter.share.htmlExtension=Glitter.glitter.share.htmlExtension??{}
+        Glitter.glitter.share.htmlExtension = Glitter.glitter.share.htmlExtension ?? {}
     }
 }
 

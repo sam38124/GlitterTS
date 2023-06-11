@@ -13,13 +13,62 @@ window.addEventListener('resize', function () {
         }
     }
 });
+function listenElementChange(){
+    const targetElement:any = document.querySelector('#glitterPage');
+    // 建立 Mutation Observer
+    const observer = new MutationObserver(function(mutationsList) {
+        // 檢查每個突變（變化）
+        for (let mutation of mutationsList) {
+            // 檢查是否是目標元素的子節點被插入
+            if (mutation.addedNodes.length > 0) {
+                // 在這裡編寫對元素插入內容的處理程式碼
+                for (const b of mutation.addedNodes){
+                    traverseHTML($(b).get(0))
+                }
 
+            }
+        }
+    });
+    // 開始觀察目標元素的變化
+    observer.observe(targetElement, { childList: true,subtree: true  });
+}
+function traverseHTML(element: any) {
+    let result: any = {};
+    // console.log(`tagName:${element.tagName}`)
+    // 取得元素的標籤名稱
+    result.tag = element.tagName;
+
+    // 取得元素的屬性
+    var attributes = element.attributes ?? [];
+    if (attributes.length > 0) {
+        result.attributes = {};
+        for (var i = 0; i < attributes.length; i++) {
+            result.attributes[attributes[i].name] = attributes[i].value;
+        }
+    }
+    // 取得元素的子元素
+    let children = element.children;
+    if (children&&children.length > 0) {
+        result.children = [];
+        for (let j = 0; j < children.length; j++) {
+            result.children.push(traverseHTML(children[j]));
+        }
+    }
+    if($(element).attr('glem')==='bindView'){
+        try { $(element).html(glitter.elementCallback[$(element).attr('id') as string].getView())}catch (e) {}
+        try {glitter.elementCallback[$(element).attr('id') as string].onInitial()}catch (e) {}
+        try {  glitter.elementCallback[$(element).attr('id') as string].onCreate()}catch (e) {}
+    }
+    // 返回 JSON 結果
+    return result;
+}
 glitter.$(document).ready(function () {
     if ((window as any).GL !== undefined) {
         glitter.deviceType = glitter.deviceTypeEnum.Android;
     } else if (navigator.userAgent === 'iosGlitter') {
         glitter.deviceType = glitter.deviceTypeEnum.Ios;
     }
+    listenElementChange()
     Entry.onCreate(glitter);
 });
 

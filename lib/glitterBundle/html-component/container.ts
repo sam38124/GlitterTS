@@ -7,7 +7,6 @@ export const containerComponent = {
         widget.data.setting = widget.data.setting ?? []
         widget.data.styleEd = widget.data.styleEd ?? {}
         const glitter = (window as any).glitter
-        const htmlGenerate = new glitter.htmlGenerate(widget.data.setting, hoverID);
         return {
             view: () => {
                 return widgetComponent.render(gvc, widget,setting,hoverID,subData).view()

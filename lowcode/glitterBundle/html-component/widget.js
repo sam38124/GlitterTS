@@ -41,14 +41,14 @@ export const widgetComponent = {
                     }
                     return {
                         elem: widget.data.elem,
-                        class: glitter.htmlGenerate.styleEditor(widget.data).class() + ` glitterTag${widget.hashTag}`,
-                        style: glitter.htmlGenerate.styleEditor(widget.data).style() + `   ${hoverID.indexOf(widget.id) !== -1 ? `border: 4px solid dodgerblue;border-radius: 5px;box-sizing: border-box;` : ``}`,
+                        class: glitter.htmlGenerate.styleEditor(widget.data, gvc, widget, subData).class() + ` glitterTag${widget.hashTag}`,
+                        style: glitter.htmlGenerate.styleEditor(widget.data, gvc, widget, subData).style() + `   ${hoverID.indexOf(widget.id) !== -1 ? `border: 4px solid dodgerblue;border-radius: 5px;box-sizing: border-box;` : ``}`,
                         option: option.concat(subData.option),
                     };
                 }
                 if (widget.type === 'container') {
                     const glitter = window.glitter;
-                    const htmlGenerate = new glitter.htmlGenerate(widget.data.setting, hoverID);
+                    const htmlGenerate = new glitter.htmlGenerate(widget.data.setting, hoverID, subData);
                     return htmlGenerate.render(gvc, {}, getCreateOption());
                 }
                 if ((widget.data.dataFrom === "code")) {
@@ -87,7 +87,6 @@ export const widgetComponent = {
                     return {
                         bind: id,
                         view: () => {
-                            console.log('render');
                             switch (widget.data.elem) {
                                 case 'select':
                                     formData[widget.data.key] = widget.data.inner;
@@ -169,7 +168,7 @@ export const widgetComponent = {
                                         return ``;
                                     }
                                     else {
-                                        return glitter.htmlGenerate.styleEditor(widget.data).editor(gvc, () => {
+                                        return glitter.htmlGenerate.styleEditor(widget.data, gvc, widget, subData).editor(gvc, () => {
                                             widget.refreshComponent();
                                         }, '元素設計樣式');
                                     }
@@ -251,16 +250,17 @@ export const widgetComponent = {
                                                                     dd.name = text;
                                                                     widget.refreshComponent();
                                                                 }
-                                                            }) + glitter.htmlGenerate.editeInput({
-                                                                gvc: gvc,
-                                                                title: `Value`,
-                                                                default: dd.value,
-                                                                placeHolder: "輸入參數值",
-                                                                callback: (text) => {
-                                                                    dd.value = text;
-                                                                    widget.refreshComponent();
-                                                                }
                                                             }) +
+                                                                glitter.htmlGenerate.editeInput({
+                                                                    gvc: gvc,
+                                                                    title: `Value`,
+                                                                    default: dd.value,
+                                                                    placeHolder: "輸入參數值",
+                                                                    callback: (text) => {
+                                                                        dd.value = text;
+                                                                        widget.refreshComponent();
+                                                                    }
+                                                                }) +
                                                                 `${Editor.select({
                                                                     title: "參數可見度",
                                                                     gvc: gvc,
@@ -462,11 +462,10 @@ export const widgetComponent = {
                         gvc: gvc,
                         title: '特徵值',
                         array: widget.data.attr.map((dd, index) => {
-                            var _a, _b, _c;
-                            dd.type = (_a = dd.type) !== null && _a !== void 0 ? _a : "par";
-                            dd.attr = (_b = dd.attr) !== null && _b !== void 0 ? _b : "";
+                            var _a, _b;
+                            dd.attr = (_a = dd.attr) !== null && _a !== void 0 ? _a : "";
                             return {
-                                title: (_c = dd.attr) !== null && _c !== void 0 ? _c : `特徵:${index + 1}`,
+                                title: (_b = dd.attr) !== null && _b !== void 0 ? _b : `特徵:${index + 1}`,
                                 expand: dd,
                                 innerHtml: (() => {
                                     return gvc.map([

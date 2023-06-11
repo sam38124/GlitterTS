@@ -1,5 +1,6 @@
 import {Animation, AnimationConfig} from './Animation.js';
 import {Glitter} from '../Glitter.js';
+import {GVC} from "../GVController.js";
 
 export class DefaultSetting {
     public pageBgColor: string;
@@ -38,7 +39,7 @@ export class PageConfig {
     public src: string;
     public tag: string;
     public createResource: () => void;
-    public deleteResource: () => void;
+    public deleteResource: (destroy:boolean) => void;
     public type: GVCType;
     public animation: AnimationConfig;
     public backGroundColor: string;
@@ -49,7 +50,7 @@ export class PageConfig {
     }
 
     constructor(par: {
-        id: string, obj: any, goBack: boolean, src: string, tag: string, createResource: () => void, deleteResource: () => void,
+        id: string, obj: any, goBack: boolean, src: string, tag: string, createResource: () => void, deleteResource: (destroy:boolean) => void,
         type: GVCType, animation: AnimationConfig, backGroundColor: string
     }) {
         this.tag = par.tag;
@@ -74,7 +75,7 @@ export class PageManager {
                 return data.id;
             }).indexOf(id);
             if (del) {
-                glitter.pageConfig[index].deleteResource();
+                glitter.pageConfig[index].deleteResource(true);
                 glitter.$(`#page` + glitter.pageConfig[index].id).remove();
                 glitter.$(`#` + glitter.pageConfig[index].id).remove();
                 glitter.pageConfig.splice(index, 1);
@@ -138,8 +139,8 @@ export class PageManager {
                     animation: option.animation ?? glitter.animation.none
                 }
             );
-            $('#glitterPage').append(`<div id="page${config!.id}" style="min-width: 100vw;min-height: 100vh;left: 0;top: 0;
-background: ${config!.backGroundColor};display: none;z-index: 999999;overflow: hidden;width:100vw;overflow-x:auto;">
+            $('#glitterPage').append(`<div id="page${config!.id}" style="min-width: 100vw;min-height: 100vh;left: 0;top: 0;width:100vw;
+background: ${config!.backGroundColor};display: none;z-index: 9999;overflow: hidden;">
 </div>`)
             glitter.nowPageConfig = config;
             let module = glitter.modelJsList.find((dd) => {
@@ -279,8 +280,8 @@ background: ${config!.backGroundColor};display: none;z-index: 999999;overflow: h
                 }
             );
             $('#glitterPage').append(`<div  id="page${config.id}" style="
-min-width: 100vw; min-height: 100vh;  z-index: 999999; overflow: hidden
-background: transparent;background: ${config!.backGroundColor};display: none;position: absolute;top: 0;left: 0;width:100vw;overflow-x:auto;">
+min-width: 100vw; min-height: 100vh;  z-index: 9999; overflow: hidden;width:100vw;
+background: transparent;background: ${config!.backGroundColor};display: none;position: absolute;top: 0;left: 0;">
 </div>`)
             config.scrollTop=glitter.$('html').get(0).scrollTop
             glitter.nowPageConfig = config;
@@ -318,7 +319,12 @@ background: transparent;background: ${config!.backGroundColor};display: none;pos
             this.hidePageView(pg.id, true);
         }
     };
-
+    public static innerDialog=(html:(gvc:GVC)=>string,tag:string)=>{
+        const glitter = Glitter.glitter;
+        glitter.openDiaLog(new URL('../dialog/dialog_inner.js',import.meta.url).href, tag, {
+            getView:html
+        })
+    }
     public static openDiaLog(url: string, tag: string, obj: any, option: { animation?: AnimationConfig, backGroundColor?: string } = {}) {
         const glitter = Glitter.glitter;
         if (glitter.waitChangePage || PageManager.clock.stop() < 300) {
@@ -345,7 +351,7 @@ background: transparent;background: ${config!.backGroundColor};display: none;pos
                 }
             );
             $('#glitterPage').append(`<div id="page${config!.id}" style="min-width: 100vw;min-height: 100vh;left: 0;top: 0;
-background: ${config!.backGroundColor};display: none;z-index: 999999;overflow: hidden;position: fixed;width:100vw;height: 100vh;overflow-x:auto;" >
+background: ${config!.backGroundColor};display: none;z-index: 9999;overflow: hidden;position: fixed;width:100vw;height: 100vh;" >
 </div>`)
             glitter.nowPageConfig = config;
 

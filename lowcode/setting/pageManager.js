@@ -2,7 +2,6 @@ import { HtmlGenerate } from "../glitterBundle/module/Html_generate.js";
 import { EditorElem } from "../glitterBundle/plugins/editor-elem.js";
 import { ShareDialog } from "../dialog/ShareDialog.js";
 import { TriggerEvent } from "../glitterBundle/plugins/trigger-event.js";
-import { initialStylePage } from "./initialStyle.js";
 import { ApiPageConfig } from "../api/pageConfig.js";
 export function pageManager(gvc, viewModel, id) {
     var _a;
@@ -346,12 +345,6 @@ ${(() => {
                     };
                 });
             })()}`
-        }, {
-            title: '頁面設計 / Style',
-            index: 'pageStyle',
-            html: (() => {
-                return `<div class="alert shadow" style="background-image: linear-gradient(120deg, #a1c4fd 0%, #c2e9fb 100%);white-space: normal;word-break: break-all;">${initialStylePage(gvc, viewModel, id)}</div>`;
-            })()
         }
     ];
     return `

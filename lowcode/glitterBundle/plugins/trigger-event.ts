@@ -45,7 +45,7 @@ export class TriggerEvent {
                 }
             ], () => {
                 val = glitter.share.componentData[url.href]
-                console.log('setComponent-->' + url)
+                glitter.deBugMessage('setComponent-->' + url)
             }, () => {
             })
             return {

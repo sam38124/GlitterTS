@@ -73,7 +73,7 @@ const execute = async (sql: string, params: any[]): Promise<any> => {
 };
 
 export const limit=(map:any)=>{
-    return ` limit ${parseInt(map.page,10) * parseInt(map.limit,10)}, ${parseInt(map.page,10) * parseInt(map.limit,10) + parseInt(map.limit,10)} `
+    return ` limit ${parseInt(map.page,10) * parseInt(map.limit,10)}, ${ parseInt(map.limit,10)} `
 }
 const query = async (sql: string, params: unknown[]): Promise<any> => {
     const logger = new Logger();

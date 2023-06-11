@@ -1,5 +1,6 @@
 import {Animation, AnimationConfig} from './Animation.js';
 import {Glitter} from '../Glitter.js';
+import {GVC} from "../GVController.js";
 
 export class DefaultSetting {
     public pageBgColor: string;
@@ -38,7 +39,7 @@ export class PageConfig {
     public src: string;
     public tag: string;
     public createResource: () => void;
-    public deleteResource: () => void;
+    public deleteResource: (destroy:boolean) => void;
     public type: GVCType;
     public animation: AnimationConfig;
     public backGroundColor: string;
@@ -49,7 +50,7 @@ export class PageConfig {
     }
 
     constructor(par: {
-        id: string, obj: any, goBack: boolean, src: string, tag: string, createResource: () => void, deleteResource: () => void,
+        id: string, obj: any, goBack: boolean, src: string, tag: string, createResource: () => void, deleteResource: (destroy:boolean) => void,
         type: GVCType, animation: AnimationConfig, backGroundColor: string
     }) {
         this.tag = par.tag;
@@ -74,7 +75,7 @@ export class PageManager {
                 return data.id;
             }).indexOf(id);
             if (del) {
-                glitter.pageConfig[index].deleteResource();
+                glitter.pageConfig[index].deleteResource(true);
                 glitter.$(`#page` + glitter.pageConfig[index].id).remove();
                 glitter.$(`#` + glitter.pageConfig[index].id).remove();
                 glitter.pageConfig.splice(index, 1);
@@ -318,7 +319,12 @@ background: transparent;background: ${config!.backGroundColor};display: none;pos
             this.hidePageView(pg.id, true);
         }
     };
-
+    public static innerDialog=(html:(gvc:GVC)=>string,tag:string)=>{
+        const glitter = Glitter.glitter;
+        glitter.openDiaLog(new URL('../dialog/dialog_inner.js',import.meta.url).href, tag, {
+            getView:html
+        })
+    }
     public static openDiaLog(url: string, tag: string, obj: any, option: { animation?: AnimationConfig, backGroundColor?: string } = {}) {
         const glitter = Glitter.glitter;
         if (glitter.waitChangePage || PageManager.clock.stop() < 300) {

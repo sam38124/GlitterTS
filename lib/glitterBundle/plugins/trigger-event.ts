@@ -45,7 +45,7 @@ export class TriggerEvent {
                 }
             ], () => {
                 val = glitter.share.componentData[url.href]
-                console.log('setComponent-->' + url)
+                glitter.deBugMessage('setComponent-->' + url)
             }, () => {
             })
             return {
@@ -145,6 +145,9 @@ export class TriggerEvent {
            return new Promise<boolean>(async (resolve, reject)=>{
                async function pass(){
                    try {
+                       setTimeout(()=>{
+                           resolve(true)
+                       },4000)
                        returnData = await oj.gvc.glitter.share.clickEvent[glitter.htmlGenerate.resourceHook(event.src)][event.route].fun(oj.gvc, oj.widget, oj.clickEvent, oj.subData, oj.element).event()
                        resolve(true)
                    }catch (e){

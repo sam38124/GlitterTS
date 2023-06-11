@@ -236,7 +236,7 @@ export class HtmlGenerate {
                                         if (HtmlGenerate.share.false[dd.js] < 10) {
                                             setTimeout(() => {
                                                 getResource();
-                                            }, 200);
+                                            }, 100);
                                         }
                                         return ``;
                                     }
@@ -245,7 +245,6 @@ export class HtmlGenerate {
                             }));
                             index = index + 1;
                         }
-                        resolve();
                         gvc.glitter.defaultSetting.pageLoadingFinish();
                         gvc.notifyDataChange(container);
                         gvc.glitter.share.loaginfC = ((_a = gvc.glitter.share.loaginfC) !== null && _a !== void 0 ? _a : 0) + 1;
@@ -256,11 +255,17 @@ export class HtmlGenerate {
             return gvc.bindView({
                 bind: container,
                 view: () => {
-                    return htmlList.map((dd) => {
+                    const text = htmlList.map((dd) => {
                         return dd.fun();
                     }).join('');
+                    return text;
                 },
-                divCreate: createOption !== null && createOption !== void 0 ? createOption : { class: option.class, style: option.style },
+                divCreate: createOption !== null && createOption !== void 0 ? createOption : {
+                    class: option.class, style: option.style, option: [{
+                            key: `gl_type`,
+                            value: "container"
+                        }]
+                },
                 onCreate: () => {
                 },
             });
@@ -410,7 +415,7 @@ ${gvc.bindView(() => {
                                             if (HtmlGenerate.share.false[dd.js] < 10) {
                                                 setTimeout(() => {
                                                     getData();
-                                                }, 500);
+                                                }, 100);
                                             }
                                         }
                                         if (typeof data === 'string') {
@@ -544,7 +549,8 @@ ${e.line}
             return JSON.stringify(setting);
         };
     }
-    static styleEditor(data) {
+    static styleEditor(data, gvc, widget, subData) {
+        const glitter = (gvc !== null && gvc !== void 0 ? gvc : window).glitter;
         return {
             editor: (gvc, widget, title, option) => {
                 var _a;
@@ -605,7 +611,7 @@ ${e.line}
         var _a;
         obj.title = (_a = obj.title) !== null && _a !== void 0 ? _a : "";
         const id = obj.gvc.glitter.getUUID();
-        return `<h3 style="font-size: 16px;margin-bottom: 10px;" class="mt-2 text-dark d-flex align-items-center">${obj.title}</h3>
+        return `<h3 style="font-size: 16px;margin-bottom: 10px;" class="mt-2 text-dark d-flex align-items-center  ${(!obj.title) ? `d-none` : ``}">${obj.title}</h3>
 
 ${obj.gvc.bindView({
             bind: id,

@@ -21,8 +21,7 @@ router.use(config_1.config.getRoute(config_1.config.public_route.post, 'public')
 const whiteList = [
     { url: config_1.config.getRoute(config_1.config.public_route.user + "/register", 'public'), method: 'POST' },
     { url: config_1.config.getRoute(config_1.config.public_route.user + "/login", 'public'), method: 'POST' },
-    { url: config_1.config.getRoute(config_1.config.public_route.post + "/post", 'public'), method: 'GET' },
-    { url: config_1.config.getRoute(config_1.config.public_route.post + "/post", 'public'), method: 'POST' }
+    { url: config_1.config.getRoute(config_1.config.public_route.post, 'public'), method: 'GET' }
 ];
 async function doAuthAction(req, resp, next) {
     var _a;

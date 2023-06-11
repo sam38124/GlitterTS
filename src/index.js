@@ -170,7 +170,7 @@ async function createAPP(dd) {
             seoManager: async (req, resp) => {
                 var _a;
                 try {
-                    let data = (await database_2.default.execute(`SELECT page_config, \`${config_1.saasConfig.SAAS_NAME}\`.app_config.\`config\`
+                    let data = (await database_2.default.execute(`SELECT page_config, \`${config_1.saasConfig.SAAS_NAME}\`.app_config.\`config\`,tag
                                                   FROM \`${config_1.saasConfig.SAAS_NAME}\`.page_config,
                                                        \`${config_1.saasConfig.SAAS_NAME}\`.app_config
                                                   where \`${config_1.saasConfig.SAAS_NAME}\`.page_config.appName = ${database_2.default.escape(dd.appName)}
@@ -181,7 +181,7 @@ async function createAPP(dd) {
                     if (data && data.page_config) {
                         const d = (_a = data.page_config.seo) !== null && _a !== void 0 ? _a : {};
                         if (d.type !== 'custom') {
-                            data = (await database_2.default.execute(`SELECT page_config, \`${config_1.saasConfig.SAAS_NAME}\`.app_config.\`config\`
+                            data = (await database_2.default.execute(`SELECT page_config, \`${config_1.saasConfig.SAAS_NAME}\`.app_config.\`config\`,tag
                                                       FROM \`${config_1.saasConfig.SAAS_NAME}\`.page_config,
                                                            \`${config_1.saasConfig.SAAS_NAME}\`.app_config
                                                       where \`${config_1.saasConfig.SAAS_NAME}\`.page_config.appName = ${database_2.default.escape(dd.appName)}
@@ -208,7 +208,7 @@ async function createAPP(dd) {
                                                           where \`${config_1.saasConfig.SAAS_NAME}\`.page_config.appName = ${database_2.default.escape(dd.appName)} limit 0,1
                             `, []))[0]['tag'];
                         }
-                        data = (await database_2.default.execute(`SELECT page_config, \`${config_1.saasConfig.SAAS_NAME}\`.app_config.\`config\`
+                        data = (await database_2.default.execute(`SELECT page_config, \`${config_1.saasConfig.SAAS_NAME}\`.app_config.\`config\`,tag
                                                   FROM \`${config_1.saasConfig.SAAS_NAME}\`.page_config,
                                                        \`${config_1.saasConfig.SAAS_NAME}\`.app_config
                                                   where \`${config_1.saasConfig.SAAS_NAME}\`.page_config.appName = ${database_2.default.escape(dd.appName)}
@@ -225,6 +225,7 @@ async function createAPP(dd) {
                         if (data && data.page_config) {
                             const d = (_b = data.page_config.seo) !== null && _b !== void 0 ? _b : {};
                             return `<title>${(_c = d.title) !== null && _c !== void 0 ? _c : "尚未設定標題"}</title>
+ <link rel="canonical" href="./?page=${data.tag}">
     <meta name="keywords" content="${(_d = d.keywords) !== null && _d !== void 0 ? _d : "尚未設定關鍵字"}" />
     <link id="appImage" rel="shortcut icon" href="${(_e = d.logo) !== null && _e !== void 0 ? _e : ""}" type="image/x-icon">
     <link rel="icon" href="${(_f = d.logo) !== null && _f !== void 0 ? _f : ""}" type="image/png" sizes="128x128">

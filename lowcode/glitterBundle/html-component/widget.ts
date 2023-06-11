@@ -42,14 +42,14 @@ export const widgetComponent = {
                     }
                     return {
                         elem: widget.data.elem,
-                        class: glitter.htmlGenerate.styleEditor(widget.data).class() + ` glitterTag${widget.hashTag}`,
-                        style: glitter.htmlGenerate.styleEditor(widget.data).style() + `   ${hoverID.indexOf(widget.id) !== -1 ? `border: 4px solid dodgerblue;border-radius: 5px;box-sizing: border-box;` : ``}`,
+                        class: glitter.htmlGenerate.styleEditor(widget.data,gvc,widget as any,subData).class() + ` glitterTag${widget.hashTag}`,
+                        style: glitter.htmlGenerate.styleEditor(widget.data,gvc,widget as any,subData).style() + `   ${hoverID.indexOf(widget.id) !== -1 ? `border: 4px solid dodgerblue;border-radius: 5px;box-sizing: border-box;` : ``}`,
                         option: option.concat(subData.option),
                     }
                 }
                 if (widget.type === 'container') {
                     const glitter = (window as any).glitter
-                    const htmlGenerate = new glitter.htmlGenerate(widget.data.setting, hoverID);
+                    const htmlGenerate = new glitter.htmlGenerate(widget.data.setting, hoverID,subData);
                     return htmlGenerate.render(gvc, {}, getCreateOption())
                 }
                 if ((widget.data.dataFrom === "code")) {
@@ -91,7 +91,6 @@ export const widgetComponent = {
                     return {
                         bind: id,
                         view: () => {
-                            console.log('render')
                             switch (widget.data.elem) {
                                 case 'select':
                                     formData[widget.data.key] = widget.data.inner
@@ -169,7 +168,7 @@ export const widgetComponent = {
                                     if (['link', 'style'].indexOf(widget.data.elem) !== -1) {
                                         return ``
                                     }else{
-                                        return glitter.htmlGenerate.styleEditor(widget.data).editor(gvc, () => {
+                                        return glitter.htmlGenerate.styleEditor(widget.data,gvc,widget as any,subData).editor(gvc, () => {
                                             widget.refreshComponent()
                                         }, '元素設計樣式')
                                     }
@@ -250,7 +249,8 @@ export const widgetComponent = {
                                                                         dd.name = text
                                                                         widget.refreshComponent()
                                                                     }
-                                                                }) + glitter.htmlGenerate.editeInput({
+                                                                }) + 
+                                                                glitter.htmlGenerate.editeInput({
                                                                     gvc: gvc,
                                                                     title: `Value`,
                                                                     default: dd.value,
@@ -457,7 +457,6 @@ export const widgetComponent = {
                         title: '特徵值',
                         array: widget.data.attr.map((dd: any, index: number) => {
                             // TriggerEvent.editer(gvc, widget, widget.data)
-                            dd.type = dd.type ?? "par"
                             dd.attr = dd.attr ?? ""
                             return {
                                 title: dd.attr ?? `特徵:${index + 1}`,

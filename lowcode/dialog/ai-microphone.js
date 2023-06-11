@@ -1,355 +1,16 @@
 import { init } from '../glitterBundle/GVController.js';
-import { ApiPageConfig } from "../api/pageConfig.js";
+import { ShareDialog } from "./ShareDialog.js";
 import { BaseApi } from "../api/base.js";
 import { config } from "../config.js";
-import { ShareDialog } from "../dialog/ShareDialog.js";
-import { EditorElem } from "../glitterBundle/plugins/editor-elem.js";
 init((gvc, glitter, gBundle) => {
-    return {
-        onCreateView: () => {
-            let progress = 0;
-            const style = {
-                style1: `background:linear-gradient(135deg, #667eea 0%, #764ba2 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;`,
-                style2: `background:linear-gradient(135deg, #667eea 0%, #764ba2 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;`
-            };
-            return gvc.bindView(() => {
-                const id = glitter.getUUID();
-                return {
-                    bind: id,
-                    view: () => {
-                        if (progress === 0) {
-                            return `<div class="m-auto bg-white shadow rounded" style="max-width: 100%;max-height: 100%;">
-  <div class="w-100 d-flex align-items-center border-bottom justify-content-center position-relative" style="height: 68px;">
-        <h3 class="modal-title fs-4 " >選擇元件添加方式</h3>
-        <i class="fa-solid fa-xmark text-dark position-absolute " style="font-size:20px;transform: translateY(-50%);right: 20px;top: 50%;cursor: pointer;"
-        onclick="${gvc.event(() => {
-                                glitter.closeDiaLog();
-                            })}"></i>
-</div>    
-<div class="row m-2">
-<div class="border-0 text-center col-12 col-sm-4 bg-none d-flex flex-column align-items-center justify-content-center" onclick="${gvc.event(() => {
-                                progress = 1;
-                                gvc.notifyDataChange(id);
-                            })}">
-<div class="rounded-circle d-flex align-items-center justify-content-center" style="height: 100px;width: 100px; background:whitesmoke;">
-<i class="fa-solid fa-puzzle-piece-simple   fs-2" style="${style.style1}"></i>
-</div>
-  <h5 class="fw-medium fs-lg mb-1  mt-2" style="${style.style1}">頁面模塊</h5>
-</div>
-<div class="border-0 text-center col-12 col-sm-4 bg-none d-flex flex-column align-items-center justify-content-center"  onclick="${gvc.event(() => {
-                                progress = 2;
-                                gvc.notifyDataChange(id);
-                            })}">
-<div class="rounded-circle d-flex align-items-center justify-content-center" style="height: 100px;width: 100px; background:whitesmoke;">
-<i class="fa-solid fa-code   fs-2" style="${style.style2}"></i>
-</div>
-  <h5 class="fw-medium fs-lg mb-1  mt-2" style="${style.style2}">程式碼</h5>
-</div>
-<div class="border-0 text-center col-12 col-sm-4 bg-none d-flex flex-column align-items-center justify-content-center" onclick="${gvc.event(() => {
-                                glitter.openDiaLog(new URL('../dialog/ai-microphone.js', import.meta.url).href, 'microphone', gBundle, {});
-                            })}">
-<div class="rounded-circle d-flex align-items-center justify-content-center" style="height: 100px;width: 100px; background:whitesmoke;">
-<i class="fa-light fa-microchip-ai   fs-2 text-gradient-primary" ></i>
-</div>
-  <h5 class="fw-medium fs-lg mb-1  mt-2 text-gradient-primary" >AI生成</h5>
-</div>
-</div>
-</div>`;
-                        }
-                        else if (progress === 1) {
-                            return cAdd(gvc);
-                        }
-                        else if (progress === 2) {
-                            return codeEditor(gvc);
-                        }
-                        else if (progress === 3) {
-                            return aiEditor(gvc);
-                        }
-                        else {
-                            return ``;
-                        }
-                    },
-                    divCreate: {
-                        class: `w-100 h-100 d-flex flex-column align-items-center justify-content-center`,
-                        style: "background-color: rgba(0,0,0,0.5);"
-                    }
-                };
-            });
-        }
-    };
-});
-function cAdd(gvc) {
-    gvc.addStyle(`.nav {
-  white-space: nowrap;
-  display:block!important;
-  flex-wrap: nowrap;
-  max-width: 100%;
-  overflow-x: scroll;
-  overflow-y: hidden;
-  -webkit-overflow-scrolling: touch
-}
-.nav li {
-  display: inline-block
-}`);
     function getSource(dd) {
         return dd.src.official;
     }
-    let viewModel = {
-        loading: true,
-        pluginList: []
-    };
-    async function loading() {
-        viewModel.loading = true;
-        const data = await ApiPageConfig.getPlugin(gvc.getBundle().appName);
-        if (data.result) {
-            viewModel.loading = false;
-            viewModel.pluginList = data.response.data.pagePlugin;
-            gvc.notifyDataChange([tabID, docID]);
-        }
-    }
-    loading();
-    const glitter = gvc.glitter;
-    const tabID = glitter.getUUID();
-    const docID = glitter.getUUID();
-    return ` <div class="m-auto bg-white shadow rounded" style="max-width: 100%;max-height: 100%;width: 720px;height: 800px;">
-        <div class="w-100 d-flex align-items-center border-bottom justify-content-center position-relative" style="height: 68px;">
-        <h3 class="modal-title fs-4 " >選擇元件</h3>
-        <i class="fa-solid fa-xmark text-dark position-absolute " style="font-size:20px;transform: translateY(-50%);right: 20px;top: 50%;cursor: pointer;"
-        onclick="${gvc.event(() => {
-        glitter.closeDiaLog();
-    })}"></i>
-</div>    
-${gvc.bindView({
-        bind: tabID,
-        view: () => {
-            if (viewModel.loading) {
-                return ``;
-            }
-            return gvc.map(viewModel.pluginList.map((dd, index) => {
-                var _a;
-                viewModel.selectSource = (_a = viewModel.selectSource) !== null && _a !== void 0 ? _a : getSource(dd);
-                return `
-                 <li class="nav-item">
-    <a class="nav-link ${(viewModel.selectSource === getSource(dd)) ? `active` : ``}" onclick="${gvc.event(() => {
-                    viewModel.selectSource = getSource(dd);
-                    gvc.notifyDataChange([docID, tabID]);
-                })}">${dd.name}</a>
-  </li>
-                `;
-            }));
-        },
-        divCreate: { class: `nav nav-tabs border-bottom px-2 pt-2` }
-    })}
-<div class="container w-100 pt-2 overflow-scroll" style="height: calc(100% - 180px);">
-${gvc.bindView({
-        bind: docID,
-        view: () => {
-            function tryReturn(fun, defaults) {
-                try {
-                    return fun();
-                }
-                catch (e) {
-                    return defaults;
-                }
-            }
-            if (!viewModel.selectSource) {
-                return ``;
-            }
-            const obg = glitter.share.htmlExtension[glitter.htmlGenerate.resourceHook(viewModel.selectSource)];
-            if (!obg) {
-                return ``;
-            }
-            return gvc.map(Object.keys(glitter.share.htmlExtension[glitter.htmlGenerate.resourceHook(viewModel.selectSource)]).filter((dd) => {
-                return dd !== 'document';
-            }).map((dd) => {
-                return `
-<div class="col-4 p-2">
-<div class="card card-hover ">
-  <div class="card-body">
-    <h5 class="card-title">${tryReturn(() => {
-                    return obg[dd].title;
-                }, dd)}</h5>
-    <p class="card-text fs-sm" style="white-space: normal;word-break: break-word;overflow-x: hidden;text-overflow: ellipsis;
-   display: -webkit-box;
-   -webkit-line-clamp: 2; /* number of lines to show */
-           line-clamp: 2; 
-   -webkit-box-orient: vertical;
-">${tryReturn(() => {
-                    return obg[dd].subContent;
-                }, '')}</p>
-    <a onclick="${gvc.event(() => {
-                    var _a;
-                    const ob = JSON.parse(JSON.stringify(obg));
-                    gvc.getBundle().callback({
-                        'id': glitter.getUUID(),
-                        'data': (_a = ob[dd].defaultData) !== null && _a !== void 0 ? _a : {},
-                        'style': ob[dd].style,
-                        'class': ob[dd].class,
-                        'type': dd,
-                        'label': tryReturn(() => {
-                            return ob[dd].title;
-                        }, dd),
-                        'js': viewModel.selectSource
-                    });
-                    glitter.closeDiaLog();
-                })}" class="btn btn-sm btn-primary w-100">插入</a>
-  </div>
-</div>
-</div>
-                
-                `;
-            }));
-        },
-        divCreate: {
-            class: `row w-100 p-0 m-0`
-        },
-        onCreate: () => {
-            if (viewModel.selectSource) {
-                if (!glitter.share.htmlExtension[glitter.htmlGenerate.resourceHook(viewModel.selectSource)]) {
-                    glitter.addMtScript([
-                        { src: glitter.htmlGenerate.resourceHook(viewModel.selectSource), type: 'module' }
-                    ], () => {
-                        gvc.notifyDataChange(docID);
-                    }, () => {
-                    });
-                }
-            }
-        }
-    })}
-</div>
-
-</div>`;
-}
-function codeEditor(gvc) {
-    const glitter = gvc.glitter;
-    let code = '';
-    let relativePath = '';
-    let copyElem = [
-        {
-            elem: 'all',
-            title: '全部',
-            check: true
-        },
-        {
-            elem: 'html',
-            title: 'Html標籤',
-            check: false
-        }, {
-            elem: 'style',
-            title: 'Style',
-            check: false
-        }, {
-            elem: 'script',
-            title: 'Script',
-            check: false
-        }
-    ];
-    return `<div class="m-auto bg-white shadow rounded" style="max-width: 100%;max-height: 100%;width:480px;">
-  <div class="w-100 d-flex align-items-center border-bottom justify-content-center position-relative" style="height: 68px;">
-        <h3 class="modal-title fs-4" >代碼複製</h3>
-        <i class="fa-solid fa-xmark text-dark position-absolute " style="font-size:20px;transform: translateY(-50%);right: 20px;top: 50%;cursor: pointer;"
-        onclick="${gvc.event(() => {
-        glitter.closeDiaLog();
-    })}"></i>
-</div>    
-<!-- Your code -->
-<div class="p-2">
-<div>
-${EditorElem.h3("複製的項目")}
-${gvc.bindView(() => {
-        const id = glitter.getUUID();
-        return {
-            bind: id,
-            view: () => {
-                return copyElem.map((dd) => {
-                    return `<div class="form-check form-check-inline">
-  <input id="check-${dd.elem}"  class="form-check-input" type="checkbox"  onchange="${gvc.event((e, event) => {
-                        if ((dd.elem === 'all')) {
-                            copyElem.map((dd) => {
-                                dd.check = false;
-                            });
-                        }
-                        copyElem.find((dd) => {
-                            return dd.elem === 'all';
-                        }).check = false;
-                        if (copyElem.filter((dd) => {
-                            return dd.check;
-                        }).length > 1) {
-                            dd.check = !dd.check;
-                        }
-                        else {
-                            dd.check = true;
-                        }
-                        gvc.notifyDataChange(id);
-                    })}" ${(dd.check) ? `checked` : ``}>
-  <label class="form-check-label" for="check-${dd.elem}">${dd.title}</label>
-</div>`;
-                }).join('');
-            },
-            divCreate: { class: `d-flex flex-wrap` }
-        };
-    })}
-</div>
-${glitter.htmlGenerate.editeInput({
-        gvc: gvc,
-        title: `資源相對路徑`,
-        default: relativePath,
-        placeHolder: `請輸入資源相對路徑-[為空則以當前網址作為相對路徑]`,
-        callback: (text) => {
-            relativePath = text;
-        }
-    })}
-${glitter.htmlGenerate.editeText({
-        gvc: gvc,
-        title: '複製的代碼內容',
-        default: code,
-        placeHolder: `請輸入HTML代碼`,
-        callback: (text) => {
-            code = text;
-        }
-    })}
-</div>
-
-<div class="d-flex p-2 align-content-end justify-content-end">
-<button class="btn btn-warning text-dark " onclick="${gvc.event(() => {
-        const html = document.createElement('body');
-        html.innerHTML = code;
-        saveHTML(traverseHTML(html), relativePath, gvc, copyElem);
-    })}"><i class="fa-regular fa-floppy-disk me-2"></i> 儲存</button>
-</div>
-</div>`;
-}
-function aiEditor(gvc) {
-    const glitter = gvc.glitter;
-    let code = '';
-    return `<div class="m-auto bg-white shadow rounded" style="max-width: 100%;max-height: 100%;width:480px;">
-  <div class="w-100 d-flex align-items-center border-bottom justify-content-center position-relative" style="height: 68px;">
-        <h3 class="modal-title fs-4" >請輸入AI描述語句</h3>
-        <i class="fa-solid fa-xmark text-dark position-absolute " style="font-size:20px;transform: translateY(-50%);right: 20px;top: 50%;cursor: pointer;"
-        onclick="${gvc.event(() => {
-        glitter.closeDiaLog();
-    })}"></i>
-</div>    
-<!-- Your code -->
-<div class="p-2">
-${glitter.htmlGenerate.editeText({
-        gvc: gvc,
-        title: '',
-        default: '',
-        placeHolder: `請輸入AI描述語句\n譬如:
-        -產生一個標題，字體顏色為紅色，大小為30px．
-        -產生一個商品內文．
-        -使用bootstrap生成一個商品展示頁面．
-        `,
-        callback: (text) => {
-            code = text;
-        }
-    })}
-</div>
-<div class="d-flex p-2 align-content-end justify-content-end">
-<button class="btn btn-warning text-dark " onclick="${gvc.event(() => {
+    let configText = '';
+    const textID = glitter.getUUID();
+    function trigger() {
         const dialog = new ShareDialog(glitter);
-        if (!code) {
+        if (!configText) {
             dialog.errorMessage({ text: "請輸入描述語句" });
             return;
         }
@@ -362,12 +23,13 @@ ${glitter.htmlGenerate.editeText({
                 "Authorization": config.token
             },
             data: JSON.stringify({
-                "search": code
+                "search": configText
             })
         }).then((re) => {
             glitter.closeDiaLog('ai-progress');
             if (re.result) {
                 const html = document.createElement('body');
+                console.log(`responseData:` + re.response.data);
                 html.innerHTML = re.response.data;
                 saveHTML(traverseHTML(html), '', gvc);
             }
@@ -375,10 +37,84 @@ ${glitter.htmlGenerate.editeText({
                 dialog.errorMessage({ text: "轉換失敗，請輸入其他文案" });
             }
         });
-    })}"><i class="fa-regular fa-floppy-disk me-2"></i> 儲存</button>
+    }
+    return {
+        onCreateView: () => {
+            let viewModel = {
+                loading: true,
+                pluginList: []
+            };
+            gvc.addMtScript([
+                { src: `https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js` }
+            ], () => {
+            }, () => {
+            });
+            return `
+            <div  class="w-100 h-100 d-flex flex-column align-items-center justify-content-center" style="background-color: rgba(10,10,10,0.7);" onclick="${gvc.event(() => {
+                gvc.closeDialog();
+            })}">
+    <lottie-player src="https://assets4.lottiefiles.com/private_files/lf30_qfbae4sb.json"    speed="1"   style="max-width: 100%;width: 500px;height:100vh;transform: translateY(-100px)"  loop  autoplay></lottie-player>
+    <div class="position-absolute translate-middle-x translate-middle-y d-flex flex-column align-items-center justify-content-center" style="top:calc(50% + 100px);width:350px;" onclick="${gvc.event((e, event) => {
+                event.stopPropagation();
+            })}" >
+    ${gvc.bindView(() => {
+                return {
+                    bind: textID,
+                    view: () => {
+                        return glitter.htmlGenerate.editeText({
+                            gvc: gvc,
+                            title: '',
+                            default: configText !== null && configText !== void 0 ? configText : "",
+                            placeHolder: `輸入或說出AI生成語句\n譬如:
+        -產生一個h1，字體顏色為紅色，大小為30px．
+        -產生一個商品內文．
+        -使用bootstrap生成一個商品展示頁面．
+        `,
+                            callback: (text) => {
+                                configText = text;
+                            }
+                        });
+                    },
+                    divCreate: { class: `w-100` }
+                };
+            })}
+<div class="d-flex w-100 mt-2">
+<div class="flex-fill"></div>
+<button class="btn btn-warning" onclick="${gvc.event(() => {
+                trigger();
+            })}"><i class="fa-sharp fa-solid fa-paper-plane-top me-2"></i>開始AI生成</button>
 </div>
-</div>`;
-}
+</div>
+
+<div class="alert alert-warning position-absolute d-none" style="bottom:20px;">
+<span class="fr-strong">範例:</span><br>
+<span>1.幫我生成一個H1標籤，字體大小為14px</span>
+<br>
+<span>2.幫我使用bootstrap產生一個美觀的登入頁面</span>
+<br>
+</div>
+</div>
+            `;
+        },
+        onCreate: () => {
+            const recognition = new webkitSpeechRecognition();
+            recognition.lang = 'zh-tw';
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            recognition.onresult = function (event) {
+                const transcript = event.results[0][0].transcript;
+                configText += transcript;
+                gvc.notifyDataChange(textID);
+                setTimeout(() => {
+                    recognition.start();
+                }, 500);
+            };
+            recognition.start();
+        },
+        onDestroy: () => {
+        }
+    };
+});
 function traverseHTML(element) {
     var _a, _b;
     var result = {};
@@ -699,17 +435,4 @@ async function saveHTML(json, relativePath, gvc, elem) {
         dialog.dataLoading({ visible: false });
         glitter.closeDiaLog();
     }), 1000);
-}
-function empty(gvc) {
-    const glitter = gvc.glitter;
-    return `<div class="m-auto bg-white shadow rounded  " style="max-width: 100%;max-height: 100%;">
-  <div class="w-100 d-flex align-items-center border-bottom justify-content-center position-relative" style="height: 68px;">
-        <h3 class="modal-title fs-4 " >選擇元件添加方式</h3>
-        <i class="fa-solid fa-xmark text-dark position-absolute " style="font-size:20px;transform: translateY(-50%);right: 20px;top: 50%;cursor: pointer;"
-        onclick="${gvc.event(() => {
-        glitter.closeDiaLog();
-    })}"></i>
-</div>    
-<!-- Your code -->
-</div>`;
 }

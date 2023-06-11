@@ -119,7 +119,19 @@ export class Editor {
   </div>
 </div>
                                 <div class="flex-fill"></div>
-                         <i class="fa-solid fa-eye   me-4" style="font-size: 24px;cursor: pointer;" onclick="${gvc.event(() => {
+                                <i  class="fa-regular fa-microchip-ai    
+  me-4" style="font-size: 28px;cursor: pointer;background: #1e3050;background-clip: text;-webkit-background-clip: text; color: transparent;" onclick="${gvc.event(() => {
+                glitter.openDiaLog(new URL('../dialog/ai-microphone.js', import.meta.url).href, 'microphone', {
+                    callback: (data2) => {
+                        data.selectContainer.push(data2);
+                        glitter.setCookie('lastSelect', data2.id);
+                        gvc.notifyDataChange('HtmlEditorContainer');
+                    },
+                    appName: data.appName
+                }, {});
+            })}"></i>
+                         <i class="fa-solid fa-eye   me-4 " style="font-size: 24px;cursor: pointer;
+                         background: #1e3050;background-clip: text;-webkit-background-clip: text; color: transparent;" onclick="${gvc.event(() => {
                 const url = new URL("", location.href);
                 url.searchParams.delete('type');
                 url.searchParams.set("page", glitter.getUrlParameter("page"));
@@ -131,12 +143,14 @@ export class Editor {
                 view: () => {
                     glitter.setCookie("ViewType", viewModel.type);
                     if (viewModel.type === ViewType.mobile) {
-                        return `<i class="fa-regular fa-mobile  mt-1" style="font-size: 24px;cursor: pointer;" onclick="${gvc.event(() => {
+                        return `<i class="fa-regular fa-mobile  mt-1 " style="font-size: 24px;cursor: pointer;
+background: #1e3050;background-clip: text;-webkit-background-clip: text; color: transparent;" onclick="${gvc.event(() => {
                             viewModel.type = ViewType.desktop;
                         })}"></i>`;
                     }
                     else {
-                        return `<i class="fa-solid fa-desktop  mt-1" style="font-size: 24px;cursor: pointer;" onclick="${gvc.event(() => {
+                        return `<i class="fa-solid fa-desktop  mt-1 " style="font-size: 24px;cursor: pointer;
+background: #0c3483;background-clip: text;-webkit-background-clip: text; color: transparent;" onclick="${gvc.event(() => {
                             viewModel.type = ViewType.mobile;
                         })}"></i>`;
                     }
