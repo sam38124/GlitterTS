@@ -172,7 +172,7 @@ ${gvc.bindView(() => {
                                             }
                                         })}           
 `
-                                    })()
+                                    })
                                 })}`
                             }).join('<div class="my-2"></div>')}
 ${EditorElem.plusBtn("添加特徵", gvc.event((e, event) => {

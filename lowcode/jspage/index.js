@@ -137,6 +137,7 @@ function toBackendEditor(glitter) {
             'assets/css/theme.min.css',
             'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/androidstudio.min.css',
             'https://gitcdn.github.io/bootstrap-toggle/2.2.2/css/bootstrap-toggle.min.css',
+            'https://sam38124.github.io/One-page-plugin/src/fontawsome/css/all.css'
         ]);
         await new Promise((resolve, reject) => {
             glitter.addMtScript([
@@ -144,7 +145,6 @@ function toBackendEditor(glitter) {
                 'assets/vendor/smooth-scroll/dist/smooth-scroll.polyfills.min.js',
                 'assets/vendor/swiper/swiper-bundle.min.js',
                 'assets/js/theme.min.js',
-                'https://kit.fontawesome.com/02e2dc09e3.js',
                 'https://gitcdn.github.io/bootstrap-toggle/2.2.2/js/bootstrap-toggle.min.js',
             ], () => {
                 resolve(true);

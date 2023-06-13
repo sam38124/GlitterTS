@@ -197,6 +197,12 @@ init((gvc, glitter, gBundle) => {
             gvc.notifyDataChange(createID);
         }
     });
+    window.parent.glitter.share.refreshMainLeftEditor = () => {
+        gvc.notifyDataChange('MainEditorLeft');
+    };
+    window.parent.glitter.share.refreshMainRightEditor = () => {
+        gvc.notifyDataChange('MainEditorRight');
+    };
     return {
         onCreateView: () => {
             return gvc.bindView({
@@ -238,20 +244,32 @@ onclick="${gvc.event(() => {
                                 }
                             })()}" style="overflow-y: auto;">
                             <div class="swiper-wrapper" style="">
-                                ${(() => {
-                                switch (selectPosition) {
-                                    case Setting_editor.index:
-                                        return Setting_editor.left(gvc, viewModel, createID, gBundle);
-                                    case Page_editor.index:
-                                        return Page_editor.left(gvc, viewModel, createID, gBundle);
-                                    default:
-                                        return Main_editor.left(gvc, viewModel, createID, gBundle);
-                                }
-                            })()}
+                                ${gvc.bindView(() => {
+                                return {
+                                    bind: 'MainEditorLeft',
+                                    view: () => {
+                                        switch (selectPosition) {
+                                            case Setting_editor.index:
+                                                return Setting_editor.left(gvc, viewModel, createID, gBundle);
+                                            case Page_editor.index:
+                                                return Page_editor.left(gvc, viewModel, createID, gBundle);
+                                            default:
+                                                return Main_editor.left(gvc, viewModel, createID, gBundle);
+                                        }
+                                    },
+                                    divCreate: {}
+                                };
+                            })}
                             </div>
                             <div class="swiper-scrollbar end-0"></div>
                         </div>
-</div>`, Main_editor.right(gvc, viewModel, createID, gBundle));
+</div>`, gvc.bindView({
+                                bind: 'MainEditorRight',
+                                view: () => {
+                                    return Main_editor.right(gvc, viewModel, createID, gBundle);
+                                },
+                                divCreate: {}
+                            }));
                         }
                         catch (e) {
                             console.log(e);

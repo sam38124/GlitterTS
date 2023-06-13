@@ -1,11 +1,13 @@
 'use strict';
-import { GVC } from './GVController.js';
+import {GVC} from './GVController.js';
+
 const $ = (window as any).$;
 
 interface osType {
     path: string;
     key: string;
     def: string | { [k: string]: any }[];
+    searchData: string;
     height?: number;
     setTime?: number;
     multi?: boolean;
@@ -41,29 +43,29 @@ export class Funnel {
                                 class="${ra}_li"
                                 style="cursor:pointer"
                                 onclick="${gvc.event(() => {
-                                    if (set.multi) {
-                                        if (Array.isArray(set.def) && set.def.findIndex((z: any) => funnel.ObjCompare(z, x)) == -1) {
-                                            let rn = funnel.randomString(6);
-                                            $(`.${mu}`).append(/*html*/ `<div class="spec-span" id="${rn}">
+                                if (set.multi) {
+                                    if (Array.isArray(set.def) && set.def.findIndex((z: any) => funnel.ObjCompare(z, x)) == -1) {
+                                        let rn = funnel.randomString(6);
+                                        $(`.${mu}`).append(/*html*/ `<div class="spec-span" id="${rn}">
                                                 <span>${x[set.key]}</span>
                                                 <i
                                                     class="dripicons-cross spec-icon"
                                                     onclick="${gvc.event(() => {
-                                                        if (Array.isArray(set.def)) {
-                                                            set.def = set.def.filter((l) => l.id !== x.id);
-                                                            $(`#${rn}`).remove();
-                                                        }
-                                                    })}"
+                                            if (Array.isArray(set.def)) {
+                                                set.def = set.def.filter((l) => l.id !== x.id);
+                                                $(`#${rn}`).remove();
+                                            }
+                                        })}"
                                                 ></i>
                                             </div>`);
-                                            set.def.push(x);
-                                        }
-                                    } else {
-                                        $(`#${ra}_input`).val(x[set.key]);
-                                        callback(x);
-                                        $(`#${ra}_option`).css('display', 'none');
+                                        set.def.push(x);
                                     }
-                                })}"
+                                } else {
+                                    $(`#${ra}_input`).val(x[set.key]);
+                                    callback(x);
+                                    $(`#${ra}_option`).css('display', 'none');
+                                }
+                            })}"
                             >
                                 ${x[set.key]}
                             </li>`;
@@ -86,7 +88,7 @@ export class Funnel {
                                 if ($(p.target).attr('class') !== `${ra}_li`) {
                                     $(`#${ra}_option`).css('display', 'none');
                                     $(document).off('click');
-                                    callback({ title: arg ? arg.title : null, value: set.def });
+                                    callback({title: arg ? arg.title : null, value: set.def});
                                 }
                             });
                         }
@@ -97,64 +99,64 @@ export class Funnel {
             return /*html*/ `
                 <div class="m-2" id="${ra}">
                     ${(() => {
-                        if (set.multi && Array.isArray(set.def)) {
-                            set.def.map((y) => {
-                                let rn = funnel.randomString(6);
-                                multiSpec += /*html*/ `<div class="spec-span" id="${rn}">
+                if (set.multi && Array.isArray(set.def)) {
+                    set.def.map((y) => {
+                        let rn = funnel.randomString(6);
+                        multiSpec += /*html*/ `<div class="spec-span" id="${rn}">
                                     <span>${y[set.key]}</span>
                                     <i
                                         class="dripicons-cross spec-icon"
                                         onclick="${gvc.event(() => {
-                                            if (Array.isArray(set.def)) {
-                                                set.def = set.def.filter((l) => l.id !== y.id);
-                                                callback({ title: arg ? arg.title : null, value: set.def });
-                                            }
-                                        })}"
+                            if (Array.isArray(set.def)) {
+                                set.def = set.def.filter((l) => l.id !== y.id);
+                                callback({title: arg ? arg.title : null, value: set.def});
+                            }
+                        })}"
                                     ></i>
                                 </div>`;
-                            });
-                            return /*html*/ `<div class="${mu} d-flex flex-wrap mb-2 align-items-center">
+                    });
+                    return /*html*/ `<div class="${mu} d-flex flex-wrap mb-2 align-items-center">
                                 <a class="me-2 text-white fs-5">可複選： </a>${multiSpec}
                             </div>`;
-                        } else {
-                            return ``;
-                        }
-                    })()}
+                } else {
+                    return ``;
+                }
+            })()}
                     <div class="input-group">
                         <input
                             type="text"
                             class="form-control"
                             id="${ra}_input"
                             onclick="${gvc.event((e: any) => {
-                                $(`#${ra}_option`).css('display', '');
-                                caller();
-                                $(e).on('input', function (ele: { timeStamp: number }) {
-                                    last = ele.timeStamp;
-                                    setTimeout(
-                                        function () {
-                                            last - ele.timeStamp == 0 && caller($(e).val());
-                                        },
-                                        set.setTime && set.setTime > 200 ? set.setTime : 200
-                                    );
-                                });
-                            })}"
+                $(`#${ra}_option`).css('display', '');
+                caller();
+                $(e).on('input', function (ele: { timeStamp: number }) {
+                    last = ele.timeStamp;
+                    setTimeout(
+                        function () {
+                            last - ele.timeStamp == 0 && caller($(e).val());
+                        },
+                        set.setTime && set.setTime > 200 ? set.setTime : 200
+                    );
+                });
+            })}"
                             onblur="${gvc.event(() => !set.multi && setTimeout(() => $(`#${ra}_option`).css('display', 'none'), 200))}"
                             value="${set.multi ? `` : set.def ? set.def : ''}"
                             placeholder="請輸入關鍵字"
                         />
                         ${
-                            set.multi
-                                ? /*html*/ `<button
+                set.multi
+                    ? /*html*/ `<button
                                   class="btn btn-secondary"
                                   type="button"
                                   onclick="${gvc.event(() => {
-                                      callback({ title: arg ? arg.title : null, value: set.def });
-                                  })}"
+                        callback({title: arg ? arg.title : null, value: set.def});
+                    })}"
                               >
                                   收合
                               </button>`
-                                : ``
-                        }
+                    : ``
+            }
                     </div>
                     <div
                         style="
@@ -237,7 +239,7 @@ export class Funnel {
                 type: obj.method,
                 data: JSON.stringify(obj.data),
                 contentType: 'application/json; charset=utf-8',
-                headers: { Authorization: this.getCookieByName('token') },
+                headers: {Authorization: this.getCookieByName('token')},
                 success: (suss: any) => callback && callback(suss),
                 error: (err: any) => {
                     switch (err.status) {
@@ -319,7 +321,7 @@ export class Funnel {
         let ran = this.randomString(5);
         const img: any = new Image();
         img.onload = function (this: { width: number; height: number }) {
-            let obj = { w: '100%', h: '' };
+            let obj = {w: '100%', h: ''};
             if (this.width > this.height) {
                 obj.h = '24vh';
             } else if (this.width == this.height) {

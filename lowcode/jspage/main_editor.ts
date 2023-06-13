@@ -495,7 +495,7 @@ onclick="${gvc.event((e, event) => {
                     if (viewModel.selectItem !== undefined) {
                         hoverList.push((viewModel.selectItem as any).id);
                     }
-                    const htmlGenerate = new glitter.htmlGenerate((viewModel.data! as any).config, hoverList);
+                    const htmlGenerate = new glitter.htmlGenerate((viewModel.data! as any).config, hoverList,undefined,true);
                     (window as any).editerData = htmlGenerate;
                     (window as any).page_config = (viewModel.data! as any).page_config
                     const json = JSON.parse(JSON.stringify((viewModel.data! as any).config));

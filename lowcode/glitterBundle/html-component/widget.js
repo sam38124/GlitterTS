@@ -33,6 +33,11 @@ export const widgetComponent = {
                             };
                         }
                     });
+                    if (widget.data.elem === 'a' && (window.parent.editerData !== undefined)) {
+                        option = option.filter((dd) => {
+                            return dd.key !== 'href';
+                        });
+                    }
                     if (widget.data.elem === 'img') {
                         option.push({ key: 'src', value: widget.data.inner });
                     }
@@ -41,8 +46,8 @@ export const widgetComponent = {
                     }
                     return {
                         elem: widget.data.elem,
-                        class: glitter.htmlGenerate.styleEditor(widget.data, gvc, widget, subData).class() + ` glitterTag${widget.hashTag}`,
-                        style: glitter.htmlGenerate.styleEditor(widget.data, gvc, widget, subData).style() + `   ${hoverID.indexOf(widget.id) !== -1 ? `border: 4px solid dodgerblue;border-radius: 5px;box-sizing: border-box;` : ``}`,
+                        class: glitter.htmlGenerate.styleEditor(widget.data, gvc, widget, subData).class() + ` glitterTag${widget.hashTag} ${hoverID.indexOf(widget.id) !== -1 ? ` selectComponentHover` : ``}`,
+                        style: glitter.htmlGenerate.styleEditor(widget.data, gvc, widget, subData).style(),
                         option: option.concat(subData.option),
                     };
                 }
@@ -67,7 +72,6 @@ export const widgetComponent = {
                         }
                         widget.data.inner = data;
                         re = true;
-                        console.log(`waitNotifyID:${id}-${data}`);
                         gvc.notifyDataChange(id);
                     });
                 }
@@ -88,7 +92,6 @@ export const widgetComponent = {
                     return {
                         bind: id,
                         view: () => {
-                            console.log(`finishNotifyID:${id}-${widget.data.inner}`);
                             switch (widget.data.elem) {
                                 case 'select':
                                     formData[widget.data.key] = widget.data.inner;
@@ -127,24 +130,26 @@ export const widgetComponent = {
                         },
                         divCreate: getCreateOption,
                         onCreate: () => {
-                            if (hoverID.indexOf(widget.id) !== -1) {
-                                gvc.glitter.$('html').get(0).scrollTo({
-                                    top: 0,
-                                    left: 0,
-                                    behavior: 'instant',
-                                });
-                                const scrollTOP = gvc.glitter.$('#' + gvc.id(id)).offset().top -
-                                    gvc.glitter.$('html').offset().top +
-                                    gvc.glitter.$('html').scrollTop();
-                                gvc.glitter
-                                    .$('html')
-                                    .get(0)
-                                    .scrollTo({
-                                    top: scrollTOP - gvc.glitter.$('html').height() / 2,
-                                    left: 0,
-                                    behavior: 'instant',
-                                });
-                            }
+                            setTimeout(() => {
+                                if (hoverID.indexOf(widget.id) !== -1) {
+                                    gvc.glitter.$('html').get(0).scrollTo({
+                                        top: 0,
+                                        left: 0,
+                                        behavior: 'instant',
+                                    });
+                                    const scrollTOP = gvc.getBindViewElem(id).offset().top -
+                                        gvc.glitter.$('html').offset().top +
+                                        gvc.glitter.$('html').scrollTop();
+                                    gvc.glitter
+                                        .$('html')
+                                        .get(0)
+                                        .scrollTo({
+                                        top: scrollTOP - gvc.glitter.$('html').height() / 2,
+                                        left: 0,
+                                        behavior: 'instant',
+                                    });
+                                }
+                            }, 200);
                         },
                         onInitial: () => {
                         }
