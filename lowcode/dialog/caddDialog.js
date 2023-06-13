@@ -383,30 +383,39 @@ function traverseHTML(element) {
     var _a, _b;
     var result = {};
     result.tag = element.tagName;
-    var attributes = element.attributes;
+    var attributes = (_a = element.attributes) !== null && _a !== void 0 ? _a : [];
     if (attributes.length > 0) {
         result.attributes = {};
-        for (var i = 0; i < attributes.length; i++) {
+        for (let i = 0; i < attributes.length; i++) {
             result.attributes[attributes[i].name] = attributes[i].value;
         }
     }
-    let children = element.children;
-    if (children.length > 0) {
+    if (element.children && element.children.length > 0) {
         result.children = [];
-        for (let j = 0; j < children.length; j++) {
-            result.children.push(traverseHTML(children[j]));
+        var childNodes = element.childNodes;
+        for (let i = 0; i < childNodes.length; i++) {
+            var node = childNodes[i];
+            if (node.nodeType === Node.ELEMENT_NODE) {
+                result.children.push(traverseHTML(node));
+            }
+            else if (node.nodeType === Node.TEXT_NODE) {
+                const html = document.createElement('span');
+                html.innerHTML = node.textContent.trim();
+                if (html.innerHTML) {
+                    result.children.push(traverseHTML(html));
+                }
+            }
+            else {
+                if (node.tagName) {
+                    result.children.push(traverseHTML(node));
+                }
+            }
         }
     }
-    element.innerHTML = (_a = element.innerHTML) !== null && _a !== void 0 ? _a : "";
-    element.innerText = (_b = element.innerText) !== null && _b !== void 0 ? _b : "";
-    let trimmedStr = element.innerHTML.replace(/\n/, '').replace(/^\s+|\s+$/g, "");
-    let trimmedStr2 = element.innerText.replace(/\n/, '').replace(/^\s+|\s+$/g, "");
-    result.textIndex = trimmedStr.indexOf(trimmedStr2);
-    result.innerText = element.innerText.replace(/\n/, '').replace(/^\s+|\s+$/g, "");
+    result.innerText = ((_b = element.innerText) !== null && _b !== void 0 ? _b : "").replace(/\n/, '').replace(/^\s+|\s+$/g, "");
     return result;
 }
 async function saveHTML(json, relativePath, gvc, elem) {
-    var _a;
     const dialog = new ShareDialog(gvc.glitter);
     dialog.dataLoading({ visible: true, text: "解析資源中" });
     const glitter = gvc.glitter;
@@ -449,89 +458,106 @@ async function saveHTML(json, relativePath, gvc, elem) {
         "type": "container",
         "label": "所有JS資源",
     };
+    async function covertHtml(json, pushArray) {
+        var _a, _b;
+        for (const dd of (_a = json.children) !== null && _a !== void 0 ? _a : []) {
+            if ((dd.tag.toLowerCase() !== 'title')) {
+                dd.attributes = (_b = dd.attributes) !== null && _b !== void 0 ? _b : {};
+                let originalHref = '';
+                let originalSrc = '';
+                try {
+                    originalHref = new URL(dd.attributes.href, relativePath).href;
+                }
+                catch (e) {
+                }
+                try {
+                    originalSrc = new URL(dd.attributes.src, relativePath).href;
+                }
+                catch (e) {
+                }
+                const obj = await convert(dd);
+                if (obj.data.elem !== 'meta' && !(((obj.data.elem === 'link') && (dd.attributes.rel !== 'stylesheet')))) {
+                    if (obj.data.elem === 'style' || ((obj.data.elem === 'link') && (dd.attributes.rel === 'stylesheet'))) {
+                        if ((obj.data.elem === 'link' && (dd.attributes.rel === 'stylesheet'))) {
+                            obj.data.note = "源代碼路徑:" + originalHref;
+                        }
+                        if (addSheet) {
+                            styleSheet.data.setting.push(obj);
+                        }
+                    }
+                    else if (obj.data.elem === 'script') {
+                        if (addScript) {
+                            obj.data.note = "源代碼路徑:" + originalSrc;
+                            jsLink.data.setting.push(obj);
+                        }
+                    }
+                    else {
+                        if (addHtml) {
+                            pushArray.push(obj);
+                        }
+                    }
+                }
+            }
+        }
+    }
     async function convert(obj) {
-        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k;
+        var _a, _b, _c, _d, _e, _f, _g;
         obj.children = (_a = obj.children) !== null && _a !== void 0 ? _a : [];
         obj.attributes = (_b = obj.attributes) !== null && _b !== void 0 ? _b : {};
-        const originalHref = obj.attributes.href;
-        const originalSrc = obj.attributes.src;
+        let originalHref = obj.attributes.href;
+        let originalSrc = obj.attributes.src;
         obj.innerText = (_c = obj.innerText) !== null && _c !== void 0 ? _c : "";
         const a = await new Promise((resolve, reject) => {
             try {
                 if (obj.tag.toLowerCase() === 'link' && obj.attributes.rel === 'stylesheet' && addSheet) {
                     const src = obj.attributes.href;
                     const url = new URL(src, relativePath);
-                    $.ajax({
-                        url: url.href,
-                        type: 'get',
-                        crossDomain: true,
-                        processData: false,
-                        success: (data2) => {
-                            const saasConfig = window.saasConfig;
-                            saasConfig.api.uploadFile(glitter.getUUID() + ".css").then((data) => {
-                                const data1 = data.response;
-                                $.ajax({
-                                    url: data1.url,
-                                    type: 'put',
-                                    data: data2,
-                                    headers: {
-                                        "Content-Type": data1.type
-                                    },
-                                    processData: false,
-                                    crossDomain: true,
-                                    success: () => {
-                                        obj.attributes.href = data1.fullUrl;
-                                        resolve(true);
-                                    },
-                                    error: () => {
-                                        resolve(true);
-                                    },
-                                });
-                            });
-                        },
-                        error: (err) => {
-                            resolve(true);
-                        },
+                    originalHref = url.href;
+                    getFile(url.href).then((link) => {
+                        obj.attributes.href = link;
+                        resolve(true);
                     });
                 }
                 else if (obj.tag.toLowerCase() === 'script' && obj.attributes.src && addScript) {
                     const src = obj.attributes.src;
                     const url = new URL(src, relativePath);
-                    alert(url.href);
-                    $.ajax({
-                        url: url.href,
-                        processData: false,
-                        type: 'get',
-                        crossDomain: true,
-                        success: (data2) => {
-                            const saasConfig = window.saasConfig;
-                            saasConfig.api.uploadFile(glitter.getUUID() + ".js").then((data) => {
-                                const data1 = data.response;
-                                $.ajax({
-                                    url: data1.url,
-                                    type: 'put',
-                                    data: data2,
-                                    headers: {
-                                        "Content-Type": data1.type
-                                    },
-                                    processData: false,
-                                    crossDomain: true,
-                                    success: () => {
-                                        alert('data1.fullUrl');
-                                        obj.attributes.src = data1.fullUrl;
-                                        resolve(true);
-                                    },
-                                    error: (jqXHR, textStatus, errorThrown) => {
-                                        alert(errorThrown);
-                                        resolve(true);
-                                    },
-                                });
+                    originalSrc = url;
+                    getFile(url.href).then((link) => {
+                        obj.attributes.src = link;
+                        resolve(true);
+                    });
+                }
+                else if (obj.tag.toLowerCase() === 'img' && obj.attributes.src && addHtml) {
+                    const src = obj.attributes.src;
+                    const url = new URL(src, relativePath);
+                    fetch(url.href)
+                        .then(response => response.blob())
+                        .then(blob => {
+                        const saasConfig = window.saasConfig;
+                        saasConfig.api.uploadFile(glitter.getUUID() + "." + url.href.split('.').pop()).then((data) => {
+                            const data1 = data.response;
+                            $.ajax({
+                                url: data1.url,
+                                type: 'put',
+                                data: blob,
+                                headers: {
+                                    "Content-Type": data1.type
+                                },
+                                processData: false,
+                                crossDomain: true,
+                                success: () => {
+                                    obj.attributes.src = data1.fullUrl;
+                                    resolve(true);
+                                },
+                                error: () => {
+                                    resolve(false);
+                                },
                             });
-                        },
-                        error: (err) => {
-                            resolve(true);
-                            console.log(err);
-                        },
+                        });
+                    })
+                        .catch(error => {
+                        console.error('下載檔案失敗:', error);
+                        resolve(false);
                     });
                 }
                 else {
@@ -543,56 +569,16 @@ async function saveHTML(json, relativePath, gvc, elem) {
             }
         });
         let setting = [];
-        if (obj.textIndex === 0 && (obj.innerText.replace(/ /g, '').replace(/\n/g, '').length > 0 && (((_d = obj.children) !== null && _d !== void 0 ? _d : []).length > 0))) {
-            setting.push(await convert({
-                tag: 'span',
-                innerText: obj.innerText
-            }));
-        }
-        if (obj.children.length > 0) {
-            obj.innerText = '';
-        }
-        for (const dd of ((_e = obj.children) !== null && _e !== void 0 ? _e : [])) {
-            const data = await convert(dd);
-            if (data.data.elem !== 'meta') {
-                if (data.data.elem === 'style' || (data.data.elem === 'link' && (obj.attributes.rel === 'stylesheet'))) {
-                    if ((data.data.elem === 'link' && (obj.attributes.rel === 'stylesheet'))) {
-                        data.data.note = "源代碼路徑:" + originalHref;
-                    }
-                    if (addSheet) {
-                        styleSheet.data.setting.push(data);
-                    }
-                }
-                else if (data.data.elem === 'script') {
-                    if ((obj.attributes.src)) {
-                        data.data.note = "源代碼路徑:" + originalSrc;
-                    }
-                    if (addScript) {
-                        jsLink.data.setting.push(data);
-                    }
-                }
-                else {
-                    if (addHtml) {
-                        setting.push(data);
-                    }
-                }
-            }
-        }
-        if (obj.textIndex > 0 && (obj.innerText.replace(/ /g, '').replace(/\n/g, '').length > 0 && (((_f = obj.children) !== null && _f !== void 0 ? _f : []).length > 0))) {
-            setting.push(await convert({
-                tag: 'span',
-                innerText: obj.innerText
-            }));
-        }
+        await covertHtml(obj, setting);
         let x = {
             "id": glitter.getUUID(),
             "js": "https://sam38124.github.io/One-page-plugin/src/official.js",
             "css": { "class": {}, "style": {} },
             "data": {
-                "class": (_g = obj.attributes.class) !== null && _g !== void 0 ? _g : "",
-                "style": ((_h = obj.attributes.style) !== null && _h !== void 0 ? _h : ""),
+                "class": (_d = obj.attributes.class) !== null && _d !== void 0 ? _d : "",
+                "style": ((_e = obj.attributes.style) !== null && _e !== void 0 ? _e : ""),
                 "attr": Object.keys(obj.attributes).filter((key) => {
-                    return key !== 'class' && key !== 'style' && key !== 'id';
+                    return key !== 'class' && key !== 'style';
                 }).map((dd) => {
                     const of = obj.attributes[dd];
                     return {
@@ -603,7 +589,7 @@ async function saveHTML(json, relativePath, gvc, elem) {
                     };
                 }),
                 "elem": obj.tag.toLowerCase(),
-                "inner": (_j = obj.innerText) !== null && _j !== void 0 ? _j : "",
+                "inner": (_f = obj.innerText) !== null && _f !== void 0 ? _f : "",
                 "dataFrom": "static",
                 "atrExpand": { "expand": true },
                 "elemExpand": { "expand": true },
@@ -640,9 +626,9 @@ async function saveHTML(json, relativePath, gvc, elem) {
             x.data.style += ";";
         }
         if (x.data.elem === 'img') {
-            x.data.inner = ((_k = x.data.attr.find((dd) => {
+            x.data.inner = ((_g = x.data.attr.find((dd) => {
                 return dd.attr === 'src';
-            })) !== null && _k !== void 0 ? _k : { value: "" }).value;
+            })) !== null && _g !== void 0 ? _g : { value: "" }).value;
             x.data.attr = x.data.attr.filter((dd) => {
                 return dd.attr !== 'src';
             });
@@ -655,42 +641,16 @@ async function saveHTML(json, relativePath, gvc, elem) {
         });
     }
     let waitPush = [];
-    for (const dd of json.children) {
-        if ((dd.tag.toLowerCase() !== 'title')) {
-            dd.attributes = (_a = dd.attributes) !== null && _a !== void 0 ? _a : {};
-            const originalHref = dd.attributes.href;
-            const originalSrc = dd.attributes.src;
-            const obj = await convert(dd);
-            if (obj.data.elem !== 'meta' && !(((obj.data.elem === 'link') && (dd.attributes.rel !== 'stylesheet')))) {
-                if (obj.data.elem === 'style' || ((obj.data.elem === 'link') && (dd.attributes.rel === 'stylesheet'))) {
-                    if ((obj.data.elem === 'link' && (dd.attributes.rel === 'stylesheet'))) {
-                        obj.data.note = "源代碼路徑:" + originalHref;
-                    }
-                    if (addSheet) {
-                        styleSheet.data.setting.push(obj);
-                    }
-                }
-                else if (obj.data.elem === 'script') {
-                    if (addScript) {
-                        obj.data.note = "源代碼路徑:" + originalSrc;
-                        jsLink.data.setting.push(obj);
-                    }
-                }
-                else {
-                    if (addHtml) {
-                        waitPush.push(obj);
-                    }
-                }
-            }
-        }
-    }
+    await covertHtml(json, waitPush);
     if (styleSheet.data.setting.length > 0) {
         styleSheet.data.setting.map((dd) => {
             gvc.getBundle().callback(dd);
         });
     }
     if (jsLink.data.setting.length > 0) {
-        gvc.getBundle().callback(jsLink);
+        jsLink.data.setting.map((dd) => {
+            gvc.getBundle().callback(dd);
+        });
     }
     waitPush.map((obj) => {
         gvc.getBundle().callback(obj);
@@ -699,6 +659,49 @@ async function saveHTML(json, relativePath, gvc, elem) {
         dialog.dataLoading({ visible: false });
         glitter.closeDiaLog();
     }), 1000);
+}
+function getFile(href) {
+    const glitter = window.glitter;
+    return new Promise((resolve, reject) => {
+        $.ajax({
+            url: config.url + "/api/v1/fileManager/getCrossResource",
+            type: 'post',
+            data: JSON.stringify({
+                "url": href
+            }),
+            "headers": {
+                "Content-Type": "application/json",
+                "Authorization": config.token
+            },
+            crossDomain: true,
+            processData: false,
+            success: (data2) => {
+                const saasConfig = window.saasConfig;
+                saasConfig.api.uploadFile(glitter.getUUID() + "." + href.split('.').pop()).then((data) => {
+                    const data1 = data.response;
+                    $.ajax({
+                        url: data1.url,
+                        type: 'put',
+                        data: data2.data,
+                        headers: {
+                            "Content-Type": data1.type
+                        },
+                        processData: false,
+                        crossDomain: true,
+                        success: () => {
+                            resolve(data1.fullUrl);
+                        },
+                        error: () => {
+                            resolve(href);
+                        },
+                    });
+                });
+            },
+            error: (err) => {
+                resolve(href);
+            },
+        });
+    });
 }
 function empty(gvc) {
     const glitter = gvc.glitter;

@@ -67,6 +67,7 @@ export const widgetComponent = {
                         }
                         widget.data.inner = data;
                         re = true;
+                        console.log(`waitNotifyID:${id}-${data}`);
                         gvc.notifyDataChange(id);
                     });
                 }
@@ -87,6 +88,7 @@ export const widgetComponent = {
                     return {
                         bind: id,
                         view: () => {
+                            console.log(`finishNotifyID:${id}-${widget.data.inner}`);
                             switch (widget.data.elem) {
                                 case 'select':
                                     formData[widget.data.key] = widget.data.inner;
@@ -462,10 +464,11 @@ export const widgetComponent = {
                         gvc: gvc,
                         title: '特徵值',
                         array: widget.data.attr.map((dd, index) => {
-                            var _a, _b;
-                            dd.attr = (_a = dd.attr) !== null && _a !== void 0 ? _a : "";
+                            var _a, _b, _c;
+                            dd.type = (_a = dd.type) !== null && _a !== void 0 ? _a : 'par';
+                            dd.attr = (_b = dd.attr) !== null && _b !== void 0 ? _b : "";
                             return {
-                                title: (_b = dd.attr) !== null && _b !== void 0 ? _b : `特徵:${index + 1}`,
+                                title: (_c = dd.attr) !== null && _c !== void 0 ? _c : `特徵:${index + 1}`,
                                 expand: dd,
                                 innerHtml: (() => {
                                     return gvc.map([

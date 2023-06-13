@@ -47,8 +47,8 @@ export class HtmlGenerate {
         alert('save');
     };
 
-    public static styleEditor(data: any,gvc?: GVC, widget?: HtmlJson, subData?: any) {
-        const glitter=(gvc ?? (window as any)).glitter
+    public static styleEditor(data: any, gvc?: GVC, widget?: HtmlJson, subData?: any) {
+        const glitter = (gvc ?? (window as any)).glitter
         return {
             editor: (gvc: GVC, widget: HtmlJson | (() => void), title?: string, option?: any) => {
                 const glitter = (window as any).glitter;
@@ -140,7 +140,7 @@ export class HtmlGenerate {
     public static editeText(obj: { gvc: GVC; title: string; default: string; placeHolder: string; callback: (text: string) => void }) {
         obj.title = obj.title ?? ""
         const id = obj.gvc.glitter.getUUID()
-        return `<h3 style="font-size: 16px;margin-bottom: 10px;" class="mt-2 text-dark d-flex align-items-center  ${(!obj.title) ? `d-none`:``}">${obj.title}</h3>
+        return `<h3 style="font-size: 16px;margin-bottom: 10px;" class="mt-2 text-dark d-flex align-items-center  ${(!obj.title) ? `d-none` : ``}">${obj.title}</h3>
 
 ${obj.gvc.bindView({
             bind: id,
@@ -212,9 +212,11 @@ ${obj.gvc.bindView({
             const container = gvc.glitter.getUUID();
             gvc.glitter.defaultSetting.pageLoading();
             let htmlList: ({ view?: string, fun: () => string })[] = []
+            let waitAddScript: string[] = []
 
             function getPageData() {
                 htmlList = []
+
                 async function add(set: any[]) {
                     for (const a of set) {
                         if ((a.type !== 'widget') && !gvc.glitter.share.htmlExtension[gvc.glitter.htmlGenerate.resourceHook(a.js)]) {
@@ -290,15 +292,10 @@ ${obj.gvc.bindView({
                                         } else if (((dd.data.elem === 'script')) && dd.data.attr.find((dd: any) => {
                                             return dd.attr === 'src'
                                         })) {
-                                            gvc.addMtScript([{
-                                                src: dd.data.attr.find((dd: any) => {
-                                                    return dd.attr === 'src'
-                                                }).value
-                                            }], () => {
-                                                resolve(true)
-                                            }, () => {
-                                                resolve(false)
-                                            })
+                                            waitAddScript.push(dd.data.attr.find((dd: any) => {
+                                                return dd.attr === 'src'
+                                            }).value)
+                                            resolve(true)
                                         } else {
                                             resolve(true)
                                         }
@@ -385,6 +382,7 @@ ${obj.gvc.bindView({
                                     })
                                     resolve(true)
                                 }
+
                                 function getResource() {
                                     if ((dd.type === 'widget') || (dd.type === 'container')) {
                                         loadingFinish()
@@ -405,13 +403,13 @@ ${obj.gvc.bindView({
                                         return ``;
                                     }
                                 }
+
                                 getResource()
                             }))
                             index = index + 1
                         }
                         gvc.glitter.defaultSetting.pageLoadingFinish();
                         gvc.notifyDataChange(container);
-
                         gvc.glitter.share.loaginfC = (gvc.glitter.share.loaginfC ?? 0) + 1;
                     })
 
@@ -422,18 +420,37 @@ ${obj.gvc.bindView({
             return gvc.bindView({
                 bind: container,
                 view: () => {
-                    const text=htmlList.map((dd) => {
+                    const text = htmlList.map((dd) => {
                         return dd.fun()
                     }).join('')
 
-                    return  text
+                    return text
                 },
-                divCreate: createOption ?? {class: option.class, style: option.style , option:[{
-                    key:`gl_type`,
-                        value:"container"
-                    }]},
+                divCreate: createOption ?? {
+                    class: option.class, style: option.style, option: [{
+                        key: `gl_type`,
+                        value: "container"
+                    }]
+                },
                 onCreate: () => {
+                    async function loadScript() {
+                        for (const a of waitAddScript) {
+                            console.log(`loadScript:`+a)
+                            await new Promise((resolve, reject) => {
+                                gvc.addMtScript([{
+                                    src: a
+                                }], () => {
+                                    setTimeout(()=>{
+                                        resolve(true)
+                                    },10)
 
+                                }, () => {
+                                    resolve(false)
+                                })
+                            })
+                        }
+                    }
+                    loadScript().then(()=>{})
                 },
             });
         };
@@ -589,7 +606,7 @@ ${gvc.bindView(() => {
                                             }
                                             loading = true
                                             try {
-                                             data = gvc.glitter.share.htmlExtension[gvc.glitter.htmlGenerate.resourceHook(dd.js)][dd.type]
+                                                data = gvc.glitter.share.htmlExtension[gvc.glitter.htmlGenerate.resourceHook(dd.js)][dd.type]
                                                     .render(gvc, dd, setting, hover, subdata)
                                                     .editor()
                                             } catch (e: any) {

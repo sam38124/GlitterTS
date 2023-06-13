@@ -64,17 +64,20 @@ export class GVC {
         try {
             gvc.initialElemCallback(gvc.id(id));
             const refresh = (id: string) => {
+                if ($(`[gvc-id="${gvc.id(id)}"]`).length === 0) {
+                    return
+                }
                 gvc.parameter.bindViewList[id].divCreate = gvc.parameter.bindViewList[id].divCreate ?? {}
                 const divCreate = (typeof gvc.parameter.bindViewList[id].divCreate === "function") ? gvc.parameter.bindViewList[id].divCreate() : gvc.parameter.bindViewList[id].divCreate
-                $(`#${gvc.id(id)}`).attr('class', divCreate.class ?? "");
-                $(`#${gvc.id(id)}`).attr('style', divCreate.style ?? "");
+                $(`[gvc-id="${gvc.id(id)}"]`).attr('class', divCreate.class ?? "");
+                $(`[gvc-id="${gvc.id(id)}"]`).attr('style', divCreate.style ?? "");
                 (divCreate.option ?? []).map((dd: any) => {
                     try {
-                        $(`#${gvc.id(id)}`).attr(dd.key, dd.value);
+                        $(`[gvc-id="${id}"]`).attr(dd.key, dd.value);
                     } catch (e) {
                     }
                 })
-                $(`#${gvc.id(id)}`).html(gvc.parameter.bindViewList[id].view());
+                $(`[gvc-id="${gvc.id(id)}"]`).html(gvc.parameter.bindViewList[id].view());
                 if (gvc.parameter.bindViewList[id].onCreate) {
                     gvc.parameter.bindViewList[id].onCreate()
                 }
@@ -86,13 +89,12 @@ export class GVC {
                         refresh(id)
                     })
                 } else {
+
                     refresh(id)
                 }
             }
+            convID()
 
-            if ($(`#${gvc.id(id)}`).length !== 0) {
-                convID()
-            }
         } catch (e: any) {
             if (gvc.glitter.debugMode) {
                 console.log(e);
@@ -100,6 +102,11 @@ export class GVC {
                 console.log(e.line);
             }
         }
+    }
+
+    public getBindViewElem(id:string) {
+        const gvc=this
+        $(`[gvc-id="${gvc.id(id)}"]`)
     }
 
     public recreateView = () => {
@@ -192,17 +199,17 @@ export class GVC {
         }
     }
 
-    public initialElemCallback(id:any) {
+    public initialElemCallback(id: any) {
         const gvc = this
-        gvc.glitter.elementCallback[id]=gvc.glitter.elementCallback[id]??{
+        gvc.glitter.elementCallback[id] = gvc.glitter.elementCallback[id] ?? {
             onCreate: () => {
             },
             onInitial: () => {
             },
-            notifyDataChange:()=>{
+            notifyDataChange: () => {
 
             },
-            getView:()=>{
+            getView: () => {
 
             }
         }
@@ -220,26 +227,29 @@ export class GVC {
         gvc.initialElemCallback(gvc.id(map.bind));
         if (map.dataList) {
             map.dataList.map(function (data) {
-                $(`#${gvc.parameter.pageConfig?.id}${map.bind}`).html((map as any).view())
+                $(`[gvc-id="${gvc.id(map.bind as string)}"]`).html((map as any).view())
                 gvc.addObserver(data, function () {
-                    $(`#${gvc.parameter.pageConfig?.id}${map.bind}`).html((map as any).view())
+                    $(`[gvc-id="${gvc.id(map.bind as string)}"]`).html((map as any).view())
                     if ((map as any).onCreate()) {
                         (map as any).onCreate()
                     }
                 })
             })
         }
+
         gvc.parameter.bindViewList[map.bind] = map
-        gvc.glitter.elementCallback[gvc.parameter.pageConfig!.id + map.bind].onInitial=(map as any).onInitial ?? (()=>{})
-        gvc.glitter.elementCallback[gvc.parameter.pageConfig!.id + map.bind].onCreate=(map as any).onCreate ??  (()=>{})
-        gvc.glitter.elementCallback[gvc.parameter.pageConfig!.id + map.bind].getView=map.view
+        gvc.glitter.elementCallback[gvc.id(map.bind)].onInitial = (map as any).onInitial ?? (() => {
+        })
+        gvc.glitter.elementCallback[gvc.id(map.bind)].onCreate = (map as any).onCreate ?? (() => {
+        })
+        gvc.glitter.elementCallback[gvc.id(map.bind)].getView = map.view
         const divCreate = ((typeof (map as any).divCreate === "function") ? (map as any).divCreate() : (map as any).divCreate) ?? {elem: 'div'};
         // const data = map.view()
-        return `<${divCreate.elem ?? 'div'} id="${gvc.parameter.pageConfig?.id}${map.bind}" class="${divCreate.class ?? ""}" style="${divCreate.style ?? ""}" 
+        return `<${divCreate.elem ?? 'div'}  class="${divCreate.class ?? ""}" style="${divCreate.style ?? ""}" 
 ${gvc.map((divCreate.option ?? []).map((dd: any) => {
-            return ` ${dd.key}="${dd.value}"`
+            return ` ${dd.key}="${dd.value.replace(/"/g,"&quot;")}"`
         }))}
-glem="bindView"
+ glem="bindView"  gvc-id="${gvc.id(map.bind)}"
 ></${divCreate.elem ?? 'div'}>`
 
     }

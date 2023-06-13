@@ -1,0 +1,275 @@
+//
+// Navbar
+// --------------------------------------------------
+
+
+// Brand
+
+.navbar-brand {
+  display: flex;
+  align-items: center;
+  padding: $navbar-brand-padding-y * .5 0;
+  font-weight: $navbar-brand-font-weight;
+  > img {
+    margin-right: .4375rem;
+  }
+}
+
+
+// Menu toggler
+
+.navbar-toggler {
+  position: relative;
+  width: $navbar-toggler-bar-width + $navbar-toggler-padding-x * 2;
+  height: $navbar-toggler-bar-height * 3 + $navbar-toggler-bar-spacing * 2 + $navbar-toggler-padding-y * 2;
+}
+
+.navbar-toggler-icon {
+  display: block;
+  top: 50%;
+  margin-top: $navbar-toggler-bar-height * -.5;
+  transition-duration: 0.075s;
+  transition-timing-function: cubic-bezier(0.55, 0.055, 0.675, 0.19);
+
+  &, &::before, &::after {
+    position: absolute;
+    width: $navbar-toggler-bar-width;
+    height: $navbar-toggler-bar-height;
+    transition-property: transform .15s ease;
+  }
+
+  &::before, &::after {
+    display: block;
+    content: '';
+  }
+
+  &::before {
+    top: ($navbar-toggler-bar-spacing + $navbar-toggler-bar-height) * -1;
+    transition: top 0.075s 0.12s ease, opacity 0.075s ease;
+  }
+
+  &::after {
+    bottom: ($navbar-toggler-bar-spacing + $navbar-toggler-bar-height) * -1;
+    transition: bottom 0.075s 0.12s ease, transform 0.075s cubic-bezier(0.55, 0.055, 0.675, 0.19);
+  }
+}
+
+[aria-expanded=true] {
+  .navbar-toggler-icon {
+    transform: rotate(45deg);
+    transition-delay: 0.12s;
+    transition-timing-function: cubic-bezier(0.215, 0.61, 0.355, 1);
+
+    &::before {
+      top: 0;
+      opacity: 0;
+      transition: top 0.075s ease, opacity 0.075s 0.12s ease;
+    }
+
+    &::after {
+      bottom: 0;
+      transform: rotate(-90deg);
+      transition: bottom 0.075s ease, transform 0.075s 0.12s cubic-bezier(0.215, 0.61, 0.355, 1);
+    }
+  }
+}
+
+
+// Navbar dropdowns
+
+.navbar {
+  .dropdown-toggle::after {
+    margin-top: .0625rem;
+    font-size: 1.15em;
+  }
+  .navbar-nav .dropdown-menu {
+    border: 0;
+    border-left: $dropdown-border-width solid $border-color;
+    @include border-radius(0);
+    background-color: transparent;
+    background: none;
+    @include box-shadow(none);
+    &.dropdown-menu-dark {
+      border-color: $dropdown-dark-border-color;
+    }
+    .dropdown-menu {
+      margin: {
+        right: .75rem;
+        left: .75rem;
+      }
+    }
+    .dropdown-toggle::after {
+      margin: {
+        top: -.0625rem;
+        right: 0;
+        left: .125rem;
+      }
+      font-size: 1em;
+    }
+    .dropdown-divider { display: none; }
+  }
+}
+
+// Dropdown animation
+@keyframes dropdown-show {
+  from {
+    transform: scale(.9);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+
+// Styles for expanded navbar only
+
+.navbar-expand {
+  @each $breakpoint in map-keys($grid-breakpoints) {
+    $next: breakpoint-next($breakpoint, $grid-breakpoints);
+    $infix: breakpoint-infix($next, $grid-breakpoints);
+
+    &#{$infix} {
+      @include media-breakpoint-up($next) {
+        .navbar-brand { padding: $navbar-brand-padding-y 0; }
+        .offcanvas {
+          background-color: transparent !important;
+          @include box-shadow(none);
+        }
+        .offcanvas-header,
+        .offcanvas-footer { display: none; }
+        .dropdown-divider { display: block; }
+        .navbar-nav .dropdown-menu {
+          margin-top: $dropdown-spacer;
+          border: $dropdown-border-width solid $dropdown-border-color;
+          @include border-radius($dropdown-border-radius);
+          background-color: $dropdown-bg;
+          @include box-shadow($dropdown-box-shadow);
+          &.dropdown-menu-dark {
+            background-color: $dark;
+            background: $dropdown-dark-bg;
+          }
+        }
+        .dropdown-menu.show { display: none; }
+        .dropdown {
+          &::before {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            width: 100%;
+            height: $dropdown-spacer + .125rem;
+            content: '';
+          }
+          &:hover > .dropdown-menu {
+            display: block;
+            animation: dropdown-show .2s;
+          }
+          .dropdown {
+            .dropdown-toggle {
+              display: flex;
+              align-items: center;
+              &::after {
+                margin: {
+                  top: 0;
+                  right: -.3125rem;
+                  left: auto;
+                }
+                font-size: 1.25em;
+                content: '\ea50';
+              }
+            }
+            .dropdown-menu {
+              top: -($dropdown-item-padding-y + $dropdown-padding-y);
+              left: 100%;
+              margin: {
+                right: 0;
+                left: 0;
+              }
+            }
+          }
+          .dropdown-menu-end {
+            left: auto;
+            right: 0;
+          }
+        }
+        .mega-dropdown-column {
+          width: $mega-dropdown-column-width;
+          padding: 0 .75rem;
+          &:last-child {
+            border-right: 0;
+          }
+        }
+      }
+    }
+  }
+}
+
+
+// Sticky navbar
+
+.navbar-stuck {
+  position: fixed !important;
+  top: 0;
+  left: 0;
+  width: 100%;
+  animation: navbar-show .25s ease-in-out;
+  @include box-shadow($box-shadow);
+  z-index: $zindex-fixed + 1;
+}
+
+.navbar.position-absolute {
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: $zindex-fixed;
+}
+
+@keyframes navbar-show {
+  from {
+    transform: translateY(-100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+
+// Navbar light
+
+.navbar-light {
+  &.navbar-stuck {
+    background-color: $light;
+  }
+  .navbar-toggler-icon {
+    &, &::before, &::after {
+      background-color: $navbar-light-toggler-bar-color;
+    }
+  }
+  .nav-item {
+    &:hover > .nav-link:not(.disabled) { color: $navbar-light-hover-color; }
+    &.active > .nav-link:not(.disabled) { color: $navbar-light-active-color; }
+  }
+  .dropdown:hover > .nav-link { color: $navbar-light-hover-color; }
+}
+
+
+// Navbar dark
+
+.navbar-dark {
+  &.navbar-stuck {
+    background-color: $dark;
+  }
+  .navbar-toggler-icon {
+    &,
+    &::before,
+    &::after {
+      background-color: $navbar-dark-toggler-bar-color;
+    }
+  }
+  .nav-item {
+    &:hover > .nav-link:not(.disabled) { color: $navbar-dark-hover-color; }
+    &.active > .nav-link:not(.disabled) { color: $navbar-dark-active-color; }
+  }
+  .dropdown:hover > .nav-link { color: $navbar-dark-hover-color; }
+}

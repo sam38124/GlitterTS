@@ -55,9 +55,14 @@ function traverseHTML(element: any) {
         }
     }
     if($(element).attr('glem')==='bindView'){
-        try { $(element).html(glitter.elementCallback[$(element).attr('id') as string].getView())}catch (e) {}
-        try {glitter.elementCallback[$(element).attr('id') as string].onInitial()}catch (e) {}
-        try {  glitter.elementCallback[$(element).attr('id') as string].onCreate()}catch (e) {}
+        try { $(element).html(glitter.elementCallback[$(element).attr('gvc-id') as string].getView())}catch (e) {
+        }
+        try {  glitter.elementCallback[$(element).attr('gvc-id') as string].updateAttribute()}catch (e) {
+        }
+        try {glitter.elementCallback[$(element).attr('gvc-id') as string].onInitial()}catch (e) {
+        }
+        try {  glitter.elementCallback[$(element).attr('gvc-id') as string].onCreate()}catch (e) {
+        }
     }
     // 返回 JSON 結果
     return result;

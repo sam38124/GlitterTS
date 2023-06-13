@@ -7,6 +7,7 @@ const express_1 = __importDefault(require("express"));
 const response_1 = __importDefault(require("../modules/response"));
 const config_1 = require("../config");
 const logger_1 = __importDefault(require("../modules/logger"));
+const axios_1 = __importDefault(require("axios"));
 const mime = require('mime');
 const router = express_1.default.Router();
 router.post('/upload', async (req, resp) => {
@@ -43,6 +44,20 @@ router.post('/upload', async (req, resp) => {
                 return response_1.default.succ(resp, { url, fullUrl, type: params.ContentType });
             }
         });
+    }
+    catch (err) {
+        return response_1.default.fail(resp, err);
+    }
+});
+router.post('/getCrossResource', async (req, resp) => {
+    try {
+        const data = await (0, axios_1.default)(req.body.url, {
+            method: 'get',
+            headers: {}
+        }).then((dd) => {
+            return dd.data;
+        });
+        return response_1.default.succ(resp, { data: data });
     }
     catch (err) {
         return response_1.default.fail(resp, err);

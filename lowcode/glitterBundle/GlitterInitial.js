@@ -46,17 +46,25 @@ function traverseHTML(element) {
     }
     if ($(element).attr('glem') === 'bindView') {
         try {
-            $(element).html(glitter.elementCallback[$(element).attr('id')].getView());
+            $(element).html(glitter.elementCallback[$(element).attr('gvc-id')].getView());
         }
-        catch (e) { }
+        catch (e) {
+        }
         try {
-            glitter.elementCallback[$(element).attr('id')].onInitial();
+            glitter.elementCallback[$(element).attr('gvc-id')].updateAttribute();
         }
-        catch (e) { }
+        catch (e) {
+        }
         try {
-            glitter.elementCallback[$(element).attr('id')].onCreate();
+            glitter.elementCallback[$(element).attr('gvc-id')].onInitial();
         }
-        catch (e) { }
+        catch (e) {
+        }
+        try {
+            glitter.elementCallback[$(element).attr('gvc-id')].onCreate();
+        }
+        catch (e) {
+        }
     }
     return result;
 }

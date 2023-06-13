@@ -212,6 +212,7 @@ ${obj.gvc.bindView({
             const container = gvc.glitter.getUUID();
             gvc.glitter.defaultSetting.pageLoading();
             let htmlList: ({ view?: string, fun: () => string })[] = []
+            let waitAddScript: string[] = []
 
             function getPageData() {
                 htmlList = []
@@ -291,20 +292,22 @@ ${obj.gvc.bindView({
                                         } else if (((dd.data.elem === 'script')) && dd.data.attr.find((dd: any) => {
                                             return dd.attr === 'src'
                                         })) {
-                                            gvc.addMtScript([{
-                                                src: dd.data.attr.find((dd: any) => {
-                                                    return dd.attr === 'src'
-                                                }).value
-                                            }], () => {
-                                                resolve(true)
-                                            }, () => {
-                                                resolve(false)
-                                            })
+                                            waitAddScript.push(dd.data.attr.find((dd: any) => {
+                                                return dd.attr === 'src'
+                                            }).value)
+                                            resolve(true)
                                         } else {
                                             resolve(true)
                                         }
                                     })
                                     const getHt = (() => {
+                                        if ((dd.data.elem === 'style') || ((dd.data.elem === 'link') && (dd.data.attr.find((dd: any) => {
+                                            return dd.attr === 'rel' && dd.value === 'stylesheet'
+                                        })))||(((dd.data.elem === 'script')) && dd.data.attr.find((dd: any) => {
+                                            return dd.attr === 'src'
+                                        }))) {
+                                           return ``
+                                        }
                                         if ((dd.type === 'widget') || (dd.type === 'container')) {
                                             subdata.widgetComponentID = component
                                             dd.refreshComponentParameter!.view1 = () => {
@@ -437,7 +440,24 @@ ${obj.gvc.bindView({
                     }]
                 },
                 onCreate: () => {
+                    async function loadScript() {
+                        for (const a of waitAddScript) {
+                            console.log(`loadScript:`+a)
+                            await new Promise((resolve, reject) => {
+                                gvc.addMtScript([{
+                                    src: a
+                                }], () => {
+                                    setTimeout(()=>{
+                                        resolve(true)
+                                    },10)
 
+                                }, () => {
+                                    resolve(false)
+                                })
+                            })
+                        }
+                    }
+                    loadScript().then(()=>{})
                 },
             });
         };

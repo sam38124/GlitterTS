@@ -43,7 +43,7 @@ export class Glitter {
     public pageConfig: PageConfig[] = []
     public nowPageConfig?: PageConfig
     public waitChangePage = false
-    public elementCallback: {[name:string]:{onCreate:()=>void,onInitial:()=>void,notifyDataChange:()=>void,getView:()=>string}} = {}
+    public elementCallback: {[name:string]:{onCreate:()=>void,onInitial:()=>void,notifyDataChange:()=>void,getView:()=>string,updateAttribute:()=>void}} = {}
 
     /*Getter*/
     get baseUrl() {
@@ -478,17 +478,14 @@ export class Glitter {
         }
     }
 
-    public addStyleLink(data: string | string[]) {
-        const gvc = this;
+    public async addStyleLink(data: string | string[]) {
+        const glitter = this;
         var head = document.head;
-        const id = gvc.getUUID()
 
         function add(filePath: string) {
-            var haveURL = false
-            Glitter.glitter.$('head').children().map(function (data: any) {
-                if (Glitter.glitter.$('head').children().get(data).src === (filePath)) {
-                    haveURL = true
-                }
+            const id = glitter.getUUID()
+            var haveURL = glitter.parameter.styleLinks.find((dd: any) => {
+                return dd.src === filePath
             })
             if (!haveURL) {
                 var link = document.createElement("link");
@@ -496,7 +493,7 @@ export class Glitter {
                 link.rel = "stylesheet";
                 link.href = filePath;
                 link.id = id;
-                gvc.parameter.styleLinks.push({
+                glitter.parameter.styleLinks.push({
                     id: id,
                     src: filePath
                 })

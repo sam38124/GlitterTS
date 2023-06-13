@@ -68,6 +68,8 @@ export const widgetComponent = {
                         }
                         widget.data.inner = data
                         re = true
+                        // alert(data)
+                        console.log(`waitNotifyID:${id}-${data}`)
                         gvc.notifyDataChange(id)
                     })
                 }
@@ -91,6 +93,7 @@ export const widgetComponent = {
                     return {
                         bind: id,
                         view: () => {
+                            console.log(`finishNotifyID:${id}-${widget.data.inner}`)
                             switch (widget.data.elem) {
                                 case 'select':
                                     formData[widget.data.key] = widget.data.inner
@@ -457,6 +460,7 @@ export const widgetComponent = {
                         title: '特徵值',
                         array: widget.data.attr.map((dd: any, index: number) => {
                             // TriggerEvent.editer(gvc, widget, widget.data)
+                            dd.type=dd.type ?? 'par'
                             dd.attr = dd.attr ?? ""
                             return {
                                 title: dd.attr ?? `特徵:${index + 1}`,

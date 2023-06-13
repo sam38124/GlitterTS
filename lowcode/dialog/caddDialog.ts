@@ -47,7 +47,7 @@ init((gvc, glitter, gBundle) => {
   <h5 class="fw-medium fs-lg mb-1  mt-2" style="${style.style2}">程式碼</h5>
 </div>
 <div class="border-0 text-center col-12 col-sm-4 bg-none d-flex flex-column align-items-center justify-content-center" onclick="${gvc.event(() => {
-                                glitter.openDiaLog(new URL('../dialog/ai-microphone.js',import.meta.url).href,'microphone',gBundle,{})
+                                glitter.openDiaLog(new URL('../dialog/ai-microphone.js', import.meta.url).href, 'microphone', gBundle, {})
                             })}">
 <div class="rounded-circle d-flex align-items-center justify-content-center" style="height: 100px;width: 100px; background:whitesmoke;">
 <i class="fa-light fa-microchip-ai   fs-2 text-gradient-primary" ></i>
@@ -398,27 +398,39 @@ function traverseHTML(element: any) {
     // 取得元素的標籤名稱
     result.tag = element.tagName;
     // 取得元素的屬性
-    var attributes = element.attributes;
+    var attributes = element.attributes ?? [];
     if (attributes.length > 0) {
         result.attributes = {};
-        for (var i = 0; i < attributes.length; i++) {
+        for (let i = 0; i < attributes.length; i++) {
             result.attributes[attributes[i].name] = attributes[i].value;
         }
     }
-    // 取得元素的子元素
-    let children = element.children;
-    if (children.length > 0) {
-        result.children = [];
-        for (let j = 0; j < children.length; j++) {
-            result.children.push(traverseHTML(children[j]));
+    if(element.children && element.children.length>0){
+        result.children=[]
+        var childNodes = element.childNodes;
+        for (let i = 0; i < childNodes.length; i++) {
+            var node = childNodes[i];
+            if (node.nodeType === Node.ELEMENT_NODE) {
+                result.children.push(traverseHTML(node));
+            } else if (node.nodeType === Node.TEXT_NODE) {
+                const html = document.createElement('span');
+                html.innerHTML = node.textContent.trim();
+                if(html.innerHTML){
+                    result.children.push(traverseHTML(html));
+                }
+
+            }else{
+                if(node.tagName){  result.children.push(traverseHTML(node));}
+
+            }
         }
     }
-    element.innerHTML=element.innerHTML??"";
-    element.innerText=element.innerText??"";
-    let trimmedStr = element.innerHTML.replace(/\n/,'').replace(/^\s+|\s+$/g, "");
-    let trimmedStr2 = element.innerText.replace(/\n/,'').replace(/^\s+|\s+$/g, "");
-    result.textIndex=trimmedStr.indexOf(trimmedStr2)
-    result.innerText=element.innerText.replace(/\n/,'').replace(/^\s+|\s+$/g, "")
+
+
+    // let trimmedStr = element.innerHTML.replace(/\n/,'').replace(/^\s+|\s+$/g, "");
+    // let trimmedStr2 = element.innerText.replace(/\n/,'').replace(/^\s+|\s+$/g, "");
+    // result.textIndex=trimmedStr.indexOf(trimmedStr2)
+    result.innerText=(element.innerText ?? "").replace(/\n/,'').replace(/^\s+|\s+$/g, "")
     // 返回 JSON 結果
     return result;
 }
@@ -471,93 +483,106 @@ async function saveHTML(json: any, relativePath: string, gvc: GVC, elem?: {
         "label": "所有JS資源",
     }
 
+    async function covertHtml(json: any, pushArray: any[]) {
+        for (const dd of json.children ?? []) {
+            if ((dd.tag.toLowerCase() !== 'title')) {
+                dd.attributes = dd.attributes ?? {}
+                let originalHref='';
+                let originalSrc='';
+                try {
+                    originalHref=new URL(dd.attributes.href, relativePath).href
+                }catch (e) {
+
+                }
+                try {
+                    originalSrc=new URL(dd.attributes.src, relativePath).href
+                }catch (e) {
+
+                }
+                const obj = await convert(dd)
+                if (obj.data.elem !== 'meta' && !(((obj.data.elem === 'link') && (dd.attributes.rel !== 'stylesheet')))) {
+                    if (obj.data.elem === 'style' || ((obj.data.elem === 'link') && (dd.attributes.rel === 'stylesheet'))) {
+                        if ((obj.data.elem === 'link' && (dd.attributes.rel === 'stylesheet'))) {
+                            obj.data.note = "源代碼路徑:" + originalHref
+                        }
+                        if (addSheet) {
+                            styleSheet.data.setting.push(obj)
+                        }
+                    } else if (obj.data.elem === 'script') {
+                        if (addScript) {
+                            obj.data.note = "源代碼路徑:" + originalSrc
+                            jsLink.data.setting.push(obj)
+                        }
+                    } else {
+                        if (addHtml) {
+                            pushArray.push(obj)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     async function convert(obj: any) {
-        obj.children=obj.children??[]
+        obj.children = obj.children ?? []
         obj.attributes = obj.attributes ?? {}
-        const originalHref = obj.attributes.href
-        const originalSrc = obj.attributes.src
+        let originalHref = obj.attributes.href
+        let originalSrc = obj.attributes.src
         obj.innerText = obj.innerText ?? ""
         const a = await new Promise((resolve, reject) => {
             try {
                 if (obj.tag.toLowerCase() === 'link' && obj.attributes.rel === 'stylesheet' && addSheet) {
                     const src = obj.attributes.href
                     const url = new URL(src, relativePath)
-                    $.ajax({
-                        url: url.href,
-                        type: 'get',
-                        crossDomain: true,
-                        processData: false,
-                        success: (data2) => {
-                            const saasConfig: { config: any; api: any } = (window as any).saasConfig;
-                            saasConfig.api.uploadFile(
-                                glitter.getUUID() + ".css"
-                            ).then((data: any) => {
-                                const data1 = data.response;
-                                $.ajax({
-                                    url: data1.url,
-                                    type: 'put',
-                                    data: data2,
-                                    headers: {
-                                        "Content-Type": data1.type
-                                    },
-                                    processData: false,
-                                    crossDomain: true,
-                                    success: () => {
-                                        obj.attributes.href = data1.fullUrl;
-                                        resolve(true)
-                                    },
-                                    error: () => {
-                                        resolve(true)
-                                    },
-                                });
-                            });
-                        },
-                        error: (err) => {
-                            resolve(true)
-                        },
-                    });
+                    originalHref = url.href
+                    getFile(url.href).then((link)=>{
+                        obj.attributes.href=link
+                        resolve(true)
+                    })
                 } else if (obj.tag.toLowerCase() === 'script' && obj.attributes.src && addScript) {
                     const src = obj.attributes.src
                     const url = new URL(src, relativePath)
-                    alert(url.href)
-                    $.ajax({
-                        url: url.href,
-                        processData: false,
-                        type: 'get',
-                        crossDomain: true,
-                        success: (data2) => {
+                    originalSrc = url
+                    getFile(url.href).then((link)=>{
+                        obj.attributes.src=link
+                        resolve(true)
+                    })
+                } else if(obj.tag.toLowerCase() === 'img' && obj.attributes.src && addHtml){
+                    const src = obj.attributes.src
+                    const url = new URL(src, relativePath)
+                    fetch(url.href)
+                        .then(response => response.blob())
+                        .then(blob => {
                             const saasConfig: { config: any; api: any } = (window as any).saasConfig;
                             saasConfig.api.uploadFile(
-                                glitter.getUUID() + ".js"
+                                glitter.getUUID() +"." +url.href.split('.').pop()
                             ).then((data: any) => {
                                 const data1 = data.response;
                                 $.ajax({
                                     url: data1.url,
                                     type: 'put',
-                                    data: data2,
+                                    data: blob,
                                     headers: {
                                         "Content-Type": data1.type
                                     },
                                     processData: false,
                                     crossDomain: true,
                                     success: () => {
-                                        alert('data1.fullUrl')
-                                        obj.attributes.src = data1.fullUrl;
+                                        obj.attributes.src=data1.fullUrl
                                         resolve(true)
                                     },
-                                    error: (jqXHR, textStatus, errorThrown) => {
-                                        alert(errorThrown)
-                                        resolve(true)
+                                    error: () => {
+                                        resolve(false)
                                     },
                                 });
                             });
-                        },
-                        error: (err) => {
-                            resolve(true)
-                            console.log(err)
-                        },
-                    });
-                } else {
+                        })
+                        .catch(error => {
+                            console.error('下載檔案失敗:', error);
+                            resolve(false)
+
+                        });
+                }else{
                     resolve(true)
                 }
             } catch (e) {
@@ -566,54 +591,31 @@ async function saveHTML(json: any, relativePath: string, gvc: GVC, elem?: {
 
         })
         let setting: any = []
-        if (obj.textIndex===0&&(obj.innerText.replace(/ /g, '').replace(/\n/g, '').length > 0 && ((obj.children ?? []).length > 0))) {
-            setting.push(await convert({
-                tag: 'span',
-                innerText: obj.innerText
-            }))
-        }
-        if(obj.children.length>0){
-            obj.innerText=''
-        }
-        for (const dd of (obj.children ?? [])) {
-            const data = await convert(dd)
-            if (data.data.elem !== 'meta') {
-                if (data.data.elem === 'style' || (data.data.elem === 'link' && (obj.attributes.rel === 'stylesheet'))) {
-                    if ((data.data.elem === 'link' && (obj.attributes.rel === 'stylesheet'))) {
-                        data.data.note = "源代碼路徑:" + originalHref
-                    }
-                    if (addSheet) {
-                        styleSheet.data.setting.push(data)
-                    }
-                } else if (data.data.elem === 'script') {
-                    if ((obj.attributes.src)) {
-                        data.data.note = "源代碼路徑:" + originalSrc
-                    }
-                    if (addScript) {
-                        jsLink.data.setting.push(data)
-                    }
-                } else {
-                    if (addHtml) {
-                        setting.push(data)
-                    }
-                }
-            }
-        }
-        if (obj.textIndex>0&&(obj.innerText.replace(/ /g, '').replace(/\n/g, '').length > 0 && ((obj.children ?? []).length > 0))) {
-            setting.push(await convert({
-                tag: 'span',
-                innerText: obj.innerText
-            }))
-        }
+        // if (obj.textIndex === 0 && (obj.innerText.replace(/ /g, '').replace(/\n/g, '').length > 0 && ((obj.children ?? []).length > 0))) {
+        //     setting.push(await convert({
+        //         tag: 'span',
+        //         innerText: obj.innerText
+        //     }))
+        // }
+        // if (obj.children.length > 0) {
+        //     obj.innerText = ''
+        // }
+        await covertHtml(obj,setting);
+        // if (obj.textIndex > 0 && (obj.innerText.replace(/ /g, '').replace(/\n/g, '').length > 0 && ((obj.children ?? []).length > 0))) {
+        //     setting.push(await convert({
+        //         tag: 'span',
+        //         innerText: obj.innerText
+        //     }))
+        // }
         let x = {
             "id": glitter.getUUID(),
             "js": "https://sam38124.github.io/One-page-plugin/src/official.js",
             "css": {"class": {}, "style": {}},
             "data": {
                 "class": obj.attributes.class ?? "",
-                "style": (obj.attributes.style ?? "") ,
+                "style": (obj.attributes.style ?? ""),
                 "attr": Object.keys(obj.attributes).filter((key) => {
-                    return key !== 'class' && key !== 'style' && key !== 'id'
+                    return key !== 'class' && key !== 'style'
                 }).map((dd) => {
                     const of = obj.attributes[dd]
                     return {
@@ -654,8 +656,8 @@ async function saveHTML(json: any, relativePath: string, gvc: GVC, elem?: {
             })(),
             "styleList": []
         }
-        if(x.data.style.length>0){
-            x.data.style+=";"
+        if (x.data.style.length > 0) {
+            x.data.style += ";"
         }
         if (x.data.elem === 'img') {
             x.data.inner = (x.data.attr.find((dd) => {
@@ -674,41 +676,17 @@ async function saveHTML(json: any, relativePath: string, gvc: GVC, elem?: {
     }
 
     let waitPush: any = []
-    for (const dd of json.children) {
-        if ((dd.tag.toLowerCase() !== 'title')) {
-            dd.attributes = dd.attributes ?? {}
-            const originalHref = dd.attributes.href
-            const originalSrc = dd.attributes.src
-            const obj = await convert(dd)
-            if (obj.data.elem !== 'meta' && !(((obj.data.elem === 'link') && (dd.attributes.rel !== 'stylesheet')))) {
-                if (obj.data.elem === 'style' || ((obj.data.elem === 'link') && (dd.attributes.rel === 'stylesheet'))) {
-                    if ((obj.data.elem === 'link' && (dd.attributes.rel === 'stylesheet'))) {
-                        obj.data.note = "源代碼路徑:" + originalHref
-                    }
-                    if (addSheet) {
-                        styleSheet.data.setting.push(obj)
-                    }
-                } else if (obj.data.elem === 'script') {
-                    if (addScript) {
-                        obj.data.note = "源代碼路徑:" + originalSrc
-                        jsLink.data.setting.push(obj)
-                    }
-                } else {
-                    if (addHtml) {
-                        waitPush.push(obj)
-                    }
-                }
-            }
 
-        }
-    }
+    await covertHtml(json, waitPush)
     if (styleSheet.data.setting.length > 0) {
         styleSheet.data.setting.map((dd: any) => {
             gvc.getBundle().callback(dd);
         })
     }
     if (jsLink.data.setting.length > 0) {
-        gvc.getBundle().callback(jsLink);
+        jsLink.data.setting.map((dd: any) => {
+            gvc.getBundle().callback(dd);
+        })
     }
 
     waitPush.map((obj: any) => {
@@ -718,6 +696,52 @@ async function saveHTML(json: any, relativePath: string, gvc: GVC, elem?: {
         dialog.dataLoading({visible: false})
         glitter.closeDiaLog()
     }), 1000)
+
+}
+function getFile(href:string){
+    const glitter=(window as any).glitter
+    return new Promise<string>((resolve, reject)=>{
+        $.ajax({
+            url: config.url + "/api/v1/fileManager/getCrossResource",
+            type: 'post',
+            data: JSON.stringify({
+                "url": href
+            }),
+            "headers": {
+                "Content-Type": "application/json",
+                "Authorization": config.token
+            },
+            crossDomain: true,
+            processData: false,
+            success: (data2) => {
+                const saasConfig: { config: any; api: any } = (window as any).saasConfig;
+                saasConfig.api.uploadFile(
+                    glitter.getUUID() +"." +href.split('.').pop()
+                ).then((data: any) => {
+                    const data1 = data.response;
+                    $.ajax({
+                        url: data1.url,
+                        type: 'put',
+                        data: data2.data,
+                        headers: {
+                            "Content-Type": data1.type
+                        },
+                        processData: false,
+                        crossDomain: true,
+                        success: () => {
+                            resolve(data1.fullUrl)
+                        },
+                        error: () => {
+                            resolve(href)
+                        },
+                    });
+                });
+            },
+            error: (err) => {
+                resolve(href)
+            },
+        });
+    })
 
 }
 
@@ -736,3 +760,4 @@ function empty(gvc: GVC) {
 <!-- Your code -->
 </div>`
 }
+
