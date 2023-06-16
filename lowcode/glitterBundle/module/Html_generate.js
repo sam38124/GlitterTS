@@ -683,7 +683,7 @@ ${obj.gvc.bindView({
                 ]
             },
             onCreate: () => {
-                autosize($('#' + obj.gvc.id(id)));
+                autosize(obj.gvc.getBindViewElem(id));
             }
         })}`;
     }

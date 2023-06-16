@@ -269,12 +269,13 @@ export class Glitter {
     }; //關閉側滑選單
 
     public closeDrawer() {
-        (window as any).drawer.close();
+        try{ (window as any).drawer.close();}catch(e){}
+
     }; //開關側滑選單
 
 
     public toggleDrawer() {
-        (window as any).drawer.toggle();
+        try{ (window as any).drawer.toggle();}catch(e){}
     }; //按鈕監聽
 
 

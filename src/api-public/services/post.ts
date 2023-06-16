@@ -26,6 +26,25 @@ export class Post {
         }
     }
 
+    public async putContent(content: any) {
+        try {
+            const reContent = JSON.parse(content.content)
+            const data = await db.query(`update  \`${this.app}\`.\`t_post\`
+                                         SET ? where 1=1 and id=${reContent.id}`, [
+                content
+            ])
+            reContent.id = data.insertId
+            content.content = JSON.stringify(reContent)
+
+            await db.query(`update \`${this.app}\`.t_post
+                            SET ?
+                            WHERE id = ${data.insertId}`, [content])
+            return data
+        } catch (e) {
+            throw exception.BadRequestError('BAD_REQUEST', 'PostContent Error:' + e, null);
+        }
+    }
+
     public async getContent(content: any) {
         try {
             let userData: any = {}
@@ -41,7 +60,7 @@ export class Post {
                     return ` and JSON_EXTRACT(content, '$.${dd.key}') in (SELECT JSON_EXTRACT(content, '$.${dd.value}') AS datakey
  from \`${app}\`.t_post where 1=1 ${dd.query.map((dd:any)=>{
      return getQueryString(dd)
-                    }).join(` and `)})`
+                    }).join(`  `)})`
                 } else if (dd.type) {
                     return ` and JSON_EXTRACT(content, '$.${dd.key}') ${dd.type} ${(typeof dd.value === 'string') ? `'${dd.value}'` : dd.value}`
                 } else {

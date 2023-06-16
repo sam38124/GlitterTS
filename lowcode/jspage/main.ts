@@ -271,7 +271,7 @@ onclick="${gvc.event(() => {
                                             return `p-0`
                                     }
                                 })()}" style="overflow-y: auto;">
-                            <div class="swiper-wrapper" style="">
+                            <div class="" style="">
                                 ${gvc.bindView(()=>{
                                     return {
                                         bind:'MainEditorLeft',

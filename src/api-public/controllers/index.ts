@@ -26,7 +26,8 @@ router.use(config.getRoute(config.public_route.post, 'public'), postRouter);
 const whiteList: {}[] = [
     {url: config.getRoute(config.public_route.user + "/register", 'public'), method: 'POST'},
     {url: config.getRoute(config.public_route.user + "/login", 'public'), method: 'POST'},
-    {url: config.getRoute(config.public_route.post, 'public'), method: 'GET'}
+    {url: config.getRoute(config.public_route.post, 'public'), method: 'GET'},
+    {url: config.getRoute(config.public_route.user+"/userdata", 'public'), method: 'GET'}
 ];
 
 async function doAuthAction(req: express.Request, resp: express.Response, next: express.NextFunction) {

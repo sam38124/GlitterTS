@@ -119,7 +119,6 @@ export class TriggerEvent {
         let arrayEvent = [];
         let returnData = '';
         async function run(event) {
-            console.log(`eventRun:${JSON.stringify(event)}`);
             return new Promise(async (resolve, reject) => {
                 var _a;
                 async function pass() {
@@ -128,6 +127,10 @@ export class TriggerEvent {
                             resolve(true);
                         }, 4000);
                         returnData = await oj.gvc.glitter.share.clickEvent[glitter.htmlGenerate.resourceHook(event.clickEvent.src)][event.clickEvent.route].fun(oj.gvc, oj.widget, event, oj.subData, oj.element).event();
+                        const response = returnData;
+                        if (event.dataPlace) {
+                            eval(event.dataPlace);
+                        }
                         resolve(true);
                     }
                     catch (e) {
@@ -181,7 +184,7 @@ export class TriggerEvent {
                     break;
                 }
             }
-            resolve(result);
+            resolve(returnData);
         });
     }
     static editer(gvc, widget, obj, option = { hover: false, option: [] }) {
@@ -214,7 +217,11 @@ export class TriggerEvent {
                                 glitter.closeDiaLog(tag);
                             })}"></i>
 </div>    
+
 <div class="mt-2 border border-white p-2">
+<div class="alert alert-info " style="white-space:normal;">
+透過事件來為您的元件添加觸發事件，包含連結跳轉/內容取得/資料儲存/頁面渲染/動畫事件/內容發布....等，都能透過事件來完成．
+</div>
 ${Editor.arrayItem({
                                 originalArray: arrayEvent,
                                 gvc: gvc,
@@ -268,49 +275,103 @@ ${Editor.arrayItem({
                                                         }))}
 <option value="undefined"  ${(!select) ? `selected` : ``}>未定義</option>
 </select>
-${gvc.bindView(() => {
-                                                            const id = glitter.getUUID();
-                                                            setTimeout(() => {
-                                                                gvc.notifyDataChange(id);
-                                                            }, 200);
-                                                            return {
-                                                                bind: id,
-                                                                view: () => {
-                                                                    try {
-                                                                        if (!glitter.share.clickEvent[glitter.htmlGenerate.resourceHook(obj.clickEvent.src)]) {
-                                                                            return ``;
-                                                                        }
-                                                                        return glitter.share.clickEvent[glitter.htmlGenerate.resourceHook(obj.clickEvent.src)][obj.clickEvent.route].fun(gvc, widget, obj).editor();
-                                                                    }
-                                                                    catch (e) {
-                                                                        return ``;
-                                                                    }
-                                                                },
-                                                                divCreate: {},
-                                                                onCreate: () => {
-                                                                    var _a;
-                                                                    glitter.share.clickEvent = (_a = glitter.share.clickEvent) !== null && _a !== void 0 ? _a : {};
-                                                                    try {
-                                                                        if (!glitter.share.clickEvent[glitter.htmlGenerate.resourceHook(obj.clickEvent.src)]) {
-                                                                            -glitter.addMtScript([
-                                                                                {
-                                                                                    src: glitter.htmlGenerate.resourceHook(obj.clickEvent.src),
-                                                                                    type: 'module'
+<div class="mt-2">${(() => {
+                                                            var _a;
+                                                            obj.pluginExpand = (_a = obj.pluginExpand) !== null && _a !== void 0 ? _a : {};
+                                                            return Editor.toggleExpand({
+                                                                gvc: gvc,
+                                                                title: "<span class='text-black' style=''>插件拓展項目</span>",
+                                                                data: obj.pluginExpand,
+                                                                innerText: () => {
+                                                                    return gvc.bindView(() => {
+                                                                        const id = glitter.getUUID();
+                                                                        setTimeout(() => {
+                                                                            gvc.notifyDataChange(id);
+                                                                        }, 200);
+                                                                        return {
+                                                                            bind: id,
+                                                                            view: () => {
+                                                                                try {
+                                                                                    let text = ``;
+                                                                                    if (!glitter.share.clickEvent[glitter.htmlGenerate.resourceHook(obj.clickEvent.src)]) {
+                                                                                        text = ``;
+                                                                                    }
+                                                                                    else {
+                                                                                        text = glitter.share.clickEvent[glitter.htmlGenerate.resourceHook(obj.clickEvent.src)][obj.clickEvent.route].fun(gvc, widget, obj).editor();
+                                                                                    }
+                                                                                    if (text.replace(/ /g, '') === '') {
+                                                                                        return `<span>此事件無設定拓展項目</span>`;
+                                                                                    }
+                                                                                    return text;
                                                                                 }
-                                                                            ], () => {
-                                                                                setTimeout(() => {
-                                                                                    gvc.notifyDataChange(id);
-                                                                                }, 200);
-                                                                            }, () => {
-                                                                                console.log(`loadingError:` + obj.clickEvent.src);
-                                                                            });
+                                                                                catch (e) {
+                                                                                    return ``;
+                                                                                }
+                                                                            },
+                                                                            divCreate: {},
+                                                                            onCreate: () => {
+                                                                                var _a;
+                                                                                glitter.share.clickEvent = (_a = glitter.share.clickEvent) !== null && _a !== void 0 ? _a : {};
+                                                                                try {
+                                                                                    if (!glitter.share.clickEvent[glitter.htmlGenerate.resourceHook(obj.clickEvent.src)]) {
+                                                                                        -glitter.addMtScript([
+                                                                                            {
+                                                                                                src: glitter.htmlGenerate.resourceHook(obj.clickEvent.src),
+                                                                                                type: 'module'
+                                                                                            }
+                                                                                        ], () => {
+                                                                                            setTimeout(() => {
+                                                                                                gvc.notifyDataChange(id);
+                                                                                            }, 200);
+                                                                                        }, () => {
+                                                                                            console.log(`loadingError:` + obj.clickEvent.src);
+                                                                                        });
+                                                                                    }
+                                                                                }
+                                                                                catch (e) {
+                                                                                }
+                                                                            }
+                                                                        };
+                                                                    });
+                                                                },
+                                                                class: ` `,
+                                                                style: `background:#65379B;border:2px solid white;`,
+                                                            });
+                                                        })()}</div>
+${(() => {
+                                                            var _a;
+                                                            obj.dataPlaceExpand = (_a = obj.dataPlaceExpand) !== null && _a !== void 0 ? _a : {};
+                                                            return `<div class="mt-2 border-white rounded" style="border-width:3px;">
+${Editor.toggleExpand({
+                                                                gvc: gvc,
+                                                                title: "<span class='text-black' style=''>資料儲存位置[留空則不儲存]</span>",
+                                                                data: obj.dataPlaceExpand,
+                                                                innerText: () => {
+                                                                    var _a;
+                                                                    return glitter.htmlGenerate.editeText({
+                                                                        gvc: gvc,
+                                                                        title: "",
+                                                                        default: (_a = obj.dataPlace) !== null && _a !== void 0 ? _a : "",
+                                                                        placeHolder: `請輸入返回資料的儲存位置:
+範例:
+ (()=>{
+   //將資料儲存於當前頁面．
+   gvc.saveData=response;
+   //將資料儲存於全域變數中
+   glitter.share.saveData=response
+     })()`,
+                                                                        callback: (text) => {
+                                                                            obj.dataPlace = text;
+                                                                            widget.refreshComponent();
                                                                         }
-                                                                    }
-                                                                    catch (e) {
-                                                                    }
-                                                                }
-                                                            };
-                                                        })}
+                                                                    });
+                                                                },
+                                                                class: ` `,
+                                                                style: `background:#65379B;border:2px solid white;`,
+                                                            })}
+</div>`;
+                                                        })()}
+
 `;
                                                     },
                                                     divCreate: {}
@@ -325,7 +386,7 @@ ${gvc.bindView(() => {
                                 }),
                                 expand: { expand: true },
                                 plus: {
-                                    title: '添加區塊',
+                                    title: '添加事件',
                                     event: gvc.event(() => {
                                         arrayEvent.push({});
                                         gvc.notifyDataChange(did);

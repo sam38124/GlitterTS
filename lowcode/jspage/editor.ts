@@ -95,18 +95,20 @@ export class Editor {
                                 return `<l1 onclick="${gvc.event(() => {
                                         selectGroup = dd
                                         gvc.notifyDataChange(id)
-                                    })}"  class="list-group-item list-group-item-action border-0 py-2 ${(selectGroup === dd) && 'active'} position-relative " style="border-radius: 0px;cursor: pointer;">${dd || "未分類"}</l1>`
+                                    })}"  class="list-group-item list-group-item-action border-0 d py-2 ${(selectGroup === dd) && 'active'} position-relative " style="border-radius: 0px;cursor: pointer;">${dd || "未分類"}</l1>`
                                     +
                                     `<div class="collapse multi-collapse ${(selectGroup === dd) && 'show'}" style="margin-left: 10px;">
  ${data.dataList.filter((d2: any) => {
                                         return d2.group === dd
                                     }).map((d3: any) => {
-                                        const url = new URL(location.href)
-                                        url.searchParams.set('page', d3.tag)
                                         if (d3.tag !== glitter.getUrlParameter('page')) {
-                                            return `<a href="${url.href}"  class=" list-group-item list-group-item-action border-0 py-2 px-4"  style="border-radius: 0px;">${d3.name}</a>`
+                                            return `<a onclick="${gvc.event(()=>{
+                                                data.data=d3
+                                                glitter.setUrlParameter('page',d3.tag)
+                                                gvc.notifyDataChange('HtmlEditorContainer')
+                                            })}"  class=" list-group-item list-group-item-action border-0 py-2 px-4"  style="border-radius: 0px;">${d3.name}</a>`
                                         } else {
-                                            return `<a href="${url.href}"  class=" list-group-item list-group-item-action border-0 py-2 px-4 bg-warning"  style="cursor:pointer;background-color: #FFDC6A !important;color:black !important;border-radius: 0px;">${d3.name}</a>`
+                                            return `<a   class=" list-group-item list-group-item-action border-0 py-2 px-4 bg-warning"  style="cursor:pointer;background-color: #FFDC6A !important;color:black !important;border-radius: 0px;">${d3.name}</a>`
                                         }
                                     }).join('')}
 </div>`

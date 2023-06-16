@@ -40,6 +40,15 @@ router.get('/', async (req: express.Request, resp: express.Response) => {
     }
 });
 
+router.get('/userdata', async (req: express.Request, resp: express.Response) => {
+    try {
+        const user = new User(req.get('g-app') as string);
+        return response.succ(resp, (await user.getUserData(req.query.userID + "")));
+    } catch (err) {
+        return response.fail(resp, err);
+    }
+});
+
 router.put('/', async (req: express.Request, resp: express.Response) => {
     try {
         const user = new User(req.get('g-app') as string);

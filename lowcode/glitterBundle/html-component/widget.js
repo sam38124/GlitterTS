@@ -26,7 +26,8 @@ export const widgetComponent = {
                                         gvc: gvc,
                                         widget: widget,
                                         clickEvent: dd,
-                                        element: { e, event }
+                                        element: { e, event },
+                                        subData: subData
                                     }).then((data) => {
                                     });
                                 })
@@ -206,7 +207,7 @@ export const widgetComponent = {
                                     gvc: gvc,
                                     def: widget.data.elem,
                                     array: ['button', 'h1', 'h2', 'h3', 'h4', 'h5', 'li', 'ul', 'table', 'div', 'header', 'section', 'span', 'p', 'a', 'img', 'style',
-                                        'input', 'select', 'script', 'src'],
+                                        'input', 'select', 'script', 'src', 'textArea'],
                                     callback: (text) => {
                                         widget.data.elem = text;
                                         widget.refreshComponent();

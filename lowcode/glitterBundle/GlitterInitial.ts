@@ -13,8 +13,8 @@ window.addEventListener('resize', function () {
         }
     }
 });
-function listenElementChange(){
-    const targetElement:any = document.querySelector('#glitterPage');
+function listenElementChange(id:string){
+    const targetElement:any = document.querySelector(`#${id}`);
     // 建立 Mutation Observer
     const observer = new MutationObserver(function(mutationsList) {
         // 檢查每個突變（變化）
@@ -73,7 +73,9 @@ glitter.$(document).ready(function () {
     } else if (navigator.userAgent === 'iosGlitter') {
         glitter.deviceType = glitter.deviceTypeEnum.Ios;
     }
-    listenElementChange()
+    listenElementChange(`glitterPage`)
+    listenElementChange(`Navigation`)
+    glitter.closeDrawer()
     Entry.onCreate(glitter);
 });
 

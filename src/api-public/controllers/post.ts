@@ -34,6 +34,20 @@ router.get('/', async (req: express.Request, resp: express.Response) => {
         return response.fail(resp, err);
     }
 });
+router.put('/', async (req: express.Request, resp: express.Response) => {
+    try {
+        const post = new Post(req.get('g-app') as string,req.body.token);
+        const postData = req.body.postData;
+        postData.userID=req.body.token.userID;
+        (await post.putContent({
+            userID:req.body.token.userID,
+            content: JSON.stringify(postData),
+        }))
+        return response.succ(resp, {result: true});
+    } catch (err) {
+        return response.fail(resp, err);
+    }
+});
 
 
 

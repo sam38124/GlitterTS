@@ -566,11 +566,17 @@ export class Glitter {
     }
     ;
     closeDrawer() {
-        window.drawer.close();
+        try {
+            window.drawer.close();
+        }
+        catch (e) { }
     }
     ;
     toggleDrawer() {
-        window.drawer.toggle();
+        try {
+            window.drawer.toggle();
+        }
+        catch (e) { }
     }
     ;
     addScript(url, success, error) {

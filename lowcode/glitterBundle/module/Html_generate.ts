@@ -161,7 +161,8 @@ ${obj.gvc.bindView({
             },
             onCreate: () => {
                 //@ts-ignore
-                autosize($('#' + obj.gvc.id(id)))
+                autosize(obj.gvc.getBindViewElem(id))
+              
             }
         })}`;
     }
@@ -321,8 +322,7 @@ ${obj.gvc.bindView({
                                                         return gvc.event((e, event) => {
                                                             try {
 const hoverID=(gvc.glitter.$(e).attr('gvc-id') as string).replace(gvc.parameter.pageConfig!.id, '');
-                                                                (window.parent as any).glitter.setCookie('lastSelect',
-                                                                    hoverID);
+                                                                (window.parent as any).glitter.setCookie('lastSelect',hoverID);
                                                                 (window.parent as any).glitter.share.refreshMainLeftEditor();
                                                                 (window.parent as any).glitter.share.refreshMainRightEditor();
                                                                 hover=[hoverID];

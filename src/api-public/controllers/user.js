@@ -39,6 +39,15 @@ router.get('/', async (req, resp) => {
         return response_1.default.fail(resp, err);
     }
 });
+router.get('/userdata', async (req, resp) => {
+    try {
+        const user = new user_1.User(req.get('g-app'));
+        return response_1.default.succ(resp, (await user.getUserData(req.query.userID + "")));
+    }
+    catch (err) {
+        return response_1.default.fail(resp, err);
+    }
+});
 router.put('/', async (req, resp) => {
     try {
         const user = new user_1.User(req.get('g-app'));

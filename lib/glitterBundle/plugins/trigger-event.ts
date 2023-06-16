@@ -192,7 +192,6 @@ export class TriggerEvent {
         }
 
         return new Promise(async (resolve, reject) => {
-
             let result=true
             for (const a of arrayEvent) {
                 result = await new Promise<boolean>((resolve, reject) => {
@@ -216,7 +215,7 @@ export class TriggerEvent {
                     break
                 }
             }
-            resolve(result)
+            resolve(returnData)
         })
     }
 
@@ -253,6 +252,9 @@ export class TriggerEvent {
                             })}"></i>
 </div>    
 <div class="mt-2 border border-white p-2">
+<div class="alert alert-info">
+您可以透過事件，來為您的元件添加觸發事件，包含連結跳轉/內容取得/資料儲存/頁面渲染/動畫事件/內容發布....等，都能透過事件來完成．
+</div>
 ${Editor.arrayItem({
                                 originalArray: arrayEvent,
                                 gvc: gvc,
