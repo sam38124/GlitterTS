@@ -151,6 +151,7 @@ export class TriggerEvent {
             return new Promise<boolean>(async (resolve, reject) => {
                 async function pass() {
                     try {
+                        const gvc=oj.gvc
                         setTimeout(() => {
                             resolve(true)
                         }, 4000)
@@ -161,6 +162,7 @@ export class TriggerEvent {
                         }
                         resolve(true)
                     } catch (e) {
+                        console.log(e)
                         resolve(false)
                     }
                 }

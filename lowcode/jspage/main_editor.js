@@ -12,7 +12,12 @@ export class Main_editor {
             let items = [];
             let styleItems = [];
             let scriptItems = [];
+            let filterID = [];
             function addItems(dd, array, index2) {
+                if (filterID.indexOf(dd.id) !== -1) {
+                    dd.id = glitter.getUUID();
+                }
+                filterID.push(dd.id);
                 if (glitter.getCookieByName('lastSelect') === dd.id) {
                     viewModel.selectItem = dd;
                     viewModel.selectContainer = array;
@@ -323,7 +328,6 @@ onclick="${gvc.event((e, event) => {
                                         const needUpdate = d2.select;
                                         clearSelect();
                                         d2.select = true;
-                                        851124;
                                         gvc.notifyDataChange(toggleID);
                                         parentCallback();
                                         d2.click();

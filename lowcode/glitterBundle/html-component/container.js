@@ -7,10 +7,14 @@ export const containerComponent = {
         const glitter = window.glitter;
         return {
             view: () => {
-                return widgetComponent.render(gvc, widget, setting, hoverID, subData).view();
+                return widgetComponent.render(gvc, widget, setting, hoverID, subData, {
+                    widgetComponentID: gvc.glitter.getUUID()
+                }).view();
             },
             editor: (() => {
-                return widgetComponent.render(gvc, widget, setting, hoverID, subData).editor();
+                return widgetComponent.render(gvc, widget, setting, hoverID, subData, {
+                    widgetComponentID: gvc.glitter.getUUID()
+                }).editor();
             })
         };
     }

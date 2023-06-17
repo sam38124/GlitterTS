@@ -9,14 +9,18 @@ export const containerComponent = {
         const glitter = (window as any).glitter
         return {
             view: () => {
-                return widgetComponent.render(gvc, widget,setting,hoverID,subData).view()
+                return widgetComponent.render(gvc, widget,setting,hoverID,subData,{
+                    widgetComponentID:gvc.glitter.getUUID()
+                }).view()
                 // return htmlGenerate.render(gvc, {
                 //     class: `${glitter.htmlGenerate.styleEditor(widget.data.styleEd).class()}`,
                 //     style: glitter.htmlGenerate.styleEditor(widget.data.styleEd).style()
                 // })
             },
             editor: (() => {
-                return widgetComponent.render(gvc, widget,setting,hoverID,subData).editor()
+                return widgetComponent.render(gvc, widget,setting,hoverID,subData,{
+                    widgetComponentID:gvc.glitter.getUUID()
+                }).editor()
             })
         }
     }}

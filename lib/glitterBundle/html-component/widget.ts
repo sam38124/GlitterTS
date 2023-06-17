@@ -6,12 +6,12 @@ import {Editor} from "./editor.js";
 import {containerComponent} from "./container.js";
 
 export const widgetComponent = {
-    render: (gvc: GVC, widget: HtmlJson, setting: HtmlJson[], hoverID: string[], subData: any) => {
+    render: (gvc: GVC, widget: HtmlJson, setting: HtmlJson[], hoverID: string[], subData: any,htmlGenerate:any) => {
         const glitter = gvc.glitter
         widget.data.elem = widget.data.elem ?? "h3"
         widget.data.inner = widget.data.inner ?? ""
         widget.data.attr = widget.data.attr ?? []
-        const id = subData.widgetComponentID
+        const id = htmlGenerate.widgetComponentID
         subData = subData ?? {}
         let formData = subData
         return {
@@ -28,7 +28,8 @@ export const widgetComponent = {
                                         gvc: gvc,
                                         widget: widget,
                                         clickEvent: dd,
-                                        element: {e, event}
+                                        element: {e, event},
+                                        subData:subData
                                     }).then((data) => {
                                     })
                                 })
@@ -49,7 +50,7 @@ export const widgetComponent = {
                         elem: widget.data.elem,
                         class: glitter.htmlGenerate.styleEditor(widget.data,gvc,widget as any,subData).class() + ` glitterTag${widget.hashTag} ${hoverID.indexOf(widget.id) !== -1 ? ` selectComponentHover` : ``}`,
                         style: glitter.htmlGenerate.styleEditor(widget.data,gvc,widget as any,subData).style() ,
-                        option: option.concat(subData.option),
+                        option: option.concat(htmlGenerate.option),
                     }
                 }
                 if (widget.type === 'container') {
@@ -208,7 +209,7 @@ export const widgetComponent = {
                                     gvc: gvc,
                                     def: widget.data.elem,
                                     array: ['button', 'h1', 'h2', 'h3', 'h4', 'h5', 'li', 'ul', 'table', 'div', 'header', 'section', 'span', 'p', 'a', 'img', 'style'
-                                        , 'input', 'select', 'script', 'src'],
+                                        , 'input', 'select', 'script', 'src','textArea'],
                                     callback: (text: string) => {
                                         widget.data.elem = text
                                         widget.refreshComponent()

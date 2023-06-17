@@ -422,6 +422,7 @@ export class Editor {
                                                 class="dropdown-item"
                                                 onclick="${gvc.event(() => {
                                     obj.def = d3;
+                                    gvc.notifyDataChange(id2)
                                     obj.callback(obj.def);
                                 })}"
                                             >

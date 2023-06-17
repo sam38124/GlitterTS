@@ -35,38 +35,62 @@ export class Plugin {
         const glitter = window.glitter;
         url.searchParams.set("original", original);
         return (gvc, widget, setting, hoverID, subData) => {
-            var _a, _b, _c;
+            var _a;
             glitter.share.componentData = (_a = glitter.share.componentData) !== null && _a !== void 0 ? _a : {};
             let val = glitter.share.componentData[url.href];
-            glitter.share.componentCallback = (_b = glitter.share.componentCallback) !== null && _b !== void 0 ? _b : {};
-            glitter.share.componentCallback[url.href] = (_c = glitter.share.componentCallback[url.href]) !== null && _c !== void 0 ? _c : [];
-            glitter.share.componentCallback[url.href].push((dd) => {
-                glitter.share.componentData[url.href] = dd;
-                widget.refreshComponent();
-            });
-            gvc.glitter.addMtScript([
-                {
-                    src: url,
-                    type: 'module'
+            function startSync(callback) {
+                var _a, _b;
+                if (val) {
+                    callback();
+                    return;
                 }
-            ], () => {
-                val = glitter.share.componentData[url.href];
-                glitter.deBugMessage('setComponent-->' + url);
-            }, () => { });
+                glitter.share.componentCallback = (_a = glitter.share.componentCallback) !== null && _a !== void 0 ? _a : {};
+                glitter.share.componentCallback[url.href] = (_b = glitter.share.componentCallback[url.href]) !== null && _b !== void 0 ? _b : [];
+                glitter.share.componentCallback[url.href].push((dd) => {
+                    val = glitter.share.componentData[url.href];
+                    glitter.share.componentData[url.href] = dd;
+                    callback();
+                });
+                gvc.glitter.addMtScript([
+                    {
+                        src: url,
+                        type: 'module'
+                    }
+                ], () => {
+                    glitter.deBugMessage('setComponent-->' + url);
+                }, () => {
+                });
+            }
             return {
                 view: () => {
-                    if (!val) {
-                        return ``;
-                    }
-                    return val.render(gvc, widget, setting, hoverID, subData)
-                        .view();
+                    return new Promise((resolve, reject) => {
+                        startSync(() => {
+                            const data = val.render(gvc, widget, setting, hoverID, subData).view();
+                            if (typeof data === 'string') {
+                                resolve(data);
+                            }
+                            else {
+                                data.then((res) => {
+                                    resolve(res);
+                                });
+                            }
+                        });
+                    });
                 },
                 editor: () => {
-                    if (!val) {
-                        return ``;
-                    }
-                    return val.render(gvc, widget, setting, hoverID, subData)
-                        .editor();
+                    return new Promise((resolve, reject) => {
+                        startSync(() => {
+                            const data = val.render(gvc, widget, setting, hoverID, subData).editor();
+                            if (typeof data === 'string') {
+                                resolve(data);
+                            }
+                            else {
+                                data.then((res) => {
+                                    resolve(res);
+                                });
+                            }
+                        });
+                    });
                 }
             };
         };

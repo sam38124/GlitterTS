@@ -1,13 +1,13 @@
 import { TriggerEvent } from "../plugins/trigger-event.js";
 import { Editor } from "./editor.js";
 export const widgetComponent = {
-    render: (gvc, widget, setting, hoverID, subData) => {
+    render: (gvc, widget, setting, hoverID, subData, htmlGenerate) => {
         var _a, _b, _c;
         const glitter = gvc.glitter;
         widget.data.elem = (_a = widget.data.elem) !== null && _a !== void 0 ? _a : "h3";
         widget.data.inner = (_b = widget.data.inner) !== null && _b !== void 0 ? _b : "";
         widget.data.attr = (_c = widget.data.attr) !== null && _c !== void 0 ? _c : [];
-        const id = subData.widgetComponentID;
+        const id = htmlGenerate.widgetComponentID;
         subData = subData !== null && subData !== void 0 ? subData : {};
         let formData = subData;
         return {
@@ -49,7 +49,7 @@ export const widgetComponent = {
                         elem: widget.data.elem,
                         class: glitter.htmlGenerate.styleEditor(widget.data, gvc, widget, subData).class() + ` glitterTag${widget.hashTag} ${hoverID.indexOf(widget.id) !== -1 ? ` selectComponentHover` : ``}`,
                         style: glitter.htmlGenerate.styleEditor(widget.data, gvc, widget, subData).style(),
-                        option: option.concat(subData.option),
+                        option: option.concat(htmlGenerate.option),
                     };
                 }
                 if (widget.type === 'container') {

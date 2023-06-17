@@ -9,21 +9,28 @@ enum ViewType {
 
 export class Main_editor {
     public static left(gvc: GVC, viewModel: any, createID: string, gBundle: any) {
+
         const swal = new Swal(gvc);
         const glitter = gvc.glitter
         return gvc.bindView(() => {
             let items: any[] = [];
             let styleItems: any[] = []
             let scriptItems: any[] = []
+            let filterID: string[] = []
+
             function addItems(dd: any, array: any, index2: number) {
+                if (filterID.indexOf(dd.id) !== -1) {
+                    dd.id = glitter.getUUID()
+                }
+                filterID.push(dd.id)
                 if (glitter.getCookieByName('lastSelect') === dd.id) {
                     viewModel.selectItem = dd;
                     viewModel.selectContainer = array
                     viewModel.selectIndex = index2
                 }
                 if (dd.type === 'container') {
-                    const option=dd.data.setting.map((d4: any, index: number) => {
-                        d4.index=index
+                    const option = dd.data.setting.map((d4: any, index: number) => {
+                        d4.index = index
                         return addItems(d4, dd.data.setting, index);
                     })
                     return {
@@ -60,7 +67,7 @@ export class Main_editor {
                         },
                         dataArray: array,
                         changeIndex: (index: number) => {
-                            dd.index=index
+                            dd.index = index
                         },
                         index: dd.index,
                         setting: dd.data.setting,
@@ -69,7 +76,7 @@ export class Main_editor {
                 } else {
                     return {
                         'text': dd.label,
-                        index:dd.index,
+                        index: dd.index,
                         copy: () => {
                             viewModel.waitCopy = dd
                             navigator.clipboard.writeText('glitter-copyEvent' + JSON.stringify(viewModel.waitCopy));
@@ -102,7 +109,7 @@ export class Main_editor {
                         },
                         dataArray: array,
                         changeIndex: (index: number) => {
-                            dd.index=index
+                            dd.index = index
                         },
                         select: glitter.getCookieByName('lastSelect') === dd.id
                     };
@@ -110,28 +117,26 @@ export class Main_editor {
             }
 
             (viewModel.data! as any).config.map((d3: any, index: number) => {
-                if(d3){
-                    d3.index=index
-                    if (d3.data && ((d3.data.elem === 'style')  || ((d3.data.elem === 'link')&&(d3.data.attr.find((dd:any)=>{
-                        return dd.attr==='rel' && dd.value==='stylesheet'
-                    }))) )) {
+                if (d3) {
+                    d3.index = index
+                    if (d3.data && ((d3.data.elem === 'style') || ((d3.data.elem === 'link') && (d3.data.attr.find((dd: any) => {
+                        return dd.attr === 'rel' && dd.value === 'stylesheet'
+                    }))))) {
                         styleItems.push(addItems(d3, (viewModel.data! as any).config, index))
-                    }else if(d3.data && ((d3.data.elem === 'script'))){
+                    } else if (d3.data && ((d3.data.elem === 'script'))) {
                         scriptItems.push(addItems(d3, (viewModel.data! as any).config, index));
-                    }else{
+                    } else {
                         items.push(addItems(d3, (viewModel.data! as any).config, index));
                     }
                 }
-
-
             });
 
             items = [
                 {
                     title: `排版設計`,
                     option: styleItems,
-                    html: (()=>{
-                        let toggle=glitter.getCookieByName('groupG-0')==="true"
+                    html: (() => {
+                        let toggle = glitter.getCookieByName('groupG-0') === "true"
                         return `<li class=" align-items-center list-group-item list-group-item-action border-0 py-2 px-4  position-relative d-flex text-dark" style="background:lightgrey;"
 onclick="${gvc.event(() => {
                             glitter.setCookie('lastSelect', '');
@@ -140,7 +145,7 @@ onclick="${gvc.event(() => {
                             gvc.notifyDataChange(createID)
                         })}"
 >Style 設計樣式<button class="rounded-circle btn-warning  btn  ms-2 d-flex align-items-center justify-content-center p-0" style="height: 25px;width: 25px;" onclick="${gvc.event((e, event) => {
-                           event.stopPropagation();
+                            event.stopPropagation();
                             glitter.openDiaLog('dialog/cadd-style-Dialog.js', 'caddStyleDialog', {
                                 callback: (data: any) => {
                                     (viewModel.data! as any).config.push(data);
@@ -152,25 +157,25 @@ onclick="${gvc.event(() => {
                         })}">
 <i class="fa-sharp fa-solid fa-circle-plus " style="color: black;"></i></button>
 <div class="flex-fill"></div>
-<button class="btn btn-primary" style="width:50px;height:30px;" onclick="${gvc.event((e,event)=>{
+<button class="btn btn-primary" style="width:50px;height:30px;" onclick="${gvc.event((e, event) => {
                             $(`.groupG-0`).toggleClass('d-none')
-                            toggle=!toggle
-                            glitter.setCookie('groupG-0',toggle)
+                            toggle = !toggle
+                            glitter.setCookie('groupG-0', toggle)
                             event.stopPropagation()
-                            if(toggle){
-                               $(e).html("收合")
-                            }else{
+                            if (toggle) {
+                                $(e).html("收合")
+                            } else {
                                 $(e).html("展開")
                             }
-                        })}">${(glitter.getCookieByName('groupG-0')!=="true") ? `展開`:`收合`}</button>
+                        })}">${(glitter.getCookieByName('groupG-0') !== "true") ? `展開` : `收合`}</button>
 </li>`
                     })()
                 },
                 {
                     title: `Script區塊`,
                     option: scriptItems,
-                    html: (()=>{
-                        let toggle=glitter.getCookieByName('groupG-1')==="true"
+                    html: (() => {
+                        let toggle = glitter.getCookieByName('groupG-1') === "true"
                         return `<li class="align-items-center list-group-item list-group-item-action border-0 py-2 px-4  position-relative d-flex text-dark" 
 style="background:lightgrey;"
 onclick="${gvc.event(() => {
@@ -193,17 +198,17 @@ onclick="${gvc.event((e, event) => {
                         })}">
 <i class="fa-sharp fa-solid fa-circle-plus " style="color: black;"></i></button>
 <div class="flex-fill"></div>
-<button class="btn btn-primary" style="width:50px;height:30px;" onclick="${gvc.event((e,event)=>{
+<button class="btn btn-primary" style="width:50px;height:30px;" onclick="${gvc.event((e, event) => {
                             $(`.groupG-1`).toggleClass('d-none')
-                            toggle=!toggle
-                            glitter.setCookie('groupG-1',toggle)
+                            toggle = !toggle
+                            glitter.setCookie('groupG-1', toggle)
                             event.stopPropagation()
-                            if(toggle){
+                            if (toggle) {
                                 $(e).html("收合")
-                            }else{
+                            } else {
                                 $(e).html("展開")
                             }
-                        })}">${(glitter.getCookieByName('groupG-1')!=="true") ? `展開`:`收合`}</button>
+                        })}">${(glitter.getCookieByName('groupG-1') !== "true") ? `展開` : `收合`}</button>
 </li>`
                     })()
                 },
@@ -262,7 +267,7 @@ onclick="${gvc.event((e, event) => {
                         div: ''
                     };
                     let indexCounter = 9999;
-                    return   items.map((dd, index) => {
+                    return items.map((dd, index) => {
                         return `<ul class="list-group list-group-flush border-bottom   mx-n4 m-0">
                                                     ${dd.html}
                                                         ${(() => {
@@ -285,17 +290,18 @@ onclick="${gvc.event((e, event) => {
                                     }
                                     return false;
                                 }
+
                                 if (d2.option) {
                                     const id = glitter.getUUID();
                                     const dragID2 = glitter.getUUID();
-                                    const toggleID=glitter.getUUID()
-                                    let act=checkOptionSelect(d2);
-                          
-                                    const toggle=gvc.event((e,event) => {
+                                    const toggleID = glitter.getUUID()
+                                    let act = checkOptionSelect(d2);
+
+                                    const toggle = gvc.event((e, event) => {
                                         const needUpdate = d2.select;
                                         clearSelect();
                                         d2.select = true;
-                                        act=!act;
+                                        act = !act;
                                         ($(`#${id}`) as any).slideToggle('slow');
                                         gvc.notifyDataChange(toggleID);
                                         parentCallback();
@@ -308,7 +314,7 @@ onclick="${gvc.event((e, event) => {
                                         }
                                         event.stopPropagation()
                                     })
-                                 
+
                                     return `<li class="ms-2 list-group-item list-group-item-action border-0 py-2 px-4 ${
                                         checkOptionSelect(d2) ? `active` : ``
                                     } position-relative d-flex align-items-center groupG-${index} d-none"
@@ -331,10 +337,10 @@ onclick="${gvc.event((e, event) => {
                                                             ondragend="${gvc.event(() => {
                                         dragOption.changeIndex(dragm.start, dragm.end);
                                     })}"
-                                                            onclick="${gvc.event((e,event)=>{
+                                                            onclick="${gvc.event((e, event) => {
                                         const needUpdate = d2.select;
                                         clearSelect();
-                                        d2.select = true;851124
+                                        d2.select = true;
                                         gvc.notifyDataChange(toggleID);
                                         parentCallback();
                                         d2.click();
@@ -347,16 +353,16 @@ onclick="${gvc.event((e, event) => {
                                         event.stopPropagation()
                                     })}"
                                                             >
-                                                            ${gvc.bindView(()=>{
-                                                                return {
-                                                                    bind:toggleID,
-                                                                    view:()=>{
-                                                                        return (act) ? `<i class="fa-solid fa-caret-up me-2" onclick="${toggle}"></i>`:`
+                                                            ${gvc.bindView(() => {
+                                        return {
+                                            bind: toggleID,
+                                            view: () => {
+                                                return (act) ? `<i class="fa-solid fa-caret-up me-2" onclick="${toggle}"></i>` : `
                                                               <i class="fa-sharp fa-solid fa-caret-down me-2" onclick="${toggle}"></i>
                                                             `
-                                                                    },
-                                                                    divCreate:{}
-                                                                }
+                                            },
+                                            divCreate: {}
+                                        }
                                     })}
                                                           
                                                                       ${d2.text}
@@ -394,10 +400,11 @@ onclick="${gvc.event((e, event) => {
                                                     dragId: dragID2,
                                                     index: d4.index,
                                                     changeIndex: (n1, n2) => {
-                                                        
+
                                                         swapArr(d4.dataArray, n1, n2);
                                                         swapArr(d2.option, n1, n2);
-                                                        gvc.notifyDataChange(createID);;
+                                                        gvc.notifyDataChange(createID);
+                                                        ;
                                                     }
                                                 });
                                             })
@@ -472,10 +479,10 @@ onclick="${gvc.event((e, event) => {
                     class: `swiper-slide h-auto`,
                 },
                 onCreate: () => {
-                    if(glitter.getCookieByName('groupG-0')==="true"){
+                    if (glitter.getCookieByName('groupG-0') === "true") {
                         $(`.groupG-0`).toggleClass('d-none');
                     }
-                    if(glitter.getCookieByName('groupG-1')==="true"){
+                    if (glitter.getCookieByName('groupG-1') === "true") {
                         $(`.groupG-1`).toggleClass('d-none');
                     }
                     $(`.groupG-2`).toggleClass('d-none');
@@ -495,7 +502,7 @@ onclick="${gvc.event((e, event) => {
                     if (viewModel.selectItem !== undefined) {
                         hoverList.push((viewModel.selectItem as any).id);
                     }
-                    const htmlGenerate = new glitter.htmlGenerate((viewModel.data! as any).config, hoverList,undefined,true);
+                    const htmlGenerate = new glitter.htmlGenerate((viewModel.data! as any).config, hoverList, undefined, true);
                     (window as any).editerData = htmlGenerate;
                     (window as any).page_config = (viewModel.data! as any).page_config
                     const json = JSON.parse(JSON.stringify((viewModel.data! as any).config));
