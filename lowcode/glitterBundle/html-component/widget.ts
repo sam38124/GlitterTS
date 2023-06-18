@@ -8,6 +8,7 @@ import {containerComponent} from "./container.js";
 export const widgetComponent = {
     render: (gvc: GVC, widget: HtmlJson, setting: HtmlJson[], hoverID: string[], subData: any,htmlGenerate:any) => {
         const glitter = gvc.glitter
+
         widget.data.elem = widget.data.elem ?? "h3"
         widget.data.inner = widget.data.inner ?? ""
         widget.data.attr = widget.data.attr ?? []
@@ -20,7 +21,11 @@ export const widgetComponent = {
                 function getCreateOption() {
                     let option = widget.data.attr.map((dd: any) => {
                         if (dd.type === 'par') {
-                            return {key: dd.attr, value: dd.value}
+                            try {
+                                return {key: dd.attr, value: eval(dd.value)}
+                            }catch (e){
+                                return {key: dd.attr, value: dd.value}
+                            }
                         } else {
                             return {
                                 key: dd.attr, value: gvc.event((e, event) => {
@@ -528,11 +533,18 @@ export const widgetComponent = {
                                                         }
                                                     })
                                                 } else {
-                                                    return glitter.htmlGenerate.editeInput({
+                                                    return glitter.htmlGenerate.editeText({
                                                         gvc: gvc,
                                                         title: '參數內容',
                                                         default: dd.value ?? "",
-                                                        placeHolder: "輸入參數內容",
+                                                        placeHolder: `直接輸入參數數值，或者撰寫程式碼來帶入內容:
+範例:
+ 1.(()=>{
+     //從此頁面的資料儲存物件中拉取資料．
+     return gvc.getBundle()['value'];
+     })()
+     
+     `,
                                                         callback: (text) => {
                                                             dd.value = text
                                                             widget.refreshComponent()

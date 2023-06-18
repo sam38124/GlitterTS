@@ -17,7 +17,7 @@ export class Main_editor {
             let styleItems: any[] = []
             let scriptItems: any[] = []
             let filterID: string[] = []
-
+            let triggerItems:any[]=[]
             function addItems(dd: any, array: any, index2: number) {
                 if (filterID.indexOf(dd.id) !== -1) {
                     dd.id = glitter.getUUID()
@@ -125,7 +125,9 @@ export class Main_editor {
                         styleItems.push(addItems(d3, (viewModel.data! as any).config, index))
                     } else if (d3.data && ((d3.data.elem === 'script'))) {
                         scriptItems.push(addItems(d3, (viewModel.data! as any).config, index));
-                    } else {
+                    } else if (d3.data && ((d3.type === 'code'))){
+                        triggerItems.push(addItems(d3, (viewModel.data! as any).config, index));
+                    }else{
                         items.push(addItems(d3, (viewModel.data! as any).config, index));
                     }
                 }
@@ -172,7 +174,7 @@ onclick="${gvc.event(() => {
                     })()
                 },
                 {
-                    title: `Script區塊`,
+                    title: `Script標籤`,
                     option: scriptItems,
                     html: (() => {
                         let toggle = glitter.getCookieByName('groupG-1') === "true"
@@ -209,6 +211,47 @@ onclick="${gvc.event((e, event) => {
                                 $(e).html("展開")
                             }
                         })}">${(glitter.getCookieByName('groupG-1') !== "true") ? `展開` : `收合`}</button>
+</li>`
+                    })()
+                },
+                {
+                    title: `觸發事件`,
+                    option: triggerItems,
+                    html: (() => {
+                        let toggle = glitter.getCookieByName('groupG-2') === "true"
+                        return `<li class="align-items-center list-group-item list-group-item-action border-0 py-2 px-4  position-relative d-flex text-dark" 
+style="background:lightgrey;"
+onclick="${gvc.event(() => {
+                            glitter.setCookie('lastSelect', '');
+                            viewModel.selectItem = undefined
+                            viewModel.selectContainer = (viewModel.data! as any).config
+                            gvc.notifyDataChange(createID)
+                        })}"
+>觸發事件<button class="rounded-circle btn-warning  btn  ms-2 d-flex align-items-center justify-content-center p-0" style="height: 25px;width: 25px;"
+onclick="${gvc.event((e, event) => {
+                            event.stopPropagation();
+                            glitter.openDiaLog('dialog/cadd-script-Dialog.js', 'addScript', {
+                                callback: (data: any) => {
+                                    (viewModel.data! as any).config.push(data);
+                                    glitter.setCookie('lastSelect', data.id);
+                                    gvc.notifyDataChange(createID)
+                                },
+                                appName: gBundle.appName
+                            });
+                        })}">
+<i class="fa-sharp fa-solid fa-circle-plus " style="color: black;"></i></button>
+<div class="flex-fill"></div>
+<button class="btn btn-primary" style="width:50px;height:30px;" onclick="${gvc.event((e, event) => {
+                            $(`.groupG-2`).toggleClass('d-none')
+                            toggle = !toggle
+                            glitter.setCookie('groupG-2', toggle)
+                            event.stopPropagation()
+                            if (toggle) {
+                                $(e).html("收合")
+                            } else {
+                                $(e).html("展開")
+                            }
+                        })}">${(glitter.getCookieByName('groupG-2') !== "true") ? `展開` : `收合`}</button>
 </li>`
                     })()
                 },
@@ -485,7 +528,10 @@ onclick="${gvc.event((e, event) => {
                     if (glitter.getCookieByName('groupG-1') === "true") {
                         $(`.groupG-1`).toggleClass('d-none');
                     }
-                    $(`.groupG-2`).toggleClass('d-none');
+                    if (glitter.getCookieByName('groupG-2') === "true") {
+                        $(`.groupG-2`).toggleClass('d-none');
+                    }
+                    $(`.groupG-3`).removeClass('d-none');
                 }
             };
         })

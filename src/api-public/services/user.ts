@@ -48,7 +48,9 @@ export class User {
             throw exception.BadRequestError('BAD_REQUEST', 'Login Error:' + e, null);
         }
     }
+
     public async getUserData(userID: string) {
+
         try {
             const data: any = (await db.execute(`select *
                                                  from \`${this.app}\`.user

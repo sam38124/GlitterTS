@@ -117,7 +117,7 @@ export class TriggerEvent {
                     }, 100)
                 }
                 fal += 1
-                console.log('error' + url)
+                // console.log('error' + url)
             }
         }
 
@@ -151,36 +151,42 @@ export class TriggerEvent {
             return new Promise<boolean>(async (resolve, reject) => {
                 async function pass() {
                     try {
-                        const gvc=oj.gvc
+                        const gvc = oj.gvc
                         setTimeout(() => {
                             resolve(true)
                         }, 4000)
                         returnData = await oj.gvc.glitter.share.clickEvent[glitter.htmlGenerate.resourceHook(event.clickEvent.src)][event.clickEvent.route].fun(oj.gvc, oj.widget, event, oj.subData, oj.element).event()
-                        const response=returnData
-                        if(event.dataPlace){
+
+                        const response = returnData
+                        if (event.dataPlace) {
                             eval(event.dataPlace)
                         }
                         resolve(true)
                     } catch (e) {
-                        console.log(e)
-                        resolve(false)
+                        returnData = event.errorCode ?? ""
+                        resolve(true)
                     }
                 }
 
-                oj.gvc.glitter.share.clickEvent = oj.gvc.glitter.share.clickEvent ?? {}
-                if (!oj.gvc.glitter.share.clickEvent[event.clickEvent.src]) {
-                    await new Promise((resolve, reject) => {
-                        oj.gvc.glitter.addMtScript([
-                            {src: `${glitter.htmlGenerate.resourceHook(event.clickEvent.src)}`, type: 'module'}
-                        ], () => {
-                            pass()
-                        }, () => {
-                            resolve(false)
+                try {
+                    oj.gvc.glitter.share.clickEvent = oj.gvc.glitter.share.clickEvent ?? {}
+                    if (!oj.gvc.glitter.share.clickEvent[event.clickEvent.src]) {
+                        await new Promise((resolve, reject) => {
+                            oj.gvc.glitter.addMtScript([
+                                {src: `${glitter.htmlGenerate.resourceHook(event.clickEvent.src)}`, type: 'module'}
+                            ], () => {
+                                pass()
+                            }, () => {
+                                resolve(false)
+                            })
                         })
-                    })
-                } else {
+                    } else {
+                        pass()
+                    }
+                } catch (e) {
                     pass()
                 }
+
             })
         }
 
@@ -212,7 +218,6 @@ export class TriggerEvent {
 
                     check()
                 })
-                // alert(result)
                 if (!result) {
                     break
                 }
@@ -324,14 +329,14 @@ ${Editor.arrayItem({
                                                                             bind: id,
                                                                             view: () => {
                                                                                 try {
-                                                                                    let text=``
+                                                                                    let text = ``
                                                                                     if (!glitter.share.clickEvent[glitter.htmlGenerate.resourceHook(obj.clickEvent.src)]) {
-                                                                                        text= ``
-                                                                                    }else{
-                                                                                        text=glitter.share.clickEvent[glitter.htmlGenerate.resourceHook(obj.clickEvent.src)][obj.clickEvent.route].fun(gvc, widget, obj).editor()
+                                                                                        text = ``
+                                                                                    } else {
+                                                                                        text = glitter.share.clickEvent[glitter.htmlGenerate.resourceHook(obj.clickEvent.src)][obj.clickEvent.route].fun(gvc, widget, obj).editor()
                                                                                     }
-                                                                                    if(text.replace(/ /g,'')===''){
-                                                                                        return  `<span>此事件無設定拓展項目</span>`
+                                                                                    if (text.replace(/ /g, '') === '') {
+                                                                                        return `<span>此事件無設定拓展項目</span>`
                                                                                     }
                                                                                     return text
                                                                                 } catch (e) {
@@ -371,17 +376,18 @@ ${Editor.arrayItem({
                                                         })()}</div>
 ${(() => {
                                                             obj.dataPlaceExpand = obj.dataPlaceExpand ?? {}
+                                                            obj.errorPlaceExpand = obj.errorPlaceExpand ?? {}
                                                             return `<div class="mt-2 border-white rounded" style="border-width:3px;">
 ${Editor.toggleExpand({
                                                                 gvc: gvc,
-                                                                title: "<span class='text-black' style=''>資料儲存位置[留空則不儲存]</span>",
+                                                                title: "<span class='text-black' style=''>返回事件</span>",
                                                                 data: obj.dataPlaceExpand,
                                                                 innerText: () => {
                                                                     return glitter.htmlGenerate.editeText({
                                                                         gvc: gvc,
                                                                         title: "",
                                                                         default: obj.dataPlace ?? "",
-                                                                        placeHolder: `請輸入返回資料的儲存位置:
+                                                                        placeHolder: `執行事件或儲存返回資料:
 範例:
  (()=>{
    //將資料儲存於當前頁面．
@@ -398,7 +404,25 @@ ${Editor.toggleExpand({
                                                                 class: ` `,
                                                                 style: `background:#65379B;border:2px solid white;`,
                                                             })}
-</div>`
+</div>` + `<div class="mt-2 border-white rounded" style="border-width:3px;">${Editor.toggleExpand({
+                                                                gvc: gvc,
+                                                                title: "<span class='text-black' style=''>異常返回值</span>",
+                                                                data: obj.errorPlaceExpand,
+                                                                innerText: () => {
+                                                                    return glitter.htmlGenerate.editeInput({
+                                                                        gvc: gvc,
+                                                                        title: "",
+                                                                        default: obj.errorCode ?? "",
+                                                                        placeHolder: `請輸入參數值`,
+                                                                        callback: (text: string) => {
+                                                                            obj.errorCode = text
+                                                                            widget.refreshComponent()
+                                                                        }
+                                                                    })
+                                                                },
+                                                                class: ` `,
+                                                                style: `background:#65379B;border:2px solid white;`,
+                                                            })}</div>`
                                                         })()}
 
 `

@@ -51,8 +51,10 @@ class Post {
     async putContent(content) {
         try {
             const reContent = JSON.parse(content.content);
-            const data = await database_1.default.query(`update  \`${this.app}\`.\`t_post\`
-                                         SET ? where 1=1 and id=${reContent.id}`, [
+            const data = await database_1.default.query(`update \`${this.app}\`.\`t_post\`
+                                         SET ?
+                                         where 1 = 1
+                                           and id = ${reContent.id}`, [
                 content
             ]);
             reContent.id = data.insertId;
@@ -71,9 +73,10 @@ class Post {
             let userData = {};
             let query = ``;
             const app = this.app;
+            let selectOnly = ` * `;
             function getQueryString(dd) {
                 var _a;
-                if (!dd || dd.length === 0) {
+                if (!dd || dd.length === 0 || dd.key === '') {
                     return ``;
                 }
                 if (dd.type === 'relative_post') {
@@ -90,13 +93,36 @@ class Post {
                     return ` and JSON_EXTRACT(content, '$.${dd.key}') LIKE '%${dd.value}%'`;
                 }
             }
+            function getSelectString(dd) {
+                if (!dd || dd.length === 0) {
+                    return ``;
+                }
+                if (dd.type === 'SUM') {
+                    return ` SUM(JSON_EXTRACT(content, '$.${dd.key}')) AS ${dd.value}`;
+                }
+                else if (dd.type === 'count') {
+                    return ` count(1)`;
+                }
+                else {
+                    return `  JSON_EXTRACT(content, '$.${dd.key}') AS '${dd.value}' `;
+                }
+            }
             if (content.query) {
                 content.query = JSON.parse(content.query);
                 content.query.map((dd) => {
                     query += getQueryString(dd);
                 });
             }
-            console.log(query);
+            console.log(`query---`, query);
+            if (content.selectOnly) {
+                content.selectOnly = JSON.parse(content.selectOnly);
+                content.selectOnly.map((dd, index) => {
+                    if (index === 0) {
+                        selectOnly = '';
+                    }
+                    selectOnly += getSelectString(dd);
+                });
+            }
             if (content.datasource) {
                 content.datasource = JSON.parse(content.datasource);
                 if (content.datasource.length > 0) {
@@ -105,7 +131,7 @@ class Post {
                     }).join("','")}')`;
                 }
             }
-            const data = (await database_1.default.query(`select *
+            const data = (await database_1.default.query(`select ${selectOnly}
                                           from \`${this.app}\`.\`t_post\`
                                           where userID in (select userID
                                                            from \`${this.app}\`.\`user\`)

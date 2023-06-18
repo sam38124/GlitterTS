@@ -10,6 +10,7 @@ export class Post {
 
     public async postContent(content: any) {
         try {
+
             const data = await db.query(`INSERT INTO \`${this.app}\`.\`t_post\`
                                          SET ?`, [
                 content
@@ -28,9 +29,12 @@ export class Post {
 
     public async putContent(content: any) {
         try {
+
             const reContent = JSON.parse(content.content)
-            const data = await db.query(`update  \`${this.app}\`.\`t_post\`
-                                         SET ? where 1=1 and id=${reContent.id}`, [
+            const data = await db.query(`update \`${this.app}\`.\`t_post\`
+                                         SET ?
+                                         where 1 = 1
+                                           and id = ${reContent.id}`, [
                 content
             ])
             reContent.id = data.insertId
@@ -50,16 +54,16 @@ export class Post {
             let userData: any = {}
             let query = ``;
             const app = this.app
-
+            let selectOnly = ` * `
             function getQueryString(dd: any): any {
-                if (!dd || dd.length === 0) {
+                if (!dd || dd.length === 0 || dd.key==='') {
                     return ``
                 }
                 if (dd.type === 'relative_post') {
-                    dd.query=dd.query??[]
+                    dd.query = dd.query ?? []
                     return ` and JSON_EXTRACT(content, '$.${dd.key}') in (SELECT JSON_EXTRACT(content, '$.${dd.value}') AS datakey
- from \`${app}\`.t_post where 1=1 ${dd.query.map((dd:any)=>{
-     return getQueryString(dd)
+ from \`${app}\`.t_post where 1=1 ${dd.query.map((dd: any) => {
+                        return getQueryString(dd)
                     }).join(`  `)})`
                 } else if (dd.type) {
                     return ` and JSON_EXTRACT(content, '$.${dd.key}') ${dd.type} ${(typeof dd.value === 'string') ? `'${dd.value}'` : dd.value}`
@@ -68,13 +72,32 @@ export class Post {
                 }
             }
 
+            function getSelectString(dd: any): any {
+                if (!dd || dd.length === 0) {
+                    return ``
+                }
+                if (dd.type === 'SUM') {
+                    return ` SUM(JSON_EXTRACT(content, '$.${dd.key}')) AS ${dd.value}`
+                } else if(dd.type === 'count'){
+                    return  ` count(1)`
+                }else{
+                    return `  JSON_EXTRACT(content, '$.${dd.key}') AS '${dd.value}' `
+                }
+            }
             if (content.query) {
                 content.query = JSON.parse(content.query)
                 content.query.map((dd: any) => {
                     query += getQueryString(dd)
                 })
             }
-            console.log(query)
+            console.log(`query---`,query)
+            if (content.selectOnly) {
+                content.selectOnly = JSON.parse(content.selectOnly)
+                content.selectOnly.map((dd: any,index:number) => {
+                    if(index===0){selectOnly=''}
+                    selectOnly += getSelectString(dd)
+                })
+            }
             if (content.datasource) {
                 content.datasource = JSON.parse(content.datasource)
                 if (content.datasource.length > 0) {
@@ -83,7 +106,7 @@ export class Post {
                     }).join("','")}')`
                 }
             }
-            const data = (await db.query(`select *
+            const data = (await db.query(`select ${selectOnly}
                                           from \`${this.app}\`.\`t_post\`
                                           where userID in (select userID
                                                            from \`${this.app}\`.\`user\`)
