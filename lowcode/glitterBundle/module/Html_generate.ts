@@ -492,7 +492,6 @@ ${obj.gvc.bindView({
                     }]
                 },
                 onCreate: () => {
-
                     async function loadScript() {
                         for (const script of setting.filter((dd) => {
                             return dd.type === 'code' && dd.data.triggerTime === 'last'
@@ -515,9 +514,7 @@ ${obj.gvc.bindView({
                             })
                         }
                     }
-
-                    loadScript().then(() => {
-                    })
+                    loadScript().then(() => {})
                 },
             });
         };

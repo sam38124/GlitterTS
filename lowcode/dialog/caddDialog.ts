@@ -513,6 +513,8 @@ async function saveHTML(json: any, relativePath: string, gvc: GVC, elem?: {
                             obj.data.note = "源代碼路徑:" + originalSrc
                             jsLink.data.setting.push(obj)
                         }
+                    }else if (obj.data.elem === 'image') {
+                        obj.data.note = "源代碼路徑:" + originalSrc
                     } else {
                         if (addHtml) {
                             pushArray.push(obj)
@@ -686,32 +688,11 @@ function getFile(href:string){
             crossDomain: true,
             processData: false,
             success: (data2) => {
-                const saasConfig: { config: any; api: any } = (window as any).saasConfig;
-                saasConfig.api.uploadFile(
-                    glitter.getUUID() +"." +href.split('.').pop()
-                ).then((data: any) => {
-                    const data1 = data.response;
-                    $.ajax({
-                        url: data1.url,
-                        type: 'put',
-                        data: data2.data,
-                        headers: {
-                            "Content-Type": data1.type
-                        },
-                        processData: false,
-                        crossDomain: true,
-                        success: () => {
-                            resolve(data1.fullUrl)
-                        },
-                        error: () => {
-                            resolve(href)
-                        },
-                    });
-                });
+                resolve(data2.url)
             },
             error: (err) => {
                 resolve(href)
-            },
+            }
         });
     })
 

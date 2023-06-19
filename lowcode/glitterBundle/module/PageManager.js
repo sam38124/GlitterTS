@@ -103,7 +103,7 @@ export class PageManager {
                 },
                 createResource: () => {
                 },
-                backGroundColor: (_a = option.backGroundColor) !== null && _a !== void 0 ? _a : 'transparent',
+                backGroundColor: (_a = option.backGroundColor) !== null && _a !== void 0 ? _a : 'white',
                 type: GVCType.Page,
                 animation: (_b = option.animation) !== null && _b !== void 0 ? _b : glitter.animation.none
             });
@@ -224,7 +224,7 @@ background: ${config.backGroundColor};display: none;z-index: 9999;overflow: hidd
                 },
                 createResource: () => {
                 },
-                backGroundColor: (_a = option.backGroundColor) !== null && _a !== void 0 ? _a : 'transparent',
+                backGroundColor: (_a = option.backGroundColor) !== null && _a !== void 0 ? _a : 'white',
                 type: GVCType.Page,
                 animation: (_b = option.animation) !== null && _b !== void 0 ? _b : glitter.defaultSetting.pageAnimation
             });

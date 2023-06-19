@@ -156,7 +156,6 @@ export class TriggerEvent {
                             resolve(true)
                         }, 4000)
                         returnData = await oj.gvc.glitter.share.clickEvent[glitter.htmlGenerate.resourceHook(event.clickEvent.src)][event.clickEvent.route].fun(oj.gvc, oj.widget, event, oj.subData, oj.element).event()
-
                         const response = returnData
                         if (event.dataPlace) {
                             eval(event.dataPlace)
