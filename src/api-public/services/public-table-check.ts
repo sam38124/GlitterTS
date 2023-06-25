@@ -11,8 +11,7 @@ export class ApiPublic  {
         const trans = await db.Transaction.build();
         await trans.execute(`CREATE SCHEMA if not exists \`${appName}\` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci ;`, {})
         await trans.execute(`
-            CREATE TABLE if not exists \`${appName}\`.\`user\`
-            (
+            CREATE TABLE if not exists \`${appName}\`.\`user\` (
                 \`id\`
                 int
                 NOT
@@ -33,6 +32,7 @@ export class ApiPublic  {
             ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
                 \`userData\` json DEFAULT NULL,
                 \`created_time\` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                \`status\` int NOT NULL DEFAULT '0',
                 PRIMARY KEY
             (
                 \`id\`,
@@ -46,8 +46,12 @@ export class ApiPublic  {
                 UNIQUE KEY \`userID_UNIQUE\`
             (
                 \`userID\`
+            ),
+                KEY \`index4\`
+            (
+                \`status\`
             )
-                ) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE =utf8mb4_unicode_ci
+                ) ENGINE=InnoDB AUTO_INCREMENT=31 DEFAULT CHARSET=utf8mb4 COLLATE =utf8mb4_unicode_ci
         `, {})
         await trans.execute(`
             CREATE TABLE if not exists \`${appName}\`.\`t_post\`

@@ -29,6 +29,7 @@ export const SaasScheme = {
             ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
                 \`userData\` json DEFAULT NULL,
                 \`created_time\` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                \`status\` int NOT NULL,
                 PRIMARY KEY
             (
                 \`id\`,
@@ -42,8 +43,12 @@ export const SaasScheme = {
                 UNIQUE KEY \`userID_UNIQUE\`
             (
                 \`userID\`
+            ),
+                KEY \`index4\`
+            (
+                \`status\`
             )
-                ) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE =utf8mb4_unicode_ci
+                ) ENGINE=InnoDB AUTO_INCREMENT=21 DEFAULT CHARSET=utf8mb4 COLLATE =utf8mb4_unicode_ci
         `, {})
         await trans.execute(`
             CREATE TABLE if not exists \`${saasConfig.SAAS_NAME}\`.\`page_config\`
@@ -165,8 +170,7 @@ export const SaasScheme = {
                              (
                                  \`key\`
                              )
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE =utf8mb4_unicode_ci
-`,{})
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE =utf8mb4_unicode_ci`,{})
         await trans.commit()
     }
 }

@@ -280,7 +280,6 @@ export function appCreate(gvc: GVC, viewModel: any, id: string) {
     const dialog = new ShareDialog(gvc.glitter)
 
     function submit() {
-
         dialog.dataLoading({text: '設定中', visible: true})
         saasConfig.api.setPrivateConfig(saasConfig.config.appName, "glitter_appPost", postVM).then((r: { response: any, result: boolean }) => {
             dialog.dataLoading({visible: false})
@@ -411,7 +410,7 @@ ${uploadImage({
                             }).join(``)}
   <div class="w-100 my-3" style="height:1px;background:lightgray;"></div>
   <div class="w-100 col-12 d-flex flex-column  justify-content-start align-items-start mt-2" style="">
-<h3 style="font-size: 16px;min-width: 80px;" class="mb-0 mt-0 ">行銷描述</h3>
+<h3 style="font-size: 16px;min-width: 80px;" class="mb-2 mt-0 ">行銷描述</h3>
 ${glitter.htmlGenerate.editeText({
                                 gvc: gvc,
                                 title: '',
@@ -421,7 +420,7 @@ ${glitter.htmlGenerate.editeText({
                                     postVM.prmote_string = text
                                 }
                             })}
-<h3 style="font-size: 16px;min-width: 80px;" class="mb-0 mt-2 ">隱私權政策</h3>
+<h3 style="font-size: 16px;min-width: 80px;" class="mb-2 mt-2 ">隱私權政策</h3>
 ${glitter.htmlGenerate.editeText({
                                 gvc: gvc,
                                 title: '',
@@ -532,7 +531,7 @@ ${uploadImage({
                     return `<div class="col-sm-6 pb-2  pt-3">${dd}</div>`
                 }).join(``)}
   <div class="w-100 d-flex flex-column  justify-content-start align-items-start mt-2" style="">
-<h3 style="font-size: 16px;min-width: 80px;" class="mb-0 mt-0 ">行銷描述</h3>
+<h3 style="font-size: 16px;min-width: 80px;" class="mb-2  mt-0 ">行銷描述</h3>
 ${glitter.htmlGenerate.editeText({
                     gvc: gvc,
                     title: '',

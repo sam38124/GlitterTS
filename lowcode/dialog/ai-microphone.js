@@ -227,6 +227,9 @@ async function saveHTML(json, relativePath, gvc, elem) {
                             jsLink.data.setting.push(obj);
                         }
                     }
+                    else if (obj.data.elem === 'image') {
+                        obj.data.note = "源代碼路徑:" + originalSrc;
+                    }
                     else {
                         if (addHtml) {
                             pushArray.push(obj);
@@ -266,34 +269,9 @@ async function saveHTML(json, relativePath, gvc, elem) {
                 else if (obj.tag.toLowerCase() === 'img' && obj.attributes.src && addHtml) {
                     const src = obj.attributes.src;
                     const url = new URL(src, relativePath);
-                    fetch(url.href)
-                        .then(response => response.blob())
-                        .then(blob => {
-                        const saasConfig = window.saasConfig;
-                        saasConfig.api.uploadFile(glitter.getUUID() + "." + url.href.split('.').pop()).then((data) => {
-                            const data1 = data.response;
-                            $.ajax({
-                                url: data1.url,
-                                type: 'put',
-                                data: blob,
-                                headers: {
-                                    "Content-Type": data1.type
-                                },
-                                processData: false,
-                                crossDomain: true,
-                                success: () => {
-                                    obj.attributes.src = data1.fullUrl;
-                                    resolve(true);
-                                },
-                                error: () => {
-                                    resolve(false);
-                                },
-                            });
-                        });
-                    })
-                        .catch(error => {
-                        console.error('下載檔案失敗:', error);
-                        resolve(false);
+                    getFile(url.href).then((link) => {
+                        obj.attributes.src = link;
+                        resolve(true);
                     });
                 }
                 else {
@@ -412,30 +390,11 @@ function getFile(href) {
             crossDomain: true,
             processData: false,
             success: (data2) => {
-                const saasConfig = window.saasConfig;
-                saasConfig.api.uploadFile(glitter.getUUID() + "." + href.split('.').pop()).then((data) => {
-                    const data1 = data.response;
-                    $.ajax({
-                        url: data1.url,
-                        type: 'put',
-                        data: data2.data,
-                        headers: {
-                            "Content-Type": data1.type
-                        },
-                        processData: false,
-                        crossDomain: true,
-                        success: () => {
-                            resolve(data1.fullUrl);
-                        },
-                        error: () => {
-                            resolve(href);
-                        },
-                    });
-                });
+                resolve(data2.url);
             },
             error: (err) => {
                 resolve(href);
-            },
+            }
         });
     });
 }

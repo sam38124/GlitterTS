@@ -1,4 +1,5 @@
 declare function isNull(...args: any[]): boolean;
+export declare function getUUID(): string;
 declare function replaceDatetime(datetime: any): any;
 export declare function toJSONSafeString(val: string): string;
 interface requestBody {

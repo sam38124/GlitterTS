@@ -9,6 +9,7 @@ export class Main_editor {
         const swal = new Swal(gvc);
         const glitter = gvc.glitter;
         return gvc.bindView(() => {
+            var _a;
             let items = [];
             let styleItems = [];
             let scriptItems = [];
@@ -131,12 +132,58 @@ export class Main_editor {
                     }
                 }
             });
+            let selectType = (_a = glitter.getUrlParameter('selectEditTP')) !== null && _a !== void 0 ? _a : "html";
             items = [
+                {
+                    title: ``,
+                    option: [],
+                    html: (() => {
+                        return `<li class=" align-items-center list-group-item list-group-item-action border-0 py-2 px-4  position-relative d-flex text-dark shadow" style=""
+><div class="d-flex align-items-center pt-2 text-gradient-primary justify-content-between w-100" style="">
+${[
+                            {
+                                title: `style`, class: `fa-regular fa-pen-fancy-slash`, onclick: gvc.event(() => {
+                                    glitter.setUrlParameter('selectEditTP', 'style');
+                                    gvc.notifyDataChange(createID);
+                                })
+                            },
+                            {
+                                title: `script`, class: `fa-solid fa-code`, onclick: gvc.event(() => {
+                                    glitter.setUrlParameter('selectEditTP', 'script');
+                                    gvc.notifyDataChange(createID);
+                                })
+                            },
+                            {
+                                title: `html`, class: `fa-regular fa-file-code`, onclick: gvc.event(() => {
+                                    glitter.setUrlParameter('selectEditTP', 'html');
+                                    gvc.notifyDataChange(createID);
+                                })
+                            }
+                        ].map((dd) => {
+                            if (selectType === dd.title) {
+                                return `<div class="rounded-circle p-2 " style="width:60px;height:60px;border: 2px dashed;
+border-color:#D946EF;"><div class="d-flex flex-column align-items-center justify-content-center" onclick="${dd.onclick}">
+<i class="${dd.class}"></i>
+${dd.title}
+</div></div>`;
+                            }
+                            else {
+                                return `<div class="d-flex flex-column align-items-center justify-content-center" onclick="${dd.onclick}">
+<i class="${dd.class}"></i>
+${dd.title}
+</div>`;
+                            }
+                        }).join('<div style="height:40px;width:1px;background:lightgrey;"></div>')}
+
+</div>
+</li>`;
+                    })()
+                },
                 {
                     title: `排版設計`,
                     option: styleItems,
                     html: (() => {
-                        let toggle = glitter.getCookieByName('groupG-0') === "true";
+                        let toggle = glitter.getCookieByName('groupG-1') === "true";
                         return `<li class=" align-items-center list-group-item list-group-item-action border-0 py-2 px-4  position-relative d-flex text-dark" style="background:lightgrey;"
 onclick="${gvc.event(() => {
                             glitter.setCookie('lastSelect', '');
@@ -146,49 +193,8 @@ onclick="${gvc.event(() => {
                         })}"
 >Style 設計樣式<button class="rounded-circle btn-warning  btn  ms-2 d-flex align-items-center justify-content-center p-0" style="height: 25px;width: 25px;" onclick="${gvc.event((e, event) => {
                             event.stopPropagation();
+                            glitter.setCookie('groupG-1', 'true');
                             glitter.openDiaLog('dialog/cadd-style-Dialog.js', 'caddStyleDialog', {
-                                callback: (data) => {
-                                    viewModel.data.config.push(data);
-                                    glitter.setCookie('lastSelect', data.id);
-                                    gvc.notifyDataChange(createID);
-                                },
-                                appName: gBundle.appName
-                            });
-                        })}">
-<i class="fa-sharp fa-solid fa-circle-plus " style="color: black;"></i></button>
-<div class="flex-fill"></div>
-<button class="btn btn-primary" style="width:50px;height:30px;" onclick="${gvc.event((e, event) => {
-                            $(`.groupG-0`).toggleClass('d-none');
-                            toggle = !toggle;
-                            glitter.setCookie('groupG-0', toggle);
-                            event.stopPropagation();
-                            if (toggle) {
-                                $(e).html("收合");
-                            }
-                            else {
-                                $(e).html("展開");
-                            }
-                        })}">${(glitter.getCookieByName('groupG-0') !== "true") ? `展開` : `收合`}</button>
-</li>`;
-                    })()
-                },
-                {
-                    title: `Script標籤`,
-                    option: scriptItems,
-                    html: (() => {
-                        let toggle = glitter.getCookieByName('groupG-1') === "true";
-                        return `<li class="align-items-center list-group-item list-group-item-action border-0 py-2 px-4  position-relative d-flex text-dark" 
-style="background:lightgrey;"
-onclick="${gvc.event(() => {
-                            glitter.setCookie('lastSelect', '');
-                            viewModel.selectItem = undefined;
-                            viewModel.selectContainer = viewModel.data.config;
-                            gvc.notifyDataChange(createID);
-                        })}"
->Script 資源<button class="rounded-circle btn-warning  btn  ms-2 d-flex align-items-center justify-content-center p-0" style="height: 25px;width: 25px;"
-onclick="${gvc.event((e, event) => {
-                            event.stopPropagation();
-                            glitter.openDiaLog('dialog/cadd-script-Dialog.js', 'addScript', {
                                 callback: (data) => {
                                     viewModel.data.config.push(data);
                                     glitter.setCookie('lastSelect', data.id);
@@ -215,8 +221,8 @@ onclick="${gvc.event((e, event) => {
                     })()
                 },
                 {
-                    title: `觸發事件`,
-                    option: triggerItems,
+                    title: `Script標籤`,
+                    option: scriptItems,
                     html: (() => {
                         let toggle = glitter.getCookieByName('groupG-2') === "true";
                         return `<li class="align-items-center list-group-item list-group-item-action border-0 py-2 px-4  position-relative d-flex text-dark" 
@@ -227,9 +233,10 @@ onclick="${gvc.event(() => {
                             viewModel.selectContainer = viewModel.data.config;
                             gvc.notifyDataChange(createID);
                         })}"
->觸發事件<button class="rounded-circle btn-warning  btn  ms-2 d-flex align-items-center justify-content-center p-0" style="height: 25px;width: 25px;"
+>Script 資源<button class="rounded-circle btn-warning  btn  ms-2 d-flex align-items-center justify-content-center p-0" style="height: 25px;width: 25px;"
 onclick="${gvc.event((e, event) => {
                             event.stopPropagation();
+                            glitter.setCookie('groupG-2', 'true');
                             glitter.openDiaLog('dialog/cadd-script-Dialog.js', 'addScript', {
                                 callback: (data) => {
                                     viewModel.data.config.push(data);
@@ -253,6 +260,55 @@ onclick="${gvc.event((e, event) => {
                                 $(e).html("展開");
                             }
                         })}">${(glitter.getCookieByName('groupG-2') !== "true") ? `展開` : `收合`}</button>
+</li>`;
+                    })()
+                },
+                {
+                    title: `觸發事件`,
+                    option: triggerItems,
+                    html: (() => {
+                        let toggle = glitter.getCookieByName('groupG-3') === "true";
+                        return `<li class="align-items-center list-group-item list-group-item-action border-0 py-2 px-4  position-relative d-flex text-dark" 
+style="background:lightgrey;"
+onclick="${gvc.event(() => {
+                            glitter.setCookie('lastSelect', '');
+                            viewModel.selectItem = undefined;
+                            viewModel.selectContainer = viewModel.data.config;
+                            gvc.notifyDataChange(createID);
+                        })}"
+>觸發事件<button class="rounded-circle btn-warning  btn  ms-2 d-flex align-items-center justify-content-center p-0" style="height: 25px;width: 25px;"
+onclick="${gvc.event((e, event) => {
+                            glitter.setCookie('groupG-3', 'true');
+                            event.stopPropagation();
+                            const id = glitter.getUUID();
+                            viewModel.data.config.push({
+                                "id": id,
+                                "data": { "triggerTime": "first", "clickEvent": {} },
+                                "type": "code",
+                                "label": "代碼區塊",
+                                "js": "$style1/official.js",
+                                "index": 2,
+                                "css": { "style": {}, "class": {} },
+                                "refreshAllParameter": {},
+                                "refreshComponentParameter": {}
+                            });
+                            glitter.setCookie('lastSelect', id);
+                            gvc.notifyDataChange(createID);
+                        })}">
+<i class="fa-sharp fa-solid fa-circle-plus " style="color: black;"></i></button>
+<div class="flex-fill"></div>
+<button class="btn btn-primary" style="width:50px;height:30px;" onclick="${gvc.event((e, event) => {
+                            $(`.groupG-3`).toggleClass('d-none');
+                            toggle = !toggle;
+                            glitter.setCookie('groupG-3', toggle);
+                            event.stopPropagation();
+                            if (toggle) {
+                                $(e).html("收合");
+                            }
+                            else {
+                                $(e).html("展開");
+                            }
+                        })}">${(glitter.getCookieByName('groupG-3') !== "true") ? `展開` : `收合`}</button>
 </li>`;
                     })()
                 },
@@ -285,6 +341,18 @@ onclick="${gvc.event((e, event) => {
 `
                 }
             ];
+            items = items.filter((dd, index) => {
+                dd.index = index;
+                if (selectType === 'style') {
+                    return [0, 1].indexOf(index) !== -1;
+                }
+                else if (selectType === 'script') {
+                    return [0, 2, 3].indexOf(index) !== -1;
+                }
+                else {
+                    return [0, 4].indexOf(index) !== -1;
+                }
+            });
             const vid = glitter.getUUID();
             function clearSelect() {
                 items.map((dd) => {
@@ -350,7 +418,7 @@ onclick="${gvc.event((e, event) => {
                                         }
                                         event.stopPropagation();
                                     });
-                                    return `<li class="ms-2 list-group-item list-group-item-action border-0 py-2 px-4 ${checkOptionSelect(d2) ? `active` : ``} position-relative d-flex align-items-center groupG-${index} d-none"
+                                    return `<li class="ms-2 list-group-item list-group-item-action border-0 py-2 px-4 ${checkOptionSelect(d2) ? `active` : ``} position-relative d-flex align-items-center groupG-${dd.index} d-none"
                                                                     style="cursor:pointer;z-index: ${indexCounter--} !important;"
                                                                      ondragover="${gvc.event((e, event) => {
                                         event.preventDefault();
@@ -442,7 +510,7 @@ onclick="${gvc.event((e, event) => {
                                                                     `;
                                 }
                                 else {
-                                    return `<li class="ms-2 align-items-center list-group-item list-group-item-action border-0 py-2 px-4 ${d2.select ? `${(inner) ? `bg-warning` : `active`}` : ``} position-relative d-flex groupG-${index} d-none"
+                                    return `<li class="ms-2 align-items-center list-group-item list-group-item-action border-0 py-2 px-4 ${d2.select ? `${(inner) ? `bg-warning` : `active`}` : ``} position-relative d-flex groupG-${dd.index} d-none"
                                                                     onclick="${gvc.event(() => {
                                         clearSelect();
                                         d2.select = true;
@@ -503,16 +571,16 @@ onclick="${gvc.event((e, event) => {
                     class: `swiper-slide h-auto`,
                 },
                 onCreate: () => {
-                    if (glitter.getCookieByName('groupG-0') === "true") {
-                        $(`.groupG-0`).toggleClass('d-none');
-                    }
                     if (glitter.getCookieByName('groupG-1') === "true") {
                         $(`.groupG-1`).toggleClass('d-none');
                     }
                     if (glitter.getCookieByName('groupG-2') === "true") {
                         $(`.groupG-2`).toggleClass('d-none');
                     }
-                    $(`.groupG-3`).removeClass('d-none');
+                    if (glitter.getCookieByName('groupG-3') === "true") {
+                        $(`.groupG-3`).toggleClass('d-none');
+                    }
+                    $(`.groupG-4`).removeClass('d-none');
                 }
             };
         });

@@ -22,14 +22,15 @@ const whiteList = [
     { url: config_1.config.getRoute(config_1.config.public_route.user + "/register", 'public'), method: 'POST' },
     { url: config_1.config.getRoute(config_1.config.public_route.user + "/login", 'public'), method: 'POST' },
     { url: config_1.config.getRoute(config_1.config.public_route.post, 'public'), method: 'GET' },
+    { url: config_1.config.getRoute(config_1.config.public_route.user + "/checkMail", 'public'), method: 'GET' },
     { url: config_1.config.getRoute(config_1.config.public_route.user + "/userdata", 'public'), method: 'GET' }
 ];
 async function doAuthAction(req, resp, next) {
-    var _a;
-    if (live_source_js_1.Live_source.liveAPP.indexOf(`${req.get('g-app')}`) === -1) {
+    var _a, _b, _c;
+    if (live_source_js_1.Live_source.liveAPP.indexOf(`${(_a = req.get('g-app')) !== null && _a !== void 0 ? _a : req.query['g-app']}`) === -1) {
         return response_1.default.fail(resp, exception_1.default.PermissionError('INVALID_APP', 'invalid app'));
     }
-    await public_table_check_js_1.ApiPublic.createScheme(req.get('g-app'));
+    await public_table_check_js_1.ApiPublic.createScheme((_b = req.get('g-app')) !== null && _b !== void 0 ? _b : req.query['g-app']);
     const logger = new logger_1.default();
     const TAG = '[DoAuthAction]';
     const url = req.baseUrl;
@@ -38,7 +39,7 @@ async function doAuthAction(req, resp, next) {
         next();
         return;
     }
-    const token = (_a = req.get('Authorization')) === null || _a === void 0 ? void 0 : _a.replace('Bearer ', '');
+    const token = (_c = req.get('Authorization')) === null || _c === void 0 ? void 0 : _c.replace('Bearer ', '');
     try {
         req.body.token = jsonwebtoken_1.default.verify(token, config_1.config.SECRET_KEY);
         const redisToken = await redis_1.default.getValue(token);

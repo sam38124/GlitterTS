@@ -27,15 +27,17 @@ const whiteList: {}[] = [
     {url: config.getRoute(config.public_route.user + "/register", 'public'), method: 'POST'},
     {url: config.getRoute(config.public_route.user + "/login", 'public'), method: 'POST'},
     {url: config.getRoute(config.public_route.post, 'public'), method: 'GET'},
+    {url: config.getRoute(config.public_route.user + "/checkMail", 'public'), method: 'GET'},
     {url: config.getRoute(config.public_route.user+"/userdata", 'public'), method: 'GET'}
 ];
 
 async function doAuthAction(req: express.Request, resp: express.Response, next: express.NextFunction) {
-    if (Live_source.liveAPP.indexOf(`${req.get('g-app') as any}`) === -1) {
+    if (Live_source.liveAPP.indexOf(`${req.get('g-app') as any ?? req.query['g-app']}`) === -1) {
         return response.fail(resp, exception.PermissionError('INVALID_APP', 'invalid app'));
     }
+
     //Check database scheme
-    await ApiPublic.createScheme(req.get('g-app') as any)
+    await ApiPublic.createScheme(req.get('g-app') as any ?? req.query['g-app'])
     const logger = new Logger();
     const TAG = '[DoAuthAction]';
     const url = req.baseUrl;

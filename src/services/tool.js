@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.toJSONSafeString = void 0;
+exports.toJSONSafeString = exports.getUUID = void 0;
 const bcrypt_1 = __importDefault(require("bcrypt"));
 const underscore_1 = __importDefault(require("underscore"));
 const config_1 = __importDefault(require("../config"));
@@ -21,6 +21,18 @@ function isNull(...args) {
     }
     return false;
 }
+function getUUID() {
+    let d = Date.now();
+    if (typeof performance !== 'undefined' && typeof performance.now === 'function') {
+        d += performance.now();
+    }
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+        let r = (d + Math.random() * 16) % 16 | 0;
+        d = Math.floor(d / 16);
+        return "s" + (c === 'x' ? r : r & 0x3 | 0x8).toString(16);
+    });
+}
+exports.getUUID = getUUID;
 function replaceDatetime(datetime) {
     if (datetime)
         return datetime.replace('T', ' ').replace('.000Z', '').replace('+00:00', '');

@@ -32,6 +32,7 @@ export declare let config: {
     public_route: {
         user: string;
         post: string;
+        smtp: string;
     };
     route: {
         user: string;

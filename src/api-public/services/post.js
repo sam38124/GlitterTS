@@ -103,6 +103,9 @@ class Post {
                 else if (dd.type === 'count') {
                     return ` count(1)`;
                 }
+                else if (dd.type === 'AVG') {
+                    return ` AVG(JSON_EXTRACT(content, '$.${dd.key}')) AS ${dd.value}`;
+                }
                 else {
                     return `  JSON_EXTRACT(content, '$.${dd.key}') AS '${dd.value}' `;
                 }
@@ -123,6 +126,8 @@ class Post {
                     selectOnly += getSelectString(dd);
                 });
             }
+            console.log(`selectOnly---`, JSON.stringify(selectOnly));
+            console.log(`select---`, selectOnly);
             if (content.datasource) {
                 content.datasource = JSON.parse(content.datasource);
                 if (content.datasource.length > 0) {
@@ -133,17 +138,23 @@ class Post {
             }
             const data = (await database_1.default.query(`select ${selectOnly}
                                           from \`${this.app}\`.\`t_post\`
-                                          where userID in (select userID
-                                                           from \`${this.app}\`.\`user\`)
+                                          where 1=1
                                               ${query}
                                           order by id desc ${(0, database_1.limit)(content)}`, [
                 content
             ]));
             for (const dd of data) {
+                if (!dd.userID) {
+                    continue;
+                }
                 if (!userData[dd.userID]) {
-                    userData[dd.userID] = (await database_1.default.query(`select userData
+                    try {
+                        userData[dd.userID] = (await database_1.default.query(`select userData
                                                            from \`${this.app}\`.\`user\`
                                                            where userID = ${dd.userID}`, []))[0]['userData'];
+                    }
+                    catch (e) {
+                    }
                 }
                 dd.userData = userData[dd.userID];
             }

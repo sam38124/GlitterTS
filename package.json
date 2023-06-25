@@ -1,10 +1,11 @@
 {
   "name": "ts-glitter",
-  "version": "2.4.6",
+  "version": "2.4.7",
   "description": "",
   "main": "index.js",
   "scripts": {
     "start": "NODE_ENV=staging && npm run build && node ./src/run.js ",
+    "test": "NODE_ENV=staging && npm run build && node ./src/test.js ",
     "exportTest": "NODE_ENV=staging && npm run build && node ./src/test/exportApp.js ",
     "create": "node create.js",
     "start:tscAuto": "tsc index.ts",
@@ -29,6 +30,7 @@
     "moment": "^2.29.4",
     "mysql": "^2.18.1",
     "mysql2": "^2.3.3",
+    "nodemailer": "^6.9.3",
     "nodemon": "^2.0.20",
     "openai": "^3.2.1",
     "ts-glitter": "1.5.2",

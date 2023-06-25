@@ -1,4 +1,23 @@
 "use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -6,28 +25,74 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.User = void 0;
 const database_1 = __importDefault(require("../../modules/database"));
 const exception_1 = __importDefault(require("../../modules/exception"));
-const tool_1 = __importDefault(require("../../services/tool"));
+const tool_1 = __importStar(require("../../services/tool"));
 const UserUtil_1 = __importDefault(require("../../utils/UserUtil"));
+const config_js_1 = __importDefault(require("../../config.js"));
+const ses_js_1 = require("../../services/ses.js");
 class User {
     constructor(app) {
         this.app = app;
     }
-    async createUser(account, pwd, userData) {
+    async createUser(account, pwd, userData, req) {
         try {
             const userID = generateUserID();
-            await database_1.default.execute(`INSERT INTO \`${this.app}\`.\`user\` (\`userID\`, \`account\`, \`pwd\`, \`userData\`)
-                              VALUES (?, ?, ?, ?);`, [
+            let data = await database_1.default.query(`select \`value\`
+                                       from \`${config_js_1.default.DB_NAME}\`.private_config
+                                       where app_name = '${this.app}'
+                                         and \`key\` = 'glitter_loginConfig'`, []);
+            if (data.length > 0) {
+                data = data[0]['value'];
+            }
+            else {
+                data = {
+                    verify: `normal`
+                };
+            }
+            if (data.verify != 'normal') {
+                await database_1.default.execute(`delete
+                                  from \`${this.app}\`.\`user\`
+                                  where account = ${database_1.default.escape(account)}
+                                    and status = 0`, []);
+                if (data.verify == 'mail') {
+                    const checkToken = (0, tool_1.getUUID)();
+                    userData = userData !== null && userData !== void 0 ? userData : {};
+                    userData.mailVerify = checkToken;
+                    const url = `<h1>${data.name}</h1><p>
+<a href="${(req.secure) ? `https` : `http`}://${req.headers.host}/api-public/v1/user/checkMail?g-app=${this.app}&token=${checkToken}">點我前往認證您的信箱</a></p>`;
+                    console.log(`url:${url}`);
+                    await (0, ses_js_1.sendmail)(`service@ncdesign.info`, account, `信箱認證`, url);
+                }
+            }
+            await database_1.default.execute(`INSERT INTO \`${this.app}\`.\`user\` (\`userID\`, \`account\`, \`pwd\`, \`userData\`, \`status\`)
+                              VALUES (?, ?, ?, ?, ?);`, [
                 userID,
                 account,
                 await tool_1.default.hashPwd(pwd),
-                userData !== null && userData !== void 0 ? userData : {}
+                userData !== null && userData !== void 0 ? userData : {},
+                (() => {
+                    if (data.verify != 'normal') {
+                        return 0;
+                    }
+                    else {
+                        return 1;
+                    }
+                })()
             ]);
+            const generateToken = await UserUtil_1.default.generateToken({
+                user_id: parseInt(userID, 10),
+                account: account,
+                userData: {}
+            });
             return {
-                token: await UserUtil_1.default.generateToken({
-                    user_id: parseInt(userID, 10),
-                    account: account,
-                    userData: {}
-                })
+                token: (() => {
+                    if (data.verify == 'normal') {
+                        return generateToken;
+                    }
+                    else {
+                        return ``;
+                    }
+                })(),
+                verify: data.verify
             };
         }
         catch (e) {
@@ -38,7 +103,8 @@ class User {
         try {
             const data = (await database_1.default.execute(`select *
                                                  from \`${this.app}\`.user
-                                                 where account = ?`, [account]))[0];
+                                                 where account = ?
+                                                   and status = 1`, [account]))[0];
             if (await tool_1.default.compareHash(pwd, data.pwd)) {
                 data.pwd = undefined;
                 data.token = await UserUtil_1.default.generateToken({
@@ -75,7 +141,24 @@ class User {
                 userData: JSON.stringify(par.userData)
             };
             console.log(userID);
-            return await database_1.default.query(`update \`${this.app}\`.user SET ? WHERE 1 = 1 and userID = ?`, [par, userID]);
+            return await database_1.default.query(`update \`${this.app}\`.user
+                                    SET ?
+                                    WHERE 1 = 1
+                                      and userID = ?`, [par, userID]);
+        }
+        catch (e) {
+            throw exception_1.default.BadRequestError('BAD_REQUEST', 'Login Error:' + e, null);
+        }
+    }
+    async verifyPASS(token) {
+        try {
+            const par = {
+                status: 1
+            };
+            return await database_1.default.query(`update \`${this.app}\`.user
+                                    SET ?
+                                    WHERE 1 = 1
+                                     and JSON_EXTRACT(userData, '$.mailVerify') = ?`, [par, token]);
         }
         catch (e) {
             throw exception_1.default.BadRequestError('BAD_REQUEST', 'Login Error:' + e, null);
@@ -85,7 +168,8 @@ class User {
         try {
             return (await database_1.default.execute(`select count(1)
                                       from \`${this.app}\`.user
-                                      where account = ?`, [account]))[0]["count(1)"] == 1;
+                                      where account = ?
+                                        and status!=0`, [account]))[0]["count(1)"] == 1;
         }
         catch (e) {
             throw exception_1.default.BadRequestError('BAD_REQUEST', 'CheckUserExists Error:' + e, null);

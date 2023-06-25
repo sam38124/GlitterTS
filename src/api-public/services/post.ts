@@ -80,6 +80,8 @@ export class Post {
                     return ` SUM(JSON_EXTRACT(content, '$.${dd.key}')) AS ${dd.value}`
                 } else if(dd.type === 'count'){
                     return  ` count(1)`
+                }else if(dd.type === 'AVG'){
+                    return  ` AVG(JSON_EXTRACT(content, '$.${dd.key}')) AS ${dd.value}`
                 }else{
                     return `  JSON_EXTRACT(content, '$.${dd.key}') AS '${dd.value}' `
                 }
@@ -98,6 +100,8 @@ export class Post {
                     selectOnly += getSelectString(dd)
                 })
             }
+            console.log(`selectOnly---`,JSON.stringify(selectOnly))
+            console.log(`select---`,selectOnly)
             if (content.datasource) {
                 content.datasource = JSON.parse(content.datasource)
                 if (content.datasource.length > 0) {
@@ -108,18 +112,24 @@ export class Post {
             }
             const data = (await db.query(`select ${selectOnly}
                                           from \`${this.app}\`.\`t_post\`
-                                          where userID in (select userID
-                                                           from \`${this.app}\`.\`user\`)
+                                          where 1=1
                                               ${query}
                                           order by id desc ${limit(content)}`, [
                 content
             ]))
 
             for (const dd of data) {
+                if(!dd.userID){
+                    continue
+                }
                 if (!userData[dd.userID]) {
-                    userData[dd.userID] = (await db.query(`select userData
+                    try {
+                        userData[dd.userID] = (await db.query(`select userData
                                                            from \`${this.app}\`.\`user\`
                                                            where userID = ${dd.userID}`, []))[0]['userData']
+                    }catch (e) {
+
+                    }
                 }
                 dd.userData = userData[dd.userID]
             }

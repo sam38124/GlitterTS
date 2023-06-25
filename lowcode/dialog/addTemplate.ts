@@ -7,6 +7,7 @@ import {EditorElem} from "../glitterBundle/plugins/editor-elem.js";
 init((gvc, glitter, gBundle) => {
     return {
         onCreateView: () => {
+
             const tdata: {
                 "appName": string,
                 "tag": string,

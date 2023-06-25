@@ -79,7 +79,8 @@ exports.config = {
     },
     public_route: {
         user: '/user',
-        post: '/post'
+        post: '/post',
+        smtp: '/smtp'
     },
     route: {
         user: "/user",
