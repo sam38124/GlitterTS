@@ -266,10 +266,10 @@ ${obj.gvc.bindView({
                                     } catch (e: any) {
                                         HtmlGenerate.share.false[dd.js] = (HtmlGenerate.share.false[dd.js] ?? 0) + 1
                                         console.log(`解析錯誤:${e.message}<br>${e.stack}<br>${e.line}`)
-                                        if (HtmlGenerate.share.false[dd.js] < 10) {
+                                        if (HtmlGenerate.share.false[dd.js] < 80) {
                                             setTimeout(() => {
                                                 getHtml(callback)
-                                            }, 200)
+                                            }, 100)
                                         }
                                         return ``;
                                     }
@@ -455,10 +455,10 @@ ${obj.gvc.bindView({
                                         console.log(`解析錯誤:${e.message}<br>${e.stack}<br>${e.line}`)
                                         HtmlGenerate.share.false[dd.js] = (HtmlGenerate.share.false[dd.js] ?? 0) + 1
 
-                                        if (HtmlGenerate.share.false[dd.js] < 10) {
+                                        if (HtmlGenerate.share.false[dd.js] < 80) {
                                             setTimeout(() => {
                                                 getResource()
-                                            }, 10)
+                                            }, 100)
                                         }
                                         return ``;
                                     }
@@ -686,7 +686,7 @@ ${gvc.bindView(() => {
                                                 } catch (e: any) {
                                                     HtmlGenerate.share.false[dd.js] = (HtmlGenerate.share.false[dd.js] ?? 0) + 1
                                                     console.log(`解析錯誤:${e.message}<br>${e.stack}<br>${e.line}`)
-                                                    if (HtmlGenerate.share.false[dd.js] < 10) {
+                                                    if (HtmlGenerate.share.false[dd.js] < 80) {
                                                         setTimeout(() => {
                                                             getData()
                                                         }, 100)
@@ -798,10 +798,10 @@ ${e.line}
                                 } catch (e: any) {
                                     HtmlGenerate.share.false[dd.js] = (HtmlGenerate.share.false[dd.js] ?? 0) + 1
                                     console.log(`解析錯誤:${e.message}<br>${e.stack}<br>${e.line}`)
-                                    if (HtmlGenerate.share.false[dd.js] < 10) {
+                                    if (HtmlGenerate.share.false[dd.js] < 80) {
                                         setTimeout(() => {
                                             getData()
-                                        }, 500)
+                                        }, 100)
                                     }
                                     return `
 <div class="alert alert-danger" role="alert" style="word-break: break-word;white-space: normal;">
