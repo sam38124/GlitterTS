@@ -25,6 +25,7 @@ class App {
             }
             let copyAppData = undefined;
             let copyPageData = undefined;
+            let privateConfig = undefined;
             if (config.copyApp) {
                 copyAppData = (await database_1.default.execute(`select *
                                                  from \`${config_1.saasConfig.SAAS_NAME}\`.app_config
@@ -32,6 +33,9 @@ class App {
                 copyPageData = (await database_1.default.execute(`select *
                                                   from \`${config_1.saasConfig.SAAS_NAME}\`.page_config
                                                   where appName = ${database_1.default.escape(config.copyApp)}`, []));
+                privateConfig = (await database_1.default.execute(`select *
+                                                  from \`${config_1.saasConfig.SAAS_NAME}\`.private_config
+                                                  where app_name = ${database_1.default.escape(config.copyApp)} `, []));
             }
             const trans = await database_1.default.Transaction.build();
             await trans.execute(`insert into \`${config_1.saasConfig.SAAS_NAME}\`.app_config (domain, user, appName, dead_line, \`config\`)
@@ -42,6 +46,18 @@ class App {
                 config.appName,
                 addDays(new Date(), config_1.saasConfig.DEF_DEADLINE)
             ]);
+            if (privateConfig) {
+                for (const dd of privateConfig) {
+                    await trans.execute(`
+                        insert into \`${config_1.saasConfig.SAAS_NAME}\`.private_config (\`app_name\`, \`key\`,\`value\`,updated_at)
+                        values (?, ?, ${database_1.default.escape(JSON.stringify(dd.value))},?);
+                    `, [
+                        config.appName,
+                        dd.key,
+                        new Date()
+                    ]);
+                }
+            }
             if (copyPageData) {
                 for (const dd of copyPageData) {
                     await trans.execute(`
@@ -133,6 +149,9 @@ class App {
                                from \`${config_1.saasConfig.SAAS_NAME}\`.page_config
                                where appName = ${database_1.default.escape(config.appName)}
                                  and userID = '${this.token.userID}'`, []));
+            (await database_1.default.execute(`delete
+                               from \`${config_1.saasConfig.SAAS_NAME}\`.private_config
+                               where app_name = ${database_1.default.escape(config.appName)}`, []));
         }
         catch (e) {
             throw exception_1.default.BadRequestError((_a = e.code) !== null && _a !== void 0 ? _a : 'BAD_REQUEST', e, null);

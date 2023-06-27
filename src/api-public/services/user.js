@@ -150,6 +150,31 @@ class User {
             throw exception_1.default.BadRequestError('BAD_REQUEST', 'Login Error:' + e, null);
         }
     }
+    async resetPwd(userID, pwd, newPwd) {
+        try {
+            const data = (await database_1.default.execute(`select *
+                                                 from \`${this.app}\`.user
+                                                 where userID = ?
+                                                   and status = 1`, [userID]))[0];
+            if (await tool_1.default.compareHash(pwd, data.pwd)) {
+                const result = await database_1.default.query(`update \`${this.app}\`.user
+                                    SET ?
+                                    WHERE 1 = 1
+                                      and userID = ?`, [{
+                        pwd: await tool_1.default.hashPwd(newPwd)
+                    }, userID]);
+                return {
+                    result: true
+                };
+            }
+            else {
+                throw exception_1.default.BadRequestError('BAD_REQUEST', 'Auth failed', null);
+            }
+        }
+        catch (e) {
+            throw exception_1.default.BadRequestError('BAD_REQUEST', 'Login Error:' + e, null);
+        }
+    }
     async verifyPASS(token) {
         try {
             const par = {

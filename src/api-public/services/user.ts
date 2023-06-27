@@ -123,6 +123,39 @@ export class User {
             throw exception.BadRequestError('BAD_REQUEST', 'Login Error:' + e, null);
         }
     }
+    public async resetPwd(userID: string,pwd:string,newPwd:string) {
+        try {
+            const data: any = (await db.execute(`select *
+                                                 from \`${this.app}\`.user
+                                                 where userID = ?
+                                                   and status = 1`, [userID]) as any)[0]
+            if (await tool.compareHash(pwd, data.pwd)) {
+               const result=(await db.query(`update \`${this.app}\`.user
+                                    SET ?
+                                    WHERE 1 = 1
+                                      and userID = ?`, [{
+                    pwd:await tool.hashPwd(newPwd)
+                }, userID]) as any)
+                return {
+                    result:true
+                }
+            } else {
+                throw exception.BadRequestError('BAD_REQUEST', 'Auth failed', null);
+            }
+            // par = {
+            //     account: par.account,
+            //     userData: JSON.stringify(par.userData)
+            // }
+            // console.log(userID)
+            //await tool.hashPwd(pwd)
+            // return (await db.query(`update \`${this.app}\`.user
+            //                         SET ?
+            //                         WHERE 1 = 1
+            //                           and userID = ?`, [par, userID]) as any)
+        } catch (e) {
+            throw exception.BadRequestError('BAD_REQUEST', 'Login Error:' + e, null);
+        }
+    }
     public async verifyPASS(token:string) {
         try {
            const par = {

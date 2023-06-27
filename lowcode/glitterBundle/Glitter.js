@@ -530,7 +530,8 @@ export class Glitter {
         }
     }
     setUrlParameter(tag, value) {
-        var search = this.setSearchParam(this.removeSearchParam(window.location.search, tag), tag, value);
+        var search = (value !== undefined) ? this.setSearchParam(this.removeSearchParam(window.location.search, tag), tag, value) :
+            this.removeSearchParam(window.location.search, tag);
         try {
             window.history.pushState({}, document.title, search);
         }

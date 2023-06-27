@@ -5,6 +5,8 @@ import {saasConfig} from "../../config";
 import {User} from "../services/user";
 import exception from "../../modules/exception";
 import config from "../../config.js";
+import {sendmail} from "../../services/ses.js";
+import UserUtil from "../../utils/UserUtil.js";
 
 const router: express.Router = express.Router();
 
@@ -43,7 +45,54 @@ router.get('/checkMail', async (req: express.Request, resp: express.Response) =>
         }
         const user = new User(req.query['g-app'] as string);
         await user.verifyPASS(req.query.token as string)
-        return resp.redirect(`${(req.secure) ? `https` : `http`}://${req.headers.host}/${req.query['g-app']}/${data.link}`)
+        return resp.redirect(`${(req.secure) ? `https` : `http`}://${req.headers.host}/${req.query['g-app']}/index.html?page=${data.link}`)
+    } catch (err) {
+        return response.fail(resp, err);
+    }
+});
+
+router.post('/forget', async (req: express.Request, resp: express.Response) => {
+    try {
+        let data = await db.query(`select \`value\`
+                                   from \`${config.DB_NAME}\`.private_config
+                                   where app_name = '${req.get('g-app')}'
+                                     and \`key\` = 'glitter_loginConfig'`, [])
+
+        if (data.length > 0) {
+            data = data[0]['value']
+        } else {
+            data = {
+                verify: `normal`,
+                link: ``
+            }
+        }
+        const sql=`select *
+                                                 from \`${req.get('g-app')}\`.user
+                                                 where account = ${db.escape(req.body.email)}
+                                                   and status = 1`
+        const userData: any = (await db.execute(sql, []) as any);
+        console.log(`userData:${sql}`)
+        if (userData.length > 0) {
+            const token=await UserUtil.generateToken({
+                user_id: userData[0]["userID"],
+                account: userData[0]["account"],
+                userData: userData[0]
+            })
+            const url = `<h1>${data.name}</h1>
+<span style="color:black;">請前往重設您的密碼</span>
+<p>
+<a href="${(req.secure) ? `https` : `http`}://${req.headers.host}/${(req.get('g-app') as string)}/index.html?page=${data.forget}&token=${token}">點我前往重設密碼</a>
+</p>
+`
+            await sendmail(`service@ncdesign.info`, req.body.email, `忘記密碼`, url)
+            return response.succ(resp, {
+                result: true
+            });
+        } else {
+            return response.succ(resp, {
+                result: false
+            });
+        }
     } catch (err) {
         return response.fail(resp, err);
     }
@@ -86,14 +135,14 @@ router.put('/', async (req: express.Request, resp: express.Response) => {
     }
 });
 
-router.post('/checkEmail', async (req: express.Request, resp: express.Response) => {
+router.put('/resetPwd', async (req: express.Request, resp: express.Response) => {
     try {
-        return response.succ(resp, {});
+        const user = new User(req.get('g-app') as string);
+        console.log(`pwd:${req.body.pwd}-newPwd:${req.body.newPwd}`);
+        return response.succ(resp, (await user.resetPwd(req.body.token.userID, req.body.pwd,req.body.newPwd)));
     } catch (err) {
         return response.fail(resp, err);
     }
 });
-
-
 
 
