@@ -32,7 +32,7 @@ export class User {
                     userData=userData ?? {}
                     userData.mailVerify=checkToken
                     const url = `<h1>${data.name}</h1><p>
-<a href="${(req.secure) ? `https` : `http`}://${req.headers.host}/api-public/v1/user/checkMail?g-app=${this.app}&token=${checkToken}">點我前往認證您的信箱</a></p>`
+<a href="${config.domain}/api-public/v1/user/checkMail?g-app=${this.app}&token=${checkToken}">點我前往認證您的信箱</a></p>`
                     console.log(`url:${url}`)
                     await sendmail(`service@ncdesign.info`, account, `信箱認證`, url)
                 }

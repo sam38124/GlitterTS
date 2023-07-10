@@ -88,27 +88,46 @@ export class Editor {
                     return {
                         bind: id,
                         view: () => {
-                            return group.map((dd) => {
+                            return group.sort(function (a, b) {
+                                var nameA = a.toUpperCase();
+                                var nameB = b.toUpperCase();
+                                if (nameA < nameB) {
+                                    return -1;
+                                }
+                                if (nameA > nameB) {
+                                    return 1;
+                                }
+                                return 0;
+                            }).map((dd) => {
                                 return `<l1 onclick="${gvc.event(() => {
                                     selectGroup = dd;
                                     gvc.notifyDataChange(id);
                                 })}"  class="list-group-item list-group-item-action border-0 d py-2 ${(selectGroup === dd) && 'active'} position-relative " style="border-radius: 0px;cursor: pointer;">${dd || "未分類"}</l1>`
-                                    +
-                                        `<div class="collapse multi-collapse ${(selectGroup === dd) && 'show'}" style="margin-left: 10px;">
+                                    + `<div class="collapse multi-collapse ${(selectGroup === dd) && 'show'}" style="margin-left: 10px;">
  ${data.dataList.filter((d2) => {
-                                            return d2.group === dd;
-                                        }).map((d3) => {
-                                            if (d3.tag !== glitter.getUrlParameter('page')) {
-                                                return `<a onclick="${gvc.event(() => {
-                                                    data.data = d3;
-                                                    glitter.setUrlParameter('page', d3.tag);
-                                                    gvc.notifyDataChange('HtmlEditorContainer');
-                                                })}"  class=" list-group-item list-group-item-action border-0 py-2 px-4"  style="border-radius: 0px;">${d3.name}</a>`;
-                                            }
-                                            else {
-                                                return `<a   class=" list-group-item list-group-item-action border-0 py-2 px-4 bg-warning"  style="cursor:pointer;background-color: #FFDC6A !important;color:black !important;border-radius: 0px;">${d3.name}</a>`;
-                                            }
-                                        }).join('')}
+                                        return d2.group === dd;
+                                    }).sort((a, b) => {
+                                        var nameA = a.name.toUpperCase();
+                                        var nameB = b.name.toUpperCase();
+                                        if (nameA < nameB) {
+                                            return -1;
+                                        }
+                                        if (nameA > nameB) {
+                                            return 1;
+                                        }
+                                        return 0;
+                                    }).map((d3) => {
+                                        if (d3.tag !== glitter.getUrlParameter('page')) {
+                                            return `<a onclick="${gvc.event(() => {
+                                                data.data = d3;
+                                                glitter.setUrlParameter('page', d3.tag);
+                                                gvc.notifyDataChange('HtmlEditorContainer');
+                                            })}"  class=" list-group-item list-group-item-action border-0 py-2 px-4"  style="border-radius: 0px;">${d3.name}</a>`;
+                                        }
+                                        else {
+                                            return `<a   class=" list-group-item list-group-item-action border-0 py-2 px-4 bg-warning"  style="cursor:pointer;background-color: #FFDC6A !important;color:black !important;border-radius: 0px;">${d3.name}</a>`;
+                                        }
+                                    }).join('')}
 </div>`;
                             }).join('');
                         },

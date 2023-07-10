@@ -7,10 +7,14 @@ import {IToken} from "../models/Auth.js";
 export class Post {
     public app: string
     public token: IToken
+    public static postObserverList: ((data: any,app:string) => void)[] = []
+
+    public static addPostObserver(callback: (data: any,app:string) => void) {
+        Post.postObserverList.push(callback)
+    }
 
     public async postContent(content: any) {
         try {
-
             const data = await db.query(`INSERT INTO \`${this.app}\`.\`t_post\`
                                          SET ?`, [
                 content
@@ -21,6 +25,9 @@ export class Post {
             await db.query(`update \`${this.app}\`.t_post
                             SET ?
                             WHERE id = ${data.insertId}`, [content])
+            Post.postObserverList.map((value, index, array) => {
+                value(content,this.app)
+            })
             return data
         } catch (e) {
             throw exception.BadRequestError('BAD_REQUEST', 'PostContent Error:' + e, null);
@@ -39,7 +46,7 @@ export class Post {
             ])
             reContent.id = data.insertId
             content.content = JSON.stringify(reContent)
-
+            content.updated_time = new Date()
             await db.query(`update \`${this.app}\`.t_post
                             SET ?
                             WHERE id = ${data.insertId}`, [content])
@@ -55,16 +62,23 @@ export class Post {
             let query = ``;
             const app = this.app
             let selectOnly = ` * `
+
             function getQueryString(dd: any): any {
-                if (!dd || dd.length === 0 || dd.key==='') {
+                if (!dd || dd.length === 0 || dd.key === '') {
                     return ``
                 }
+
                 if (dd.type === 'relative_post') {
                     dd.query = dd.query ?? []
                     return ` and JSON_EXTRACT(content, '$.${dd.key}') in (SELECT JSON_EXTRACT(content, '$.${dd.value}') AS datakey
  from \`${app}\`.t_post where 1=1 ${dd.query.map((dd: any) => {
                         return getQueryString(dd)
                     }).join(`  `)})`
+                } else if (dd.type === 'in') {
+
+                    return `and JSON_EXTRACT(content, '$.${dd.key}') in (${dd.query.map((dd: any) => {
+                        return (typeof dd.value === 'string') ? `'${dd.value}'` : dd.value
+                    }).join(',')})`
                 } else if (dd.type) {
                     return ` and JSON_EXTRACT(content, '$.${dd.key}') ${dd.type} ${(typeof dd.value === 'string') ? `'${dd.value}'` : dd.value}`
                 } else {
@@ -78,30 +92,33 @@ export class Post {
                 }
                 if (dd.type === 'SUM') {
                     return ` SUM(JSON_EXTRACT(content, '$.${dd.key}')) AS ${dd.value}`
-                } else if(dd.type === 'count'){
-                    return  ` count(1)`
-                }else if(dd.type === 'AVG'){
-                    return  ` AVG(JSON_EXTRACT(content, '$.${dd.key}')) AS ${dd.value}`
-                }else{
+                } else if (dd.type === 'count') {
+                    return ` count(1)`
+                } else if (dd.type === 'AVG') {
+                    return ` AVG(JSON_EXTRACT(content, '$.${dd.key}')) AS ${dd.value}`
+                } else {
                     return `  JSON_EXTRACT(content, '$.${dd.key}') AS '${dd.value}' `
                 }
             }
+
             if (content.query) {
                 content.query = JSON.parse(content.query)
                 content.query.map((dd: any) => {
                     query += getQueryString(dd)
                 })
             }
-            console.log(`query---`,query)
+            console.log(`query---`, query)
             if (content.selectOnly) {
                 content.selectOnly = JSON.parse(content.selectOnly)
-                content.selectOnly.map((dd: any,index:number) => {
-                    if(index===0){selectOnly=''}
+                content.selectOnly.map((dd: any, index: number) => {
+                    if (index === 0) {
+                        selectOnly = ''
+                    }
                     selectOnly += getSelectString(dd)
                 })
             }
-            console.log(`selectOnly---`,JSON.stringify(selectOnly))
-            console.log(`select---`,selectOnly)
+            console.log(`selectOnly---`, JSON.stringify(selectOnly))
+            console.log(`select---`, selectOnly)
             if (content.datasource) {
                 content.datasource = JSON.parse(content.datasource)
                 if (content.datasource.length > 0) {
@@ -112,22 +129,22 @@ export class Post {
             }
             const data = (await db.query(`select ${selectOnly}
                                           from \`${this.app}\`.\`t_post\`
-                                          where 1=1
+                                          where 1 = 1
                                               ${query}
                                           order by id desc ${limit(content)}`, [
                 content
             ]))
 
             for (const dd of data) {
-                if(!dd.userID){
+                if (!dd.userID) {
                     continue
                 }
                 if (!userData[dd.userID]) {
                     try {
                         userData[dd.userID] = (await db.query(`select userData
-                                                           from \`${this.app}\`.\`user\`
-                                                           where userID = ${dd.userID}`, []))[0]['userData']
-                    }catch (e) {
+                                                               from \`${this.app}\`.\`user\`
+                                                               where userID = ${dd.userID}`, []))[0]['userData']
+                    } catch (e) {
 
                     }
                 }

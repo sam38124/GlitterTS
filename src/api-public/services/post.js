@@ -30,6 +30,9 @@ class Post {
         this.app = app;
         this.token = token;
     }
+    static addPostObserver(callback) {
+        Post.postObserverList.push(callback);
+    }
     async postContent(content) {
         try {
             const data = await database_1.default.query(`INSERT INTO \`${this.app}\`.\`t_post\`
@@ -42,6 +45,9 @@ class Post {
             await database_1.default.query(`update \`${this.app}\`.t_post
                             SET ?
                             WHERE id = ${data.insertId}`, [content]);
+            Post.postObserverList.map((value, index, array) => {
+                value(content, this.app);
+            });
             return data;
         }
         catch (e) {
@@ -59,6 +65,7 @@ class Post {
             ]);
             reContent.id = data.insertId;
             content.content = JSON.stringify(reContent);
+            content.updated_time = new Date();
             await database_1.default.query(`update \`${this.app}\`.t_post
                             SET ?
                             WHERE id = ${data.insertId}`, [content]);
@@ -85,6 +92,11 @@ class Post {
  from \`${app}\`.t_post where 1=1 ${dd.query.map((dd) => {
                         return getQueryString(dd);
                     }).join(`  `)})`;
+                }
+                else if (dd.type === 'in') {
+                    return `and JSON_EXTRACT(content, '$.${dd.key}') in (${dd.query.map((dd) => {
+                        return (typeof dd.value === 'string') ? `'${dd.value}'` : dd.value;
+                    }).join(',')})`;
                 }
                 else if (dd.type) {
                     return ` and JSON_EXTRACT(content, '$.${dd.key}') ${dd.type} ${(typeof dd.value === 'string') ? `'${dd.value}'` : dd.value}`;
@@ -138,7 +150,7 @@ class Post {
             }
             const data = (await database_1.default.query(`select ${selectOnly}
                                           from \`${this.app}\`.\`t_post\`
-                                          where 1=1
+                                          where 1 = 1
                                               ${query}
                                           order by id desc ${(0, database_1.limit)(content)}`, [
                 content
@@ -150,8 +162,8 @@ class Post {
                 if (!userData[dd.userID]) {
                     try {
                         userData[dd.userID] = (await database_1.default.query(`select userData
-                                                           from \`${this.app}\`.\`user\`
-                                                           where userID = ${dd.userID}`, []))[0]['userData'];
+                                                               from \`${this.app}\`.\`user\`
+                                                               where userID = ${dd.userID}`, []))[0]['userData'];
                     }
                     catch (e) {
                     }
@@ -175,6 +187,7 @@ class Post {
     }
 }
 exports.Post = Post;
+Post.postObserverList = [];
 function generateUserID() {
     let userID = '';
     const characters = '0123456789';

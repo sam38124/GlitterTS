@@ -45,7 +45,7 @@ router.get('/checkMail', async (req: express.Request, resp: express.Response) =>
         }
         const user = new User(req.query['g-app'] as string);
         await user.verifyPASS(req.query.token as string)
-        return resp.redirect(`${(req.secure) ? `https` : `http`}://${req.headers.host}/${req.query['g-app']}/index.html?page=${data.link}`)
+        return resp.redirect(`${config.domain}/${req.query['g-app']}/index.html?page=${data.link}`)
     } catch (err) {
         return response.fail(resp, err);
     }
@@ -81,7 +81,7 @@ router.post('/forget', async (req: express.Request, resp: express.Response) => {
             const url = `<h1>${data.name}</h1>
 <span style="color:black;">請前往重設您的密碼</span>
 <p>
-<a href="${(req.secure) ? `https` : `http`}://${req.headers.host}/${(req.get('g-app') as string)}/index.html?page=${data.forget}&token=${token}">點我前往重設密碼</a>
+<a href="${config.domain}/${(req.get('g-app') as string)}/index.html?page=${data.forget}&token=${token}">點我前往重設密碼</a>
 </p>
 `
             await sendmail(`service@ncdesign.info`, req.body.email, `忘記密碼`, url)

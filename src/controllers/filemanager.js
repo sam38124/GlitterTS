@@ -107,7 +107,7 @@ router.post('/getCrossResource', async (req, resp) => {
             });
         }
         const fileUrl = req.body.url;
-        const localFilePath = `${new Date().getTime()}${Math.random() * 100}.${fileUrl.split('.').pop()}`;
+        const localFilePath = `${new Date().getTime()}${Math.random() * 100}.${fileUrl.split('.').pop().replace(/\?.*/, '')}`;
         const cloudStorageUrl = localFilePath;
         await downloadFile(fileUrl)
             .then((data) => {

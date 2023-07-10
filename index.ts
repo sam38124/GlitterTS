@@ -4,11 +4,13 @@ import * as fs from "fs";
 import {initial, app} from "./src/index";
 import {ConfigSetting} from "./src/config";
 import path from "path";
-
+import {Post} from "./src/api-public/services/post";
+import db from './src/modules/database'
+import config from "./src/config.js";
 
 export async function set_frontend(express: core.Express, rout: { rout: string, path: string, seoManager: (req: express.Request, resp: express.Response) => Promise<string> }[]) {
     for (const dd of rout) {
-        express.use(dd.rout, async (req: express.Request, resp: express.Response) => {
+        express.use(dd.rout, async (req: express.Request, resp: express.Response, next) => {
             let path = req.path
             if (path === '/') {
                 path = "/index.html"
@@ -30,5 +32,27 @@ export async function set_backend_editor(envPath: string, serverPort: number = 3
     ConfigSetting.setConfig(envPath)
     await initial(serverPort);
     return app
+}
+
+export const api_public: {
+    addPostObserver: (callback: (data: any,app: string) => void) => void
+    db: typeof db,
+    getAdConfig: (appName: string, key: string) => Promise<any>
+} = {
+    get db() {
+        return db
+    },
+    getAdConfig: (appName: string, key: string) => {
+        return new Promise<any>(async (resolve, reject) => {
+            const data = await db.query(`select \`value\`
+                                         from \`${config.DB_NAME}\`.private_config
+                                         where app_name = '${appName}'
+                                           and \`key\` = ${db.escape(key)}`, [])
+            resolve((data[0]) ? data[0]['value'] : {})
+        })
+    },
+    addPostObserver: (callback: (data: any, app: string) => void) => {
+        Post.addPostObserver(callback)
+    },
 }
 

@@ -619,12 +619,12 @@ async function saveHTML(json: any, relativePath: string, gvc: GVC, elem?: {
                 let lab = obj.innerText ?? ((obj.type === 'container') ? `HTML容器` : `HTML元件`)
                 lab = lab.trim().replace(/&nbsp;/g, '')
                 if (lab.length > 10) {
-                    return lab.substring(0, 10)
+                    return lab.substring(0, 10).replace(/</g,'').replace(/>/g,'').replace(/=/g,'')
                 } else {
                     if (lab.length === 0) {
                         return ((obj.type === 'container') ? `HTML容器` : `HTML元件`)
                     } else {
-                        return lab
+                        return lab.replace(/</g,'').replace(/>/g,'').replace(/=/g,'')
                     }
                 }
             })(),

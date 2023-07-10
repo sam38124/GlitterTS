@@ -113,7 +113,7 @@ router.post('/getCrossResource', async (req: express.Request, resp: express.Resp
         }
         // 使用示例
         const fileUrl = req.body.url;
-        const localFilePath = `${new Date().getTime()}${Math.random() * 100}.${fileUrl.split('.').pop()}`;
+        const localFilePath = `${new Date().getTime()}${Math.random() * 100}.${fileUrl.split('.').pop().replace(/\?.*/, '')}`;
         const cloudStorageUrl = localFilePath;
         // 下载文件
         await downloadFile(fileUrl)

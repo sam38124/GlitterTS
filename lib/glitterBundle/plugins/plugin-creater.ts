@@ -1,6 +1,5 @@
 import {Glitter} from "../Glitter.js";
 import {GVC} from "../GVController.js";
-import * as zlib from "zlib";
 
 export interface HtmlJson {
     clickEvent?: {

@@ -23,6 +23,9 @@ export let saasConfig = {
 }
 
 export let config = {
+    get domain() {
+        return process.env.DOMAIN
+    },
     SECRET_KEY: 'dsklkmsadl',
     API_PREFIX: "/api/v1",
     API_PUBLIC_PREFIX: "/api-public/v1",

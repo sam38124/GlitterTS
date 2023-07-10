@@ -91,15 +91,36 @@ export class Editor {
                     return {
                         bind: id,
                         view: () => {
-                            return group.map((dd) => {
+                            return group.sort(function(a, b) {
+                                // 按姓名的字母顺序排序
+                                var nameA = a.toUpperCase();
+                                var nameB = b.toUpperCase();
+                                if (nameA < nameB) {
+                                    return -1;
+                                }
+                                if (nameA > nameB) {
+                                    return 1;
+                                }
+                                return 0;
+                            }).map((dd) => {
                                 return `<l1 onclick="${gvc.event(() => {
                                         selectGroup = dd
                                         gvc.notifyDataChange(id)
                                     })}"  class="list-group-item list-group-item-action border-0 d py-2 ${(selectGroup === dd) && 'active'} position-relative " style="border-radius: 0px;cursor: pointer;">${dd || "未分類"}</l1>`
-                                    +
-                                    `<div class="collapse multi-collapse ${(selectGroup === dd) && 'show'}" style="margin-left: 10px;">
+                                    + `<div class="collapse multi-collapse ${(selectGroup === dd) && 'show'}" style="margin-left: 10px;">
  ${data.dataList.filter((d2: any) => {
                                         return d2.group === dd
+                                    }).sort((a:any,b:any)=>{
+                                        // 按姓名的字母顺序排序
+                                        var nameA = a.name.toUpperCase();
+                                        var nameB = b.name.toUpperCase();
+                                        if (nameA < nameB) {
+                                            return -1;
+                                        }
+                                        if (nameA > nameB) {
+                                            return 1;
+                                        }
+                                        return 0;
                                     }).map((d3: any) => {
                                         if (d3.tag !== glitter.getUrlParameter('page')) {
                                             return `<a onclick="${gvc.event(()=>{

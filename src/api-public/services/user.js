@@ -58,7 +58,7 @@ class User {
                     userData = userData !== null && userData !== void 0 ? userData : {};
                     userData.mailVerify = checkToken;
                     const url = `<h1>${data.name}</h1><p>
-<a href="${(req.secure) ? `https` : `http`}://${req.headers.host}/api-public/v1/user/checkMail?g-app=${this.app}&token=${checkToken}">點我前往認證您的信箱</a></p>`;
+<a href="${config_js_1.default.domain}/api-public/v1/user/checkMail?g-app=${this.app}&token=${checkToken}">點我前往認證您的信箱</a></p>`;
                     console.log(`url:${url}`);
                     await (0, ses_js_1.sendmail)(`service@ncdesign.info`, account, `信箱認證`, url);
                 }

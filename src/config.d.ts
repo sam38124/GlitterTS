@@ -7,6 +7,7 @@ export declare let saasConfig: {
     DEF_DEADLINE: number;
 };
 export declare let config: {
+    readonly domain: string | undefined;
     SECRET_KEY: string;
     API_PREFIX: string;
     API_PUBLIC_PREFIX: string;
