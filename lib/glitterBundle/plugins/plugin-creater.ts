@@ -25,33 +25,33 @@ export class Plugin {
     public static create(url: string, fun: (
         glitter: Glitter, editMode: boolean) => {
         [name: string]: {
-            defaultData?: any, render: ((gvc: GVC, widget: HtmlJson, setting: HtmlJson[], hoverID: string[], subData?: any,htmlGenerate?:any) => {
+            defaultData?: any, render: ((gvc: GVC, widget: HtmlJson, setting: HtmlJson[], hoverID: string[], subData?: any, htmlGenerate?: any) => {
                 view: () => (Promise<string> | string),
                 editor: () => Promise<string> | string
             })
         }
     }): ({
         [name: string]: {
-            defaultData?: any, render: ((gvc: GVC, widget: HtmlJson, setting: HtmlJson[], hoverID: string[], subData?: any,htmlGenerate?:any) => {
+            defaultData?: any, render: ((gvc: GVC, widget: HtmlJson, setting: HtmlJson[], hoverID: string[], subData?: any, htmlGenerate?: any) => {
                 view: () => (Promise<string> | string),
                 editor: () => Promise<string> | string
             })
         }
     }) {
         const glitter = (window as any).glitter
-        glitter.share.htmlExtension[url] = fun(glitter, (window.parent as any).editerData !== undefined)
+        glitter.share.htmlExtension[url] = fun(glitter, isEditMode())
         return glitter.share.htmlExtension[url]
     }
 
     public static createComponent(url: string, fun: (
         glitter: Glitter, editMode: boolean) => {
-        defaultData?: any, render: ((gvc: GVC, widget: HtmlJson, setting: HtmlJson[], hoverID: string[], subData?: any,htmlGenerate?:any) => {
+        defaultData?: any, render: ((gvc: GVC, widget: HtmlJson, setting: HtmlJson[], hoverID: string[], subData?: any, htmlGenerate?: any) => {
             view: () => (Promise<string> | string),
             editor: () => Promise<string> | string
         })
     }) {
         const glitter = (window as any).glitter
-        const val = fun(glitter, (window.parent as any).editerData !== undefined)
+        const val = fun(glitter, isEditMode())
         let fal = 0
 
         function tryLoop() {
@@ -77,13 +77,13 @@ export class Plugin {
         return val;
     }
 
-    public static setComponent(original: string, url: URL): (gvc: GVC, widget: HtmlJson, setting: HtmlJson[], hoverID: string[], subData?: any,htmlGenerate?:any) => {
+    public static setComponent(original: string, url: URL): (gvc: GVC, widget: HtmlJson, setting: HtmlJson[], hoverID: string[], subData?: any, htmlGenerate?: any) => {
         view: () => (Promise<string> | string),
         editor: () => Promise<string> | string
     } {
         const glitter = (window as any).glitter
         url.searchParams.set("original", original)
-        return (gvc: GVC, widget: HtmlJson, setting: HtmlJson[], hoverID: string[], subData?: any,htmlGenerate?:any) => {
+        return (gvc: GVC, widget: HtmlJson, setting: HtmlJson[], hoverID: string[], subData?: any, htmlGenerate?: any) => {
             glitter.share.componentData = glitter.share.componentData ?? {}
             let val: any = glitter.share.componentData[url.href]
 
@@ -208,3 +208,11 @@ function getUrlParameter(url: string, sParam: string): any {
     }
 }
 
+function isEditMode() {
+    try {
+        return (window.parent as any).editerData !== undefined
+    } catch (e) {
+        return false
+    }
+
+}

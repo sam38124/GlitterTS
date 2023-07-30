@@ -36,7 +36,7 @@ export class Editor {
         };
         this.create = (left, right) => {
             return `
-                <div class="position-relative vh-100 vw-100 " style="word-break: break-word;white-space: nowrap;">
+                <div class="position-relative vh-100 vw-100 overflow-auto" style="word-break: break-word;white-space: nowrap;">
                     <!-- Navbar -->
                     <header
                         class="header navbar navbar-expand navbar-light bg-light border-bottom border-light shadow fixed-top"

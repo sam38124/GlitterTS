@@ -38,3 +38,4 @@ exports.default = {
     succ,
     fail
 };
+//# sourceMappingURL=response.js.map

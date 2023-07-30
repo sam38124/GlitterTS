@@ -1,3 +1,1 @@
-export default function arrayMin(array) {
-  return Math.min(...array);
-}
+export default function arrayMin(array){return Math.min(...array)}

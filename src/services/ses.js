@@ -34,3 +34,4 @@ function sendmail(sender, recipient, subject, body) {
     sendEmail(sender, recipient, subject, body);
 }
 exports.sendmail = sendmail;
+//# sourceMappingURL=ses.js.map

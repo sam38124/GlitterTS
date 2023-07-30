@@ -131,3 +131,4 @@ router.post('/getCrossResource', async (req, resp) => {
     }
 });
 module.exports = router;
+//# sourceMappingURL=filemanager.js.map

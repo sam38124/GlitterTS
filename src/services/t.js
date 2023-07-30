@@ -6,3 +6,4 @@ class User {
     }
 }
 exports.User = User;
+//# sourceMappingURL=t.js.map

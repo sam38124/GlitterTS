@@ -58,3 +58,4 @@ async function doAuthAction(req, resp, next) {
     }
 }
 module.exports = router;
+//# sourceMappingURL=index.js.map

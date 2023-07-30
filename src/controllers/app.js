@@ -59,3 +59,4 @@ router.put('/plugin', async (req, resp) => {
     }
 });
 module.exports = router;
+//# sourceMappingURL=app.js.map

@@ -1,17 +1,18 @@
 import db from '../../modules/database';
 
 
+export class ApiPublic {
+    public static checkApp: string[] = []
 
-export class ApiPublic  {
-    public static checkApp:string[]=[]
-    public static async createScheme(appName:string){
-        if(ApiPublic.checkApp.indexOf(appName)!==-1){
+    public static async createScheme(appName: string) {
+        if (ApiPublic.checkApp.indexOf(appName) !== -1) {
             return
         }
         const trans = await db.Transaction.build();
-        await trans.execute(`CREATE SCHEMA if not exists \`${appName}\` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci ;`, {})
+        await trans.execute(`CREATE SCHEMA if not exists \`${appName}\` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;`, {})
         await trans.execute(`
-            CREATE TABLE if not exists \`${appName}\`.\`user\` (
+            CREATE TABLE if not exists \`${appName}\`.\`user\`
+            (
                 \`id\`
                 int
                 NOT
@@ -92,7 +93,24 @@ export class ApiPublic  {
             )
                 ) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE =utf8mb4_unicode_ci
         `, {})
-
+        await trans.execute(`CREATE TABLE if not exists  \`${appName}\`.\`t_chat_list\`  (
+  \`id\` INT NOT NULL AUTO_INCREMENT,
+  \`chat_id\` VARCHAR(120) NOT NULL,
+  \`participant\` JSON NULL,
+  \`info\` JSON NULL,
+  \`created_time\` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (\`id\`),
+  UNIQUE INDEX \`index2\` (\`chat_id\` ASC) VISIBLE);`, {})
+        await trans.execute(`CREATE TABLE if not exists \`${appName}\`.\`t_chat_detail\`   (
+  \`id\` INT NOT NULL AUTO_INCREMENT,
+  \`chat_id\` VARCHAR(120) NOT NULL,
+  \`user\` VARCHAR(45) NOT NULL,
+  \`message\` JSON NULL,
+  \`created_time\` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (\`id\`),
+  INDEX \`index2\` (\`chat_id\` ASC) VISIBLE,
+  INDEX \`index3\` (\`user\` ASC) VISIBLE,
+  INDEX \`index4\` (\`created_time\` ASC) VISIBLE);`, {})
         await trans.commit()
         ApiPublic.checkApp.push(appName)
     }

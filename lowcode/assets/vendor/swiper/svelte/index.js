@@ -1,1 +1,1 @@
-export { Swiper, SwiperSlide } from './swiper-svelte.js';
+export{Swiper,SwiperSlide}from"./swiper-svelte.js";

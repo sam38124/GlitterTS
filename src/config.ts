@@ -1,7 +1,7 @@
 'use strict';
 import path from "path";
-import {get} from "underscore";
 import dotenv from 'dotenv';
+
 
 export class ConfigSetting {
     public static config_path = ""
@@ -22,7 +22,7 @@ export let saasConfig = {
     DEF_DEADLINE: 365
 }
 
-export let config = {
+export const config = {
     get domain() {
         return process.env.DOMAIN
     },
@@ -86,7 +86,10 @@ export let config = {
     },
     public_route: {
         user: '/user',
+        invoice: '/invoice',
+        sql_api:'/sql_api',
         post: '/post',
+        message: '/message',
         smtp: '/smtp'
     },
     route: {

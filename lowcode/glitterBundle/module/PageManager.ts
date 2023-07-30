@@ -175,7 +175,7 @@ background: ${config!.backGroundColor};display: none;z-index: 9999;overflow: hid
                 }, () => {
                     console.log('can\'t find script src:' + url);
                     glitter.waitChangePage = false;
-                }, {multiple: true});
+                });
             }
         }
     };
@@ -305,7 +305,7 @@ background: transparent;background: ${config!.backGroundColor};display: none;pos
                 }, () => {
                     console.log('can\'t find script src:' + url);
                     glitter.waitChangePage = false;
-                }, {multiple: true});
+                });
             }
         }
     }
@@ -367,7 +367,7 @@ background: ${config!.backGroundColor};display: none;z-index: 9999;overflow: hid
             }, () => {
                 console.log('can\'t find script src:' + url);
                 glitter.waitChangePage = false;
-            }, {multiple: true});
+            });
 
         }
 

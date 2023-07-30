@@ -68,3 +68,4 @@ router.get('/', async (req, resp) => {
     }
 });
 module.exports = router;
+//# sourceMappingURL=template.js.map

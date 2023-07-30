@@ -1,36 +1,16 @@
 'use strict';
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.limit = void 0;
+exports.queryLambada = exports.limit = void 0;
 const promise_1 = __importDefault(require("mysql2/promise"));
-const config_1 = __importStar(require("../config"));
+const config_1 = __importDefault(require("../config"));
 const logger_1 = __importDefault(require("./logger"));
 const exception_1 = __importDefault(require("./exception"));
 const TAG = '[Database]';
 let pool;
 const createPool = async () => {
-    console.log(config_1.ConfigSetting.config_path);
     const logger = new logger_1.default();
     pool = promise_1.default.createPool({
         connectionLimit: config_1.default.DB_CONN_LIMIT,
@@ -98,6 +78,51 @@ const query = async (sql, params) => {
         throw exception_1.default.ServerError('INTERNAL_SERVER_ERROR', 'Failed to execute statement.');
     }
 };
+const queryLambada = async (cf, fun) => {
+    const logger = new logger_1.default();
+    const cs = {
+        connectionLimit: config_1.default.DB_CONN_LIMIT,
+        queueLimit: config_1.default.DB_QUEUE_LIMIT,
+        host: config_1.default.DB_URL,
+        port: config_1.default.DB_PORT,
+        user: config_1.default.DB_USER,
+        password: config_1.default.DB_PWD,
+        supportBigNumbers: true
+    };
+    Object.keys(cf).map((key) => {
+        cs[key] = cf[key];
+    });
+    const sp = promise_1.default.createPool(cs);
+    try {
+        const connection = await sp.getConnection();
+        if (connection) {
+            await connection.release();
+            logger.info(TAG, 'Pool has been created.');
+        }
+        const data = await fun({
+            query(sql, params) {
+                return new Promise(async (resolve, reject) => {
+                    const logger = new logger_1.default();
+                    const TAG = '[Database][Query]';
+                    try {
+                        const [results] = await sp.query(sql, params);
+                        resolve(results);
+                    }
+                    catch (err) {
+                        logger.error(TAG, 'Failed to query statement ' + sql + ' because ' + err);
+                        reject(undefined);
+                    }
+                });
+            }
+        });
+        return data;
+    }
+    catch (err) {
+        logger.error(TAG, 'Failed to create connection pool for mysql because ' + err);
+        throw exception_1.default.ServerError('INTERNAL_SERVER_ERROR', 'Failed to create connection pool.');
+    }
+};
+exports.queryLambada = queryLambada;
 class Transaction {
     static async build() {
         const logger = new logger_1.default();
@@ -175,5 +200,7 @@ exports.default = {
     query,
     Transaction,
     getPagination,
-    escape
+    escape,
+    queryLambada: exports.queryLambada
 };
+//# sourceMappingURL=database.js.map

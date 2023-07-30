@@ -9,7 +9,7 @@ export const widgetComponent = {
     render: (gvc: GVC, widget: HtmlJson, setting: HtmlJson[], hoverID: string[], subData: any,htmlGenerate:any) => {
         const glitter = gvc.glitter
 
-        widget.data.elem = widget.data.elem ?? "h3"
+        widget.data.elem = widget.data.elem ?? "div"
         widget.data.inner = widget.data.inner ?? ""
         widget.data.attr = widget.data.attr ?? []
         const id = htmlGenerate.widgetComponentID

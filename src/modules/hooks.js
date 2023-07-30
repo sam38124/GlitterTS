@@ -42,3 +42,4 @@ class Singleton {
 }
 exports.Singleton = Singleton;
 exports.asyncHooks = Singleton;
+//# sourceMappingURL=hooks.js.map

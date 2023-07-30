@@ -1,7 +1,6 @@
 import {init} from "../glitterBundle/GVController.js";
 import {config} from "../config.js";
 import {ApiPageConfig} from "../api/pageConfig.js";
-import {Plugin} from "../glitterBundle/plugins/plugin-creater.js";
 import {Glitter} from "../glitterBundle/Glitter.js";
 import {ApiUser} from "../api/user.js";
 import {TriggerEvent} from "../glitterBundle/plugins/trigger-event.js";
@@ -13,6 +12,9 @@ init((gvc, glitter, gBundle)=>{
             return ``
         },
         onCreate:()=>{
+            const vm={
+                pageData: ApiPageConfig.getPage(config.appName, glitter.getUrlParameter('page') ?? glitter.getUUID())
+            };
 
             (window as any).saasConfig = {
                 config: (window as any).config = config,
@@ -20,45 +22,10 @@ init((gvc, glitter, gBundle)=>{
             }
 
             ApiPageConfig.getPlugin(config.appName).then((dd) => {
-                const plugin = Plugin;
                 (async () => {
                     return new Promise(async (resolve, reject) => {
-                        for (const data of (dd.response.data.initialList ?? [])) {
-                            try {
-                                if (data.type === 'script') {
-                                    const url =new URL(glitter.htmlGenerate.resourceHook(data.src.link))
-                                    glitter.share.callBackList=glitter.share.callBackList??{}
-                                    const callbackID=glitter.getUUID()
-                                    url.searchParams.set('callback',callbackID)
-                                    glitter.share.callBackList[callbackID]=(()=>{resolve(true)})
-                                    await new Promise((resolve, reject) => {
-                                        glitter.addMtScript([{
-                                            src:url.href , type: 'module'
-                                        }], () => {
-                                            resolve(true)
-                                        }, () => {
-                                            resolve(true)
-                                        })
-                                    })
-                                } else if(data.type === 'event'){
-                                    try {
-                                        await TriggerEvent.trigger({
-                                            gvc:gvc,widget:dd as any,clickEvent:data.src.event
-                                        })
-                                    }catch (e) {
-                                        console.log(e)
-                                    }
-                                }else{
-                                    const dd = await eval(data.src.official)
-                                }
-                            } catch (e) {
-                                console.log(e)
-                            }
-                        }
+                        //Initial Global style
                         if (glitter.getUrlParameter("type") !== 'editor') {
-                            setTimeout(() => {
-                                resolve(true)
-                            }, 4000)
                             for (const data of (dd.response.data.initialStyleSheet ?? [])) {
                                 try {
                                     if (data.type === 'script') {
@@ -70,10 +37,64 @@ init((gvc, glitter, gBundle)=>{
                                     console.log(e)
                                 }
                             }
-                            resolve(true)
-                        }else{
-                            resolve(true)
                         }
+                        let countI=dd.response.data.initialList.length
+                        const vm={
+                            get count(){return countI},
+                            set count(v){
+                                countI=v
+                                if(countI===0){
+                                    resolve(true)
+                                }
+                            }
+                        }
+                        for (const data of (dd.response.data.initialList ?? [])) {
+                            try {
+                                if (data.type === 'script') {
+
+                                    const url =new URL(glitter.htmlGenerate.resourceHook(data.src.link))
+                                    glitter.share.callBackList=glitter.share.callBackList??{}
+                                    const callbackID=glitter.getUUID()
+                                    url.searchParams.set('callback',callbackID)
+                                    glitter.share.callBackList[callbackID]=(()=>{
+                                        vm.count--
+                                    })
+                                    glitter.addMtScript([{
+                                        src:url.href , type: 'module'
+                                    }], () => {
+                                        vm.count--
+                                    }, () => {
+                                        vm.count--
+                                    })
+                                } else if(data.type === 'event'){
+                                    new Promise(async ()=>{
+                                        try {
+                                            await TriggerEvent.trigger({
+                                                gvc:gvc,widget:dd as any,clickEvent:data.src.event
+                                            }).then(()=>{
+                                                vm.count--
+                                            }).catch(()=>{
+                                                vm.count--
+                                            })
+
+                                        }catch (e) {
+                                            console.log(e)
+                                            vm.count--
+                                        }
+
+                                    })
+
+                                }else{
+                                    const dd = await eval(data.src.official)
+                                    vm.count--
+                                }
+                            } catch (e) {
+                                console.log(e)
+                                vm.count--
+                            }
+                        }
+
+
 
                     })
                 })().then(() => {
@@ -102,8 +123,7 @@ init((gvc, glitter, gBundle)=>{
                         glitter.share.evalPlace=((evals:string)=>{
                            return  eval(evals)
                         })
-                        async function render() {
-                            let data = await ApiPageConfig.getPage(config.appName, glitter.getUrlParameter('page') ?? glitter.getUUID())
+                        vm.pageData.then((data)=>{
                             if (data.response.result.length === 0) {
                                 const url = new URL("./", location.href)
 
@@ -119,9 +139,7 @@ init((gvc, glitter, gBundle)=>{
                                     tag: glitter.getUrlParameter('page')
                                 }
                             );
-                        }
-
-                        render().then()
+                        })
                     }
                 });
 

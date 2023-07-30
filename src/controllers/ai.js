@@ -33,3 +33,4 @@ router.post('/generate-html', async (req, resp) => {
     }
 });
 module.exports = router;
+//# sourceMappingURL=ai.js.map

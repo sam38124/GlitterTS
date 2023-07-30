@@ -149,3 +149,4 @@ router.put('/resetPwd', async (req, resp) => {
     }
 });
 module.exports = router;
+//# sourceMappingURL=user.js.map

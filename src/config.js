@@ -82,7 +82,10 @@ exports.config = {
     },
     public_route: {
         user: '/user',
+        invoice: '/invoice',
+        sql_api: '/sql_api',
         post: '/post',
+        message: '/message',
         smtp: '/smtp'
     },
     route: {
@@ -95,3 +98,4 @@ exports.config = {
     }
 };
 exports.default = exports.config;
+//# sourceMappingURL=config.js.map

@@ -6,7 +6,7 @@ export declare let saasConfig: {
     readonly SAAS_NAME: string | undefined;
     DEF_DEADLINE: number;
 };
-export declare let config: {
+export declare const config: {
     readonly domain: string | undefined;
     SECRET_KEY: string;
     API_PREFIX: string;
@@ -32,7 +32,10 @@ export declare let config: {
     getRoute: (r: string, type?: 'public' | 'normal') => string;
     public_route: {
         user: string;
+        invoice: string;
+        sql_api: string;
         post: string;
+        message: string;
         smtp: string;
     };
     route: {

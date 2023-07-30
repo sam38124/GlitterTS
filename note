@@ -1,1 +1,18 @@
-page:https://sam38124.github.io/GlitterTS/glitterdoc/src/index.html
+//Message list
+{
+id:string
+account:string,
+content:JSON,
+participant:[]string,
+create_time:Date
+}
+
+//Message Detail
+{
+id:string,
+account:string,
+content:JSON,
+create_time:Date
+}
+
+//

@@ -201,7 +201,7 @@ ${obj.gvc.bindView({
                     dd.refreshComponentParameter!.view1();
                     dd.refreshComponentParameter!.view2();
                 } catch (e: any) {
-                    // console.log(`${e.message}<br>${e.stack}<br>${e.line}`);
+                    (window as any).glitter.deBugMessage(`${e.message}<br>${e.stack}<br>${e.line}`)
                 }
             };
             return dd;
@@ -219,7 +219,6 @@ ${obj.gvc.bindView({
             function getPageData() {
                 htmlList = []
                 const subData2 = subdata
-
                 async function add(set: any[]) {
                     for (const a of set) {
                         if (['code'].indexOf(a.type) === -1) {
@@ -232,7 +231,10 @@ ${obj.gvc.bindView({
                                         },
                                         () => {
                                             resolve(false);
-                                        }
+                                        },
+                                        [
+                                            {key:"async",value:"true"}
+                                        ]
                                     );
                                 });
                             }
@@ -248,7 +250,6 @@ ${obj.gvc.bindView({
                 add(setting).then(async (data) => {
                     new Promise<void>(async (resolve, reject) => {
                         let index = 0
-
                         for (const script of setting.filter((dd) => {
                             return dd.type === 'code' && dd.data.triggerTime === 'first'
                         })) {
@@ -326,7 +327,7 @@ ${obj.gvc.bindView({
                                                 };
                                                 const option: any = []
 
-                                                if ((window.parent as any).editerData !== undefined) {
+                                                if (isEditMode()) {
                                                     option.push({
                                                         key: "onclick", value: (() => {
                                                             return gvc.event((e, event) => {
@@ -368,7 +369,7 @@ ${obj.gvc.bindView({
                                                     };
                                                     getdd();
                                                     let option: any = []
-                                                    if ((window.parent as any).editerData !== undefined) {
+                                                    if (isEditMode()) {
                                                         option.push({
                                                             key: "onclick", value: (() => {
                                                                 return gvc.event((e, event) => {
@@ -451,9 +452,10 @@ ${obj.gvc.bindView({
                                         gvc.glitter.share.htmlExtension[gvc.glitter.htmlGenerate.resourceHook(dd.js)][dd.type]
                                             .render(gvc, dd, setting, hover, subData2)
                                         loadingFinish()
-
                                     } catch (e: any) {
-                                        console.log(`解析錯誤:${e.message}<br>${e.stack}<br>${e.line}`)
+                                        // alert(gvc.glitter.htmlGenerate.resourceHook(dd.js))
+
+                                        // console.log(`解析錯誤:${e.message}<br>${ gvc.glitter.getCookieByName('beta')}<br>${gvc.glitter.htmlGenerate.resourceHook(dd.js}<br>${dd.type}<br>${e.stack}<br>${e.line}<br>`)
                                         HtmlGenerate.share.false[dd.js] = (HtmlGenerate.share.false[dd.js] ?? 0) + 1
 
                                         if (HtmlGenerate.share.false[dd.js] < 80) {
@@ -548,7 +550,10 @@ ${obj.gvc.bindView({
                                         () => {
                                             falseArray.push(gvc.glitter.htmlGenerate.resourceHook(a.js))
                                             resolve(false);
-                                        }
+                                        },
+                                        [
+                                            {key:"async",value:"true"}
+                                        ]
                                     );
                                 });
                             }
@@ -595,7 +600,7 @@ ${obj.gvc.bindView({
                                             dd.refreshComponentParameter!.view2();
 
                                         } catch (e: any) {
-                                            // console.log(`${e.message}<br>${e.stack}<br>${e.line}`);
+                                              (window as any).glitter.deBugMessage(`${e.message}<br>${e.stack}<br>${e.line}`);
                                         }
                                     };
                                     dd.refreshComponentParameter = dd.refreshComponentParameter ?? {
@@ -828,4 +833,12 @@ ${e.line}
             return JSON.stringify(setting);
         };
     }
+}
+function isEditMode() {
+    try {
+        return (window.parent as any).editerData !== undefined
+    } catch (e) {
+        return false
+    }
+
 }

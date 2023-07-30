@@ -6,10 +6,19 @@ import UserUtil from "../utils/UserUtil";
 import {createAPP} from "../index.js";
 import AWS from "aws-sdk";
 import {IToken} from "../models/Auth.js";
+import config from "../config.js";
 
 export class App {
     public token: IToken;
-
+    public static getAdConfig(app:string,key:string){
+        return new Promise<any>(async (resolve, reject) => {
+            const data = await db.query(`select \`value\`
+                                         from \`${config.DB_NAME}\`.private_config
+                                         where app_name = '${app}'
+                                           and \`key\` = ${db.escape(key)}`, [])
+            resolve((data[0]) ? data[0]['value'] : {})
+        })
+    }
     public async createApp(config: { domain: string, appName: string, copyApp: string }) {
         try {
             const count = await db.execute(`

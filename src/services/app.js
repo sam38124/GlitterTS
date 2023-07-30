@@ -8,9 +8,19 @@ const database_1 = __importDefault(require("../modules/database"));
 const exception_1 = __importDefault(require("../modules/exception"));
 const config_1 = require("../config");
 const index_js_1 = require("../index.js");
+const config_js_1 = __importDefault(require("../config.js"));
 class App {
     constructor(token) {
         this.token = token;
+    }
+    static getAdConfig(app, key) {
+        return new Promise(async (resolve, reject) => {
+            const data = await database_1.default.query(`select \`value\`
+                                         from \`${config_js_1.default.DB_NAME}\`.private_config
+                                         where app_name = '${app}'
+                                           and \`key\` = ${database_1.default.escape(key)}`, []);
+            resolve((data[0]) ? data[0]['value'] : {});
+        });
     }
     async createApp(config) {
         var _a;
@@ -164,3 +174,4 @@ function addDays(dat, addDays) {
     date.setDate(date.getDate() + addDays);
     return date;
 }
+//# sourceMappingURL=app.js.map

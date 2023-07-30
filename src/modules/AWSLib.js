@@ -50,3 +50,4 @@ function createBucket(name) {
     });
 }
 exports.createBucket = createBucket;
+//# sourceMappingURL=AWSLib.js.map

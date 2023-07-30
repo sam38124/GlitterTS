@@ -1,6 +1,6 @@
 'use strict';
 import mysql from "mysql2/promise";
-import config, {ConfigSetting, saasConfig} from '../config';
+import config from '../config';
 import Logger from './logger';
 import exception from './exception';
 
@@ -8,7 +8,6 @@ const TAG = '[Database]';
 let pool: mysql.Pool;
 
 const createPool = async () => {
-    console.log(ConfigSetting.config_path)
     const logger = new Logger();
     pool = mysql.createPool({
         connectionLimit: config.DB_CONN_LIMIT,
@@ -53,8 +52,8 @@ const getConnection = async (connPool: null | mysql.Pool): Promise<mysql.PoolCon
 const execute = async (sql: string, params: any[]): Promise<any> => {
     const logger = new Logger();
     const TAG = '[Database][Execute]';
-    if(params.indexOf(undefined)!==-1){
-        logger.error(TAG, 'Failed to exect statement ' + sql + ' because params=null' );
+    if (params.indexOf(undefined) !== -1) {
+        logger.error(TAG, 'Failed to exect statement ' + sql + ' because params=null');
         throw exception.ServerError(
             'INTERNAL_SERVER_ERROR',
             'Failed to exect statement because params=null'
@@ -72,8 +71,8 @@ const execute = async (sql: string, params: any[]): Promise<any> => {
     }
 };
 
-export const limit=(map:any)=>{
-    return ` limit ${parseInt(map.page,10) * parseInt(map.limit,10)}, ${ parseInt(map.limit,10)} `
+export const limit = (map: any) => {
+    return ` limit ${parseInt(map.page, 10) * parseInt(map.limit, 10)}, ${parseInt(map.limit, 10)} `
 }
 const query = async (sql: string, params: unknown[]): Promise<any> => {
     const logger = new Logger();
@@ -90,10 +89,64 @@ const query = async (sql: string, params: unknown[]): Promise<any> => {
     }
 };
 
+export const queryLambada = async (cf: {
+    database?: string
+}, fun: (v: {
+    query(sql: string, params: unknown[]): Promise<any>
+}) => any) => {
+    const logger = new Logger();
+    const cs: any = {
+        connectionLimit: config.DB_CONN_LIMIT,
+        queueLimit: config.DB_QUEUE_LIMIT,
+        host: config.DB_URL,
+        port: config.DB_PORT,
+        user: config.DB_USER,
+        password: config.DB_PWD,
+        supportBigNumbers: true
+    }
+    Object.keys(cf).map((key) => {
+        cs[key] = (cf as any)[key]
+    })
+    const sp = mysql.createPool(cs);
+    try {
+        const connection = await sp.getConnection();
+        if (connection) {
+            await connection.release();
+            logger.info(TAG, 'Pool has been created.');
+        }
+        const data = await fun({
+            query(sql: string, params: unknown[]): Promise<any> {
+                return new Promise<any>(async (resolve, reject) => {
+                    const logger = new Logger();
+                    const TAG = '[Database][Query]';
+                    try {
+                        const [results] = await sp.query(sql, params);
+                        resolve(results)
+                    } catch (err) {
+                        logger.error(TAG, 'Failed to query statement ' + sql + ' because ' + err);
+                        reject(undefined)
+                    }
+                })
+            }
+        })
+        //Close connection
+        // connection.release()
+        return data
+    } catch (err) {
+        logger.error(TAG, 'Failed to create connection pool for mysql because ' + err);
+        throw exception.ServerError(
+            'INTERNAL_SERVER_ERROR',
+            'Failed to create connection pool.'
+        );
+    }
+}
+
+
 class Transaction {
     private trans: any;
     connectionId: any;
     private TAG: any;
+
     static async build(): Promise<Transaction> {
         const logger = new Logger();
         const Trans = new Transaction();
@@ -111,6 +164,7 @@ class Transaction {
             );
         }
     }
+
     public async execute(sql: string, params: any[] | any): Promise<any> {
         const logger = new Logger();
         if (!this.trans) {
@@ -130,6 +184,7 @@ class Transaction {
             throw err;
         }
     }
+
     async commit() {
         const logger = new Logger();
         try {
@@ -146,6 +201,7 @@ class Transaction {
             );
         }
     }
+
     async release() {
         const logger = new Logger();
         try {
@@ -185,7 +241,8 @@ export default {
     query,
     Transaction,
     getPagination,
-    escape
+    escape,
+    queryLambada
 };
 
 // module.exports.createPool = createPool;

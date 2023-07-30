@@ -74,3 +74,4 @@ function generateUserID() {
     userID = `${'123456789'.charAt(Math.floor(Math.random() * charactersLength))}${userID}`;
     return userID;
 }
+//# sourceMappingURL=user.js.map

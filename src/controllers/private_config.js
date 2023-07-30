@@ -23,3 +23,4 @@ router.get('/', async (req, resp) => {
     }
 });
 module.exports = router;
+//# sourceMappingURL=private_config.js.map

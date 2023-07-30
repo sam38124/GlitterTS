@@ -6,7 +6,8 @@ import {ConfigSetting} from "./src/config";
 import path from "path";
 import {Post} from "./src/api-public/services/post";
 import db from './src/modules/database'
-import config from "./src/config.js";
+import config from "./src/config";
+import {lambda} from "./src/lambda/interface";
 
 export async function set_frontend(express: core.Express, rout: { rout: string, path: string, seoManager: (req: express.Request, resp: express.Response) => Promise<string> }[]) {
     for (const dd of rout) {
@@ -37,7 +38,8 @@ export async function set_backend_editor(envPath: string, serverPort: number = 3
 export const api_public: {
     addPostObserver: (callback: (data: any,app: string) => void) => void
     db: typeof db,
-    getAdConfig: (appName: string, key: string) => Promise<any>
+    getAdConfig: (appName: string, key: string) => Promise<any>,
+    lambda:typeof lambda
 } = {
     get db() {
         return db
@@ -54,5 +56,8 @@ export const api_public: {
     addPostObserver: (callback: (data: any, app: string) => void) => {
         Post.addPostObserver(callback)
     },
+    lambda:lambda
 }
+
+
 

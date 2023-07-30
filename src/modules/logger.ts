@@ -2,8 +2,7 @@
 import 'winston-daily-rotate-file';
 import winston from 'winston';
 import { asyncHooks } from './hooks';
-import config from '../config';
-
+import {config} from '../config';
 const env = process.env.NODE_ENV || 'local';
 
 const levels = {

@@ -42,3 +42,4 @@ router.get('/checkToken', async (req, resp) => {
     }
 });
 module.exports = router;
+//# sourceMappingURL=user.js.map

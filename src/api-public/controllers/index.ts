@@ -12,6 +12,9 @@ import _ from "underscore";
 import exception from "../../modules/exception";
 import userRouter = require('./user');
 import postRouter = require('./post');
+import messageRouter = require('./chat');
+import invoiceRouter = require('./invoice');
+import sql_apiRouter = require('./sql_api');
 import {Live_source} from "../../live_source.js";
 import {IToken} from "../models/Auth.js";
 import {ApiPublic} from "../services/public-table-check.js";
@@ -21,7 +24,9 @@ import {ApiPublic} from "../services/public-table-check.js";
 router.use('/api-public/*', doAuthAction);
 router.use(config.getRoute(config.public_route.user, 'public'), userRouter);
 router.use(config.getRoute(config.public_route.post, 'public'), postRouter);
-
+router.use(config.getRoute(config.public_route.message, 'public'), messageRouter);
+router.use(config.getRoute(config.public_route.invoice, 'public'), invoiceRouter);
+router.use(config.getRoute(config.public_route.sql_api, 'public'), sql_apiRouter);
 /******************************/
 const whiteList: {}[] = [
     {url: config.getRoute(config.public_route.user + "/register", 'public'), method: 'POST'},
@@ -29,7 +34,9 @@ const whiteList: {}[] = [
     {url: config.getRoute(config.public_route.user + "/forget", 'public'), method: 'POST'},
     {url: config.getRoute(config.public_route.post, 'public'), method: 'GET'},
     {url: config.getRoute(config.public_route.user + "/checkMail", 'public'), method: 'GET'},
-    {url: config.getRoute(config.public_route.user+"/userdata", 'public'), method: 'GET'}
+    {url: config.getRoute(config.public_route.user+"/userdata", 'public'), method: 'GET'},
+    {url: config.getRoute(config.public_route.sql_api, 'public'), method: 'GET'},
+    {url: config.getRoute(config.public_route.sql_api, 'public'), method: 'POST'}
 ];
 
 async function doAuthAction(req: express.Request, resp: express.Response, next: express.NextFunction) {

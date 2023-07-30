@@ -48,3 +48,4 @@ router.put('/', async (req, resp) => {
     }
 });
 module.exports = router;
+//# sourceMappingURL=post.js.map

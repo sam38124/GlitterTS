@@ -1,6 +1,5 @@
 import {GVC} from "../glitterBundle/GVController.js";
 import {Swal} from "../modules/sweetAlert.js";
-import {Lan} from "./language.js";
 
 enum ViewType {
     mobile = "mobile",

@@ -13,18 +13,26 @@ const underscore_1 = __importDefault(require("underscore"));
 const exception_1 = __importDefault(require("../../modules/exception"));
 const userRouter = require("./user");
 const postRouter = require("./post");
+const messageRouter = require("./chat");
+const invoiceRouter = require("./invoice");
+const sql_apiRouter = require("./sql_api");
 const live_source_js_1 = require("../../live_source.js");
 const public_table_check_js_1 = require("../services/public-table-check.js");
 router.use('/api-public/*', doAuthAction);
 router.use(config_1.config.getRoute(config_1.config.public_route.user, 'public'), userRouter);
 router.use(config_1.config.getRoute(config_1.config.public_route.post, 'public'), postRouter);
+router.use(config_1.config.getRoute(config_1.config.public_route.message, 'public'), messageRouter);
+router.use(config_1.config.getRoute(config_1.config.public_route.invoice, 'public'), invoiceRouter);
+router.use(config_1.config.getRoute(config_1.config.public_route.sql_api, 'public'), sql_apiRouter);
 const whiteList = [
     { url: config_1.config.getRoute(config_1.config.public_route.user + "/register", 'public'), method: 'POST' },
     { url: config_1.config.getRoute(config_1.config.public_route.user + "/login", 'public'), method: 'POST' },
     { url: config_1.config.getRoute(config_1.config.public_route.user + "/forget", 'public'), method: 'POST' },
     { url: config_1.config.getRoute(config_1.config.public_route.post, 'public'), method: 'GET' },
     { url: config_1.config.getRoute(config_1.config.public_route.user + "/checkMail", 'public'), method: 'GET' },
-    { url: config_1.config.getRoute(config_1.config.public_route.user + "/userdata", 'public'), method: 'GET' }
+    { url: config_1.config.getRoute(config_1.config.public_route.user + "/userdata", 'public'), method: 'GET' },
+    { url: config_1.config.getRoute(config_1.config.public_route.sql_api, 'public'), method: 'GET' },
+    { url: config_1.config.getRoute(config_1.config.public_route.sql_api, 'public'), method: 'POST' }
 ];
 async function doAuthAction(req, resp, next) {
     var _a, _b, _c;
@@ -56,3 +64,4 @@ async function doAuthAction(req, resp, next) {
     }
 }
 module.exports = router;
+//# sourceMappingURL=index.js.map

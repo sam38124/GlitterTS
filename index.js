@@ -42,7 +42,8 @@ var index_1 = require("./src/index");
 var config_1 = require("./src/config");
 var post_1 = require("./src/api-public/services/post");
 var database_1 = require("./src/modules/database");
-var config_js_1 = require("./src/config.js");
+var config_2 = require("./src/config");
+var interface_1 = require("./src/lambda/interface");
 function set_frontend(express, rout) {
     return __awaiter(this, void 0, void 0, function () {
         var _loop_1, _i, rout_1, dd;
@@ -105,7 +106,7 @@ exports.api_public = {
             var data;
             return __generator(this, function (_a) {
                 switch (_a.label) {
-                    case 0: return [4 /*yield*/, database_1["default"].query("select `value`\n                                         from `" + config_js_1["default"].DB_NAME + "`.private_config\n                                         where app_name = '" + appName + "'\n                                           and `key` = " + database_1["default"].escape(key), [])];
+                    case 0: return [4 /*yield*/, database_1["default"].query("select `value`\n                                         from `" + config_2["default"].DB_NAME + "`.private_config\n                                         where app_name = '" + appName + "'\n                                           and `key` = " + database_1["default"].escape(key), [])];
                     case 1:
                         data = _a.sent();
                         resolve((data[0]) ? data[0]['value'] : {});
@@ -116,5 +117,6 @@ exports.api_public = {
     },
     addPostObserver: function (callback) {
         post_1.Post.addPostObserver(callback);
-    }
+    },
+    lambda: interface_1.lambda
 };

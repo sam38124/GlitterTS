@@ -3,12 +3,12 @@ export class Plugin {
     }
     static create(url, fun) {
         const glitter = window.glitter;
-        glitter.share.htmlExtension[url] = fun(glitter, window.parent.editerData !== undefined);
+        glitter.share.htmlExtension[url] = fun(glitter, isEditMode());
         return glitter.share.htmlExtension[url];
     }
     static createComponent(url, fun) {
         const glitter = window.glitter;
-        const val = fun(glitter, window.parent.editerData !== undefined);
+        const val = fun(glitter, isEditMode());
         let fal = 0;
         function tryLoop() {
             try {
@@ -146,5 +146,13 @@ function getUrlParameter(url, sParam) {
         if (sParameterName[0] === sParam) {
             return sParameterName[1] === undefined ? true : decodeURIComponent(sParameterName[1]);
         }
+    }
+}
+function isEditMode() {
+    try {
+        return window.parent.editerData !== undefined;
+    }
+    catch (e) {
+        return false;
     }
 }

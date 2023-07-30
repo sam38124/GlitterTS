@@ -312,7 +312,7 @@ export class Glitter {
         }
     };
 
-    public addMtScript(urlArray: any[], success: () => void, error: (message: string) => void, option?: { multiple?: boolean }) {
+    public addMtScript(urlArray: any[], success: () => void, error: (message: string) => void, option?: {key:string,value:string}[]) {
         Glitter.glitter.share.scriptMemory = Glitter.glitter.share.scriptMemory ?? []
         const glitter = this;
         let index = 0
@@ -323,11 +323,6 @@ export class Glitter {
                 return
             }
             var scritem: any = urlArray[index]
-            // glitter.$('head').children().map(function (data: any) {
-            //     if (glitter.$('head').children().get(data).src === (scritem.src ?? scritem)) {
-            //         haveURL = true
-            //     }
-            // })
             if (Glitter.glitter.share.scriptMemory.indexOf((scritem.src ?? scritem)) !== -1) {
                 index++
                 addScript()
@@ -337,25 +332,31 @@ export class Glitter {
             }
             let script: any = document.createElement('script');
             try {
-                if (script.readyState) {  //IE
-                    script.onreadystatechange = () => {
-                        if (script.readyState === "loaded" || script.readyState === "complete") {
-                            script.onreadystatechange = null;
-                            index++
-                            addScript()
-                        } else {
-                            alert(script.readyState)
+                if((option ?? []).find((dd)=>{return dd.key==='async'})){
+                    index++
+                    addScript()
+                }else{
+                    if (script.readyState) {  //IE
+                        script.onreadystatechange = () => {
+                            if (script.readyState === "loaded" || script.readyState === "complete") {
+                                script.onreadystatechange = null;
+                                index++
+                                addScript()
+                            } else {
+                                alert(script.readyState)
+                            }
                         }
-                    }
-                } else {
-                    //其餘瀏覽器支援onload
-                    script.onload = () => {
-                        if (success !== undefined) {
+                    } else {
+                        //其餘瀏覽器支援onload
+                        script.onload = () => {
                             index++
                             addScript()
                         }
                     }
                 }
+                (option ?? []).map((dd)=>{
+                    script.setAttribute(dd.key, dd.value)
+                })
                 script.addEventListener('error', () => {
                     error("")
                 });
@@ -366,6 +367,7 @@ export class Glitter {
                     script.setAttribute('src', scritem.src ?? undefined);
                     script.setAttribute('crossorigin', true)
                     script.setAttribute('id', scritem.id ?? undefined);
+
                     document.getElementsByTagName("head")[0].appendChild(script);
                 } else {
                     script.setAttribute('src', scritem.src ?? scritem);

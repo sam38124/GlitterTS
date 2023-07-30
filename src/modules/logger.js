@@ -6,7 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 require("winston-daily-rotate-file");
 const winston_1 = __importDefault(require("winston"));
 const hooks_1 = require("./hooks");
-const config_1 = __importDefault(require("../config"));
+const config_1 = require("../config");
 const env = process.env.NODE_ENV || 'local';
 const levels = {
     error: 0,
@@ -45,7 +45,7 @@ const winstonLogger = winston_1.default.createLogger({
     transports,
 });
 winstonLogger.add(new winston_1.default.transports.DailyRotateFile({
-    dirname: config_1.default.LOG_PATH,
+    dirname: config_1.config.LOG_PATH,
     filename: 'error-%DATE%.log',
     level: 'error',
     datePattern: 'YYYY-MM-DD',
@@ -54,7 +54,7 @@ winstonLogger.add(new winston_1.default.transports.DailyRotateFile({
     format
 }));
 winstonLogger.add(new winston_1.default.transports.DailyRotateFile({
-    dirname: config_1.default.LOG_PATH,
+    dirname: config_1.config.LOG_PATH,
     filename: 'out-%DATE%.log',
     level: 'info',
     datePattern: 'YYYY-MM-DD',
@@ -74,3 +74,4 @@ class Logger {
     }
 }
 exports.default = Logger;
+//# sourceMappingURL=logger.js.map
