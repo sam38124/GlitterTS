@@ -33,8 +33,8 @@ exports.config = {
     PARAMS_NEED_ENCRYPT_IN_LOG: ['pwd', 'email'],
     PWD_SALT_ROUND: 5,
     LOG_PATH: path_1.default.resolve("../../log"),
-    DB_CONN_LIMIT: 1,
-    DB_QUEUE_LIMIT: 0,
+    DB_CONN_LIMIT: 1000,
+    DB_QUEUE_LIMIT: 1000,
     get DB_URL() {
         return process.env.DB_URL;
     },
@@ -86,7 +86,8 @@ exports.config = {
         sql_api: '/sql_api',
         post: '/post',
         message: '/message',
-        smtp: '/smtp'
+        smtp: '/smtp',
+        lambda: '/lambda'
     },
     route: {
         user: "/user",

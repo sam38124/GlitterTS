@@ -4,6 +4,7 @@ import tool from "../../services/tool";
 import UserUtil from "../../utils/UserUtil";
 import {IToken} from "../models/Auth.js";
 import {App} from "../../services/app.js";
+import {sendMessage} from "../../firebase/message.js";
 
 export class Post {
     public app: string
@@ -35,15 +36,35 @@ export class Post {
 
     public async sqlApi(router: string, datasource: any) {
         try {
+            const apConfig = await App.getAdConfig(this.app, "sql_api_config_post")
+            const sq = apConfig.apiList.find((dd: any) => {
+                return dd.route === router;
+            })
+            const sql = ((() => {
+                return eval(sq.sql)
+            })()).replaceAll('$app', `\`${this.app}\``);
+            console.log(`sqlApi:`, sql);
+            (await db.query(sql, []));
+        } catch (e) {
+            throw exception.BadRequestError('BAD_REQUEST', 'SqlApi Error:' + e, null);
+        }
+    }
 
+    public async lambda(router: string, datasource: any, type: string) {
+        try {
             return await db.queryLambada({
                 database: this.app
             }, async (sql) => {
                 const apConfig = await App.getAdConfig(this.app, "sql_api_config_post")
+                console.log(apConfig.apiList)
                 const sq = apConfig.apiList.find((dd: any) => {
-                    return dd.route === router;
+                    return dd.route === router && dd.type === type;
                 })
-                let user = {userID: -1, userData: {}};
+                if (!sq) {
+
+                    throw exception.BadRequestError('BAD_REQUEST', `Router ${router} not exist.`, null);
+                }
+                let user :any = undefined;
                 if (this.token) {
                     user = (await sql.query(`select *
                                              from user
@@ -53,7 +74,7 @@ export class Post {
                 const myFunction = new Function(html`try {
                 return ${sq.sql.replace(
                         /new\s*Promise\s*\(\s*async\s*\(\s*resolve\s*,\s*reject\s*\)\s*=>\s*\{([\s\S]*)\}\s*\)/i,
-                        'new Promise(async (resolve, reject) => { try { $1 } catch (error) { reject(error); } })'
+                        'new Promise(async (resolve, reject) => { try { $1 } catch (error) { console.log(error);reject(error); } })'
                 )}
                 } catch (error) {
                 return 'error';
@@ -71,7 +92,23 @@ export class Post {
                 } else {
                     return new Promise<any>(async (resolve, reject) => {
                         try {
-                            (sqlType.execute(sql, user)).then((data: any) => {
+                            (sqlType.execute(sql,{
+                                user: user,
+                                data: datasource,
+                                app:this.app,
+                                firebase:{
+                                    sendMessage:(message:{
+                                        notification: {
+                                            title: string,
+                                            body: string,
+                                        },
+                                        type:"topic"|"token",
+                                        for:string
+                                    })=>{
+                                        sendMessage(apConfig.firebase,message,this.app)
+                                    }
+                                }
+                            })).then((data: any) => {
                                 resolve(data)
                             }).catch((e: any) => {
                                 reject(e)
@@ -206,7 +243,7 @@ export class Post {
                                 order by id desc ${limit(content)}`
                     }
                 })()
-                console.log(`sql---${sql}`)
+                console.log(`sql---${sql.replace('$countIndex', '')}`)
 
                 const data = (await v.query(sql.replace('$countIndex', ''), []))
                 for (const dd of data) {
@@ -224,21 +261,25 @@ export class Post {
                     }
                     dd.userData = userData[dd.userID]
                 }
-                console.log(`sql:${sql}`)
+                // console.log(`sql:${sql}`)
+                let countText = (() => {
+                    if (sql.indexOf('$countIndex') !== -1) {
+                        const index = sql.indexOf('$countIndex')
+                        return `select count(1)
+                                from ${sql.substring(index + 11)}`
+                    } else {
+                        return `select count(1)
+                                     ${sql.substring(sql.lastIndexOf(' from '))}`
+                    }
+                })()
+                countText = countText.substring(0, countText.indexOf(' order ') ?? countText.length)
+                console.log(`countText:${countText}`)
+                console.log(`countSql:${countSql}`)
                 return {
                     data: data,
                     count: (countSql) ? (await v.query(countSql, [content]))[0]["count(1)"]
                         :
-                        (await v.query((() => {
-                            if (sql.indexOf('$countIndex') !== -1) {
-                                const index = sql.indexOf('$countIndex')
-                                return `select count(1)
-                                        from ${sql.substring(index + 11)}`
-                            } else {
-                                return `select count(1)
-                                     ${sql.substring(sql.lastIndexOf(' from '))}`
-                            }
-                        })(), [
+                        (await v.query(countText, [
                             content
                         ]))[0]["count(1)"]
                 }

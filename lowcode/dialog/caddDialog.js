@@ -104,6 +104,16 @@ function cAdd(gvc) {
         if (data.result) {
             viewModel.loading = false;
             viewModel.pluginList = data.response.data.pagePlugin;
+            if (data.response.data.lambdaView) {
+                viewModel.pluginList = viewModel.pluginList.concat(data.response.data.lambdaView.map((dd) => {
+                    return {
+                        "src": {
+                            "official": dd.path
+                        },
+                        "name": dd.name
+                    };
+                }));
+            }
             gvc.notifyDataChange([tabID, docID]);
         }
     }
@@ -111,7 +121,7 @@ function cAdd(gvc) {
     const glitter = gvc.glitter;
     const tabID = glitter.getUUID();
     const docID = glitter.getUUID();
-    return ` <div class="m-auto bg-white shadow rounded" style="max-width: 100%;max-height: 100%;width: 720px;height: 800px;">
+    return `<div class="m-auto bg-white shadow rounded" style="max-width: 100%;max-height: 100%;width: 720px;height: 800px;">
         <div class="w-100 d-flex align-items-center border-bottom justify-content-center position-relative" style="height: 68px;">
         <h3 class="modal-title fs-4 " >選擇元件</h3>
         <i class="fa-solid fa-xmark text-dark position-absolute " style="font-size:20px;transform: translateY(-50%);right: 20px;top: 50%;cursor: pointer;"

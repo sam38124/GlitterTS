@@ -1,6 +1,5 @@
 import {HtmlJson} from "./plugin-creater.js"
 import {GVC} from "../GVController.js";
-import {ShareDialog} from "../../dialog/ShareDialog.js";
 import {Glitter} from "../Glitter.js";
 import {Editor} from "./editor.js";
 

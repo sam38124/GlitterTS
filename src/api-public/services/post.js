@@ -26,6 +26,7 @@ exports.Post = void 0;
 const database_1 = __importStar(require("../../modules/database"));
 const exception_1 = __importDefault(require("../../modules/exception"));
 const app_js_1 = require("../../services/app.js");
+const message_js_1 = require("../../firebase/message.js");
 class Post {
     constructor(app, token) {
         this.app = app;
@@ -55,15 +56,35 @@ class Post {
     }
     async sqlApi(router, datasource) {
         try {
+            const apConfig = await app_js_1.App.getAdConfig(this.app, "sql_api_config_post");
+            const sq = apConfig.apiList.find((dd) => {
+                return dd.route === router;
+            });
+            const sql = ((() => {
+                return eval(sq.sql);
+            })()).replaceAll('$app', `\`${this.app}\``);
+            console.log(`sqlApi:`, sql);
+            (await database_1.default.query(sql, []));
+        }
+        catch (e) {
+            throw exception_1.default.BadRequestError('BAD_REQUEST', 'SqlApi Error:' + e, null);
+        }
+    }
+    async lambda(router, datasource, type) {
+        try {
             return await database_1.default.queryLambada({
                 database: this.app
             }, async (sql) => {
                 var _a, _b;
                 const apConfig = await app_js_1.App.getAdConfig(this.app, "sql_api_config_post");
+                console.log(apConfig.apiList);
                 const sq = apConfig.apiList.find((dd) => {
-                    return dd.route === router;
+                    return dd.route === router && dd.type === type;
                 });
-                let user = { userID: -1, userData: {} };
+                if (!sq) {
+                    throw exception_1.default.BadRequestError('BAD_REQUEST', `Router ${router} not exist.`, null);
+                }
+                let user = undefined;
                 if (this.token) {
                     user = (_b = (await sql.query(`select *
                                              from user
@@ -71,7 +92,7 @@ class Post {
                 }
                 const html = String.raw;
                 const myFunction = new Function(html `try {
-                return ${sq.sql.replace(/new\s*Promise\s*\(\s*async\s*\(\s*resolve\s*,\s*reject\s*\)\s*=>\s*\{([\s\S]*)\}\s*\)/i, 'new Promise(async (resolve, reject) => { try { $1 } catch (error) { reject(error); } })')}
+                return ${sq.sql.replace(/new\s*Promise\s*\(\s*async\s*\(\s*resolve\s*,\s*reject\s*\)\s*=>\s*\{([\s\S]*)\}\s*\)/i, 'new Promise(async (resolve, reject) => { try { $1 } catch (error) { console.log(error);reject(error); } })')}
                 } catch (error) {
                 return 'error';
                 }`);
@@ -89,7 +110,16 @@ class Post {
                 else {
                     return new Promise(async (resolve, reject) => {
                         try {
-                            (sqlType.execute(sql, user)).then((data) => {
+                            (sqlType.execute(sql, {
+                                user: user,
+                                data: datasource,
+                                app: this.app,
+                                firebase: {
+                                    sendMessage: (message) => {
+                                        (0, message_js_1.sendMessage)(apConfig.firebase, message, this.app);
+                                    }
+                                }
+                            })).then((data) => {
                                 resolve(data);
                             }).catch((e) => {
                                 reject(e);
@@ -132,6 +162,7 @@ class Post {
         return await (0, database_1.queryLambada)({
             database: this.app
         }, async (v) => {
+            var _a;
             try {
                 const apConfig = await app_js_1.App.getAdConfig(this.app, "sql_api_config");
                 let userData = {};
@@ -225,7 +256,7 @@ class Post {
                                 order by id desc ${(0, database_1.limit)(content)}`;
                     }
                 })();
-                console.log(`sql---${sql}`);
+                console.log(`sql---${sql.replace('$countIndex', '')}`);
                 const data = (await v.query(sql.replace('$countIndex', ''), []));
                 for (const dd of data) {
                     if (!dd.userID) {
@@ -242,22 +273,25 @@ class Post {
                     }
                     dd.userData = userData[dd.userID];
                 }
-                console.log(`sql:${sql}`);
+                let countText = (() => {
+                    if (sql.indexOf('$countIndex') !== -1) {
+                        const index = sql.indexOf('$countIndex');
+                        return `select count(1)
+                                from ${sql.substring(index + 11)}`;
+                    }
+                    else {
+                        return `select count(1)
+                                     ${sql.substring(sql.lastIndexOf(' from '))}`;
+                    }
+                })();
+                countText = countText.substring(0, (_a = countText.indexOf(' order ')) !== null && _a !== void 0 ? _a : countText.length);
+                console.log(`countText:${countText}`);
+                console.log(`countSql:${countSql}`);
                 return {
                     data: data,
                     count: (countSql) ? (await v.query(countSql, [content]))[0]["count(1)"]
                         :
-                            (await v.query((() => {
-                                if (sql.indexOf('$countIndex') !== -1) {
-                                    const index = sql.indexOf('$countIndex');
-                                    return `select count(1)
-                                        from ${sql.substring(index + 11)}`;
-                                }
-                                else {
-                                    return `select count(1)
-                                     ${sql.substring(sql.lastIndexOf(' from '))}`;
-                                }
-                            })(), [
+                            (await v.query(countText, [
                                 content
                             ]))[0]["count(1)"]
                 };

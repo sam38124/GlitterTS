@@ -130,7 +130,8 @@ export const queryLambada = async (cf: {
             }
         })
         //Close connection
-        // connection.release()
+        connection.release()
+        sp.end()
         return data
     } catch (err) {
         logger.error(TAG, 'Failed to create connection pool for mysql because ' + err);

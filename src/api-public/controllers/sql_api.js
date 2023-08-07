@@ -11,7 +11,6 @@ router.post('/', async (req, resp) => {
         const post = new post_1.Post(req.get('g-app'), req.body.token);
         const postData = req.body.data;
         const data = (await post.sqlApi(req.body.router, postData));
-        console.log(`data:`, data);
         return response_1.default.succ(resp, { result: true, data: data });
     }
     catch (err) {

@@ -221,7 +221,7 @@ background: #0c3483;background-clip: text;-webkit-background-clip: text; color: 
                        ${left}
                     </aside>
                     <!-- Page container -->
-                    <main class="docs-container" style="padding-top: 40px;">${gvc.bindView({
+                    <main class="docs-container" style="padding-top: 40px;padding-right:0px;">${gvc.bindView({
                 dataList: [{ obj: viewModel, key: "type" }],
                 bind: `showView`,
                 view: () => {
@@ -238,16 +238,7 @@ background: #0c3483;background-clip: text;-webkit-background-clip: text; color: 
                 },
                 divCreate: {}
             })}</main>
-                    <aside
-                id="jumpToNav"
-                class="side-nav side-nav-end d-none d-xxl-block position-fixed top-0 end-0 vh-100 py-5 px-2"
-                style="width: 20rem;overflow-y: scroll;"
-            >
-            <div class="w-100" style="padding-top: 20px;">
-             ${right}
-</div>
                
-            </aside>
                   
                     <!-- Back to top button -->
                     <a href="#top" class="btn-scroll-top" data-scroll>

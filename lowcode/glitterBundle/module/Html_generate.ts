@@ -132,7 +132,7 @@ export class HtmlGenerate {
         type?: string
     }) {
         obj.title = obj.title ?? ""
-        return `<h3 class="text-dark mt-2" style="font-size: 16px;margin-bottom: 10px;" >${obj.title}</h3>
+        return `<h3 class="fw-500 mt-2" style="font-size: 15px;margin-bottom: 10px;color:#151515;" >${obj.title}</h3>
 <input class="form-control mb-2" type="${obj.type ?? 'text'}" placeholder="${obj.placeHolder}" onchange="${obj.gvc.event((e) => {
             obj.callback(e.value);
         })}" value="${obj.default ?? ''}">`;
@@ -142,7 +142,7 @@ export class HtmlGenerate {
     public static editeText(obj: { gvc: GVC; title: string; default: string; placeHolder: string; callback: (text: string) => void }) {
         obj.title = obj.title ?? ""
         const id = obj.gvc.glitter.getUUID()
-        return `<h3 style="font-size: 16px;margin-bottom: 10px;" class="mt-2 text-dark d-flex align-items-center  ${(!obj.title) ? `d-none` : ``}">${obj.title}</h3>
+        return `<h3 style="font-size: 15px;margin-bottom: 10px;color:#151515;" class="mt-2 fw-500 d-flex align-items-center  ${(!obj.title) ? `d-none` : ``}">${obj.title}</h3>
 
 ${obj.gvc.bindView({
             bind: id,
@@ -583,7 +583,6 @@ ${obj.gvc.bindView({
                     if (loading) {
                         return ``;
                     } else {
-
                         return gvc.map(
                             (option.setting ?? setting).map((dd, index) => {
                                 try {
@@ -622,48 +621,13 @@ ${obj.gvc.bindView({
                                         dd.expand = !dd.expand;
                                         gvc.notifyDataChange([toggleView, component]);
                                     });
+
                                     return `<div style=" ${
                                         option.return_
                                             ? `padding: 10px;`
                                             : `padding-bottom: 10px;margin-bottom: 10px;border-bottom: 1px solid lightgrey;`
                                     }" class="
 ${option.return_ ? `w-100 border rounded bg-dark mt-2` : ``} " >
-${gvc.bindView({
-                                        bind: toggleView,
-                                        view: () => {
-                                            return `<div class="d-flex align-items-center" style="${
-                                                option.return_ && !dd.expand ? `` : `margin-bottom: 10px;`
-                                            };cursor: pointer;" >
-
-<h3 style="font-size: 16px;" class="m-0">${dd.label}</h3>
-<div class="flex-fill"></div>
-${
-                                                option.return_
-                                                    ? dd.expand
-                                                        ? `<div class="text-white" style="cursor: pointer;" onclick="${toggleEvent}">收合<i class="fa-solid fa-up ms-2 text-white"></i></div>`
-                                                        : `<div class="text-white" style="cursor: pointer;" onclick="${toggleEvent}">展開<i class="fa-solid fa-down ms-2 text-white"></i></div>\``
-                                                    : ``
-                                            }
-</div>
-${
-                                                false
-                                                    ? HtmlGenerate.editeInput({
-                                                        gvc: gvc,
-                                                        title: '模塊資源路徑',
-                                                        default: dd.js,
-                                                        placeHolder: '請輸入模塊路徑',
-                                                        callback: (text) => {
-                                                            dd.js = text;
-                                                            option!.refreshAll!();
-                                                            dd.refreshAll!();
-                                                        },
-                                                    })
-                                                    : ``
-                                            }
-`;
-                                        },
-                                        divCreate: {},
-                                    })}
 ${gvc.bindView(() => {
                                         let loading = true
                                         let data: string | Promise<string> = ''

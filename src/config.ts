@@ -33,8 +33,8 @@ export const config = {
     PWD_SALT_ROUND: 5,
     LOG_PATH: path.resolve("../../log"),
     /*Database*/
-    DB_CONN_LIMIT: 1,
-    DB_QUEUE_LIMIT: 0,
+    DB_CONN_LIMIT: 1000,
+    DB_QUEUE_LIMIT: 1000,
     get DB_URL() {
         return process.env.DB_URL
     },
@@ -90,7 +90,8 @@ export const config = {
         sql_api:'/sql_api',
         post: '/post',
         message: '/message',
-        smtp: '/smtp'
+        smtp: '/smtp',
+        lambda:'/lambda'
     },
     route: {
         user: "/user",

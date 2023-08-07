@@ -1,10 +1,14 @@
 import {GVC} from "../glitterBundle/GVController.js";
 import {Swal} from "../modules/sweetAlert.js";
+import Add_item_dia from "../editor/add_item_dia.js";
+
 
 enum ViewType {
     mobile = "mobile",
     desktop = "desktop"
 }
+
+const html = String.raw
 
 export class Main_editor {
     public static left(gvc: GVC, viewModel: any, createID: string, gBundle: any) {
@@ -13,591 +17,425 @@ export class Main_editor {
         const glitter = gvc.glitter
         return gvc.bindView(() => {
             let items: any[] = [];
-            let styleItems: any[] = []
-            let scriptItems: any[] = []
-            let filterID: string[] = []
-            let triggerItems: any[] = []
-
-            function addItems(dd: any, array: any, index2: number) {
-                if (filterID.indexOf(dd.id) !== -1) {
-                    dd.id = glitter.getUUID()
-                }
-                filterID.push(dd.id)
-                if (glitter.getCookieByName('lastSelect') === dd.id) {
-                    viewModel.selectItem = dd;
-                    viewModel.selectContainer = array
-                    viewModel.selectIndex = index2
-                }
-                if (dd.type === 'container') {
-                    const option = dd.data.setting.map((d4: any, index: number) => {
-                        d4.index = index
-                        return addItems(d4, dd.data.setting, index);
-                    })
-                    return {
-                        'text': dd.label, option: option,
-                        copy: () => {
-                            viewModel.waitCopy = dd
-                            navigator.clipboard.writeText('glitter-copyEvent' + JSON.stringify(viewModel.waitCopy));
-                            swal.toast({
-                                icon: 'success',
-                                title: "複製成功，選擇容器按下control+V即可貼上．"
-                            })
-                        },
-                        click: () => {
-                            if (viewModel.selectItem === dd) {
-                                return
-                            }
-                            glitter.setCookie('lastSelect', dd.id);
-                            viewModel.selectItem = dd;
-                            viewModel.selectContainer = dd.data.setting
-                            viewModel.selectIndex = 0
-                            gvc.notifyDataChange('showView');
-                            gvc.notifyDataChange(['htmlGenerate', 'showView']);
-                        },
-                        minus: () => {
-                            array.splice(index2, 1)
-                            const index = ((viewModel.selectIndex - 1) > 0) ? viewModel.selectIndex - 1 : 0
-                            if (array[index]) {
-                                glitter.setCookie('lastSelect', array[index].id);
-                                viewModel.selectItem = array[index];
-                                viewModel.selectIndex = index
-                                viewModel.selectContainer = array
-                            }
-                            gvc.notifyDataChange(createID)
-                        },
-                        dataArray: array,
-                        changeIndex: (index: number) => {
-                            dd.index = index
-                        },
-                        index: dd.index,
-                        setting: dd.data.setting,
-                        select: glitter.getCookieByName('lastSelect') === dd.id
-                    };
-                } else {
-                    return {
-                        'text': dd.label,
-                        index: dd.index,
-                        copy: () => {
-                            viewModel.waitCopy = dd
-                            navigator.clipboard.writeText('glitter-copyEvent' + JSON.stringify(viewModel.waitCopy));
-                            swal.toast({
-                                icon: 'success',
-                                title: "複製成功，選擇容器按下control+V即可貼上．"
-                            })
-                        },
-                        click: () => {
-                            if (viewModel.selectItem === dd) {
-                                return
-                            }
-                            viewModel.selectItem = dd;
-                            viewModel.selectContainer = array
-                            viewModel.selectIndex = index2
-                            glitter.setCookie('lastSelect', dd.id);
-                            gvc.notifyDataChange('showView');
-                            gvc.notifyDataChange(['htmlGenerate', 'showView']);
-                        },
-                        minus: () => {
-                            array.splice(index2, 1)
-                            const index = ((viewModel.selectIndex - 1) > 0) ? viewModel.selectIndex - 1 : 0
-                            if (array[index]) {
-                                glitter.setCookie('lastSelect', array[index].id);
-                                viewModel.selectItem = array[index];
-                                viewModel.selectIndex = index
-                                viewModel.selectContainer = array
-                            }
-                            gvc.notifyDataChange(createID)
-                        },
-                        dataArray: array,
-                        changeIndex: (index: number) => {
-                            dd.index = index
-                        },
-                        select: glitter.getCookieByName('lastSelect') === dd.id
-                    };
-                }
-            }
-
-            (viewModel.data! as any).config.map((d3: any, index: number) => {
-                if (d3) {
-                    d3.index = index
-                    if (d3.data && ((d3.data.elem === 'style') || ((d3.data.elem === 'link') && (d3.data.attr.find((dd: any) => {
-                        return dd.attr === 'rel' && dd.value === 'stylesheet'
-                    }))))) {
-                        styleItems.push(addItems(d3, (viewModel.data! as any).config, index))
-                    } else if (d3.data && ((d3.data.elem === 'script'))) {
-                        scriptItems.push(addItems(d3, (viewModel.data! as any).config, index));
-                    } else if (d3.data && ((d3.type === 'code'))) {
-                        triggerItems.push(addItems(d3, (viewModel.data! as any).config, index));
-                    } else {
-                        items.push(addItems(d3, (viewModel.data! as any).config, index));
-                    }
-                }
-            });
-            let selectType = glitter.getUrlParameter('selectEditTP') ?? "html"
-            items = [
-                {
-                    title: ``,
-                    option: [],
-                    html: (() => {
-                        return `<li class=" align-items-center list-group-item list-group-item-action border-0 py-2 px-4  position-relative d-flex text-dark shadow" style=""
-><div class="d-flex align-items-center pt-2 text-gradient-primary justify-content-between w-100" style="">
-${[
-                            {
-                                title: `style`, class: `fa-regular fa-pen-fancy-slash`, onclick: gvc.event(() => {
-                                    glitter.setUrlParameter('selectEditTP', 'style')
-                                    gvc.notifyDataChange(createID)
-                                })
-                            },
-                            {
-                                title: `script`, class: `fa-solid fa-code`, onclick: gvc.event(() => {
-                                    glitter.setUrlParameter('selectEditTP', 'script')
-                                    gvc.notifyDataChange(createID)
-                                })
-                            }
-                            , {
-                                title: `html`, class: `fa-regular fa-file-code`, onclick: gvc.event(() => {
-                                    glitter.setUrlParameter('selectEditTP', 'html')
-                                    gvc.notifyDataChange(createID)
-                                })
-                            }
-                        ].map((dd: any) => {
-                            if(selectType===dd.title){
-                                return `<div class="rounded-circle p-2 " style="width:60px;height:60px;border: 2px dashed;
-border-color:#D946EF;"><div class="d-flex flex-column align-items-center justify-content-center" onclick="${dd.onclick}">
-<i class="${dd.class}"></i>
-${dd.title}
-</div></div>`
-                            }else{
-                                return `<div class="d-flex flex-column align-items-center justify-content-center" onclick="${dd.onclick}">
-<i class="${dd.class}"></i>
-${dd.title}
-</div>`
-                            }
-                           
-                        }).join('<div style="height:40px;width:1px;background:lightgrey;"></div>')}
-
-</div>
-</li>`
-                    })()
-                },
-                {
-                    title: `排版設計`,
-                    option: styleItems,
-                    html: (() => {
-                        let toggle = glitter.getCookieByName('groupG-1') === "true"
-                        return `<li class=" align-items-center list-group-item list-group-item-action border-0 py-2 px-4  position-relative d-flex text-dark" style="background:lightgrey;"
-onclick="${gvc.event(() => {
-                            glitter.setCookie('lastSelect', '');
-                            viewModel.selectItem = undefined
-                            viewModel.selectContainer = (viewModel.data! as any).config
-                            gvc.notifyDataChange(createID)
-                        })}"
->Style 設計樣式<button class="rounded-circle btn-warning  btn  ms-2 d-flex align-items-center justify-content-center p-0" style="height: 25px;width: 25px;" onclick="${gvc.event((e, event) => {
-                            event.stopPropagation();
-                            glitter.setCookie('groupG-1', 'true')
-                            glitter.openDiaLog('dialog/cadd-style-Dialog.js', 'caddStyleDialog', {
-                                callback: (data: any) => {
-                                    (viewModel.data! as any).config.push(data);
-                                    glitter.setCookie('lastSelect', data.id);
-                                    gvc.notifyDataChange(createID)
-                                },
-                                appName: gBundle.appName
-                            });
-                        })}">
-<i class="fa-sharp fa-solid fa-circle-plus " style="color: black;"></i></button>
-<div class="flex-fill"></div>
-<button class="btn btn-primary" style="width:50px;height:30px;" onclick="${gvc.event((e, event) => {
-                            $(`.groupG-1`).toggleClass('d-none')
-                            toggle = !toggle
-                            glitter.setCookie('groupG-1', toggle)
-                            event.stopPropagation()
-                            if (toggle) {
-                                $(e).html("收合")
-                            } else {
-                                $(e).html("展開")
-                            }
-                        })}">${(glitter.getCookieByName('groupG-1') !== "true") ? `展開` : `收合`}</button>
-</li>`
-                    })()
-                },
-                {
-                    title: `Script標籤`,
-                    option: scriptItems,
-                    html: (() => {
-                        let toggle = glitter.getCookieByName('groupG-2') === "true"
-                        return `<li class="align-items-center list-group-item list-group-item-action border-0 py-2 px-4  position-relative d-flex text-dark" 
-style="background:lightgrey;"
-onclick="${gvc.event(() => {
-                            glitter.setCookie('lastSelect', '');
-                            viewModel.selectItem = undefined
-                            viewModel.selectContainer = (viewModel.data! as any).config
-                            gvc.notifyDataChange(createID)
-                        })}"
->Script 資源<button class="rounded-circle btn-warning  btn  ms-2 d-flex align-items-center justify-content-center p-0" style="height: 25px;width: 25px;"
-onclick="${gvc.event((e, event) => {
-                            event.stopPropagation();
-                            glitter.setCookie('groupG-2', 'true')
-                            glitter.openDiaLog('dialog/cadd-script-Dialog.js', 'addScript', {
-                                callback: (data: any) => {
-                                    (viewModel.data! as any).config.push(data);
-                                    glitter.setCookie('lastSelect', data.id);
-                                    gvc.notifyDataChange(createID)
-                                },
-                                appName: gBundle.appName
-                            });
-                        })}">
-<i class="fa-sharp fa-solid fa-circle-plus " style="color: black;"></i></button>
-<div class="flex-fill"></div>
-<button class="btn btn-primary" style="width:50px;height:30px;" onclick="${gvc.event((e, event) => {
-                            $(`.groupG-2`).toggleClass('d-none')
-                            toggle = !toggle
-                            glitter.setCookie('groupG-2', toggle)
-                            event.stopPropagation()
-                            if (toggle) {
-                                $(e).html("收合")
-                            } else {
-                                $(e).html("展開")
-                            }
-                        })}">${(glitter.getCookieByName('groupG-2') !== "true") ? `展開` : `收合`}</button>
-</li>`
-                    })()
-                },
-                {
-                    title: `觸發事件`,
-                    option: triggerItems,
-                    html: (() => {
-                        let toggle = glitter.getCookieByName('groupG-3') === "true"
-                        return `<li class="align-items-center list-group-item list-group-item-action border-0 py-2 px-4  position-relative d-flex text-dark" 
-style="background:lightgrey;"
-onclick="${gvc.event(() => {
-                            glitter.setCookie('lastSelect', '');
-                            viewModel.selectItem = undefined
-                            viewModel.selectContainer = (viewModel.data! as any).config
-                            gvc.notifyDataChange(createID)
-                        })}"
->觸發事件<button class="rounded-circle btn-warning  btn  ms-2 d-flex align-items-center justify-content-center p-0" style="height: 25px;width: 25px;"
-onclick="${gvc.event((e, event) => {
-                            glitter.setCookie('groupG-3', 'true')
-                            event.stopPropagation();
-                            const id = glitter.getUUID();
-                            (viewModel.data! as any).config.push({
-                                "id": id,
-                                "data": {"triggerTime": "first", "clickEvent": {}},
-                                "type": "code",
-                                "label": "代碼區塊",
-                                "js": "$style1/official.js",
-                                "index": 2,
-                                "css": {"style": {}, "class": {}},
-                                "refreshAllParameter": {},
-                                "refreshComponentParameter": {}
-                            });
-                            glitter.setCookie('lastSelect', id);
-                            gvc.notifyDataChange(createID)
-                        })}">
-<i class="fa-sharp fa-solid fa-circle-plus " style="color: black;"></i></button>
-<div class="flex-fill"></div>
-<button class="btn btn-primary" style="width:50px;height:30px;" onclick="${gvc.event((e, event) => {
-                            $(`.groupG-3`).toggleClass('d-none')
-                            toggle = !toggle
-                            glitter.setCookie('groupG-3', toggle)
-                            event.stopPropagation()
-                            if (toggle) {
-                                $(e).html("收合")
-                            } else {
-                                $(e).html("展開")
-                            }
-                        })}">${(glitter.getCookieByName('groupG-3') !== "true") ? `展開` : `收合`}</button>
-</li>`
-                    })()
-                },
-                {
-                    title: `HTML區塊`,
-                    option: items,
-                    html: `
-<li class="align-items-center list-group-item list-group-item-action border-0 py-2 px-4  position-relative d-flex text-dark" 
-style="
-background:lightgrey;;
-"
-onclick="${gvc.event(() => {
-                        glitter.setCookie('lastSelect', '');
-                        viewModel.selectItem = undefined
-                        viewModel.selectContainer = (viewModel.data! as any).config
-                        gvc.notifyDataChange(createID)
-                    })}"
->HTML區塊<button class="rounded-circle btn-warning  btn  ms-2 d-flex align-items-center justify-content-center p-0" style="height: 25px;width: 25px;"
-onclick="${gvc.event((e, event) => {
-                        glitter.openDiaLog('dialog/caddDialog.js', 'caddDialog', {
-                            callback: (data: any) => {
-                                (viewModel.data! as any).config.push(data);
-                                glitter.setCookie('lastSelect', data.id);
-                                gvc.notifyDataChange(createID)
-                            },
-                            appName: gBundle.appName
-                        });
-                    })}">
-<i class="fa-sharp fa-solid fa-circle-plus " style="color: black;"></i></button></li>
-`
-                }
-            ];
-            items = items.filter((dd, index) => {
-                dd.index=index
-                if (selectType === 'style') {
-                    return [0, 1].indexOf(index) !== -1
-                } else if (selectType === 'script') {
-                    return [0, 2, 3].indexOf(index) !== -1
-                } else {
-                    return [0, 4].indexOf(index) !== -1
-                }
-            })
+            glitter.debugMode = true;
             const vid = glitter.getUUID();
-
-            function clearSelect() {
-                items.map((dd) => {
-                    function clear(dd: any) {
-                        dd.select = false;
-                        if (dd.option) {
-                            dd.option.map((d2: any) => {
-                                clear(d2);
-                            });
-                        }
-                    }
-
-                    clear(dd);
-                });
-            }
-
             return {
                 bind: vid,
                 view: () => {
-                    let dragm = {
-                        start: 0,
-                        end: 0,
-                        div: ''
-                    };
-                    let indexCounter = 9999;
-                    return items.map((dd, index) => {
-                        return `<ul class="list-group list-group-flush border-bottom   mx-n4 m-0">
-                                                    ${dd.html}
-                                                        ${(() => {
-                            function convertInner(d2: any, inner: boolean, parentCallback: () => void = () => {
-                            }, dragOption: {
-                                dragId: string,
-                                changeIndex: (n1: number, n2: number) => void,
-                                index: number
-                            }) {
-                                function checkOptionSelect(data: any) {
-                                    if (data.select) {
-                                        return true;
-                                    } else if (data.option) {
-                                        for (const a of data.option) {
-                                            if (checkOptionSelect(a)) {
-                                                data.select = true;
-                                                return true;
+                    if (viewModel.selectItem) {
+                        return [html`
+                            <div class="w-100 d-flex align-items-center px-3 border-bottom"
+                                 style="height:49px;color:#151515;">
+                                <i class="fa-regular fa-chevron-left me-2 hoverBtn" style="cursor:pointer;"
+                                   onclick="${gvc.event(() => {
+                                       viewModel.selectItem = undefined
+                                       gvc.notifyDataChange(vid)
+                                   })}"></i>
+                                <span class="fw-bold" style="font-size:15px;">${viewModel.selectItem.label}</span>
+                            </div>`, gvc.bindView(() => {
+                            return {
+                                bind: `htmlGenerate`,
+                                view: () => {
+                                    let hoverList: string[] = [];
+                                    if (viewModel.selectItem !== undefined) {
+                                        hoverList.push((viewModel.selectItem as any).id);
+                                    }
+                                    const htmlGenerate = new glitter.htmlGenerate((viewModel.data! as any).config, hoverList, undefined, true);
+                                    (window as any).editerData = htmlGenerate;
+                                    (window as any).page_config = (viewModel.data! as any).page_config
+                                    const json = JSON.parse(JSON.stringify((viewModel.data! as any).config));
+                                    json.map((dd: any) => {
+                                        dd.refreshAllParameter = undefined;
+                                        dd.refreshComponentParameter = undefined;
+                                    });
+                                    return htmlGenerate.editor(gvc, {
+                                        return_: false,
+                                        refreshAll: () => {
+                                            if (viewModel.selectItem) {
+                                                gvc.notifyDataChange(['showView']);
                                             }
-                                        }
-                                    }
-                                    return false;
-                                }
-
-                                if (d2.option) {
-                                    const id = glitter.getUUID();
-                                    const dragID2 = glitter.getUUID();
-                                    const toggleID = glitter.getUUID()
-                                    let act = checkOptionSelect(d2);
-
-                                    const toggle = gvc.event((e, event) => {
-                                        const needUpdate = d2.select;
-                                        clearSelect();
-                                        d2.select = true;
-                                        act = !act;
-                                        ($(`#${id}`) as any).slideToggle('slow');
-                                        gvc.notifyDataChange(toggleID);
-                                        parentCallback();
-                                        d2.click();
-                                        gvc.notifyDataChange(['htmlGenerate', 'showView']);
-                                        if (!needUpdate) {
-                                            setTimeout(() => {
-                                                gvc.notifyDataChange(vid);
-                                            }, 250);
-                                        }
-                                        event.stopPropagation()
-                                    })
-
-                                    return `<li class="ms-2 list-group-item list-group-item-action border-0 py-2 px-4 ${
-                                        checkOptionSelect(d2) ? `active` : ``
-                                    } position-relative d-flex align-items-center groupG-${dd.index} d-none"
-                                                                    style="cursor:pointer;z-index: ${indexCounter--} !important;"
-                                                                     ondragover="${gvc.event((e, event) => {
-                                        event.preventDefault();
-                                    })}"
-                                                            draggable="true"
-                                                            ondragenter="${gvc.event((e, event) => {
-                                        console.log('ondragenter-' + dragOption.index);
-                                        if (dragm.div === dragOption.dragId) {
-                                            dragm.end = dragOption.index;
-                                        }
-                                    })}"
-                                                            ondragstart="${gvc.event(() => {
-                                        dragm.start = dragOption.index;
-                                        dragm.end = dragOption.index;
-                                        dragm.div = dragOption.dragId;
-                                    })}"
-                                                            ondragend="${gvc.event(() => {
-                                        dragOption.changeIndex(dragm.start, dragm.end);
-                                    })}"
-                                                            onclick="${gvc.event((e, event) => {
-                                        const needUpdate = d2.select;
-                                        clearSelect();
-                                        d2.select = true;
-                                        gvc.notifyDataChange(toggleID);
-                                        parentCallback();
-                                        d2.click();
-                                        gvc.notifyDataChange(['htmlGenerate', 'showView']);
-                                        if (!needUpdate) {
-                                            setTimeout(() => {
-                                                gvc.notifyDataChange(vid);
-                                            }, 250);
-                                        }
-                                        event.stopPropagation()
-                                    })}"
-                                                            >
-                                                            ${gvc.bindView(() => {
-                                        return {
-                                            bind: toggleID,
-                                            view: () => {
-                                                return (act) ? `<i class="fa-solid fa-caret-up me-2" onclick="${toggle}"></i>` : `
-                                                              <i class="fa-sharp fa-solid fa-caret-down me-2" onclick="${toggle}"></i>
-                                                            `
-                                            },
-                                            divCreate: {}
-                                        }
-                                    })}
-                                                          
-                                                                      ${d2.text}
-  <button  class="rounded-circle btn-warning  btn  ms-2 d-flex align-items-center justify-content-center p-0" style="height: 25px;width: 25px;" onclick="${gvc.event((e, event) => {
-                                        event.stopPropagation();
-                                        glitter.openDiaLog('dialog/caddDialog.js', 'caddDialog', {
-                                            callback: (data: any) => {
-                                                d2.setting.push(data);
-                                                glitter.setCookie('lastSelect', data.id);
-                                                gvc.notifyDataChange(createID)
-                                            },
-                                            appName: gBundle.appName
-                                        });
-                                    })}">
-<i class="fa-sharp fa-solid fa-circle-plus " style="color:black;" ></i>
-</button>
-<div class="flex-fill"></div>
-<i class="fa-regular fa-copy me-2  ${d2.select ? `` : `d-none`}" onclick="${gvc.event((e, event) => {
-                                        d2.copy()
-                                    })}"></i>
-<i class="fa-regular fa-trash-can ${d2.select ? `` : `d-none`}" style="color:white;" onclick="${gvc.event((e, event) => {
-                                        event.stopPropagation();
-                                        d2.minus()
-                                    })}"></i>
-
-                                                                     </li>
-                                                                <ul class="collapse multi-collapse ${checkOptionSelect(d2) ? `show` : ''} position-relative ps-2" style="margin-left: 0px;" id="${id}" >
-                                                                    ${
-                                        gvc.map(
-                                            d2.option.map((d4: any, index: number) => {
-                                                return convertInner(d4, true, () => {
-                                                    d2.select = true;
-                                                    parentCallback();
-                                                }, {
-                                                    dragId: dragID2,
-                                                    index: d4.index,
-                                                    changeIndex: (n1, n2) => {
-
-                                                        swapArr(d4.dataArray, n1, n2);
-                                                        swapArr(d2.option, n1, n2);
-                                                        gvc.notifyDataChange(createID);
-                                                        ;
-                                                    }
-                                                });
-                                            })
-                                        )
-                                    }
-</ul>
-                                                                    `;
-                                } else {
-                                    return `<li class="ms-2 align-items-center list-group-item list-group-item-action border-0 py-2 px-4 ${
-                                        d2.select ? `${(inner) ? `bg-warning` : `active`}` : ``
-                                    } position-relative d-flex groupG-${dd.index} d-none"
-                                                                    onclick="${gvc.event(() => {
-                                        clearSelect();
-                                        d2.select = true;
-                                        parentCallback();
-                                        gvc.notifyDataChange(vid);
-                                        d2.click();
-                                    })}"
-                                                                    style="z-index: ${indexCounter--} !important;cursor:pointer;${(inner && d2.select) ? `background-color: #FFDC6A !important;color:black !important;` : ``}"
-                                                                    ondragover="${gvc.event((e, event) => {
-                                        event.preventDefault();
-                                    })}"
-                                                                    draggable="true"
-                                                                    ondragenter="${gvc.event((e, event) => {
-                                        if (dragm.div === dragOption.dragId) {
-                                            dragm.end = dragOption.index;
-                                        }
-                                    })}"
-                                                            ondragstart="${gvc.event(() => {
-                                        dragm.start = dragOption.index;
-                                        dragm.end = dragOption.index;
-                                        dragm.div = dragOption.dragId;
-                                    })}"
-                                                            ondragend="${gvc.event(() => {
-                                        dragOption.changeIndex(dragm.start, dragm.end);
-                                    })}"
-                                                                 >${d2.text}
-                                                                 <div class="flex-fill"></div>
-                                                                 <i class="fa-regular fa-copy me-2  ${d2.select ? `` : `d-none`}" onclick="${gvc.event((e, event) => {
-                                        d2.copy()
-                                    })}"></i>
-<i class="fa-regular fa-trash-can ${d2.select ? `` : `d-none`}" onclick="${gvc.event((e, event) => {
-                                        event.stopPropagation();
-                                        d2.minus()
-                                    })}"></i>
-                                                                 </li>`;
-                                }
-                            }
-
-                            const dragid = glitter.getUUID();
-                            return gvc.map(
-                                dd.option.map((d2: any, index: number) => {
-                                    return convertInner(d2, false, () => {
-                                    }, {
-                                        dragId: dragid,
-                                        index: d2.index,
-                                        changeIndex: (n1, n2) => {
-                                            swapArr(d2.dataArray, n1, n2);
-                                            swapArr(dd.option, n1, n2);
+                                        },
+                                        setting: (() => {
+                                            if (viewModel.selectItem) {
+                                                return [viewModel.selectItem];
+                                            } else {
+                                                return undefined;
+                                            }
+                                        })(),
+                                        deleteEvent: () => {
+                                            viewModel.selectItem = undefined
                                             gvc.notifyDataChange(createID);
                                         }
-                                    });
-                                })
-                            );
-                        })()}
-                                                    </ul>`
-                    }).join(`
-                    <ul class="my-0 bg-white  mx-n4 m-0" style="height:1px;"></ul>
-                    `);
+                                    })
+                                },
+                                divCreate: {
+                                    class: `p-2`
+                                },
+                                onCreate: () => {
+                                    setTimeout(() => {
+                                        $('#jumpToNav').scrollTop(parseInt(glitter.getCookieByName('jumpToNavScroll'), 10) ?? 0)
+                                    }, 1000)
+                                }
+                            };
+                        }),
+                            `<div class="w-100" style="height:50px;"></div>`,
+                            html`
+                                <div class="w-100  position-absolute bottom-0 border-top d-flex align-items-center ps-3"
+                                     style="height:50px;background:#f6f6f6;font-size:14px;">
+                                    <div class="hoverBtn fw-bold" style="color:#8e1f0b;cursor:pointer;"
+                                         onclick="${gvc.event(() => {
+                                             for (let a = 0; a < viewModel.selectContainer.length; a++) {
+                                                 if (viewModel.selectContainer[a] == viewModel.selectItem) {
+                                                     viewModel.selectContainer.splice(a, 1)
+                                                 }
+                                             }
+                                             viewModel.selectItem = undefined
+                                             gvc.notifyDataChange(['htmlGenerate', 'showView', vid]);
+                                         })}">
+                                        <i class="fa-solid fa-trash-can me-2"></i>移除區塊
+                                    </div>
+                                </div>`
+                        ].join('')
+                    } else {
+                        return html`
+                            <li class="align-items-center position-relative d-flex editor_item_title"
+                                onclick="${gvc.event(() => {
+                                })}"
+                            >${viewModel.data.name}
+                            </li>
+                            ${(() => {
+                                function render(array: any, child: boolean) {
+                                    const parId = gvc.glitter.getUUID()
+                                    const dragModel: {
+                                        draggableElement: string,
+                                        dragOffsetY: number,
+                                        dragStart: number,
+                                        maxHeight: number,
+                                        editor_item: any[],
+                                        hover_item: any[],
+                                        currentIndex: number,
+                                        firstIndex: number
+                                        changeIndex: number
+                                    } = {
+                                        draggableElement: '',
+                                        dragOffsetY: 0,
+                                        dragStart: 0,
+                                        maxHeight: 0,
+                                        editor_item: [],
+                                        hover_item: [],
+                                        currentIndex: 0,
+                                        changeIndex: 0,
+                                        firstIndex: 0
+                                    }
+
+                                    const mup_Linstener = function (event: MouseEvent) {
+                                        // 更新页面上的文本显示滑鼠放開狀態
+                                        if (dragModel.draggableElement) {
+                                            $('.select_container').toggleClass('select_container')
+                                            document.getElementById(dragModel.draggableElement)!.remove()
+                                            dragModel.draggableElement = ''
+
+                                            function swapArr(arr: any, index1: number, index2: number) {
+                                                const data = arr[index1];
+                                                arr.splice(index1, 1);
+                                                arr.splice(index2, 0, data);
+                                            }
+
+                                            swapArr(array, dragModel.firstIndex, (dragModel.currentIndex - 1 < dragModel.firstIndex) ? dragModel.currentIndex : (dragModel.currentIndex >= 0) ? dragModel.currentIndex - 1 : 0);
+                                            gvc.notifyDataChange([parId, 'htmlGenerate', 'showView'])
+                                        }
+                                        document.removeEventListener('mouseup', mup_Linstener)
+                                        document.removeEventListener('mousemove', move_Linstener)
+                                    }
+                                    const move_Linstener = function (event: MouseEvent) {
+                                        if (!dragModel.draggableElement) {
+                                            return
+                                        }
+                                        let off = event.clientY - dragModel.dragStart + dragModel.dragOffsetY
+                                        if (off < 5) {
+                                            off = 5
+                                        } else if (off > dragModel.maxHeight) {
+                                            off = dragModel.maxHeight
+                                        }
+
+                                        function findClosestNumber(ar: any, target: any) {
+                                            if (ar.length === 0) return null;
+                                            const arr = JSON.parse(JSON.stringify(ar))
+                                            arr.push(ar[ar.length - 1] + 34)
+                                            console.log(JSON.stringify(arr))
+                                            let index = 0
+                                            let closest = arr[0];
+                                            let minDifference = Math.abs(target - closest);
+                                            for (let i = 1; i < arr.length; i++) {
+                                                const difference = Math.abs(target - arr[i]);
+                                                if (difference < minDifference) {
+                                                    closest = arr[i];
+                                                    index = i
+                                                    minDifference = difference;
+                                                }
+                                            }
+                                            return index;
+                                        }
+
+                                        let closestNumber: number = findClosestNumber(dragModel.hover_item.map((dd) => {
+                                            return dd.offsetTop - 17;
+                                        }), off) as number;
+                                        dragModel.changeIndex = (closestNumber as number)
+                                        if (dragModel.currentIndex != closestNumber) {
+                                            dragModel.currentIndex = closestNumber as number
+                                            $('.editor_item.hv').remove();
+                                            if (dragModel.currentIndex == dragModel.hover_item.length) {
+                                                $('.select_container').append(`<div class="editor_item active hv"></div>`)
+                                            } else {
+                                                const parentElement = document.getElementsByClassName("select_container")[0];
+                                                const referenceElement = dragModel.hover_item[dragModel.currentIndex].elem.get(0);
+                                                const newElement = document.createElement("div", {});
+                                                newElement.classList.add("editor_item")
+                                                newElement.classList.add("active")
+                                                newElement.classList.add("hv")
+                                                newElement.textContent = "";
+                                                parentElement.insertBefore(newElement, referenceElement);
+                                            }
+                                        }
+                                        $(`#${dragModel.draggableElement}`).css("position", "absolute");
+                                        $(`#${dragModel.draggableElement}`).css("right", "0px");
+                                        $(`#${dragModel.draggableElement}`).css("top", off + "px");
+                                    }
+                                    return gvc.bindView(() => {
+
+                                        return {
+                                            bind: parId,
+                                            view: () => {
+                                                return array.map((dd: any, index: number) => {
+                                                    let toggle = gvc.event((e, event) => {
+                                                        dd.toggle = !dd.toggle
+                                                        gvc.notifyDataChange(parId)
+                                                        event.preventDefault()
+                                                        event.stopPropagation()
+                                                    })
+                                                    return html`
+                                                                <l1 class="btn-group "
+                                                                    style="margin-top:1px;margin-bottom:1px;">
+                                                                    <div class="editor_item d-flex   px-2 my-0 hi " style=""
+                                                                         onclick="${gvc.event(() => {
+                                                                             viewModel.selectContainer = array
+                                                                             viewModel.selectItem = dd
+                                                                             gvc.notifyDataChange(['htmlGenerate', 'showView', vid]);
+                                                                         })}">
+
+                                                                        ${(dd.type === 'container') ? ((dd.toggle) ? `<i class="fa-regular fa-angle-down hoverBtn" onclick="${toggle}"></i>` : `
+                                                                        <i class="fa-regular fa-angle-right hoverBtn" onclick="${toggle}"></i>
+                                                                        `) : ``}
+                                                                        ${dd.label}
+                                                                        <div class="flex-fill"></div>
+                                                                        ${(dd.type === 'container') ? html`
+                                                                            <l1 class="btn-group me-0"
+                                                                                style="width:20px;height:20px;"
+                                                                                onclick="${gvc.event((e, event) => {
+                                                                                    dd.data.setting = dd.data.setting ?? []
+                                                                                    viewModel.selectContainer = dd.data.setting
+                                                                                    event.preventDefault()
+                                                                                    event.stopPropagation()
+                                                                                })}">
+                                                                                <div class="d-flex align-items-center justify-content-center w-100 h-100"
+                                                                                     data-bs-toggle="dropdown"
+                                                                                     aria-haspopup="true"
+                                                                                     aria-expanded="false">
+                                                                                    <i class="fa-regular fa-circle-plus d-flex align-items-center justify-content-center subBt"></i>
+                                                                                </div>
+                                                                                <div class="dropdown-menu mx-1 position-fixed pb-0 border "
+                                                                                     style="z-index:999999;"
+                                                                                     onclick="${gvc.event((e, event) => {
+                                                                                         event.preventDefault()
+                                                                                         event.stopPropagation()
+                                                                                     })}">
+                                                                                    ${Add_item_dia.view(gvc)}
+                                                                                </div>
+                                                                            </l1>
+                                                                        ` : ``}
+                                                                        <div class="subBt">
+                                                                            <i class="fa-regular fa-clone d-flex align-items-center justify-content-center subBt"
+                                                                               style="width:15px;height:15px;"
+                                                                               onclick="${gvc.event((e, event) => {
+                                                                                   viewModel.selectContainer = array
+                                                                                   viewModel.waitCopy = dd
+                                                                                   navigator.clipboard.writeText('glitter-copyEvent' + JSON.stringify(viewModel.waitCopy));
+                                                                                   swal.toast({
+                                                                                       icon: 'success',
+                                                                                       title: "複製成功，選擇容器按下control+V即可貼上．"
+                                                                                   })
+                                                                                   event.stopPropagation()
+                                                                               })}"></i>
+                                                                        </div>
+                                                                        <div class="subBt" onmousedown="${
+                                                                                gvc.event((e, event) => {
+                                                                                    dragModel.firstIndex = index
+                                                                                    dragModel.currentIndex = index
+                                                                                    dragModel.draggableElement = glitter.getUUID()
+                                                                                    dragModel.dragStart = event.clientY
+                                                                                    dragModel.dragOffsetY = $(e).parent().parent().get(0).offsetTop;
+                                                                                    dragModel.maxHeight = ($(e).parent().parent().parent().height() as number);
+                                                                                    $(e).parent().addClass('d-none')
+                                                                                    dragModel.hover_item = []
+                                                                                    $(e).parent().parent().append(`<div class="editor_item active  hv"></div>`)
+                                                                                    $(e).parent().parent().parent().addClass('select_container')
+                                                                                    $('.select_container').children().each(function (index) {
+                                                                                        // 在這裡執行對每個 li 元素的操作
+                                                                                        dragModel.hover_item.push({
+                                                                                            elem: $(this),
+                                                                                            offsetTop: $(this).get(0)!.offsetTop
+                                                                                        })
+                                                                                    });
+                                                                                    $(e).parent().parent().parent().append(html`
+                                                                                        <l1 class="btn-group position-absolute  "
+                                                                                            style="width:${($(e).parent().parent().width() as any) - 50}px;right:15px;top:${dragModel.dragOffsetY}px;z-index:99999;border-radius:10px;background:white!important;"
+                                                                                            id="${dragModel.draggableElement}">
+                                                                                            <div class="editor_item d-flex   px-2 my-0"
+                                                                                                 style="background:white!important;">
+                                                                                                ${dd.label}
+                                                                                                <div class="flex-fill"></div>
+                                                                                                <i class="d-none fa-solid fa-pencil d-flex align-items-center justify-content-center subBt"
+                                                                                                   style="width:20px;height:20px;"></i>
+                                                                                                <i class="d-none fa-solid fa-grip-dots-vertical d-flex align-items-center justify-content-center subBt"
+                                                                                                   style="width:20px;height:20px;"></i>
+                                                                                            </div>
+                                                                                        </l1>`)
+                                                                                    document.addEventListener("mouseup", mup_Linstener);
+                                                                                    document.addEventListener("mousemove", move_Linstener);
+                                                                                })}">
+                                                                            <i class="fa-solid fa-grip-dots-vertical d-flex align-items-center justify-content-center  "
+                                                                               style="width:15px;height:15px;"></i>
+                                                                        </div>
+
+                                                                    </div>
+                                                                </l1>` +
+                                                            (() => {
+                                                                if (dd.type === 'container') {
+                                                                    if (dd.data.setting.length === 0) {
+                                                                        return ``
+                                                                    } else {
+                                                                        return `<l1 class="${(dd.toggle) ? `` : `d-none`}" style="padding-left:20px;">${render(dd.data.setting, true)}</l1>`
+                                                                    }
+                                                                } else {
+                                                                    return ``
+                                                                }
+                                                            })()
+                                                }).join('')
+                                            },
+                                            divCreate: {
+                                                class: `d-flex flex-column ${(child) ? `` : ``} position-relative border-bottom`,
+                                            }
+                                        }
+                                    })
+                                }
+
+                                return gvc.map([
+                                    html`
+                                        <div class="d-flex ms-2  px-2   hi fw-bold d-flex align-items-center border-bottom"
+                                             style="color:#151515;font-size:14px;">STYLE
+                                            <div class="flex-fill"></div>
+                                            <l1 class="btn-group dropend" onclick="${gvc.event(()=>{
+                                                viewModel.selectContainer=(viewModel.data! as any).config
+                                            })}">
+                                                <div class="editor_item primary  px-2" style="cursor:pointer;" data-bs-toggle="dropdown"
+                                                     aria-haspopup="true"
+                                                     aria-expanded="false">
+                                                    <i class="fa-regular fa-circle-plus"></i>
+                                                    新增設計
+                                                </div>
+                                                <div class="dropdown-menu mx-1 position-fixed pb-0 border "
+                                                     style="z-index:999999;"
+                                                     onclick="${gvc.event((e, event) => {
+                                                         event.preventDefault()
+                                                         event.stopPropagation()
+
+                                                     })}">
+                                                    ${Add_item_dia.add_style(gvc)}
+                                                </div>
+                                            </l1>
+                                        </div>`,
+                                    render((viewModel.data! as any).config.filter((dd:any)=>{
+                                        return dd.type==='widget'&&(dd.data.elem==='style' || dd.data.elem==='link')
+                                    }), false),
+                                    html`
+                                        <div class="d-flex ms-2  px-2   hi fw-bold d-flex align-items-center border-bottom"
+                                             style="color:#151515;font-size:14px;">SCRIPT
+                                            <div class="flex-fill"></div>
+                                            <l1 class="btn-group dropend" onclick="${gvc.event(()=>{
+                                                viewModel.selectContainer=(viewModel.data! as any).config
+                                            })}">
+                                                <div class="editor_item primary  px-2" style="cursor:pointer;" data-bs-toggle="dropdown"
+                                                     aria-haspopup="true"
+                                                     aria-expanded="false">
+                                                    <i class="fa-regular fa-circle-plus"></i>
+                                                    新增事件
+                                                </div>
+                                                <div class="dropdown-menu mx-1 position-fixed pb-0 border "
+                                                     style="z-index:999999;"
+                                                     onclick="${gvc.event((e, event) => {
+                                                         event.preventDefault()
+                                                         event.stopPropagation()
+
+                                                     })}">
+                                                    ${Add_item_dia.add_script(gvc)}
+                                                </div>
+                                            </l1>
+                                        </div>`,
+                                    render((viewModel.data! as any).config.filter((dd:any)=>{
+                                        return (dd.type==='code')||dd.type==='widget'&&(dd.data.elem==='script')
+                                    }), false),
+                                    html`
+                                        <div class="d-flex ms-2  px-2   hi fw-bold d-flex align-items-center border-bottom"
+                                             style="color:#151515;font-size:14px;">頁面區段
+                                            <div class="flex-fill"></div>
+                                            <l1 class="btn-group dropend" onclick="${gvc.event(()=>{
+                                                viewModel.selectContainer=(viewModel.data! as any).config
+                                            })}">
+                                                <div class="editor_item primary  px-2" style="cursor:pointer;" data-bs-toggle="dropdown"
+                                                     aria-haspopup="true"
+                                                     aria-expanded="false">
+                                                    <i class="fa-regular fa-circle-plus"></i>
+                                                    新增區段
+                                                </div>
+                                                <div class="dropdown-menu mx-1 position-fixed pb-0 border "
+                                                     style="z-index:999999;"
+                                                     onclick="${gvc.event((e, event) => {
+                                                         event.preventDefault()
+                                                         event.stopPropagation()
+
+                                                     })}">
+                                                    ${Add_item_dia.view(gvc)}
+                                                </div>
+                                            </l1>
+                                        </div>`,
+                                    render((viewModel.data! as any).config.filter((dd:any)=>{
+                                        return (dd.type!=='code') && (dd.type!=='widget'||(dd.data.elem!=='style' && dd.data.elem!=='link'&& dd.data.elem!=='script'))
+                                    }), false)
+                                ])
+                            })()}
+                        `
+                    }
                 },
-                divCreate: {
-                    class: `swiper-slide h-auto`,
-                },
+                divCreate: {class: `swiper-slide h-auto mx-n4`},
                 onCreate: () => {
-                    if (glitter.getCookieByName('groupG-1') === "true") {
-                        $(`.groupG-1`).toggleClass('d-none');
+                    if (!(window as any).editerData) {
+                        function check() {
+                            if (!viewModel.data) {
+                                setTimeout(() => {
+                                    check()
+                                }, 1000)
+                            } else {
+                                const htmlGenerate = new gvc.glitter.htmlGenerate((viewModel.data! as any).config, [], undefined, true);
+                                (window as any).editerData = htmlGenerate;
+                                (window as any).page_config = (viewModel.data! as any).page_config
+                                gvc.notifyDataChange('showView')
+                            }
+                        }
+
+                        check()
                     }
-                    if (glitter.getCookieByName('groupG-2') === "true") {
-                        $(`.groupG-2`).toggleClass('d-none');
-                    }
-                    if (glitter.getCookieByName('groupG-3') === "true") {
-                        $(`.groupG-3`).toggleClass('d-none');
-                    }
-                    $(`.groupG-4`).removeClass('d-none');
                 }
-            };
+            }
         })
     }
 
@@ -620,6 +458,7 @@ onclick="${gvc.event((e, event) => {
                         dd.refreshAllParameter = undefined;
                         dd.refreshComponentParameter = undefined;
                     });
+
                     if (!viewModel.selectItem) {
                         return `<div class="position-absolute w-100 top-50 d-flex align-items-center justify-content-center flex-column translate-middle-y">
 <iframe src="https://embed.lottiefiles.com/animation/84663" class="w-100" style="width: 400px;height: 400px"></iframe>
@@ -651,23 +490,21 @@ onclick="${gvc.event((e, event) => {
                     setTimeout(() => {
                         $('#jumpToNav').scrollTop(parseInt(glitter.getCookieByName('jumpToNavScroll'), 10) ?? 0)
                     }, 1000)
+
                 }
             };
         })
     }
 
     public static center(viewModel: any, gvc: GVC) {
-        if (viewModel.type === ViewType.mobile) {
-            return `<div class="d-flex align-items-center justify-content-center flex-column mx-auto" style="width: 414px;height: calc(100vh - 20px);padding-top: 0px;">
-                 <div class="bg-white" style="width:414px;height: calc(100% - 60px);">
-                 <iframe class="w-100 h-100 rounded" src="index.html?type=htmlEditor&page=${gvc.glitter.getUrlParameter('page')}"></iframe>
-                </div></div>`
-        } else {
-            return `<div class="d-flex align-items-center justify-content-center flex-column" style="width: calc(100% - 20px);margin-left:10px;height: calc(100vh - 20px);padding-top: 20px;">
-                 <div class="bg-white" style="width:100%;height: calc(100% - 50px);">
-                 <iframe class="w-100 h-100 rounded" src="index.html?type=htmlEditor&page=${gvc.glitter.getUrlParameter('page')}"></iframe>
-                </div></div>`
-        }
+        return html`
+            <div class="${(viewModel.type === ViewType.mobile) ? `d-flex align-items-center justify-content-center flex-column mx-auto` : `d-flex align-items-center justify-content-center flex-column`}"
+                 style="${(viewModel.type === ViewType.mobile) ? `width: 414px;height: calc(100vh - 20px);padding-top: 0px;` : `width: calc(100% - 20px);margin-left:10px;height: calc(100vh - 20px);padding-top: 20px;"`}">
+                <div class="bg-white" style="width:100%;height: calc(100% - 50px);">
+                    <iframe class="w-100 h-100 rounded"
+                            src="index.html?type=htmlEditor&page=${gvc.glitter.getUrlParameter('page')}"></iframe>
+                </div>
+            </div>`
     }
 
     public static index = '0'

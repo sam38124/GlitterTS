@@ -42,13 +42,16 @@ async function doAuthAction(req: express.Request, resp: express.Response, next: 
     const TAG = '[DoAuthAction]';
     const url = req.baseUrl;
     const matches = _.where(whiteList, { url: url, method: req.method });
+    const token = req.get('Authorization')?.replace('Bearer ', '') as string;
     if (
         matches.length > 0
     ) {
+        try {
+            req.body.token = jwt.verify(token, config.SECRET_KEY) as IToken;
+        }catch (e) {}
         next();
         return;
     }
-    const token = req.get('Authorization')?.replace('Bearer ', '') as string;
     try {
         req.body.token = jwt.verify(token, config.SECRET_KEY) as IToken;
         const redisToken = await redis.getValue(token);

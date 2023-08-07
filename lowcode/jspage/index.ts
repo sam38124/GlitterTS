@@ -155,8 +155,7 @@ function toBackendEditor(glitter: Glitter) {
         glitter.addStyleLink([
             'assets/vendor/boxicons/css/boxicons.min.css',
             'assets/css/theme.min.css',
-            'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/androidstudio.min.css',
-            'https://gitcdn.github.io/bootstrap-toggle/2.2.2/css/bootstrap-toggle.min.css',
+            'css/editor.css',
             'https://sam38124.github.io/One-page-plugin/src/fontawsome/css/all.css'
         ]);
         await new Promise((resolve, reject) => {
@@ -166,7 +165,7 @@ function toBackendEditor(glitter: Glitter) {
                     'assets/vendor/smooth-scroll/dist/smooth-scroll.polyfills.min.js',
                     'assets/vendor/swiper/swiper-bundle.min.js',
                     'assets/js/theme.min.js',
-                    'https://gitcdn.github.io/bootstrap-toggle/2.2.2/js/bootstrap-toggle.min.js',
+                    'https://kit.fontawesome.com/cccedec0f8.js'
                 ],
                 () => {
                     resolve(true)

@@ -2953,36 +2953,46 @@ textarea.form-control-lg {
 }
 
 .btn-primary {
-  color: #000;
-  background-color: #6366f1;
-  border-color: #6366f1;
-  box-shadow: unset;
+  color: #fff;
+  background-color: #295ed1;
+  /*border-color: #295ed1;*/
 }
 .btn-primary:hover {
-  color: #000;
-  background-color: #7a7df3;
-  border-color: #7375f2;
+  color: #fff;
+  background-color: #214ba7;
+  /*border-color: #5b63c4;*/
 }
-.btn-check:focus + .btn-primary, .btn-primary:focus {
-  color: #000;
-  background-color: #7a7df3;
-  border-color: #7375f2;
-  box-shadow: unset, 0 0 0 0 rgba(84, 87, 205, 0.5);
+.btn-check:focus + .btn-primary,
+.btn-primary:focus {
+  color: #fff;
+  background-color: #19387d;
+  /*border-color: #5b63c4;*/
+  /*-webkit-box-shadow: 0 0 0 0.2rem rgba(135, 144, 247, 0.5);*/
+  /*box-shadow: 0 0 0 0.2rem rgba(135, 144, 247, 0.5);*/
 }
-.btn-check:checked + .btn-primary, .btn-check:active + .btn-primary, .btn-primary:active, .btn-primary.active, .show > .btn-primary.dropdown-toggle {
-  color: #000;
-  background-color: #8285f4;
-  border-color: #7375f2;
+.btn-check:checked + .btn-primary,
+.btn-check:active + .btn-primary,
+.btn-primary:active,
+.btn-primary.active,
+.show > .btn-primary.dropdown-toggle {
+  color: #fff;
+  background-color: #19387d;
+  /*border-color: #565db8;*/
 }
-.btn-check:checked + .btn-primary:focus, .btn-check:active + .btn-primary:focus, .btn-primary:active:focus, .btn-primary.active:focus, .show > .btn-primary.dropdown-toggle:focus {
-  box-shadow: unset, 0 0 0 0 rgba(84, 87, 205, 0.5);
+.btn-check:checked + .btn-primary:focus,
+.btn-check:active + .btn-primary:focus,
+.btn-primary:active:focus,
+.btn-primary.active:focus,
+.show > .btn-primary.dropdown-toggle:focus {
+  /*-webkit-box-shadow: 0 0 0 0.2rem rgba(135, 144, 247, 0.5);*/
+  /*box-shadow: 0 0 0 0.2rem rgba(135, 144, 247, 0.5);*/
 }
-.btn-primary:disabled, .btn-primary.disabled {
-  color: #000;
-  background-color: #6366f1;
-  border-color: #6366f1;
+.btn-primary:disabled,
+.btn-primary.disabled {
+  color: #fff;
+  background-color: #19387d;
+  /*border-color: #295ed1;*/
 }
-
 .btn-secondary {
   color: #000;
   background-color: #eff2fc;

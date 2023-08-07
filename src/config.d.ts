@@ -37,6 +37,7 @@ export declare const config: {
         post: string;
         message: string;
         smtp: string;
+        lambda: string;
     };
     route: {
         user: string;

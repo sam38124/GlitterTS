@@ -11,7 +11,60 @@ import fs from "fs";
 const mime = require('mime');
 const router: express.Router = express.Router();
 export = router;
+router.get('/templatePrefix',async (req: express.Request, resp: express.Response)=>{
+    try {
+        const app=req.query.app
+        const fullUrl = config.AWS_S3_PREFIX_DOMAIN_NAME
+        const s3path = fullUrl+`template/${app}`;
+        return response.succ(resp, {domain:s3path});
+    }catch (e) {
+        return response.fail(resp, e);
+    }
+})
+router.post('/uploadTemplate',async (req: express.Request, resp: express.Response) => {
+    try {
+        const TAG = `[AWS-S3][Upload-Template]`
+        const logger = new Logger();
+        const s3bucketName = config.AWS_S3_NAME;
+        const userID = ((req.body.token as IToken) ?? {}).userID
+        const app=req.body.app
+        const name = req.body.fileName
+        if((await db.query(`SELECT count(1) FROM \`${saasConfig.SAAS_NAME}\`.app_config
+                where appName=${db.escape(app)} and user=${userID}`,[]))[0]['count(1)']==0){
+            return response.fail(resp, "No permission.");
+        }
+        const s3path = `template/${app}/${name}`;
+        const fullUrl = config.AWS_S3_PREFIX_DOMAIN_NAME + s3path;
+        const params = {
+            Bucket: s3bucketName,
+            Key: s3path,
+            Expires: 300,
+            //If you use other contentType will response 403 error
+            ContentType: (() => {
+                if (config.SINGLE_TYPE) {
+                    return `application/x-www-form-urlencoded; charset=UTF-8`
+                } else {
+                    return mime.getType(fullUrl.split('.').pop())
+                }
+            })()
+        };
+        console.log(`fullUrl:${params.ContentType}`)
+        await s3bucket.getSignedUrl('putObject', params, async (err: any, url: any) => {
+            if (err) {
+                logger.error(TAG, String(err));
+                // use console.log here because logger.info cannot log err.stack correctly
+                console.log(err, err.stack);
 
+                return response.fail(resp, err);
+            } else {
+                return response.succ(resp, {url, fullUrl, type: params.ContentType});
+            }
+        })
+    }catch (err) {
+        console.log(err)
+        return response.fail(resp, err);
+    }
+})
 router.post('/upload', async (req: express.Request, resp: express.Response) => {
     try {
         const TAG = `[AWS-S3][Upload]`

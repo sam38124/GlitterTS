@@ -12,6 +12,7 @@ init((gvc, glitter, gBundle) => {
     }
     `);
     const viewModel = {
+        appConfig: undefined,
         dataList: undefined,
         data: undefined,
         loading: true,
@@ -32,6 +33,11 @@ init((gvc, glitter, gBundle) => {
     const doc = new Editor(gvc, viewModel);
     const createID = `HtmlEditorContainer`;
     glitter.share.refreshAllContainer = () => {
+        gvc.notifyDataChange(createID);
+    };
+    glitter.share.addComponent = (data) => {
+        viewModel.selectContainer.push(data);
+        glitter.setCookie('lastSelect', data.id);
         gvc.notifyDataChange(createID);
     };
     async function lod() {
@@ -69,6 +75,7 @@ init((gvc, glitter, gBundle) => {
                     var _a, _b, _c;
                     const data = await ApiPageConfig.getPlugin(gBundle.appName);
                     if (data.result) {
+                        viewModel.appConfig = data.response.data;
                         viewModel.initialList = data.response.data.initialList;
                         viewModel.initialJS = data.response.data.eventPlugin;
                         viewModel.pluginList = data.response.data.pagePlugin;
@@ -148,16 +155,7 @@ init((gvc, glitter, gBundle) => {
                 }),
                 (async () => {
                     return new Promise(async (resolve) => {
-                        const api = await ApiPageConfig.setPlugin(gBundle.appName, {
-                            pagePlugin: viewModel.pluginList,
-                            eventPlugin: viewModel.initialJS,
-                            initialStyle: viewModel.initialStyle,
-                            initialStyleSheet: viewModel.initialStyleSheet,
-                            backendPlugins: viewModel.backendPlugins,
-                            initialCode: viewModel.initialCode,
-                            homePage: viewModel.homePage,
-                            initialList: viewModel.initialList
-                        });
+                        const api = await ApiPageConfig.setPlugin(gBundle.appName, viewModel.appConfig);
                         resolve(api.result);
                     });
                 })
@@ -173,8 +171,7 @@ init((gvc, glitter, gBundle) => {
             });
             gvc.notifyDataChange(createID);
         }
-        saveEvent().then(r => {
-        });
+        saveEvent().then(r => { });
     };
     lod();
     document.addEventListener("paste", function (event) {
@@ -215,7 +212,7 @@ init((gvc, glitter, gBundle) => {
                     }
                     else {
                         try {
-                            return doc.create(`<div class="d-flex overflow-hidden"  style="height:100vh;">
+                            return doc.create(`<div class="d-flex overflow-hidden"  style="height:100vh;background:#f6f6f6;">
 <div style="width:60px;gap:20px;padding-top: 15px;" class="h-100 border-end d-flex flex-column align-items-center " >
 ${[
                                 { src: `fa-table-layout`, index: Main_editor.index },
@@ -266,7 +263,7 @@ onclick="${gvc.event(() => {
 </div>`, gvc.bindView({
                                 bind: 'MainEditorRight',
                                 view: () => {
-                                    return Main_editor.right(gvc, viewModel, createID, gBundle);
+                                    return ``;
                                 },
                                 divCreate: {}
                             }));

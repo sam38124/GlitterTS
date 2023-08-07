@@ -16,6 +16,9 @@ export interface HtmlJson {
     refreshAll: () => void,
     refreshComponent: () => void
     styleManager?: (tag: string) => { value: string, editor: (gvc: GVC, title: string) => string }
+    refreshView?:()=>void,
+    refreshEditor?:()=>void
+
 }
 
 export class Plugin {

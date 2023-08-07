@@ -20,7 +20,9 @@ try {
         fs.copySync(`${original}/backend_default`, 'backend_default');
         console.log('Create finish');
     }
-
+    if(!fsn.existsSync(`lambda`)){
+        fs.copySync(`${original}/lambda`,  'lambda');
+    }
 } catch (e) {
     console.log(e);
 }

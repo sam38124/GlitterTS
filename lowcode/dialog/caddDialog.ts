@@ -89,7 +89,6 @@ function cAdd(gvc: GVC) {
 .nav li {
   display: inline-block
 }`);
-
     function getSource(dd: any) {
         return dd.src.official;
     }
@@ -109,6 +108,16 @@ function cAdd(gvc: GVC) {
         if (data.result) {
             viewModel.loading = false
             viewModel.pluginList = data.response.data.pagePlugin;
+            if (data.response.data.lambdaView) {
+                viewModel.pluginList = viewModel.pluginList.concat(data.response.data.lambdaView.map((dd: any) => {
+                    return {
+                        "src": {
+                            "official": dd.path
+                        },
+                        "name": dd.name
+                    }
+                }))
+            }
             gvc.notifyDataChange([tabID, docID])
         }
     }
@@ -117,7 +126,7 @@ function cAdd(gvc: GVC) {
     const glitter = gvc.glitter
     const tabID = glitter.getUUID();
     const docID = glitter.getUUID();
-    return ` <div class="m-auto bg-white shadow rounded" style="max-width: 100%;max-height: 100%;width: 720px;height: 800px;">
+    return `<div class="m-auto bg-white shadow rounded" style="max-width: 100%;max-height: 100%;width: 720px;height: 800px;">
         <div class="w-100 d-flex align-items-center border-bottom justify-content-center position-relative" style="height: 68px;">
         <h3 class="modal-title fs-4 " >選擇元件</h3>
         <i class="fa-solid fa-xmark text-dark position-absolute " style="font-size:20px;transform: translateY(-50%);right: 20px;top: 50%;cursor: pointer;"
@@ -405,8 +414,8 @@ function traverseHTML(element: any) {
             result.attributes[attributes[i].name] = attributes[i].value;
         }
     }
-    if(element.children && element.children.length>0){
-        result.children=[]
+    if (element.children && element.children.length > 0) {
+        result.children = []
         var childNodes = element.childNodes;
         for (let i = 0; i < childNodes.length; i++) {
             var node = childNodes[i];
@@ -415,12 +424,14 @@ function traverseHTML(element: any) {
             } else if (node.nodeType === Node.TEXT_NODE) {
                 const html = document.createElement('span');
                 html.innerHTML = node.textContent.trim();
-                if(html.innerHTML){
+                if (html.innerHTML) {
                     result.children.push(traverseHTML(html));
                 }
 
-            }else{
-                if(node.tagName){  result.children.push(traverseHTML(node));}
+            } else {
+                if (node.tagName) {
+                    result.children.push(traverseHTML(node));
+                }
 
             }
         }
@@ -430,7 +441,7 @@ function traverseHTML(element: any) {
     // let trimmedStr = element.innerHTML.replace(/\n/,'').replace(/^\s+|\s+$/g, "");
     // let trimmedStr2 = element.innerText.replace(/\n/,'').replace(/^\s+|\s+$/g, "");
     // result.textIndex=trimmedStr.indexOf(trimmedStr2)
-    result.innerText=(element.innerText ?? "").replace(/\n/,'').replace(/^\s+|\s+$/g, "")
+    result.innerText = (element.innerText ?? "").replace(/\n/, '').replace(/^\s+|\s+$/g, "")
     // 返回 JSON 結果
     return result;
 }
@@ -487,16 +498,16 @@ async function saveHTML(json: any, relativePath: string, gvc: GVC, elem?: {
         for (const dd of json.children ?? []) {
             if ((dd.tag.toLowerCase() !== 'title')) {
                 dd.attributes = dd.attributes ?? {}
-                let originalHref='';
-                let originalSrc='';
+                let originalHref = '';
+                let originalSrc = '';
                 try {
-                    originalHref=new URL(dd.attributes.href, relativePath).href
-                }catch (e) {
+                    originalHref = new URL(dd.attributes.href, relativePath).href
+                } catch (e) {
 
                 }
                 try {
-                    originalSrc=new URL(dd.attributes.src, relativePath).href
-                }catch (e) {
+                    originalSrc = new URL(dd.attributes.src, relativePath).href
+                } catch (e) {
 
                 }
                 const obj = await convert(dd)
@@ -513,7 +524,7 @@ async function saveHTML(json: any, relativePath: string, gvc: GVC, elem?: {
                             obj.data.note = "源代碼路徑:" + originalSrc
                             jsLink.data.setting.push(obj)
                         }
-                    }else if (obj.data.elem === 'image') {
+                    } else if (obj.data.elem === 'image') {
                         obj.data.note = "源代碼路徑:" + originalSrc
                     } else {
                         if (addHtml) {
@@ -537,26 +548,26 @@ async function saveHTML(json: any, relativePath: string, gvc: GVC, elem?: {
                     const src = obj.attributes.href
                     const url = new URL(src, relativePath)
                     originalHref = url.href
-                    getFile(url.href).then((link)=>{
-                        obj.attributes.href=link
+                    getFile(url.href).then((link) => {
+                        obj.attributes.href = link
                         resolve(true)
                     })
                 } else if (obj.tag.toLowerCase() === 'script' && obj.attributes.src && addScript) {
                     const src = obj.attributes.src
                     const url = new URL(src, relativePath)
                     originalSrc = url
-                    getFile(url.href).then((link)=>{
-                        obj.attributes.src=link
+                    getFile(url.href).then((link) => {
+                        obj.attributes.src = link
                         resolve(true)
                     })
-                } else if(obj.tag.toLowerCase() === 'img' && obj.attributes.src && addHtml){
+                } else if (obj.tag.toLowerCase() === 'img' && obj.attributes.src && addHtml) {
                     const src = obj.attributes.src
                     const url = new URL(src, relativePath)
-                    getFile(url.href).then((link)=>{
-                        obj.attributes.src=link
+                    getFile(url.href).then((link) => {
+                        obj.attributes.src = link
                         resolve(true)
                     })
-                }else{
+                } else {
                     resolve(true)
                 }
             } catch (e) {
@@ -574,7 +585,7 @@ async function saveHTML(json: any, relativePath: string, gvc: GVC, elem?: {
         // if (obj.children.length > 0) {
         //     obj.innerText = ''
         // }
-        await covertHtml(obj,setting);
+        await covertHtml(obj, setting);
         // if (obj.textIndex > 0 && (obj.innerText.replace(/ /g, '').replace(/\n/g, '').length > 0 && ((obj.children ?? []).length > 0))) {
         //     setting.push(await convert({
         //         tag: 'span',
@@ -619,12 +630,12 @@ async function saveHTML(json: any, relativePath: string, gvc: GVC, elem?: {
                 let lab = obj.innerText ?? ((obj.type === 'container') ? `HTML容器` : `HTML元件`)
                 lab = lab.trim().replace(/&nbsp;/g, '')
                 if (lab.length > 10) {
-                    return lab.substring(0, 10).replace(/</g,'').replace(/>/g,'').replace(/=/g,'')
+                    return lab.substring(0, 10).replace(/</g, '').replace(/>/g, '').replace(/=/g, '')
                 } else {
                     if (lab.length === 0) {
                         return ((obj.type === 'container') ? `HTML容器` : `HTML元件`)
                     } else {
-                        return lab.replace(/</g,'').replace(/>/g,'').replace(/=/g,'')
+                        return lab.replace(/</g, '').replace(/>/g, '').replace(/=/g, '')
                     }
                 }
             })(),
@@ -672,9 +683,10 @@ async function saveHTML(json: any, relativePath: string, gvc: GVC, elem?: {
     }), 1000)
 
 }
-function getFile(href:string){
-    const glitter=(window as any).glitter
-    return new Promise<string>((resolve, reject)=>{
+
+function getFile(href: string) {
+    const glitter = (window as any).glitter
+    return new Promise<string>((resolve, reject) => {
         $.ajax({
             url: config.url + "/api/v1/fileManager/getCrossResource",
             type: 'post',

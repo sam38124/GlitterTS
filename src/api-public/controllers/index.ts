@@ -15,6 +15,7 @@ import postRouter = require('./post');
 import messageRouter = require('./chat');
 import invoiceRouter = require('./invoice');
 import sql_apiRouter = require('./sql_api');
+import lambda_apiRouter = require('./lambda');
 import {Live_source} from "../../live_source.js";
 import {IToken} from "../models/Auth.js";
 import {ApiPublic} from "../services/public-table-check.js";
@@ -27,6 +28,8 @@ router.use(config.getRoute(config.public_route.post, 'public'), postRouter);
 router.use(config.getRoute(config.public_route.message, 'public'), messageRouter);
 router.use(config.getRoute(config.public_route.invoice, 'public'), invoiceRouter);
 router.use(config.getRoute(config.public_route.sql_api, 'public'), sql_apiRouter);
+router.use(config.getRoute(config.public_route.lambda, 'public'), lambda_apiRouter);
+
 /******************************/
 const whiteList: {}[] = [
     {url: config.getRoute(config.public_route.user + "/register", 'public'), method: 'POST'},
@@ -36,7 +39,11 @@ const whiteList: {}[] = [
     {url: config.getRoute(config.public_route.user + "/checkMail", 'public'), method: 'GET'},
     {url: config.getRoute(config.public_route.user+"/userdata", 'public'), method: 'GET'},
     {url: config.getRoute(config.public_route.sql_api, 'public'), method: 'GET'},
-    {url: config.getRoute(config.public_route.sql_api, 'public'), method: 'POST'}
+    {url: config.getRoute(config.public_route.sql_api, 'public'), method: 'POST'},
+    {url: config.getRoute(config.public_route.lambda, 'public'), method: 'POST'},
+    {url: config.getRoute(config.public_route.lambda, 'public'), method: 'GET'},
+    {url: config.getRoute(config.public_route.lambda, 'public'), method: 'DELETE'},
+    {url: config.getRoute(config.public_route.lambda, 'public'), method: 'PUT'},
 ];
 
 async function doAuthAction(req: express.Request, resp: express.Response, next: express.NextFunction) {
@@ -50,13 +57,16 @@ async function doAuthAction(req: express.Request, resp: express.Response, next: 
     const TAG = '[DoAuthAction]';
     const url = req.baseUrl;
     const matches = _.where(whiteList, {url: url, method: req.method});
+    const token = req.get('Authorization')?.replace('Bearer ', '') as string;
     if (
         matches.length > 0
     ) {
+        try {
+            req.body.token = jwt.verify(token, config.SECRET_KEY) as IToken;
+        }catch (e) {}
         next();
         return;
     }
-    const token = req.get('Authorization')?.replace('Bearer ', '') as string;
     try {
         req.body.token = jwt.verify(token, config.SECRET_KEY) as IToken;
         const redisToken = await redis.getValue(token);

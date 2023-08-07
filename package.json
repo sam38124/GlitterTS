@@ -1,6 +1,6 @@
 {
   "name": "ts-glitter",
-  "version": "2.7.2",
+  "version": "2.7.54",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -25,6 +25,7 @@
     "crypto-js": "^4.1.1",
     "dotenv": "^16.0.3",
     "express": "^4.18.2",
+    "firebase-admin": "^11.10.1",
     "form-data": "^4.0.0",
     "jsonwebtoken": "^9.0.0",
     "mime": "^3.0.0",

@@ -38,11 +38,15 @@ async function doAuthAction(req, resp, next) {
     const TAG = '[DoAuthAction]';
     const url = req.baseUrl;
     const matches = underscore_1.default.where(whiteList, { url: url, method: req.method });
+    const token = (_a = req.get('Authorization')) === null || _a === void 0 ? void 0 : _a.replace('Bearer ', '');
     if (matches.length > 0) {
+        try {
+            req.body.token = jsonwebtoken_1.default.verify(token, config_1.config.SECRET_KEY);
+        }
+        catch (e) { }
         next();
         return;
     }
-    const token = (_a = req.get('Authorization')) === null || _a === void 0 ? void 0 : _a.replace('Bearer ', '');
     try {
         req.body.token = jsonwebtoken_1.default.verify(token, config_1.config.SECRET_KEY);
         const redisToken = await redis_1.default.getValue(token);

@@ -15,10 +15,10 @@ export interface HtmlJson {
     js: string,
     refreshAll: () => void,
     refreshComponent: () => void
-    styleManager?: (tag: string) => { value: string, editor: (gvc: GVC, title: string) => string },
+    styleManager?: (tag: string) => { value: string, editor: (gvc: GVC, title: string) => string }
+    refreshView?:()=>void,
+    refreshEditor?:()=>void
 
-    refreshView: () => void
-    refreshEditor: () => void
 }
 
 export class Plugin {

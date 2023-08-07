@@ -115,6 +115,8 @@ const queryLambada = async (cf, fun) => {
                 });
             }
         });
+        connection.release();
+        sp.end();
         return data;
     }
     catch (err) {

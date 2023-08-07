@@ -16,6 +16,7 @@ const postRouter = require("./post");
 const messageRouter = require("./chat");
 const invoiceRouter = require("./invoice");
 const sql_apiRouter = require("./sql_api");
+const lambda_apiRouter = require("./lambda");
 const live_source_js_1 = require("../../live_source.js");
 const public_table_check_js_1 = require("../services/public-table-check.js");
 router.use('/api-public/*', doAuthAction);
@@ -24,6 +25,7 @@ router.use(config_1.config.getRoute(config_1.config.public_route.post, 'public')
 router.use(config_1.config.getRoute(config_1.config.public_route.message, 'public'), messageRouter);
 router.use(config_1.config.getRoute(config_1.config.public_route.invoice, 'public'), invoiceRouter);
 router.use(config_1.config.getRoute(config_1.config.public_route.sql_api, 'public'), sql_apiRouter);
+router.use(config_1.config.getRoute(config_1.config.public_route.lambda, 'public'), lambda_apiRouter);
 const whiteList = [
     { url: config_1.config.getRoute(config_1.config.public_route.user + "/register", 'public'), method: 'POST' },
     { url: config_1.config.getRoute(config_1.config.public_route.user + "/login", 'public'), method: 'POST' },
@@ -32,7 +34,11 @@ const whiteList = [
     { url: config_1.config.getRoute(config_1.config.public_route.user + "/checkMail", 'public'), method: 'GET' },
     { url: config_1.config.getRoute(config_1.config.public_route.user + "/userdata", 'public'), method: 'GET' },
     { url: config_1.config.getRoute(config_1.config.public_route.sql_api, 'public'), method: 'GET' },
-    { url: config_1.config.getRoute(config_1.config.public_route.sql_api, 'public'), method: 'POST' }
+    { url: config_1.config.getRoute(config_1.config.public_route.sql_api, 'public'), method: 'POST' },
+    { url: config_1.config.getRoute(config_1.config.public_route.lambda, 'public'), method: 'POST' },
+    { url: config_1.config.getRoute(config_1.config.public_route.lambda, 'public'), method: 'GET' },
+    { url: config_1.config.getRoute(config_1.config.public_route.lambda, 'public'), method: 'DELETE' },
+    { url: config_1.config.getRoute(config_1.config.public_route.lambda, 'public'), method: 'PUT' },
 ];
 async function doAuthAction(req, resp, next) {
     var _a, _b, _c;
@@ -44,11 +50,15 @@ async function doAuthAction(req, resp, next) {
     const TAG = '[DoAuthAction]';
     const url = req.baseUrl;
     const matches = underscore_1.default.where(whiteList, { url: url, method: req.method });
+    const token = (_c = req.get('Authorization')) === null || _c === void 0 ? void 0 : _c.replace('Bearer ', '');
     if (matches.length > 0) {
+        try {
+            req.body.token = jsonwebtoken_1.default.verify(token, config_1.config.SECRET_KEY);
+        }
+        catch (e) { }
         next();
         return;
     }
-    const token = (_c = req.get('Authorization')) === null || _c === void 0 ? void 0 : _c.replace('Bearer ', '');
     try {
         req.body.token = jsonwebtoken_1.default.verify(token, config_1.config.SECRET_KEY);
         const redisToken = await redis_1.default.getValue(token);
