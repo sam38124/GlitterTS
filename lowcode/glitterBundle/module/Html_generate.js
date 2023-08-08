@@ -713,6 +713,7 @@ HtmlGenerate.changePage = (obj) => {
     var _a, _b;
     const glitter = Glitter.glitter;
     glitter.changePage('glitterBundle/plugins/html-render.js', obj.tag, obj.goBack, {
+        app_config: obj.app_config,
         page_config: (_a = obj.page_config) !== null && _a !== void 0 ? _a : {},
         config: obj.config,
         editMode: obj.editMode,

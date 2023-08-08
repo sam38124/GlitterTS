@@ -17,10 +17,12 @@ init((gvc, glitter, gBundle) => {
             };
             window.saasConfig = {
                 config: window.config = config,
-                api: ApiPageConfig
+                api: ApiPageConfig,
+                appConfig: undefined
             };
             ApiPageConfig.getPlugin(config.appName).then((dd) => {
                 vm.appConfig = dd.response.data;
+                window.saasConfig.appConfig = dd.response.data;
                 (async () => {
                     return new Promise(async (resolve, reject) => {
                         var _a, _b, _c;

@@ -1,10 +1,11 @@
 import { init } from '../GVController.js';
 import { TriggerEvent } from "./trigger-event.js";
 init((gvc, glitter, gBundle) => {
-    var _a, _b, _c;
+    var _a, _b, _c, _d;
     glitter.share.htmlExtension = (_a = glitter.share.htmlExtension) !== null && _a !== void 0 ? _a : {};
-    gBundle.app_config.globalStyle = (_b = gBundle.app_config.globalStyle) !== null && _b !== void 0 ? _b : [];
-    gBundle.app_config.globalScript = (_c = gBundle.app_config.globalScript) !== null && _c !== void 0 ? _c : [];
+    gBundle.app_config = (_b = gBundle.app_config) !== null && _b !== void 0 ? _b : {};
+    gBundle.app_config.globalStyle = (_c = gBundle.app_config.globalStyle) !== null && _c !== void 0 ? _c : [];
+    gBundle.app_config.globalScript = (_d = gBundle.app_config.globalScript) !== null && _d !== void 0 ? _d : [];
     const vm = {
         loading: true
     };

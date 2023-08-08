@@ -268,7 +268,7 @@ onclick="${gvc.event(() => {
                                     switch (selectPosition) {
                                         case Setting_editor.index:
                                         case Main_editor.index:
-                                            return `p-4 pt-0`
+                                            return `pt-0`
                                         case Page_editor.index:
                                             return `p-0`
                                         default:

@@ -488,7 +488,7 @@ export class Main_editor {
                         `
                     }
                 },
-                divCreate: {class: `swiper-slide h-auto mx-n4`},
+                divCreate: {class: `swiper-slide h-auto `},
                 onCreate: () => {
                     if (!(window as any).editerData) {
                         function check() {
