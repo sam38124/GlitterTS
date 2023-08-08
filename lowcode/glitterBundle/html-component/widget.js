@@ -167,6 +167,9 @@ export const widgetComponent = {
                 widget.type = (_a = widget.type) !== null && _a !== void 0 ? _a : "elem";
                 widget.data.elemExpand = (_b = widget.data.elemExpand) !== null && _b !== void 0 ? _b : {};
                 widget.data.atrExpand = (_c = widget.data.atrExpand) !== null && _c !== void 0 ? _c : {};
+                if (['link', 'style'].indexOf(widget.data.elem) !== -1) {
+                    widget.data.elemExpand.expand = true;
+                }
                 return gvc.map([
                     `<div class="mt-2"></div>`,
                     Editor.toggleExpand({
@@ -187,7 +190,7 @@ export const widgetComponent = {
                                     }
                                 })(),
                                 (() => {
-                                    if (['link', 'style', 'img', 'input'].indexOf(widget.data.elem) !== -1) {
+                                    if (['link', 'style', 'img', 'input', 'script'].indexOf(widget.data.elem) !== -1) {
                                         return ``;
                                     }
                                     else {
@@ -207,18 +210,21 @@ export const widgetComponent = {
                                         });
                                     }
                                 })(),
-                                Editor.searchInput({
-                                    title: 'HTML元素標籤',
-                                    gvc: gvc,
-                                    def: widget.data.elem,
-                                    array: ['button', 'h1', 'h2', 'h3', 'h4', 'h5', 'li', 'ul', 'table', 'div', 'header', 'section', 'span', 'p', 'a', 'img', 'style',
-                                        'input', 'select', 'script', 'src', 'textArea'],
-                                    callback: (text) => {
-                                        widget.data.elem = text;
-                                        widget.refreshComponent();
-                                    },
-                                    placeHolder: "請輸入元素標籤"
-                                }),
+                                (['link', 'style', 'script'].indexOf(widget.data.elem) === -1) ?
+                                    Editor.searchInput({
+                                        title: 'HTML元素標籤',
+                                        gvc: gvc,
+                                        def: widget.data.elem,
+                                        array: ['button', 'h1', 'h2', 'h3', 'h4', 'h5', 'li', 'ul', 'table', 'div', 'header', 'section', 'span', 'p', 'a', 'img',
+                                            'input', 'select', 'script', 'src', 'textArea'],
+                                        callback: (text) => {
+                                            if (['link', 'style'].indexOf(widget.data.elem) === -1) {
+                                                widget.data.elem = text;
+                                                widget.refreshComponent();
+                                            }
+                                        },
+                                        placeHolder: "請輸入元素標籤"
+                                    }) : ``,
                                 (() => {
                                     var _a, _b, _c, _d, _e, _f, _g;
                                     if (widget.type === 'container') {

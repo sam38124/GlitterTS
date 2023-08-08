@@ -27,7 +27,9 @@ init((gvc, glitter, gBundle) => {
         homePage: '',
         selectContainer: undefined,
         selectIndex: undefined,
-        waitCopy: undefined
+        waitCopy: undefined,
+        globalScript: undefined,
+        globalStyle: undefined
     };
     const swal = new Swal(gvc);
     const doc = new Editor(gvc, viewModel);
@@ -72,18 +74,20 @@ init((gvc, glitter, gBundle) => {
             }),
             (async () => {
                 return await new Promise(async (resolve) => {
-                    var _a, _b, _c;
+                    var _a, _b, _c, _d, _e;
                     const data = await ApiPageConfig.getPlugin(gBundle.appName);
                     if (data.result) {
                         viewModel.appConfig = data.response.data;
+                        viewModel.globalScript = (_a = data.response.data.globalScript) !== null && _a !== void 0 ? _a : [];
+                        viewModel.globalStyle = (_b = data.response.data.globalStyle) !== null && _b !== void 0 ? _b : [];
                         viewModel.initialList = data.response.data.initialList;
                         viewModel.initialJS = data.response.data.eventPlugin;
                         viewModel.pluginList = data.response.data.pagePlugin;
                         viewModel.initialStyleSheet = data.response.data.initialStyleSheet;
                         viewModel.initialStyle = data.response.data.initialStyle;
-                        viewModel.initialCode = (_a = data.response.data.initialCode) !== null && _a !== void 0 ? _a : "";
-                        viewModel.homePage = (_b = data.response.data.homePage) !== null && _b !== void 0 ? _b : "";
-                        viewModel.backendPlugins = (_c = data.response.data.backendPlugins) !== null && _c !== void 0 ? _c : [];
+                        viewModel.initialCode = (_c = data.response.data.initialCode) !== null && _c !== void 0 ? _c : "";
+                        viewModel.homePage = (_d = data.response.data.homePage) !== null && _d !== void 0 ? _d : "";
+                        viewModel.backendPlugins = (_e = data.response.data.backendPlugins) !== null && _e !== void 0 ? _e : [];
                         async function load() {
                             for (const a of viewModel.initialJS) {
                                 await new Promise((resolve) => {
@@ -155,6 +159,8 @@ init((gvc, glitter, gBundle) => {
                 }),
                 (async () => {
                     return new Promise(async (resolve) => {
+                        viewModel.appConfig.globalStyle = viewModel.globalStyle;
+                        viewModel.appConfig.globalScript = viewModel.globalScript;
                         const api = await ApiPageConfig.setPlugin(gBundle.appName, viewModel.appConfig);
                         resolve(api.result);
                     });

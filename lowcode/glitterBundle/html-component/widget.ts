@@ -171,6 +171,9 @@ export const widgetComponent = {
                 widget.type = widget.type ?? "elem"
                 widget.data.elemExpand = widget.data.elemExpand ?? {}
                 widget.data.atrExpand = widget.data.atrExpand ?? {}
+                if(['link', 'style'].indexOf(widget.data.elem) !== -1){
+                    widget.data.elemExpand.expand=true
+                }
                 return gvc.map([
                     `<div class="mt-2"></div>`,
                     Editor.toggleExpand({
@@ -189,7 +192,7 @@ export const widgetComponent = {
                                     }
                                 })(),
                                 (() => {
-                                    if (['link', 'style', 'img', 'input'].indexOf(widget.data.elem) !== -1) {
+                                    if (['link', 'style', 'img', 'input','script'].indexOf(widget.data.elem) !== -1) {
                                         return ``
                                     } else {
                                         return Editor.select({
@@ -209,18 +212,21 @@ export const widgetComponent = {
                                     }
                                 })()
                                 ,
+                                (['link', 'style','script'].indexOf(widget.data.elem) === -1) ?
                                 Editor.searchInput({
                                     title: 'HTML元素標籤',
                                     gvc: gvc,
                                     def: widget.data.elem,
-                                    array: ['button', 'h1', 'h2', 'h3', 'h4', 'h5', 'li', 'ul', 'table', 'div', 'header', 'section', 'span', 'p', 'a', 'img', 'style'
+                                    array: ['button', 'h1', 'h2', 'h3', 'h4', 'h5', 'li', 'ul', 'table', 'div', 'header', 'section', 'span', 'p', 'a', 'img'
                                         , 'input', 'select', 'script', 'src','textArea'],
                                     callback: (text: string) => {
-                                        widget.data.elem = text
-                                        widget.refreshComponent()
+                                        if (['link', 'style'].indexOf(widget.data.elem) === -1) {
+                                            widget.data.elem = text
+                                            widget.refreshComponent()
+                                        }
                                     },
                                     placeHolder: "請輸入元素標籤"
-                                }),
+                                }) :``,
                                 (() => {
                                     if (widget.type === 'container') {
                                         return ``

@@ -42,7 +42,7 @@ export class HtmlGenerate {
     public static resourceHook: (src: string) => string = (src) => {
         return src;
     };
-    public render: (gvc: GVC, option?: { class: string; style: string; divCreate?: boolean }, createOption?: any) => string;
+    public render: (gvc: GVC, option?: { class: string; style: string; divCreate?: boolean,jsFinish:()=>void }, createOption?: any) => string;
     public exportJson: (setting: HtmlJson[]) => any;
     public editor: (gvc: GVC, option?: { return_: boolean; refreshAll: () => void; setting?: any[]; deleteEvent?: () => void }) => string;
     public static saveEvent = () => {
@@ -97,12 +97,13 @@ export class HtmlGenerate {
         };
     }
 
-    public static setHome = (obj: { page_config?: any; config: any; editMode?: any; data: any; tag: string; option?: any }) => {
+    public static setHome = (obj: { page_config?: any; app_config?: any, config: any; editMode?: any; data: any; tag: string; option?: any }) => {
         const glitter = Glitter.glitter;
         glitter.setHome(
             'glitterBundle/plugins/html-render.js',
             obj.tag,
             {
+                app_config: obj.app_config,
                 page_config: obj.page_config ?? {},
                 config: obj.config,
                 editMode: obj.editMode,
@@ -111,13 +112,14 @@ export class HtmlGenerate {
             obj.option ?? {}
         );
     };
-    public static changePage = (obj: { page_config?: any; config: any; editMode?: any; data: any; tag: string; goBack: boolean; option?: any }) => {
+    public static changePage = (obj: { page_config?: any; config: any; editMode?: any; data: any; tag: string; goBack: boolean; option?: any,app_config?:any }) => {
         const glitter = Glitter.glitter;
         glitter.changePage(
             'glitterBundle/plugins/html-render.js',
             obj.tag,
             obj.goBack,
             {
+                app_config: obj.app_config,
                 page_config: obj.page_config ?? {},
                 config: obj.config,
                 editMode: obj.editMode,
@@ -206,9 +208,10 @@ ${obj.gvc.bindView({
             };
             return dd;
         });
-        this.render = (gvc: GVC, option: { class: string; style: string } = {
+        this.render = (gvc: GVC, option: { class: string; style: string,jsFinish:()=>void } = {
             class: ``,
-            style: ``
+            style: ``,
+            jsFinish:()=>{}
         }, createOption?: any) => {
             gvc.glitter.share.loaginR = (gvc.glitter.share.loaginR ?? 0) + 1;
             const container = `` + gvc.glitter.getUUID();
@@ -219,6 +222,7 @@ ${obj.gvc.bindView({
             function getPageData() {
                 htmlList = []
                 const subData2 = subdata
+
                 async function add(set: any[]) {
                     for (const a of set) {
                         if (['code'].indexOf(a.type) === -1) {
@@ -233,7 +237,7 @@ ${obj.gvc.bindView({
                                             resolve(false);
                                         },
                                         [
-                                            {key:"async",value:"true"}
+                                            {key: "async", value: "true"}
                                         ]
                                     );
                                 });
@@ -332,11 +336,7 @@ ${obj.gvc.bindView({
                                                         key: "onclick", value: (() => {
                                                             return gvc.event((e, event) => {
                                                                 try {
-                                                                    const hoverID = dd.id;
-                                                                    (window.parent as any).glitter.setCookie('lastSelect',
-                                                                        hoverID);
-                                                                    (window.parent as any).glitter.share.refreshMainLeftEditor();
-                                                                    (window.parent as any).glitter.share.refreshMainRightEditor();
+                                                                    (dd as any).selectEditEvent()
                                                                     hover = [dd.id];
                                                                     gvc.glitter.$('.selectComponentHover').removeClass('selectComponentHover');
                                                                     gvc.glitter.$(e).addClass('selectComponentHover');
@@ -378,10 +378,8 @@ ${obj.gvc.bindView({
                                                                     }
                                                                     try {
                                                                         const hoverID = (gvc.glitter.$(e).attr('gvc-id') as string).replace(gvc.parameter.pageConfig!.id, '');
-                                                                        (window.parent as any).glitter.setCookie('lastSelect',
-                                                                            hoverID);
-                                                                        (window.parent as any).glitter.share.refreshMainLeftEditor();
-                                                                        (window.parent as any).glitter.share.refreshMainRightEditor();
+                                                                        (dd as any).selectEditEvent()
+                                                                        hover = [dd.id];
                                                                         hover = [hoverID];
                                                                         gvc.glitter.$('.selectComponentHover').removeClass('selectComponentHover');
                                                                         gvc.glitter.$(e).addClass('selectComponentHover');
@@ -502,6 +500,7 @@ ${obj.gvc.bindView({
                             await codeComponent.render(gvc, script as any, setting as any, [], subdata).view()
                         }
                         for (const a of waitAddScript) {
+
                             // console.log(`loadScript:` + a)
                             await new Promise((resolve, reject) => {
                                 gvc.addMtScript([{
@@ -517,7 +516,9 @@ ${obj.gvc.bindView({
                             })
                         }
                     }
-                    loadScript().then(() => {})
+                    loadScript().then(() => {
+                        option.jsFinish()
+                    })
                 },
             });
         };
@@ -552,7 +553,7 @@ ${obj.gvc.bindView({
                                             resolve(false);
                                         },
                                         [
-                                            {key:"async",value:"true"}
+                                            {key: "async", value: "true"}
                                         ]
                                     );
                                 });
@@ -599,7 +600,7 @@ ${obj.gvc.bindView({
                                             dd.refreshComponentParameter!.view2();
 
                                         } catch (e: any) {
-                                              (window as any).glitter.deBugMessage(`${e.message}<br>${e.stack}<br>${e.line}`);
+                                            (window as any).glitter.deBugMessage(`${e.message}<br>${e.stack}<br>${e.line}`);
                                         }
                                     };
                                     dd.refreshComponentParameter = dd.refreshComponentParameter ?? {
@@ -798,6 +799,7 @@ ${e.line}
         };
     }
 }
+
 function isEditMode() {
     try {
         return (window.parent as any).editerData !== undefined

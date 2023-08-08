@@ -16,3 +16,6 @@ create_time:Date
 }
 
 //
+
+  dd.type==='widget'&&(dd.data.elem==='style' || dd.data.elem==='link')
+                                        (dd.type==='code')||dd.type==='widget'&&(dd.data.elem==='script')

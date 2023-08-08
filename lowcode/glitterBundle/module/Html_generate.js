@@ -44,7 +44,8 @@ export class HtmlGenerate {
         });
         this.render = (gvc, option = {
             class: ``,
-            style: ``
+            style: ``,
+            jsFinish: () => { }
         }, createOption) => {
             var _a;
             gvc.glitter.share.loaginR = ((_a = gvc.glitter.share.loaginR) !== null && _a !== void 0 ? _a : 0) + 1;
@@ -163,10 +164,7 @@ export class HtmlGenerate {
                                                         key: "onclick", value: (() => {
                                                             return gvc.event((e, event) => {
                                                                 try {
-                                                                    const hoverID = dd.id;
-                                                                    window.parent.glitter.setCookie('lastSelect', hoverID);
-                                                                    window.parent.glitter.share.refreshMainLeftEditor();
-                                                                    window.parent.glitter.share.refreshMainRightEditor();
+                                                                    dd.selectEditEvent();
                                                                     hover = [dd.id];
                                                                     gvc.glitter.$('.selectComponentHover').removeClass('selectComponentHover');
                                                                     gvc.glitter.$(e).addClass('selectComponentHover');
@@ -208,9 +206,8 @@ export class HtmlGenerate {
                                                                     }
                                                                     try {
                                                                         const hoverID = gvc.glitter.$(e).attr('gvc-id').replace(gvc.parameter.pageConfig.id, '');
-                                                                        window.parent.glitter.setCookie('lastSelect', hoverID);
-                                                                        window.parent.glitter.share.refreshMainLeftEditor();
-                                                                        window.parent.glitter.share.refreshMainRightEditor();
+                                                                        dd.selectEditEvent();
+                                                                        hover = [dd.id];
                                                                         hover = [hoverID];
                                                                         gvc.glitter.$('.selectComponentHover').removeClass('selectComponentHover');
                                                                         gvc.glitter.$(e).addClass('selectComponentHover');
@@ -335,7 +332,9 @@ export class HtmlGenerate {
                             });
                         }
                     }
-                    loadScript().then(() => { });
+                    loadScript().then(() => {
+                        option.jsFinish();
+                    });
                 },
             });
         };
@@ -703,6 +702,7 @@ HtmlGenerate.setHome = (obj) => {
     var _a, _b;
     const glitter = Glitter.glitter;
     glitter.setHome('glitterBundle/plugins/html-render.js', obj.tag, {
+        app_config: obj.app_config,
         page_config: (_a = obj.page_config) !== null && _a !== void 0 ? _a : {},
         config: obj.config,
         editMode: obj.editMode,

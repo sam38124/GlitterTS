@@ -12,13 +12,15 @@ init((gvc, glitter, gBundle) => {
         onCreate: () => {
             var _a;
             const vm = {
-                pageData: ApiPageConfig.getPage(config.appName, (_a = glitter.getUrlParameter('page')) !== null && _a !== void 0 ? _a : glitter.getUUID())
+                pageData: ApiPageConfig.getPage(config.appName, (_a = glitter.getUrlParameter('page')) !== null && _a !== void 0 ? _a : glitter.getUUID()),
+                appConfig: []
             };
             window.saasConfig = {
                 config: window.config = config,
                 api: ApiPageConfig
             };
             ApiPageConfig.getPlugin(config.appName).then((dd) => {
+                vm.appConfig = dd.response.data;
                 (async () => {
                     return new Promise(async (resolve, reject) => {
                         var _a, _b, _c;
@@ -109,6 +111,7 @@ init((gvc, glitter, gBundle) => {
                             return eval(evals);
                         });
                         glitter.htmlGenerate.setHome({
+                            app_config: vm.appConfig,
                             page_config: (_a = window.parent.page_config) !== null && _a !== void 0 ? _a : {},
                             config: window.parent.editerData.setting,
                             editMode: window.parent.editerData,
@@ -128,6 +131,7 @@ init((gvc, glitter, gBundle) => {
                                 return;
                             }
                             glitter.htmlGenerate.setHome({
+                                app_config: vm.appConfig,
                                 page_config: data.response.result[0].page_config,
                                 config: data.response.result[0].config,
                                 data: {},

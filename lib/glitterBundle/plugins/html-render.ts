@@ -3,6 +3,9 @@ import {TriggerEvent} from "./trigger-event.js";
 
 init((gvc, glitter, gBundle) => {
     glitter.share.htmlExtension = glitter.share.htmlExtension ?? {};
+    gBundle.app_config.globalStyle=gBundle.app_config.globalStyle??[]
+    gBundle.app_config.globalScript=gBundle.app_config.globalScript??[]
+    // alert(JSON.stringify(gBundle.app_config.globalScript))
     const vm={
         loading:true
     };
@@ -41,23 +44,33 @@ init((gvc, glitter, gBundle) => {
 
     };
 
+    // gBundle.app_config.globalScript.
 
 
-    load().then(()=>{
-        vm.loading=false
-        gvc.notifyDataChange('main')
-    })
+
     return {
         onCreateView: () => {
-            return gvc.bindView({
+            return new glitter.htmlGenerate(gBundle.app_config.globalScript ?? [], [],undefined,true).render(gvc,{
+                class:``,
+                style:``,
+                jsFinish:()=>{
+                    load().then(()=>{
+                        vm.loading=false
+                        gvc.notifyDataChange('main')
+                    })
+                }
+            })+gvc.bindView({
                 bind: 'main',
                 view: () => {
                     if(vm.loading){
                         return ``
                     }
-                    return (gBundle.editMode && gBundle.editMode.render(gvc))
+
+                    return new glitter.htmlGenerate(gBundle.app_config.globalStyle, [],undefined,true).render(gvc)+(
+                        (gBundle.editMode && gBundle.editMode.render(gvc))
                         ||
-                        new glitter.htmlGenerate(gBundle.config, [],undefined,true).render(gvc);
+                        new glitter.htmlGenerate(gBundle.config, [],undefined,true).render(gvc)
+                    );
                 },
                 divCreate: {
                     class:glitter.htmlGenerate.styleEditor(gBundle.page_config).class(),style:`min-height: 100vh;min-width: 100vw;${glitter.htmlGenerate.styleEditor(gBundle.page_config).style()}`

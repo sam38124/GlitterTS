@@ -11,7 +11,6 @@ export class Main_editor {
         const swal = new Swal(gvc);
         const glitter = gvc.glitter;
         return gvc.bindView(() => {
-            let items = [];
             glitter.debugMode = true;
             const vid = glitter.getUUID();
             return {
@@ -101,7 +100,7 @@ export class Main_editor {
                             >${viewModel.data.name}
                             </li>
                             ${(() => {
-                            function render(array, child) {
+                            function render(array, child, original) {
                                 const parId = gvc.glitter.getUUID();
                                 const dragModel = {
                                     draggableElement: '',
@@ -124,8 +123,9 @@ export class Main_editor {
                                             arr.splice(index1, 1);
                                             arr.splice(index2, 0, data);
                                         }
+                                        swapArr(original, array[dragModel.firstIndex].index, array[(dragModel.currentIndex - 1 < dragModel.firstIndex) ? dragModel.currentIndex : (dragModel.currentIndex >= 0) ? dragModel.currentIndex - 1 : 0].index);
                                         swapArr(array, dragModel.firstIndex, (dragModel.currentIndex - 1 < dragModel.firstIndex) ? dragModel.currentIndex : (dragModel.currentIndex >= 0) ? dragModel.currentIndex - 1 : 0);
-                                        gvc.notifyDataChange([parId, 'htmlGenerate', 'showView']);
+                                        gvc.notifyDataChange([vid, 'htmlGenerate', 'showView']);
                                     }
                                     document.removeEventListener('mouseup', mup_Linstener);
                                     document.removeEventListener('mousemove', move_Linstener);
@@ -161,7 +161,7 @@ export class Main_editor {
                                         return index;
                                     }
                                     let closestNumber = findClosestNumber(dragModel.hover_item.map((dd) => {
-                                        return dd.offsetTop - 17;
+                                        return dd.offsetTop - 14;
                                     }), off);
                                     dragModel.changeIndex = closestNumber;
                                     if (dragModel.currentIndex != closestNumber) {
@@ -190,6 +190,11 @@ export class Main_editor {
                                         bind: parId,
                                         view: () => {
                                             return array.map((dd, index) => {
+                                                dd.selectEditEvent = () => {
+                                                    viewModel.selectContainer = original;
+                                                    viewModel.selectItem = dd;
+                                                    gvc.notifyDataChange(vid);
+                                                };
                                                 let toggle = gvc.event((e, event) => {
                                                     dd.toggle = !dd.toggle;
                                                     gvc.notifyDataChange(parId);
@@ -201,7 +206,7 @@ export class Main_editor {
                                                                     style="margin-top:1px;margin-bottom:1px;">
                                                                     <div class="editor_item d-flex   px-2 my-0 hi " style=""
                                                                          onclick="${gvc.event(() => {
-                                                    viewModel.selectContainer = array;
+                                                    viewModel.selectContainer = original;
                                                     viewModel.selectItem = dd;
                                                     gvc.notifyDataChange(['htmlGenerate', 'showView', vid]);
                                                 })}">
@@ -297,7 +302,10 @@ export class Main_editor {
                                                                 return ``;
                                                             }
                                                             else {
-                                                                return `<l1 class="${(dd.toggle) ? `` : `d-none`}" style="padding-left:20px;">${render(dd.data.setting, true)}</l1>`;
+                                                                return `<l1 class="${(dd.toggle) ? `` : `d-none`}" style="padding-left:20px;">${render(dd.data.setting.map((dd, index) => {
+                                                                    dd.index = index;
+                                                                    return dd;
+                                                                }), true, dd.data.setting)}</l1>`;
                                                             }
                                                         }
                                                         else {
@@ -315,12 +323,13 @@ export class Main_editor {
                             return gvc.map([
                                 html `
                                         <div class="d-flex ms-2  px-2   hi fw-bold d-flex align-items-center border-bottom"
-                                             style="color:#151515;font-size:14px;">STYLE
+                                             style="color:#da552f;font-size:14px;">全域-STYLE
                                             <div class="flex-fill"></div>
                                             <l1 class="btn-group dropend" onclick="${gvc.event(() => {
-                                    viewModel.selectContainer = viewModel.data.config;
+                                    viewModel.selectContainer = viewModel.globalStyle;
                                 })}">
-                                                <div class="editor_item primary  px-2" style="cursor:pointer;" data-bs-toggle="dropdown"
+                                                <div class="editor_item primary  px-2" style="cursor:pointer;"
+                                                     data-bs-toggle="dropdown"
                                                      aria-haspopup="true"
                                                      aria-expanded="false">
                                                     <i class="fa-regular fa-circle-plus"></i>
@@ -336,17 +345,19 @@ export class Main_editor {
                                                 </div>
                                             </l1>
                                         </div>`,
-                                render(viewModel.data.config.filter((dd) => {
-                                    return dd.type === 'widget' && (dd.data.elem === 'style' || dd.data.elem === 'link');
-                                }), false),
+                                render(viewModel.globalStyle.map((dd, index) => {
+                                    dd.index = index;
+                                    return dd;
+                                }), false, viewModel.globalStyle),
                                 html `
                                         <div class="d-flex ms-2  px-2   hi fw-bold d-flex align-items-center border-bottom"
-                                             style="color:#151515;font-size:14px;">SCRIPT
+                                             style="color:#da552f;font-size:14px;">全域-SCRIPT
                                             <div class="flex-fill"></div>
                                             <l1 class="btn-group dropend" onclick="${gvc.event(() => {
-                                    viewModel.selectContainer = viewModel.data.config;
+                                    viewModel.selectContainer = viewModel.globalScript;
                                 })}">
-                                                <div class="editor_item primary  px-2" style="cursor:pointer;" data-bs-toggle="dropdown"
+                                                <div class="editor_item primary  px-2" style="cursor:pointer;"
+                                                     data-bs-toggle="dropdown"
                                                      aria-haspopup="true"
                                                      aria-expanded="false">
                                                     <i class="fa-regular fa-circle-plus"></i>
@@ -362,17 +373,75 @@ export class Main_editor {
                                                 </div>
                                             </l1>
                                         </div>`,
-                                render(viewModel.data.config.filter((dd) => {
-                                    return (dd.type === 'code') || dd.type === 'widget' && (dd.data.elem === 'script');
-                                }), false),
+                                render(viewModel.globalScript.map((dd, index) => {
+                                    dd.index = index;
+                                    return dd;
+                                }), false, viewModel.globalScript),
                                 html `
                                         <div class="d-flex ms-2  px-2   hi fw-bold d-flex align-items-center border-bottom"
-                                             style="color:#151515;font-size:14px;">頁面區段
+                                             style="color:#151515;font-size:14px;">頁面-STYLE
                                             <div class="flex-fill"></div>
                                             <l1 class="btn-group dropend" onclick="${gvc.event(() => {
                                     viewModel.selectContainer = viewModel.data.config;
                                 })}">
-                                                <div class="editor_item primary  px-2" style="cursor:pointer;" data-bs-toggle="dropdown"
+                                                <div class="editor_item primary  px-2" style="cursor:pointer;"
+                                                     data-bs-toggle="dropdown"
+                                                     aria-haspopup="true"
+                                                     aria-expanded="false">
+                                                    <i class="fa-regular fa-circle-plus"></i>
+                                                    新增設計
+                                                </div>
+                                                <div class="dropdown-menu mx-1 position-fixed pb-0 border "
+                                                     style="z-index:999999;"
+                                                     onclick="${gvc.event((e, event) => {
+                                    event.preventDefault();
+                                    event.stopPropagation();
+                                })}">
+                                                    ${Add_item_dia.add_style(gvc)}
+                                                </div>
+                                            </l1>
+                                        </div>`,
+                                render(viewModel.data.config.filter((dd, index) => {
+                                    dd.index = index;
+                                    return dd.type === 'widget' && (dd.data.elem === 'style' || dd.data.elem === 'link');
+                                }), false, viewModel.data.config),
+                                html `
+                                        <div class="d-flex ms-2  px-2   hi fw-bold d-flex align-items-center border-bottom"
+                                             style="color:#151515;font-size:14px;">頁面-SCRIPT
+                                            <div class="flex-fill"></div>
+                                            <l1 class="btn-group dropend" onclick="${gvc.event(() => {
+                                    viewModel.selectContainer = viewModel.data.config;
+                                })}">
+                                                <div class="editor_item primary  px-2" style="cursor:pointer;"
+                                                     data-bs-toggle="dropdown"
+                                                     aria-haspopup="true"
+                                                     aria-expanded="false">
+                                                    <i class="fa-regular fa-circle-plus"></i>
+                                                    新增事件
+                                                </div>
+                                                <div class="dropdown-menu mx-1 position-fixed pb-0 border "
+                                                     style="z-index:999999;"
+                                                     onclick="${gvc.event((e, event) => {
+                                    event.preventDefault();
+                                    event.stopPropagation();
+                                })}">
+                                                    ${Add_item_dia.add_script(gvc)}
+                                                </div>
+                                            </l1>
+                                        </div>`,
+                                render(viewModel.data.config.filter((dd, index) => {
+                                    dd.index = index;
+                                    return (dd.type === 'code') || dd.type === 'widget' && (dd.data.elem === 'script');
+                                }), false, viewModel.data.config),
+                                html `
+                                        <div class="d-flex ms-2  px-2   hi fw-bold d-flex align-items-center border-bottom"
+                                             style="color:#151515;font-size:14px;">頁面-區段
+                                            <div class="flex-fill"></div>
+                                            <l1 class="btn-group dropend" onclick="${gvc.event(() => {
+                                    viewModel.selectContainer = viewModel.data.config;
+                                })}">
+                                                <div class="editor_item primary  px-2" style="cursor:pointer;"
+                                                     data-bs-toggle="dropdown"
                                                      aria-haspopup="true"
                                                      aria-expanded="false">
                                                     <i class="fa-regular fa-circle-plus"></i>
@@ -388,9 +457,10 @@ export class Main_editor {
                                                 </div>
                                             </l1>
                                         </div>`,
-                                render(viewModel.data.config.filter((dd) => {
+                                render(viewModel.data.config.filter((dd, index) => {
+                                    dd.index = index;
                                     return (dd.type !== 'code') && (dd.type !== 'widget' || (dd.data.elem !== 'style' && dd.data.elem !== 'link' && dd.data.elem !== 'script'));
-                                }), false)
+                                }), false, viewModel.data.config)
                             ]);
                         })()}
                         `;
@@ -477,8 +547,8 @@ export class Main_editor {
     static center(viewModel, gvc) {
         return html `
             <div class="${(viewModel.type === ViewType.mobile) ? `d-flex align-items-center justify-content-center flex-column mx-auto` : `d-flex align-items-center justify-content-center flex-column`}"
-                 style="${(viewModel.type === ViewType.mobile) ? `width: 414px;height: calc(100vh - 20px);padding-top: 0px;` : `width: calc(100% - 20px);margin-left:10px;height: calc(100vh - 20px);padding-top: 20px;"`}">
-                <div class="bg-white" style="width:100%;height: calc(100% - 50px);">
+                 style="${(viewModel.type === ViewType.mobile) ? `width: 414px;height: calc(100vh - 50px);padding-top: 20px;` : `width: calc(100% - 20px);margin-left:10px;height: calc(100vh - 50px);padding-top: 20px;"`}">
+                <div class="bg-white" style="width:100%;height: calc(100%);">
                     <iframe class="w-100 h-100 rounded"
                             src="index.html?type=htmlEditor&page=${gvc.glitter.getUrlParameter('page')}"></iframe>
                 </div>

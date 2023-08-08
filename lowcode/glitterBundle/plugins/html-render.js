@@ -1,8 +1,10 @@
 import { init } from '../GVController.js';
 import { TriggerEvent } from "./trigger-event.js";
 init((gvc, glitter, gBundle) => {
-    var _a;
+    var _a, _b, _c;
     glitter.share.htmlExtension = (_a = glitter.share.htmlExtension) !== null && _a !== void 0 ? _a : {};
+    gBundle.app_config.globalStyle = (_b = gBundle.app_config.globalStyle) !== null && _b !== void 0 ? _b : [];
+    gBundle.app_config.globalScript = (_c = gBundle.app_config.globalScript) !== null && _c !== void 0 ? _c : [];
     const vm = {
         loading: true
     };
@@ -47,21 +49,27 @@ init((gvc, glitter, gBundle) => {
         });
     }
     ;
-    load().then(() => {
-        vm.loading = false;
-        gvc.notifyDataChange('main');
-    });
     return {
         onCreateView: () => {
-            return gvc.bindView({
+            var _a;
+            return new glitter.htmlGenerate((_a = gBundle.app_config.globalScript) !== null && _a !== void 0 ? _a : [], [], undefined, true).render(gvc, {
+                class: ``,
+                style: ``,
+                jsFinish: () => {
+                    load().then(() => {
+                        vm.loading = false;
+                        gvc.notifyDataChange('main');
+                    });
+                }
+            }) + gvc.bindView({
                 bind: 'main',
                 view: () => {
                     if (vm.loading) {
                         return ``;
                     }
-                    return (gBundle.editMode && gBundle.editMode.render(gvc))
+                    return new glitter.htmlGenerate(gBundle.app_config.globalStyle, [], undefined, true).render(gvc) + ((gBundle.editMode && gBundle.editMode.render(gvc))
                         ||
-                            new glitter.htmlGenerate(gBundle.config, [], undefined, true).render(gvc);
+                            new glitter.htmlGenerate(gBundle.config, [], undefined, true).render(gvc));
                 },
                 divCreate: {
                     class: glitter.htmlGenerate.styleEditor(gBundle.page_config).class(), style: `min-height: 100vh;min-width: 100vw;${glitter.htmlGenerate.styleEditor(gBundle.page_config).style()}`

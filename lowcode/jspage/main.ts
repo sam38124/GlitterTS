@@ -28,7 +28,9 @@ init((gvc, glitter, gBundle) => {
         backendPlugins: any,
         selectIndex: any,
         waitCopy: any,
-        appConfig:any
+        appConfig:any,
+        globalScript:any,
+        globalStyle:any
     } = {
         appConfig:undefined,
         dataList: undefined,
@@ -45,7 +47,9 @@ init((gvc, glitter, gBundle) => {
         homePage: '',
         selectContainer: undefined,
         selectIndex: undefined,
-        waitCopy: undefined
+        waitCopy: undefined,
+        globalScript:undefined,
+        globalStyle:undefined
     };
     const swal = new Swal(gvc);
     const doc = new Editor(gvc, viewModel);
@@ -93,6 +97,8 @@ init((gvc, glitter, gBundle) => {
                     const data = await ApiPageConfig.getPlugin(gBundle.appName)
                     if (data.result) {
                         viewModel.appConfig=data.response.data
+                        viewModel.globalScript=data.response.data.globalScript ?? []
+                        viewModel.globalStyle=data.response.data.globalStyle ?? []
                         viewModel.initialList = data.response.data.initialList;
                         viewModel.initialJS = data.response.data.eventPlugin;
                         viewModel.pluginList = data.response.data.pagePlugin;
@@ -177,6 +183,8 @@ init((gvc, glitter, gBundle) => {
                 }),
                 (async () => {
                     return new Promise(async resolve => {
+                        viewModel.appConfig.globalStyle=viewModel.globalStyle
+                        viewModel.appConfig.globalScript=viewModel.globalScript
                         const api = await ApiPageConfig.setPlugin(gBundle.appName, viewModel.appConfig)
                         resolve(api.result)
                     });

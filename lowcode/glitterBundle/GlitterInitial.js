@@ -13,8 +13,8 @@ window.addEventListener('resize', function () {
         }
     }
 });
-function listenElementChange(id) {
-    const targetElement = document.querySelector(`#${id}`);
+function listenElementChange(query) {
+    const targetElement = document.querySelector(query);
     const observer = new MutationObserver(function (mutationsList) {
         for (let mutation of mutationsList) {
             if (mutation.addedNodes.length > 0) {
@@ -75,8 +75,9 @@ glitter.$(document).ready(function () {
     else if (navigator.userAgent === 'iosGlitter') {
         glitter.deviceType = glitter.deviceTypeEnum.Ios;
     }
-    listenElementChange(`glitterPage`);
-    listenElementChange(`Navigation`);
+    listenElementChange(`#glitterPage`);
+    listenElementChange(`#Navigation`);
+    listenElementChange(`head`);
     glitter.closeDrawer();
     Entry.onCreate(glitter);
 });

@@ -13,15 +13,19 @@ init((gvc, glitter, gBundle)=>{
         },
         onCreate:()=>{
             const vm={
-                pageData: ApiPageConfig.getPage(config.appName, glitter.getUrlParameter('page') ?? glitter.getUUID())
+                pageData: ApiPageConfig.getPage(config.appName, glitter.getUrlParameter('page') ?? glitter.getUUID()),
+                appConfig:[]
             };
 
             (window as any).saasConfig = {
                 config: (window as any).config = config,
-                api: ApiPageConfig
+                api: ApiPageConfig,
+                appConfig:undefined
             }
 
             ApiPageConfig.getPlugin(config.appName).then((dd) => {
+                vm.appConfig=dd.response.data;
+                (window as any).saasConfig.appConfig=dd.response.data;
                 (async () => {
                     return new Promise(async (resolve, reject) => {
                         //Initial Global style
@@ -112,6 +116,7 @@ init((gvc, glitter, gBundle)=>{
                         })
                         glitter.htmlGenerate.setHome(
                             {
+                                app_config:vm.appConfig,
                                 page_config: (window.parent as any).page_config ?? {},
                                 config: (window.parent as any).editerData.setting,
                                 editMode: (window.parent as any).editerData,
@@ -133,6 +138,7 @@ init((gvc, glitter, gBundle)=>{
                             }
                             glitter.htmlGenerate.setHome(
                                 {
+                                    app_config:vm.appConfig,
                                     page_config: data.response.result[0].page_config,
                                     config: data.response.result[0].config,
                                     data: {},
@@ -140,6 +146,8 @@ init((gvc, glitter, gBundle)=>{
                                 }
                             );
                         })
+
+                        // new glitter.htmlGenerate(gBundle.config, [],undefined,true).render(gvc)
                     }
                 });
 
