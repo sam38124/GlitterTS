@@ -108,10 +108,15 @@ export class Editor {
                                 }
                                 return 0;
                             }).map((dd) => {
-                                return `<l1 onclick="${gvc.event(() => {
+                                return html `
+                                                                            <l1 onclick="${gvc.event(() => {
                                     selectGroup = dd;
                                     gvc.notifyDataChange(id);
-                                })}"  class="list-group-item list-group-item-action border-0 d py-2 ${(selectGroup === dd) && 'active'} position-relative " style="border-radius: 0px;cursor: pointer;">${dd || "未分類"}</l1>`
+                                })}"
+                                                                                class="list-group-item list-group-item-action border-0 d py-2 ${(selectGroup === dd) && 'active'} position-relative "
+                                                                                style="border-radius: 0px;cursor: pointer;">
+                                                                                ${dd || "未分類"}
+                                                                            </l1>`
                                     + `<div class="collapse multi-collapse ${(selectGroup === dd) && 'show'}" style="margin-left: 10px;">
  ${data.dataList.filter((d2) => {
                                         return d2.group === dd;
@@ -128,6 +133,7 @@ export class Editor {
                                     }).map((d3) => {
                                         if (d3.tag !== glitter.getUrlParameter('page')) {
                                             return `<a onclick="${gvc.event(() => {
+                                                glitter.share.clearSelectItem();
                                                 data.data = d3;
                                                 glitter.setUrlParameter('page', d3.tag);
                                                 gvc.notifyDataChange('HtmlEditorContainer');
@@ -149,9 +155,18 @@ export class Editor {
                                     </div>
                                 </div>
                                 <div class="flex-fill"></div>
+                                <div class="d-flex align-items-center justify-content-center  me-2 border ${(glitter.share.inspect) ? `activeBtn` : ``}"
+                                     style="height:36px;width:36px;border-radius:10px;cursor:pointer;"
+                                     onclick="${gvc.event(() => {
+                glitter.share.inspect = !glitter.share.inspect;
+                gvc.notifyDataChange('HtmlEditorContainer');
+            })}">
+                                    <i class="fa-sharp fa-regular fa-arrow-pointer"></i>
+                                </div>
+                               
                                 <div class="d-flex align-items-center justify-content-center hoverBtn me-2 border"
                                      style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;"
-                                onclick="${gvc.event(() => {
+                                     onclick="${gvc.event(() => {
                 const url = new URL("", location.href);
                 url.searchParams.delete('type');
                 url.searchParams.set("page", glitter.getUrlParameter("page"));
@@ -212,8 +227,10 @@ export class Editor {
                         <div class="offcanvas-header d-none d-lg-flex justify-content-start border-bottom px-0"
                              style="height: 56px;">
                             <div class="navbar-brand text-dark d-none d-lg-flex py-0 h-100">
-                                <div class="d-flex align-items-center justify-content-center border-end " style="width:50px;height: 56px;">
-                                    <i class="fa-regular fa-arrow-left-from-arc hoverBtn"  style="cursor:pointer;" onclick="location.href='index.html'">
+                                <div class="d-flex align-items-center justify-content-center border-end "
+                                     style="width:50px;height: 56px;">
+                                    <i class="fa-regular fa-arrow-left-from-arc hoverBtn" style="cursor:pointer;"
+                                       onclick="location.href='index.html'">
 
                                     </i>
                                 </div>
@@ -222,7 +239,7 @@ export class Editor {
    background-clip: text;
    -webkit-background-clip: text;
    color: transparent;">GLITTER.AI </span>
-                                
+
                             </div>
                         </div>
                         <div class="offcanvas-header d-block d-lg-none border-bottom">
@@ -243,7 +260,9 @@ export class Editor {
                         ${left}
                     </aside>
                     <!-- Page container -->
-                    <main class="docs-container" style="padding-top: 40px;padding-right:0px;${(viewModel.type === ViewType.fullScreen) ? `padding-left:0px;` : ``}">${gvc.bindView({
+                    <main class="docs-container"
+                          style="padding-top: 40px;padding-right:0px;${(viewModel.type === ViewType.fullScreen) ? `padding-left:0px;` : ``}">
+                        ${gvc.bindView({
                 dataList: [{ obj: viewModel, key: "type" }],
                 bind: `showView`,
                 view: () => {

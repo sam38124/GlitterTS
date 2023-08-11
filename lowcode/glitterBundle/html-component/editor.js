@@ -1,4 +1,5 @@
 import { ShareDialog } from "../dialog/ShareDialog.js";
+const html = String.raw;
 export class Editor {
     static uploadImage(obj) {
         const glitter = window.glitter;
@@ -242,10 +243,10 @@ export class Editor {
         return `<h3 style="font-size: 16px;margin-bottom: 10px;" class="mt-2 text-dark">${title}</h3>`;
     }
     static plusBtn(title, event) {
-        return `<div class="w-100 my-3 bg-white" style="height: 1px;"></div>
+        return html `<div class="w-100 my-3 " style="height: 1px;background:#151515;"></div>
             <div
-                class="text-white fw-bold align-items-center justify-content-center d-flex p-1 rounded mt-3"
-                style="border: 2px dashed white;"
+                class=" fw-bold align-items-center justify-content-center d-flex p-1 rounded mt-3"
+                style="border: 1px solid #151515;color:#151515;"
                 onclick="${event}"
             >
                 ${title}
@@ -290,45 +291,51 @@ export class Editor {
         var _a;
         const glitter = window.glitter;
         obj.data.expand = (_a = obj.data.expand) !== null && _a !== void 0 ? _a : false;
-        return `${obj.gvc.bindView(() => {
+        return html `${obj.gvc.bindView(() => {
             const id = glitter.getUUID();
             return {
                 bind: id,
                 view: () => {
                     if (obj.data.expand) {
-                        return `<div class="w-100  rounded p-2 ${obj.class}" style="background-image: linear-gradient(-225deg, #65379B 0%, #886AEA 53%, #6457C6 100%);${obj.style};">
+                        return html `<div class="w-100  ${obj.class}" style="">
                             <div
-                                class="d-flex p-0 align-items-center mb-2 w-100 text-white"
+                                class="d-flex p-0 align-items-center mb-2 w-100 "
                                 onclick="${obj.gvc.event(() => {
                             obj.data.expand = !obj.data.expand;
                             obj.gvc.notifyDataChange(id);
                         })}"
                                 style="cursor: pointer;"
                             >
-                                <h3 style="font-size: 16px;width: calc(100% - 60px);" class="m-0 p-0 text-white">${obj.title}</h3>
+                                <h3 style="font-size: 16px;width: calc(100% - 60px);color:#151515 !important;" class="m-0 p-0">
+                                    ${obj.title}
+                                </h3>
                                 <div class="flex-fill"></div>
-                                <div style="cursor: pointer;">收合<i class="fa-solid fa-up ms-2 text-white"></i></div>
+                                <div style="cursor: pointer;color:#9e9e9e !important;">收合<i class="fa-solid fa-angle-up ms-2"></i></div>
                             </div>
-                            ${(typeof obj.innerText === 'string') ? obj.innerText : obj.innerText()}
+                            ${typeof obj.innerText === 'string' ? obj.innerText : obj.innerText()}
                         </div>`;
                     }
-                    return `<div class="w-100  rounded p-2 ${obj.class}" style="background-image: linear-gradient(-225deg, #65379B 0%, #886AEA 53%, #6457C6 100%);${obj.style};">
+                    return html `<div
+                        class="w-100   "
+                        style=""
+                    >
                         <div
-                            class="w-100 d-flex p-0 align-items-center text-white"
+                            class="w-100 d-flex p-0 align-items-center "
                             onclick="${obj.gvc.event(() => {
                         obj.data.expand = !obj.data.expand;
                         obj.gvc.notifyDataChange(id);
                     })}"
                             style="cursor: pointer;"
                         >
-                            <h3 style="font-size: 16px;width: calc(100% - 60px);" class="m-0 p-0 text-white">${obj.title}</h3>
+                            <h3 style="font-size: 16px;width: calc(100% - 60px);color:#151515 !important;" class="m-0 p-0 ">${obj.title}</h3>
                             <div class="flex-fill"></div>
-                            <div style="cursor: pointer;">展開<i class="fa-solid fa-down ms-2 text-white"></i></div>
+                            <div style="cursor: pointer;color:#9e9e9e !important;" >展開<i class="fa-solid fa-angle-down ms-2"></i></i></div>
                         </div>
                     </div>`;
                 },
                 divCreate: {
-                    class: `toggleInner`
+                    class: `toggleInner  mb-2 p-2`, style: `background:white;width:calc(100%);border-radius:8px;
+                    min-height:45px;border:1px solid black;${obj.style};`
                 },
             };
         })}`;
@@ -336,7 +343,7 @@ export class Editor {
     static minusTitle(title, event) {
         return `<div class="d-flex align-items-center">
             <i class="fa-regular fa-circle-minus text-danger me-2" style="font-size: 20px;cursor: pointer;" onclick="${event}"></i>
-            <h3 style="color: white;font-size: 16px;" class="m-0">${title}</h3>
+            <h3 style="color: #151515;font-size: 16px;" class="m-0">${title}</h3>
         </div>`;
     }
     static searchInput(obj) {
@@ -469,13 +476,13 @@ export class Editor {
                             data: dd.expand,
                             innerText: dd.innerHtml,
                             class: `` + obj.class,
-                            style: `background-image: linear-gradient(-225deg, #3D4E81 0%, #5753C9 48%, #6E7FF3 100%);` + obj.style,
+                            style: `;` + obj.style,
                         });
                     })
                         .join('<div class="my-2"></div>') + ((obj.readonly) ? `` : Editor.plusBtn(obj.plus.title, obj.plus.event));
                 },
                 class: ``,
-                style: `background-image: linear-gradient(135deg, #667eea 0%, #764ba2 100%);`
+                style: `background:#d9f1ff;border: 1px solid #151515;color:#151515;`
             }));
     }
 }

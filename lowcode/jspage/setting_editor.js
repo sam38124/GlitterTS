@@ -101,8 +101,8 @@ onclick="${gvc.event(() => {
                     };
                     let indexCounter = 9999;
                     items.map((dd, index) => {
-                        html += `<ul class="list-group list-group-flush border-bottom   mx-n4">${dd.title}</ul>
-                            <ul class="list-group list-group-flush border-bottom pb-3 mb-4 mx-n4">
+                        html += `<ul class="list-group list-group-flush border-bottom  ">${dd.title}</ul>
+                            <ul class="list-group list-group-flush border-bottom pb-3 mb-4">
                                                         ${(() => {
                             function convertInner(d2, inner, parentCallback = () => {
                             }) {

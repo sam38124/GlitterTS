@@ -126,10 +126,11 @@ export class Main_editor {
                                         changeIndex: 0,
                                         firstIndex: 0
                                     }
-
                                     const mup_Linstener = function (event: MouseEvent) {
                                         // 更新页面上的文本显示滑鼠放開狀態
                                         if (dragModel.draggableElement) {
+                                            dragModel.currentIndex = (dragModel.currentIndex > array.length) ? array.length - 1 : dragModel.currentIndex
+                                            // alert(`${array[dragModel.firstIndex].index}-${array[dragModel.currentIndex].index}`)
                                             $('.select_container').toggleClass('select_container')
                                             document.getElementById(dragModel.draggableElement)!.remove()
                                             dragModel.draggableElement = ''
@@ -140,8 +141,8 @@ export class Main_editor {
                                                 arr.splice(index2, 0, data);
                                             }
 
-                                            swapArr(original, array[dragModel.firstIndex].index, array[(dragModel.currentIndex - 1 < dragModel.firstIndex) ? dragModel.currentIndex : (dragModel.currentIndex >= 0) ? dragModel.currentIndex - 1 : 0].index);
-                                            swapArr(array, dragModel.firstIndex, (dragModel.currentIndex - 1 < dragModel.firstIndex) ? dragModel.currentIndex : (dragModel.currentIndex >= 0) ? dragModel.currentIndex - 1 : 0)
+                                            swapArr(original, array[dragModel.firstIndex].index, array[(dragModel.currentIndex > 0) ? dragModel.currentIndex - 1 : 0].index);
+                                            // swapArr(array, dragModel.firstIndex, ((dragModel.currentIndex - 1 < dragModel.firstIndex) && (dragModel.currentIndex + 1 < array.length)) ? dragModel.currentIndex : (dragModel.currentIndex >= 0) ? dragModel.currentIndex - 1 : 0)
                                             gvc.notifyDataChange([vid, 'htmlGenerate', 'showView'])
                                         }
                                         document.removeEventListener('mouseup', mup_Linstener)
@@ -161,10 +162,9 @@ export class Main_editor {
                                         function findClosestNumber(ar: any, target: any) {
                                             if (ar.length === 0) return null;
                                             const arr = JSON.parse(JSON.stringify(ar))
-                                            arr.push(ar[ar.length - 1] + 34)
-                                            console.log(JSON.stringify(arr))
                                             let index = 0
                                             let closest = arr[0];
+                                            arr.push(ar[ar.length - 1] + 34)
                                             let minDifference = Math.abs(target - closest);
                                             for (let i = 1; i < arr.length; i++) {
                                                 const difference = Math.abs(target - arr[i]);
@@ -177,40 +177,45 @@ export class Main_editor {
                                             return index;
                                         }
 
-                                        let closestNumber: number = findClosestNumber(dragModel.hover_item.map((dd) => {
-                                            return dd.offsetTop - 14;
+                                        let closestNumber: number = findClosestNumber(dragModel.hover_item.map((dd, index) => {
+                                            return 34 * index - 17;
                                         }), off) as number;
+                                        console.log(`offSet:${off}-closestNumber:${closestNumber}-length:${array.length}`)
+                                        console.log(closestNumber)
                                         dragModel.changeIndex = (closestNumber as number)
-                                        if (dragModel.currentIndex != closestNumber) {
-                                            dragModel.currentIndex = closestNumber as number
-                                            $('.editor_item.hv').remove();
-                                            if (dragModel.currentIndex == dragModel.hover_item.length) {
-                                                $('.select_container').append(`<div class="editor_item active hv"></div>`)
-                                            } else {
-                                                const parentElement = document.getElementsByClassName("select_container")[0];
-                                                const referenceElement = dragModel.hover_item[dragModel.currentIndex].elem.get(0);
-                                                const newElement = document.createElement("div", {});
-                                                newElement.classList.add("editor_item")
-                                                newElement.classList.add("active")
-                                                newElement.classList.add("hv")
-                                                newElement.textContent = "";
-                                                parentElement.insertBefore(newElement, referenceElement);
-                                            }
+                                        dragModel.currentIndex = (closestNumber as number)
+                                        $('.editor_item.hv').remove();
+                                        if (dragModel.currentIndex == array.length) {
+                                            $('.select_container').append(`<div class="editor_item active hv"></div>`)
+                                        } else if (dragModel.currentIndex == 1) {
+                                            $('.select_container').prepend(`<div class="editor_item active hv"></div>`)
+                                        } else {
+                                            const parentElement = document.getElementsByClassName("select_container")[0];
+                                            const referenceElement = dragModel.hover_item[dragModel.currentIndex].elem.get(0);
+                                            const newElement = document.createElement("div", {});
+                                            newElement.classList.add("editor_item")
+                                            newElement.classList.add("active")
+                                            newElement.classList.add("hv")
+                                            newElement.textContent = "";
+                                            parentElement.insertBefore(newElement, referenceElement);
                                         }
                                         $(`#${dragModel.draggableElement}`).css("position", "absolute");
                                         $(`#${dragModel.draggableElement}`).css("right", "0px");
                                         $(`#${dragModel.draggableElement}`).css("top", off + "px");
                                     }
                                     return gvc.bindView(() => {
-
                                         return {
                                             bind: parId,
                                             view: () => {
                                                 return array.map((dd: any, index: number) => {
                                                     dd.selectEditEvent = () => {
+                                                        if (!glitter.share.inspect) {
+                                                            return false
+                                                        }
                                                         viewModel.selectContainer = original
                                                         viewModel.selectItem = dd
                                                         gvc.notifyDataChange(vid)
+                                                        return true
                                                     }
                                                     let toggle = gvc.event((e, event) => {
                                                         dd.toggle = !dd.toggle
@@ -221,27 +226,29 @@ export class Main_editor {
                                                     return html`
                                                                 <l1 class="btn-group "
                                                                     style="margin-top:1px;margin-bottom:1px;">
-                                                                    <div class="editor_item d-flex   px-2 my-0 hi " style=""
+                                                                    <div class="editor_item d-flex   px-2 my-0 hi me-n1"
+                                                                         style=""
                                                                          onclick="${gvc.event(() => {
                                                                              viewModel.selectContainer = original
                                                                              viewModel.selectItem = dd
                                                                              gvc.notifyDataChange(['htmlGenerate', 'showView', vid]);
                                                                          })}">
-
-                                                                        ${(dd.type === 'container') ? ((dd.toggle) ? `<i class="fa-regular fa-angle-down hoverBtn" onclick="${toggle}"></i>` : `
-                                                                        <i class="fa-regular fa-angle-right hoverBtn" onclick="${toggle}"></i>
-                                                                        `) : ``}
+                                                                        ${(dd.type === 'container') ? html`
+                                                                            <div class="subBt ps-0 ms-n2" onclick="${toggle}">
+                                                                                ${((dd.toggle) ? `<i class="fa-regular fa-angle-down hoverBtn " ></i>` : `
+                                                                        <i class="fa-regular fa-angle-right hoverBtn " ></i>
+                                                                        `)}
+                                                                            </div>` : ``}
                                                                         ${dd.label}
                                                                         <div class="flex-fill"></div>
-                                                                        ${(dd.type === 'container') ? html`
-                                                                            <l1 class="btn-group me-0"
-                                                                                style="width:20px;height:20px;"
+                                                                        ${(dd.type === 'container') ? ` <l1 class="btn-group me-0 subBt"
+                                                                                style=""
                                                                                 onclick="${gvc.event((e, event) => {
-                                                                                    dd.data.setting = dd.data.setting ?? []
-                                                                                    viewModel.selectContainer = dd.data.setting
-                                                                                    event.preventDefault()
-                                                                                    event.stopPropagation()
-                                                                                })}">
+                                                                            dd.data.setting = dd.data.setting ?? []
+                                                                            viewModel.selectContainer = dd.data.setting
+                                                                            event.stopPropagation()
+                                                                            event.preventDefault()
+                                                                        })}">
                                                                                 <div class="d-flex align-items-center justify-content-center w-100 h-100"
                                                                                      data-bs-toggle="dropdown"
                                                                                      aria-haspopup="true"
@@ -251,27 +258,42 @@ export class Main_editor {
                                                                                 <div class="dropdown-menu mx-1 position-fixed pb-0 border "
                                                                                      style="z-index:999999;"
                                                                                      onclick="${gvc.event((e, event) => {
-                                                                                         event.preventDefault()
-                                                                                         event.stopPropagation()
-                                                                                     })}">
+                                                                            event.preventDefault()
+                                                                            event.stopPropagation()
+                                                                        })}">
                                                                                     ${Add_item_dia.view(gvc)}
                                                                                 </div>
-                                                                            </l1>
-                                                                        ` : ``}
-                                                                        <div class="subBt">
-                                                                            <i class="fa-regular fa-clone d-flex align-items-center justify-content-center subBt"
+                                                                            </l1>`:``}
+                                                                        <div class="subBt" onclick="${gvc.event((e, event) => {
+                                                                            viewModel.selectContainer = array
+                                                                            viewModel.waitCopy = dd
+                                                                            glitter.share.copycomponent = JSON.stringify(viewModel.waitCopy);
+                                                                            navigator.clipboard.writeText('glitter-copyEvent' + JSON.stringify(viewModel.waitCopy));
+                                                                            swal.toast({
+                                                                                icon: 'success',
+                                                                                title: "複製成功，選擇容器並且按下貼上按鈕．"
+                                                                            })
+                                                                            event.stopPropagation()
+                                                                        })}">
+                                                                            <i class="fa-sharp fa-regular fa-scissors d-flex align-items-center justify-content-center subBt"
                                                                                style="width:15px;height:15px;"
-                                                                               onclick="${gvc.event((e, event) => {
-                                                                                   viewModel.selectContainer = array
-                                                                                   viewModel.waitCopy = dd
-                                                                                   navigator.clipboard.writeText('glitter-copyEvent' + JSON.stringify(viewModel.waitCopy));
-                                                                                   swal.toast({
-                                                                                       icon: 'success',
-                                                                                       title: "複製成功，選擇容器按下control+V即可貼上．"
-                                                                                   })
-                                                                                   event.stopPropagation()
-                                                                               })}"></i>
+                                                                            ></i>
                                                                         </div>
+                                                                        ${(dd.type === 'container') ? html`
+                                                                            <div class="subBt" onclick="${gvc.event((e, event) => {
+                                                                                viewModel.selectContainer =  original.find((d2:any)=>{
+                                                                                    return d2.id===dd.id
+                                                                                }).data.setting
+                                                                                glitter.share.pastEvent()
+                                                                                event.stopPropagation()
+                                                                                event.preventDefault()
+                                                                            })}">
+                                                                                <i class="fa-duotone fa-paste d-flex align-items-center justify-content-center subBt"
+                                                                                   style="width:15px;height:15px;"
+                                                                                ></i>
+                                                                            </div>
+                                                                        ` : ``}
+                                                                      
                                                                         <div class="subBt" onmousedown="${
                                                                                 gvc.event((e, event) => {
                                                                                     dragModel.firstIndex = index
@@ -345,12 +367,20 @@ export class Main_editor {
                                             <l1 class="btn-group dropend" onclick="${gvc.event(() => {
                                                 viewModel.selectContainer = viewModel.globalStyle
                                             })}">
-                                                <div class="editor_item primary  px-2" style="cursor:pointer;"
+                                                <div class="editor_item   px-2 me-0" style="cursor:pointer; "
+                                                     onclick="${gvc.event(() => {
+                                                         viewModel.selectContainer = (viewModel.data! as any).config
+                                                         glitter.share.pastEvent()
+                                                     })}"
+                                                >
+                                                    <i class="fa-duotone fa-paste"></i>
+                                                </div>
+                                                <div class="editor_item   px-2 ms-0 me-n1"
+                                                     style="cursor:pointer;gap:5px;"
                                                      data-bs-toggle="dropdown"
                                                      aria-haspopup="true"
                                                      aria-expanded="false">
-                                                    <i class="fa-regular fa-circle-plus"></i>
-                                                    新增設計
+                                                    <i class="fa-regular fa-circle-plus "></i>
                                                 </div>
                                                 <div class="dropdown-menu mx-1 position-fixed pb-0 border "
                                                      style="z-index:999999;"
@@ -368,18 +398,26 @@ export class Main_editor {
                                         return dd
                                     }), false, viewModel.globalStyle),
                                     html`
-                                        <div class="d-flex ms-2  px-2   hi fw-bold d-flex align-items-center border-bottom"
+                                        <div class="d-flex ms-2  px-2   hi fw-bold d-flex align-items-center border-bottom "
                                              style="color:#da552f;font-size:14px;">全域-SCRIPT
                                             <div class="flex-fill"></div>
                                             <l1 class="btn-group dropend" onclick="${gvc.event(() => {
                                                 viewModel.selectContainer = viewModel.globalScript
                                             })}">
-                                                <div class="editor_item primary  px-2" style="cursor:pointer;"
+                                                <div class="editor_item   px-2 me-0" style="cursor:pointer; "
+                                                     onclick="${gvc.event(() => {
+                                                         viewModel.selectContainer = (viewModel.data! as any).config
+                                                         glitter.share.pastEvent()
+                                                     })}"
+                                                >
+                                                    <i class="fa-duotone fa-paste"></i>
+                                                </div>
+                                                <div class="editor_item   px-2 ms-0 me-n1"
+                                                     style="cursor:pointer;gap:5px;"
                                                      data-bs-toggle="dropdown"
                                                      aria-haspopup="true"
                                                      aria-expanded="false">
                                                     <i class="fa-regular fa-circle-plus"></i>
-                                                    新增事件
                                                 </div>
                                                 <div class="dropdown-menu mx-1 position-fixed pb-0 border "
                                                      style="z-index:999999;"
@@ -395,7 +433,7 @@ export class Main_editor {
                                     render(viewModel.globalScript.map((dd: any, index: number) => {
                                         dd.index = index
                                         return dd
-                                    }), false,viewModel.globalScript),
+                                    }), false, viewModel.globalScript),
                                     html`
                                         <div class="d-flex ms-2  px-2   hi fw-bold d-flex align-items-center border-bottom"
                                              style="color:#151515;font-size:14px;">頁面-STYLE
@@ -403,12 +441,20 @@ export class Main_editor {
                                             <l1 class="btn-group dropend" onclick="${gvc.event(() => {
                                                 viewModel.selectContainer = (viewModel.data! as any).config
                                             })}">
-                                                <div class="editor_item primary  px-2" style="cursor:pointer;"
+                                                <div class="editor_item   px-2 me-0" style="cursor:pointer; "
+                                                     onclick="${gvc.event(() => {
+                                                         viewModel.selectContainer = (viewModel.data! as any).config
+                                                         glitter.share.pastEvent()
+                                                     })}"
+                                                >
+                                                    <i class="fa-duotone fa-paste"></i>
+                                                </div>
+                                                <div class="editor_item   px-2 ms-0 me-n1"
+                                                     style="cursor:pointer;gap:5px;"
                                                      data-bs-toggle="dropdown"
                                                      aria-haspopup="true"
                                                      aria-expanded="false">
                                                     <i class="fa-regular fa-circle-plus"></i>
-                                                    新增設計
                                                 </div>
                                                 <div class="dropdown-menu mx-1 position-fixed pb-0 border "
                                                      style="z-index:999999;"
@@ -432,12 +478,20 @@ export class Main_editor {
                                             <l1 class="btn-group dropend" onclick="${gvc.event(() => {
                                                 viewModel.selectContainer = (viewModel.data! as any).config
                                             })}">
-                                                <div class="editor_item primary  px-2" style="cursor:pointer;"
+                                                <div class="editor_item   px-2 me-0" style="cursor:pointer; "
+                                                     onclick="${gvc.event(() => {
+                                                         viewModel.selectContainer = (viewModel.data! as any).config
+                                                         glitter.share.pastEvent()
+                                                     })}"
+                                                >
+                                                    <i class="fa-duotone fa-paste"></i>
+                                                </div>
+                                                <div class="editor_item   px-2 ms-0 me-n1"
+                                                     style="cursor:pointer;gap:5px;"
                                                      data-bs-toggle="dropdown"
                                                      aria-haspopup="true"
                                                      aria-expanded="false">
                                                     <i class="fa-regular fa-circle-plus"></i>
-                                                    新增事件
                                                 </div>
                                                 <div class="dropdown-menu mx-1 position-fixed pb-0 border "
                                                      style="z-index:999999;"
@@ -456,18 +510,28 @@ export class Main_editor {
                                     }), false, (viewModel.data! as any).config),
                                     html`
                                         <div class="d-flex ms-2  px-2   hi fw-bold d-flex align-items-center border-bottom"
-                                             style="color:#151515;font-size:14px;">頁面-區段
+                                             style="color:#151515;font-size:14px;gap:0px;">頁面-區段
                                             <div class="flex-fill"></div>
-                                            <l1 class="btn-group dropend" onclick="${gvc.event(() => {
+
+
+                                            <l1 class="btn-group dropend me-0" onclick="${gvc.event(() => {
                                                 viewModel.selectContainer = (viewModel.data! as any).config
                                             })}">
-                                                <div class="editor_item primary  px-2" style="cursor:pointer;"
+                                                <div class="editor_item   px-2 me-0" style="cursor:pointer; "
+                                                     onclick="${gvc.event(() => {
+                                                         viewModel.selectContainer = (viewModel.data! as any).config
+                                                         glitter.share.pastEvent()
+                                                     })}">
+                                                    <i class="fa-duotone fa-paste"></i>
+                                                </div>
+                                                <div class="editor_item   px-2 ms-0 me-n1"
+                                                     style="cursor:pointer;gap:5px;"
                                                      data-bs-toggle="dropdown"
                                                      aria-haspopup="true"
                                                      aria-expanded="false">
                                                     <i class="fa-regular fa-circle-plus"></i>
-                                                    新增區段
                                                 </div>
+
                                                 <div class="dropdown-menu mx-1 position-fixed pb-0 border "
                                                      style="z-index:999999;"
                                                      onclick="${gvc.event((e, event) => {
@@ -490,22 +554,20 @@ export class Main_editor {
                 },
                 divCreate: {class: `swiper-slide h-auto `},
                 onCreate: () => {
-                    if (!(window as any).editerData) {
-                        function check() {
-                            if (!viewModel.data) {
-                                setTimeout(() => {
-                                    check()
-                                }, 1000)
-                            } else {
-                                const htmlGenerate = new gvc.glitter.htmlGenerate((viewModel.data! as any).config, [], undefined, true);
-                                (window as any).editerData = htmlGenerate;
-                                (window as any).page_config = (viewModel.data! as any).page_config
-                                gvc.notifyDataChange('showView')
-                            }
+                    function check() {
+                        if (!viewModel.data) {
+                            setTimeout(() => {
+                                check()
+                            }, 1000)
+                        } else {
+                            const htmlGenerate = new gvc.glitter.htmlGenerate((viewModel.data! as any).config, [], undefined, true);
+                            (window as any).editerData = htmlGenerate;
+                            (window as any).page_config = (viewModel.data! as any).page_config
+                            gvc.notifyDataChange('showView')
                         }
-
-                        check()
                     }
+
+                    check()
                 }
             }
         })

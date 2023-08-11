@@ -55,7 +55,9 @@ async function doAuthAction(req, resp, next) {
         try {
             req.body.token = jsonwebtoken_1.default.verify(token, config_1.config.SECRET_KEY);
         }
-        catch (e) { }
+        catch (e) {
+            console.log('matchTokenError', e);
+        }
         next();
         return;
     }

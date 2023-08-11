@@ -3,6 +3,7 @@ import {TriggerEvent} from "./trigger-event.js";
 
 init((gvc, glitter, gBundle) => {
     glitter.share.htmlExtension = glitter.share.htmlExtension ?? {};
+    gBundle.app_config=gBundle.app_config??{}
     gBundle.app_config.globalStyle=gBundle.app_config.globalStyle??[]
     gBundle.app_config.globalScript=gBundle.app_config.globalScript??[]
     // alert(JSON.stringify(gBundle.app_config.globalScript))

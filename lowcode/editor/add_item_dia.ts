@@ -4,6 +4,7 @@ import {EditorElem} from "../glitterBundle/plugins/editor-elem.js";
 import {ShareDialog} from "../dialog/ShareDialog.js";
 import {config} from "../config.js";
 import {BaseApi} from "../api/base.js";
+import {HtmlGenerate} from "../glitterBundle/module/Html_generate.js";
 
 const html = String.raw
 
@@ -140,7 +141,7 @@ class Add_item_dia {
             let viewModel: {
                 loading: boolean,
                 selectSource?: string,
-                pluginList: { name: string, src: { official: string, open: boolean }, route: string, toggle: boolean }[]
+                pluginList: any
             } = {
                 loading: true,
                 pluginList: []
@@ -151,33 +152,35 @@ class Add_item_dia {
                 return dd.src.official;
             }
 
-            async function loading() {
+            function loading() {
                 viewModel.loading = true
 
-                const data = await ApiPageConfig.getPlugin(gvc.getBundle().appName)
+                const data = glitter.share.appConfigresponse
                 if (data.result) {
                     viewModel.loading = false
                     viewModel.pluginList = data.response.data.pagePlugin;
-                    if (data.response.data.lambdaView) {
-                        viewModel.pluginList = viewModel.pluginList.concat(data.response.data.lambdaView.map((dd: any) => {
-                            return {
-                                "src": {
-                                    "official": dd.path
-                                },
-                                "name": dd.name
-                            }
-                        }))
-                    }
+                    // if (data.response.data.lambdaView) {
+                    //     viewModel.pluginList = viewModel.pluginList.concat(data.response.data.lambdaView.map((dd: any) => {
+                    //         return {
+                    //             "src": {
+                    //                 "official": dd.path
+                    //             },
+                    //             "name": dd.name
+                    //         }
+                    //     }))
+                    // }
                     if (viewModel.pluginList.length > 0) {
                         viewModel.pluginList[0].toggle = true
                     }
-                    glitter.addMtScript(viewModel.pluginList.map((dd) => {
+                    glitter.addMtScript(viewModel.pluginList.map((dd: any) => {
                         return {
                             src: glitter.htmlGenerate.resourceHook(getSource(dd)),
                             type: 'module'
                         }
                     }), () => {
+                        console.log('notify-tab')
                         gvc.notifyDataChange(tabID)
+
                     }, () => {
                     });
 
@@ -193,111 +196,229 @@ class Add_item_dia {
             }
 
 
-            await loading()
+            loading()
             resolve({
                 left: gvc.bindView({
                     bind: tabID,
                     view: () => {
-                        let hi = false
-                        const it = gvc.map(viewModel.pluginList.map((dd, index) => {
-                            const source = getSource(dd)
-                            const obg = gvc.glitter.share.htmlExtension[gvc.glitter.htmlGenerate.resourceHook(getSource(dd))];
-                            const haveItem = Object.keys(obg).filter((d2) => {
-                                return d2 !== 'document';
-                            }).find((dd) => {
-                                return obg[dd].title.indexOf(search) !== -1
-                            })
-                            if (haveItem || (!search)) {
-                                hi = true
-                            }
-                            return html`
-                                <div class="w-100 px-2 ${(search && !haveItem) ? `d-none` : ``}">
-                                    <div class="editor_item  mx-0 " style="color:black;"
-                                         onclick="${gvc.event(() => {
-                                             dd.toggle = !dd.toggle
-                                             gvc.notifyDataChange([tabID, docID]);
-                                         })}">
-                                            ．${dd.name}
-                                        <div class="flex-fill"></div>
+                        try {
+                            let hi = false
+                            const it = gvc.map(viewModel.pluginList.map((dd: any, index: number) => {
+                                try {
+                                    const source = getSource(dd)
+                                    const obg = gvc.glitter.share.htmlExtension[gvc.glitter.htmlGenerate.resourceHook(getSource(dd))];
+                                    const haveItem = Object.keys(obg).filter((d2) => {
+                                        return d2 !== 'document';
+                                    }).find((dd) => {
+                                        return obg[dd].title.indexOf(search) !== -1
+                                    })
+                                    if (haveItem || (!search)) {
+                                        hi = true
+                                    }
+                                    return html`
+                                        <div class="w-100 px-2 ${(search && !haveItem) ? `d-none` : ``}">
+                                            <div class="editor_item  mx-0 " style="color:black;"
+                                                 onclick="${gvc.event(() => {
+                                                     dd.toggle = !dd.toggle
+                                                     gvc.notifyDataChange([tabID, docID]);
+                                                 })}">
+                                                    ．${dd.name}
+                                                <div class="flex-fill"></div>
 
-                                        <i class="fa-solid  ${(dd.toggle || search) ? `fa-angle-down` : `fa-angle-right`} d-flex align-items-center justify-content-center me-2"></i>
-                                    </div>
-                                    ${(() => {
-                                        const id = gvc.glitter.getUUID()
-                                        return gvc.bindView({
-                                            bind: id,
-                                            view: () => {
-                                                if (search) {
-                                                    return gvc.map(Object.keys(obg).filter((d2) => {
-                                                        return d2 !== 'document';
-                                                    }).map((dd) => {
-                                                        if (obg[dd].title.indexOf(search) !== -1) {
-                                                            return html`
-                                                                <div class="editor_item text_unselect"
-                                                                     onclick="${gvc.event(() => {
-                                                                         const ob = JSON.parse(JSON.stringify(obg))
-                                                                         glitter.share.addComponent({
-                                                                             'id': glitter.getUUID(),
-                                                                             'data': ob[dd].defaultData ?? {},
-                                                                             'style': ob[dd].style,
-                                                                             'class': ob[dd].class,
-                                                                             'type': dd,
-                                                                             'label': tryReturn(() => {
-                                                                                 return ob[dd].title;
-                                                                             }, dd),
-                                                                             'js': source
-                                                                         })
-                                                                         glitter.closeDiaLog()
-                                                                     })}">
-                                                                    ${obg[dd].title}
-                                                                </div>`;
+                                                <i class="fa-solid  ${(dd.toggle || search) ? `fa-angle-down` : `fa-angle-right`} d-flex align-items-center justify-content-center me-2"></i>
+                                            </div>
+                                            ${(() => {
+                                                const id = gvc.glitter.getUUID()
+                                                return gvc.bindView({
+                                                    bind: id,
+                                                    view: () => {
+                                                        if (search) {
+                                                            return gvc.map(Object.keys(obg).filter((d2) => {
+                                                                return d2 !== 'document';
+                                                            }).map((dd) => {
+                                                                if (obg[dd].title.indexOf(search) !== -1) {
+                                                                    return html`
+                                                                        <div class="editor_item text_unselect"
+                                                                             onclick="${gvc.event(() => {
+                                                                                 const ob = JSON.parse(JSON.stringify(obg))
+                                                                                 glitter.share.addComponent({
+                                                                                     'id': glitter.getUUID(),
+                                                                                     'data': ob[dd].defaultData ?? {},
+                                                                                     'style': ob[dd].style,
+                                                                                     'class': ob[dd].class,
+                                                                                     'type': dd,
+                                                                                     'label': tryReturn(() => {
+                                                                                         return ob[dd].title;
+                                                                                     }, dd),
+                                                                                     'js': source
+                                                                                 })
+                                                                                 glitter.closeDiaLog()
+                                                                             })}">
+                                                                            ${obg[dd].title}
+                                                                        </div>`;
+                                                                } else {
+                                                                    return html``;
+                                                                }
+                                                            }))
                                                         } else {
-                                                            return html``;
+                                                            return gvc.map(Object.keys(obg).filter((d2) => {
+                                                                return d2 !== 'document';
+                                                            }).map((dd) => {
+                                                                return html`
+                                                                    <div class="editor_item text_unselect"
+                                                                         onclick="${gvc.event(() => {
+                                                                             const ob = JSON.parse(JSON.stringify(obg))
+                                                                             glitter.share.addComponent({
+                                                                                 'id': glitter.getUUID(),
+                                                                                 'data': ob[dd].defaultData ?? {},
+                                                                                 'style': ob[dd].style,
+                                                                                 'class': ob[dd].class,
+                                                                                 'type': dd,
+                                                                                 'label': tryReturn(() => {
+                                                                                     return ob[dd].title;
+                                                                                 }, dd),
+                                                                                 'js': source
+                                                                             })
+                                                                             glitter.closeDiaLog()
+                                                                         })}">
+                                                                        ${obg[dd].title}
+                                                                    </div>`;
+                                                            }))
                                                         }
-                                                    }))
-                                                } else {
-                                                    return gvc.map(Object.keys(obg).filter((d2) => {
-                                                        return d2 !== 'document';
-                                                    }).map((dd) => {
-                                                        return html`
-                                                            <div class="editor_item text_unselect"
-                                                                 onclick="${gvc.event(() => {
-                                                                     const ob = JSON.parse(JSON.stringify(obg))
-                                                                     glitter.share.addComponent({
-                                                                         'id': glitter.getUUID(),
-                                                                         'data': ob[dd].defaultData ?? {},
-                                                                         'style': ob[dd].style,
-                                                                         'class': ob[dd].class,
-                                                                         'type': dd,
-                                                                         'label': tryReturn(() => {
-                                                                             return ob[dd].title;
-                                                                         }, dd),
-                                                                         'js': source
-                                                                     })
-                                                                     glitter.closeDiaLog()
-                                                                 })}">
-                                                                ${obg[dd].title}
-                                                            </div>`;
-                                                    }))
-                                                }
 
 
-                                            },
-                                            divCreate: {
-                                                class: `pe-2 ${(!dd.toggle && !search) ? `d-none` : ``}`
-                                            }
-                                        })
-                                    })()}
-                                </div>
-                            `;
-                        }))
-                        if (hi) {
-                            return it
-                        } else {
-                            return `<span class="font-14 m-auto p-2 w-100 d-flex align-items-center justify-content-center fw-500">很抱歉，查無相關模塊.</span>`
+                                                    },
+                                                    divCreate: {
+                                                        class: `pe-2 ${(!dd.toggle && !search) ? `d-none` : ``}`
+                                                    }
+                                                })
+                                            })()}
+                                        </div>
+                                    `;
+                                } catch (e) {
+                                    return ``
+                                }
+                            }))
+                            if (hi) {
+                                return it
+                            } else {
+                                return `<span class="font-14 m-auto p-2 w-100 d-flex align-items-center justify-content-center fw-500">很抱歉，查無相關模塊.</span>`
+                            }
+                        } catch (e) {
+                            console.log(e)
+                            setTimeout(() => {
+                                gvc.notifyDataChange(tabID)
+                            }, 500)
+                            return `<span class="font-14 m-auto p-2 w-100 d-flex align-items-center justify-content-center fw-500">loading...</span>`
                         }
+
+                    },
+                    divCreate: {
+                        style: 'padding-bottom:50px;'
                     }
-                }),
+                }) + html`
+                    <div class="btn-group dropend position-absolute w-100 px-2 bg-white" style="height:34px;bottom:10px;">
+                        <button type="button" class="btn btn-outline-secondary-c rounded" data-bs-toggle="dropdown"
+                                aria-haspopup="true" aria-expanded="false">
+                            添加自訂模塊
+                        </button>
+                        <div class="dropdown-menu mx-1" style="max-height:400px;overflow-y:auto;">
+                            ${gvc.bindView(() => {
+                                const id = glitter.getUUID()
+                                return {
+                                    bind: id,
+                                    view: () => {
+                                        return html`
+                                            <div class="alert alert-warning"
+                                                 style="white-space: normal;word-break: break-all;">
+                                                頁面模塊決定您能夠在網站上使用哪些設計模塊。<br>您可以從官方或第三方資源中獲取連結，或自行開發插件上傳以供使用。
+                                            </div>
+                                            ${EditorElem.arrayItem({
+                                                originalArray: viewModel.pluginList,
+                                                gvc: gvc,
+                                                title: '頁面模塊',
+                                                array: viewModel.pluginList.map((dd: any, index: number) => {
+                                                    return {
+                                                        title: `<span style="color: black;">${dd.name || `區塊:${index}`}</span>`,
+                                                        innerHtml: (() => {
+                                                            return ` ${HtmlGenerate.editeInput({
+                                                                gvc,
+                                                                title: '自定義插件名稱',
+                                                                default: dd.name,
+                                                                placeHolder: '自定義插件名稱',
+                                                                callback: (text) => {
+                                                                    dd.name = text;
+                                                                    gvc.notifyDataChange(id)
+                                                                }
+                                                            })}
+                                                     ${HtmlGenerate.editeInput({
+                                                                gvc,
+                                                                title: '模板路徑',
+                                                                default: dd.src.official,
+                                                                placeHolder: '模板路徑',
+                                                                callback: (text) => {
+                                                                    dd.src.official = text;
+                                                                }
+                                                            })}`
+                                                        }),
+                                                        expand: dd,
+                                                        minus: gvc.event(() => {
+                                                            viewModel.pluginList.splice(index, 1);
+                                                            gvc.notifyDataChange(id);
+                                                        })
+                                                    }
+                                                }),
+                                                expand: undefined,
+                                                plus: {
+                                                    title: '添加頁面模塊',
+                                                    event: gvc.event(() => {
+                                                        viewModel.pluginList.push({
+                                                            name: '',
+                                                            route: '',
+                                                            src: {
+                                                                official: '',
+                                                                open: true
+                                                            }
+                                                        });
+                                                        gvc.notifyDataChange(id);
+                                                    }),
+                                                },
+                                                refreshComponent: () => {
+                                                    gvc.notifyDataChange(id);
+                                                },
+                                                plusBtn: (title, event) => {
+                                                    return html`
+                                                        <div class="w-100 d-flex align-items-center mt-3"
+                                                             style="gap:10px;">
+                                                            <div
+                                                                    class="fw-500 text-dark align-items-center justify-content-center d-flex  rounded  hoverBtn "
+                                                                    style="border: 1px solid #151515;color:#151515;flex:1;height:34px;width:calc(50% - 10px);"
+                                                                    onclick="${event}"
+                                                            >
+                                                                ${title}
+                                                            </div>
+                                                            <div class=" btn btn-primary-c "
+                                                                 style="height:34px;flex:1;width:calc(50% - 10px);"
+                                                                 onclick="${
+                                                                         gvc.event(() => {
+                                                                             glitter.htmlGenerate.saveEvent()
+                                                                         })
+                                                                 }">儲存
+                                                            </div>
+
+                                                        </div>
+                                                    `
+                                                }
+                                            })}`
+                                    },
+                                    divCreate: {
+                                        class: `px-2`
+                                    }
+                                }
+                            })}
+
+                        </div>
+                    </div>`,
                 right: gvc.bindView({
                     bind: docID,
                     view: () => {
@@ -425,7 +546,7 @@ class Add_item_dia {
                                             gvc.notifyDataChange(id);
                                         })}">
   <i class="${(dd.check) ? `fa-solid fa-square-check` : `fa-regular fa-square`}" style="font-size:15px;${(dd.check) ? `color:rgb(41, 94, 209);` : ``}"></i>
-  <span class="form-check-label " style="font-size:15px;color:#6e6e6e;" >${dd.title}</span>
+  <span class="form-check-label " style="font-size:15px;color:#6e6e6e;font-weight: 400!important;" >${dd.title}</span>
 </div>`;
                                     }).join('');
                                 },
@@ -645,6 +766,7 @@ class Add_item_dia {
             }
         })
     }
+
     public static add_script(gvc: GVC) {
         return gvc.bindView(() => {
             const id = gvc.glitter.getUUID()
@@ -653,50 +775,50 @@ class Add_item_dia {
                 view: () => {
                     return html`
                         <a class="dropdown-item" style="cursor:pointer;" onclick="${gvc.event(() => {
-                        gvc.glitter.share.addComponent({
-                            "id": gvc.glitter.getUUID(),
-                            "js": "https://sam38124.github.io/One-page-plugin/src/official.js",
-                            "data": {
-                                "elem": "script",
-                                "inner": "/***請輸入Script代碼***/",
-                                "setting": [],
-                                "dataFrom": "static",
-                                "innerEvenet": {}
-                            },
-                            "type": "widget",
-                            "label": "SCRIPT代碼"
-                        });
-                    })}">添加SCRIPT代碼</a>
-                    <a class="dropdown-item" style="cursor:pointer;" onclick="${gvc.event(() => {
-                        gvc.glitter.share.addComponent({
-                            "id": gvc.glitter.getUUID(),
-                            "js": "https://sam38124.github.io/One-page-plugin/src/official.js",
-                            "data": {
-                                "attr": [{
-                                    "attr": "src",
-                                    "type": "par",
-                                    "value": "https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js",
-                                    "expand": false
-                                }, {
-                                    "attr": "crossorigin",
-                                    "type": "par",
-                                    "value": "anonymous",
-                                    "expand": false
-                                }],
-                                "elem": "script",
-                                "note": "",
-                                "setting": [],
-                                "dataFrom": "static",
-                                "atrExpand": {"expand": true},
-                                "elemExpand": {"expand": true}
-                            },
-                            "type": "widget",
-                            "label": "SCRIPT資源",
-                            "styleList": []
-                        });
-                    })}">添加SCRIPT資源</a>
+                            gvc.glitter.share.addComponent({
+                                "id": gvc.glitter.getUUID(),
+                                "js": "https://sam38124.github.io/One-page-plugin/src/official.js",
+                                "data": {
+                                    "elem": "script",
+                                    "inner": "/***請輸入Script代碼***/",
+                                    "setting": [],
+                                    "dataFrom": "static",
+                                    "innerEvenet": {}
+                                },
+                                "type": "widget",
+                                "label": "SCRIPT代碼"
+                            });
+                        })}">添加SCRIPT代碼</a>
                         <a class="dropdown-item" style="cursor:pointer;" onclick="${gvc.event(() => {
-                            gvc.glitter.share.addComponent(  {
+                            gvc.glitter.share.addComponent({
+                                "id": gvc.glitter.getUUID(),
+                                "js": "https://sam38124.github.io/One-page-plugin/src/official.js",
+                                "data": {
+                                    "attr": [{
+                                        "attr": "src",
+                                        "type": "par",
+                                        "value": "https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js",
+                                        "expand": false
+                                    }, {
+                                        "attr": "crossorigin",
+                                        "type": "par",
+                                        "value": "anonymous",
+                                        "expand": false
+                                    }],
+                                    "elem": "script",
+                                    "note": "",
+                                    "setting": [],
+                                    "dataFrom": "static",
+                                    "atrExpand": {"expand": true},
+                                    "elemExpand": {"expand": true}
+                                },
+                                "type": "widget",
+                                "label": "SCRIPT資源",
+                                "styleList": []
+                            });
+                        })}">添加SCRIPT資源</a>
+                        <a class="dropdown-item" style="cursor:pointer;" onclick="${gvc.event(() => {
+                            gvc.glitter.share.addComponent({
                                 "id": gvc.glitter.getUUID(),
                                 "data": {"triggerTime": "first", "clickEvent": {}},
                                 "type": "code",

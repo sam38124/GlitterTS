@@ -60,10 +60,11 @@ class App {
                 for (const dd of privateConfig) {
                     await trans.execute(`
                         insert into \`${config_1.saasConfig.SAAS_NAME}\`.private_config (\`app_name\`, \`key\`,\`value\`,updated_at)
-                        values (?, ?, ${database_1.default.escape(JSON.stringify(dd.value))},?);
+                        values (?, ?, ?,?);
                     `, [
                         config.appName,
                         dd.key,
+                        JSON.stringify(dd.value),
                         new Date()
                     ]);
                 }

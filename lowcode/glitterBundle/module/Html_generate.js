@@ -45,7 +45,8 @@ export class HtmlGenerate {
         this.render = (gvc, option = {
             class: ``,
             style: ``,
-            jsFinish: () => { }
+            jsFinish: () => {
+            }
         }, createOption) => {
             var _a;
             gvc.glitter.share.loaginR = ((_a = gvc.glitter.share.loaginR) !== null && _a !== void 0 ? _a : 0) + 1;
@@ -164,10 +165,11 @@ export class HtmlGenerate {
                                                         key: "onclick", value: (() => {
                                                             return gvc.event((e, event) => {
                                                                 try {
-                                                                    dd.selectEditEvent();
-                                                                    hover = [dd.id];
-                                                                    gvc.glitter.$('.selectComponentHover').removeClass('selectComponentHover');
-                                                                    gvc.glitter.$(e).addClass('selectComponentHover');
+                                                                    if (dd.selectEditEvent()) {
+                                                                        hover = [dd.id];
+                                                                        gvc.glitter.$('.selectComponentHover').removeClass('selectComponentHover');
+                                                                        gvc.glitter.$(e).addClass('selectComponentHover');
+                                                                    }
                                                                 }
                                                                 catch (_a) {
                                                                 }
@@ -206,11 +208,12 @@ export class HtmlGenerate {
                                                                     }
                                                                     try {
                                                                         const hoverID = gvc.glitter.$(e).attr('gvc-id').replace(gvc.parameter.pageConfig.id, '');
-                                                                        dd.selectEditEvent();
-                                                                        hover = [dd.id];
-                                                                        hover = [hoverID];
-                                                                        gvc.glitter.$('.selectComponentHover').removeClass('selectComponentHover');
-                                                                        gvc.glitter.$(e).addClass('selectComponentHover');
+                                                                        if (dd.selectEditEvent()) {
+                                                                            hover = [dd.id];
+                                                                            hover = [hoverID];
+                                                                            gvc.glitter.$('.selectComponentHover').removeClass('selectComponentHover');
+                                                                            gvc.glitter.$(e).addClass('selectComponentHover');
+                                                                        }
                                                                     }
                                                                     catch (_a) {
                                                                     }
@@ -333,7 +336,7 @@ export class HtmlGenerate {
                         }
                     }
                     loadScript().then(() => {
-                        option.jsFinish();
+                        option.jsFinish && option.jsFinish();
                     });
                 },
             });

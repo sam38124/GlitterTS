@@ -50,7 +50,6 @@ async function doAuthAction(req: express.Request, resp: express.Response, next: 
     if (Live_source.liveAPP.indexOf(`${req.get('g-app') as any ?? req.query['g-app']}`) === -1) {
         return response.fail(resp, exception.PermissionError('INVALID_APP', 'invalid app'));
     }
-
     //Check database scheme
     await ApiPublic.createScheme(req.get('g-app') as any ?? req.query['g-app'])
     const logger = new Logger();
@@ -63,7 +62,9 @@ async function doAuthAction(req: express.Request, resp: express.Response, next: 
     ) {
         try {
             req.body.token = jwt.verify(token, config.SECRET_KEY) as IToken;
-        }catch (e) {}
+        }catch (e) {
+            console.log('matchTokenError',e)
+        }
         next();
         return;
     }

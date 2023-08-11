@@ -481,11 +481,11 @@ export const widgetComponent = {
                         gvc: gvc,
                         title: '特徵值',
                         array: widget.data.attr.map((dd, index) => {
-                            var _a, _b, _c;
+                            var _a, _b;
                             dd.type = (_a = dd.type) !== null && _a !== void 0 ? _a : 'par';
-                            dd.attr = (_b = dd.attr) !== null && _b !== void 0 ? _b : "";
+                            dd.attr = (_b = dd.attr) !== null && _b !== void 0 ? _b : "尚未設定";
                             return {
-                                title: (_c = dd.attr) !== null && _c !== void 0 ? _c : `特徵:${index + 1}`,
+                                title: dd.attr,
                                 expand: dd,
                                 innerHtml: (() => {
                                     return gvc.map([

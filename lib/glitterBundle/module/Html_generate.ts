@@ -42,7 +42,7 @@ export class HtmlGenerate {
     public static resourceHook: (src: string) => string = (src) => {
         return src;
     };
-    public render: (gvc: GVC, option?: { class: string; style: string; divCreate?: boolean,jsFinish:()=>void }, createOption?: any) => string;
+    public render: (gvc: GVC, option?: { class: string; style: string; divCreate?: boolean,jsFinish?:()=>void }, createOption?: any) => string;
     public exportJson: (setting: HtmlJson[]) => any;
     public editor: (gvc: GVC, option?: { return_: boolean; refreshAll: () => void; setting?: any[]; deleteEvent?: () => void }) => string;
     public static saveEvent = () => {
@@ -208,7 +208,7 @@ ${obj.gvc.bindView({
             };
             return dd;
         });
-        this.render = (gvc: GVC, option: { class: string; style: string,jsFinish:()=>void } = {
+        this.render = (gvc: GVC, option: { class: string; style: string,jsFinish?:()=>void } = {
             class: ``,
             style: ``,
             jsFinish:()=>{}
@@ -517,7 +517,7 @@ ${obj.gvc.bindView({
                         }
                     }
                     loadScript().then(() => {
-                        option.jsFinish()
+                        option.jsFinish && option.jsFinish()
                     })
                 },
             });

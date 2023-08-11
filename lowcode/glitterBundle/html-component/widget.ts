@@ -479,9 +479,9 @@ export const widgetComponent = {
                         array: widget.data.attr.map((dd: any, index: number) => {
                             // TriggerEvent.editer(gvc, widget, widget.data)
                             dd.type=dd.type ?? 'par'
-                            dd.attr = dd.attr ?? ""
+                            dd.attr = dd.attr ?? "尚未設定"
                             return {
-                                title: dd.attr ?? `特徵:${index + 1}`,
+                                title: dd.attr ,
                                 expand: dd,
                                 innerHtml: (() => {
                                     return gvc.map([

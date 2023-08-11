@@ -22,6 +22,7 @@ init((gvc, glitter, gBundle) => {
             };
             ApiPageConfig.getPlugin(config.appName).then((dd) => {
                 vm.appConfig = dd.response.data;
+                glitter.share.appConfigresponse = dd;
                 window.saasConfig.appConfig = dd.response.data;
                 (async () => {
                     return new Promise(async (resolve, reject) => {
@@ -153,7 +154,6 @@ function toBackendEditor(glitter) {
             'assets/vendor/boxicons/css/boxicons.min.css',
             'assets/css/theme.min.css',
             'css/editor.css',
-            'https://sam38124.github.io/One-page-plugin/src/fontawsome/css/all.css'
         ]);
         await new Promise((resolve, reject) => {
             glitter.addMtScript([

@@ -391,7 +391,7 @@ export class Editor {
     public static minusTitle(title: string, event: string) {
         return /*html*/ `<div class="d-flex align-items-center">
             <i class="fa-regular fa-circle-minus text-danger me-2" style="font-size: 20px;cursor: pointer;" onclick="${event}"></i>
-            <h3 style="color: white;font-size: 16px;" class="m-0">${title}</h3>
+            <h3 style="color: #151515;font-size: 16px;" class="m-0">${title}</h3>
         </div>`;
     }
 
@@ -548,7 +548,7 @@ export class Editor {
                             .map((dd, index) => {
                                 return Editor.toggleExpand({
                                     gvc: obj.gvc,
-                                    title: `<div    draggable="true"  ondragenter="${obj.gvc.event((e: any, event: any) => {
+                                    title: `<div draggable="true"  ondragenter="${obj.gvc.event((e: any, event: any) => {
                                         dragm.end = index;
                                     })}" ondragstart="${obj.gvc.event(() => {
                                         dragm.start = index;

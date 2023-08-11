@@ -6,6 +6,7 @@ import {Main_editor} from "./main_editor.js";
 import {Page_editor} from "./page_editor.js";
 import {Setting_editor} from "./setting_editor.js";
 
+const html = String.raw
 init((gvc, glitter, gBundle) => {
     gvc.addStyle(`
     .swal2-title {
@@ -28,11 +29,11 @@ init((gvc, glitter, gBundle) => {
         backendPlugins: any,
         selectIndex: any,
         waitCopy: any,
-        appConfig:any,
-        globalScript:any,
-        globalStyle:any
+        appConfig: any,
+        globalScript: any,
+        globalStyle: any
     } = {
-        appConfig:undefined,
+        appConfig: undefined,
         dataList: undefined,
         data: undefined,
         loading: true,
@@ -48,8 +49,8 @@ init((gvc, glitter, gBundle) => {
         selectContainer: undefined,
         selectIndex: undefined,
         waitCopy: undefined,
-        globalScript:undefined,
-        globalStyle:undefined
+        globalScript: undefined,
+        globalStyle: undefined
     };
     const swal = new Swal(gvc);
     const doc = new Editor(gvc, viewModel);
@@ -58,7 +59,7 @@ init((gvc, glitter, gBundle) => {
         gvc.notifyDataChange(createID);
     }
     //Add component to now page
-    glitter.share.addComponent=(data:any)=>{
+    glitter.share.addComponent = (data: any) => {
         viewModel.selectContainer.push(data);
         glitter.setCookie('lastSelect', data.id);
         gvc.notifyDataChange(createID)
@@ -94,11 +95,11 @@ init((gvc, glitter, gBundle) => {
             }),
             (async () => {
                 return await new Promise(async (resolve) => {
-                    const data = await ApiPageConfig.getPlugin(gBundle.appName)
+                    const data = glitter.share.appConfigresponse
                     if (data.result) {
-                        viewModel.appConfig=data.response.data
-                        viewModel.globalScript=data.response.data.globalScript ?? []
-                        viewModel.globalStyle=data.response.data.globalStyle ?? []
+                        viewModel.appConfig = data.response.data
+                        viewModel.globalScript = data.response.data.globalScript ?? []
+                        viewModel.globalStyle = data.response.data.globalStyle ?? []
                         viewModel.initialList = data.response.data.initialList;
                         viewModel.initialJS = data.response.data.eventPlugin;
                         viewModel.pluginList = data.response.data.pagePlugin;
@@ -107,6 +108,7 @@ init((gvc, glitter, gBundle) => {
                         viewModel.initialCode = data.response.data.initialCode ?? "";
                         viewModel.homePage = data.response.data.homePage ?? ""
                         viewModel.backendPlugins = data.response.data.backendPlugins ?? []
+
                         async function load() {
                             for (const a of viewModel.initialJS) {
                                 await new Promise((resolve) => {
@@ -148,6 +150,7 @@ init((gvc, glitter, gBundle) => {
     glitter.htmlGenerate.saveEvent = () => {
         glitter.setCookie("jumpToNavScroll", $(`#jumpToNav`).scrollTop())
         swal.loading('更新中...');
+
         async function saveEvent() {
             const waitSave = [
                 (async () => {
@@ -183,8 +186,8 @@ init((gvc, glitter, gBundle) => {
                 }),
                 (async () => {
                     return new Promise(async resolve => {
-                        viewModel.appConfig.globalStyle=viewModel.globalStyle
-                        viewModel.appConfig.globalScript=viewModel.globalScript
+                        viewModel.appConfig.globalStyle = viewModel.globalStyle
+                        viewModel.appConfig.globalScript = viewModel.globalScript
                         const api = await ApiPageConfig.setPlugin(gBundle.appName, viewModel.appConfig)
                         resolve(api.result)
                     });
@@ -200,43 +203,46 @@ init((gvc, glitter, gBundle) => {
             }
             swal.nextStep(`更新成功`, () => {
             });
-            gvc.notifyDataChange(createID);
+            location.reload()
         }
-        saveEvent().then(r => {});
+
+        saveEvent().then(r => {
+        });
     };
-    lod()
-    document.addEventListener("paste", function (event) {
-        // 获取粘贴的内容
-        var clipboardData = event.clipboardData || (window as any).clipboardData;
-        var pastedData = clipboardData.getData('text/plain');
+    lod();
 
-        // 在控制台输出粘贴的内容
-        if (pastedData.indexOf('glitter-copyEvent') === 0) {
-            var copy = JSON.parse(pastedData.replace('glitter-copyEvent', ''))
-
-            function checkId(dd: any) {
-                copy.id = glitter.getUUID()
-                if (dd.type === 'container') {
-                    dd.data.setting.map((d2: any) => {
-                        checkId(d2)
-                    })
-                }
-            }
-
-            console.log(JSON.stringify(viewModel.selectContainer))
-            checkId(copy)
-            glitter.setCookie('lastSelect', copy.id);
-            viewModel.selectContainer.splice(viewModel.selectIndex + 1, 0, copy)
-            gvc.notifyDataChange(createID)
-
-        }
-    });
-    (window.parent as any).glitter.share.refreshMainLeftEditor=()=>{
+    (window.parent as any).glitter.share.refreshMainLeftEditor = () => {
         gvc.notifyDataChange('MainEditorLeft')
     };
-    (window.parent as any).glitter.share.refreshMainRightEditor=()=>{
+    (window.parent as any).glitter.share.refreshMainRightEditor = () => {
         gvc.notifyDataChange('MainEditorRight')
     };
+    glitter.share.clearSelectItem = () => {
+        viewModel.selectItem = undefined;
+    }
+    glitter.share.copycomponent = undefined
+    glitter.share.pastEvent=()=>{
+        if(!glitter.share.copycomponent){
+            swal.nextStep(`請先複製元件`, () => {
+            }, 'error');
+            return
+        }
+        var copy = JSON.parse(glitter.share.copycomponent)
+        function checkId(dd: any) {
+            copy.id = glitter.getUUID()
+            if (dd.type === 'container') {
+                dd.data.setting.map((d2: any) => {
+                    checkId(d2)
+                })
+            }
+        }
+        checkId(copy)
+        glitter.setCookie('lastSelect', copy.id);
+        viewModel.selectContainer.splice(0, 0, copy)
+        viewModel.selectItem = undefined;
+        gvc.notifyDataChange(createID)
+    }
+    glitter.share.inspect=glitter.share.inspect ?? true
     return {
         onCreateView: () => {
             return gvc.bindView({
@@ -247,61 +253,68 @@ init((gvc, glitter, gBundle) => {
                         return ``;
                     } else {
                         try {
-                            return doc.create(`<div class="d-flex overflow-hidden"  style="height:100vh;background:#f6f6f6;">
-<div style="width:60px;gap:20px;padding-top: 15px;" class="h-100 border-end d-flex flex-column align-items-center " >
-${[
-                                    {src: `fa-table-layout`, index: Main_editor.index},
-                                    {src: `fa-sharp fa-regular fa-file-dashed-line`, index: Page_editor.index},
-                                    {src: `fa-solid fa-list-check`, index: Setting_editor.index},
-                                    {src: `fa-regular fa-folders d-none`, index: '3'}
-                                ].map((da: any, index: number) => {
-                                    return `<i class="fa-regular ${da.src} fs-4 fw-bold ${(selectPosition === `${da.index}`) ? `text-primary` : ``}  p-2 rounded" style="cursor:pointer;${(selectPosition === `${da.index}`) ? `background-color: rgba(10,83,190,0.1);` : ``}"
+                            return doc.create(html`
+                                        <div class="d-flex overflow-hidden" style="height:100vh;background:white;">
+                                            <div style="width:60px;gap:20px;padding-top: 15px;"
+                                                 class="h-100 border-end d-flex flex-column align-items-center">
+                                                ${[
+                                                    {src: `fa-table-layout`, index: Main_editor.index},
+                                                    {src: `fa-solid fa-list-check`, index: Setting_editor.index},
+                                                    {src: `fa-sharp fa-regular fa-file-dashed-line`, index: Page_editor.index},
+                                                    {src: `fa-regular fa-puzzle-piece-simple`, index: -1},
+                                                ].map((da: any) => {
+                                                    if (da.index === -1) {
+                                                        return `<i class="fa-regular ${da.src} fs-4 fw-bold   p-2 rounded" style="cursor:pointer;"
+onclick="${gvc.event(() => {                               
+                                                        })}"></i>`
+                                                    }
+                                                    return `<i class="fa-regular ${da.src} fs-4 fw-bold ${(selectPosition === `${da.index}`) ? `text-primary` : ``}  p-2 rounded" style="cursor:pointer;${(selectPosition === `${da.index}`) ? `background-color: rgba(10,83,190,0.1);` : ``}"
 onclick="${gvc.event(() => {
-                                        viewModel.waitCopy = undefined
-                                        viewModel.selectItem = undefined
-                                        glitter.setUrlParameter(`editorPosition`, `${da.index}`)
-                                        gvc.notifyDataChange(createID)
-                                    })}"></i>`
-                                }).join('')}
-</div>
-<div class="offcanvas-body swiper scrollbar-hover  w-100 ${(() => {
-                                    switch (selectPosition) {
-                                        case Setting_editor.index:
-                                        case Main_editor.index:
-                                            return `pt-0`
-                                        case Page_editor.index:
-                                            return `p-0`
-                                        default:
-                                            return `p-0`
-                                    }
-                                })()}" style="overflow-y: auto;">
-                            <div class="" style="">
-                                ${gvc.bindView(()=>{
-                                    return {
-                                        bind:'MainEditorLeft',
-                                        view:()=>{
-                                            switch (selectPosition) {
-                                                case Setting_editor.index:
-                                                    return Setting_editor.left(gvc, viewModel, createID, gBundle)
-                                                case Page_editor.index:
-                                                    return Page_editor.left(gvc, viewModel, createID, gBundle)
-                                                default:
-                                                    return Main_editor.left(gvc, viewModel, createID, gBundle)
-                                            }
-                                        },
-                                        divCreate:{}
-                                    }
-                                })}
-                            </div>
-                            <div class="swiper-scrollbar end-0"></div>
-                        </div>
-</div>`,
+                                                        viewModel.waitCopy = undefined
+                                                        viewModel.selectItem = undefined
+                                                        glitter.setUrlParameter(`editorPosition`, `${da.index}`)
+                                                        gvc.notifyDataChange(createID)
+                                                    })}"></i>`
+                                                }).join('')}
+                                            </div>
+                                            <div class="offcanvas-body swiper scrollbar-hover  w-100 ${(() => {
+                                                switch (selectPosition) {
+                                                    case Setting_editor.index:
+                                                    case Main_editor.index:
+                                                        return `pt-0`
+                                                    case Page_editor.index:
+                                                        return `p-0`
+                                                    default:
+                                                        return `p-0`
+                                                }
+                                            })()}" style="overflow-y: auto;">
+                                                <div class="" style="">
+                                                    ${gvc.bindView(() => {
+                                                        return {
+                                                            bind: 'MainEditorLeft',
+                                                            view: () => {
+                                                                switch (selectPosition) {
+                                                                    case Setting_editor.index:
+                                                                        return Setting_editor.left(gvc, viewModel, createID, gBundle)
+                                                                    case Page_editor.index:
+                                                                        return Page_editor.left(gvc, viewModel, createID, gBundle)
+                                                                    default:
+                                                                        return Main_editor.left(gvc, viewModel, createID, gBundle)
+                                                                }
+                                                            },
+                                                            divCreate: {}
+                                                        }
+                                                    })}
+                                                </div>
+                                                <div class="swiper-scrollbar end-0"></div>
+                                            </div>
+                                        </div>`,
                                 gvc.bindView({
-                                    bind:'MainEditorRight',
-                                    view:()=>{
-                                        return   ``
+                                    bind: 'MainEditorRight',
+                                    view: () => {
+                                        return ``
                                     },
-                                    divCreate:{}
+                                    divCreate: {}
                                 })
                             );
                         } catch (e) {

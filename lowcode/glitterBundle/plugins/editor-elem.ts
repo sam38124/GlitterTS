@@ -238,8 +238,8 @@ export class EditorElem {
     public static plusBtn(title: string, event: any) {
         return /*html*/ `<div class="w-100 my-3" style="background: black;height: 1px;"></div>
             <div
-                class="fw-bold text-dark align-items-center justify-content-center d-flex p-1 rounded mt-3"
-                style="border: 2px dashed #004281;color:#004281;"
+                class="fw-500 text-dark align-items-center justify-content-center d-flex p-1 rounded mt-1 hoverBtn"
+                style="border: 1px solid #151515;color:#151515;"
                 onclick="${event}"
             >
                 ${title}
@@ -340,7 +340,7 @@ export class EditorElem {
         title: string;
         gvc: any;
         def: string;
-        array: string[] ;
+        array: string[];
         callback: (text: string) => void;
         placeHolder: string;
     }) {
@@ -348,7 +348,7 @@ export class EditorElem {
         const gvc = obj.gvc;
         const $ = glitter.$;
         return /*html*/ `
-            ${(obj.title) ? EditorElem.h3(obj.title):``}
+            ${(obj.title) ? EditorElem.h3(obj.title) : ``}
             <div class="btn-group dropdown w-100">
                 ${(() => {
             const id = glitter.getUUID();
@@ -392,7 +392,7 @@ export class EditorElem {
                     bind: id,
                     view: () => {
                         return obj.array
-                            .filter((d2:any) => {
+                            .filter((d2: any) => {
                                 return d2.toUpperCase().indexOf(obj.def.toUpperCase()) !== -1;
                             })
                             .map((d3) => {
@@ -462,7 +462,8 @@ export class EditorElem {
             event: string;
         };
         refreshComponent: () => void,
-        outside?: boolean
+        outside?: boolean,
+        plusBtn?: (title: string, event: string) => void
     }) {
         let dragm = {
             start: 0,
@@ -484,10 +485,12 @@ export class EditorElem {
                     })}" >${EditorElem.minusTitle(dd.title, dd.minus)}</div>`,
                     data: dd.expand,
                     innerText: dd.innerHtml,
-                    color: `wheat`,
+                    color: `#d9f1ff`,
                 });
             })
-            .join('<div class="my-3" style="color:wheat"></div>') + EditorElem.plusBtn(obj.plus.title, obj.plus.event)
+            .join('<div class="my-3" style="color:#d9f1ff"></div>')
+            +
+            (obj.plusBtn ? obj.plusBtn!(obj.plus.title, obj.plus.event) : EditorElem.plusBtn(obj.plus.title, obj.plus.event))
         if (obj.expand === undefined) {
             return innerText
         }
@@ -500,8 +503,8 @@ export class EditorElem {
                 gvc: obj.gvc,
                 title: obj.title,
                 data: obj.expand,
-                innerText: innerText,
-                color: `wheat`,
+                innerText: innerText as string,
+                color: `#d9f1ff`,
             })
         );
     }
