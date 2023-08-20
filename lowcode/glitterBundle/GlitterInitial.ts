@@ -113,6 +113,25 @@ function glitterInitial() {
         document.getElementsByTagName('head')[0].appendChild(css);
 
     }
+    // class PageBox extends HTMLElement {
+    //     constructor() {
+    //         super();
+    //         // Attach a shadow DOM
+    //         this.attachShadow({ mode: 'open' });
+    //
+    //         // Create a button element
+    //         const button = document.createElement('button');
+    //         button.textContent = 'Click Me';
+    //         // Add a click event listener to the button
+    //         button.addEventListener('click', () => {
+    //             alert('Button Clicked!');
+    //         });
+    //
+    //         // Append the button to the shadow DOM
+    //         this.shadowRoot!.appendChild(button);
+    //     }
+    // }
+    // customElements.define('page-box', PageBox)
 }
 
 glitterInitial();

@@ -124,7 +124,7 @@ export const queryLambada = async (cf: {
                         resolve(results)
                     } catch (err) {
                         logger.error(TAG, 'Failed to query statement ' + sql + ' because ' + err);
-                        reject(undefined)
+                        reject(err)
                     }
                 })
             }

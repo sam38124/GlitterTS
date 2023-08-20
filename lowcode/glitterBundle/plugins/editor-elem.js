@@ -1,4 +1,5 @@
 import { ShareDialog } from '../dialog/ShareDialog.js';
+import { Swal } from "../../modules/sweetAlert.js";
 export class EditorElem {
     static uploadImage(obj) {
         const glitter = window.glitter;
@@ -221,7 +222,7 @@ export class EditorElem {
             </div>`;
     }
     static h3(title) {
-        return `<h3 style="color: black;font-size: 16px;margin-bottom: 10px;" class="mt-2">${title}</h3>`;
+        return `<h3 style="color: black;font-size: 15px;margin-bottom: 10px;" class="fw-500 mt-2">${title}</h3>`;
     }
     static plusBtn(title, event) {
         return `<div class="w-100 my-3" style="background: black;height: 1px;"></div>
@@ -396,6 +397,14 @@ export class EditorElem {
             </div>
         `;
     }
+    static editeInput(obj) {
+        var _a, _b, _c;
+        obj.title = (_a = obj.title) !== null && _a !== void 0 ? _a : "";
+        return `${EditorElem.h3(obj.title)}
+<input class="form-control mb-2" type="${(_b = obj.type) !== null && _b !== void 0 ? _b : 'text'}" placeholder="${obj.placeHolder}" onchange="${obj.gvc.event((e) => {
+            obj.callback(e.value);
+        })}" value="${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}">`;
+    }
     static select(obj) {
         return `
             ${EditorElem.h3(obj.title)}
@@ -421,45 +430,245 @@ export class EditorElem {
         `;
     }
     static arrayItem(obj) {
-        let dragm = {
-            start: 0,
-            end: 0,
-        };
-        const innerText = obj.array
-            .map((dd, index) => {
-            return EditorElem.toggleExpand({
-                gvc: obj.gvc,
-                title: `<div  draggable="true"  ondragenter="${obj.gvc.event((e, event) => {
-                    dragm.end = index;
-                })}" ondragstart="${obj.gvc.event(() => {
-                    dragm.start = index;
-                    dragm.end = index;
-                })}"   ondragend="${obj.gvc.event(() => {
-                    swapArr(obj.originalArray, dragm.start, dragm.end);
-                    obj.refreshComponent();
-                })}" >${EditorElem.minusTitle(dd.title, dd.minus)}</div>`,
-                data: dd.expand,
-                innerText: dd.innerHtml,
-                color: `#d9f1ff`,
-            });
-        })
-            .join('<div class="my-3" style="color:#d9f1ff"></div>')
-            +
-                (obj.plusBtn ? obj.plusBtn(obj.plus.title, obj.plus.event) : EditorElem.plusBtn(obj.plus.title, obj.plus.event));
-        if (obj.expand === undefined) {
-            return innerText;
+        const gvc = obj.gvc;
+        const glitter = gvc.glitter;
+        const viewId = glitter.getUUID();
+        const html = String.raw;
+        const swal = new Swal(gvc);
+        function render(array, child, original) {
+            const parId = obj.gvc.glitter.getUUID();
+            const dragModel = {
+                draggableElement: '',
+                dragOffsetY: 0,
+                dragStart: 0,
+                maxHeight: 0,
+                editor_item: [],
+                hover_item: [],
+                currentIndex: 0,
+                changeIndex: 0,
+                firstIndex: 0
+            };
+            const mup_Linstener = function (event) {
+                if (dragModel.draggableElement) {
+                    dragModel.currentIndex = (dragModel.currentIndex > array.length) ? array.length - 1 : dragModel.currentIndex;
+                    $('.select_container').toggleClass('select_container');
+                    document.getElementById(dragModel.draggableElement).remove();
+                    dragModel.draggableElement = '';
+                    function swapArr(arr, index1, index2) {
+                        const data = arr[index1];
+                        arr.splice(index1, 1);
+                        arr.splice(index2, 0, data);
+                    }
+                    swapArr(original, array[dragModel.firstIndex].index, array[(dragModel.currentIndex > 0) ? dragModel.currentIndex - 1 : 0].index);
+                    obj.gvc.notifyDataChange([viewId]);
+                }
+                document.removeEventListener('mouseup', mup_Linstener);
+                document.removeEventListener('mousemove', move_Linstener);
+            };
+            const move_Linstener = function (event) {
+                if (!dragModel.draggableElement) {
+                    return;
+                }
+                let off = event.clientY - dragModel.dragStart + dragModel.dragOffsetY;
+                if (off < 5) {
+                    off = 5;
+                }
+                else if (off > dragModel.maxHeight) {
+                    off = dragModel.maxHeight;
+                }
+                function findClosestNumber(ar, target) {
+                    if (ar.length === 0)
+                        return null;
+                    const arr = JSON.parse(JSON.stringify(ar));
+                    let index = 0;
+                    let closest = arr[0];
+                    arr.push(ar[ar.length - 1] + 34);
+                    let minDifference = Math.abs(target - closest);
+                    for (let i = 1; i < arr.length; i++) {
+                        const difference = Math.abs(target - arr[i]);
+                        if (difference < minDifference) {
+                            closest = arr[i];
+                            index = i;
+                            minDifference = difference;
+                        }
+                    }
+                    return index;
+                }
+                let closestNumber = findClosestNumber(dragModel.hover_item.map((dd, index) => {
+                    return 34 * index - 17;
+                }), off);
+                console.log(`offSet:${off}-closestNumber:${closestNumber}-length:${array.length}`);
+                console.log(closestNumber);
+                dragModel.changeIndex = closestNumber;
+                dragModel.currentIndex = closestNumber;
+                $('.editor_item.hv').remove();
+                if (dragModel.currentIndex == array.length) {
+                    $('.select_container').append(`<div class="editor_item active hv"></div>`);
+                }
+                else if (dragModel.currentIndex == 1) {
+                    $('.select_container').prepend(`<div class="editor_item active hv"></div>`);
+                }
+                else {
+                    const parentElement = document.getElementsByClassName("select_container")[0];
+                    const referenceElement = dragModel.hover_item[dragModel.currentIndex].elem.get(0);
+                    const newElement = document.createElement("div", {});
+                    newElement.classList.add("editor_item");
+                    newElement.classList.add("active");
+                    newElement.classList.add("hv");
+                    newElement.textContent = "";
+                    parentElement.insertBefore(newElement, referenceElement);
+                }
+                $(`#${dragModel.draggableElement}`).css("position", "absolute");
+                $(`#${dragModel.draggableElement}`).css("right", "0px");
+                $(`#${dragModel.draggableElement}`).css("top", off + "px");
+            };
+            return gvc.bindView(() => {
+                return {
+                    bind: parId,
+                    view: () => {
+                        return array.map((dd, index) => {
+                            let toggle = gvc.event((e, event) => {
+                                dd.toggle = !dd.toggle;
+                                gvc.notifyDataChange(parId);
+                                event.preventDefault();
+                                event.stopPropagation();
+                            });
+                            return html `
+                                <l1 class="btn-group "
+                                    style="margin-top:1px;margin-bottom:1px;">
+                                    <div class="editor_item d-flex   px-2 my-0 hi me-n1 "
+                                         style=""
+                                         onclick="${gvc.event(() => {
+                                const originalData = JSON.parse(JSON.stringify(original[index]));
+                                gvc.glitter.innerDialog((gvc) => {
+                                    return html `
+                                                     <div class="dropdown-menu mx-0 position-fixed pb-0 border p-0 show"
+                                                          style="z-index:999999;"
+                                                          onclick="${gvc.event((e, event) => {
+                                        event.preventDefault();
+                                        event.stopPropagation();
+                                    })}">
+                                                         <div class="d-flex align-items-center px-2 border-bottom"
+                                                              style="height:50px;width:400px;">
+                                                             <h3 style="font-size:15px;font-weight:500;" class="m-0">
+                                                                     編輯項目「${dd.title}」</h3>
+                                                             <div class="flex-fill"></div>
+                                                             <div class="hoverBtn p-2" data-bs-toggle="dropdown"
+                                                                  aria-haspopup="true" aria-expanded="false"
+                                                                  style="color:black;font-size:20px;"
+                                                                  onclick="${gvc.event((e, event) => {
+                                        original[index] = originalData;
+                                        gvc.closeDialog();
+                                        obj.refreshComponent();
+                                    })}"><i
+                                                                     class="fa-sharp fa-regular fa-circle-xmark"></i>
+                                                             </div>
+                                                         </div>
+                                                         <div class="px-2"
+                                                              style="max-height:calc(100vh - 20px);overflow-y:auto;">
+                                                             ${dd.innerHtml()}
+                                                         </div>
+                                                         <div class="d-flex w-100 p-2">
+                                                             <div class="btn btn-outline-primary-c flex-fill"
+                                                                  onclick="${gvc.event(() => {
+                                        gvc.closeDialog();
+                                        obj.refreshComponent();
+                                    })}"><i class="fa-solid fa-floppy-disk me-2"></i>儲存編輯內容
+                                                             </div>
+                                                         </div>
+
+                                                     </div>`;
+                                });
+                            })}"
+                                    >
+                                        <div class="subBt ms-n2" onclick="${gvc.event((e, event) => {
+                                obj.originalArray.splice(index, 1);
+                                gvc.notifyDataChange(viewId);
+                                event.stopPropagation();
+                            })}">
+                                            <i class="fa-regular fa-circle-minus d-flex align-items-center justify-content-center subBt "
+                                               style="width:15px;height:15px;color:red;"
+                                            ></i>
+                                        </div>
+
+                                        ${dd.title}
+                                        <div class="flex-fill"></div>
+                                        <div class="subBt" onclick="${gvc.event((e, event) => {
+                                obj.originalArray.push(original[index]);
+                                swal.toast({
+                                    icon: 'success',
+                                    title: "複製成功．"
+                                });
+                                gvc.notifyDataChange(viewId);
+                                event.stopPropagation();
+                            })}">
+                                            <i class="fa-sharp fa-regular fa-scissors d-flex align-items-center justify-content-center subBt"
+                                               style="width:15px;height:15px;"
+                                            ></i>
+                                        </div>
+                                        <div class="subBt" onmousedown="${gvc.event((e, event) => {
+                                dragModel.firstIndex = index;
+                                dragModel.currentIndex = index;
+                                dragModel.draggableElement = glitter.getUUID();
+                                dragModel.dragStart = event.clientY;
+                                dragModel.dragOffsetY = $(e).parent().parent().get(0).offsetTop;
+                                dragModel.maxHeight = $(e).parent().parent().parent().height();
+                                $(e).parent().addClass('d-none');
+                                dragModel.hover_item = [];
+                                $(e).parent().parent().append(`<div class="editor_item active  hv"></div>`);
+                                $(e).parent().parent().parent().addClass('select_container');
+                                $('.select_container').children().each(function (index) {
+                                    dragModel.hover_item.push({
+                                        elem: $(this),
+                                        offsetTop: $(this).get(0).offsetTop
+                                    });
+                                });
+                                $(e).parent().parent().parent().append(html `
+                                                        <l1 class="btn-group position-absolute  "
+                                                            style="width:${$(e).parent().parent().width() - 50}px;right:15px;top:${dragModel.dragOffsetY}px;z-index:99999;border-radius:10px;background:white!important;"
+                                                            id="${dragModel.draggableElement}">
+                                                            <div class="editor_item d-flex   px-2 my-0"
+                                                                 style="background:white!important;">
+                                                                ${dd.title}
+                                                                <div class="flex-fill"></div>
+                                                                <i class="d-none fa-solid fa-pencil d-flex align-items-center justify-content-center subBt"
+                                                                   style="width:20px;height:20px;"></i>
+                                                                <i class="d-none fa-solid fa-grip-dots-vertical d-flex align-items-center justify-content-center subBt"
+                                                                   style="width:20px;height:20px;"></i>
+                                                            </div>
+                                                        </l1>`);
+                                document.addEventListener("mouseup", mup_Linstener);
+                                document.addEventListener("mousemove", move_Linstener);
+                            })}">
+                                            <i class="fa-solid fa-grip-dots-vertical d-flex align-items-center justify-content-center  "
+                                               style="width:15px;height:15px;"></i>
+                                        </div>
+                                    </div>
+                                </l1>
+                            `;
+                        }).join('');
+                    },
+                    divCreate: {
+                        class: `d-flex flex-column ${(child) ? `` : ``} position-relative`,
+                    }
+                };
+            }) + `<l1 class="btn-group mt-1 ps-1 pe-2 w-100 border-bottom pb-2">
+                    <div class="btn-outline-primary-c btn ms-2 " style="height:30px;flex:1;" onclick="${obj.plus.event}"><i class="fa-regular fa-circle-plus me-2"></i>${obj.plus.title}</div>
+</l1>`;
         }
-        if (obj.outside === false) {
-            return innerText;
-        }
-        return (`<div class="mb-2"></div>` +
-            EditorElem.toggleExpand({
-                gvc: obj.gvc,
-                title: obj.title,
-                data: obj.expand,
-                innerText: innerText,
-                color: `#d9f1ff`,
-            }));
+        return (obj.title ? `<div class="d-flex   px-3   hi fw-bold d-flex align-items-center border-bottom border-top py-2" style="color:#151515;font-size:14px;gap:0px;">
+                                      ${obj.title}     
+                                        </div>` : ``) + gvc.bindView(() => {
+            return {
+                bind: viewId,
+                view: () => {
+                    return render(obj.array().map((dd, index) => {
+                        dd.index = index;
+                        return dd;
+                    }), false, obj.originalArray);
+                }
+            };
+        });
     }
 }
 function swapArr(arr, index1, index2) {

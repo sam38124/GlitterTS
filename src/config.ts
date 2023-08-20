@@ -33,8 +33,8 @@ export const config = {
     PWD_SALT_ROUND: 5,
     LOG_PATH: path.resolve("../../log"),
     /*Database*/
-    DB_CONN_LIMIT: 1000,
-    DB_QUEUE_LIMIT: 1000,
+    DB_CONN_LIMIT: 0,
+    DB_QUEUE_LIMIT: 0,
     get DB_URL() {
         return process.env.DB_URL
     },

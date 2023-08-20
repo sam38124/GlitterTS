@@ -110,7 +110,7 @@ const queryLambada = async (cf, fun) => {
                     }
                     catch (err) {
                         logger.error(TAG, 'Failed to query statement ' + sql + ' because ' + err);
-                        reject(undefined);
+                        reject(err);
                     }
                 });
             }

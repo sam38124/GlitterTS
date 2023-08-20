@@ -109,9 +109,9 @@ export class Post {
                                     }
                                 }
                             })).then((data: any) => {
-                                resolve(data)
+                                resolve({result:true,data:data})
                             }).catch((e: any) => {
-                                reject(e)
+                                resolve({result:false,message:e})
                             })
                         } catch (e) {
                             console.log(e)

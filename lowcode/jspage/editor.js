@@ -1,5 +1,4 @@
 import { Main_editor } from "./main_editor.js";
-import { Page_editor } from "./page_editor.js";
 import { Setting_editor } from "./setting_editor.js";
 var ViewType;
 (function (ViewType) {
@@ -46,16 +45,19 @@ export class Editor {
                             data-scroll-header
                             style="height: 56px;">
                         <div class="container-fluid pe-lg-4">
-                            <div class="d-flex align-items-center">
-                                <a href="index.html" class="navbar-brand flex-shrink-0 py-1 py-lg-2">
-                                    <div
-                                            class="bg-white  rounded-circle d-flex align-items-center justify-content-center me-2"
-                                            style="box-sizing: border-box;width: 50px;height: 50px;"
-                                    >
-                                        <img src="assets/img/glitter (1).png" width="30" alt="Silicon"/>
-                                    </div>
-                                    Glitter Editor
-                                </a>
+                            <div class="navbar-brand text-dark d-none d-lg-flex py-0 h-100">
+                                <div class="d-flex align-items-center justify-content-center border-end "
+                                     style="width:50px;height: 56px;">
+                                    <i class="fa-regular fa-arrow-left-from-arc hoverBtn" style="cursor:pointer;"
+                                       onclick="location.href='index.html'">
+
+                                    </i>
+                                </div>
+                                <span class="ms-3 fw-500" style="  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+   background: -webkit-linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+   background-clip: text;
+   -webkit-background-clip: text;
+   color: transparent;">GLITTER.AI </span>
 
                             </div>
                             <div class="d-flex align-items-center w-100">
@@ -271,8 +273,6 @@ export class Editor {
                     switch (selectPosition) {
                         case Setting_editor.index:
                             return Setting_editor.center(gvc, data, 'showView');
-                        case Page_editor.index:
-                            return Page_editor.center(data, gvc, 'showView');
                         default:
                             return Main_editor.center(viewModel, gvc);
                     }

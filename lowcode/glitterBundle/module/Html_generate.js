@@ -407,8 +407,8 @@ export class HtmlGenerate {
                                 };
                                 dd.refreshComponent = () => {
                                     try {
-                                        dd.refreshComponentParameter.view1();
                                         dd.refreshComponentParameter.view2();
+                                        dd.refreshComponentParameter.view1();
                                     }
                                     catch (e) {
                                         window.glitter.deBugMessage(`${e.message}<br>${e.stack}<br>${e.line}`);

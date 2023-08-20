@@ -5,6 +5,7 @@ import { Swal } from '../modules/sweetAlert.js';
 import { Main_editor } from "./main_editor.js";
 import { Page_editor } from "./page_editor.js";
 import { Setting_editor } from "./setting_editor.js";
+import { Plugin_editor } from "./plugin_editor.js";
 const html = String.raw;
 init((gvc, glitter, gBundle) => {
     var _a;
@@ -14,6 +15,7 @@ init((gvc, glitter, gBundle) => {
     }
     `);
     const viewModel = {
+        appName: gBundle.appName,
         appConfig: undefined,
         dataList: undefined,
         data: undefined,
@@ -161,6 +163,7 @@ init((gvc, glitter, gBundle) => {
                 }),
                 (async () => {
                     return new Promise(async (resolve) => {
+                        viewModel.appConfig.homePage = viewModel.homePage;
                         viewModel.appConfig.globalStyle = viewModel.globalStyle;
                         viewModel.appConfig.globalScript = viewModel.globalScript;
                         const api = await ApiPageConfig.setPlugin(gBundle.appName, viewModel.appConfig);
@@ -235,14 +238,9 @@ init((gvc, glitter, gBundle) => {
                                 { src: `fa-table-layout`, index: Main_editor.index },
                                 { src: `fa-solid fa-list-check`, index: Setting_editor.index },
                                 { src: `fa-sharp fa-regular fa-file-dashed-line`, index: Page_editor.index },
-                                { src: `fa-regular fa-puzzle-piece-simple`, index: -1 },
+                                { src: `fa-regular fa-puzzle-piece-simple`, index: Plugin_editor.index },
                             ].map((da) => {
-                                if (da.index === -1) {
-                                    return `<i class="fa-regular ${da.src} fs-4 fw-bold   p-2 rounded" style="cursor:pointer;"
-onclick="${gvc.event(() => {
-                                    })}"></i>`;
-                                }
-                                return `<i class="fa-regular ${da.src} fs-4 fw-bold ${(selectPosition === `${da.index}`) ? `text-primary` : ``}  p-2 rounded" style="cursor:pointer;${(selectPosition === `${da.index}`) ? `background-color: rgba(10,83,190,0.1);` : ``}"
+                                return `<i class="fa-regular ${da.src} fs-5 fw-bold ${(selectPosition === `${da.index}`) ? `text-primary` : ``}  p-2 rounded" style="cursor:pointer;${(selectPosition === `${da.index}`) ? `background-color: rgba(10,83,190,0.1);` : ``}"
 onclick="${gvc.event(() => {
                                     viewModel.waitCopy = undefined;
                                     viewModel.selectItem = undefined;
@@ -272,6 +270,8 @@ onclick="${gvc.event(() => {
                                                 return Setting_editor.left(gvc, viewModel, createID, gBundle);
                                             case Page_editor.index:
                                                 return Page_editor.left(gvc, viewModel, createID, gBundle);
+                                            case Plugin_editor.index:
+                                                return Plugin_editor.left(gvc, viewModel, createID, gBundle);
                                             default:
                                                 return Main_editor.left(gvc, viewModel, createID, gBundle);
                                         }

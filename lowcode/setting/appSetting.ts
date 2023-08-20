@@ -616,7 +616,6 @@ ${gvc.bindView(()=>{
             }
             return EditorElem.arrayItem({
                 gvc:gvc,
-                outside:false,
                 title:"檔案管理",
                 array:fileVm.data.map((dd:any,index:number)=>{
                     return {

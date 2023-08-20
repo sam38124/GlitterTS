@@ -8,7 +8,7 @@ export class User{
     public static async createUser(account:string,pwd:string){
         try {
             const userID=generateUserID();
-            await db.execute(`INSERT INTO \`${saasConfig.SAAS_NAME}\`.\`user\` (\`userID\`,\`account\`, \`pwd\`, \`userData\`) VALUES (?,?, ?, ?);`,[
+            await db.execute(`INSERT INTO \`${saasConfig.SAAS_NAME}\`.\`user\` (\`userID\`,\`account\`, \`pwd\`, \`userData\`,status) VALUES (?,?, ?, ?,1);`,[
                 userID,
                 account,
                 await tool.hashPwd(pwd),

@@ -369,7 +369,7 @@ export class Main_editor {
                                             })}">
                                                 <div class="editor_item   px-2 me-0" style="cursor:pointer; "
                                                      onclick="${gvc.event(() => {
-                                                         viewModel.selectContainer = (viewModel.data! as any).config
+                                                         viewModel.selectContainer = viewModel.globalStyle
                                                          glitter.share.pastEvent()
                                                      })}"
                                                 >
@@ -406,7 +406,7 @@ export class Main_editor {
                                             })}">
                                                 <div class="editor_item   px-2 me-0" style="cursor:pointer; "
                                                      onclick="${gvc.event(() => {
-                                                         viewModel.selectContainer = (viewModel.data! as any).config
+                                                         viewModel.selectContainer =viewModel.globalScript
                                                          glitter.share.pastEvent()
                                                      })}"
                                                 >
@@ -512,8 +512,6 @@ export class Main_editor {
                                         <div class="d-flex ms-2  px-2   hi fw-bold d-flex align-items-center border-bottom"
                                              style="color:#151515;font-size:14px;gap:0px;">頁面-區段
                                             <div class="flex-fill"></div>
-
-
                                             <l1 class="btn-group dropend me-0" onclick="${gvc.event(() => {
                                                 viewModel.selectContainer = (viewModel.data! as any).config
                                             })}">

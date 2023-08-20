@@ -85,6 +85,7 @@ export declare function createViewComponent(config: {
             path: string;
         }[];
     }[];
+    loop: boolean;
 }): Promise<unknown>;
 export declare const lambda: {
     setup: typeof setup;

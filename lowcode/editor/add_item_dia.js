@@ -1,8 +1,6 @@
-import { EditorElem } from "../glitterBundle/plugins/editor-elem.js";
 import { ShareDialog } from "../dialog/ShareDialog.js";
 import { config } from "../config.js";
 import { BaseApi } from "../api/base.js";
-import { HtmlGenerate } from "../glitterBundle/module/Html_generate.js";
 const html = String.raw;
 class Add_item_dia {
     static view(gvc) {
@@ -108,7 +106,9 @@ class Add_item_dia {
                             </div>
                         </div>`;
                 },
-                divCreate: {},
+                divCreate: {
+                    style: ``
+                },
                 onCreate: () => {
                 }
             };
@@ -132,6 +132,21 @@ class Add_item_dia {
                 if (data.result) {
                     viewModel.loading = false;
                     viewModel.pluginList = data.response.data.pagePlugin;
+                    if (data.response.data.lambdaView) {
+                        data.response.data.lambdaView.map((dd) => {
+                            for (let i = viewModel.pluginList.length - 1; i >= 0; i--) {
+                                if (viewModel.pluginList[i].src.official === dd.path) {
+                                    viewModel.pluginList.splice(i, 1);
+                                }
+                            }
+                            viewModel.pluginList.push({
+                                "src": {
+                                    "official": dd.path
+                                },
+                                "name": dd.name
+                            });
+                        });
+                    }
                     if (viewModel.pluginList.length > 0) {
                         viewModel.pluginList[0].toggle = true;
                     }
@@ -166,6 +181,12 @@ class Add_item_dia {
                                 try {
                                     const source = getSource(dd);
                                     const obg = gvc.glitter.share.htmlExtension[gvc.glitter.htmlGenerate.resourceHook(getSource(dd))];
+                                    if (!obg) {
+                                        setTimeout(() => {
+                                            gvc.notifyDataChange(tabID);
+                                        }, 1000);
+                                        return ``;
+                                    }
                                     const haveItem = Object.keys(obg).filter((d2) => {
                                         return d2 !== 'document';
                                     }).find((dd) => {
@@ -277,109 +298,9 @@ class Add_item_dia {
                         }
                     },
                     divCreate: {
-                        style: 'padding-bottom:50px;'
+                        style: 'max-height:400px;overflow-y:auto;'
                     }
-                }) + html `
-                    <div class="btn-group dropend position-absolute w-100 px-2 bg-white" style="height:34px;bottom:10px;">
-                        <button type="button" class="btn btn-outline-secondary-c rounded" data-bs-toggle="dropdown"
-                                aria-haspopup="true" aria-expanded="false">
-                            添加自訂模塊
-                        </button>
-                        <div class="dropdown-menu mx-1" style="max-height:400px;overflow-y:auto;">
-                            ${gvc.bindView(() => {
-                    const id = glitter.getUUID();
-                    return {
-                        bind: id,
-                        view: () => {
-                            return html `
-                                            <div class="alert alert-warning"
-                                                 style="white-space: normal;word-break: break-all;">
-                                                頁面模塊決定您能夠在網站上使用哪些設計模塊。<br>您可以從官方或第三方資源中獲取連結，或自行開發插件上傳以供使用。
-                                            </div>
-                                            ${EditorElem.arrayItem({
-                                originalArray: viewModel.pluginList,
-                                gvc: gvc,
-                                title: '頁面模塊',
-                                array: viewModel.pluginList.map((dd, index) => {
-                                    return {
-                                        title: `<span style="color: black;">${dd.name || `區塊:${index}`}</span>`,
-                                        innerHtml: (() => {
-                                            return ` ${HtmlGenerate.editeInput({
-                                                gvc,
-                                                title: '自定義插件名稱',
-                                                default: dd.name,
-                                                placeHolder: '自定義插件名稱',
-                                                callback: (text) => {
-                                                    dd.name = text;
-                                                    gvc.notifyDataChange(id);
-                                                }
-                                            })}
-                                                     ${HtmlGenerate.editeInput({
-                                                gvc,
-                                                title: '模板路徑',
-                                                default: dd.src.official,
-                                                placeHolder: '模板路徑',
-                                                callback: (text) => {
-                                                    dd.src.official = text;
-                                                }
-                                            })}`;
-                                        }),
-                                        expand: dd,
-                                        minus: gvc.event(() => {
-                                            viewModel.pluginList.splice(index, 1);
-                                            gvc.notifyDataChange(id);
-                                        })
-                                    };
-                                }),
-                                expand: undefined,
-                                plus: {
-                                    title: '添加頁面模塊',
-                                    event: gvc.event(() => {
-                                        viewModel.pluginList.push({
-                                            name: '',
-                                            route: '',
-                                            src: {
-                                                official: '',
-                                                open: true
-                                            }
-                                        });
-                                        gvc.notifyDataChange(id);
-                                    }),
-                                },
-                                refreshComponent: () => {
-                                    gvc.notifyDataChange(id);
-                                },
-                                plusBtn: (title, event) => {
-                                    return html `
-                                                        <div class="w-100 d-flex align-items-center mt-3"
-                                                             style="gap:10px;">
-                                                            <div
-                                                                    class="fw-500 text-dark align-items-center justify-content-center d-flex  rounded  hoverBtn "
-                                                                    style="border: 1px solid #151515;color:#151515;flex:1;height:34px;width:calc(50% - 10px);"
-                                                                    onclick="${event}"
-                                                            >
-                                                                ${title}
-                                                            </div>
-                                                            <div class=" btn btn-primary-c "
-                                                                 style="height:34px;flex:1;width:calc(50% - 10px);"
-                                                                 onclick="${gvc.event(() => {
-                                        glitter.htmlGenerate.saveEvent();
-                                    })}">儲存
-                                                            </div>
-
-                                                        </div>
-                                                    `;
-                                }
-                            })}`;
-                        },
-                        divCreate: {
-                            class: `px-2`
-                        }
-                    };
-                })}
-
-                        </div>
-                    </div>`,
+                }),
                 right: gvc.bindView({
                     bind: docID,
                     view: () => {

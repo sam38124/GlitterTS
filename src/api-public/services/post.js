@@ -120,9 +120,9 @@ class Post {
                                     }
                                 }
                             })).then((data) => {
-                                resolve(data);
+                                resolve({ result: true, data: data });
                             }).catch((e) => {
-                                reject(e);
+                                resolve({ result: false, message: e });
                             });
                         }
                         catch (e) {

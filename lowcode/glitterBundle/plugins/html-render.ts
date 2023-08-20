@@ -56,8 +56,11 @@ init((gvc, glitter, gBundle) => {
                 style:``,
                 jsFinish:()=>{
                     load().then(()=>{
-                        vm.loading=false
-                        gvc.notifyDataChange('main')
+                        if(vm.loading){
+                            vm.loading=false
+                            gvc.notifyDataChange('main')
+                        }
+
                     })
                 }
             })+gvc.bindView({

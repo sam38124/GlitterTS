@@ -13,7 +13,7 @@ class User {
     static async createUser(account, pwd) {
         try {
             const userID = generateUserID();
-            await database_1.default.execute(`INSERT INTO \`${config_1.saasConfig.SAAS_NAME}\`.\`user\` (\`userID\`,\`account\`, \`pwd\`, \`userData\`) VALUES (?,?, ?, ?);`, [
+            await database_1.default.execute(`INSERT INTO \`${config_1.saasConfig.SAAS_NAME}\`.\`user\` (\`userID\`,\`account\`, \`pwd\`, \`userData\`,status) VALUES (?,?, ?, ?,1);`, [
                 userID,
                 account,
                 await tool_1.default.hashPwd(pwd),

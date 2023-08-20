@@ -33,8 +33,8 @@ exports.config = {
     PARAMS_NEED_ENCRYPT_IN_LOG: ['pwd', 'email'],
     PWD_SALT_ROUND: 5,
     LOG_PATH: path_1.default.resolve("../../log"),
-    DB_CONN_LIMIT: 1000,
-    DB_QUEUE_LIMIT: 1000,
+    DB_CONN_LIMIT: 0,
+    DB_QUEUE_LIMIT: 0,
     get DB_URL() {
         return process.env.DB_URL;
     },

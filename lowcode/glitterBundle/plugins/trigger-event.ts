@@ -140,8 +140,8 @@ export class TriggerEvent {
 
     public static trigger(oj: {
         gvc: GVC, widget: HtmlJson, clickEvent: any, subData?: any, element?: { e: any, event: any }
-    }) {
-        const glitter = (window as any).glitter
+    }){
+        const glitter = (window as any).glitter;
         // const event: { src: string, route: string } = oj.clickEvent.clickEvent
         let arrayEvent: any = []
         let returnData = ''
@@ -175,15 +175,16 @@ export class TriggerEvent {
                         }
 
                     } catch (e) {
+                        console.log(e)
                         returnData = event.errorCode ?? ""
-                        resolve(true)
+                        resolve(false)
                     }
                 }
 
                 try {
                     oj.gvc.glitter.share.clickEvent = oj.gvc.glitter.share.clickEvent ?? {}
                     if (!oj.gvc.glitter.share.clickEvent[event.clickEvent.src]) {
-                        await new Promise((resolve, reject) => {
+                        await new Promise(( reject) => {
                             oj.gvc.glitter.addMtScript([
                                 {src: `${glitter.htmlGenerate.resourceHook(event.clickEvent.src)}`, type: 'module'}
                             ], () => {
@@ -193,7 +194,7 @@ export class TriggerEvent {
                             })
                         })
                     } else {
-                        pass()
+                         pass()
                     }
                 } catch (e) {
                     pass()
@@ -201,22 +202,22 @@ export class TriggerEvent {
 
             })
         }
-
         if (oj.clickEvent !== undefined && Array.isArray(oj.clickEvent.clickEvent)) {
             // alert('array')
             arrayEvent = oj.clickEvent.clickEvent;
         } else if (oj.clickEvent !== undefined) {
             arrayEvent = [JSON.parse(JSON.stringify(oj.clickEvent))]
         }
-
         return new Promise(async (resolve, reject) => {
             let result = true
             for (const a of arrayEvent) {
                 let blockCommand=false
+
                 result = await new Promise<boolean>((resolve, reject) => {
                     let fal = 10
                     function check() {
                         run(a).then((res) => {
+                            // alert(res)
                             if(res==='blockCommand'){
                                 blockCommand=true
                                 resolve(true)

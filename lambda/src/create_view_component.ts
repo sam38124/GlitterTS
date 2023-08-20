@@ -26,5 +26,6 @@ lambda.createViewComponent({
             ]
         }
     ],
-
+    //loop to build and publish your code.
+    loop:true
 })

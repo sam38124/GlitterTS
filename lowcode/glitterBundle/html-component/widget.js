@@ -481,9 +481,10 @@ export const widgetComponent = {
                         gvc: gvc,
                         title: '特徵值',
                         array: widget.data.attr.map((dd, index) => {
-                            var _a, _b;
+                            var _a, _b, _c;
                             dd.type = (_a = dd.type) !== null && _a !== void 0 ? _a : 'par';
                             dd.attr = (_b = dd.attr) !== null && _b !== void 0 ? _b : "尚未設定";
+                            dd.attrType = (_c = dd.attrType) !== null && _c !== void 0 ? _c : "normal";
                             return {
                                 title: dd.attr,
                                 expand: dd,
@@ -505,17 +506,32 @@ export const widgetComponent = {
                                         }),
                                         (() => {
                                             if (dd.type === 'par') {
-                                                return Editor.searchInput({
-                                                    title: '特徵標籤',
-                                                    gvc: gvc,
-                                                    def: dd.attr,
-                                                    array: ['src', 'placeholder'],
-                                                    callback: (text) => {
-                                                        dd.attr = text;
-                                                        widget.refreshComponent();
-                                                    },
-                                                    placeHolder: "請輸入特徵標籤"
-                                                });
+                                                return gvc.map([
+                                                    Editor.searchInput({
+                                                        title: '特徵標籤',
+                                                        gvc: gvc,
+                                                        def: dd.attr,
+                                                        array: ['src', 'placeholder', 'href'],
+                                                        callback: (text) => {
+                                                            dd.attr = text;
+                                                            widget.refreshComponent();
+                                                        },
+                                                        placeHolder: "請輸入特徵標籤"
+                                                    }),
+                                                    Editor.select({
+                                                        title: '特徵類型',
+                                                        gvc: gvc,
+                                                        def: dd.attrType,
+                                                        array: [
+                                                            { title: "一般", value: 'normal' },
+                                                            { title: "檔案連結", value: 'link' }
+                                                        ],
+                                                        callback: (text) => {
+                                                            dd.attrType = text;
+                                                            widget.refreshComponent();
+                                                        }
+                                                    })
+                                                ]);
                                             }
                                             else {
                                                 return Editor.searchInput({
@@ -534,7 +550,7 @@ export const widgetComponent = {
                                         (() => {
                                             var _a, _b;
                                             if (dd.type === 'par') {
-                                                if (['script', 'img'].indexOf(widget.data.elem) !== -1 && (dd.attr === 'src')) {
+                                                if ((['script', 'img'].indexOf(widget.data.elem) !== -1 && (dd.attr === 'src')) || dd.attrType === 'link') {
                                                     return Editor.uploadFile({
                                                         title: "資源路徑",
                                                         gvc: gvc,
