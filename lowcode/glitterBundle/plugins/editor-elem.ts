@@ -2,13 +2,15 @@ import {ShareDialog} from '../dialog/ShareDialog.js';
 
 import {Swal} from "../../modules/sweetAlert.js";
 import {GVC} from "../GVController.js";
+//@ts-ignore
+import autosize from "./autosize.js";
 
 
 export class EditorElem {
     public static uploadImage(obj: { title: string; gvc: any; def: string; callback: (data: string) => void }) {
         const glitter = (window as any).glitter;
         const $ = glitter.$;
-        return /*html*/ `<h3 style="font-size: 16px;margin-bottom: 10px;" class="mt-2">${obj.title}</h3>
+        return /*html*/ `${EditorElem.h3(obj.title)}
             <div class="d-flex align-items-center mb-3">
                 <input
                     class="flex-fill form-control "
@@ -61,10 +63,36 @@ export class EditorElem {
             </div>`;
     }
 
+    public static editeText(obj: { gvc: GVC; title: string; default: string; placeHolder: string; callback: (text: string) => void }) {
+        obj.title = obj.title ?? ""
+        const html = String.raw
+        const id = obj.gvc.glitter.getUUID()
+        return html`${EditorElem.h3(obj.title)}
+        ${obj.gvc.bindView({
+            bind: id,
+            view: () => {
+                return obj.default ?? ''
+            },
+            divCreate: {
+                elem: `textArea`,
+                style: `max-height:400px!important;min-height:100px;`,
+                class: `form-control`, option: [
+                    {key: 'placeholder', value: obj.placeHolder},
+                    {key: 'onchange', value: obj.gvc.event((e) => {obj.callback(e.value);})
+                    }
+                ]
+            },
+            onCreate: () => {
+                //@ts-ignore
+                autosize(obj.gvc.getBindViewElem(id))
+            }
+        })}`;
+    }
+
     public static uploadFile(obj: { title: string; gvc: any; def: string; callback: (data: string) => void }) {
         const glitter = (window as any).glitter;
         const $ = glitter.$;
-        return /*html*/ `<h3 style="font-size: 16px;margin-bottom: 10px;" class="mt-2">${obj.title}</h3>
+        return /*html*/ `${EditorElem.h3(obj.title)}
             <div class="d-flex align-items-center mb-3">
                 <input
                     class="flex-fill form-control "
@@ -76,8 +104,8 @@ export class EditorElem {
                 />
                 <div class="" style="width: 1px;height: 25px;background-color: white;"></div>
                 <i
-                    class="fa-regular fa-upload  ms-2"
-                    style="cursor: pointer;"
+                    class="fa-regular fa-upload  ms-2 fs-5"
+                    style="cursor: pointer;color:black;"
                     onclick="${obj.gvc.event(() => {
             glitter.ut.chooseMediaCallback({
                 single: true,
@@ -255,20 +283,20 @@ export class EditorElem {
             /*html*/ `
                 ${EditorElem.h3(obj.title)}
                 <div
-                    class="alert alert-dark alert-dismissible fade show p-2"
+                    class="alert alert-info fade show p-2"
                     role="alert"
                     style="white-space: normal;word-break: break-all;"
                 >
                     <a
                         onclick="${obj.gvc.event(() => glitter.openNewTab('https://fontawesome.com/search'))}"
-                        class=" fw text-white"
+                        class="fw fw-bold"
                         style="cursor: pointer;"
                         >fontawesome</a
                     >
                     與
                     <a
                         onclick="${obj.gvc.event(() => glitter.openNewTab('https://boxicons.com/'))}"
-                        class=" fw text-white"
+                        class="fw fw-bold"
                         style="cursor: pointer;"
                         >box-icon</a
                     >
@@ -423,6 +451,7 @@ export class EditorElem {
             </div>
         `;
     }
+
     public static editeInput(obj: {
         gvc: GVC; title: string; default: string; placeHolder: string; callback: (text: string) => void,
         type?: string
@@ -433,6 +462,7 @@ export class EditorElem {
             obj.callback(e.value);
         })}" value="${obj.default ?? ''}">`;
     }
+
     public static select(obj: {
         title: string;
         gvc: any;
@@ -466,14 +496,17 @@ export class EditorElem {
     public static arrayItem(obj: {
         gvc: any;
         title: string;
-        array: () => { title: string; innerHtml: string | (() => string); }[];
+        array: () => { title: string; innerHtml: string | ((gvc: GVC) => string); editTitle?: string, saveEvent?: () => void, width?: string,saveAble?:boolean }[];
         originalArray: any,
         expand: any;
-        plus: {
+        plus?: {
             title: string;
             event: string;
         };
-        refreshComponent: () => void
+        refreshComponent: () => void,
+        minus?: boolean,
+        draggable?: boolean,
+        copyable?: boolean
     }) {
         const gvc = obj.gvc
         const glitter = gvc.glitter
@@ -602,15 +635,15 @@ export class EditorElem {
                                              gvc.glitter.innerDialog((gvc: GVC) => {
                                                  return html`
                                                      <div class="dropdown-menu mx-0 position-fixed pb-0 border p-0 show"
-                                                          style="z-index:999999;"
+                                                          style="z-index:999999;${(dd.width) ? `width:${dd.width};` : ``};"
                                                           onclick="${gvc.event((e: any, event: any) => {
                                                               event.preventDefault()
                                                               event.stopPropagation()
                                                           })}">
                                                          <div class="d-flex align-items-center px-2 border-bottom"
-                                                              style="height:50px;width:400px;">
+                                                              style="height:50px;min-width:400px;">
                                                              <h3 style="font-size:15px;font-weight:500;" class="m-0">
-                                                                     編輯項目「${dd.title}」</h3>
+                                                                 ${dd.editTitle ? dd.editTitle : `編輯項目「${dd.title}」`}</h3>
                                                              <div class="flex-fill"></div>
                                                              <div class="hoverBtn p-2" data-bs-toggle="dropdown"
                                                                   aria-haspopup="true" aria-expanded="false"
@@ -624,27 +657,39 @@ export class EditorElem {
                                                              </div>
                                                          </div>
                                                          <div class="px-2"
-                                                              style="max-height:calc(100vh - 20px);overflow-y:auto;">
-                                                             ${dd.innerHtml()}
+                                                              style="max-height:calc(100vh - 150px);overflow-y:auto;">
+                                                             ${dd.innerHtml(gvc)}
                                                          </div>
-                                                         <div class="d-flex w-100 p-2">
-                                                             <div class="btn btn-outline-primary-c flex-fill"
+
+                                                         <div class="d-flex w-100 p-2 border-top ${(dd.saveAble===false) ? `d-none`:``}">
+                                                             <div class="flex-fill"></div>
+                                                             <div class="btn btn-secondary"
+                                                                  style="height:40px;width:80px;"
                                                                   onclick="${gvc.event(() => {
+                                                                      original[index] = originalData
                                                                       gvc.closeDialog()
                                                                       obj.refreshComponent()
-                                                                  })}"><i class="fa-solid fa-floppy-disk me-2"></i>儲存編輯內容
+                                                                  })}">取消
+                                                             </div>
+                                                             <div class="btn btn-primary-c ms-2"
+                                                                  style="height:40px;width:80px;"
+                                                                  onclick="${gvc.event(() => {
+                                                                      gvc.closeDialog();
+                                                                      (dd.saveEvent && dd.saveEvent()) || obj.refreshComponent();
+                                                                  })}"><i class="fa-solid fa-floppy-disk me-2"></i>儲存
                                                              </div>
                                                          </div>
 
                                                      </div>`
-                                             })
+                                             }, glitter.getUUID())
                                          })}"
                                     >
-                                        <div class="subBt ms-n2" onclick="${gvc.event((e: any, event: any) => {
-                                            obj.originalArray.splice(index, 1)
-                                            gvc.notifyDataChange(viewId)
-                                            event.stopPropagation()
-                                        })}">
+                                        <div class="subBt ms-n2 ${(obj.minus === false) ? `d-none` : ``}"
+                                             onclick="${gvc.event((e: any, event: any) => {
+                                                 obj.originalArray.splice(index, 1)
+                                                 gvc.notifyDataChange(viewId)
+                                                 event.stopPropagation()
+                                             })}">
                                             <i class="fa-regular fa-circle-minus d-flex align-items-center justify-content-center subBt "
                                                style="width:15px;height:15px;color:red;"
                                             ></i>
@@ -652,20 +697,21 @@ export class EditorElem {
 
                                         ${dd.title}
                                         <div class="flex-fill"></div>
-                                        <div class="subBt" onclick="${gvc.event((e: any, event: any) => {
-                                            obj.originalArray.push(original[index])
-                                            swal.toast({
-                                                icon: 'success',
-                                                title: "複製成功．"
-                                            })
-                                            gvc.notifyDataChange(viewId)
-                                            event.stopPropagation()
-                                        })}">
+                                        <div class="subBt ${(obj.copyable === false) ? `d-none` : ``}"
+                                             onclick="${gvc.event((e: any, event: any) => {
+                                                 obj.originalArray.push(original[index])
+                                                 swal.toast({
+                                                     icon: 'success',
+                                                     title: "複製成功．"
+                                                 })
+                                                 gvc.notifyDataChange(viewId)
+                                                 event.stopPropagation()
+                                             })}">
                                             <i class="fa-sharp fa-regular fa-scissors d-flex align-items-center justify-content-center subBt"
                                                style="width:15px;height:15px;"
                                             ></i>
                                         </div>
-                                        <div class="subBt" onmousedown="${
+                                        <div class="subBt ${(obj.draggable === false) ? `d-none` : ``}" onmousedown="${
                                                 gvc.event((e: any, event: any) => {
                                                     dragModel.firstIndex = index
                                                     dragModel.currentIndex = index
@@ -713,14 +759,15 @@ export class EditorElem {
                         class: `d-flex flex-column ${(child) ? `` : ``} position-relative`,
                     }
                 }
-            }) + `<l1 class="btn-group mt-1 ps-1 pe-2 w-100 border-bottom pb-2">
-                    <div class="btn-outline-primary-c btn ms-2 " style="height:30px;flex:1;" onclick="${obj.plus.event}"><i class="fa-regular fa-circle-plus me-2"></i>${obj.plus.title}</div>
-</l1>`
+            }) + ((obj.plus) ? `<l1 class="btn-group mt-1 ps-1 pe-2 w-100 border-bottom pb-2">
+                    <div class="btn-outline-secondary-c btn ms-2 " style="height:30px;flex:1;" onclick="${obj.plus!.event}"><i class="fa-regular fa-circle-plus me-2"></i>${obj.plus!.title}</div>
+</l1>` : ``)
         }
 
-        return (obj.title ? `<div class="d-flex   px-3   hi fw-bold d-flex align-items-center border-bottom border-top py-2" style="color:#151515;font-size:14px;gap:0px;">
-                                      ${obj.title}     
-                                        </div>` : ``) + gvc.bindView(() => {
+        return (obj.title ? `   <div class="d-flex  px-2 hi fw-bold d-flex align-items-center border-bottom border-top py-2 bgf6"
+                             style="color:#151515;font-size:16px;gap:0px;">
+                            ${obj.title}
+                        </div>` : ``) + gvc.bindView(() => {
             return {
                 bind: viewId,
                 view: () => {
@@ -733,48 +780,6 @@ export class EditorElem {
         })
 
 
-        // let dragm = {
-        //     start: 0,
-        //     end: 0,
-        // };
-        // const innerText = obj.array
-        //     .map((dd, index) => {
-        //
-        //         return EditorElem.toggleExpand({
-        //             gvc: obj.gvc,
-        //             title: `<div  draggable="true"  ondragenter="${obj.gvc.event((e: any, event: any) => {
-        //                 dragm.end = index;
-        //             })}" ondragstart="${obj.gvc.event(() => {
-        //                 dragm.start = index;
-        //                 dragm.end = index;
-        //             })}"   ondragend="${obj.gvc.event(() => {
-        //                 swapArr(obj.originalArray, dragm.start, dragm.end);
-        //                 obj.refreshComponent()
-        //             })}" >${EditorElem.minusTitle(dd.title, dd.minus)}</div>`,
-        //             data: dd.expand,
-        //             innerText: dd.innerHtml,
-        //             color: `#d9f1ff`,
-        //         });
-        //     })
-        //     .join('<div class="my-3" style="color:#d9f1ff"></div>')
-        //     +
-        //     (obj.plusBtn ? obj.plusBtn!(obj.plus.title, obj.plus.event) : EditorElem.plusBtn(obj.plus.title, obj.plus.event))
-        // if (obj.expand === undefined) {
-        //     return innerText
-        // }
-        // if (obj.outside === false) {
-        //     return innerText;
-        // }
-        // return (
-        //     /*html*/`<div class="mb-2"></div>` +
-        //     EditorElem.toggleExpand({
-        //         gvc: obj.gvc,
-        //         title: obj.title,
-        //         data: obj.expand,
-        //         innerText: innerText as string,
-        //         color: `#d9f1ff`,
-        //     })
-        // );
     }
 }
 

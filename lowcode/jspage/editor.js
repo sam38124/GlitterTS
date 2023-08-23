@@ -1,5 +1,4 @@
 import { Main_editor } from "./main_editor.js";
-import { Setting_editor } from "./setting_editor.js";
 var ViewType;
 (function (ViewType) {
     ViewType["mobile"] = "mobile";
@@ -271,8 +270,6 @@ export class Editor {
                     var _a;
                     let selectPosition = (_a = glitter.getUrlParameter('editorPosition')) !== null && _a !== void 0 ? _a : "0";
                     switch (selectPosition) {
-                        case Setting_editor.index:
-                            return Setting_editor.center(gvc, data, 'showView');
                         default:
                             return Main_editor.center(viewModel, gvc);
                     }

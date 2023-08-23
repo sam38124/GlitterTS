@@ -1,12 +1,14 @@
 import {GVC} from "../glitterBundle/GVController.js";
 import {EditorElem} from "../glitterBundle/plugins/editor-elem.js";
 import {HtmlGenerate} from "../glitterBundle/module/Html_generate.js";
+import {initialCode} from "../setting/initialCode.js";
+import {TriggerEvent} from "../glitterBundle/plugins/trigger-event.js";
 
 export class Plugin_editor {
     public static index = 'plugin'
 
     public static left(gvc: GVC, viewModel: any, createID: string, gBundle: any) {
-        const html=String.raw
+        const html = String.raw
         const glitter = gvc.glitter;
         let vm = {
             select: `view`,
@@ -17,13 +19,19 @@ export class Plugin_editor {
                 bind: id,
                 view: () => {
                     return `<div class="d-flex border-bottom ">
-                                    ${[{
-                        key: 'view',
-                        label: "頁面模塊"
-                    }, {
-                        key: 'event',
-                        label: "觸發事件"
-                    }].map((dd: { key: string, label: string }) => {
+                                    ${[
+                        {
+                            key: 'view',
+                            label: "頁面模塊"
+                        }, {
+                            key: 'event',
+                            label: "觸發事件"
+                        },
+                        {
+                            key: 'router',
+                            label: "資源初始化"
+                        }
+                    ].map((dd: { key: string, label: string }) => {
                         return `<div class="add_item_button ${(dd.key === vm.select) ? `add_item_button_active` : ``}" onclick="${
                             gvc.event((e, event) => {
                                 vm.select = dd.key
@@ -97,72 +105,199 @@ ${EditorElem.arrayItem({
                                     }
                                 })
                             case "event":
-                                return gvc.bindView(()=>{
+                                return gvc.bindView(() => {
+                                    const id = glitter.getUUID()
+                                    return {
+                                        bind: id,
+                                        view: () => {
+                                            return html`
+                                                        <div class="alert alert-info m-2 p-3"
+                                                             style="white-space: normal;word-break: break-all;">
+                                                            為您的元件添加各樣的觸發事件，包含連結跳轉/內容取得/資料儲存/頁面渲染/動畫事件/內容發布....等，都能透過事件來完成。
+                                                        </div>`
+                                                + EditorElem.arrayItem({
+                                                    originalArray: viewModel.initialJS,
+                                                    gvc: gvc,
+                                                    title: '觸發事件',
+                                                    array: () => {
+                                                        return viewModel.initialJS.map((dd: any, index: number) => {
+                                                            return {
+                                                                title: `<span style="color: black;">${dd.name || `區塊:${index}`}</span>`,
+                                                                innerHtml: (() => {
+                                                                    return `      ${HtmlGenerate.editeInput({
+                                                                        gvc,
+                                                                        title: '自定義插件名稱',
+                                                                        default: dd.name,
+                                                                        placeHolder: '自定義插件名稱',
+                                                                        callback: (text) => {
+                                                                            dd.name = text;
+                                                                            gvc.notifyDataChange(id)
+                                                                        }
+                                                                    })}
+                                                     ${HtmlGenerate.editeInput({
+                                                                        gvc,
+                                                                        title: '插件路徑',
+                                                                        default: dd.src.official,
+                                                                        placeHolder: '請輸入插件路徑',
+                                                                        callback: (text) => {
+                                                                            dd.src.official = text;
+                                                                            gvc.notifyDataChange(id)
+                                                                        }
+                                                                    })}`
+                                                                }),
+                                                                expand: dd,
+                                                                minus: gvc.event(() => {
+                                                                    viewModel.initialJS.splice(index, 1);
+                                                                    gvc.notifyDataChange(id);
+                                                                })
+                                                            }
+                                                        })
+                                                    },
+                                                    expand: undefined,
+                                                    plus: {
+                                                        title: '觸發事件',
+                                                        event: gvc.event(() => {
+                                                            viewModel.initialJS.push({
+                                                                name: '',
+                                                                route: '',
+                                                                src: {
+                                                                    official: '',
+                                                                    open: true
+                                                                }
+                                                            });
+                                                            gvc.notifyDataChange(id);
+                                                        }),
+                                                    },
+                                                    refreshComponent: () => {
+                                                        gvc.notifyDataChange(id);
+                                                    }
+                                                })
+                                        }
+                                    }
+                                })
+                            case "router":
+                                return  `
+                                <div class="alert alert-info m-2 p-3" style="white-space: normal;word-break: break-all;">資源初始代碼會在頁面載入之前執行，通常處理一些基本配置行為，例如設定插件路徑與後端API路徑...等，這些初始化代碼會按照順序執行。</div>
+                                ${  gvc.bindView(()=>{
                                     const id=glitter.getUUID()
                                     return {
                                         bind:id,
                                         view:()=>{
-                                            return  html`<div class="alert alert-info m-2 p-3" style="white-space: normal;word-break: break-all;">為您的元件添加各樣的觸發事件，包含連結跳轉/內容取得/資料儲存/頁面渲染/動畫事件/內容發布....等，都能透過事件來完成。</div>`
-                                            + EditorElem.arrayItem({
-                                                originalArray: viewModel.initialJS,
+                                            return EditorElem.arrayItem({
+                                                originalArray:viewModel.initialList,
                                                 gvc: gvc,
-                                                title: '觸發事件',
-                                                array: ()=>{
-                                                    return viewModel.initialJS.map((dd: any, index: number) => {
+                                                title: '資源初始化',
+                                                array: (()=>{
+                                                    return viewModel.initialList.map((dd:any, index:number) => {
                                                         return {
-                                                            title: `<span style="color: black;">${dd.name || `區塊:${index}`}</span>`,
-                                                            innerHtml: (() => {
-                                                                return `      ${HtmlGenerate.editeInput({
-                                                                    gvc,
-                                                                    title: '自定義插件名稱',
-                                                                    default: dd.name,
-                                                                    placeHolder: '自定義插件名稱',
-                                                                    callback: (text) => {
-                                                                        dd.name = text;
-                                                                        gvc.notifyDataChange(id)
-                                                                    }
+                                                            title:`<span style="color:black;">${dd.name || `區塊:${index}`}</span>`,
+                                                            innerHtml: ()=>{
+                                                                return `
+                                                    ${gvc.bindView(() => {
+                                                                    const cid = glitter.getUUID();
+                                                                    return {
+                                                                        bind: cid,
+                                                                        view: () => {
+                                                                            return `  
+                                          ${
+                                                                                EditorElem.select({
+                                                                                    title: '類型',
+                                                                                    gvc: gvc,
+                                                                                    def: dd.type ?? 'code',
+                                                                                    callback: (text: string) => {
+                                                                                        dd.type =text
+                                                                                        gvc.notifyDataChange(cid)
+                                                                                    },
+                                                                                    array: [{title:"自定義",value:"code"},{title:"程式碼路徑",value:"script"},{title:"觸發事件",value:"event"}],
+                                                                                })
+                                                                            }
+                                          ${HtmlGenerate.editeInput({
+                                                                                gvc,
+                                                                                title: '自定義程式區塊名稱',
+                                                                                default: dd.name,
+                                                                                placeHolder: '自定義程式區塊名稱',
+                                                                                callback: (text) => {
+                                                                                    dd.name = text;
+                                                                                    gvc.notifyDataChange(id);
+                                                                                }
+                                                                            })}
+                                          ${(()=>{
+                                                                                if(dd.type==='script'){
+                                                                                    return  EditorElem.uploadFile({
+                                                                                        gvc,
+                                                                                        title: '輸入或上傳路徑連結',
+                                                                                        def: dd.src.link ?? "",
+                                                                                        callback: (text) => {
+                                                                                            dd.src.link = text;
+                                                                                            gvc.notifyDataChange(cid)
+                                                                                        }
+                                                                                    })
+                                                                                }else if(dd.type==="event"){
+                                                                                    dd.src.event=dd.src.event ?? {};
+                                                                                    return  TriggerEvent.editer(gvc,({
+                                                                                        refreshComponent:()=>{
+                                                                                            gvc.notifyDataChange(cid)
+                                                                                        }
+                                                                                    } as any),dd.src.event,{
+                                                                                        title:"觸發事件",
+                                                                                        hover:false,
+                                                                                        option:[]
+                                                                                    })
+                                                                                }else{
+                                                                                    return gvc.map([
+                                                                                        HtmlGenerate.editeText({
+                                                                                            gvc,
+                                                                                            title: '區塊代碼',
+                                                                                            default: dd.src.official,
+                                                                                            placeHolder: '請輸入代碼',
+                                                                                            callback: (text) => {
+                                                                                                dd.src.official = text;
+                                                                                            }
+                                                                                        })
+                                                                                    ])
+                                                                                }
+                                                                            })()}  `;
+                                                                        },
+                                                                        divCreate: {
+                                                                            class: `w-100`,
+                                                                            style: `border-bottom: 1px solid lightgrey;padding-bottom: 10px;margin-bottom: 10px;`
+                                                                        }
+                                                                    };
                                                                 })}
-                                                     ${HtmlGenerate.editeInput({
-                                                                    gvc,
-                                                                    title: '插件路徑',
-                                                                    default: dd.src.official,
-                                                                    placeHolder: '請輸入插件路徑',
-                                                                    callback: (text) => {
-                                                                        dd.src.official = text;
-                                                                        gvc.notifyDataChange(id)
-                                                                    }
-                                                                })}`
-                                                            }),
-                                                            expand: dd,
-                                                            minus: gvc.event(() => {
-                                                                viewModel.initialJS.splice(index, 1);
+                                                    `
+                                                            },
+                                                            expand:dd,
+                                                            minus:gvc.event(()=>{
+                                                                viewModel.initialList.splice(index, 1);
                                                                 gvc.notifyDataChange(id);
                                                             })
                                                         }
                                                     })
-                                                },
+                                                }),
                                                 expand: undefined,
                                                 plus: {
-                                                    title: '觸發事件',
+                                                    title: '添加代碼區塊',
                                                     event: gvc.event(() => {
-                                                        viewModel.initialJS.push({
-                                                            name: '',
-                                                            route: '',
+                                                        viewModel.initialList.push({
+                                                            name: '代碼區塊',
                                                             src: {
                                                                 official: '',
+                                                                staging: '',
                                                                 open: true
                                                             }
                                                         });
                                                         gvc.notifyDataChange(id);
                                                     }),
                                                 },
-                                                refreshComponent: () => {
+                                                refreshComponent:()=>{
                                                     gvc.notifyDataChange(id);
                                                 }
                                             })
-                                        }
+                                        },
+                                        divCreate:{}
                                     }
-                                })
+                                })}
+                                `
                         }
                     })()
                 }

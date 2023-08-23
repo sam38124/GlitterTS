@@ -275,8 +275,6 @@ export class Editor {
                             view: () => {
                                 let selectPosition = glitter.getUrlParameter('editorPosition') ?? "0"
                                 switch (selectPosition) {
-                                    case Setting_editor.index:
-                                        return Setting_editor.center(gvc, data, 'showView')
                                     default:
                                         return Main_editor.center(viewModel, gvc)
                                 }

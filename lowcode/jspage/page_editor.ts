@@ -263,27 +263,27 @@ export class Page_editor {
                                     return {
                                         bind:id,
                                         view:()=>{
-                                            return `<div class="d-flex w-100 mb-2 justify-content-end" style="gap:10px;">
- <button class="btn btn-outline-secondary-c " style="flex:1;height:40px; width:calc(50% - 10px);"   onclick="${gvc.event(() => {
-                                                navigator.clipboard.writeText(JSON.stringify(json, null, '\t'));
-                                            })}"><i class="fa-regular fa-copy me-2"></i>複製到剪貼簿</button>
-  <button class="btn btn-primary-c " style="flex:1; height:40px; width:calc(50% - 10px);" onclick="${gvc.event(() => {
-                                                const dialog = new ShareDialog(gvc.glitter)
-                                                try {
-                                                    (viewModel.data! as any).config = JSON.parse(value)
-                                                    glitter.closeDiaLog()
-                                                    glitter.htmlGenerate.saveEvent()
-                                                } catch (e: any) {
-                                                    dialog.errorMessage({text: "代碼輸入錯誤"})
-                                                    console.log(`${e}${e.stack}${e.line}`)
-                                                }
-
-                                            })}"><i class="fa-regular fa-floppy-disk me-2"></i>儲存</button>
-</div>
+                                            return html`
 <div class="alert alert-danger flex-fill m-0 p-2 " style="white-space: normal;word-break:break-all;">此頁面的配置檔包含所有設計模組和觸發事件的代碼配置項目。<br>建議由熟悉程式開發的工程師進行編輯。</div>
- <textArea class="form-control mt-2" style="overflow-x: scroll;height: calc(100vh - 300px);" onchange="${gvc.event((e) => {
-                                                value = e.value;
-                                            })}">${JSON.stringify(json, null, '\t')}</textArea>`
+ <textArea class="form-control mt-2" style="overflow-x: scroll;height: calc(100vh - 300px);" onchange="${gvc.event((e) => { value = e.value;          })}">${JSON.stringify(json, null, '\t')}</textArea>
+<div class="d-flex w-100 mb-2 mt-2 justify-content-end" style="gap:10px;">
+    <button class="btn btn-outline-secondary-c " style="flex:1;height:40px; width:calc(50% - 10px);"   onclick="${gvc.event(() => {
+        navigator.clipboard.writeText(JSON.stringify(json, null, '\t'));
+    })}"><i class="fa-regular fa-copy me-2"></i>複製到剪貼簿</button>
+    <button class="btn btn-primary-c " style="flex:1; height:40px; width:calc(50% - 10px);" onclick="${gvc.event(() => {
+        const dialog = new ShareDialog(gvc.glitter)
+        try {
+            (viewModel.data! as any).config = JSON.parse(value)
+            glitter.closeDiaLog()
+            glitter.htmlGenerate.saveEvent()
+        } catch (e: any) {
+            dialog.errorMessage({text: "代碼輸入錯誤"})
+            console.log(`${e}${e.stack}${e.line}`)
+        }
+
+    })}"><i class="fa-regular fa-floppy-disk me-2"></i>儲存</button>
+</div>
+                                            `
                                         },
                                         divCreate:{
                                             class:`p-2`
