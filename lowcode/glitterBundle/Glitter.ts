@@ -28,7 +28,7 @@ export class Glitter {
     public document: any;
     public webUrl: string = '';
     public goBackStack: (() => void)[] = [];
-    public parameter: any = {styleList: [], styleLinks: []}
+    public parameter:{style:any[]} = {style:[]}
     public callBackId: number = 0;
     public callBackList = new Map();
     public location: any;
@@ -43,8 +43,6 @@ export class Glitter {
     public pageConfig: PageConfig[] = []
     public nowPageConfig?: PageConfig
     public waitChangePage = false
-    public elementCallback: {[name:string]:{onCreate:()=>void,onInitial:()=>void,notifyDataChange:()=>void,getView:()=>string,updateAttribute:()=>void}} = {}
-
     /*Getter*/
     get baseUrl() {
         var getUrl = window.location;
@@ -367,7 +365,6 @@ export class Glitter {
                     script.setAttribute('src', scritem.src ?? undefined);
                     script.setAttribute('crossorigin', true)
                     script.setAttribute('id', scritem.id ?? undefined);
-
                     document.getElementsByTagName("head")[0].appendChild(script);
                 } else {
                     script.setAttribute('src', scritem.src ?? scritem);
@@ -465,21 +462,16 @@ export class Glitter {
         const glitter = this;
         let sl = {
             id: glitter.getUUID(),
-            style: style
+            style: style,
+            type:'code'
         }
-        if (!glitter.parameter.styleList.find((dd: any) => {
+        if (!glitter.parameter.style.find((dd: any) => {
             return dd.style === style
         })) {
-            var css = document.createElement('style');
-            css.type = 'text/css';
-            css.id = sl.id
-            if ((css as any).styleSheet)
-                (css as any).styleSheet.cssText = style;
-            else
-                css.appendChild(document.createTextNode(style));
-            /* Append style to the tag name */
-            document.getElementsByTagName("head")[0].appendChild(css);
-            glitter.parameter.styleList.push(sl)
+            glitter.pageConfig.map((dd)=>{
+                ( document.getElementById('page' + dd.id)! as any).add_style(sl)
+            })
+            glitter.parameter.style.push(sl)
         }
     }
 
@@ -489,20 +481,19 @@ export class Glitter {
 
         function add(filePath: string) {
             const id = glitter.getUUID()
-            var haveURL = glitter.parameter.styleLinks.find((dd: any) => {
+            var haveURL = glitter.parameter.style.find((dd: any) => {
                 return dd.src === filePath
             })
             if (!haveURL) {
-                var link = document.createElement("link");
-                link.type = "text/css";
-                link.rel = "stylesheet";
-                link.href = filePath;
-                link.id = id;
-                glitter.parameter.styleLinks.push({
+                const link={
                     id: id,
-                    src: filePath
+                    src: filePath,
+                    type:'link'
+                }
+                glitter.parameter.style.push(link)
+                glitter.pageConfig.map((dd)=>{
+                    ( document.getElementById('page' + dd.id)! as any).add_style(link)
                 })
-                head.appendChild(link);
             }
         }
 

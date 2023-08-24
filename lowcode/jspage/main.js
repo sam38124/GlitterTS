@@ -260,7 +260,7 @@ onclick="${gvc.event(() => {
                                         return `p-0`;
                                 }
                             })()}" style="overflow-y: auto;">
-                                                <div class="" style="">
+                                                <div class="h-100" style="">
                                                     ${gvc.bindView(() => {
                                 return {
                                     bind: 'MainEditorLeft',
@@ -276,7 +276,9 @@ onclick="${gvc.event(() => {
                                                 return Main_editor.left(gvc, viewModel, createID, gBundle);
                                         }
                                     },
-                                    divCreate: {}
+                                    divCreate: {
+                                        class: "h-100"
+                                    }
                                 };
                             })}
                                                 </div>

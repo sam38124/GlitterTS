@@ -241,9 +241,9 @@ export class HtmlGenerate {
                                                                         left: 0,
                                                                         behavior: 'instant',
                                                                     });
-                                                                    const scrollTOP = gvc.getBindViewElem(component).offset().top -
+                                                                    const scrollTOP = gvc.getBindViewElem(component).offsetTop -
                                                                         gvc.glitter.$('html').offset().top +
-                                                                        gvc.glitter.$('html').scrollTop() + (gvc.getBindViewElem(component).height() / 2);
+                                                                        gvc.glitter.$('html').scrollTop() + (gvc.getBindViewElem(component).offsetHeight / 2);
                                                                     gvc.glitter
                                                                         .$('html')
                                                                         .get(0)

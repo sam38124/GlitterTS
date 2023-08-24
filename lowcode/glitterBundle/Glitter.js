@@ -21,7 +21,7 @@ export class Glitter {
         this.htmlGenerate = HtmlGenerate;
         this.webUrl = '';
         this.goBackStack = [];
-        this.parameter = { styleList: [], styleLinks: [] };
+        this.parameter = { style: [] };
         this.callBackId = 0;
         this.callBackList = new Map();
         this.debugMode = false;
@@ -34,7 +34,6 @@ export class Glitter {
         this.changePageCallback = [];
         this.pageConfig = [];
         this.waitChangePage = false;
-        this.elementCallback = {};
         this.hidePageView = PageManager.hidePageView;
         this.showPageView = PageManager.showPageView;
         this.setHome = PageManager.setHome;
@@ -757,20 +756,16 @@ export class Glitter {
         const glitter = this;
         let sl = {
             id: glitter.getUUID(),
-            style: style
+            style: style,
+            type: 'code'
         };
-        if (!glitter.parameter.styleList.find((dd) => {
+        if (!glitter.parameter.style.find((dd) => {
             return dd.style === style;
         })) {
-            var css = document.createElement('style');
-            css.type = 'text/css';
-            css.id = sl.id;
-            if (css.styleSheet)
-                css.styleSheet.cssText = style;
-            else
-                css.appendChild(document.createTextNode(style));
-            document.getElementsByTagName("head")[0].appendChild(css);
-            glitter.parameter.styleList.push(sl);
+            glitter.pageConfig.map((dd) => {
+                document.getElementById('page' + dd.id).add_style(sl);
+            });
+            glitter.parameter.style.push(sl);
         }
     }
     async addStyleLink(data) {
@@ -778,20 +773,19 @@ export class Glitter {
         var head = document.head;
         function add(filePath) {
             const id = glitter.getUUID();
-            var haveURL = glitter.parameter.styleLinks.find((dd) => {
+            var haveURL = glitter.parameter.style.find((dd) => {
                 return dd.src === filePath;
             });
             if (!haveURL) {
-                var link = document.createElement("link");
-                link.type = "text/css";
-                link.rel = "stylesheet";
-                link.href = filePath;
-                link.id = id;
-                glitter.parameter.styleLinks.push({
+                const link = {
                     id: id,
-                    src: filePath
+                    src: filePath,
+                    type: 'link'
+                };
+                glitter.parameter.style.push(link);
+                glitter.pageConfig.map((dd) => {
+                    document.getElementById('page' + dd.id).add_style(link);
                 });
-                head.appendChild(link);
             }
         }
         if (typeof data == "string") {

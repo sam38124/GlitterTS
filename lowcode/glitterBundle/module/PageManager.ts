@@ -140,7 +140,7 @@ export class PageManager {
                 }
             );
 
-            $('#glitterPage').append(`<page-box id="page${config!.id}" style="min-width: 100vw;min-height: 100vh;left: 0;top: 0;width:100vw;
+          $('#glitterPage').append(`<page-box id="page${config!.id}" style="min-width: 100vw;min-height: 100vh;left: 0;top: 0;width:100vw;
 background: ${config!.backGroundColor};display: none;z-index: 9999;overflow: hidden;">
 </page-box>`)
 
@@ -158,7 +158,6 @@ background: ${config!.backGroundColor};display: none;z-index: 9999;overflow: hid
                 glitter.pageConfig = [];
                 glitter.pageConfig.push(config);
                 glitter.setUrlParameter('page', tag);
-
             } else {
                 glitter.addMtScript([{
                     src: url,
@@ -280,10 +279,10 @@ background: ${config!.backGroundColor};display: none;z-index: 9999;overflow: hid
                     animation: option.animation ?? glitter.defaultSetting.pageAnimation
                 }
             );
-            $('#glitterPage').append(`<div  id="page${config.id}" style="
+            $('#glitterPage').append(`<page-box  id="page${config.id}" style="
 min-width: 100vw; min-height: 100vh;  z-index: 9999; overflow: hidden;width:100vw;
 background: transparent;background: ${config!.backGroundColor};display: none;position: absolute;top: 0;left: 0;">
-</div>`)
+</page-box>`)
             config.scrollTop=glitter.$('html').get(0).scrollTop
             glitter.nowPageConfig = config;
             let module = glitter.modelJsList.find((dd) => {
@@ -345,9 +344,9 @@ background: transparent;background: ${config!.backGroundColor};display: none;pos
                 animation: option.animation ?? glitter.defaultSetting.dialogAnimation
             }
         );
-        $('#glitterPage').append(`<div id="page${config!.id}" style="min-width: 100vw;min-height: 100vh;left: 0;top: 0;
+        $('#glitterPage').append(`<page-box id="page${config!.id}" style="min-width: 100vw;min-height: 100vh;left: 0;top: 0;
 background: ${config!.backGroundColor};display: none;z-index: 9999;overflow: hidden;position: fixed;width:100vw;height: 100vh;" >
-</div>`)
+</page-box>`)
         glitter.nowPageConfig = config;
 
         let module = glitter.modelJsList.find((dd) => {

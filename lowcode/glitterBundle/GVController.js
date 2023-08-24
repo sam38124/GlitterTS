@@ -1,6 +1,5 @@
 "use strict";
 import { GVCType } from "./module/PageManager.js";
-const $ = window.$;
 class LifeCycle {
     constructor() {
         this.onResume = function () {
@@ -18,9 +17,6 @@ class LifeCycle {
             return '';
         };
     }
-    notifyDataChange() {
-        $('body').html(this.onCreateView());
-    }
 }
 export class GVC {
     constructor() {
@@ -36,6 +32,7 @@ export class GVC {
         };
         this.recreateView = () => {
         };
+        this.addMtScript = this.glitter.addMtScript;
     }
     closeDialog() {
         var _a;
@@ -48,19 +45,21 @@ export class GVC {
     }
     notifyDataChange(id) {
         const gvc = this;
+        const component = gvc.getBindViewElem(id);
         try {
             gvc.initialElemCallback(gvc.id(id));
             const refresh = (id) => {
                 var _a, _b, _c;
-                if ($(`[gvc-id="${gvc.id(id)}"]`).length === 0) {
+                if (!component) {
                     return;
                 }
                 gvc.parameter.bindViewList[id].divCreate = (_a = gvc.parameter.bindViewList[id].divCreate) !== null && _a !== void 0 ? _a : {};
                 const divCreate = (typeof gvc.parameter.bindViewList[id].divCreate === "function") ? gvc.parameter.bindViewList[id].divCreate() : gvc.parameter.bindViewList[id].divCreate;
-                $(`[gvc-id="${gvc.id(id)}"]`).attr('class', (_b = divCreate.class) !== null && _b !== void 0 ? _b : "");
-                $(`[gvc-id="${gvc.id(id)}"]`).attr('style', (_c = divCreate.style) !== null && _c !== void 0 ? _c : "");
-                gvc.glitter.elementCallback[gvc.id(id)].updateAttribute();
-                $(`[gvc-id="${gvc.id(id)}"]`).html(gvc.parameter.bindViewList[id].view());
+                component.setAttribute('class', (_b = divCreate.class) !== null && _b !== void 0 ? _b : "");
+                component.setAttribute('style', (_c = divCreate.style) !== null && _c !== void 0 ? _c : "");
+                gvc.webComponent.elementCallback[gvc.id(id)].updateAttribute();
+                const view = gvc.parameter.bindViewList[id].view();
+                gvc.glitter.$(component).html(`${view}`);
                 if (gvc.parameter.bindViewList[id].onCreate) {
                     gvc.parameter.bindViewList[id].onCreate();
                 }
@@ -87,7 +86,7 @@ export class GVC {
     }
     getBindViewElem(id) {
         const gvc = this;
-        return $(`[gvc-id="${gvc.id(id)}"]`);
+        return gvc.root.querySelector(`[gvc-id="${gvc.id(id)}"]`);
     }
     addObserver(obj, callback, viewBind) {
         const gvc = this;
@@ -181,7 +180,7 @@ export class GVC {
     initialElemCallback(id) {
         var _a;
         const gvc = this;
-        gvc.glitter.elementCallback[id] = (_a = gvc.glitter.elementCallback[id]) !== null && _a !== void 0 ? _a : {
+        gvc.webComponent.elementCallback[id] = (_a = gvc.webComponent.elementCallback[id]) !== null && _a !== void 0 ? _a : {
             onCreate: () => {
             },
             onInitial: () => {
@@ -203,9 +202,10 @@ export class GVC {
         gvc.initialElemCallback(gvc.id(map.bind));
         if (map.dataList) {
             map.dataList.map(function (data) {
-                $(`[gvc-id="${gvc.id(map.bind)}"]`).html(map.view());
                 gvc.addObserver(data, function () {
-                    $(`[gvc-id="${gvc.id(map.bind)}"]`).html(map.view());
+                    const component = gvc.getBindViewElem(map.bind);
+                    const view = map.view();
+                    gvc.glitter.$(component).html(`${view}`);
                     if (map.onCreate()) {
                         map.onCreate();
                     }
@@ -213,16 +213,19 @@ export class GVC {
             });
         }
         gvc.parameter.bindViewList[map.bind] = map;
-        gvc.glitter.elementCallback[gvc.id(map.bind)].onInitial = (_a = map.onInitial) !== null && _a !== void 0 ? _a : (() => { });
-        gvc.glitter.elementCallback[gvc.id(map.bind)].onCreate = (_b = map.onCreate) !== null && _b !== void 0 ? _b : (() => { });
-        gvc.glitter.elementCallback[gvc.id(map.bind)].getView = map.view;
-        gvc.glitter.elementCallback[gvc.id(map.bind)].updateAttribute = (() => {
+        gvc.webComponent.elementCallback[gvc.id(map.bind)].onInitial = (_a = map.onInitial) !== null && _a !== void 0 ? _a : (() => {
+        });
+        gvc.webComponent.elementCallback[gvc.id(map.bind)].onCreate = (_b = map.onCreate) !== null && _b !== void 0 ? _b : (() => {
+        });
+        gvc.webComponent.elementCallback[gvc.id(map.bind)].getView = map.view;
+        gvc.webComponent.elementCallback[gvc.id(map.bind)].updateAttribute = (() => {
             var _a;
+            const component = gvc.getBindViewElem(map.bind);
             const id = gvc.id(map.bind);
             const divCreate2 = (typeof map.divCreate === "function") ? map.divCreate() : map.divCreate;
             ((_a = divCreate2.option) !== null && _a !== void 0 ? _a : []).map((dd) => {
                 try {
-                    $(`[gvc-id="${id}"]`).attr(dd.key, dd.value);
+                    component.setAttribute(dd.key, dd.value);
                 }
                 catch (e) {
                 }
@@ -258,40 +261,30 @@ export class GVC {
         const gvc = this;
         let sl = {
             id: gvc.glitter.getUUID(),
-            style: style
+            style: style,
+            type: 'code'
         };
         if (!gvc.parameter.styleList.find((dd) => {
             return dd.style === style;
         })) {
-            var css = document.createElement('style');
-            css.type = 'text/css';
-            css.id = sl.id;
-            if (css.styleSheet)
-                css.styleSheet.cssText = style;
-            else
-                css.appendChild(document.createTextNode(style));
-            document.getElementsByTagName("head")[0].appendChild(css);
+            gvc.webComponent.add_style(sl);
             gvc.parameter.styleList.push(sl);
         }
     }
     async addStyleLink(fs) {
         const gvc = this;
         function add(filePath) {
-            var head = document.head;
             const id = gvc.glitter.getUUID();
-            var link = document.createElement("link");
-            link.type = "text/css";
-            link.rel = "stylesheet";
-            link.href = filePath;
-            link.id = id;
             if (!gvc.parameter.styleLinks.find((dd) => {
                 return dd.src === filePath;
             })) {
-                gvc.parameter.styleLinks.push({
+                const link = {
                     id: id,
-                    src: filePath
-                });
-                head.appendChild(link);
+                    src: filePath,
+                    type: 'link'
+                };
+                gvc.parameter.styleLinks.push(link);
+                gvc.webComponent.add_style(link);
             }
         }
         if (typeof fs === 'string') {
@@ -303,66 +296,6 @@ export class GVC {
             });
         }
     }
-    addMtScript(urlArray, success, error) {
-        const glitter = this.glitter;
-        const that = this;
-        let index = 0;
-        function addScript() {
-            var _a, _b, _c, _d;
-            if (index === urlArray.length) {
-                success();
-                return;
-            }
-            var scritem = urlArray[index];
-            scritem.id = glitter.getUUID();
-            if (that.parameter.jsList.find((dd) => {
-                return dd.src === scritem.src;
-            })) {
-                index++;
-                addScript();
-                return;
-            }
-            that.parameter.jsList.push(scritem);
-            let script = document.createElement('script');
-            try {
-                if (script.readyState) {
-                    script.onreadystatechange = () => {
-                        if (script.readyState === "loaded" || script.readyState === "complete") {
-                            script.onreadystatechange = null;
-                            index++;
-                            addScript();
-                        }
-                    };
-                }
-                else {
-                    script.onload = () => {
-                        if (success !== undefined) {
-                            index++;
-                            addScript();
-                        }
-                    };
-                }
-                if (scritem.type === 'text/babel') {
-                    glitter.$('body').append(`<script type="text/babel" src="${scritem.src}"></script>`);
-                }
-                else if (scritem.type !== undefined) {
-                    script.setAttribute('type', scritem.type);
-                    script.setAttribute('src', (_a = scritem.src) !== null && _a !== void 0 ? _a : scritem);
-                    script.setAttribute('id', (_b = scritem.id) !== null && _b !== void 0 ? _b : undefined);
-                    document.getElementsByTagName("head")[0].appendChild(script);
-                }
-                else {
-                    script.setAttribute('src', (_c = scritem.src) !== null && _c !== void 0 ? _c : scritem);
-                    script.setAttribute('id', (_d = scritem.id) !== null && _d !== void 0 ? _d : undefined);
-                    document.getElementsByTagName("head")[0].appendChild(script);
-                }
-            }
-            catch (e) {
-                error(`Add ${urlArray[index]} ERROR!!`);
-            }
-        }
-        addScript();
-    }
     id(id) {
         const gvc = this;
         return `${gvc.parameter.pageConfig.id}${id}`;
@@ -373,6 +306,12 @@ export class GVC {
             html += d;
         });
         return html;
+    }
+    get root() {
+        return document.getElementById('page' + this.parameter.pageConfig.id).shadowRoot;
+    }
+    get webComponent() {
+        return document.getElementById('page' + this.parameter.pageConfig.id);
     }
 }
 export function init(fun, gt) {
@@ -400,8 +339,9 @@ export function init(fun, gt) {
     lifeCycle.onCreate = (_f = pageData.onCreate) !== null && _f !== void 0 ? _f : lifeCycle.onCreate;
     lifeCycle.onCreateView = pageData.onCreateView;
     lifeCycle.cssInitial = (_g = pageData.cssInitial) !== null && _g !== void 0 ? _g : lifeCycle.cssInitial;
+    const body = document.getElementById('page' + gvc.parameter.pageConfig.id).shadowRoot.querySelector('body');
     gvc.recreateView = () => {
-        $(`#page${gvc.parameter.pageConfig.id}`).html(lifeCycle.onCreateView());
+        body.innerHTML = lifeCycle.onCreateView();
     };
     if ($('.page-loading').length > 0) {
         $('.page-loading').remove();
@@ -409,11 +349,11 @@ export function init(fun, gt) {
     window.clickMap = (_h = window.clickMap) !== null && _h !== void 0 ? _h : {};
     switch ((_j = gvc.parameter.pageConfig) === null || _j === void 0 ? void 0 : _j.type) {
         case GVCType.Dialog:
-            $('#page' + gvc.parameter.pageConfig.id).html(lifeCycle.onCreateView());
+            $(body).html(lifeCycle.onCreateView());
             glitter.setAnimation(gvc.parameter.pageConfig);
             break;
         case GVCType.Page:
-            $('#page' + gvc.parameter.pageConfig.id).html(lifeCycle.onCreateView());
+            $(body).html(lifeCycle.onCreateView());
             glitter.setAnimation(gvc.parameter.pageConfig);
             break;
     }
@@ -422,15 +362,6 @@ export function init(fun, gt) {
     gvc.parameter.pageConfig.deleteResource = (destroy) => {
         window.clickMap[gvc.parameter.pageConfig.id] = undefined;
         lifeCycle.onPause();
-        gvc.parameter.styleLinks.map((dd) => {
-            $(`#${dd.id}`).remove();
-        });
-        gvc.parameter.styleList.map((dd) => {
-            $(`#${dd.id}`).remove();
-        });
-        gvc.parameter.jsList.map((dd) => {
-            $(`#${dd.id}`).remove();
-        });
         if (destroy) {
             lifeCycle.onDestroy();
         }

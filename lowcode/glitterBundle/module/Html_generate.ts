@@ -413,10 +413,10 @@ ${obj.gvc.bindView({
                                                                         behavior: 'instant',
                                                                     });
                                                                     const scrollTOP =
-                                                                        gvc.getBindViewElem(component).offset().top -
+                                                                        gvc.getBindViewElem(component).offsetTop -
                                                                         gvc.glitter.$('html').offset().top +
                                                                         gvc.glitter.$('html').scrollTop() + (
-                                                                            gvc.getBindViewElem(component).height() / 2
+                                                                            gvc.getBindViewElem(component).offsetHeight / 2
                                                                         );
                                                                     gvc.glitter
                                                                         .$('html')

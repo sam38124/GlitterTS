@@ -44,7 +44,9 @@ init((gvc, glitter, gBundle) => {
                         }
                         let countI = dd.response.data.initialList.length;
                         const vm = {
-                            get count() { return countI; },
+                            get count() {
+                                return countI;
+                            },
                             set count(v) {
                                 countI = v;
                                 if (countI === 0) {
@@ -154,6 +156,7 @@ function toBackendEditor(glitter) {
             'assets/vendor/boxicons/css/boxicons.min.css',
             'assets/css/theme.min.css',
             'css/editor.css',
+            'https://kit.fontawesome.com/cccedec0f8.css'
         ]);
         await new Promise((resolve, reject) => {
             glitter.addMtScript([

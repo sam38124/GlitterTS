@@ -18,15 +18,17 @@ export class Main_editor {
                 view: () => {
                     if (viewModel.selectItem) {
                         return [html `
-                            <div class="w-100 d-flex align-items-center px-3 border-bottom"
-                                 style="height:49px;color:#151515;">
-                                <i class="fa-regular fa-chevron-left me-2 hoverBtn" style="cursor:pointer;"
-                                   onclick="${gvc.event(() => {
+                            <div class="h-100 " style="overflow-y:auto;">
+                                <div class="w-100 d-flex align-items-center px-3 border-bottom"
+                                     style="height:49px;color:#151515;">
+                                    <i class="fa-regular fa-chevron-left me-2 hoverBtn" style="cursor:pointer;"
+                                       onclick="${gvc.event(() => {
                                 viewModel.selectItem = undefined;
                                 gvc.notifyDataChange(vid);
                             })}"></i>
-                                <span class="fw-bold" style="font-size:15px;">${viewModel.selectItem.label}</span>
-                            </div>`, gvc.bindView(() => {
+                                    <span class="fw-bold" style="font-size:15px;">${viewModel.selectItem.label}</span>
+                                </div>
+                                ${gvc.bindView(() => {
                                 return {
                                     bind: `htmlGenerate`,
                                     view: () => {
@@ -73,8 +75,10 @@ export class Main_editor {
                                         }, 1000);
                                     }
                                 };
-                            }),
-                            `<div class="w-100" style="height:50px;"></div>`,
+                            })}
+                                <div class="w-100" style="height:50px;"></div>
+                            </div>
+                           `,
                             html `
                                 <div class="w-100  position-absolute bottom-0 border-top d-flex align-items-center ps-3"
                                      style="height:50px;background:#f6f6f6;font-size:14px;">
@@ -529,7 +533,7 @@ export class Main_editor {
                         `;
                     }
                 },
-                divCreate: { class: `swiper-slide h-auto ` },
+                divCreate: { class: `swiper-slide h-100 ` },
                 onCreate: () => {
                     function check() {
                         if (!viewModel.data) {
