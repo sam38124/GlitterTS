@@ -49,21 +49,39 @@ function traverseHTML(element) {
             $(element).html(glitter.elementCallback[$(element).attr('gvc-id')].getView());
         }
         catch (e) {
+            glitter.deBugMessage(e);
         }
         try {
             glitter.elementCallback[$(element).attr('gvc-id')].updateAttribute();
         }
         catch (e) {
+            glitter.deBugMessage(e);
         }
         try {
             glitter.elementCallback[$(element).attr('gvc-id')].onInitial();
         }
         catch (e) {
+            glitter.deBugMessage(e);
         }
         try {
             glitter.elementCallback[$(element).attr('gvc-id')].onCreate();
         }
         catch (e) {
+            glitter.deBugMessage(e);
+        }
+    }
+    for (let i = 0; i < attributes.length; i++) {
+        if (attributes[i].value.includes('clickMap')) {
+            try {
+                const funString = `${attributes[i].value}`;
+                element.addEventListener(attributes[i].name.replace('on', ''), function () {
+                    eval(funString);
+                });
+                element.removeAttribute(attributes[i].name);
+            }
+            catch (e) {
+                glitter.deBugMessage(e);
+            }
         }
     }
     return result;

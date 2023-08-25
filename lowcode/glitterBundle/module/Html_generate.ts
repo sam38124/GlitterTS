@@ -219,7 +219,7 @@ ${obj.gvc.bindView({
             gvc.glitter.defaultSetting.pageLoading();
             let htmlList: ({ view?: string, fun: () => string })[] = []
             let waitAddScript: string[] = []
-
+            let dataLoading=true
             function getPageData() {
                 htmlList = []
                 const subData2 = subdata
@@ -473,6 +473,7 @@ ${obj.gvc.bindView({
                             index = index + 1
                         }
                         gvc.glitter.defaultSetting.pageLoadingFinish();
+                        dataLoading=false
                         gvc.notifyDataChange(container);
                         gvc.glitter.share.loaginfC = (gvc.glitter.share.loaginfC ?? 0) + 1;
                     })
@@ -496,33 +497,35 @@ ${obj.gvc.bindView({
                     }]
                 },
                 onCreate: () => {
-                    async function loadScript() {
-                        for (const script of setting.filter((dd) => {
-                            return dd.type === 'code' && dd.data.triggerTime === 'last'
-                        })) {
-                            await codeComponent.render(gvc, script as any, setting as any, [], subdata).view()
-                        }
-                        for (const a of waitAddScript) {
+                    if(!dataLoading){
+                        async function loadScript() {
+                            for (const script of setting.filter((dd) => {
+                                return dd.type === 'code' && dd.data.triggerTime === 'last'
+                            })) {
+                                await codeComponent.render(gvc, script as any, setting as any, [], subdata).view()
+                            }
+                            for (const a of waitAddScript) {
 
-                            // console.log(`loadScript:` + a)
-                            await new Promise((resolve, reject) => {
-                                gvc.addMtScript([{
-                                    src: a
-                                }], () => {
-                                    setTimeout(() => {
-                                        resolve(true)
-                                    }, 10)
+                                // console.log(`loadScript:` + a)
+                                await new Promise((resolve, reject) => {
+                                    gvc.addMtScript([{
+                                        src: a
+                                    }], () => {
+                                        setTimeout(() => {
+                                            resolve(true)
+                                        }, 10)
 
-                                }, () => {
-                                    resolve(false)
+                                    }, () => {
+                                        resolve(false)
+                                    })
                                 })
-                            })
+                            }
                         }
+                        loadScript().then(() => {
+                            option.jsFinish && option.jsFinish()
+                        })
                     }
 
-                    loadScript().then(() => {
-                        option.jsFinish && option.jsFinish()
-                    })
                 },
             });
         };

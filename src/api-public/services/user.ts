@@ -37,7 +37,6 @@ export class User {
                     await sendmail(`service@ncdesign.info`, account, `信箱認證`, url)
                 }
             }
-
             await db.execute(`INSERT INTO \`${this.app}\`.\`user\` (\`userID\`, \`account\`, \`pwd\`, \`userData\`, \`status\`)
                               VALUES (?, ?, ?, ?, ?);`, [
                 userID,

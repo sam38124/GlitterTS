@@ -524,9 +524,12 @@ export class Glitter {
         }
     }
     ;
-    deBugMessage(text) {
+    deBugMessage(error) {
         if (this.debugMode) {
-            console.log(text + ` : ${this.ut.dateFormat(new Date(), "yyyy-MM-dd hh:mm:ss")}`);
+            console.log(`${error} : ${this.ut.dateFormat(new Date(), "yyyy-MM-dd hh:mm:ss")}`);
+            console.error('錯誤訊息:', error.message);
+            console.error('錯誤行數:', error.lineNumber);
+            console.error('錯誤位置:', error.columnNumber);
         }
     }
     setUrlParameter(tag, value) {

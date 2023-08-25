@@ -55,13 +55,32 @@ function traverseHTML(element: any) {
         }
     }
     if($(element).attr('glem')==='bindView'){
-        try { $(element).html(glitter.elementCallback[$(element).attr('gvc-id') as string].getView())}catch (e) {
+        try {
+            $(element).html(glitter.elementCallback[$(element).attr('gvc-id') as string].getView())}catch (e) {
+            glitter.deBugMessage(e)
         }
         try {  glitter.elementCallback[$(element).attr('gvc-id') as string].updateAttribute()}catch (e) {
+            glitter.deBugMessage(e)
         }
         try {glitter.elementCallback[$(element).attr('gvc-id') as string].onInitial()}catch (e) {
+            glitter.deBugMessage(e)
         }
         try {  glitter.elementCallback[$(element).attr('gvc-id') as string].onCreate()}catch (e) {
+            glitter.deBugMessage(e)
+        }
+    }
+    for (let i = 0; i < attributes.length; i++) {
+        if(attributes[i].value.includes('clickMap')){
+            try {
+                const funString=`${attributes[i].value}`
+                element.addEventListener(attributes[i].name.replace('on',''), function() {
+                    eval(funString)
+                });
+                element.removeAttribute(attributes[i].name);
+            }catch (e) {
+                glitter.deBugMessage(e)
+            }
+
         }
     }
     // 返回 JSON 結果

@@ -1,8 +1,9 @@
 import { Main_editor } from "./main_editor.js";
-var ViewType;
+export var ViewType;
 (function (ViewType) {
     ViewType["mobile"] = "mobile";
     ViewType["desktop"] = "desktop";
+    ViewType["col3"] = "col3";
     ViewType["fullScreen"] = "fullScreen";
 })(ViewType || (ViewType = {}));
 export class Editor {
@@ -183,6 +184,7 @@ export class Editor {
                                             <div style="background:#f1f1f1;border-radius:10px;"
                                                  class="d-flex align-items-center justify-content-center p-1 ">
                                                 ${[
+                        { icon: 'fa-regular fa-columns-3', type: ViewType.col3 },
                         { icon: 'fa-regular fa-desktop', type: ViewType.desktop },
                         { icon: 'fa-regular fa-mobile', type: ViewType.mobile },
                         { icon: 'fa-solid fa-expand', type: ViewType.fullScreen }
@@ -223,7 +225,7 @@ export class Editor {
                     <aside
                             id="componentsNav"
                             class="${(viewModel.type === ViewType.fullScreen) ? `d-none` : ``} offcanvas offcanvas-start offcanvas-expand-lg position-fixed top-0 start-0 vh-100 bg-light border-end-lg overflow-auto"
-                            style="width: 21rem;"
+                            style="width: 20rem;"
                     >
                         <div class="offcanvas-header d-none d-lg-flex justify-content-start border-bottom px-0"
                              style="height: 56px;">
@@ -243,26 +245,11 @@ export class Editor {
 
                             </div>
                         </div>
-                        <div class="offcanvas-header d-block d-lg-none border-bottom">
-                            <div class="d-flex align-items-center justify-content-between">
-                                <h5 class="d-lg-none mb-0">Menu</h5>
-                                <button type="button" class="btn-close d-lg-none" data-bs-dismiss="offcanvas"></button>
-                            </div>
-
-                            <div class="d-flex mt-4">
-                                <div class="form-check form-switch mode-switch pe-lg-1 ms-lg-auto d-sm-none"
-                                     data-bs-toggle="mode">
-                                    <input type="checkbox" class="form-check-input" id="theme-mode"/>
-                                    <label class="form-check-label  d-sm-block d-lg-none d-xl-block" for="theme-mode">Light</label>
-                                    <label class="form-check-label  d-sm-block d-lg-none d-xl-block" for="theme-mode">Dark</label>
-                                </div>
-                            </div>
-                        </div>
                         ${left}
                     </aside>
                     <!-- Page container -->
                     <main class="docs-container"
-                          style="padding-top: 40px;padding-right:0px;${(viewModel.type === ViewType.fullScreen) ? `padding-left:0px;` : ``}">
+                          style="padding-top: 40px;padding-right:${(viewModel.type === ViewType.col3) ? `290` : `0`}px;${(viewModel.type === ViewType.fullScreen) ? `padding-left:0px;` : ``}">
                         ${gvc.bindView({
                 dataList: [{ obj: viewModel, key: "type" }],
                 bind: `showView`,
@@ -277,11 +264,23 @@ export class Editor {
                 divCreate: {}
             })}
                     </main>
-
+                    ${gvc.bindView(() => {
+                const id = 'right_NAV';
+                return {
+                    bind: id,
+                    view: () => {
+                        return Main_editor.editorContent(gvc, data);
+                    },
+                    divCreate: {
+                        elem: `aside`,
+                        class: `p-0  side-nav-end  position-fixed top-0 end-0 vh-100 border-start  bg-white ${(viewModel.type === ViewType.col3) ? `` : `d-none`}`, style: `width: 290px;padding-top:60px !important;`
+                    }
+                };
+            })}
 
                     <!-- Back to top button -->
-                    <a href="#top" class="btn-scroll-top" data-scroll>
-                        <span class="btn-scroll-top-tooltip text-muted fs-sm me-2">Top</span>
+                    <a href="#top" class="btn-scroll-top " data-scroll>
+                        <span class="btn-scroll-top-tooltip text-muted fs-sm me-2" style="">Top</span>
                         <i class="btn-scroll-top-icon bx bx-chevron-up"></i>
                     </a>
                     <!--                  -->

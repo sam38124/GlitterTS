@@ -54,6 +54,7 @@ export class HtmlGenerate {
             gvc.glitter.defaultSetting.pageLoading();
             let htmlList = [];
             let waitAddScript = [];
+            let dataLoading = true;
             function getPageData() {
                 htmlList = [];
                 const subData2 = subdata;
@@ -295,6 +296,7 @@ export class HtmlGenerate {
                             index = index + 1;
                         }
                         gvc.glitter.defaultSetting.pageLoadingFinish();
+                        dataLoading = false;
                         gvc.notifyDataChange(container);
                         gvc.glitter.share.loaginfC = ((_a = gvc.glitter.share.loaginfC) !== null && _a !== void 0 ? _a : 0) + 1;
                     });
@@ -315,29 +317,31 @@ export class HtmlGenerate {
                         }]
                 },
                 onCreate: () => {
-                    async function loadScript() {
-                        for (const script of setting.filter((dd) => {
-                            return dd.type === 'code' && dd.data.triggerTime === 'last';
-                        })) {
-                            await codeComponent.render(gvc, script, setting, [], subdata).view();
-                        }
-                        for (const a of waitAddScript) {
-                            await new Promise((resolve, reject) => {
-                                gvc.addMtScript([{
-                                        src: a
-                                    }], () => {
-                                    setTimeout(() => {
-                                        resolve(true);
-                                    }, 10);
-                                }, () => {
-                                    resolve(false);
+                    if (!dataLoading) {
+                        async function loadScript() {
+                            for (const script of setting.filter((dd) => {
+                                return dd.type === 'code' && dd.data.triggerTime === 'last';
+                            })) {
+                                await codeComponent.render(gvc, script, setting, [], subdata).view();
+                            }
+                            for (const a of waitAddScript) {
+                                await new Promise((resolve, reject) => {
+                                    gvc.addMtScript([{
+                                            src: a
+                                        }], () => {
+                                        setTimeout(() => {
+                                            resolve(true);
+                                        }, 10);
+                                    }, () => {
+                                        resolve(false);
+                                    });
                                 });
-                            });
+                            }
                         }
+                        loadScript().then(() => {
+                            option.jsFinish && option.jsFinish();
+                        });
                     }
-                    loadScript().then(() => {
-                        option.jsFinish && option.jsFinish();
-                    });
                 },
             });
         };

@@ -66,6 +66,7 @@ init((gvc, glitter, gBundle) => {
             })+gvc.bindView({
                 bind: 'main',
                 view: () => {
+
                     if(vm.loading){
                         return ``
                     }

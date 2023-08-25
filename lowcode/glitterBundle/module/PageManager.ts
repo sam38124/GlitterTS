@@ -158,7 +158,6 @@ background: ${config!.backGroundColor};display: none;z-index: 9999;overflow: hid
                 glitter.pageConfig = [];
                 glitter.pageConfig.push(config);
                 glitter.setUrlParameter('page', tag);
-
             } else {
                 glitter.addMtScript([{
                     src: url,
