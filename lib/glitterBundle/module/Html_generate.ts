@@ -66,7 +66,8 @@ export class HtmlGenerate {
                                     (widget as any).refreshComponent()
                                 }
                             },
-                            data: data
+                            data: data,
+                            option:option
                         })
                     })
                 }">${title ?? "設計樣式"}</div><br>`;
@@ -106,7 +107,9 @@ export class HtmlGenerate {
     } {
         const glitter = (gvc ?? (window as any)).glitter
         const response = {
-            editor: (gvc: GVC, widget: HtmlJson | (() => void), title?: string, option?: any) => {
+            editor: (gvc: GVC, widget: HtmlJson | (() => void), title?: string, option?: {
+                writeOnly:string[]
+            }) => {
                 const glitter = (window as any).glitter;
                 return `
 <div type="button" class="btn  w-100 " style="background:white;width:calc(100%);border-radius:8px;
@@ -120,6 +123,7 @@ export class HtmlGenerate {
                                     (widget as any).refreshComponent()
                                 }
                             },
+                            option:option,
                             data: data
                         })
                     })

@@ -15,7 +15,6 @@ import db from './modules/database';
 import {createBucket, listBuckets} from "./modules/AWSLib";
 import AWS from "aws-sdk";
 import {Live_source} from "./live_source";
-import {set_frontend} from "../index";
 
 //Glitter FrontEnd Rout
 export const app = express();

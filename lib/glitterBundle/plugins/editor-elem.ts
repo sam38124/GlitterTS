@@ -78,7 +78,10 @@ export class EditorElem {
                 style: `max-height:400px!important;min-height:100px;`,
                 class: `form-control`, option: [
                     {key: 'placeholder', value: obj.placeHolder},
-                    {key: 'onchange', value: obj.gvc.event((e) => {obj.callback(e.value);})
+                    {
+                        key: 'onchange', value: obj.gvc.event((e) => {
+                            obj.callback(e.value);
+                        })
                     }
                 ]
             },
@@ -495,10 +498,50 @@ export class EditorElem {
         `;
     }
 
-    public static arrayItem(obj: {
+    public static editerDialog(par:{
+        gvc: GVC,
+        dialog: (gvc: GVC) => string,
+        width?:string,
+        editTitle?:string
+    }) {
+        const html = String.raw
+        return `<div type="button" class="btn  w-100 " style="background:white;width:calc(100%);border-radius:8px;
+                    min-height:45px;border:1px solid black;color:#151515;" onclick="${par.gvc.event(() => {
+            par.gvc.glitter.innerDialog((gvc: GVC) => {
+                return html`
+                    <div class="dropdown-menu mx-0 position-fixed pb-0 border p-0 show"
+                         style="z-index:999999;${(par.width) ? `width:${par.width};` : ``};"
+                         onclick="${gvc.event((e: any, event: any) => {
+                    event.preventDefault()
+                    event.stopPropagation()
+                })}">
+                        <div class="d-flex align-items-center px-2 border-bottom"
+                             style="height:50px;min-width:400px;">
+                            <h3 style="font-size:15px;font-weight:500;" class="m-0">
+                                ${par.editTitle ? par.editTitle : `編輯內容`}</h3>
+                            <div class="flex-fill"></div>
+                            <div class="hoverBtn p-2" data-bs-toggle="dropdown"
+                                 aria-haspopup="true" aria-expanded="false"
+                                 style="color:black;font-size:20px;"
+                                 onclick="${gvc.event((e: any, event: any) => {
+                    gvc.closeDialog()
+                })}"><i
+                                    class="fa-sharp fa-regular fa-circle-xmark"></i>
+                            </div>
+                        </div>
+                        <div class="px-2 pb-2"
+                             style="max-height:calc(100vh - 150px);overflow-y:auto;">
+                            ${par.dialog(gvc)}
+                        </div>
+                    </div>`
+            }, par.gvc.glitter.getUUID())
+        })}">${par.editTitle}</div>`
+    }
+
+    public static   arrayItem(obj: {
         gvc: any;
         title: string;
-        array: () => { title: string; innerHtml: string | ((gvc: GVC) => string); editTitle?: string, saveEvent?: () => void, width?: string,saveAble?:boolean }[];
+        array: () => { title: string; innerHtml: string | ((gvc: GVC) => string); editTitle?: string, saveEvent?: () => void, width?: string, saveAble?: boolean }[];
         originalArray: any,
         expand: any;
         plus?: {
@@ -633,15 +676,15 @@ export class EditorElem {
                                     <div class="editor_item d-flex   px-2 my-0 hi me-n1 "
                                          style=""
                                          onclick="${gvc.event(() => {
-                                             const originalData = JSON.parse(JSON.stringify(original[index]))
-                                             gvc.glitter.innerDialog((gvc: GVC) => {
-                                                 return html`
+                                const originalData = JSON.parse(JSON.stringify(original[index]))
+                                gvc.glitter.innerDialog((gvc: GVC) => {
+                                    return html`
                                                      <div class="dropdown-menu mx-0 position-fixed pb-0 border p-0 show"
                                                           style="z-index:999999;${(dd.width) ? `width:${dd.width};` : ``};"
                                                           onclick="${gvc.event((e: any, event: any) => {
-                                                              event.preventDefault()
-                                                              event.stopPropagation()
-                                                          })}">
+                                        event.preventDefault()
+                                        event.stopPropagation()
+                                    })}">
                                                          <div class="d-flex align-items-center px-2 border-bottom"
                                                               style="height:50px;min-width:400px;">
                                                              <h3 style="font-size:15px;font-weight:500;" class="m-0">
@@ -651,10 +694,10 @@ export class EditorElem {
                                                                   aria-haspopup="true" aria-expanded="false"
                                                                   style="color:black;font-size:20px;"
                                                                   onclick="${gvc.event((e: any, event: any) => {
-                                                                      original[index] = originalData
-                                                                      gvc.closeDialog()
-                                                                      obj.refreshComponent()
-                                                                  })}"><i
+                                        original[index] = originalData
+                                        gvc.closeDialog()
+                                        obj.refreshComponent()
+                                    })}"><i
                                                                      class="fa-sharp fa-regular fa-circle-xmark"></i>
                                                              </div>
                                                          </div>
@@ -663,35 +706,36 @@ export class EditorElem {
                                                              ${dd.innerHtml(gvc)}
                                                          </div>
 
-                                                         <div class="d-flex w-100 p-2 border-top ${(dd.saveAble===false) ? `d-none`:``}">
+                                                         <div class="d-flex w-100 p-2 border-top ${(dd.saveAble === false) ? `d-none` : ``}">
                                                              <div class="flex-fill"></div>
                                                              <div class="btn btn-secondary"
                                                                   style="height:40px;width:80px;"
                                                                   onclick="${gvc.event(() => {
-                                                                      original[index] = originalData
-                                                                      gvc.closeDialog()
-                                                                      obj.refreshComponent()
-                                                                  })}">取消
+                                        original[index] = originalData
+                                        gvc.closeDialog()
+                                        obj.refreshComponent()
+                                    })}">取消
                                                              </div>
                                                              <div class="btn btn-primary-c ms-2"
                                                                   style="height:40px;width:80px;"
                                                                   onclick="${gvc.event(() => {
-                                                                      gvc.closeDialog();
-                                                                      (dd.saveEvent && dd.saveEvent()) || obj.refreshComponent();
-                                                                  })}"><i class="fa-solid fa-floppy-disk me-2"></i>儲存
+                                        gvc.closeDialog();
+                                        (dd.saveEvent && dd.saveEvent()) || obj.refreshComponent();
+                                    })}"><i class="fa-solid fa-floppy-disk me-2"></i>儲存
                                                              </div>
                                                          </div>
 
                                                      </div>`
-                                             }, glitter.getUUID())
-                                         })}"
+                                }, glitter.getUUID())
+                            })}"
                                     >
                                         <div class="subBt ms-n2 ${(obj.minus === false) ? `d-none` : ``}"
                                              onclick="${gvc.event((e: any, event: any) => {
-                                                 obj.originalArray.splice(index, 1)
-                                                 gvc.notifyDataChange(viewId)
-                                                 event.stopPropagation()
-                                             })}">
+                                obj.originalArray.splice(index, 1)
+                                obj.refreshComponent()
+                                gvc.notifyDataChange(viewId)
+                                event.stopPropagation()
+                            })}">
                                             <i class="fa-regular fa-circle-minus d-flex align-items-center justify-content-center subBt "
                                                style="width:15px;height:15px;color:red;"
                                             ></i>
@@ -701,38 +745,38 @@ export class EditorElem {
                                         <div class="flex-fill"></div>
                                         <div class="subBt ${(obj.copyable === false) ? `d-none` : ``}"
                                              onclick="${gvc.event((e: any, event: any) => {
-                                                 obj.originalArray.push(original[index])
-                                                 swal.toast({
-                                                     icon: 'success',
-                                                     title: "複製成功．"
-                                                 })
-                                                 gvc.notifyDataChange(viewId)
-                                                 event.stopPropagation()
-                                             })}">
+                                obj.originalArray.push(original[index])
+                                swal.toast({
+                                    icon: 'success',
+                                    title: "複製成功．"
+                                })
+                                gvc.notifyDataChange(viewId)
+                                event.stopPropagation()
+                            })}">
                                             <i class="fa-sharp fa-regular fa-scissors d-flex align-items-center justify-content-center subBt"
                                                style="width:15px;height:15px;"
                                             ></i>
                                         </div>
                                         <div class="subBt ${(obj.draggable === false) ? `d-none` : ``}" onmousedown="${
-                                                gvc.event((e: any, event: any) => {
-                                                    dragModel.firstIndex = index
-                                                    dragModel.currentIndex = index
-                                                    dragModel.draggableElement = glitter.getUUID()
-                                                    dragModel.dragStart = event.clientY
-                                                    dragModel.dragOffsetY = $(e).parent().parent().get(0).offsetTop;
-                                                    dragModel.maxHeight = ($(e).parent().parent().parent().height() as number);
-                                                    $(e).parent().addClass('d-none')
-                                                    dragModel.hover_item = []
-                                                    $(e).parent().parent().append(`<div class="editor_item active  hv"></div>`)
-                                                    $(e).parent().parent().parent().addClass('select_container')
-                                                    $('.select_container').children().each(function (index) {
-                                                        // 在這裡執行對每個 li 元素的操作
-                                                        dragModel.hover_item.push({
-                                                            elem: $(this),
-                                                            offsetTop: $(this).get(0)!.offsetTop
-                                                        })
-                                                    });
-                                                    $(e).parent().parent().parent().append(html`
+                                gvc.event((e: any, event: any) => {
+                                    dragModel.firstIndex = index
+                                    dragModel.currentIndex = index
+                                    dragModel.draggableElement = glitter.getUUID()
+                                    dragModel.dragStart = event.clientY
+                                    dragModel.dragOffsetY = $(e).parent().parent().get(0).offsetTop;
+                                    dragModel.maxHeight = ($(e).parent().parent().parent().height() as number);
+                                    $(e).parent().addClass('d-none')
+                                    dragModel.hover_item = []
+                                    $(e).parent().parent().append(`<div class="editor_item active  hv"></div>`)
+                                    $(e).parent().parent().parent().addClass('select_container')
+                                    $('.select_container').children().each(function (index) {
+                                        // 在這裡執行對每個 li 元素的操作
+                                        dragModel.hover_item.push({
+                                            elem: $(this),
+                                            offsetTop: $(this).get(0)!.offsetTop
+                                        })
+                                    });
+                                    $(e).parent().parent().parent().append(html`
                                                         <l1 class="btn-group position-absolute  "
                                                             style="width:${($(e).parent().parent().width() as any) - 50}px;right:15px;top:${dragModel.dragOffsetY}px;z-index:99999;border-radius:10px;background:white!important;"
                                                             id="${dragModel.draggableElement}">
@@ -746,9 +790,9 @@ export class EditorElem {
                                                                    style="width:20px;height:20px;"></i>
                                                             </div>
                                                         </l1>`)
-                                                    document.addEventListener("mouseup", mup_Linstener);
-                                                    document.addEventListener("mousemove", move_Linstener);
-                                                })}">
+                                    document.addEventListener("mouseup", mup_Linstener);
+                                    document.addEventListener("mousemove", move_Linstener);
+                                })}">
                                             <i class="fa-solid fa-grip-dots-vertical d-flex align-items-center justify-content-center  "
                                                style="width:15px;height:15px;"></i>
                                         </div>

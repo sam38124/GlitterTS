@@ -3,6 +3,7 @@ import {EditorElem} from "./editor-elem.js";
 import {styleAttr} from "./style-attr.js";
 
 init((gvc, glitter, gBundle) => {
+    const option=gBundle.option ?? {}
     const design: {
         style: string,
         class: string,
@@ -46,12 +47,13 @@ init((gvc, glitter, gBundle) => {
             })}"></i>
 </div>    
 <div class="w-100 p-3">
-${gvc.map([
-                glitter.htmlGenerate.editeText({
-                    gvc: gvc,
-                    title: 'Class參數',
-                    default: design.class,
-                    placeHolder: `請輸入Class樣式或程式碼\n譬如:
+${(()=>{
+                return [
+                    `<div class="${(!option.writeOnly||option.writeOnly.indexOf('class')!==-1) ? ``:`d-none`}">${glitter.htmlGenerate.editeText({
+                        gvc: gvc,
+                        title: 'Class參數',
+                        default: design.class,
+                        placeHolder: `請輸入Class樣式或程式碼\n譬如:
         -(()=>{
         const a=true
         if(abc){
@@ -60,134 +62,136 @@ ${gvc.map([
          return 'text-white'
         }
         })()．`,
-                    callback: (text) => {
-                        design.class = text
-                    }
-                }),
-                glitter.htmlGenerate.editeText({
-                    gvc: gvc,
-                    title: `Style樣式`,
-                    default: design.style,
-                    placeHolder: `輸入Style樣式或者程式碼\n譬如:
+                        callback: (text) => {
+                            design.class = text
+                        }
+                    })}</div>`,
+                    `<div class="${(!option.writeOnly||option.writeOnly.indexOf('style')!==-1) ? ``:`d-none`}">${  glitter.htmlGenerate.editeText({
+                        gvc: gvc,
+                        title: `Style樣式`,
+                        default: design.style,
+                        placeHolder: `輸入Style樣式或者程式碼\n譬如:
         -(()=>{ const a=true
         if(abc){
         return 'color:red;font-size:20px;'
         }else{
          return 'color:red;'
         }})()`,
-                    callback: (text) => {
-                        design.style = text
-                    }
-                }),
-                `
-${EditorElem.h3("設計特徵")}
+                        callback: (text) => {
+                            design.style = text
+                        }
+                    })}</div>`,
+             `
 ${gvc.bindView(() => {
-                    const idl = glitter.getUUID()
-
-                    return {
-                        bind: idl,
-                        view: () => {
-                            return `<div class="alert-success alert ">
+                 const idl = glitter.getUUID()
+                 return {
+                     bind: idl,
+                     view: () => {
+                         return `${EditorElem.h3("設計特徵")}<div class="alert-success alert ">
 ${design.styleList.map((dd, index) => {
-                                let title = (styleAttr.find((d2) => {
-                                    return dd.tag === d2.tag
-                                }) ?? {}).title ?? "尚未設定";
-                                return `
+                             let title = (styleAttr.find((d2) => {
+                                 return dd.tag === d2.tag
+                             }) ?? {}).title ?? "尚未設定";
+                             return `
     ${EditorElem.toggleExpand({
-                                    gvc: gvc, title: EditorElem.minusTitle(title, gvc.event(() => {
-                                        design.styleList.splice(index, 1)
-                                        gvc.notifyDataChange(idl)
-                                    })), data: dd, innerText: (() => {
-                                        return `
+                                 gvc: gvc, title: EditorElem.minusTitle(title, gvc.event(() => {
+                                     design.styleList.splice(index, 1)
+                                     gvc.notifyDataChange(idl)
+                                 })), data: dd, innerText: (() => {
+                                     return `
 <div class="mb-2">
 </div>
 <div class="btn-group dropdown w-100" style="">
   ${(() => {
-                                            let title = (styleAttr.find((d2) => {
-                                                return dd.tag === d2.tag
-                                            }) ?? {}).title ?? "";
-                                            const id = glitter.getUUID()
-                                            const id2 = glitter.getUUID()
+                                         let title = (styleAttr.find((d2) => {
+                                             return dd.tag === d2.tag
+                                         }) ?? {}).title ?? "";
+                                         const id = glitter.getUUID()
+                                         const id2 = glitter.getUUID()
 
-                                            return `
+                                         return `
 ${gvc.bindView(() => {
-                                                return {
-                                                    bind: id2,
-                                                    view: () => {
-                                                        return `<input class="form-control w-100" style="height: 40px;" placeholder="關鍵字搜尋" onfocus="${gvc.event(() => {
-                                                            $('#' + gvc.id(id)).addClass(`show`)
-                                                        })}" onblur="${gvc.event(() => {
-                                                            setTimeout(() => {
-                                                                $('#' + gvc.id(id)).removeClass(`show`)
-                                                            }, 300)
-                                                        })}" oninput="${gvc.event((e) => {
-                                                            title = e.value
-                                                            dd.tag = (styleAttr.find((d2) => {
-                                                                return d2.title == e.value
-                                                            }) ?? {}).tag
-                                                            gvc.notifyDataChange(styleContainer)
-                                                            gvc.notifyDataChange(id)
-                                                        })}" value="${title}">`
-                                                    },
-                                                    divCreate: {class: `w-100`}
-                                                }
-                                            })}
+                                             return {
+                                                 bind: id2,
+                                                 view: () => {
+                                                     return `<input class="form-control w-100" style="height: 40px;" placeholder="關鍵字搜尋" onfocus="${gvc.event(() => {
+                                                         $('#' + gvc.id(id)).addClass(`show`)
+                                                     })}" onblur="${gvc.event(() => {
+                                                         setTimeout(() => {
+                                                             $('#' + gvc.id(id)).removeClass(`show`)
+                                                         }, 300)
+                                                     })}" oninput="${gvc.event((e) => {
+                                                         title = e.value
+                                                         dd.tag = (styleAttr.find((d2) => {
+                                                             return d2.title == e.value
+                                                         }) ?? {}).tag
+                                                         gvc.notifyDataChange(styleContainer)
+                                                         gvc.notifyDataChange(id)
+                                                     })}" value="${title}">`
+                                                 },
+                                                 divCreate: {class: `w-100`}
+                                             }
+                                         })}
 ${gvc.bindView(() => {
-                                                return {
-                                                    bind: id,
-                                                    view: () => {
-                                                        return styleAttr.filter((d2) => {
-                                                            return d2.title.indexOf(title) !== -1
-                                                        }).map((d3) => {
-                                                            return `<button  class="dropdown-item" onclick="${gvc.event(() => {
-                                                                dd.tag = d3.tag
-                                                                title = d3.title
-                                                                gvc.notifyDataChange(idl)
-                                                            })}">${d3.title}</button>`
-                                                        }).join('')
-                                                    },
-                                                    divCreate: {
-                                                        class: `dropdown-menu`,
-                                                        style: `transform: translateY(40px);max-height: 200px;overflow-y:scroll;`
-                                                    }
-                                                }
-                                            })}                                 
+                                             return {
+                                                 bind: id,
+                                                 view: () => {
+                                                     return styleAttr.filter((d2) => {
+                                                         return d2.title.indexOf(title) !== -1
+                                                     }).map((d3) => {
+                                                         return `<button  class="dropdown-item" onclick="${gvc.event(() => {
+                                                             dd.tag = d3.tag
+                                                             title = d3.title
+                                                             gvc.notifyDataChange(idl)
+                                                         })}">${d3.title}</button>`
+                                                     }).join('')
+                                                 },
+                                                 divCreate: {
+                                                     class: `dropdown-menu`,
+                                                     style: `transform: translateY(40px);max-height: 200px;overflow-y:scroll;`
+                                                 }
+                                             }
+                                         })}                                 
                                             `
-                                        })()}
+                                     })()}
 </div>
 ${gvc.bindView(() => {
-                                            return {
-                                                bind: styleContainer,
-                                                view: () => {
-                                                    let data = (styleAttr.find((d2) => {
-                                                        return dd.tag === d2.tag
-                                                    }))
-                                                    if (data) {
-                                                        return data!.innerHtml(gvc, dd.data)
-                                                    } else {
-                                                        return ``
-                                                    }
-                                                },
-                                                divCreate: {}
-                                            }
-                                        })}           
+                                         return {
+                                             bind: styleContainer,
+                                             view: () => {
+                                                 let data = (styleAttr.find((d2) => {
+                                                     return dd.tag === d2.tag
+                                                 }))
+                                                 if (data) {
+                                                     return data!.innerHtml(gvc, dd.data)
+                                                 } else {
+                                                     return ``
+                                                 }
+                                             },
+                                             divCreate: {}
+                                         }
+                                     })}           
 `
-                                    })
-                                })}`
-                            }).join('<div class="my-2"></div>')}
+                                 })
+                             })}`
+                         }).join('<div class="my-2"></div>')}
 ${EditorElem.plusBtn("添加特徵", gvc.event((e, event) => {
-                                design.styleList.push({
-                                    tag: "",
-                                    data: {}
-                                })
-                                gvc.notifyDataChange(idl)
-                            }))}
+                             design.styleList.push({
+                                 tag: "",
+                                 data: {}
+                             })
+                             gvc.notifyDataChange(idl)
+                         }))}
 </div>`
-                        },
-                        divCreate: {}
-                    }
-                })}
-                <button class="w-100 btn btn-primary" onclick="${gvc.event(() => {
+                     },
+                     divCreate: {class:(!option.writeOnly||option.writeOnly.indexOf('attr')!==-1) ? ``:`d-none`}
+                 }
+             })}`     
+                ].join('')
+            })()}
+${gvc.map([
+                `
+                <button class="w-100 btn btn-primary mt-2" onclick="${gvc.event(() => {
                     gBundle.callback()
                     glitter.closeDiaLog(gvc.parameter.pageConfig?.tag)
                 })}">

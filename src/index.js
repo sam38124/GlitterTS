@@ -39,7 +39,7 @@ const saas_table_check_1 = require("./services/saas-table-check");
 const database_2 = __importDefault(require("./modules/database"));
 const AWSLib_1 = require("./modules/AWSLib");
 const aws_sdk_1 = __importDefault(require("aws-sdk"));
-const live_source_js_1 = require("./live_source.js");
+const live_source_1 = require("./live_source");
 exports.app = (0, express_1.default)();
 const logger = new logger_1.default();
 const corsOptions = {
@@ -162,7 +162,7 @@ async function createAppRoute() {
     }
 }
 async function createAPP(dd) {
-    live_source_js_1.Live_source.liveAPP.push(dd.appName);
+    live_source_1.Live_source.liveAPP.push(dd.appName);
     return await Glitter.setUP(exports.app, [
         {
             rout: '/' + encodeURI(dd.appName),
@@ -225,7 +225,6 @@ async function createAPP(dd) {
                         if (data && data.page_config) {
                             const d = (_b = data.page_config.seo) !== null && _b !== void 0 ? _b : {};
                             return `<title>${(_c = d.title) !== null && _c !== void 0 ? _c : "尚未設定標題"}</title>
-    <script src="assets/vendor/bootstrap/dist/js/bootstrap.bundle.min.js" ></script>
  <link rel="canonical" href="./?page=${data.tag}">
     <meta name="keywords" content="${(_d = d.keywords) !== null && _d !== void 0 ? _d : "尚未設定關鍵字"}" />
     <link id="appImage" rel="shortcut icon" href="${(_e = d.logo) !== null && _e !== void 0 ? _e : ""}" type="image/x-icon">
