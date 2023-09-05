@@ -167,6 +167,7 @@ function toBackendEditor(glitter: Glitter) {
         await new Promise((resolve, reject) => {
             glitter.addMtScript(
                 [
+                    'https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js',
                     'https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js',
                     'assets/vendor/smooth-scroll/dist/smooth-scroll.polyfills.min.js',
                     'assets/vendor/swiper/swiper-bundle.min.js',

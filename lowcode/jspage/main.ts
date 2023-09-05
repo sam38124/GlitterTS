@@ -111,7 +111,6 @@ init((gvc, glitter, gBundle) => {
                         viewModel.initialCode = data.response.data.initialCode ?? "";
                         viewModel.homePage = data.response.data.homePage ?? ""
                         viewModel.backendPlugins = data.response.data.backendPlugins ?? []
-
                         async function load() {
                             for (const a of [{
                                 src:{
