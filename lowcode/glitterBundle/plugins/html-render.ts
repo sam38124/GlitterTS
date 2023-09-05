@@ -6,11 +6,27 @@ init((gvc, glitter, gBundle) => {
     gBundle.app_config=gBundle.app_config??{}
     gBundle.app_config.globalStyle=gBundle.app_config.globalStyle??[]
     gBundle.app_config.globalScript=gBundle.app_config.globalScript??[]
-    // alert(JSON.stringify(gBundle.app_config.globalScript))
+
     const vm={
         loading:true
     };
     async function load(){
+        await (new Promise(async (resolve, reject)=>{
+            for (const b of gBundle.app_config.initialList ?? []){
+                try {
+                    await TriggerEvent.trigger({
+                        gvc: gvc, widget: b as any, clickEvent: b.src.event
+                    }).then(() => {
+                        resolve(true)
+                    }).catch(() => {
+                        resolve(true)
+                    })
+                } catch (e) {
+                    resolve(true)
+                }
+            }
+
+        }));
         await (new Promise(async (resolve, reject)=>{
             (gBundle.page_config.initialList ?? []).map((dd:any)=>{
                 if(dd.when==='initial'){
@@ -42,11 +58,7 @@ init((gvc, glitter, gBundle) => {
                 }catch (e){}
             }
         })
-
     };
-
-    // gBundle.app_config.globalScript.
-
 
 
     return {

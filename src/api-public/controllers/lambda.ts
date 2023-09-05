@@ -14,7 +14,7 @@ router.post('/', async (req: express.Request, resp: express.Response) => {
     try {
         const post = new Post(req.get('g-app') as string,req.body.token);
         const postData = req.body.data;
-        const data=(await post.lambda(req.body.router,postData,'post'))
+        const data=(await post.lambda(req.query,req.body.router,postData,'post'))
         return response.succ(resp, data);
     } catch (err) {
         return response.fail(resp, err);
@@ -24,7 +24,7 @@ router.get('/', async (req: express.Request, resp: express.Response) => {
     try {
         const post = new Post(req.get('g-app') as string,req.body.token);
         const postData = req.query.data;
-        const data=(await post.lambda(req.query.router as string,postData,'get'))
+        const data=(await post.lambda(req.query,req.query.router as string,postData,'get'))
         return response.succ(resp, data);
     } catch (err) {
         return response.fail(resp, err);
@@ -34,7 +34,7 @@ router.delete('/', async (req: express.Request, resp: express.Response) => {
     try {
         const post = new Post(req.get('g-app') as string,req.body.token);
         const postData = req.body.data;
-        const data=(await post.lambda(req.body.router,postData,'delete'))
+        const data=(await post.lambda(req.query,req.body.router,postData,'delete'))
         return response.succ(resp, data);
     } catch (err) {
         return response.fail(resp, err);
@@ -44,7 +44,7 @@ router.put('/', async (req: express.Request, resp: express.Response) => {
     try {
         const post = new Post(req.get('g-app') as string,req.body.token);
         const postData = req.body.data;
-        const data=(await post.lambda(req.body.router,postData,'put'))
+        const data=(await post.lambda(req.query,req.body.router,postData,'put'))
         return response.succ(resp, data);
     } catch (err) {
         return response.fail(resp, err);

@@ -44,7 +44,9 @@ init((gvc, glitter, gBundle) => {
                         }
                         let countI = dd.response.data.initialList.length;
                         const vm = {
-                            get count() { return countI; },
+                            get count() {
+                                return countI;
+                            },
                             set count(v) {
                                 countI = v;
                                 if (countI === 0) {
@@ -132,6 +134,17 @@ init((gvc, glitter, gBundle) => {
                                 url.searchParams.set('page', data.response.redirect);
                                 location.href = url.href;
                                 return;
+                            }
+                            try {
+                                gvc.glitter.addMtScript(data.response.result[0].config.map((dd) => {
+                                    return { src: `${gvc.glitter.htmlGenerate.resourceHook(dd.js)}`, type: 'module' };
+                                }), () => {
+                                }, () => {
+                                }, [
+                                    { key: "async", value: "true" }
+                                ]);
+                            }
+                            catch (e) {
                             }
                             glitter.htmlGenerate.setHome({
                                 app_config: vm.appConfig,

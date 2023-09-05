@@ -33,9 +33,9 @@ init((gvc, glitter, gBundle) => {
         appConfig: any,
         globalScript: any,
         globalStyle: any,
-        appName:string
+        appName: string
     } = {
-        appName:gBundle.appName,
+        appName: gBundle.appName,
         appConfig: undefined,
         dataList: undefined,
         data: undefined,
@@ -113,7 +113,11 @@ init((gvc, glitter, gBundle) => {
                         viewModel.backendPlugins = data.response.data.backendPlugins ?? []
 
                         async function load() {
-                            for (const a of viewModel.initialJS) {
+                            for (const a of [{
+                                src:{
+                                    official:"official_event/event.js"
+                                }
+                            }].concat(viewModel.initialJS)) {
                                 await new Promise((resolve) => {
                                     glitter.addMtScript([{
                                         src: glitter.htmlGenerate.resourceHook(a.src.official) + `?resource=${a.src.official}`,
@@ -189,7 +193,7 @@ init((gvc, glitter, gBundle) => {
                 }),
                 (async () => {
                     return new Promise(async resolve => {
-                        viewModel.appConfig.homePage=viewModel.homePage
+                        viewModel.appConfig.homePage = viewModel.homePage
                         viewModel.appConfig.globalStyle = viewModel.globalStyle
                         viewModel.appConfig.globalScript = viewModel.globalScript
                         const api = await ApiPageConfig.setPlugin(gBundle.appName, viewModel.appConfig)
@@ -225,13 +229,14 @@ init((gvc, glitter, gBundle) => {
         viewModel.selectItem = undefined;
     }
     glitter.share.copycomponent = undefined
-    glitter.share.pastEvent=()=>{
-        if(!glitter.share.copycomponent){
+    glitter.share.pastEvent = () => {
+        if (!glitter.share.copycomponent) {
             swal.nextStep(`請先複製元件`, () => {
             }, 'error');
             return
         }
         var copy = JSON.parse(glitter.share.copycomponent)
+
         function checkId(dd: any) {
             copy.id = glitter.getUUID()
             if (dd.type === 'container') {
@@ -240,13 +245,14 @@ init((gvc, glitter, gBundle) => {
                 })
             }
         }
+
         checkId(copy)
         glitter.setCookie('lastSelect', copy.id);
         viewModel.selectContainer.splice(0, 0, copy)
         viewModel.selectItem = undefined;
         gvc.notifyDataChange(createID)
     }
-    glitter.share.inspect=glitter.share.inspect ?? true
+    glitter.share.inspect = glitter.share.inspect ?? true
     return {
         onCreateView: () => {
             return gvc.bindView({
@@ -298,13 +304,13 @@ onclick="${gvc.event(() => {
                                                                     case Page_editor.index:
                                                                         return Page_editor.left(gvc, viewModel, createID, gBundle)
                                                                     case Plugin_editor.index:
-                                                                        return  Plugin_editor.left(gvc, viewModel, createID, gBundle)
+                                                                        return Plugin_editor.left(gvc, viewModel, createID, gBundle)
                                                                     default:
                                                                         return Main_editor.left(gvc, viewModel, createID, gBundle)
                                                                 }
                                                             },
                                                             divCreate: {
-                                                                class:"h-100"
+                                                                class: "h-100"
                                                             }
                                                         }
                                                     })}

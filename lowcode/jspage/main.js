@@ -93,7 +93,11 @@ init((gvc, glitter, gBundle) => {
                         viewModel.homePage = (_d = data.response.data.homePage) !== null && _d !== void 0 ? _d : "";
                         viewModel.backendPlugins = (_e = data.response.data.backendPlugins) !== null && _e !== void 0 ? _e : [];
                         async function load() {
-                            for (const a of viewModel.initialJS) {
+                            for (const a of [{
+                                    src: {
+                                        official: "official_event/event.js"
+                                    }
+                                }].concat(viewModel.initialJS)) {
                                 await new Promise((resolve) => {
                                     glitter.addMtScript([{
                                             src: glitter.htmlGenerate.resourceHook(a.src.official) + `?resource=${a.src.official}`,

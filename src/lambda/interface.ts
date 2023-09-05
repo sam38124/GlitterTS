@@ -3,11 +3,11 @@ import fs from "fs";
 import fsn from "fs";
 import path2 from "path";
 
-interface DB {
+export interface DB {
     query: (sql: string, par: any[]) => Promise<string[]>,
 }
 
-interface USER {
+export interface USER {
     userID: number,
     userData: any,
     account: string,
@@ -117,6 +117,7 @@ function create_function(fun: (db: DB, request: {
     user?: USER,
     data: any,
     app: string,
+    query:any,
     firebase: {
         sendMessage: (message: {
             notification: {
@@ -143,7 +144,8 @@ export function createViewComponent(config: {
         path: string,
         interface: {
             name: string,
-            path: string
+            path: string,
+            key:string
         }[]
     }[],
     loop:boolean
@@ -255,7 +257,6 @@ export function createViewComponent(config: {
                     for (let c = 0; c < b.length; c++) {
                         //嘗試三次
                         let falRetry = 3
-
                         function exe() {
                             if (fs.statSync(b[c].path).size === 0) {
                                 count++
@@ -280,7 +281,6 @@ export function createViewComponent(config: {
                                 })
                             }
                         }
-
                         exe()
                     }
                 })
@@ -335,7 +335,6 @@ export function createViewComponent(config: {
                     return dd;
                 }))
             })
-            console.log(JSON.stringify(data.lambdaView))
             await new Promise((resolve, reject) => {
                 axios.request({
                     method: 'put',

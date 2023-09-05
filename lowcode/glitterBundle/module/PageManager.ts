@@ -345,7 +345,7 @@ background: transparent;background: ${config!.backGroundColor};display: none;pos
             }
         );
         $('#glitterPage').append(`<div id="page${config!.id}" style="min-width: 100vw;min-height: 100vh;left: 0;top: 0;
-background: ${config!.backGroundColor};display: none;z-index: 9999;overflow: hidden;position: fixed;width:100vw;height: 100vh;" >
+background: ${config!.backGroundColor};display: none;z-index:99999;overflow: hidden;position: fixed;width:100vw;height: 100vh;" >
 </div>`)
         glitter.nowPageConfig = config;
 

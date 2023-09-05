@@ -10,7 +10,7 @@ router.post('/', async (req, resp) => {
     try {
         const post = new post_1.Post(req.get('g-app'), req.body.token);
         const postData = req.body.data;
-        const data = (await post.lambda(req.body.router, postData, 'post'));
+        const data = (await post.lambda(req.query, req.body.router, postData, 'post'));
         return response_1.default.succ(resp, data);
     }
     catch (err) {
@@ -21,7 +21,7 @@ router.get('/', async (req, resp) => {
     try {
         const post = new post_1.Post(req.get('g-app'), req.body.token);
         const postData = req.query.data;
-        const data = (await post.lambda(req.query.router, postData, 'get'));
+        const data = (await post.lambda(req.query, req.query.router, postData, 'get'));
         return response_1.default.succ(resp, data);
     }
     catch (err) {
@@ -32,7 +32,7 @@ router.delete('/', async (req, resp) => {
     try {
         const post = new post_1.Post(req.get('g-app'), req.body.token);
         const postData = req.body.data;
-        const data = (await post.lambda(req.body.router, postData, 'delete'));
+        const data = (await post.lambda(req.query, req.body.router, postData, 'delete'));
         return response_1.default.succ(resp, data);
     }
     catch (err) {
@@ -43,7 +43,7 @@ router.put('/', async (req, resp) => {
     try {
         const post = new post_1.Post(req.get('g-app'), req.body.token);
         const postData = req.body.data;
-        const data = (await post.lambda(req.body.router, postData, 'put'));
+        const data = (await post.lambda(req.query, req.body.router, postData, 'put'));
         return response_1.default.succ(resp, data);
     }
     catch (err) {

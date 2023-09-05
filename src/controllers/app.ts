@@ -55,3 +55,15 @@ router.put('/plugin', async (req: express.Request, resp: express.Response) => {
         return response.fail(resp, err);
     }
 });
+
+router.get('/official/plugin', async (req: express.Request, resp: express.Response) => {
+    try {
+        const app=new App(req.body.token);
+        return response.succ(resp, {
+            data:(await app.getOfficialPlugin()),
+            result:true
+        });
+    } catch (err) {
+        return response.fail(resp, err);
+    }
+});

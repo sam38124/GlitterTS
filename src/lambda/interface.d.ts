@@ -1,7 +1,7 @@
-interface DB {
+export interface DB {
     query: (sql: string, par: any[]) => Promise<string[]>;
 }
-interface USER {
+export interface USER {
     userID: number;
     userData: any;
     account: string;
@@ -45,6 +45,7 @@ declare function create_function(fun: (db: DB, request: {
     user?: USER;
     data: any;
     app: string;
+    query: any;
     firebase: {
         sendMessage: (message: {
             notification: {
@@ -59,6 +60,7 @@ declare function create_function(fun: (db: DB, request: {
     user?: USER | undefined;
     data: any;
     app: string;
+    query: any;
     firebase: {
         sendMessage: (message: {
             notification: {
@@ -83,6 +85,7 @@ export declare function createViewComponent(config: {
         interface: {
             name: string;
             path: string;
+            key: string;
         }[];
     }[];
     loop: boolean;

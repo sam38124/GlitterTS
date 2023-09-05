@@ -139,9 +139,11 @@ export class PageManager {
                     animation: option.animation ?? glitter.animation.none
                 }
             );
-            $('#glitterPage').append(`<div id="page${config!.id}" style="min-width: 100vw;min-height: 100vh;left: 0;top: 0;width:100vw;
+
+            $('#glitterPage').append(`<page-box id="page${config!.id}" style="min-width: 100vw;min-height: 100vh;left: 0;top: 0;width:100vw;
 background: ${config!.backGroundColor};display: none;z-index: 9999;overflow: hidden;">
-</div>`)
+</page-box>`)
+
             glitter.nowPageConfig = config;
             let module = glitter.modelJsList.find((dd) => {
                 return `${dd.src}` == url;
@@ -156,7 +158,6 @@ background: ${config!.backGroundColor};display: none;z-index: 9999;overflow: hid
                 glitter.pageConfig = [];
                 glitter.pageConfig.push(config);
                 glitter.setUrlParameter('page', tag);
-
             } else {
                 glitter.addMtScript([{
                     src: url,
@@ -344,7 +345,7 @@ background: transparent;background: ${config!.backGroundColor};display: none;pos
             }
         );
         $('#glitterPage').append(`<div id="page${config!.id}" style="min-width: 100vw;min-height: 100vh;left: 0;top: 0;
-background: ${config!.backGroundColor};display: none;z-index: 9999;overflow: hidden;position: fixed;width:100vw;height: 100vh;" >
+background: ${config!.backGroundColor};display: none;z-index:99999;overflow: hidden;position: fixed;width:100vw;height: 100vh;" >
 </div>`)
         glitter.nowPageConfig = config;
 

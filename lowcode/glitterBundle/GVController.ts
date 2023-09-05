@@ -244,8 +244,22 @@ export class GVC {
             const divCreate2 = (typeof (map as any).divCreate === "function") ? (map as any).divCreate() : (map as any).divCreate;
             (divCreate2.option ?? []).map((dd: any) => {
                 try {
-                    $(`[gvc-id="${id}"]`).attr(dd.key, dd.value);
+                    const element=$(`[gvc-id="${id}"]`)
+                    if(dd.value.includes('clickMap')&&(dd.key.substring(0,2)==='on')){
+                        try {
+                            const funString=`${dd.value}`;
+                            element.get(0).off(dd.key.substring(2));
+                            element.get(0).addEventListener(dd.key.substring(2), function() {
+                                eval(funString)
+                            });
+                        }catch (e) {
+                            gvc.glitter.deBugMessage(e)
+                        }
+                    }else{
+                        element.attr(dd.key, dd.value);
+                    }
                 } catch (e) {
+                    gvc.glitter.deBugMessage(e)
                 }
             })
         })

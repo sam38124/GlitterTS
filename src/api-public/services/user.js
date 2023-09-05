@@ -29,6 +29,7 @@ const tool_1 = __importStar(require("../../services/tool"));
 const UserUtil_1 = __importDefault(require("../../utils/UserUtil"));
 const config_js_1 = __importDefault(require("../../config.js"));
 const ses_js_1 = require("../../services/ses.js");
+const app_js_1 = __importDefault(require("../../app.js"));
 class User {
     constructor(app) {
         this.app = app;
@@ -99,6 +100,32 @@ class User {
             throw exception_1.default.BadRequestError('BAD_REQUEST', 'Register Error:' + e, null);
         }
     }
+    async updateAccount(account, userID) {
+        try {
+            const configAd = await app_js_1.default.getAdConfig(this.app, 'glitter_loginConfig');
+            switch (configAd.verify) {
+                case 'mail':
+                    const checkToken = (0, tool_1.getUUID)();
+                    const url = `<h1>${configAd.name}</h1><p>
+<a href="${config_js_1.default.domain}/api-public/v1/user/checkMail/updateAccount?g-app=${this.app}&token=${checkToken}">點我前往認證您的信箱</a>
+</p>`;
+                    await (0, ses_js_1.sendmail)(`service@ncdesign.info`, account, `信箱認證`, url);
+                    return {
+                        type: 'mail',
+                        mailVerify: checkToken,
+                        updateAccount: account
+                    };
+                default:
+                    return {
+                        type: ''
+                    };
+            }
+        }
+        catch (e) {
+            console.log(e);
+            throw exception_1.default.BadRequestError('BAD_REQUEST', 'SendMail Error:' + e, null);
+        }
+    }
     async login(account, pwd) {
         try {
             const data = (await database_1.default.execute(`select *
@@ -136,15 +163,33 @@ class User {
     }
     async updateUserData(userID, par) {
         try {
+            const userData = (await database_1.default.query(`select *
+                                              from \`${this.app}\`.\`user\`
+                                              where userID = ${database_1.default.escape(userID)}`, []))[0];
+            let mailVerify = false;
+            if (userData.account !== par.account) {
+                const result = (await this.updateAccount(par.account, userID));
+                if (result.type === 'mail') {
+                    par.account = undefined;
+                    par.userData.mailVerify = result.mailVerify;
+                    par.userData.updateAccount = result.updateAccount;
+                    mailVerify = true;
+                }
+            }
             par = {
                 account: par.account,
                 userData: JSON.stringify(par.userData)
             };
-            console.log(userID);
-            return await database_1.default.query(`update \`${this.app}\`.user
-                                    SET ?
-                                    WHERE 1 = 1
-                                      and userID = ?`, [par, userID]);
+            if (!par.account) {
+                delete par.account;
+            }
+            return {
+                mailVerify: mailVerify,
+                data: await database_1.default.query(`update \`${this.app}\`.user
+                                       SET ?
+                                       WHERE 1 = 1
+                                         and userID = ?`, [par, userID])
+            };
         }
         catch (e) {
             throw exception_1.default.BadRequestError('BAD_REQUEST', 'Login Error:' + e, null);
@@ -158,9 +203,9 @@ class User {
                                                    and status = 1`, [userID]))[0];
             if (await tool_1.default.compareHash(pwd, data.pwd)) {
                 const result = await database_1.default.query(`update \`${this.app}\`.user
-                                    SET ?
-                                    WHERE 1 = 1
-                                      and userID = ?`, [{
+                                                SET ?
+                                                WHERE 1 = 1
+                                                  and userID = ?`, [{
                         pwd: await tool_1.default.hashPwd(newPwd)
                     }, userID]);
                 return {
@@ -175,6 +220,20 @@ class User {
             throw exception_1.default.BadRequestError('BAD_REQUEST', 'Login Error:' + e, null);
         }
     }
+    async updateAccountBack(token) {
+        try {
+            const sql = `select userData
+                                              from \`${this.app}\`.user
+                                              where JSON_EXTRACT(userData, '$.mailVerify') = ${database_1.default.escape(token)}`;
+            const userData = (await database_1.default.query(sql, []))[0]['userData'];
+            await database_1.default.execute(`update \`${this.app}\`.user
+                              set account=${database_1.default.escape(userData.updateAccount)}
+                              where JSON_EXTRACT(userData, '$.mailVerify') = ?`, [token]);
+        }
+        catch (e) {
+            throw exception_1.default.BadRequestError('BAD_REQUEST', 'updateAccountBack Error:' + e, null);
+        }
+    }
     async verifyPASS(token) {
         try {
             const par = {
@@ -183,10 +242,10 @@ class User {
             return await database_1.default.query(`update \`${this.app}\`.user
                                     SET ?
                                     WHERE 1 = 1
-                                     and JSON_EXTRACT(userData, '$.mailVerify') = ?`, [par, token]);
+                                      and JSON_EXTRACT(userData, '$.mailVerify') = ?`, [par, token]);
         }
         catch (e) {
-            throw exception_1.default.BadRequestError('BAD_REQUEST', 'Login Error:' + e, null);
+            throw exception_1.default.BadRequestError('BAD_REQUEST', 'Verify Error:' + e, null);
         }
     }
     async checkUserExists(account) {

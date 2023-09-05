@@ -1,9 +1,6 @@
-import {HtmlGenerate} from "../glitterBundle/module/Html_generate.js";
 import {GVC} from "../glitterBundle/GVController.js";
 import {EditorElem} from "../glitterBundle/plugins/editor-elem.js";
 import {ShareDialog} from "../dialog/ShareDialog.js";
-import {TriggerEvent} from "../glitterBundle/plugins/trigger-event.js";
-import {initialStyle, initialStylePage} from "./initialStyle.js";
 import {ApiPageConfig} from "../api/pageConfig.js";
 export function pageManager(gvc: GVC, viewModel: any, id: string) {
     const glitter = gvc.glitter;

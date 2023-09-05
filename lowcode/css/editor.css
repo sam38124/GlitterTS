@@ -118,7 +118,7 @@ body {
     flex: 1;
     height: 48px;
     display: flex;
-    font-weight: 600;
+    font-weight: 500;
     align-items: center;
     justify-content: center;
     cursor: pointer;

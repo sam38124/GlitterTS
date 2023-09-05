@@ -4,9 +4,9 @@ import {sample} from "./lambda/sample";
 lambda.setup({
     auth: {
         //Your glitter account.
-        account: 'rdtest',
+        account: 'your_account',
         //Your glitter pwd.
-        pwd: '12345'
+        pwd: 'your_pwd'
     },
     //Glitter platform domain.
     domain: 'http://127.0.0.1:4000',

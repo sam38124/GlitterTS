@@ -411,11 +411,7 @@ export class Glitter {
         return cookieObj;
     }
     getCookieByName(name) {
-        var value = this.parseCookie()[name];
-        if (value) {
-            value = decodeURIComponent(value);
-        }
-        return value;
+        return localStorage.getItem(name);
     }
     setPro(tag, data = "", callBack, option = {
         webFunction: (data, callback) => {
@@ -526,10 +522,14 @@ export class Glitter {
     ;
     deBugMessage(error) {
         if (this.debugMode) {
-            console.log(`${error} : ${this.ut.dateFormat(new Date(), "yyyy-MM-dd hh:mm:ss")}`);
-            console.error('錯誤訊息:', error.message);
-            console.error('錯誤行數:', error.lineNumber);
-            console.error('錯誤位置:', error.columnNumber);
+            try {
+                console.log(`${error} : ${this.ut.dateFormat(new Date(), "yyyy-MM-dd hh:mm:ss")}`);
+                console.error('錯誤訊息:', error.message);
+                console.error('錯誤行數:', error.lineNumber);
+                console.error('錯誤位置:', error.columnNumber);
+            }
+            catch (e) {
+            }
         }
     }
     setUrlParameter(tag, value) {
@@ -807,16 +807,14 @@ export class Glitter {
         }
     }
     setCookie(key, value) {
-        let oneYear = 2592000 * 12;
-        this.document.cookie = `${key}=${value}; max-age=${oneYear}; path=/`;
+        localStorage.setItem(key, value);
     }
     removeCookie(keyList) {
         if (Array.isArray(keyList)) {
-            keyList.map((k) => (this.document.cookie = `${k}=''; max-age=-99999999; path=/`));
+            keyList.map((k) => (localStorage.removeItem(k)));
         }
         else if (keyList === undefined) {
-            let list = this.document.cookie.split('; ');
-            list.map((l) => (this.document.cookie = `${l.split('=')[0]}=''; max-age=-99999999; path=/`));
+            localStorage.clear();
         }
     }
 }

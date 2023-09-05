@@ -1,0 +1,16 @@
+<div style="height: 2000px;" id="testContainer">
+  <lottie-player src="https://cdn.shopify.com/s/files/1/0704/0158/9548/files/data_646bc852-1e63-4e09-91d9-c2bfda0f8f84.json?v=1693306862" background="Transparent" speed="1" style="width:100%; max-width: 1000px; margin: 0 auto; position: sticky; top:50px; height: auto; z-index: 99;" direction="1" mode="normal" loop id="Lottie1"></lottie-player>
+</div>
+<script>
+  LottieInteractivity.create({
+    mode: 'scroll',
+    player: '#Lottie1',
+    container: "#testContainer",
+    actions: [
+      {
+        visibility: [0.5, 0.7],
+        type: 'seek',
+        frames: [0, 509],
+      },
+    ],
+  });</script>

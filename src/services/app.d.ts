@@ -11,6 +11,7 @@ export declare class App {
     getAppConfig(config: {
         appName: string;
     }): Promise<any>;
+    getOfficialPlugin(): Promise<any>;
     setAppConfig(config: {
         appName: string;
         data: any;

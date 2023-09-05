@@ -37,6 +37,7 @@ const whiteList: {}[] = [
     {url: config.getRoute(config.public_route.user + "/forget", 'public'), method: 'POST'},
     {url: config.getRoute(config.public_route.post, 'public'), method: 'GET'},
     {url: config.getRoute(config.public_route.user + "/checkMail", 'public'), method: 'GET'},
+    {url: config.getRoute(config.public_route.user + "/checkMail/updateAccount", 'public'), method: 'GET'},
     {url: config.getRoute(config.public_route.user+"/userdata", 'public'), method: 'GET'},
     {url: config.getRoute(config.public_route.sql_api, 'public'), method: 'GET'},
     {url: config.getRoute(config.public_route.sql_api, 'public'), method: 'POST'},
@@ -55,6 +56,7 @@ async function doAuthAction(req: express.Request, resp: express.Response, next: 
     const logger = new Logger();
     const TAG = '[DoAuthAction]';
     const url = req.baseUrl;
+
     const matches = _.where(whiteList, {url: url, method: req.method});
     const token = req.get('Authorization')?.replace('Bearer ', '') as string;
     if (

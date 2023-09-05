@@ -55,7 +55,8 @@ export class HtmlGenerate {
             editor: (gvc: GVC, widget: HtmlJson | (() => void), title?: string, option?: any) => {
                 const glitter = (window as any).glitter;
                 return `
-<button type="button" class="btn  w-100  shadow ${(option ?? {}).class ?? "mt-2"}" style="background-image: linear-gradient(135deg, #667eea 0%, #764ba2 100%);" onclick="${
+<div type="button" class="btn  w-100 " style="background:white;width:calc(100%);border-radius:8px;
+                    min-height:45px;border:1px solid black;color:#151515;" onclick="${
                     gvc.event(() => {
                         glitter.openDiaLog("glitterBundle/plugins/dialog-style-editor.js", "dialog-style-editor", {
                             callback: () => {
@@ -65,10 +66,11 @@ export class HtmlGenerate {
                                     (widget as any).refreshComponent()
                                 }
                             },
-                            data: data
+                            data: data,
+                            option:option
                         })
                     })
-                }">${title ?? "設計樣式"}</button>`;
+                }">${title ?? "設計樣式"}</div><br>`;
             },
             class: () => {
                 let classs = ''
@@ -95,6 +97,77 @@ export class HtmlGenerate {
                 return styleString.join(';');
             },
         };
+    }
+
+    public static editor_component(data: any, gvc?: GVC, widget?: HtmlJson, subData?: any): {
+        [name: string]: any,
+        editor: (gvc: GVC, widget: HtmlJson | (() => void), title?: string, option?: any) => string,
+        class: () => string,
+        style: () => string
+    } {
+        const glitter = (gvc ?? (window as any)).glitter
+        const response = {
+            editor: (gvc: GVC, widget: HtmlJson | (() => void), title?: string, option?: {
+                writeOnly:string[]
+            }) => {
+                const glitter = (window as any).glitter;
+                return `
+<div type="button" class="btn  w-100 " style="background:white;width:calc(100%);border-radius:8px;
+                    min-height:45px;border:1px solid black;color:#151515;" onclick="${
+                    gvc.event(() => {
+                        glitter.openDiaLog("glitterBundle/plugins/dialog-style-editor.js", "dialog-style-editor", {
+                            callback: () => {
+                                if (typeof widget === 'function') {
+                                    widget()
+                                } else {
+                                    (widget as any).refreshComponent()
+                                }
+                            },
+                            option:option,
+                            data: data
+                        })
+                    })
+                }">${title ?? "設計樣式"}</div><br>`;
+            },
+            class: () => {
+                let classs = ''
+                try {
+                    classs = eval(data.class)
+                } catch (e) {
+                    classs = data.class
+                }
+                return classs;
+            },
+            style: () => {
+                let styles = ''
+                try {
+                    styles = eval(data.style)
+                } catch (e) {
+                    styles = data.style
+                }
+                let styleString: string[] = [styles];
+                (data.styleList ?? []).map((dd: any) => {
+                    Object.keys(dd.data).map((d2) => {
+                        styleString.push([d2, dd.data[d2]].join(':'));
+                    });
+                });
+                return styleString.join(';');
+            },
+        }
+        Object.keys(data).map((dd: string) => {
+            if (['styleList', 'class', 'style'].indexOf(dd) === -1) {
+                Object.defineProperty(response, dd, {
+                    get: function () {
+                        return data[dd]
+                    },
+                    set(v) {
+                        data[dd] = v
+                    }
+                })
+            }
+        })
+
+        return response;
     }
 
     public static setHome = (obj: { page_config?: any; app_config?: any, config: any; editMode?: any; data: any; tag: string; option?: any }) => {
@@ -153,7 +226,7 @@ ${obj.gvc.bindView({
             },
             divCreate: {
                 elem: `textArea`,
-                style: `max-height:400px!important;min-height:100px;`,
+                style: `max-height:400px!important;min-height:170px;`,
                 class: `form-control`, option: [
                     {key: 'placeholder', value: obj.placeHolder},
                     {
@@ -219,7 +292,8 @@ ${obj.gvc.bindView({
             gvc.glitter.defaultSetting.pageLoading();
             let htmlList: ({ view?: string, fun: () => string })[] = []
             let waitAddScript: string[] = []
-            let dataLoading=true
+            let dataLoading = true
+
             function getPageData() {
                 htmlList = []
                 const subData2 = subdata
@@ -473,7 +547,7 @@ ${obj.gvc.bindView({
                             index = index + 1
                         }
                         gvc.glitter.defaultSetting.pageLoadingFinish();
-                        dataLoading=false
+                        dataLoading = false
                         gvc.notifyDataChange(container);
                         gvc.glitter.share.loaginfC = (gvc.glitter.share.loaginfC ?? 0) + 1;
                     })
@@ -497,7 +571,7 @@ ${obj.gvc.bindView({
                     }]
                 },
                 onCreate: () => {
-                    if(!dataLoading){
+                    if (!dataLoading) {
                         async function loadScript() {
                             for (const script of setting.filter((dd) => {
                                 return dd.type === 'code' && dd.data.triggerTime === 'last'
@@ -521,6 +595,7 @@ ${obj.gvc.bindView({
                                 })
                             }
                         }
+
                         loadScript().then(() => {
                             option.jsFinish && option.jsFinish()
                         })
@@ -700,7 +775,7 @@ ${gvc.bindView(() => {
 <h3 class="text-dark  m-1 mt-2" style="font-size: 16px;">函式路徑</h3>
 <h3 class="text-primary alert-primary m-1 fw-bold rounded p2-" style="font-size: 16px;">${dd.type}</h3>
 </div>`,
-                                                        HtmlGenerate.editeInput({
+                                                        EditorElem.editeInput({
                                                             gvc: gvc,
                                                             title: '模塊名稱',
                                                             default: dd.label,
@@ -712,7 +787,7 @@ ${gvc.bindView(() => {
                                                             },
                                                         }),
                                                         `<div class="mb-2"></div>`,
-                                                        HtmlGenerate.editeInput({
+                                                        EditorElem.editeInput({
                                                             gvc: gvc,
                                                             title: '輸入HashTag標籤',
                                                             default: dd.hashTag,
@@ -741,7 +816,7 @@ ${gvc.bindView(() => {
                                                                         () => {
                                                                             option.refreshAll();
                                                                         },
-                                                                        '父層設計樣式'
+                                                                        '模塊容器樣式'
                                                                     );
                                                                 },
                                                                 divCreate: {

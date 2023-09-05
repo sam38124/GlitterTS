@@ -1,4 +1,5 @@
 import { Glitter } from '../Glitter.js';
+import { EditorElem } from '../plugins/editor-elem.js';
 import autosize from '../plugins/autosize.js';
 import { widgetComponent } from "../html-component/widget.js";
 import { codeComponent } from "../html-component/code.js";
@@ -509,7 +510,7 @@ ${gvc.bindView(() => {
 <h3 class="text-dark  m-1 mt-2" style="font-size: 16px;">函式路徑</h3>
 <h3 class="text-primary alert-primary m-1 fw-bold rounded p2-" style="font-size: 16px;">${dd.type}</h3>
 </div>`,
-                                                    HtmlGenerate.editeInput({
+                                                    EditorElem.editeInput({
                                                         gvc: gvc,
                                                         title: '模塊名稱',
                                                         default: dd.label,
@@ -521,7 +522,7 @@ ${gvc.bindView(() => {
                                                         },
                                                     }),
                                                     `<div class="mb-2"></div>`,
-                                                    HtmlGenerate.editeInput({
+                                                    EditorElem.editeInput({
                                                         gvc: gvc,
                                                         title: '輸入HashTag標籤',
                                                         default: dd.hashTag,
@@ -546,7 +547,7 @@ ${gvc.bindView(() => {
                                                                 }
                                                                 return gvc.glitter.htmlGenerate.styleEditor(dd).editor(gvc, () => {
                                                                     option.refreshAll();
-                                                                }, '父層設計樣式');
+                                                                }, '模塊容器樣式');
                                                             },
                                                             divCreate: {
                                                                 class: 'mt-2 mb-2 '
@@ -614,10 +615,10 @@ ${e.line}
         const glitter = (gvc !== null && gvc !== void 0 ? gvc : window).glitter;
         return {
             editor: (gvc, widget, title, option) => {
-                var _a;
                 const glitter = window.glitter;
                 return `
-<button type="button" class="btn  w-100  shadow ${(_a = (option !== null && option !== void 0 ? option : {}).class) !== null && _a !== void 0 ? _a : "mt-2"}" style="background-image: linear-gradient(135deg, #667eea 0%, #764ba2 100%);" onclick="${gvc.event(() => {
+<div type="button" class="btn  w-100 " style="background:white;width:calc(100%);border-radius:8px;
+                    min-height:45px;border:1px solid black;color:#151515;" onclick="${gvc.event(() => {
                     glitter.openDiaLog("glitterBundle/plugins/dialog-style-editor.js", "dialog-style-editor", {
                         callback: () => {
                             if (typeof widget === 'function') {
@@ -627,9 +628,10 @@ ${e.line}
                                 widget.refreshComponent();
                             }
                         },
-                        data: data
+                        data: data,
+                        option: option
                     });
-                })}">${title !== null && title !== void 0 ? title : "設計樣式"}</button>`;
+                })}">${title !== null && title !== void 0 ? title : "設計樣式"}</div><br>`;
             },
             class: () => {
                 let classs = '';
@@ -660,6 +662,70 @@ ${e.line}
             },
         };
     }
+    static editor_component(data, gvc, widget, subData) {
+        const glitter = (gvc !== null && gvc !== void 0 ? gvc : window).glitter;
+        const response = {
+            editor: (gvc, widget, title, option) => {
+                const glitter = window.glitter;
+                return `
+<div type="button" class="btn  w-100 " style="background:white;width:calc(100%);border-radius:8px;
+                    min-height:45px;border:1px solid black;color:#151515;" onclick="${gvc.event(() => {
+                    glitter.openDiaLog("glitterBundle/plugins/dialog-style-editor.js", "dialog-style-editor", {
+                        callback: () => {
+                            if (typeof widget === 'function') {
+                                widget();
+                            }
+                            else {
+                                widget.refreshComponent();
+                            }
+                        },
+                        option: option,
+                        data: data
+                    });
+                })}">${title !== null && title !== void 0 ? title : "設計樣式"}</div><br>`;
+            },
+            class: () => {
+                let classs = '';
+                try {
+                    classs = eval(data.class);
+                }
+                catch (e) {
+                    classs = data.class;
+                }
+                return classs;
+            },
+            style: () => {
+                var _a;
+                let styles = '';
+                try {
+                    styles = eval(data.style);
+                }
+                catch (e) {
+                    styles = data.style;
+                }
+                let styleString = [styles];
+                ((_a = data.styleList) !== null && _a !== void 0 ? _a : []).map((dd) => {
+                    Object.keys(dd.data).map((d2) => {
+                        styleString.push([d2, dd.data[d2]].join(':'));
+                    });
+                });
+                return styleString.join(';');
+            },
+        };
+        Object.keys(data).map((dd) => {
+            if (['styleList', 'class', 'style'].indexOf(dd) === -1) {
+                Object.defineProperty(response, dd, {
+                    get: function () {
+                        return data[dd];
+                    },
+                    set(v) {
+                        data[dd] = v;
+                    }
+                });
+            }
+        });
+        return response;
+    }
     static editeInput(obj) {
         var _a, _b, _c;
         obj.title = (_a = obj.title) !== null && _a !== void 0 ? _a : "";
@@ -682,7 +748,7 @@ ${obj.gvc.bindView({
             },
             divCreate: {
                 elem: `textArea`,
-                style: `max-height:400px!important;min-height:100px;`,
+                style: `max-height:400px!important;min-height:170px;`,
                 class: `form-control`, option: [
                     { key: 'placeholder', value: obj.placeHolder },
                     {

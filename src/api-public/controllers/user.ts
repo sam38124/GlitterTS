@@ -51,13 +51,12 @@ router.get('/checkMail', async (req: express.Request, resp: express.Response) =>
     }
 });
 
-router.post('/forget', async (req: express.Request, resp: express.Response) => {
+router.get('/checkMail/updateAccount', async (req: express.Request, resp: express.Response) => {
     try {
         let data = await db.query(`select \`value\`
                                    from \`${config.DB_NAME}\`.private_config
-                                   where app_name = '${req.get('g-app')}'
+                                   where app_name = '${req.query['g-app']}'
                                      and \`key\` = 'glitter_loginConfig'`, [])
-
         if (data.length > 0) {
             data = data[0]['value']
         } else {
@@ -66,14 +65,37 @@ router.post('/forget', async (req: express.Request, resp: express.Response) => {
                 link: ``
             }
         }
-        const sql=`select *
-                                                 from \`${req.get('g-app')}\`.user
-                                                 where account = ${db.escape(req.body.email)}
-                                                   and status = 1`
+        const user = new User(req.query['g-app'] as string);
+        await user.updateAccountBack(req.query.token as string)
+        return resp.redirect(`${config.domain}/${req.query['g-app']}/index.html?page=${data.link}`)
+    } catch (err) {
+        return response.fail(resp, err);
+    }
+});
+
+
+router.post('/forget', async (req: express.Request, resp: express.Response) => {
+    try {
+        let data = await db.query(`select \`value\`
+                                   from \`${config.DB_NAME}\`.private_config
+                                   where app_name = '${req.get('g-app')}'
+                                     and \`key\` = 'glitter_loginConfig'`, [])
+        if (data.length > 0) {
+            data = data[0]['value']
+        } else {
+            data = {
+                verify: `normal`,
+                link: ``
+            }
+        }
+        const sql = `select *
+                     from \`${req.get('g-app')}\`.user
+                     where account = ${db.escape(req.body.email)}
+                       and status = 1`
         const userData: any = (await db.execute(sql, []) as any);
         console.log(`userData:${sql}`)
         if (userData.length > 0) {
-            const token=await UserUtil.generateToken({
+            const token = await UserUtil.generateToken({
                 user_id: userData[0]["userID"],
                 account: userData[0]["account"],
                 userData: userData[0]
@@ -139,7 +161,7 @@ router.put('/resetPwd', async (req: express.Request, resp: express.Response) => 
     try {
         const user = new User(req.get('g-app') as string);
         console.log(`pwd:${req.body.pwd}-newPwd:${req.body.newPwd}`);
-        return response.succ(resp, (await user.resetPwd(req.body.token.userID, req.body.pwd,req.body.newPwd)));
+        return response.succ(resp, (await user.resetPwd(req.body.token.userID, req.body.pwd, req.body.newPwd)));
     } catch (err) {
         return response.fail(resp, err);
     }

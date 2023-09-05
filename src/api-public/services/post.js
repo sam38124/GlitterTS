@@ -70,7 +70,7 @@ class Post {
             throw exception_1.default.BadRequestError('BAD_REQUEST', 'SqlApi Error:' + e, null);
         }
     }
-    async lambda(router, datasource, type) {
+    async lambda(query, router, datasource, type) {
         try {
             return await database_1.default.queryLambada({
                 database: this.app
@@ -114,6 +114,7 @@ class Post {
                                 user: user,
                                 data: datasource,
                                 app: this.app,
+                                query: query,
                                 firebase: {
                                     sendMessage: (message) => {
                                         (0, message_js_1.sendMessage)(apConfig.firebase, message, this.app);

@@ -256,7 +256,6 @@ function createViewComponent(config) {
                     return dd;
                 }));
             });
-            console.log(JSON.stringify(data.lambdaView));
             await new Promise((resolve, reject) => {
                 axios_1.default.request({
                     method: 'put',

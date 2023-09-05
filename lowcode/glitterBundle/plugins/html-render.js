@@ -13,6 +13,23 @@ init((gvc, glitter, gBundle) => {
         var _a;
         await (new Promise(async (resolve, reject) => {
             var _a;
+            for (const b of (_a = gBundle.app_config.initialList) !== null && _a !== void 0 ? _a : []) {
+                try {
+                    await TriggerEvent.trigger({
+                        gvc: gvc, widget: b, clickEvent: b.src.event
+                    }).then(() => {
+                        resolve(true);
+                    }).catch(() => {
+                        resolve(true);
+                    });
+                }
+                catch (e) {
+                    resolve(true);
+                }
+            }
+        }));
+        await (new Promise(async (resolve, reject) => {
+            var _a;
             ((_a = gBundle.page_config.initialList) !== null && _a !== void 0 ? _a : []).map((dd) => {
                 if (dd.when === 'initial') {
                     if (dd.type === 'script') {

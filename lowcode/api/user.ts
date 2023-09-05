@@ -8,6 +8,7 @@ export class ApiUser{
         "account": string,
         "pwd": string
     }){
+
         return BaseApi.create({
             "url": config.url+"/api/v1/user/login",
             "type": "POST",

@@ -57,7 +57,7 @@ export class Editor {
    background: -webkit-linear-gradient(135deg, #667eea 0%, #764ba2 100%);
    background-clip: text;
    -webkit-background-clip: text;
-   color: transparent;">GLITTER.AI </span>
+   color: transparent;">GLITTER.EDITOR </span>
 
                             </div>
                             <div class="d-flex align-items-center w-100">
@@ -241,7 +241,7 @@ export class Editor {
    background: -webkit-linear-gradient(135deg, #667eea 0%, #764ba2 100%);
    background-clip: text;
    -webkit-background-clip: text;
-   color: transparent;">GLITTER.AI </span>
+   color: transparent;">GLITTER.EDITOR </span>
 
                             </div>
                         </div>
@@ -249,7 +249,9 @@ export class Editor {
                     </aside>
                     <!-- Page container -->
                     <main class="docs-container"
-                          style="padding-top: 40px;padding-right:${(viewModel.type === ViewType.col3) ? `290` : `0`}px;${(viewModel.type === ViewType.fullScreen) ? `padding-left:0px;` : ``}">
+                          style="padding-top: 40px;padding-right:${(viewModel.type === ViewType.col3) ? `290` : `0`}px;${(viewModel.type === ViewType.fullScreen) ? `padding-left:0px;` : `
+                          padding-left:20rem;
+                          `}">
                         ${gvc.bindView({
                 dataList: [{ obj: viewModel, key: "type" }],
                 bind: `showView`,

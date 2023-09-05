@@ -50,7 +50,7 @@ export class Post {
         }
     }
 
-    public async lambda(router: string, datasource: any, type: string) {
+    public async lambda(query:any,router: string, datasource: any, type: string) {
         try {
             return await db.queryLambada({
                 database: this.app
@@ -96,6 +96,7 @@ export class Post {
                                 user: user,
                                 data: datasource,
                                 app:this.app,
+                                query:query,
                                 firebase:{
                                     sendMessage:(message:{
                                         notification: {

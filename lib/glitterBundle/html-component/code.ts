@@ -10,9 +10,11 @@ export const codeComponent = {
         return {
             view: () => {
                 return new Promise((resolve, reject) => {
+                    console.log(`trigger:${JSON.stringify(widget.data.clickEvent)}`)
                     const a = TriggerEvent.trigger({
                         gvc: gvc, widget: widget, clickEvent: widget.data.clickEvent, subData: subData,
                     })
+
                     a.then((res) => {
                         resolve(res)
                     })

@@ -55,13 +55,33 @@ function traverseHTML(element: any) {
         }
     }
     if($(element).attr('glem')==='bindView'){
-        try { $(element).html(glitter.elementCallback[$(element).attr('gvc-id') as string].getView())}catch (e) {
+        try {
+            $(element).html(glitter.elementCallback[$(element).attr('gvc-id') as string].getView())}catch (e) {
+            glitter.deBugMessage(e)
         }
         try {  glitter.elementCallback[$(element).attr('gvc-id') as string].updateAttribute()}catch (e) {
+            glitter.deBugMessage(e)
         }
         try {glitter.elementCallback[$(element).attr('gvc-id') as string].onInitial()}catch (e) {
+            glitter.deBugMessage(e)
         }
         try {  glitter.elementCallback[$(element).attr('gvc-id') as string].onCreate()}catch (e) {
+            glitter.deBugMessage(e)
+        }
+    }
+    for (let i = 0; i < attributes.length; i++) {
+        if(attributes[i].value.includes('clickMap')&&(attributes[i].name.substring(0,2)==='on')){
+            try {
+                const funString=`${attributes[i].value}`
+                $(element).off(attributes[i].name.substring(2));
+                element.addEventListener(attributes[i].name.substring(2), function() {
+                    eval(funString)
+                });
+                element.removeAttribute(attributes[i].name);
+            }catch (e) {
+                glitter.deBugMessage(e)
+            }
+
         }
     }
     // 返回 JSON 結果
@@ -113,6 +133,25 @@ function glitterInitial() {
         document.getElementsByTagName('head')[0].appendChild(css);
 
     }
+    // class PageBox extends HTMLElement {
+    //     constructor() {
+    //         super();
+    //         // Attach a shadow DOM
+    //         this.attachShadow({ mode: 'open' });
+    //
+    //         // Create a button element
+    //         const button = document.createElement('button');
+    //         button.textContent = 'Click Me';
+    //         // Add a click event listener to the button
+    //         button.addEventListener('click', () => {
+    //             alert('Button Clicked!');
+    //         });
+    //
+    //         // Append the button to the shadow DOM
+    //         this.shadowRoot!.appendChild(button);
+    //     }
+    // }
+    // customElements.define('page-box', PageBox)
 }
 
 glitterInitial();

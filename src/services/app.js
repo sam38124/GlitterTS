@@ -44,8 +44,8 @@ class App {
                                                   from \`${config_1.saasConfig.SAAS_NAME}\`.page_config
                                                   where appName = ${database_1.default.escape(config.copyApp)}`, []));
                 privateConfig = (await database_1.default.execute(`select *
-                                                  from \`${config_1.saasConfig.SAAS_NAME}\`.private_config
-                                                  where app_name = ${database_1.default.escape(config.copyApp)} `, []));
+                                                   from \`${config_1.saasConfig.SAAS_NAME}\`.private_config
+                                                   where app_name = ${database_1.default.escape(config.copyApp)} `, []));
             }
             const trans = await database_1.default.Transaction.build();
             await trans.execute(`insert into \`${config_1.saasConfig.SAAS_NAME}\`.app_config (domain, user, appName, dead_line, \`config\`)
@@ -59,8 +59,8 @@ class App {
             if (privateConfig) {
                 for (const dd of privateConfig) {
                     await trans.execute(`
-                        insert into \`${config_1.saasConfig.SAAS_NAME}\`.private_config (\`app_name\`, \`key\`,\`value\`,updated_at)
-                        values (?, ?, ?,?);
+                        insert into \`${config_1.saasConfig.SAAS_NAME}\`.private_config (\`app_name\`, \`key\`, \`value\`, updated_at)
+                        values (?, ?, ?, ?);
                     `, [
                         config.appName,
                         dd.key,
@@ -136,9 +136,43 @@ class App {
             throw exception_1.default.BadRequestError((_d = e.code) !== null && _d !== void 0 ? _d : 'BAD_REQUEST', e, null);
         }
     }
-    async setAppConfig(config) {
+    async getOfficialPlugin() {
         var _a;
         try {
+            return ((await database_1.default.execute(`
+                SELECT *
+                FROM \`${config_1.saasConfig.SAAS_NAME}\`.official_component;
+            `, [])));
+        }
+        catch (e) {
+            throw exception_1.default.BadRequestError((_a = e.code) !== null && _a !== void 0 ? _a : 'BAD_REQUEST', e, null);
+        }
+    }
+    async setAppConfig(config) {
+        var _a, _b;
+        try {
+            console.log(`lambdaView--`, config.data.lambdaView);
+            const official = (await database_1.default.query(`SELECT count(1)
+                                              FROM \`${config_1.saasConfig.SAAS_NAME}\`.user
+                                              where userID = ?
+                                                and company = ?`, [this.token.userID, 'LION']))[0]['count(1)'] == 1;
+            if (official) {
+                const trans = await database_1.default.Transaction.build();
+                await trans.execute(`delete from \`${config_1.saasConfig.SAAS_NAME}\`.official_component where app_name=?`, [config.appName]);
+                for (const b of ((_a = config.data.lambdaView) !== null && _a !== void 0 ? _a : [])) {
+                    await trans.execute(`insert into \`${config_1.saasConfig.SAAS_NAME}\`.official_component
+                                         set ?`, [
+                        {
+                            key: b.key,
+                            group: b.name,
+                            userID: this.token.userID,
+                            app_name: config.appName,
+                            url: b.path,
+                        }
+                    ]);
+                }
+                await trans.commit();
+            }
             return (await database_1.default.execute(`update \`${config_1.saasConfig.SAAS_NAME}\`.app_config
                                       set config=?
                                       where appName = ${database_1.default.escape(config.appName)}
@@ -146,7 +180,7 @@ class App {
             `, [config.data]))['changedRows'] == true;
         }
         catch (e) {
-            throw exception_1.default.BadRequestError((_a = e.code) !== null && _a !== void 0 ? _a : 'BAD_REQUEST', e, null);
+            throw exception_1.default.BadRequestError((_b = e.code) !== null && _b !== void 0 ? _b : 'BAD_REQUEST', e, null);
         }
     }
     async deleteAPP(config) {

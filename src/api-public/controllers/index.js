@@ -32,6 +32,7 @@ const whiteList = [
     { url: config_1.config.getRoute(config_1.config.public_route.user + "/forget", 'public'), method: 'POST' },
     { url: config_1.config.getRoute(config_1.config.public_route.post, 'public'), method: 'GET' },
     { url: config_1.config.getRoute(config_1.config.public_route.user + "/checkMail", 'public'), method: 'GET' },
+    { url: config_1.config.getRoute(config_1.config.public_route.user + "/checkMail/updateAccount", 'public'), method: 'GET' },
     { url: config_1.config.getRoute(config_1.config.public_route.user + "/userdata", 'public'), method: 'GET' },
     { url: config_1.config.getRoute(config_1.config.public_route.sql_api, 'public'), method: 'GET' },
     { url: config_1.config.getRoute(config_1.config.public_route.sql_api, 'public'), method: 'POST' },

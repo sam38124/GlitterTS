@@ -10,7 +10,8 @@ import config from "../config.js";
 
 export class App {
     public token: IToken;
-    public static getAdConfig(app:string,key:string){
+
+    public static getAdConfig(app: string, key: string) {
         return new Promise<any>(async (resolve, reject) => {
             const data = await db.query(`select \`value\`
                                          from \`${config.DB_NAME}\`.private_config
@@ -19,6 +20,7 @@ export class App {
             resolve((data[0]) ? data[0]['value'] : {})
         })
     }
+
     public async createApp(config: { domain: string, appName: string, copyApp: string }) {
         try {
             const count = await db.execute(`
@@ -39,9 +41,9 @@ export class App {
                 copyPageData = (await db.execute(`select *
                                                   from \`${saasConfig.SAAS_NAME}\`.page_config
                                                   where appName = ${db.escape(config.copyApp)}`, []));
-                privateConfig=(await db.execute(`select *
-                                                  from \`${saasConfig.SAAS_NAME}\`.private_config
-                                                  where app_name = ${db.escape(config.copyApp)} `, []));
+                privateConfig = (await db.execute(`select *
+                                                   from \`${saasConfig.SAAS_NAME}\`.private_config
+                                                   where app_name = ${db.escape(config.copyApp)} `, []));
             }
             const trans = await db.Transaction.build();
             await trans.execute(`insert into \`${saasConfig.SAAS_NAME}\`.app_config (domain, user, appName, dead_line, \`config\`)
@@ -52,11 +54,11 @@ export class App {
                 config.appName,
                 addDays(new Date(), saasConfig.DEF_DEADLINE)
             ]);
-            if(privateConfig){
+            if (privateConfig) {
                 for (const dd of privateConfig) {
                     await trans.execute(`
-                        insert into \`${saasConfig.SAAS_NAME}\`.private_config (\`app_name\`, \`key\`,\`value\`,updated_at)
-                        values (?, ?, ?,?);
+                        insert into \`${saasConfig.SAAS_NAME}\`.private_config (\`app_name\`, \`key\`, \`value\`, updated_at)
+                        values (?, ?, ?, ?);
                     `, [
                         config.appName,
                         dd.key,
@@ -129,9 +131,42 @@ export class App {
             throw exception.BadRequestError(e.code ?? 'BAD_REQUEST', e, null);
         }
     }
+    public async getOfficialPlugin() {
+        try {
+            return ((await db.execute(`
+                SELECT *
+                FROM \`${saasConfig.SAAS_NAME}\`.official_component;
+            `, [])))
+        } catch (e: any) {
+            throw exception.BadRequestError(e.code ?? 'BAD_REQUEST', e, null);
+        }
+    }
 
     public async setAppConfig(config: { appName: string, data: any }) {
         try {
+            console.log(`lambdaView--`, config.data.lambdaView)
+            const official = (await db.query(`SELECT count(1)
+                                              FROM \`${saasConfig.SAAS_NAME}\`.user
+                                              where userID = ?
+                                                and company = ?`, [this.token.userID, 'LION']))[0]['count(1)'] == 1;
+            if (official) {
+                const trans = await db.Transaction.build()
+                await trans.execute(`delete from \`${saasConfig.SAAS_NAME}\`.official_component where app_name=?`,[config.appName])
+                for (const b of (config.data.lambdaView ?? [])) {
+                    await trans.execute(`insert into \`${saasConfig.SAAS_NAME}\`.official_component
+                                         set ?`, [
+                        {
+                            key:b.key,
+                            group:b.name,
+                            userID: this.token.userID,
+                            app_name: config.appName,
+                            url: b.path,
+                        }
+                    ])
+                }
+                await trans.commit();
+            }
+
             return (await db.execute(`update \`${saasConfig.SAAS_NAME}\`.app_config
                                       set config=?
                                       where appName = ${db.escape(config.appName)}
@@ -159,7 +194,6 @@ export class App {
             throw exception.BadRequestError(e.code ?? 'BAD_REQUEST', e, null);
         }
     }
-
 
 
     constructor(token: IToken) {

@@ -53,6 +53,29 @@ router.get('/checkMail', async (req, resp) => {
         return response_1.default.fail(resp, err);
     }
 });
+router.get('/checkMail/updateAccount', async (req, resp) => {
+    try {
+        let data = await database_1.default.query(`select \`value\`
+                                   from \`${config_js_1.default.DB_NAME}\`.private_config
+                                   where app_name = '${req.query['g-app']}'
+                                     and \`key\` = 'glitter_loginConfig'`, []);
+        if (data.length > 0) {
+            data = data[0]['value'];
+        }
+        else {
+            data = {
+                verify: `normal`,
+                link: ``
+            };
+        }
+        const user = new user_1.User(req.query['g-app']);
+        await user.updateAccountBack(req.query.token);
+        return resp.redirect(`${config_js_1.default.domain}/${req.query['g-app']}/index.html?page=${data.link}`);
+    }
+    catch (err) {
+        return response_1.default.fail(resp, err);
+    }
+});
 router.post('/forget', async (req, resp) => {
     try {
         let data = await database_1.default.query(`select \`value\`
@@ -69,9 +92,9 @@ router.post('/forget', async (req, resp) => {
             };
         }
         const sql = `select *
-                                                 from \`${req.get('g-app')}\`.user
-                                                 where account = ${database_1.default.escape(req.body.email)}
-                                                   and status = 1`;
+                     from \`${req.get('g-app')}\`.user
+                     where account = ${database_1.default.escape(req.body.email)}
+                       and status = 1`;
         const userData = await database_1.default.execute(sql, []);
         console.log(`userData:${sql}`);
         if (userData.length > 0) {

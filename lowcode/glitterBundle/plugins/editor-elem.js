@@ -1,5 +1,5 @@
 import { ShareDialog } from '../dialog/ShareDialog.js';
-import { Swal } from "../../modules/sweetAlert.js";
+import { Swal } from "../module/sweetAlert.js";
 import autosize from "./autosize.js";
 export class EditorElem {
     static uploadImage(obj) {
@@ -74,7 +74,10 @@ export class EditorElem {
                 style: `max-height:400px!important;min-height:100px;`,
                 class: `form-control`, option: [
                     { key: 'placeholder', value: obj.placeHolder },
-                    { key: 'onchange', value: obj.gvc.event((e) => { obj.callback(e.value); })
+                    {
+                        key: 'onchange', value: obj.gvc.event((e) => {
+                            obj.callback(e.value);
+                        })
                     }
                 ]
             },
@@ -306,7 +309,8 @@ export class EditorElem {
                 bind: id,
                 view: () => {
                     if (obj.data.expand) {
-                        return `<div class=" w-100  rounded p-2 " style="background: ${color}; ">
+                        return `<div class="toggleInner  mb-2 p-2" style="width:calc(100%);border-radius:8px;
+                    min-height:45px;background:#d9f1ff;border: 1px solid #151515;color:#151515;">
                             <div
                                 class="d-flex p-0 align-items-center mb-2 w-100"
                                 onclick="${obj.gvc.event(() => {
@@ -322,7 +326,8 @@ export class EditorElem {
                             ${(typeof obj.innerText === 'string') ? obj.innerText : obj.innerText()}
                         </div>`;
                     }
-                    return `<div class="w-100  rounded p-2 " style="background-color: ${color};">
+                    return `<div class="toggleInner  mb-2 p-2" style="width:calc(100%);border-radius:8px;
+                    min-height:45px;background:#d9f1ff;border: 1px solid #151515;color:#151515;">
                         <div
                             class="w-100 d-flex p-0 align-items-center"
                             onclick="${obj.gvc.event(() => {
@@ -455,6 +460,40 @@ export class EditorElem {
             .join('')}
             </select>
         `;
+    }
+    static editerDialog(par) {
+        const html = String.raw;
+        return `<div type="button" class="btn  w-100 " style="background:white;width:calc(100%);border-radius:8px;
+                    min-height:45px;border:1px solid black;color:#151515;" onclick="${par.gvc.event(() => {
+            par.gvc.glitter.innerDialog((gvc) => {
+                return html `
+                    <div class="dropdown-menu mx-0 position-fixed pb-0 border p-0 show"
+                         style="z-index:999999;${(par.width) ? `width:${par.width};` : ``};"
+                         onclick="${gvc.event((e, event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                })}">
+                        <div class="d-flex align-items-center px-2 border-bottom"
+                             style="height:50px;min-width:400px;">
+                            <h3 style="font-size:15px;font-weight:500;" class="m-0">
+                                ${par.editTitle ? par.editTitle : `編輯內容`}</h3>
+                            <div class="flex-fill"></div>
+                            <div class="hoverBtn p-2" data-bs-toggle="dropdown"
+                                 aria-haspopup="true" aria-expanded="false"
+                                 style="color:black;font-size:20px;"
+                                 onclick="${gvc.event((e, event) => {
+                    gvc.closeDialog();
+                })}"><i
+                                    class="fa-sharp fa-regular fa-circle-xmark"></i>
+                            </div>
+                        </div>
+                        <div class="px-2 pb-2"
+                             style="max-height:calc(100vh - 150px);overflow-y:auto;">
+                            ${par.dialog(gvc)}
+                        </div>
+                    </div>`;
+            }, par.gvc.glitter.getUUID());
+        })}">${par.editTitle}</div>`;
     }
     static arrayItem(obj) {
         const gvc = obj.gvc;
@@ -622,6 +661,7 @@ export class EditorElem {
                                         <div class="subBt ms-n2 ${(obj.minus === false) ? `d-none` : ``}"
                                              onclick="${gvc.event((e, event) => {
                                 obj.originalArray.splice(index, 1);
+                                obj.refreshComponent();
                                 gvc.notifyDataChange(viewId);
                                 event.stopPropagation();
                             })}">

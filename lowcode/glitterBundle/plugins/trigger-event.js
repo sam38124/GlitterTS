@@ -130,7 +130,7 @@ export class TriggerEvent {
                         setTimeout(() => {
                             resolve(true);
                         }, 4000);
-                        returnData = await oj.gvc.glitter.share.clickEvent[glitter.htmlGenerate.resourceHook(event.clickEvent.src)][event.clickEvent.route].fun(oj.gvc, oj.widget, event, oj.subData, oj.element).event();
+                        returnData = await oj.gvc.glitter.share.clickEvent[TriggerEvent.getLink(event.clickEvent.src)][event.clickEvent.route].fun(oj.gvc, oj.widget, event, oj.subData, oj.element).event();
                         const response = returnData;
                         if (event.dataPlace) {
                             eval(event.dataPlace);
@@ -150,17 +150,16 @@ export class TriggerEvent {
                         }
                     }
                     catch (e) {
-                        console.log(e);
                         returnData = (_a = event.errorCode) !== null && _a !== void 0 ? _a : "";
-                        resolve(false);
+                        resolve(true);
                     }
                 }
                 try {
                     oj.gvc.glitter.share.clickEvent = (_a = oj.gvc.glitter.share.clickEvent) !== null && _a !== void 0 ? _a : {};
                     if (!oj.gvc.glitter.share.clickEvent[event.clickEvent.src]) {
-                        await new Promise((reject) => {
+                        await new Promise((resolve, reject) => {
                             oj.gvc.glitter.addMtScript([
-                                { src: `${glitter.htmlGenerate.resourceHook(event.clickEvent.src)}`, type: 'module' }
+                                { src: `${TriggerEvent.getLink(event.clickEvent.src)}`, type: 'module' }
                             ], () => {
                                 pass();
                             }, () => {
@@ -323,11 +322,11 @@ ${Editor.arrayItem({
                                                                             view: () => {
                                                                                 try {
                                                                                     let text = ``;
-                                                                                    if (!glitter.share.clickEvent[glitter.htmlGenerate.resourceHook(obj.clickEvent.src)]) {
+                                                                                    if (!glitter.share.clickEvent[TriggerEvent.getLink(obj.clickEvent.src)]) {
                                                                                         text = ``;
                                                                                     }
                                                                                     else {
-                                                                                        text = glitter.share.clickEvent[glitter.htmlGenerate.resourceHook(obj.clickEvent.src)][obj.clickEvent.route].fun(gvc, widget, obj).editor();
+                                                                                        text = glitter.share.clickEvent[TriggerEvent.getLink(obj.clickEvent.src)][obj.clickEvent.route].fun(gvc, widget, obj).editor();
                                                                                     }
                                                                                     if (text.replace(/ /g, '') === '') {
                                                                                         return `<span>此事件無設定拓展項目</span>`;
@@ -341,12 +340,13 @@ ${Editor.arrayItem({
                                                                             divCreate: {},
                                                                             onCreate: () => {
                                                                                 var _a;
+                                                                                console.log(`reload---`, TriggerEvent.getLink(obj.clickEvent.src));
                                                                                 glitter.share.clickEvent = (_a = glitter.share.clickEvent) !== null && _a !== void 0 ? _a : {};
                                                                                 try {
-                                                                                    if (!glitter.share.clickEvent[glitter.htmlGenerate.resourceHook(obj.clickEvent.src)]) {
-                                                                                        -glitter.addMtScript([
+                                                                                    if (!glitter.share.clickEvent[TriggerEvent.getLink(obj.clickEvent.src)]) {
+                                                                                        glitter.addMtScript([
                                                                                             {
-                                                                                                src: glitter.htmlGenerate.resourceHook(obj.clickEvent.src),
+                                                                                                src: TriggerEvent.getLink(obj.clickEvent.src),
                                                                                                 type: 'module'
                                                                                             }
                                                                                         ], () => {
@@ -491,5 +491,13 @@ ${Editor.toggleExpand({
 </div>
 
 `;
+    }
+    static getLink(url) {
+        const glitter = window.glitter;
+        url = glitter.htmlGenerate.resourceHook(url);
+        if (!url.startsWith('http') && !url.startsWith('https')) {
+            url = new URL(window.appName + '/' + url, location.origin).href;
+        }
+        return url;
     }
 }

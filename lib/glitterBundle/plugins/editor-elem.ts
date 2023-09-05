@@ -1,11 +1,16 @@
 import {ShareDialog} from '../dialog/ShareDialog.js';
 
+import {Swal} from "../module/sweetAlert.js";
+import {GVC} from "../GVController.js";
+//@ts-ignore
+import autosize from "./autosize.js";
+
 
 export class EditorElem {
     public static uploadImage(obj: { title: string; gvc: any; def: string; callback: (data: string) => void }) {
         const glitter = (window as any).glitter;
         const $ = glitter.$;
-        return /*html*/ `<h3 style="font-size: 16px;margin-bottom: 10px;" class="mt-2">${obj.title}</h3>
+        return /*html*/ `${EditorElem.h3(obj.title)}
             <div class="d-flex align-items-center mb-3">
                 <input
                     class="flex-fill form-control "
@@ -58,10 +63,36 @@ export class EditorElem {
             </div>`;
     }
 
+    public static editeText(obj: { gvc: GVC; title: string; default: string; placeHolder: string; callback: (text: string) => void }) {
+        obj.title = obj.title ?? ""
+        const html = String.raw
+        const id = obj.gvc.glitter.getUUID()
+        return html`${EditorElem.h3(obj.title)}
+        ${obj.gvc.bindView({
+            bind: id,
+            view: () => {
+                return obj.default ?? ''
+            },
+            divCreate: {
+                elem: `textArea`,
+                style: `max-height:400px!important;min-height:100px;`,
+                class: `form-control`, option: [
+                    {key: 'placeholder', value: obj.placeHolder},
+                    {key: 'onchange', value: obj.gvc.event((e) => {obj.callback(e.value);})
+                    }
+                ]
+            },
+            onCreate: () => {
+                //@ts-ignore
+                autosize(obj.gvc.getBindViewElem(id))
+            }
+        })}`;
+    }
+
     public static uploadFile(obj: { title: string; gvc: any; def: string; callback: (data: string) => void }) {
         const glitter = (window as any).glitter;
         const $ = glitter.$;
-        return /*html*/ `<h3 style="font-size: 16px;margin-bottom: 10px;" class="mt-2">${obj.title}</h3>
+        return /*html*/ `${EditorElem.h3(obj.title)}
             <div class="d-flex align-items-center mb-3">
                 <input
                     class="flex-fill form-control "
@@ -73,8 +104,8 @@ export class EditorElem {
                 />
                 <div class="" style="width: 1px;height: 25px;background-color: white;"></div>
                 <i
-                    class="fa-regular fa-upload  ms-2"
-                    style="cursor: pointer;"
+                    class="fa-regular fa-upload  ms-2 fs-5"
+                    style="cursor: pointer;color:black;"
                     onclick="${obj.gvc.event(() => {
             glitter.ut.chooseMediaCallback({
                 single: true,
@@ -232,7 +263,7 @@ export class EditorElem {
     }
 
     public static h3(title: string) {
-        return /*html*/ `<h3 style="color: black;font-size: 16px;margin-bottom: 10px;" class="mt-2">${title}</h3>`;
+        return /*html*/ `<h3 style="color: black;font-size: 15px;margin-bottom: 10px;" class="fw-500 mt-2">${title}</h3>`;
     }
 
     public static plusBtn(title: string, event: any) {
@@ -252,20 +283,20 @@ export class EditorElem {
             /*html*/ `
                 ${EditorElem.h3(obj.title)}
                 <div
-                    class="alert alert-dark alert-dismissible fade show p-2"
+                    class="alert alert-info fade show p-2"
                     role="alert"
                     style="white-space: normal;word-break: break-all;"
                 >
                     <a
                         onclick="${obj.gvc.event(() => glitter.openNewTab('https://fontawesome.com/search'))}"
-                        class=" fw text-white"
+                        class="fw fw-bold"
                         style="cursor: pointer;"
                         >fontawesome</a
                     >
                     與
                     <a
                         onclick="${obj.gvc.event(() => glitter.openNewTab('https://boxicons.com/'))}"
-                        class=" fw text-white"
+                        class="fw fw-bold"
                         style="cursor: pointer;"
                         >box-icon</a
                     >
@@ -293,7 +324,8 @@ export class EditorElem {
                 bind: id,
                 view: () => {
                     if (obj.data.expand) {
-                        return /*html*/ `<div class=" w-100  rounded p-2 " style="background: ${color}; ">
+                        return /*html*/ `<div class="toggleInner  mb-2 p-2" style="width:calc(100%);border-radius:8px;
+                    min-height:45px;background:#d9f1ff;border: 1px solid #151515;color:#151515;">
                             <div
                                 class="d-flex p-0 align-items-center mb-2 w-100"
                                 onclick="${obj.gvc.event(() => {
@@ -309,7 +341,8 @@ export class EditorElem {
                             ${(typeof obj.innerText === 'string') ? obj.innerText : obj.innerText()}
                         </div>`;
                     }
-                    return /*html*/ `<div class="w-100  rounded p-2 " style="background-color: ${color};">
+                    return /*html*/ `<div class="toggleInner  mb-2 p-2" style="width:calc(100%);border-radius:8px;
+                    min-height:45px;background:#d9f1ff;border: 1px solid #151515;color:#151515;">
                         <div
                             class="w-100 d-flex p-0 align-items-center"
                             onclick="${obj.gvc.event(() => {
@@ -421,6 +454,17 @@ export class EditorElem {
         `;
     }
 
+    public static editeInput(obj: {
+        gvc: GVC; title: string; default: string; placeHolder: string; callback: (text: string) => void,
+        type?: string
+    }) {
+        obj.title = obj.title ?? ""
+        return `${EditorElem.h3(obj.title)}
+<input class="form-control mb-2" type="${obj.type ?? 'text'}" placeholder="${obj.placeHolder}" onchange="${obj.gvc.event((e) => {
+            obj.callback(e.value);
+        })}" value="${obj.default ?? ''}">`;
+    }
+
     public static select(obj: {
         title: string;
         gvc: any;
@@ -454,59 +498,290 @@ export class EditorElem {
     public static arrayItem(obj: {
         gvc: any;
         title: string;
-        array: { title: string; innerHtml: string | (() => string); expand: any; minus: string }[];
+        array: () => { title: string; innerHtml: string | ((gvc: GVC) => string); editTitle?: string, saveEvent?: () => void, width?: string,saveAble?:boolean }[];
         originalArray: any,
         expand: any;
-        plus: {
+        plus?: {
             title: string;
             event: string;
         };
         refreshComponent: () => void,
-        outside?: boolean,
-        plusBtn?: (title: string, event: string) => void
+        minus?: boolean,
+        draggable?: boolean,
+        copyable?: boolean
     }) {
-        let dragm = {
-            start: 0,
-            end: 0,
-        };
-        const innerText = obj.array
-            .map((dd, index) => {
+        const gvc = obj.gvc
+        const glitter = gvc.glitter
+        const viewId = glitter.getUUID()
+        const html = String.raw
+        const swal = new Swal(gvc);
 
-                return EditorElem.toggleExpand({
-                    gvc: obj.gvc,
-                    title: `<div  draggable="true"  ondragenter="${obj.gvc.event((e: any, event: any) => {
-                        dragm.end = index;
-                    })}" ondragstart="${obj.gvc.event(() => {
-                        dragm.start = index;
-                        dragm.end = index;
-                    })}"   ondragend="${obj.gvc.event(() => {
-                        swapArr(obj.originalArray, dragm.start, dragm.end);
-                        obj.refreshComponent()
-                    })}" >${EditorElem.minusTitle(dd.title, dd.minus)}</div>`,
-                    data: dd.expand,
-                    innerText: dd.innerHtml,
-                    color: `#d9f1ff`,
-                });
-            })
-            .join('<div class="my-3" style="color:#d9f1ff"></div>')
-            +
-            (obj.plusBtn ? obj.plusBtn!(obj.plus.title, obj.plus.event) : EditorElem.plusBtn(obj.plus.title, obj.plus.event))
-        if (obj.expand === undefined) {
-            return innerText
+        function render(array: any, child: boolean, original: any) {
+            const parId = obj.gvc.glitter.getUUID()
+            const dragModel: {
+                draggableElement: string,
+                dragOffsetY: number,
+                dragStart: number,
+                maxHeight: number,
+                editor_item: any[],
+                hover_item: any[],
+                currentIndex: number,
+                firstIndex: number
+                changeIndex: number
+            } = {
+                draggableElement: '',
+                dragOffsetY: 0,
+                dragStart: 0,
+                maxHeight: 0,
+                editor_item: [],
+                hover_item: [],
+                currentIndex: 0,
+                changeIndex: 0,
+                firstIndex: 0
+            }
+            const mup_Linstener = function (event: MouseEvent) {
+                // 更新页面上的文本显示滑鼠放開狀態
+                if (dragModel.draggableElement) {
+                    dragModel.currentIndex = (dragModel.currentIndex > array.length) ? array.length - 1 : dragModel.currentIndex
+                    // alert(`${array[dragModel.firstIndex].index}-${array[dragModel.currentIndex].index}`)
+                    $('.select_container').toggleClass('select_container')
+                    document.getElementById(dragModel.draggableElement)!.remove()
+                    dragModel.draggableElement = ''
+
+                    function swapArr(arr: any, index1: number, index2: number) {
+                        const data = arr[index1];
+                        arr.splice(index1, 1);
+                        arr.splice(index2, 0, data);
+                    }
+
+                    swapArr(original, array[dragModel.firstIndex].index, array[(dragModel.currentIndex > 0) ? dragModel.currentIndex - 1 : 0].index);
+                    // swapArr(array, dragModel.firstIndex, ((dragModel.currentIndex - 1 < dragModel.firstIndex) && (dragModel.currentIndex + 1 < array.length)) ? dragModel.currentIndex : (dragModel.currentIndex >= 0) ? dragModel.currentIndex - 1 : 0)
+                    obj.gvc.notifyDataChange([viewId])
+                }
+                document.removeEventListener('mouseup', mup_Linstener)
+                document.removeEventListener('mousemove', move_Linstener)
+            }
+            const move_Linstener = function (event: MouseEvent) {
+                if (!dragModel.draggableElement) {
+                    return
+                }
+                let off = event.clientY - dragModel.dragStart + dragModel.dragOffsetY
+                if (off < 5) {
+                    off = 5
+                } else if (off > dragModel.maxHeight) {
+                    off = dragModel.maxHeight
+                }
+
+                function findClosestNumber(ar: any, target: any) {
+                    if (ar.length === 0) return null;
+                    const arr = JSON.parse(JSON.stringify(ar))
+                    let index = 0
+                    let closest = arr[0];
+                    arr.push(ar[ar.length - 1] + 34)
+                    let minDifference = Math.abs(target - closest);
+                    for (let i = 1; i < arr.length; i++) {
+                        const difference = Math.abs(target - arr[i]);
+                        if (difference < minDifference) {
+                            closest = arr[i];
+                            index = i
+                            minDifference = difference;
+                        }
+                    }
+                    return index;
+                }
+
+                let closestNumber: number = findClosestNumber(dragModel.hover_item.map((dd, index) => {
+                    return 34 * index - 17;
+                }), off) as number;
+                console.log(`offSet:${off}-closestNumber:${closestNumber}-length:${array.length}`)
+                console.log(closestNumber)
+                dragModel.changeIndex = (closestNumber as number)
+                dragModel.currentIndex = (closestNumber as number)
+                $('.editor_item.hv').remove();
+                if (dragModel.currentIndex == array.length) {
+                    $('.select_container').append(`<div class="editor_item active hv"></div>`)
+                } else if (dragModel.currentIndex == 1) {
+                    $('.select_container').prepend(`<div class="editor_item active hv"></div>`)
+                } else {
+                    const parentElement = document.getElementsByClassName("select_container")[0];
+                    const referenceElement = dragModel.hover_item[dragModel.currentIndex].elem.get(0);
+                    const newElement = document.createElement("div", {});
+                    newElement.classList.add("editor_item")
+                    newElement.classList.add("active")
+                    newElement.classList.add("hv")
+                    newElement.textContent = "";
+                    parentElement.insertBefore(newElement, referenceElement);
+                }
+                $(`#${dragModel.draggableElement}`).css("position", "absolute");
+                $(`#${dragModel.draggableElement}`).css("right", "0px");
+                $(`#${dragModel.draggableElement}`).css("top", off + "px");
+            }
+            return gvc.bindView(() => {
+                return {
+                    bind: parId,
+                    view: () => {
+                        return array.map((dd: any, index: number) => {
+                            let toggle = gvc.event((e: any, event: any) => {
+                                dd.toggle = !dd.toggle
+                                gvc.notifyDataChange(parId)
+                                event.preventDefault()
+                                event.stopPropagation()
+                            })
+                            return html`
+                                <l1 class="btn-group "
+                                    style="margin-top:1px;margin-bottom:1px;">
+                                    <div class="editor_item d-flex   px-2 my-0 hi me-n1 "
+                                         style=""
+                                         onclick="${gvc.event(() => {
+                                             const originalData = JSON.parse(JSON.stringify(original[index]))
+                                             gvc.glitter.innerDialog((gvc: GVC) => {
+                                                 return html`
+                                                     <div class="dropdown-menu mx-0 position-fixed pb-0 border p-0 show"
+                                                          style="z-index:999999;${(dd.width) ? `width:${dd.width};` : ``};"
+                                                          onclick="${gvc.event((e: any, event: any) => {
+                                                              event.preventDefault()
+                                                              event.stopPropagation()
+                                                          })}">
+                                                         <div class="d-flex align-items-center px-2 border-bottom"
+                                                              style="height:50px;min-width:400px;">
+                                                             <h3 style="font-size:15px;font-weight:500;" class="m-0">
+                                                                 ${dd.editTitle ? dd.editTitle : `編輯項目「${dd.title}」`}</h3>
+                                                             <div class="flex-fill"></div>
+                                                             <div class="hoverBtn p-2" data-bs-toggle="dropdown"
+                                                                  aria-haspopup="true" aria-expanded="false"
+                                                                  style="color:black;font-size:20px;"
+                                                                  onclick="${gvc.event((e: any, event: any) => {
+                                                                      original[index] = originalData
+                                                                      gvc.closeDialog()
+                                                                      obj.refreshComponent()
+                                                                  })}"><i
+                                                                     class="fa-sharp fa-regular fa-circle-xmark"></i>
+                                                             </div>
+                                                         </div>
+                                                         <div class="px-2"
+                                                              style="max-height:calc(100vh - 150px);overflow-y:auto;">
+                                                             ${dd.innerHtml(gvc)}
+                                                         </div>
+
+                                                         <div class="d-flex w-100 p-2 border-top ${(dd.saveAble===false) ? `d-none`:``}">
+                                                             <div class="flex-fill"></div>
+                                                             <div class="btn btn-secondary"
+                                                                  style="height:40px;width:80px;"
+                                                                  onclick="${gvc.event(() => {
+                                                                      original[index] = originalData
+                                                                      gvc.closeDialog()
+                                                                      obj.refreshComponent()
+                                                                  })}">取消
+                                                             </div>
+                                                             <div class="btn btn-primary-c ms-2"
+                                                                  style="height:40px;width:80px;"
+                                                                  onclick="${gvc.event(() => {
+                                                                      gvc.closeDialog();
+                                                                      (dd.saveEvent && dd.saveEvent()) || obj.refreshComponent();
+                                                                  })}"><i class="fa-solid fa-floppy-disk me-2"></i>儲存
+                                                             </div>
+                                                         </div>
+
+                                                     </div>`
+                                             }, glitter.getUUID())
+                                         })}"
+                                    >
+                                        <div class="subBt ms-n2 ${(obj.minus === false) ? `d-none` : ``}"
+                                             onclick="${gvc.event((e: any, event: any) => {
+                                                 obj.originalArray.splice(index, 1)
+                                                 gvc.notifyDataChange(viewId)
+                                                 event.stopPropagation()
+                                             })}">
+                                            <i class="fa-regular fa-circle-minus d-flex align-items-center justify-content-center subBt "
+                                               style="width:15px;height:15px;color:red;"
+                                            ></i>
+                                        </div>
+
+                                        ${dd.title}
+                                        <div class="flex-fill"></div>
+                                        <div class="subBt ${(obj.copyable === false) ? `d-none` : ``}"
+                                             onclick="${gvc.event((e: any, event: any) => {
+                                                 obj.originalArray.push(original[index])
+                                                 swal.toast({
+                                                     icon: 'success',
+                                                     title: "複製成功．"
+                                                 })
+                                                 gvc.notifyDataChange(viewId)
+                                                 event.stopPropagation()
+                                             })}">
+                                            <i class="fa-sharp fa-regular fa-scissors d-flex align-items-center justify-content-center subBt"
+                                               style="width:15px;height:15px;"
+                                            ></i>
+                                        </div>
+                                        <div class="subBt ${(obj.draggable === false) ? `d-none` : ``}" onmousedown="${
+                                                gvc.event((e: any, event: any) => {
+                                                    dragModel.firstIndex = index
+                                                    dragModel.currentIndex = index
+                                                    dragModel.draggableElement = glitter.getUUID()
+                                                    dragModel.dragStart = event.clientY
+                                                    dragModel.dragOffsetY = $(e).parent().parent().get(0).offsetTop;
+                                                    dragModel.maxHeight = ($(e).parent().parent().parent().height() as number);
+                                                    $(e).parent().addClass('d-none')
+                                                    dragModel.hover_item = []
+                                                    $(e).parent().parent().append(`<div class="editor_item active  hv"></div>`)
+                                                    $(e).parent().parent().parent().addClass('select_container')
+                                                    $('.select_container').children().each(function (index) {
+                                                        // 在這裡執行對每個 li 元素的操作
+                                                        dragModel.hover_item.push({
+                                                            elem: $(this),
+                                                            offsetTop: $(this).get(0)!.offsetTop
+                                                        })
+                                                    });
+                                                    $(e).parent().parent().parent().append(html`
+                                                        <l1 class="btn-group position-absolute  "
+                                                            style="width:${($(e).parent().parent().width() as any) - 50}px;right:15px;top:${dragModel.dragOffsetY}px;z-index:99999;border-radius:10px;background:white!important;"
+                                                            id="${dragModel.draggableElement}">
+                                                            <div class="editor_item d-flex   px-2 my-0"
+                                                                 style="background:white!important;">
+                                                                ${dd.title}
+                                                                <div class="flex-fill"></div>
+                                                                <i class="d-none fa-solid fa-pencil d-flex align-items-center justify-content-center subBt"
+                                                                   style="width:20px;height:20px;"></i>
+                                                                <i class="d-none fa-solid fa-grip-dots-vertical d-flex align-items-center justify-content-center subBt"
+                                                                   style="width:20px;height:20px;"></i>
+                                                            </div>
+                                                        </l1>`)
+                                                    document.addEventListener("mouseup", mup_Linstener);
+                                                    document.addEventListener("mousemove", move_Linstener);
+                                                })}">
+                                            <i class="fa-solid fa-grip-dots-vertical d-flex align-items-center justify-content-center  "
+                                               style="width:15px;height:15px;"></i>
+                                        </div>
+                                    </div>
+                                </l1>
+                            `
+                        }).join('')
+                    },
+                    divCreate: {
+                        class: `d-flex flex-column ${(child) ? `` : ``} position-relative`,
+                    }
+                }
+            }) + ((obj.plus) ? `<l1 class="btn-group mt-1 ps-1 pe-2 w-100 border-bottom pb-2">
+                    <div class="btn-outline-secondary-c btn ms-2 " style="height:30px;flex:1;" onclick="${obj.plus!.event}"><i class="fa-regular fa-circle-plus me-2"></i>${obj.plus!.title}</div>
+</l1>` : ``)
         }
-        if (obj.outside === false) {
-            return innerText;
-        }
-        return (
-            /*html*/`<div class="mb-2"></div>` +
-            EditorElem.toggleExpand({
-                gvc: obj.gvc,
-                title: obj.title,
-                data: obj.expand,
-                innerText: innerText as string,
-                color: `#d9f1ff`,
-            })
-        );
+
+        return (obj.title ? `   <div class="d-flex  px-2 hi fw-bold d-flex align-items-center border-bottom border-top py-2 bgf6"
+                             style="color:#151515;font-size:16px;gap:0px;">
+                            ${obj.title}
+                        </div>` : ``) + gvc.bindView(() => {
+            return {
+                bind: viewId,
+                view: () => {
+                    return render(obj.array().map((dd: any, index: number) => {
+                        dd.index = index
+                        return dd
+                    }), false, obj.originalArray)
+                }
+            }
+        })
+
+
     }
 }
 

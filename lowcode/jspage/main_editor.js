@@ -18,6 +18,18 @@ export class Main_editor {
             return {
                 bind: vid,
                 view: () => {
+                    function checkSelect(array) {
+                        array.map((dd) => {
+                            if (dd.id === glitter.getCookieByName('lastSelect')) {
+                                viewModel.selectContainer = array;
+                                viewModel.selectItem = dd;
+                            }
+                            else if (Array.isArray(dd.data.setting)) {
+                                checkSelect(dd.data.setting);
+                            }
+                        });
+                    }
+                    checkSelect(viewModel.data.config);
                     if ((glitter.getCookieByName("ViewType") === ViewType.col3)) {
                         gvc.notifyDataChange('right_NAV');
                     }
@@ -94,8 +106,6 @@ export class Main_editor {
                                     let closestNumber = findClosestNumber(dragModel.hover_item.map((dd, index) => {
                                         return 34 * index - 17;
                                     }), off);
-                                    console.log(`offSet:${off}-closestNumber:${closestNumber}-length:${array.length}`);
-                                    console.log(closestNumber);
                                     dragModel.changeIndex = closestNumber;
                                     dragModel.currentIndex = closestNumber;
                                     $('.editor_item.hv').remove();
@@ -130,6 +140,7 @@ export class Main_editor {
                                                     }
                                                     viewModel.selectContainer = original;
                                                     viewModel.selectItem = dd;
+                                                    glitter.setCookie('lastSelect', dd.id);
                                                     gvc.notifyDataChange(vid);
                                                     return true;
                                                 };
@@ -147,6 +158,7 @@ export class Main_editor {
                                                                          onclick="${gvc.event(() => {
                                                     viewModel.selectContainer = original;
                                                     viewModel.selectItem = dd;
+                                                    glitter.setCookie('lastSelect', dd.id);
                                                     gvc.notifyDataChange(['htmlGenerate', 'showView', vid]);
                                                 })}">
                                                                         ${(dd.type === 'container') ? html `
@@ -167,28 +179,23 @@ export class Main_editor {
                                                     event.preventDefault();
                                                 })}">
                                                                                 <div class="d-flex align-items-center justify-content-center w-100 h-100"
-                                                                                     data-bs-toggle="dropdown"
-                                                                                     aria-haspopup="true"
-                                                                                     aria-expanded="false">
-                                                                                    <i class="fa-regular fa-circle-plus d-flex align-items-center justify-content-center subBt"></i>
-                                                                                </div>
-                                                                                <div class="dropdown-menu mx-1 position-fixed pb-0 border "
-                                                                                     style="z-index:999999;"
-                                                                                     onclick="${gvc.event((e, event) => {
-                                                    event.preventDefault();
-                                                    event.stopPropagation();
+                                                                                   onclick="${gvc.event(() => {
+                                                    glitter.innerDialog((gvc) => {
+                                                        viewModel.selectContainer = dd.data.setting;
+                                                        return Add_item_dia.view(gvc);
+                                                    }, 'Add_item_dia');
                                                 })}">
-                                                                                    ${Add_item_dia.view(gvc)}
+                                                                                    <i class="fa-regular fa-circle-plus d-flex align-items-center justify-content-center subBt"></i>
                                                                                 </div>
                                                                             </l1>` : ``}
                                                                         <div class="subBt" onclick="${gvc.event((e, event) => {
                                                     viewModel.selectContainer = array;
                                                     viewModel.waitCopy = dd;
                                                     glitter.share.copycomponent = JSON.stringify(viewModel.waitCopy);
-                                                    navigator.clipboard.writeText('glitter-copyEvent' + JSON.stringify(viewModel.waitCopy));
+                                                    navigator.clipboard.writeText(JSON.stringify(viewModel.waitCopy));
                                                     swal.toast({
                                                         icon: 'success',
-                                                        title: "複製成功，選擇容器並且按下貼上按鈕．"
+                                                        title: "已複製至剪貼簿，選擇新增模塊來添加項目．"
                                                     });
                                                     event.stopPropagation();
                                                 })}">
@@ -197,7 +204,8 @@ export class Main_editor {
                                                                             ></i>
                                                                         </div>
                                                                         ${(dd.type === 'container') ? html `
-                                                                            <div class="subBt" onclick="${gvc.event((e, event) => {
+                                                                            <div class="subBt d-none"
+                                                                                 onclick="${gvc.event((e, event) => {
                                                     viewModel.selectContainer = original.find((d2) => {
                                                         return d2.id === dd.id;
                                                     }).data.setting;
@@ -210,7 +218,7 @@ export class Main_editor {
                                                                                 ></i>
                                                                             </div>
                                                                         ` : ``}
-                                                                      
+
                                                                         <div class="subBt" onmousedown="${gvc.event((e, event) => {
                                                     dragModel.firstIndex = index;
                                                     dragModel.currentIndex = index;
@@ -295,7 +303,7 @@ export class Main_editor {
                                             <l1 class="btn-group dropend" onclick="${gvc.event(() => {
                                     viewModel.selectContainer = viewModel.globalStyle;
                                 })}">
-                                                <div class="editor_item   px-2 me-0" style="cursor:pointer; "
+                                                <div class="editor_item   px-2 me-0 d-none" style="cursor:pointer; "
                                                      onclick="${gvc.event(() => {
                                     viewModel.selectContainer = viewModel.globalStyle;
                                     glitter.share.pastEvent();
@@ -331,7 +339,7 @@ export class Main_editor {
                                             <l1 class="btn-group dropend" onclick="${gvc.event(() => {
                                     viewModel.selectContainer = viewModel.globalScript;
                                 })}">
-                                                <div class="editor_item   px-2 me-0" style="cursor:pointer; "
+                                                <div class="editor_item  d-none px-2 me-0" style="cursor:pointer; "
                                                      onclick="${gvc.event(() => {
                                     viewModel.selectContainer = viewModel.globalScript;
                                     glitter.share.pastEvent();
@@ -367,7 +375,7 @@ export class Main_editor {
                                             <l1 class="btn-group dropend" onclick="${gvc.event(() => {
                                     viewModel.selectContainer = viewModel.data.config;
                                 })}">
-                                                <div class="editor_item   px-2 me-0" style="cursor:pointer; "
+                                                <div class="editor_item  d-none px-2 me-0" style="cursor:pointer; "
                                                      onclick="${gvc.event(() => {
                                     viewModel.selectContainer = viewModel.data.config;
                                     glitter.share.pastEvent();
@@ -403,7 +411,7 @@ export class Main_editor {
                                             <l1 class="btn-group dropend" onclick="${gvc.event(() => {
                                     viewModel.selectContainer = viewModel.data.config;
                                 })}">
-                                                <div class="editor_item   px-2 me-0" style="cursor:pointer; "
+                                                <div class="editor_item d-none  px-2 me-0" style="cursor:pointer; "
                                                      onclick="${gvc.event(() => {
                                     viewModel.selectContainer = viewModel.data.config;
                                     glitter.share.pastEvent();
@@ -439,7 +447,7 @@ export class Main_editor {
                                             <l1 class="btn-group dropend me-0" onclick="${gvc.event(() => {
                                     viewModel.selectContainer = viewModel.data.config;
                                 })}">
-                                                <div class="editor_item   px-2 me-0" style="cursor:pointer; "
+                                                <div class="editor_item d-none  px-2 me-0" style="cursor:pointer; "
                                                      onclick="${gvc.event(() => {
                                     viewModel.selectContainer = viewModel.data.config;
                                     glitter.share.pastEvent();
@@ -447,20 +455,13 @@ export class Main_editor {
                                                     <i class="fa-duotone fa-paste"></i>
                                                 </div>
                                                 <div class="editor_item   px-2 ms-0 me-n1"
-                                                     style="cursor:pointer;gap:5px;"
-                                                     data-bs-toggle="dropdown"
-                                                     aria-haspopup="true"
-                                                     aria-expanded="false">
-                                                    <i class="fa-regular fa-circle-plus"></i>
-                                                </div>
-
-                                                <div class="dropdown-menu mx-1 position-fixed pb-0 border "
-                                                     style="z-index:999999;"
-                                                     onclick="${gvc.event((e, event) => {
-                                    event.preventDefault();
-                                    event.stopPropagation();
+                                                     style="cursor:pointer;gap:5px;" onclick="${gvc.event(() => {
+                                    viewModel.selectContainer = viewModel.data.config;
+                                    gvc.glitter.innerDialog((gvc) => {
+                                        return Add_item_dia.view(gvc);
+                                    }, 'Add_Item');
                                 })}">
-                                                    ${Add_item_dia.view(gvc)}
+                                                    <i class="fa-regular fa-circle-plus"></i>
                                                 </div>
                                             </l1>
                                         </div>`,
@@ -560,17 +561,18 @@ export class Main_editor {
 </div>`;
         }
         return [html `
-                            <div class="h-100 " style="overflow-y:auto;">
-                                <div class="w-100 d-flex align-items-center px-3 border-bottom ${(vid) ? `` : `d-none`}"
-                                     style="height:49px;color:#151515;">
-                                    <i class="fa-regular fa-chevron-left me-2 hoverBtn" style="cursor:pointer;"
-                                       onclick="${gvc.event(() => {
+            <div class="h-100 " style="overflow-y:auto;">
+                <div class="w-100 d-flex align-items-center px-3 border-bottom ${(vid) ? `` : `d-none`}"
+                     style="height:49px;color:#151515;">
+                    <i class="fa-regular fa-chevron-left me-2 hoverBtn" style="cursor:pointer;"
+                       onclick="${gvc.event(() => {
+                glitter.setCookie('lastSelect', '');
                 viewModel.selectItem = undefined;
                 gvc.notifyDataChange(vid);
             })}"></i>
-                                    <span class="fw-bold" style="font-size:15px;">${viewModel.selectItem.label}</span>
-                                </div>
-                                ${gvc.bindView(() => {
+                    <span class="fw-bold" style="font-size:15px;">${viewModel.selectItem.label}</span>
+                </div>
+                ${gvc.bindView(() => {
                 return {
                     bind: `htmlGenerate`,
                     view: () => {
@@ -601,7 +603,8 @@ export class Main_editor {
                                     return undefined;
                                 }
                             })(),
-                            deleteEvent: () => { }
+                            deleteEvent: () => {
+                            }
                         });
                     },
                     divCreate: {
@@ -615,25 +618,25 @@ export class Main_editor {
                     }
                 };
             })}
-                                <div class="w-100" style="height:50px;"></div>
-                            </div>
-                           `,
+                <div class="w-100" style="height:50px;"></div>
+            </div>
+        `,
             html `
-                                <div class="w-100  position-absolute bottom-0 border-top d-flex align-items-center ps-3"
-                                     style="height:50px;background:#f6f6f6;font-size:14px;">
-                                    <div class="hoverBtn fw-bold" style="color:#8e1f0b;cursor:pointer;"
-                                         onclick="${gvc.event(() => {
+                <div class="w-100  position-absolute bottom-0 border-top d-flex align-items-center ps-3"
+                     style="height:50px;background:#f6f6f6;font-size:14px;">
+                    <div class="hoverBtn fw-bold" style="color:#8e1f0b;cursor:pointer;"
+                         onclick="${gvc.event(() => {
                 for (let a = 0; a < viewModel.selectContainer.length; a++) {
                     if (viewModel.selectContainer[a] == viewModel.selectItem) {
                         viewModel.selectContainer.splice(a, 1);
                     }
                 }
                 viewModel.selectItem = undefined;
-                gvc.notifyDataChange(['htmlGenerate', 'showView', vid]);
+                gvc.notifyDataChange(['HtmlEditorContainer']);
             })}">
-                                        <i class="fa-solid fa-trash-can me-2"></i>移除區塊
-                                    </div>
-                                </div>`].join('');
+                        <i class="fa-solid fa-trash-can me-2"></i>移除區塊
+                    </div>
+                </div>`].join('');
     }
     static center(viewModel, gvc) {
         return html `

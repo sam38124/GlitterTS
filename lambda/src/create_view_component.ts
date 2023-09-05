@@ -7,9 +7,9 @@ lambda.createViewComponent({
     app_name: 'fortest',
     auth: {
         //Your glitter account.
-        account: 'rdtest',
+        account: 'your_account',
         //Your glitter pwd.
-        pwd: '12345'
+        pwd: 'your_pwd'
     },
     router: [
         {
@@ -21,7 +21,9 @@ lambda.createViewComponent({
             interface: [
                 {
                     name: "Lambda測試模塊",
-                    path: "plugin/interface.js"
+                    path: "plugin/interface.js",
+                    //The group of component , this can be empty.
+                    key:''
                 }
             ]
         }

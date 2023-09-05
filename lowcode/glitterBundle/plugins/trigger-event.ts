@@ -140,8 +140,8 @@ export class TriggerEvent {
 
     public static trigger(oj: {
         gvc: GVC, widget: HtmlJson, clickEvent: any, subData?: any, element?: { e: any, event: any }
-    }){
-        const glitter = (window as any).glitter;
+    }) {
+        const glitter = (window as any).glitter
         // const event: { src: string, route: string } = oj.clickEvent.clickEvent
         let arrayEvent: any = []
         let returnData = ''
@@ -157,7 +157,7 @@ export class TriggerEvent {
                         setTimeout(() => {
                             resolve(true)
                         }, 4000)
-                        returnData = await oj.gvc.glitter.share.clickEvent[glitter.htmlGenerate.resourceHook(event.clickEvent.src)][event.clickEvent.route].fun(oj.gvc, oj.widget, event, oj.subData, oj.element).event()
+                        returnData = await oj.gvc.glitter.share.clickEvent[TriggerEvent.getLink(event.clickEvent.src)][event.clickEvent.route].fun(oj.gvc, oj.widget, event, oj.subData, oj.element).event()
                         const response = returnData
                         if (event.dataPlace) {
                             eval(event.dataPlace)
@@ -168,25 +168,24 @@ export class TriggerEvent {
                             } catch (e) {
                             }
                         }
-                        if(passCommand){
+                        if (passCommand) {
                             resolve("blockCommand")
-                        }else{
+                        } else {
                             resolve(true)
                         }
 
                     } catch (e) {
-                        console.log(e)
                         returnData = event.errorCode ?? ""
-                        resolve(false)
+                        resolve(true)
                     }
                 }
 
                 try {
                     oj.gvc.glitter.share.clickEvent = oj.gvc.glitter.share.clickEvent ?? {}
                     if (!oj.gvc.glitter.share.clickEvent[event.clickEvent.src]) {
-                        await new Promise(( reject) => {
+                        await new Promise((resolve, reject) => {
                             oj.gvc.glitter.addMtScript([
-                                {src: `${glitter.htmlGenerate.resourceHook(event.clickEvent.src)}`, type: 'module'}
+                                {src: `${TriggerEvent.getLink(event.clickEvent.src)}`, type: 'module'}
                             ], () => {
                                 pass()
                             }, () => {
@@ -194,7 +193,7 @@ export class TriggerEvent {
                             })
                         })
                     } else {
-                         pass()
+                        pass()
                     }
                 } catch (e) {
                     pass()
@@ -202,26 +201,27 @@ export class TriggerEvent {
 
             })
         }
+
         if (oj.clickEvent !== undefined && Array.isArray(oj.clickEvent.clickEvent)) {
             // alert('array')
             arrayEvent = oj.clickEvent.clickEvent;
         } else if (oj.clickEvent !== undefined) {
             arrayEvent = [JSON.parse(JSON.stringify(oj.clickEvent))]
         }
+
         return new Promise(async (resolve, reject) => {
             let result = true
             for (const a of arrayEvent) {
-                let blockCommand=false
-
+                let blockCommand = false
                 result = await new Promise<boolean>((resolve, reject) => {
                     let fal = 10
+
                     function check() {
                         run(a).then((res) => {
-                            // alert(res)
-                            if(res==='blockCommand'){
-                                blockCommand=true
+                            if (res === 'blockCommand') {
+                                blockCommand = true
                                 resolve(true)
-                            }else{
+                            } else {
                                 if (res || (fal === 0)) {
                                     resolve(res)
                                 } else {
@@ -234,6 +234,7 @@ export class TriggerEvent {
 
                         })
                     }
+
                     check()
                 })
                 if (!result || blockCommand) {
@@ -348,10 +349,10 @@ ${Editor.arrayItem({
                                                                             view: () => {
                                                                                 try {
                                                                                     let text = ``
-                                                                                    if (!glitter.share.clickEvent[glitter.htmlGenerate.resourceHook(obj.clickEvent.src)]) {
+                                                                                    if (!glitter.share.clickEvent[TriggerEvent.getLink(obj.clickEvent.src)]) {
                                                                                         text = ``
                                                                                     } else {
-                                                                                        text = glitter.share.clickEvent[glitter.htmlGenerate.resourceHook(obj.clickEvent.src)][obj.clickEvent.route].fun(gvc, widget, obj).editor()
+                                                                                        text = glitter.share.clickEvent[TriggerEvent.getLink(obj.clickEvent.src)][obj.clickEvent.route].fun(gvc, widget, obj).editor()
                                                                                     }
                                                                                     if (text.replace(/ /g, '') === '') {
                                                                                         return `<span>此事件無設定拓展項目</span>`
@@ -363,23 +364,23 @@ ${Editor.arrayItem({
                                                                             },
                                                                             divCreate: {},
                                                                             onCreate: () => {
+                                                                                console.log(`reload---`, TriggerEvent.getLink(obj.clickEvent.src))
                                                                                 glitter.share.clickEvent = glitter.share.clickEvent ?? {}
                                                                                 try {
-                                                                                    if (!glitter.share.clickEvent[glitter.htmlGenerate.resourceHook(obj.clickEvent.src)]) {
-                                                                                        -
-                                                                                            glitter.addMtScript([
-                                                                                                {
-                                                                                                    src: glitter.htmlGenerate.resourceHook(obj.clickEvent.src),
-                                                                                                    type: 'module'
-                                                                                                }
-                                                                                            ], () => {
-                                                                                                setTimeout(() => {
-                                                                                                    gvc.notifyDataChange(id)
-                                                                                                }, 200)
+                                                                                    if (!glitter.share.clickEvent[TriggerEvent.getLink(obj.clickEvent.src)]) {
+                                                                                        glitter.addMtScript([
+                                                                                            {
+                                                                                                src: TriggerEvent.getLink(obj.clickEvent.src),
+                                                                                                type: 'module'
+                                                                                            }
+                                                                                        ], () => {
+                                                                                            setTimeout(() => {
+                                                                                                gvc.notifyDataChange(id)
+                                                                                            }, 200)
 
-                                                                                            }, () => {
-                                                                                                console.log(`loadingError:` + obj.clickEvent.src)
-                                                                                            })
+                                                                                        }, () => {
+                                                                                            console.log(`loadingError:` + obj.clickEvent.src)
+                                                                                        })
                                                                                     }
                                                                                 } catch (e) {
                                                                                 }
@@ -512,5 +513,15 @@ ${Editor.toggleExpand({
 </div>
 
 `
+    }
+
+    public static getLink(url: string) {
+
+        const glitter = (window as any).glitter
+        url=glitter.htmlGenerate.resourceHook(url)
+        if(!url.startsWith('http')&&!url.startsWith('https')){
+            url=new URL((window as any).appName+'/'+url,location.origin).href
+        }
+        return url
     }
 }

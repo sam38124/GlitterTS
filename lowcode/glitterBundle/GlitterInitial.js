@@ -71,10 +71,11 @@ function traverseHTML(element) {
         }
     }
     for (let i = 0; i < attributes.length; i++) {
-        if (attributes[i].value.includes('clickMap')) {
+        if (attributes[i].value.includes('clickMap') && (attributes[i].name.substring(0, 2) === 'on')) {
             try {
                 const funString = `${attributes[i].value}`;
-                element.addEventListener(attributes[i].name.replace('on', ''), function () {
+                $(element).off(attributes[i].name.substring(2));
+                element.addEventListener(attributes[i].name.substring(2), function () {
                     eval(funString);
                 });
                 element.removeAttribute(attributes[i].name);

@@ -1,0 +1,26 @@
+// export const TemplateInterface:{
+//     title:string,
+//     group:string,
+//     key:string
+// }[]=[
+//     {
+//         title:"測試1",
+//         key:""
+//     },
+//     {
+//         title:"更改資料",
+//         url:""
+//     },
+//     {
+//         title:"更改資料",
+//         url:""
+//     },
+//     {
+//         title:"更改資料",
+//         url:""
+//     },
+//     {
+//         title:"更改資料",
+//         url:""
+//     }
+// ]
