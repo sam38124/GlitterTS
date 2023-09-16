@@ -11,88 +11,102 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
             widget.data.list = widget.data.list ?? []
             return {
                 view: () => {
-                    return new Promise(async (resolve, reject) => {
-                        let data: any = undefined
-                        const saasConfig = (window as any).saasConfig
-                        let fal = 0
+                    return gvc.bindView(() => {
+                        const tempView = glitter.getUUID()
+                        return {
+                            bind: tempView,
+                            view: () => {
+                                return ``
+                            },
+                            divCreate: {
+                                class: ``
+                            },
+                            onInitial: () => {
+                                const target = document.querySelector(`[gvc-id="${gvc.id(tempView)}"]`)
+                                let data: any = undefined
+                                const saasConfig = (window as any).saasConfig
+                                let fal = 0
+                                let tag = widget.data.tag
+                                let carryData = widget.data.carryData
 
-                        async function getData() {
-                            let tag = widget.data.tag
-                            let carryData = widget.data.carryData
-                            for (const b of widget.data.list) {
-                                b.evenet = b.evenet ?? {}
-                                try {
-                                    if (b.triggerType === 'trigger') {
-                                        const result = await new Promise((resolve, reject) => {
-                                            (TriggerEvent.trigger({
-                                                gvc: gvc,
-                                                widget: widget,
-                                                clickEvent: b.evenet,
-                                                subData
-                                            })).then((data) => {
-                                                resolve(data)
-                                            })
+                                async function getData() {
+                                    for (const b of widget.data.list) {
+                                        b.evenet = b.evenet ?? {}
+                                        try {
+                                            if (b.triggerType === 'trigger') {
+                                                const result = await new Promise((resolve, reject) => {
+                                                    (TriggerEvent.trigger({
+                                                        gvc: gvc,
+                                                        widget: widget,
+                                                        clickEvent: b.evenet,
+                                                        subData
+                                                    })).then((data) => {
+                                                        resolve(data)
+                                                    })
 
+                                                })
+                                                if (result) {
+                                                    tag = b.tag
+                                                    carryData = b.carryData
+                                                    break
+                                                }
+                                            } else {
+                                                if ((await eval(b.code)) === true) {
+                                                    tag = b.tag
+                                                    carryData = b.carryData
+                                                    break
+                                                }
+                                            }
+                                        } catch (e) {
+
+                                        }
+
+                                    }
+                                    let sub: any = subData ?? {}
+                                    try {
+                                        sub.carryData = await TriggerEvent.trigger({
+                                            gvc: gvc,
+                                            clickEvent: carryData,
+                                            widget: widget,
+                                            subData: subData
                                         })
-                                        if (result) {
-                                            tag = b.tag
-                                            carryData = b.carryData
-                                            break
-                                        }
-                                    } else {
-                                        if ((await eval(b.code)) === true) {
-                                            tag = b.tag
-                                            carryData = b.carryData
-                                            break
-                                        }
+                                    } catch (e) {
                                     }
-                                } catch (e) {
-
-                                }
-
-                            }
-                            let sub: any = subData ?? {}
-                            try {
-                                sub.carryData = await TriggerEvent.trigger({
-                                    gvc: gvc,
-                                    clickEvent: carryData,
-                                    widget: widget,
-                                    subData: subData
-                                })
-                            } catch (e) {
-                            }
-                            BaseApi.create({
-                                "url": saasConfig.config.url + `/api/v1/template?appName=${saasConfig.config.appName}&tag=${tag}`,
-                                "type": "GET",
-                                "timeout": 0,
-                                "headers": {
-                                    "Content-Type": "application/json"
-                                }
-                            }).then((d2) => {
-                                try {
-                                    if (!d2.result) {
-                                        fal += 1
-                                        if (fal < 20) {
-                                            setTimeout(() => {
-                                                getData()
-                                            }, 200)
+                                    BaseApi.create({
+                                        "url": saasConfig.config.url + `/api/v1/template?appName=${saasConfig.config.appName}&tag=${encodeURIComponent(tag)}`,
+                                        "type": "GET",
+                                        "timeout": 0,
+                                        "headers": {
+                                            "Content-Type": "application/json"
                                         }
-                                    } else {
-                                        data = d2.response.result[0]
-                                        let createOption = (htmlGenerate ?? {}).createOption ?? {}
+                                    }).then((d2) => {
+                                        console.log(`data====`,d2)
+                                        try {
+                                            if (!d2.result) {
+                                                fal += 1
+                                                if (fal < 20) {
+                                                    setTimeout(() => {
+                                                        getData()
+                                                    }, 200)
+                                                }
+                                            } else {
+                                                data = d2.response.result[0]
 
-                                        resolve(new glitter.htmlGenerate(data.config, [], subData).render(gvc, undefined, createOption ?? {}))
+                                                let createOption = (htmlGenerate ?? {}).createOption ?? {}
+                                                target!.outerHTML = new glitter.htmlGenerate(data.config, [], subData).render(gvc, undefined, createOption ?? {});
 
-                                    }
-                                } catch (e) {
-                                    resolve('')
+                                            }
+                                        } catch (e) {
+                                            target!.outerHTML = ''
+                                        }
+                                    })
                                 }
 
-
-                            })
+                                getData()
+                            },
+                            onDestroy: () => {
+                            },
                         }
-
-                        await getData()
                     })
                 },
                 editor: () => {

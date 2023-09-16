@@ -38,12 +38,7 @@ export class Swal {
             this.init(() => sw.isVisible());
         };
         this.close = () => {
-            try {
-                this.init(() => sw.close());
-            }catch (e) {
-
-            }
-
+            this.init(() => sw.close());
         };
         this.loading = (text) => {
             this.init(() => {

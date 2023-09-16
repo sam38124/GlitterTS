@@ -16,6 +16,12 @@ window.addEventListener('resize', function () {
 function listenElementChange(query) {
     const targetElement = document.querySelector(query);
     const observer = new MutationObserver(function (mutationsList) {
+        Object.keys(glitter.elementCallback).map((dd) => {
+            if (glitter.elementCallback[dd].rendered && ($(`[gvc-id="${dd}"]`).length === 0)) {
+                glitter.elementCallback[dd].rendered = false;
+                glitter.elementCallback[dd].onDestroy();
+            }
+        });
         for (let mutation of mutationsList) {
             if (mutation.addedNodes.length > 0) {
                 for (const b of mutation.addedNodes) {
@@ -69,6 +75,7 @@ function traverseHTML(element) {
         catch (e) {
             glitter.deBugMessage(e);
         }
+        glitter.elementCallback[$(element).attr('gvc-id')].rendered = true;
     }
     for (let i = 0; i < attributes.length; i++) {
         if (attributes[i].value.includes('clickMap') && (attributes[i].name.substring(0, 2) === 'on')) {

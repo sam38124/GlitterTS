@@ -61,7 +61,7 @@ export class Setting_editor {
                                     })(), (() => {
                                         let save = undefined;
                                         return {
-                                            title: "APP上架送審",
+                                            title: "專案資源打包",
                                             view: (gvc) => {
                                                 const app = appCreate(gvc, viewModel, createID);
                                                 save = app.saveEvent;

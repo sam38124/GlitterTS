@@ -67,6 +67,10 @@ init((gvc, glitter, gBundle) => {
                         });
                         viewModel.data = (_a = viewModel.data) !== null && _a !== void 0 ? _a : data.response.result[0];
                         viewModel.dataList = data.response.result;
+                        glitter.share.allPageResource = JSON.parse(JSON.stringify(data.response.result));
+                        const htmlGenerate = new gvc.glitter.htmlGenerate(viewModel.data.config, [], undefined, true);
+                        window.editerData = htmlGenerate;
+                        window.page_config = viewModel.data.page_config;
                         if (!data) {
                             resolve(false);
                         }

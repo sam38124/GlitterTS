@@ -215,8 +215,8 @@ export class GVC {
 
     public bindView(map: (
         () =>
-            { view: () => (string), bind: string, divCreate?: { elem?: string, style?: string, class?: string, option?: { key: string, value: string }[] } | (() => ({ elem?: string, style?: string, class?: string, option?: { key: string, value: string }[] })), dataList?: { obj: any, key: string }[], onCreate?: () => void, onInitial?: () => void }) |
-        { view: () => (string), bind: string, divCreate?: { elem?: string, style?: string, class?: string, option?: { key: string, value: string }[] } | (() => ({ elem?: string, style?: string, class?: string, option?: { key: string, value: string }[] })), dataList?: { obj: any, key: string }[], onCreate?: () => void, onInitial?: () => void }
+            { view: () => (string), bind: string, divCreate?: { elem?: string, style?: string, class?: string, option?: { key: string, value: string }[] } | (() => ({ elem?: string, style?: string, class?: string, option?: { key: string, value: string }[] })), dataList?: { obj: any, key: string }[], onCreate?: () => void, onInitial?: () => void ,onDestroy?:()=>void}) |
+        { view: () => (string), bind: string, divCreate?: { elem?: string, style?: string, class?: string, option?: { key: string, value: string }[] } | (() => ({ elem?: string, style?: string, class?: string, option?: { key: string, value: string }[] })), dataList?: { obj: any, key: string }[], onCreate?: () => void, onInitial?: () => void,onDestroy?:()=>void }
     ): string {
         const gvc = this;
         if (typeof map === "function") {
@@ -238,6 +238,7 @@ export class GVC {
         gvc.parameter.bindViewList[map.bind] = map
         gvc.glitter.elementCallback[gvc.id(map.bind)].onInitial = (map as any).onInitial ?? (() => {})
         gvc.glitter.elementCallback[gvc.id(map.bind)].onCreate = (map as any).onCreate ?? (() => {})
+        gvc.glitter.elementCallback[gvc.id(map.bind)].onDestroy = (map as any).onDestroy ?? (() => {})
         gvc.glitter.elementCallback[gvc.id(map.bind)].getView = (map as any).view
         gvc.glitter.elementCallback[gvc.id(map.bind)].updateAttribute = (()=>{
             const id=gvc.id(map.bind as string)

@@ -9,86 +9,102 @@ export const component = Plugin.createComponent(import.meta.url, (glitter, editM
             widget.data.list = (_a = widget.data.list) !== null && _a !== void 0 ? _a : [];
             return {
                 view: () => {
-                    return new Promise(async (resolve, reject) => {
-                        let data = undefined;
-                        const saasConfig = window.saasConfig;
-                        let fal = 0;
-                        async function getData() {
-                            var _a;
-                            let tag = widget.data.tag;
-                            let carryData = widget.data.carryData;
-                            for (const b of widget.data.list) {
-                                b.evenet = (_a = b.evenet) !== null && _a !== void 0 ? _a : {};
-                                try {
-                                    if (b.triggerType === 'trigger') {
-                                        const result = await new Promise((resolve, reject) => {
-                                            (TriggerEvent.trigger({
-                                                gvc: gvc,
-                                                widget: widget,
-                                                clickEvent: b.evenet,
-                                                subData
-                                            })).then((data) => {
-                                                resolve(data);
-                                            });
+                    return gvc.bindView(() => {
+                        const tempView = glitter.getUUID();
+                        return {
+                            bind: tempView,
+                            view: () => {
+                                return ``;
+                            },
+                            divCreate: {
+                                class: ``
+                            },
+                            onInitial: () => {
+                                const target = document.querySelector(`[gvc-id="${gvc.id(tempView)}"]`);
+                                let data = undefined;
+                                const saasConfig = window.saasConfig;
+                                let fal = 0;
+                                let tag = widget.data.tag;
+                                let carryData = widget.data.carryData;
+                                async function getData() {
+                                    var _a;
+                                    for (const b of widget.data.list) {
+                                        b.evenet = (_a = b.evenet) !== null && _a !== void 0 ? _a : {};
+                                        try {
+                                            if (b.triggerType === 'trigger') {
+                                                const result = await new Promise((resolve, reject) => {
+                                                    (TriggerEvent.trigger({
+                                                        gvc: gvc,
+                                                        widget: widget,
+                                                        clickEvent: b.evenet,
+                                                        subData
+                                                    })).then((data) => {
+                                                        resolve(data);
+                                                    });
+                                                });
+                                                if (result) {
+                                                    tag = b.tag;
+                                                    carryData = b.carryData;
+                                                    break;
+                                                }
+                                            }
+                                            else {
+                                                if ((await eval(b.code)) === true) {
+                                                    tag = b.tag;
+                                                    carryData = b.carryData;
+                                                    break;
+                                                }
+                                            }
+                                        }
+                                        catch (e) {
+                                        }
+                                    }
+                                    let sub = subData !== null && subData !== void 0 ? subData : {};
+                                    try {
+                                        sub.carryData = await TriggerEvent.trigger({
+                                            gvc: gvc,
+                                            clickEvent: carryData,
+                                            widget: widget,
+                                            subData: subData
                                         });
-                                        if (result) {
-                                            tag = b.tag;
-                                            carryData = b.carryData;
-                                            break;
+                                    }
+                                    catch (e) {
+                                    }
+                                    BaseApi.create({
+                                        "url": saasConfig.config.url + `/api/v1/template?appName=${saasConfig.config.appName}&tag=${encodeURIComponent(tag)}`,
+                                        "type": "GET",
+                                        "timeout": 0,
+                                        "headers": {
+                                            "Content-Type": "application/json"
                                         }
-                                    }
-                                    else {
-                                        if ((await eval(b.code)) === true) {
-                                            tag = b.tag;
-                                            carryData = b.carryData;
-                                            break;
+                                    }).then((d2) => {
+                                        var _a;
+                                        console.log(`data====`, d2);
+                                        try {
+                                            if (!d2.result) {
+                                                fal += 1;
+                                                if (fal < 20) {
+                                                    setTimeout(() => {
+                                                        getData();
+                                                    }, 200);
+                                                }
+                                            }
+                                            else {
+                                                data = d2.response.result[0];
+                                                let createOption = (_a = (htmlGenerate !== null && htmlGenerate !== void 0 ? htmlGenerate : {}).createOption) !== null && _a !== void 0 ? _a : {};
+                                                target.outerHTML = new glitter.htmlGenerate(data.config, [], subData).render(gvc, undefined, createOption !== null && createOption !== void 0 ? createOption : {});
+                                            }
                                         }
-                                    }
-                                }
-                                catch (e) {
-                                }
-                            }
-                            let sub = subData !== null && subData !== void 0 ? subData : {};
-                            try {
-                                sub.carryData = await TriggerEvent.trigger({
-                                    gvc: gvc,
-                                    clickEvent: carryData,
-                                    widget: widget,
-                                    subData: subData
-                                });
-                            }
-                            catch (e) {
-                            }
-                            BaseApi.create({
-                                "url": saasConfig.config.url + `/api/v1/template?appName=${saasConfig.config.appName}&tag=${tag}`,
-                                "type": "GET",
-                                "timeout": 0,
-                                "headers": {
-                                    "Content-Type": "application/json"
-                                }
-                            }).then((d2) => {
-                                var _a;
-                                try {
-                                    if (!d2.result) {
-                                        fal += 1;
-                                        if (fal < 20) {
-                                            setTimeout(() => {
-                                                getData();
-                                            }, 200);
+                                        catch (e) {
+                                            target.outerHTML = '';
                                         }
-                                    }
-                                    else {
-                                        data = d2.response.result[0];
-                                        let createOption = (_a = (htmlGenerate !== null && htmlGenerate !== void 0 ? htmlGenerate : {}).createOption) !== null && _a !== void 0 ? _a : {};
-                                        resolve(new glitter.htmlGenerate(data.config, [], subData).render(gvc, undefined, createOption !== null && createOption !== void 0 ? createOption : {}));
-                                    }
+                                    });
                                 }
-                                catch (e) {
-                                    resolve('');
-                                }
-                            });
-                        }
-                        await getData();
+                                getData();
+                            },
+                            onDestroy: () => {
+                            },
+                        };
                     });
                 },
                 editor: () => {

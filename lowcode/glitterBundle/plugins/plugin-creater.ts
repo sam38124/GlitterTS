@@ -16,8 +16,8 @@ export interface HtmlJson {
     refreshAll: () => void,
     refreshComponent: () => void
     styleManager?: (tag: string) => { value: string, editor: (gvc: GVC, title: string) => string }
-    refreshView?:()=>void,
-    refreshEditor?:()=>void
+    refreshView?: () => void,
+    refreshEditor?: () => void
 
 }
 
@@ -66,7 +66,7 @@ export class Plugin {
                 })
                 glitter.share.componentCallback[url].splice(0, delete2)
             } catch (e) {
-                if (fal < 10) {
+                if (fal < 20) {
                     setTimeout(() => {
                         tryLoop()
                     }, 100)
@@ -88,19 +88,13 @@ export class Plugin {
         url.searchParams.set("original", original)
         return (gvc: GVC, widget: HtmlJson, setting: HtmlJson[], hoverID: string[], subData?: any, htmlGenerate?: any) => {
             glitter.share.componentData = glitter.share.componentData ?? {}
-            let val: any = glitter.share.componentData[url.href]
-
-            function startSync(callback: () => void) {
-                if (val) {
-                    callback()
+            function startSync(callback:()=>void) {
+                if (glitter.share.componentData[url.href]) {
                     return
                 }
-
-
                 glitter.share.componentCallback = glitter.share.componentCallback ?? {}
                 glitter.share.componentCallback[url.href] = glitter.share.componentCallback[url.href] ?? []
                 glitter.share.componentCallback[url.href].push((dd: any) => {
-                    val = glitter.share.componentData[url.href]
                     glitter.share.componentData[url.href] = dd
                     callback()
                 })
@@ -118,31 +112,78 @@ export class Plugin {
 
             return {
                 view: () => {
-                    return new Promise<string>((resolve, reject) => {
-                        startSync(() => {
-                            const data = val.render(gvc, widget, setting, hoverID, subData).view()
-                            if (typeof data === 'string') {
-                                resolve(data)
-                            } else {
-                                data.then((res: string) => {
-                                    resolve(res)
+                    const tempView = glitter.getUUID()
+                    function checkView(){
+                        const target=document.querySelector(`[gvc-id="${gvc.id(tempView)}"]`)
+                        if (glitter.share.componentData[url.href]&&target) {
+                            const view=glitter.share.componentData[url.href].render(gvc, widget, setting, hoverID, subData).view()
+                            if(typeof view==='string'){
+                                target!.outerHTML=view;
+                            }else{
+                                view.then((dd:any)=>{
+                                    target!.outerHTML=dd;
                                 })
                             }
-                        })
+                        }
+                    }
+
+                    startSync(()=>{
+                        gvc.notifyDataChange(tempView)
                     })
+
+                    return gvc.bindView(() => {
+                        return {
+                            bind: tempView,
+                            view: () => {
+                                return ``
+                            },
+                            divCreate: {
+                                class:``
+                            },
+                            onCreate: () => {
+                                checkView()
+                            },
+                            onDestroy:()=>{
+                            },
+                        }
+                    })
+
                 },
                 editor: () => {
-                    return new Promise<string>((resolve, reject) => {
-                        startSync(() => {
-                            const data = val.render(gvc, widget, setting, hoverID, subData).editor()
-                            if (typeof data === 'string') {
-                                resolve(data)
-                            } else {
-                                data.then((res: string) => {
-                                    resolve(res)
+                    const tempView = glitter.getUUID()
+                    function checkView(){
+                        const target=document.querySelector(`[gvc-id="${gvc.id(tempView)}"]`)
+                        if (glitter.share.componentData[url.href]&&target) {
+                            const view=glitter.share.componentData[url.href].render(gvc, widget, setting, hoverID, subData).editor()
+                            if(typeof view==='string'){
+                                target!.outerHTML=view;
+                            }else{
+                                view.then((dd:any)=>{
+                                    target!.outerHTML=dd;
                                 })
                             }
-                        })
+                        }
+                    }
+
+                    startSync(()=>{
+                        gvc.notifyDataChange(tempView)
+                    })
+
+                    return gvc.bindView(() => {
+                        return {
+                            bind: tempView,
+                            view: () => {
+                                return ``
+                            },
+                            divCreate: {
+                                class:``
+                            },
+                            onCreate: () => {
+                                checkView()
+                            },
+                            onDestroy:()=>{
+                            },
+                        }
                     })
                 }
             }

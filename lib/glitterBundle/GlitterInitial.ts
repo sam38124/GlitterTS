@@ -13,16 +13,24 @@ window.addEventListener('resize', function () {
         }
     }
 });
-function listenElementChange(query:string){
-    const targetElement:any = document.querySelector(query);
+
+function listenElementChange(query: string) {
+    const targetElement: any = document.querySelector(query);
     // 建立 Mutation Observer
-    const observer = new MutationObserver(function(mutationsList) {
+    const observer = new MutationObserver(function (mutationsList) {
+        //判斷BindView是否被銷毀了
+        Object.keys(glitter.elementCallback).map((dd) => {
+            if (glitter.elementCallback[dd].rendered && ($(`[gvc-id="${dd}"]`).length === 0)) {
+                glitter.elementCallback[dd].rendered = false
+                glitter.elementCallback[dd].onDestroy()
+            }
+        })
         // 檢查每個突變（變化）
         for (let mutation of mutationsList) {
             // 檢查是否是目標元素的子節點被插入
             if (mutation.addedNodes.length > 0) {
                 // 在這裡編寫對元素插入內容的處理程式碼
-                for (const b of mutation.addedNodes){
+                for (const b of mutation.addedNodes) {
                     traverseHTML($(b).get(0))
                 }
 
@@ -30,11 +38,11 @@ function listenElementChange(query:string){
         }
     });
     // 開始觀察目標元素的變化
-    observer.observe(targetElement, { childList: true,subtree: true  });
+    observer.observe(targetElement, {childList: true, subtree: true});
 }
+
 function traverseHTML(element: any) {
     let result: any = {};
-    // console.log(`tagName:${element.tagName}`)
     // 取得元素的標籤名稱
     result.tag = element.tagName;
 
@@ -48,37 +56,45 @@ function traverseHTML(element: any) {
     }
     // 取得元素的子元素
     let children = element.children;
-    if (children&&children.length > 0) {
+    if (children && children.length > 0) {
         result.children = [];
         for (let j = 0; j < children.length; j++) {
             result.children.push(traverseHTML(children[j]));
         }
     }
-    if($(element).attr('glem')==='bindView'){
+    if ($(element).attr('glem') === 'bindView') {
         try {
-            $(element).html(glitter.elementCallback[$(element).attr('gvc-id') as string].getView())}catch (e) {
+            $(element).html(glitter.elementCallback[$(element).attr('gvc-id') as string].getView())
+        } catch (e) {
             glitter.deBugMessage(e)
         }
-        try {  glitter.elementCallback[$(element).attr('gvc-id') as string].updateAttribute()}catch (e) {
+        try {
+            glitter.elementCallback[$(element).attr('gvc-id') as string].updateAttribute()
+        } catch (e) {
             glitter.deBugMessage(e)
         }
-        try {glitter.elementCallback[$(element).attr('gvc-id') as string].onInitial()}catch (e) {
+        try {
+            glitter.elementCallback[$(element).attr('gvc-id') as string].onInitial()
+        } catch (e) {
             glitter.deBugMessage(e)
         }
-        try {  glitter.elementCallback[$(element).attr('gvc-id') as string].onCreate()}catch (e) {
+        try {
+            glitter.elementCallback[$(element).attr('gvc-id') as string].onCreate()
+        } catch (e) {
             glitter.deBugMessage(e)
         }
+        glitter.elementCallback[$(element).attr('gvc-id') as string].rendered = true
     }
     for (let i = 0; i < attributes.length; i++) {
-        if(attributes[i].value.includes('clickMap')&&(attributes[i].name.substring(0,2)==='on')){
+        if (attributes[i].value.includes('clickMap') && (attributes[i].name.substring(0, 2) === 'on')) {
             try {
-                const funString=`${attributes[i].value}`
+                const funString = `${attributes[i].value}`
                 $(element).off(attributes[i].name.substring(2));
-                element.addEventListener(attributes[i].name.substring(2), function() {
+                element.addEventListener(attributes[i].name.substring(2), function () {
                     eval(funString)
                 });
                 element.removeAttribute(attributes[i].name);
-            }catch (e) {
+            } catch (e) {
                 glitter.deBugMessage(e)
             }
 
@@ -87,6 +103,7 @@ function traverseHTML(element: any) {
     // 返回 JSON 結果
     return result;
 }
+
 glitter.$(document).ready(function () {
     if ((window as any).GL !== undefined) {
         glitter.deviceType = glitter.deviceTypeEnum.Android;
@@ -133,25 +150,6 @@ function glitterInitial() {
         document.getElementsByTagName('head')[0].appendChild(css);
 
     }
-    // class PageBox extends HTMLElement {
-    //     constructor() {
-    //         super();
-    //         // Attach a shadow DOM
-    //         this.attachShadow({ mode: 'open' });
-    //
-    //         // Create a button element
-    //         const button = document.createElement('button');
-    //         button.textContent = 'Click Me';
-    //         // Add a click event listener to the button
-    //         button.addEventListener('click', () => {
-    //             alert('Button Clicked!');
-    //         });
-    //
-    //         // Append the button to the shadow DOM
-    //         this.shadowRoot!.appendChild(button);
-    //     }
-    // }
-    // customElements.define('page-box', PageBox)
 }
 
 glitterInitial();

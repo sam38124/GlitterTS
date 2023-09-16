@@ -3,6 +3,7 @@ import { EditorElem } from "../glitterBundle/plugins/editor-elem.js";
 import { initialCode } from "./initialCode.js";
 import { initialStyle } from "./initialStyle.js";
 import { ShareDialog } from "../dialog/ShareDialog.js";
+import { OfflineConverter } from "./util/offline-converter.js";
 export function appSetting(gvc, viewModel, id) {
     const glitter = window.glitter;
     const tabIndex = [
@@ -425,6 +426,20 @@ export function appCreate(gvc, viewModel, id) {
     }
     const tabIndex = [
         {
+            title: 'WEB',
+            key: 'WEB',
+            html: gvc.bindView(() => {
+                const id = glitter.getUUID();
+                return {
+                    bind: id,
+                    view: () => {
+                        return ``;
+                    },
+                    divCreate: {}
+                };
+            })
+        },
+        {
             title: 'IOS',
             key: 'IOS',
             html: getHtml('IOS')
@@ -435,15 +450,21 @@ export function appCreate(gvc, viewModel, id) {
         }
     ];
     let vm = {
-        select: `IOS`,
+        select: `WEB`,
     };
     return {
         saveEvent: (() => {
-            save('IOS', () => {
-                save('Android', () => {
-                    dialog.successMessage({ text: "儲存成功" });
+            if (vm.select === 'WEB') {
+                OfflineConverter.convertALL(glitter.share.allPageResource);
+                console.log(glitter.share.allPageResource);
+            }
+            else {
+                save('IOS', () => {
+                    save('Android', () => {
+                        dialog.successMessage({ text: "儲存成功" });
+                    });
                 });
-            });
+            }
         }),
         html: gvc.bindView(() => {
             const id = glitter.getUUID();

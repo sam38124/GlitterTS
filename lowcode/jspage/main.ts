@@ -74,6 +74,7 @@ init((gvc, glitter, gBundle) => {
             (async () => {
                 return await new Promise(async (resolve) => {
                     const data = await ApiPageConfig.getPage(gBundle.appName)
+
                     if (data.result) {
                         data.response.result.map((dd: any) => {
                             dd.page_config = dd.page_config ?? {}
@@ -85,9 +86,12 @@ init((gvc, glitter, gBundle) => {
                             }
                             return dd;
                         });
-
                         viewModel.data = viewModel.data ?? data.response.result[0];
                         viewModel.dataList = data.response.result;
+                        glitter.share.allPageResource=JSON.parse(JSON.stringify(data.response.result))
+                        const htmlGenerate = new gvc.glitter.htmlGenerate((viewModel.data! as any).config, [], undefined, true);
+                        (window as any).editerData = htmlGenerate;
+                        (window as any).page_config = (viewModel.data! as any).page_config
                         if (!data) {
                             resolve(false);
                         } else {

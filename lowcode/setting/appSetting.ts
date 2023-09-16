@@ -5,7 +5,7 @@ import {initialCode} from "./initialCode.js";
 import {initialStyle} from "./initialStyle.js";
 import {ShareDialog} from "../dialog/ShareDialog.js";
 import {TriggerEvent} from "../glitterBundle/plugins/trigger-event.js";
-
+import {OfflineConverter} from "./util/offline-converter.js"
 export function appSetting(gvc: GVC, viewModel: any, id: string) {
     const glitter = (window as any).glitter
     const tabIndex = [
@@ -267,9 +267,7 @@ export function appCreate(gvc: GVC, viewModel: any, id: string) {
     } = (window as any).saasConfig
     const html = String.raw
     const glitter = (window as any).glitter
-
     const dialog = new ShareDialog(gvc.glitter)
-
     let vmk: any = {
         IOS: {
             appName: '',
@@ -294,7 +292,6 @@ export function appCreate(gvc: GVC, viewModel: any, id: string) {
             privacy: ''
         }
     }
-
     function save(key: string, next: () => void) {
         dialog.dataLoading({text: '設定中', visible: true})
         saasConfig.api.setPrivateConfig(saasConfig.config.appName, `glitter_appPost_${key}`, vmk[key]).then((r: { response: any, result: boolean }) => {
@@ -434,6 +431,20 @@ export function appCreate(gvc: GVC, viewModel: any, id: string) {
 
     const tabIndex = [
         {
+            title: 'WEB',
+            key: 'WEB',
+            html: gvc.bindView(()=>{
+                const id=glitter.getUUID()
+                return {
+                    bind:id,
+                    view:()=>{
+                        return ``
+                    },
+                    divCreate:{}
+                }
+            })
+        },
+        {
             title: 'IOS',
             key: 'IOS',
             html: getHtml('IOS')
@@ -443,15 +454,20 @@ export function appCreate(gvc: GVC, viewModel: any, id: string) {
             html: getHtml('Android')
         }]
     let vm = {
-        select: `IOS`,
+        select: `WEB`,
     }
     return {
         saveEvent: (() => {
-            save('IOS', () => {
-                save('Android', () => {
-                    dialog.successMessage({text: "儲存成功"})
+            if(vm.select==='WEB'){
+                OfflineConverter.convertALL(glitter.share.allPageResource)
+                console.log(glitter.share.allPageResource)
+            }else {
+                save('IOS', () => {
+                    save('Android', () => {
+                        dialog.successMessage({text: "儲存成功"})
+                    })
                 })
-            })
+            }
         }),
         html: gvc.bindView(() => {
             const id = glitter.getUUID()

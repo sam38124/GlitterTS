@@ -230,7 +230,7 @@ export class Editor {
                     </header>
                     <aside
                             id="componentsNav"
-                            class="${(viewModel.type === ViewType.fullScreen) ? `d-none` : ``} offcanvas offcanvas-start offcanvas-expand-lg position-fixed top-0 start-0 vh-100 bg-light border-end-lg overflow-auto"
+                            class="${(viewModel.type === ViewType.fullScreen) ? `d-none` : ``} offcanvas offcanvas-start offcanvas-expand-lg position-fixed top-0 start-0 vh-100 bg-light border-end-lg overflow-hidden"
                             style="width: 20rem;"
                     >
                         <div class="offcanvas-header d-none d-lg-flex justify-content-start border-bottom px-0"
