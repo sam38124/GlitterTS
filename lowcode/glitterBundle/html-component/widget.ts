@@ -8,7 +8,6 @@ import {containerComponent} from "./container.js";
 export const widgetComponent = {
     render: (gvc: GVC, widget: HtmlJson, setting: HtmlJson[], hoverID: string[], subData: any,htmlGenerate:any) => {
         const glitter = gvc.glitter
-
         widget.data.elem = widget.data.elem ?? "div"
         widget.data.inner = widget.data.inner ?? ""
         widget.data.attr = widget.data.attr ?? []

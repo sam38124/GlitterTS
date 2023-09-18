@@ -241,28 +241,33 @@ export class GVC {
         gvc.glitter.elementCallback[gvc.id(map.bind)].onDestroy = (map as any).onDestroy ?? (() => {})
         gvc.glitter.elementCallback[gvc.id(map.bind)].getView = (map as any).view
         gvc.glitter.elementCallback[gvc.id(map.bind)].updateAttribute = (()=>{
-            const id=gvc.id(map.bind as string)
-            const divCreate2 = (typeof (map as any).divCreate === "function") ? (map as any).divCreate() : (map as any).divCreate;
-            (divCreate2.option ?? []).map((dd: any) => {
-                try {
-                    const element=$(`[gvc-id="${id}"]`)
-                    if(dd.value.includes('clickMap')&&(dd.key.substring(0,2)==='on')){
-                        try {
-                            const funString=`${dd.value}`;
-                            element.get(0).off(dd.key.substring(2));
-                            element.get(0).addEventListener(dd.key.substring(2), function() {
-                                eval(funString)
-                            });
-                        }catch (e) {
-                            gvc.glitter.deBugMessage(e)
+            try {
+                const id=gvc.id(map.bind as string)
+                const divCreate2 = (typeof (map as any).divCreate === "function") ? (map as any).divCreate() : (map as any).divCreate;
+                (divCreate2.option ?? []).map((dd: any) => {
+                    try {
+                        const element=$(`[gvc-id="${id}"]`)
+                        if(dd.value.includes('clickMap')&&(dd.key.substring(0,2)==='on')){
+                            try {
+                                const funString=`${dd.value}`;
+                                element.get(0).off(dd.key.substring(2));
+                                element.get(0).addEventListener(dd.key.substring(2), function() {
+                                    eval(funString)
+                                });
+                            }catch (e) {
+                                gvc.glitter.deBugMessage(e)
+                            }
+                        }else{
+                            element.attr(dd.key, dd.value);
                         }
-                    }else{
-                        element.attr(dd.key, dd.value);
+                    } catch (e) {
+                        gvc.glitter.deBugMessage(e)
                     }
-                } catch (e) {
-                    gvc.glitter.deBugMessage(e)
-                }
-            })
+                })
+            }catch (e) {
+
+            }
+
         })
 
         const divCreate = ((typeof (map as any).divCreate === "function") ? (map as any).divCreate() : (map as any).divCreate) ?? {elem: 'div'};

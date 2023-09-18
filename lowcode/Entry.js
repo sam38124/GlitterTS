@@ -6,7 +6,7 @@ import { BaseApi } from "./api/base.js";
 export class Entry {
     static onCreate(glitter) {
         var _a;
-        glitter.debugMode = false;
+        glitter.debugMode = true;
         const vm = {
             pageData: ApiPageConfig.getPage(config.appName, (_a = glitter.getUrlParameter('page')) !== null && _a !== void 0 ? _a : glitter.getUUID()),
             appConfig: []
@@ -91,6 +91,13 @@ export class Entry {
                     window.parent.glitter.share.evalPlace = ((evals) => {
                         return eval(evals);
                     });
+                    glitter.addMtScript(window.parent.editerData.setting.map((dd) => {
+                        return { src: `${glitter.htmlGenerate.resourceHook(dd.js)}`, type: 'module' };
+                    }), () => {
+                    }, () => {
+                    }, [
+                        { key: "async", value: "true" }
+                    ]);
                     glitter.share.evalPlace = ((evals) => {
                         return eval(evals);
                     });

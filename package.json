@@ -1,12 +1,12 @@
 {
   "name": "ts-glitter",
-  "version": "2.8.82",
+  "version": "2.8.86",
   "description": "",
   "main": "index.js",
   "scripts": {
     "start": "NODE_ENV=staging && npm run build && node ./src/run.js ",
     "export": "NODE_ENV=staging && npm run build && node ./src/export/export-test.js",
-    "test": "NODE_ENV=staging && npm run build && node ./src/test.js ",
+    "test": "NODE_ENV=staging && npm rusun build && node ./src/test.js ",
     "exportTest": "NODE_ENV=staging && npm run build && node ./src/test/exportApp.js ",
     "create": "node create.js",
     "start:tscAuto": "tsc index.ts",

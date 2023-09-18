@@ -43,7 +43,7 @@ export class Glitter {
     public pageConfig: PageConfig[] = []
     public nowPageConfig?: PageConfig
     public waitChangePage = false
-    public elementCallback: {[name:string]:{onCreate:()=>void,onInitial:()=>void,notifyDataChange:()=>void,getView:()=>string,updateAttribute:()=>void,onDestroy:()=>void,rendered:boolean}} = {}
+    public elementCallback: { [name: string]: { onCreate: () => void, onInitial: () => void, notifyDataChange: () => void, getView: () => string, updateAttribute: () => void, onDestroy: () => void, rendered: boolean } } = {}
 
     /*Getter*/
     get baseUrl() {
@@ -108,7 +108,7 @@ export class Glitter {
     }
 
     public getCookieByName(name: string): string {
-       return localStorage.getItem(name) as string;
+        return localStorage.getItem(name) as string;
     }
 
     public setPro(tag: string, data: string = "", callBack: (data: {}) => void, option:
@@ -227,11 +227,18 @@ export class Glitter {
     public deBugMessage(error: any) {
         if (this.debugMode) {
             try {
-                console.log( `${error} : ${this.ut.dateFormat(new Date(), "yyyy-MM-dd hh:mm:ss")}`)
-                console.error('錯誤訊息:', error.message);
-                console.error('錯誤行數:', error.lineNumber);
-                console.error('錯誤位置:', error.columnNumber);
-            }catch (e) {
+                if (error&&error.message) {
+                    console.error(`${error}
+${(!error.message) ? ``:`錯誤訊息:${error.message}` }${(!error.lineNumber) ? ``:`錯誤行數:${!error.lineNumber}` }${(!error.columnNumber) ? ``:`錯誤位置:${error.columnNumber}` }\n${this.ut.dateFormat(new Date(), "yyyy-MM-dd hh:mm:ss")}
+                `)
+                }else{
+                    console.log(error)
+                }
+
+                // console.error('錯誤訊息:', error.message);
+                // console.error('錯誤行數:', error.lineNumber);
+                // console.error('錯誤位置:', error.columnNumber);
+            } catch (e) {
 
             }
         }
@@ -239,7 +246,7 @@ export class Glitter {
 
     public setUrlParameter(tag: string, value?: string) {
 
-        var search = (value!==undefined) ? this.setSearchParam(this.removeSearchParam(window.location.search, tag), tag, value):
+        var search = (value !== undefined) ? this.setSearchParam(this.removeSearchParam(window.location.search, tag), tag, value) :
             this.removeSearchParam(window.location.search, tag)
         try {
             window.history.pushState({}, document.title, search);
@@ -274,13 +281,19 @@ export class Glitter {
     }; //關閉側滑選單
 
     public closeDrawer() {
-        try{ (window as any).drawer.close();}catch(e){}
+        try {
+            (window as any).drawer.close();
+        } catch (e) {
+        }
 
     }; //開關側滑選單
 
 
     public toggleDrawer() {
-        try{ (window as any).drawer.toggle();}catch(e){}
+        try {
+            (window as any).drawer.toggle();
+        } catch (e) {
+        }
     }; //按鈕監聽
 
 
@@ -315,7 +328,7 @@ export class Glitter {
         }
     };
 
-    public addMtScript(urlArray: any[], success: () => void, error: (message: string) => void, option?: {key:string,value:string}[]) {
+    public addMtScript(urlArray: any[], success: () => void, error: (message: string) => void, option?: { key: string, value: string }[]) {
         Glitter.glitter.share.scriptMemory = Glitter.glitter.share.scriptMemory ?? []
         const glitter = this;
         let index = 0
@@ -335,10 +348,12 @@ export class Glitter {
             }
             let script: any = document.createElement('script');
             try {
-                if((option ?? []).find((dd)=>{return dd.key==='async'})){
+                if ((option ?? []).find((dd) => {
+                    return dd.key === 'async'
+                })) {
                     index++
                     addScript()
-                }else{
+                } else {
                     if (script.readyState) {  //IE
                         script.onreadystatechange = () => {
                             if (script.readyState === "loaded" || script.readyState === "complete") {
@@ -357,7 +372,7 @@ export class Glitter {
                         }
                     }
                 }
-                (option ?? []).map((dd)=>{
+                (option ?? []).map((dd) => {
                     script.setAttribute(dd.key, dd.value)
                 })
                 script.addEventListener('error', () => {
@@ -767,7 +782,7 @@ export class Glitter {
     }
 
     public setCookie(key: string, value: any) {
-        localStorage.setItem(key,value)
+        localStorage.setItem(key, value)
     }
 
     public removeCookie(keyList?: string[]) {

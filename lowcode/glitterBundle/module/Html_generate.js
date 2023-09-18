@@ -49,277 +49,218 @@ export class HtmlGenerate {
             jsFinish: () => {
             }
         }, createOption) => {
-            var _a;
-            gvc.glitter.share.loaginR = ((_a = gvc.glitter.share.loaginR) !== null && _a !== void 0 ? _a : 0) + 1;
-            const container = `` + gvc.glitter.getUUID();
-            gvc.glitter.defaultSetting.pageLoading();
-            let htmlList = [];
             let waitAddScript = [];
-            let dataLoading = true;
-            function getPageData() {
-                htmlList = [];
-                const subData2 = subdata;
-                async function add(set) {
-                    for (const a of set) {
-                        if (['code'].indexOf(a.type) === -1) {
-                            if ((a.type !== 'widget') && !gvc.glitter.share.htmlExtension[gvc.glitter.htmlGenerate.resourceHook(a.js)]) {
-                                await new Promise((resolve, reject) => {
-                                    gvc.glitter.addMtScript([{ src: `${gvc.glitter.htmlGenerate.resourceHook(a.js)}`, type: 'module' }], () => {
-                                        resolve(true);
-                                    }, () => {
-                                        resolve(false);
-                                    }, [
-                                        { key: "async", value: "true" }
-                                    ]);
-                                });
-                            }
-                            if (a.type === 'container') {
-                                await add(a.data.setting);
-                            }
-                        }
-                    }
-                    return true;
-                }
-                add(setting).then(async (data) => {
+            gvc.glitter.defaultSetting.pageLoading();
+            option = option !== null && option !== void 0 ? option : {};
+            return gvc.bindView(() => {
+                const container = gvc.glitter.getUUID();
+                let htmlInner = '';
+                function startRender() {
                     new Promise(async (resolve, reject) => {
-                        var _a;
-                        let index = 0;
-                        for (const script of setting.filter((dd) => {
-                            return dd.type === 'code' && dd.data.triggerTime === 'first';
-                        })) {
-                            await codeComponent.render(gvc, script, setting, [], subdata).view();
+                        function initialComponent(set) {
+                            let waitAdd = [];
+                            for (const a of set) {
+                                if (['code'].indexOf(a.type) === -1) {
+                                    if ((a.type !== 'widget') && (a.type !== 'container') && !gvc.glitter.share.htmlExtension[gvc.glitter.htmlGenerate.resourceHook(a.js)]) {
+                                        waitAdd.push({
+                                            src: `${gvc.glitter.htmlGenerate.resourceHook(a.js)}`,
+                                            type: 'module'
+                                        });
+                                    }
+                                    if (a.type === 'container') {
+                                        waitAdd = waitAdd.concat(initialComponent(a.data.setting));
+                                    }
+                                }
+                            }
+                            return waitAdd;
                         }
-                        for (const dd of setting) {
-                            (await new Promise(async (resolve, reject) => {
-                                const component = dd.id;
-                                function getHtml(callback) {
-                                    var _a;
-                                    let data = '';
-                                    try {
-                                        data = gvc.glitter.share.htmlExtension[gvc.glitter.htmlGenerate.resourceHook(dd.js)][dd.type]
-                                            .render(gvc, dd, setting, hover, subdata)
+                        gvc.glitter.addMtScript(initialComponent(setting), () => {
+                        }, () => {
+                        }, []);
+                        async function initialScript() {
+                            for (const script of setting.filter((dd) => {
+                                return dd.type === 'code' && dd.data.triggerTime === 'first';
+                            })) {
+                                await codeComponent.render(gvc, script, setting, [], subdata).view();
+                            }
+                        }
+                        await initialScript();
+                        const html = setting.map((dd) => {
+                            dd.refreshAllParameter.view1 = () => {
+                                startRender();
+                            };
+                            const tempUiID = gvc.glitter.getUUID();
+                            function loadResource() {
+                                if (dd.data.elem === 'style') {
+                                    gvc.addStyle(dd.data.inner);
+                                }
+                                else if ((dd.data.elem === 'link') && (dd.data.attr.find((dd) => {
+                                    return dd.attr === 'rel' && dd.value === 'stylesheet';
+                                }))) {
+                                    gvc.addStyleLink(dd.data.attr.find((dd) => {
+                                        return dd.attr === 'href';
+                                    }).value);
+                                }
+                                else if (((dd.data.elem === 'script')) && dd.data.attr.find((dd) => {
+                                    return dd.attr === 'src';
+                                })) {
+                                    waitAddScript.push(dd.data.attr.find((dd) => {
+                                        return dd.attr === 'src';
+                                    }).value);
+                                }
+                            }
+                            loadResource();
+                            function renderView(callback) {
+                                var _a;
+                                let data = '';
+                                try {
+                                    data = gvc.glitter.share.htmlExtension[gvc.glitter.htmlGenerate.resourceHook(dd.js)][dd.type]
+                                        .render(gvc, dd, setting, hover, subdata)
+                                        .view();
+                                }
+                                catch (e) {
+                                    HtmlGenerate.share.false[dd.js] = ((_a = HtmlGenerate.share.false[dd.js]) !== null && _a !== void 0 ? _a : 0) + 1;
+                                    console.log(`解析錯誤:${e.message}<br>${e.stack}<br>${e.line}`);
+                                    if (HtmlGenerate.share.false[dd.js] < 80) {
+                                        setTimeout(() => {
+                                            renderView(callback);
+                                        }, 100);
+                                    }
+                                    return ``;
+                                }
+                                if (typeof data === 'string') {
+                                    callback(data);
+                                }
+                                else {
+                                    data.then((dd) => {
+                                        callback(dd);
+                                    });
+                                }
+                            }
+                            function getHtml() {
+                                if ((dd.data.elem === 'style') || ((dd.data.elem === 'link') && (dd.data.attr.find((dd) => {
+                                    return dd.attr === 'rel' && dd.value === 'stylesheet';
+                                }))) || (((dd.data.elem === 'script')) && dd.data.attr.find((dd) => {
+                                    return dd.attr === 'src';
+                                }))) {
+                                    return ``;
+                                }
+                                if (['code'].indexOf(dd.type) === -1) {
+                                    if ((dd.type === 'widget') || (dd.type === 'container')) {
+                                        dd.refreshComponentParameter.view1 = () => {
+                                            startRender();
+                                        };
+                                        const option = [];
+                                        if (isEditMode()) {
+                                            option.push({
+                                                key: "onclick", value: (() => {
+                                                    return gvc.event((e, event) => {
+                                                        try {
+                                                            if (dd.selectEditEvent()) {
+                                                                hover = [dd.id];
+                                                                gvc.glitter.$('.selectComponentHover').removeClass('selectComponentHover');
+                                                                gvc.glitter.$(e).addClass('selectComponentHover');
+                                                            }
+                                                        }
+                                                        catch (_a) { }
+                                                        event.stopPropagation();
+                                                    });
+                                                })()
+                                            });
+                                        }
+                                        return widgetComponent.render(gvc, dd, setting, hover, subdata, {
+                                            option: option,
+                                            widgetComponentID: gvc.glitter.getUUID()
+                                        })
                                             .view();
                                     }
-                                    catch (e) {
-                                        HtmlGenerate.share.false[dd.js] = ((_a = HtmlGenerate.share.false[dd.js]) !== null && _a !== void 0 ? _a : 0) + 1;
-                                        console.log(`解析錯誤:${e.message}<br>${e.stack}<br>${e.line}`);
-                                        if (HtmlGenerate.share.false[dd.js] < 80) {
-                                            setTimeout(() => {
-                                                getHtml(callback);
-                                            }, 100);
-                                        }
-                                        return ``;
-                                    }
-                                    if (typeof data === 'string') {
-                                        callback(data);
-                                    }
                                     else {
-                                        data.then((dd) => {
-                                            callback(dd);
+                                        return gvc.bindView(() => {
+                                            var _a;
+                                            const component = dd.id;
+                                            let innerText = '';
+                                            function getdd() {
+                                                renderView((data) => {
+                                                    innerText = data;
+                                                    gvc.notifyDataChange(component);
+                                                });
+                                            }
+                                            dd.refreshComponentParameter.view1 = () => {
+                                                getdd();
+                                            };
+                                            getdd();
+                                            let option = [];
+                                            if (isEditMode()) {
+                                                option.push({
+                                                    key: "onclick", value: (() => {
+                                                        return gvc.event((e, event) => {
+                                                            if (!root) {
+                                                                return;
+                                                            }
+                                                            try {
+                                                                const hoverID = gvc.glitter.$(e).attr('gvc-id').replace(gvc.parameter.pageConfig.id, '');
+                                                                if (dd.selectEditEvent()) {
+                                                                    hover = [dd.id];
+                                                                    hover = [hoverID];
+                                                                    gvc.glitter.$('.selectComponentHover').removeClass('selectComponentHover');
+                                                                    gvc.glitter.$(e).addClass('selectComponentHover');
+                                                                }
+                                                            }
+                                                            catch (_a) {
+                                                            }
+                                                            event.stopPropagation();
+                                                        });
+                                                    })()
+                                                });
+                                            }
+                                            return {
+                                                bind: component,
+                                                view: () => {
+                                                    return innerText;
+                                                },
+                                                divCreate: {
+                                                    style: `${HtmlGenerate.styleEditor(dd).style()} `,
+                                                    class: `position-relative ${(_a = dd.class) !== null && _a !== void 0 ? _a : ''} glitterTag${dd.hashTag} ${hover.indexOf(component) !== -1 ? ` selectComponentHover` : ``}
+                                                        ${HtmlGenerate.styleEditor(dd).class()}`,
+                                                    option: option
+                                                },
+                                                onCreate: () => {
+                                                    setTimeout(() => {
+                                                        if (hover.indexOf(component) !== -1) {
+                                                            gvc.glitter.$('html').get(0).scrollTo({
+                                                                top: 0,
+                                                                left: 0,
+                                                                behavior: 'instant',
+                                                            });
+                                                            const scrollTOP = gvc.getBindViewElem(component).offset().top -
+                                                                gvc.glitter.$('html').offset().top +
+                                                                gvc.glitter.$('html').scrollTop() + (gvc.getBindViewElem(component).height() / 2);
+                                                            gvc.glitter
+                                                                .$('html')
+                                                                .get(0)
+                                                                .scrollTo({
+                                                                top: scrollTOP - gvc.glitter.$('html').height() / 2,
+                                                                left: 0,
+                                                                behavior: 'instant',
+                                                            });
+                                                        }
+                                                    }, 200);
+                                                },
+                                            };
                                         });
                                     }
                                 }
-                                dd.refreshAllParameter.view1 = () => {
-                                    getPageData();
-                                };
-                                async function loadingFinish() {
-                                    await new Promise((resolve, reject) => {
-                                        if (dd.data.elem === 'style') {
-                                            gvc.addStyle(dd.data.inner);
-                                            resolve(true);
-                                        }
-                                        else if ((dd.data.elem === 'link') && (dd.data.attr.find((dd) => {
-                                            return dd.attr === 'rel' && dd.value === 'stylesheet';
-                                        }))) {
-                                            gvc.addStyleLink(dd.data.attr.find((dd) => {
-                                                return dd.attr === 'href';
-                                            }).value);
-                                            resolve(true);
-                                        }
-                                        else if (((dd.data.elem === 'script')) && dd.data.attr.find((dd) => {
-                                            return dd.attr === 'src';
-                                        })) {
-                                            waitAddScript.push(dd.data.attr.find((dd) => {
-                                                return dd.attr === 'src';
-                                            }).value);
-                                            resolve(true);
-                                        }
-                                        else {
-                                            resolve(true);
-                                        }
-                                    });
-                                    const getHt = (() => {
-                                        if ((dd.data.elem === 'style') || ((dd.data.elem === 'link') && (dd.data.attr.find((dd) => {
-                                            return dd.attr === 'rel' && dd.value === 'stylesheet';
-                                        }))) || (((dd.data.elem === 'script')) && dd.data.attr.find((dd) => {
-                                            return dd.attr === 'src';
-                                        }))) {
-                                            return ``;
-                                        }
-                                        if (['code'].indexOf(dd.type) === -1) {
-                                            if ((dd.type === 'widget') || (dd.type === 'container')) {
-                                                dd.refreshComponentParameter.view1 = () => {
-                                                    getPageData();
-                                                };
-                                                const option = [];
-                                                if (isEditMode()) {
-                                                    option.push({
-                                                        key: "onclick", value: (() => {
-                                                            return gvc.event((e, event) => {
-                                                                try {
-                                                                    if (dd.selectEditEvent()) {
-                                                                        hover = [dd.id];
-                                                                        gvc.glitter.$('.selectComponentHover').removeClass('selectComponentHover');
-                                                                        gvc.glitter.$(e).addClass('selectComponentHover');
-                                                                    }
-                                                                }
-                                                                catch (_a) {
-                                                                }
-                                                                event.stopPropagation();
-                                                            });
-                                                        })()
-                                                    });
-                                                }
-                                                return widgetComponent.render(gvc, dd, setting, hover, subdata, {
-                                                    option: option,
-                                                    widgetComponentID: gvc.glitter.getUUID()
-                                                })
-                                                    .view();
-                                            }
-                                            else {
-                                                return gvc.bindView(() => {
-                                                    var _a;
-                                                    let innerText = '';
-                                                    function getdd() {
-                                                        getHtml((data) => {
-                                                            innerText = data;
-                                                            gvc.notifyDataChange(component);
-                                                        });
-                                                    }
-                                                    dd.refreshComponentParameter.view1 = () => {
-                                                        getdd();
-                                                    };
-                                                    getdd();
-                                                    let option = [];
-                                                    if (isEditMode()) {
-                                                        option.push({
-                                                            key: "onclick", value: (() => {
-                                                                return gvc.event((e, event) => {
-                                                                    if (!root) {
-                                                                        return;
-                                                                    }
-                                                                    try {
-                                                                        const hoverID = gvc.glitter.$(e).attr('gvc-id').replace(gvc.parameter.pageConfig.id, '');
-                                                                        if (dd.selectEditEvent()) {
-                                                                            hover = [dd.id];
-                                                                            hover = [hoverID];
-                                                                            gvc.glitter.$('.selectComponentHover').removeClass('selectComponentHover');
-                                                                            gvc.glitter.$(e).addClass('selectComponentHover');
-                                                                        }
-                                                                    }
-                                                                    catch (_a) {
-                                                                    }
-                                                                    event.stopPropagation();
-                                                                });
-                                                            })()
-                                                        });
-                                                    }
-                                                    return {
-                                                        bind: component,
-                                                        view: () => {
-                                                            return innerText;
-                                                        },
-                                                        divCreate: {
-                                                            style: `${HtmlGenerate.styleEditor(dd).style()} `,
-                                                            class: `position-relative ${(_a = dd.class) !== null && _a !== void 0 ? _a : ''} glitterTag${dd.hashTag} ${hover.indexOf(component) !== -1 ? ` selectComponentHover` : ``}
-                                                        ${HtmlGenerate.styleEditor(dd).class()}`,
-                                                            option: option
-                                                        },
-                                                        onCreate: () => {
-                                                            setTimeout(() => {
-                                                                if (hover.indexOf(component) !== -1) {
-                                                                    gvc.glitter.$('html').get(0).scrollTo({
-                                                                        top: 0,
-                                                                        left: 0,
-                                                                        behavior: 'instant',
-                                                                    });
-                                                                    const scrollTOP = gvc.getBindViewElem(component).offset().top -
-                                                                        gvc.glitter.$('html').offset().top +
-                                                                        gvc.glitter.$('html').scrollTop() + (gvc.getBindViewElem(component).height() / 2);
-                                                                    gvc.glitter
-                                                                        .$('html')
-                                                                        .get(0)
-                                                                        .scrollTo({
-                                                                        top: scrollTOP - gvc.glitter.$('html').height() / 2,
-                                                                        left: 0,
-                                                                        behavior: 'instant',
-                                                                    });
-                                                                }
-                                                            }, 200);
-                                                        },
-                                                    };
-                                                });
-                                            }
-                                        }
-                                        else {
-                                            return ``;
-                                        }
-                                    });
-                                    htmlList.push({
-                                        fun: getHt,
-                                        view: getHt()
-                                    });
-                                    resolve(true);
+                                else {
+                                    return ``;
                                 }
-                                function getResource() {
-                                    var _a;
-                                    if ((dd.type === 'widget') || (dd.type === 'container') || (dd.type === 'code')) {
-                                        loadingFinish();
-                                        return;
-                                    }
-                                    try {
-                                        gvc.glitter.share.htmlExtension[gvc.glitter.htmlGenerate.resourceHook(dd.js)][dd.type]
-                                            .render(gvc, dd, setting, hover, subData2);
-                                        loadingFinish();
-                                    }
-                                    catch (e) {
-                                        HtmlGenerate.share.false[dd.js] = ((_a = HtmlGenerate.share.false[dd.js]) !== null && _a !== void 0 ? _a : 0) + 1;
-                                        if (HtmlGenerate.share.false[dd.js] < 80) {
-                                            setTimeout(() => {
-                                                getResource();
-                                            }, 100);
-                                        }
-                                        return ``;
-                                    }
-                                }
-                                getResource();
-                            }));
-                            index = index + 1;
-                        }
-                        gvc.glitter.defaultSetting.pageLoadingFinish();
-                        dataLoading = false;
+                            }
+                            return getHtml();
+                        }).join('');
+                        resolve(html);
+                    }).then((html) => {
+                        htmlInner = html;
                         gvc.notifyDataChange(container);
-                        gvc.glitter.share.loaginfC = ((_a = gvc.glitter.share.loaginfC) !== null && _a !== void 0 ? _a : 0) + 1;
-                    });
-                });
-            }
-            getPageData();
-            return gvc.bindView({
-                bind: container,
-                view: () => {
-                    return htmlList.map((dd) => {
-                        return dd.view;
-                    }).join('');
-                },
-                divCreate: createOption !== null && createOption !== void 0 ? createOption : {
-                    class: option.class, style: option.style, option: [{
-                            key: `gl_type`,
-                            value: "container"
-                        }]
-                },
-                onCreate: () => {
-                    if (!dataLoading) {
-                        async function loadScript() {
+                        new Promise(async (resolve, reject) => {
                             for (const script of setting.filter((dd) => {
                                 return dd.type === 'code' && dd.data.triggerTime === 'last';
                             })) {
@@ -338,12 +279,32 @@ export class HtmlGenerate {
                                     });
                                 });
                             }
-                        }
-                        loadScript().then(() => {
+                            resolve(true);
+                        }).then(() => {
+                            gvc.glitter.defaultSetting.pageLoadingFinish();
                             option.jsFinish && option.jsFinish();
+                            gvc.glitter.deBugMessage('render finish');
                         });
+                    });
+                }
+                startRender();
+                return {
+                    bind: container,
+                    view: () => {
+                        return htmlInner;
+                    },
+                    divCreate: createOption !== null && createOption !== void 0 ? createOption : {
+                        class: option.class, style: option.style, option: [{
+                                key: `gl_type`,
+                                value: "container"
+                            }]
+                    },
+                    onInitial: () => {
+                    },
+                    onCreate: () => {
+                        gvc.glitter.deBugMessage(`containerRender:` + container);
                     }
-                },
+                };
             });
         };
         this.editor = (gvc, option = {

@@ -496,8 +496,21 @@ ${Editor.toggleExpand({
         const glitter = window.glitter;
         url = glitter.htmlGenerate.resourceHook(url);
         if (!url.startsWith('http') && !url.startsWith('https')) {
-            url = new URL(window.appName + '/' + url, location.origin).href;
+            if (TriggerEvent.isEditMode()) {
+                url = new URL(`./${url}`, location.href).href;
+            }
+            else {
+                url = new URL(`./${url}`, location.href).href;
+            }
         }
         return url;
+    }
+    static isEditMode() {
+        try {
+            return window.parent.editerData !== undefined;
+        }
+        catch (e) {
+            return false;
+        }
     }
 }

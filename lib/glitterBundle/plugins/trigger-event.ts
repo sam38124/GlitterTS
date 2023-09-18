@@ -516,12 +516,24 @@ ${Editor.toggleExpand({
     }
 
     public static getLink(url: string) {
-
+        // alert('ss')
         const glitter = (window as any).glitter
         url=glitter.htmlGenerate.resourceHook(url)
         if(!url.startsWith('http')&&!url.startsWith('https')){
-            url=new URL((window as any).appName+'/'+url,location.origin).href
+            if(TriggerEvent.isEditMode()){
+                url=new URL(`./${url}`,location.href).href
+            }else{
+                url=new URL(`./${url}`,location.href).href
+            }
         }
         return url
+    }
+    public static isEditMode() {
+        try {
+            return (window.parent as any).editerData !== undefined
+        } catch (e) {
+            return false
+        }
+
     }
 }
