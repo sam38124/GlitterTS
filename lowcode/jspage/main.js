@@ -267,7 +267,7 @@ onclick="${gvc.event(() => {
                                     default:
                                         return `p-0`;
                                 }
-                            })()}" style="overflow-y: auto;overflow-x:hidden;">
+                            })()}" style="overflow-y: auto;overflow-x:hidden;height:calc(100vh - 56px);">
                                                 <div class="h-100" style="">
                                                     ${gvc.bindView(() => {
                                 return {
@@ -311,6 +311,24 @@ onclick="${gvc.event(() => {
                     $("#jumpToNav").scroll(function () {
                         glitter.setCookie("jumpToNavScroll", $(`#jumpToNav`).scrollTop());
                     });
+                    function scrollToItem(element) {
+                        if (element) {
+                            var elementRect = element.getBoundingClientRect();
+                            var elementTop = elementRect.top;
+                            var elementHeight = elementRect.height;
+                            var windowHeight = document.querySelector('.scrollbar-hover').scrollHeight;
+                            let scrollTo = elementTop - (windowHeight - elementHeight) / 2;
+                            console.log(`ewef`, scrollTo);
+                            document.querySelector('.scrollbar-hover').scrollTo({
+                                top: scrollTo,
+                                left: 0,
+                                behavior: 'auto'
+                            });
+                        }
+                    }
+                    setTimeout(() => {
+                        scrollToItem(document.querySelector(`.editor_item.active`));
+                    }, 200);
                 }
             });
         },

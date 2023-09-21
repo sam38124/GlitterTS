@@ -9,7 +9,8 @@ import {BaseApi} from "./api/base.js";
 
 export class Entry {
     public static onCreate(glitter: Glitter) {
-        glitter.debugMode=true
+        glitter.share.start = new Date()
+        glitter.debugMode = false
         const vm = {
             pageData: ApiPageConfig.getPage(config.appName, glitter.getUrlParameter('page') ?? glitter.getUUID()),
             appConfig: []
@@ -57,7 +58,7 @@ export class Entry {
                     for (const data of (dd.response.data.initialList ?? [])) {
                         try {
                             if (data.type === 'script') {
-                                const url = new URL(glitter.htmlGenerate.resourceHook(data.src.link))
+                                const url = new URL(glitter.htmlGenerate.configureCDN(glitter.htmlGenerate.resourceHook(data.src.link)))
                                 glitter.share.callBackList = glitter.share.callBackList ?? {}
                                 const callbackID = glitter.getUUID()
                                 url.searchParams.set('callback', callbackID)
@@ -71,7 +72,7 @@ export class Entry {
                                 }, () => {
                                     vm.count--
                                 })
-                            }  else {
+                            } else {
                                 const dd = await eval(data.src.official)
                                 vm.count--
                             }
@@ -90,12 +91,70 @@ export class Entry {
                     })
                     toBackendEditor(glitter)
                 } else if (glitter.getUrlParameter("type") === 'htmlEditor') {
+                    let timer:any=0
+                    // 获取<body>元素
+                    var bodyElement = document.body;
+                    // 创建一个ResizeObserver实例
+                    var observer = new ResizeObserver(function (entries, observer) {
+                        function scrollToItem(element: any) {
+                            if (element) {
+                                element.scrollIntoView({
+                                    behavior: 'smooth', // 使用平滑滾動效果
+                                    block: 'center', // 將元素置中
+                                })
+                                console.log(`scrollTO-intoView`)
+                            }
+                        }
+                        clearInterval(timer)
+                        timer=setTimeout(()=>{ scrollToItem(document.querySelector('.selectComponentHover'))},100)
+
+                        console.log(`heightChange`)
+                    });
+                    // 启动观察器并开始监听<body>元素的大小变化
+                    observer.observe(bodyElement);
+                    // 建立 Mutation Observer
+                    // let timeout:any=0
+                    // const observer = new MutationObserver(function (mutationsList) {
+                    //     function scrollToItem(element:any){
+                    //         if (element) {
+                    //             element.scrollIntoView({
+                    //                 behavior: 'smooth', // 使用平滑滾動效果
+                    //                 block: 'center', // 將元素置中
+                    //             })
+                    //             console.log(`scrollTO-intoView`)
+                    //             // // 获取元素的位置信息
+                    //             // var elementRect = element.getBoundingClientRect();
+                    //             // var elementTop = elementRect.top;
+                    //             // var elementHeight = elementRect.height;
+                    //             // // 获取窗口的高度
+                    //             // var windowHeight = window.innerHeight || document.documentElement.clientHeight;
+                    //             // // 计算滚动位置，以使元素的中心位于窗口的垂直中心
+                    //             // let scrollTo = elementTop - (windowHeight - elementHeight) / 2;
+                    //             // console.log(`scrollTO`,scrollTo)
+                    //             // // 滚动页面
+                    //             // glitter
+                    //             //     .$('html')
+                    //             //     .get(0).scrollTo({
+                    //             //     top: scrollTo,
+                    //             //     left: 0,
+                    //             //     behavior: 'instant' // 使用平滑滚动效果，如果需要的话
+                    //             // });
+                    //         }
+                    //     }
+                    //     scrollToItem(document.querySelector('.selectComponentHover'))
+                    // });
+                    // 開始觀察目標元素的變化
+                    // observer.observe(document.body, {childList: true, subtree: true});
                     (window.parent as any).glitter.share.evalPlace = ((evals: string) => {
                         return eval(evals)
                     })
+
                     glitter.addMtScript(
                         (window.parent as any).editerData.setting.map((dd: any) => {
-                            return {src: `${glitter.htmlGenerate.resourceHook(dd.js)}`, type: 'module'}
+                            return {
+                                src: `${glitter.htmlGenerate.configureCDN(glitter.htmlGenerate.resourceHook(dd.js))}`,
+                                type: 'module'
+                            }
                         }),
                         () => {
 
@@ -134,7 +193,10 @@ export class Entry {
                         try {
                             glitter.addMtScript(
                                 data.response.result[0].config.map((dd: any) => {
-                                    return {src: `${glitter.htmlGenerate.resourceHook(dd.js)}`, type: 'module'}
+                                    return {
+                                        src: `${glitter.htmlGenerate.configureCDN(glitter.htmlGenerate.resourceHook(dd.js))}`,
+                                        type: 'module'
+                                    }
                                 }),
                                 () => {
 
@@ -167,6 +229,7 @@ export class Entry {
     }
 
 }
+
 function toBackendEditor(glitter: Glitter) {
 
     async function running() {

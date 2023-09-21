@@ -145,11 +145,11 @@ export class TriggerEvent {
         // const event: { src: string, route: string } = oj.clickEvent.clickEvent
         let arrayEvent: any = []
         let returnData = ''
-
         async function run(event: any) {
             return new Promise<any>(async (resolve, reject) => {
                 async function pass() {
                     try {
+                        const time=new Date()
                         const gvc = oj.gvc
                         const subData = oj.subData
                         const widget = oj.widget
@@ -159,6 +159,7 @@ export class TriggerEvent {
                         }, 4000)
                         returnData = await oj.gvc.glitter.share.clickEvent[TriggerEvent.getLink(event.clickEvent.src)][event.clickEvent.route].fun(oj.gvc, oj.widget, event, oj.subData, oj.element).event()
                         const response = returnData
+
                         if (event.dataPlace) {
                             eval(event.dataPlace)
                         }
@@ -173,39 +174,48 @@ export class TriggerEvent {
                         } else {
                             resolve(true)
                         }
-
                     } catch (e) {
                         returnData = event.errorCode ?? ""
                         resolve(true)
                     }
                 }
-
-                try {
-                    oj.gvc.glitter.share.clickEvent = oj.gvc.glitter.share.clickEvent ?? {}
-                    if (!oj.gvc.glitter.share.clickEvent[event.clickEvent.src]) {
-                        await new Promise((resolve, reject) => {
+                let timeOut=new Date()
+                let interval:any=0
+                function checkModule(){
+                    try {
+                        oj.gvc.glitter.share.clickEvent = oj.gvc.glitter.share.clickEvent ?? {}
+                        if (!oj.gvc.glitter.share.clickEvent[TriggerEvent.getLink(event.clickEvent.src)]) {
                             oj.gvc.glitter.addMtScript([
                                 {src: `${TriggerEvent.getLink(event.clickEvent.src)}`, type: 'module'}
-                            ], () => {
-                                pass()
-                            }, () => {
+                            ], () => { }, () => {
+                                clearInterval(interval)
                                 resolve(false)
                             })
-                        })
-                    } else {
-                        pass()
-                    }
-                } catch (e) {
-                    pass()
-                }
+                        } else {
+                            clearInterval(interval)
+                            pass()
 
+                        }
+                    }catch (e){
+                        clearInterval(interval)
+                        resolve(false)
+                    }
+                }
+                checkModule()
+                interval=setInterval(()=>{
+                    checkModule()
+                    //Time out with 4 sec.
+                    if(((new Date().getTime())-timeOut.getTime())/1000 > 4){
+                        clearInterval(interval)
+                    }
+                },50)
             })
         }
-
         if (oj.clickEvent !== undefined && Array.isArray(oj.clickEvent.clickEvent)) {
             // alert('array')
             arrayEvent = oj.clickEvent.clickEvent;
         } else if (oj.clickEvent !== undefined) {
+
             arrayEvent = [JSON.parse(JSON.stringify(oj.clickEvent))]
         }
 
@@ -214,27 +224,17 @@ export class TriggerEvent {
             for (const a of arrayEvent) {
                 let blockCommand = false
                 result = await new Promise<boolean>((resolve, reject) => {
-                    let fal = 10
-
                     function check() {
                         run(a).then((res) => {
                             if (res === 'blockCommand') {
                                 blockCommand = true
                                 resolve(true)
                             } else {
-                                if (res || (fal === 0)) {
-                                    resolve(res)
-                                } else {
-                                    setTimeout(() => {
-                                        fal -= 1
-                                        check()
-                                    }, 100)
-                                }
+                                resolve(res)
                             }
 
                         })
                     }
-
                     check()
                 })
                 if (!result || blockCommand) {

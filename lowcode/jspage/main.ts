@@ -88,7 +88,7 @@ init((gvc, glitter, gBundle) => {
                         });
                         viewModel.data = viewModel.data ?? data.response.result[0];
                         viewModel.dataList = data.response.result;
-                        glitter.share.allPageResource=JSON.parse(JSON.stringify(data.response.result))
+                        glitter.share.allPageResource = JSON.parse(JSON.stringify(data.response.result))
                         const htmlGenerate = new gvc.glitter.htmlGenerate((viewModel.data! as any).config, [], undefined, true);
                         (window as any).editerData = htmlGenerate;
                         (window as any).page_config = (viewModel.data! as any).page_config
@@ -115,10 +115,11 @@ init((gvc, glitter, gBundle) => {
                         viewModel.initialCode = data.response.data.initialCode ?? "";
                         viewModel.homePage = data.response.data.homePage ?? ""
                         viewModel.backendPlugins = data.response.data.backendPlugins ?? []
+
                         async function load() {
                             for (const a of [{
-                                src:{
-                                    official:"official_event/event.js"
+                                src: {
+                                    official: "official_event/event.js"
                                 }
                             }].concat(viewModel.initialJS)) {
                                 await new Promise((resolve) => {
@@ -295,7 +296,7 @@ onclick="${gvc.event(() => {
                                                     default:
                                                         return `p-0`
                                                 }
-                                            })()}" style="overflow-y: auto;overflow-x:hidden;">
+                                            })()}" style="overflow-y: auto;overflow-x:hidden;height:calc(100vh - 56px);">
                                                 <div class="h-100" style="">
                                                     ${gvc.bindView(() => {
                                                         return {
@@ -341,6 +342,31 @@ onclick="${gvc.event(() => {
                     $("#jumpToNav").scroll(function () {
                         glitter.setCookie("jumpToNavScroll", $(`#jumpToNav`).scrollTop())
                     });
+                    function scrollToItem(element:any){
+                        if (element) {
+                            // 获取元素的位置信息
+                            var elementRect = element.getBoundingClientRect();
+                            var elementTop = elementRect.top;
+                            var elementHeight = elementRect.height;
+
+                            // 获取窗口的高度
+                            var windowHeight =  document.querySelector('.scrollbar-hover')!.scrollHeight;
+                            // 计算滚动位置，以使元素的中心位于窗口的垂直中心
+                            let scrollTo = elementTop - (windowHeight - elementHeight) / 2;
+                            console.log(`ewef`,scrollTo)
+                            // 滚动页面
+                            document.querySelector('.scrollbar-hover')!.scrollTo({
+                                top: scrollTo,
+                                left: 0,
+                                behavior: 'auto' // 使用平滑滚动效果，如果需要的话
+                            });
+                        }
+                    }
+                    setTimeout(()=>{
+                        scrollToItem(document.querySelector(`.editor_item.active`)!)
+
+                    },200)
+
                 }
             });
         },

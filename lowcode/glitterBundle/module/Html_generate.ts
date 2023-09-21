@@ -42,12 +42,55 @@ export class HtmlGenerate {
     public static resourceHook: (src: string) => string = (src) => {
         return src;
     };
-    public render: (gvc: GVC, option?: { class: string; style: string; divCreate?: boolean, jsFinish?: () => void }, createOption?: any) => string;
+
+    public static configureCDN(src: string) {
+        return src
+        // return src.replace(`https://liondesign-prd.s3.amazonaws.com`,`https://d3jnmi1tfjgtti.cloudfront.net`);
+    }
+
+    public render: (gvc: GVC, option?: { class: string; style: string; divCreate?: boolean, jsFinish?: () => void, containerID?: string }, createOption?: any) => string;
     public exportJson: (setting: HtmlJson[]) => any;
     public editor: (gvc: GVC, option?: { return_: boolean; refreshAll: () => void; setting?: any[]; deleteEvent?: () => void }) => string;
     public static saveEvent = () => {
         alert('save');
     };
+    public static renameWidgetID = (dd: any) => {
+        dd.id = (window as any).glitter.getUUID()
+        if (dd.type === 'container') {
+            dd.data.setting.map((d2: any) => {
+                HtmlGenerate.renameWidgetID(d2)
+            })
+        }
+        return dd
+    }
+
+    public static scrollToCenter(gvc: GVC, elementId: string) {
+        // 找到要滚动到的元素
+        var element = gvc.getBindViewElem(elementId).get(0);
+        if (element) {
+
+            // 获取元素的位置信息
+            var elementRect = element.getBoundingClientRect();
+            var elementTop = elementRect.top;
+            var elementHeight = elementRect.height;
+
+            // 获取窗口的高度
+            var windowHeight = window.innerHeight || document.documentElement.clientHeight;
+
+            // 计算滚动位置，以使元素的中心位于窗口的垂直中心
+            var scrollTo = elementTop - (windowHeight - elementHeight) / 2;
+
+            // 滚动页面
+            gvc.glitter
+                .$('html')
+                .get(0).scrollTo({
+                top: scrollTo,
+                left: 0,
+                behavior: 'instant' // 使用平滑滚动效果，如果需要的话
+            });
+
+        }
+    }
 
     public static styleEditor(data: any, gvc?: GVC, widget?: HtmlJson, subData?: any) {
         const glitter = (gvc ?? (window as any)).glitter
@@ -281,28 +324,33 @@ ${obj.gvc.bindView({
             };
             return dd;
         });
-        this.render = (gvc: GVC, option: { class: string; style: string, jsFinish?: () => void } = {
+
+        this.render = (gvc: GVC, option: { class: string; style: string, jsFinish?: () => void, containerID?: string } = {
             class: ``,
             style: ``,
+            containerID: gvc.glitter.getUUID(),
             jsFinish: () => {
             }
         }, createOption?: any) => {
             let waitAddScript: string[] = []
             gvc.glitter.defaultSetting.pageLoading();
-            option=option??{}
+            option = option ?? {}
             return gvc.bindView(() => {
-                const container = gvc.glitter.getUUID()
+                const container = option.containerID ?? gvc.glitter.getUUID();
                 let htmlInner = ''
+
                 function startRender() {
+                    const start=new Date().getTime()
                     new Promise(async (resolve, reject) => {
                         //The component module need to be initial.
                         function initialComponent(set: any[]) {
                             let waitAdd: any = []
                             for (const a of set) {
                                 if (['code'].indexOf(a.type) === -1) {
-                                    if ((a.type !== 'widget') && (a.type !== 'container') && !gvc.glitter.share.htmlExtension[gvc.glitter.htmlGenerate.resourceHook(a.js)]) {
+
+                                    if ((a.type !== 'widget') && (a.type !== 'container') && !gvc.glitter.share.htmlExtension[gvc.glitter.htmlGenerate.configureCDN(gvc.glitter.htmlGenerate.configureCDN(gvc.glitter.htmlGenerate.resourceHook(a.js)))]) {
                                         waitAdd.push({
-                                            src: `${gvc.glitter.htmlGenerate.resourceHook(a.js)}`,
+                                            src: `${gvc.glitter.htmlGenerate.configureCDN(gvc.glitter.htmlGenerate.resourceHook(a.js))}`,
                                             type: 'module'
                                         })
                                     }
@@ -336,7 +384,7 @@ ${obj.gvc.bindView({
                         //Set htmlGenerate content.
                         const html = setting.map((dd) => {
                             dd.refreshAllParameter!.view1 = () => {
-                               startRender()
+                                startRender()
                             };
                             const tempUiID = gvc.glitter.getUUID()
 
@@ -370,7 +418,7 @@ ${obj.gvc.bindView({
                                         .view()
                                 } catch (e: any) {
                                     HtmlGenerate.share.false[dd.js] = (HtmlGenerate.share.false[dd.js] ?? 0) + 1
-                                    console.log(`解析錯誤:${e.message}<br>${e.stack}<br>${e.line}`)
+                                    gvc.glitter.deBugMessage(`解析錯誤:${e.message}<br>${e.stack}<br>${e.line}`)
                                     if (HtmlGenerate.share.false[dd.js] < 80) {
                                         setTimeout(() => {
                                             renderView(callback)
@@ -399,7 +447,7 @@ ${obj.gvc.bindView({
                                 if (['code'].indexOf(dd.type) === -1) {
                                     if ((dd.type === 'widget') || (dd.type === 'container')) {
                                         dd.refreshComponentParameter!.view1 = () => {
-                                           startRender()
+                                            startRender()
                                         };
                                         const option: any = []
                                         if (isEditMode()) {
@@ -412,13 +460,13 @@ ${obj.gvc.bindView({
                                                                 gvc.glitter.$('.selectComponentHover').removeClass('selectComponentHover');
                                                                 gvc.glitter.$(e).addClass('selectComponentHover');
                                                             }
-                                                        } catch {}
+                                                        } catch {
+                                                        }
                                                         event.stopPropagation()
                                                     })
                                                 })()
                                             })
                                         }
-
                                         return (widgetComponent.render(gvc, dd as any, setting as any, hover, subdata, {
                                             option: option,
                                             widgetComponentID: gvc.glitter.getUUID()
@@ -475,29 +523,6 @@ ${obj.gvc.bindView({
                                                     option: option
                                                 },
                                                 onCreate: () => {
-                                                    setTimeout(() => {
-                                                        if (hover.indexOf(component) !== -1) {
-                                                            gvc.glitter.$('html').get(0).scrollTo({
-                                                                top: 0,
-                                                                left: 0,
-                                                                behavior: 'instant',
-                                                            });
-                                                            const scrollTOP =
-                                                                gvc.getBindViewElem(component).offset().top -
-                                                                gvc.glitter.$('html').offset().top +
-                                                                gvc.glitter.$('html').scrollTop() + (
-                                                                    gvc.getBindViewElem(component).height() / 2
-                                                                );
-                                                            gvc.glitter
-                                                                .$('html')
-                                                                .get(0)
-                                                                .scrollTo({
-                                                                    top: scrollTOP - gvc.glitter.$('html').height() / 2,
-                                                                    left: 0,
-                                                                    behavior: 'instant',
-                                                                });
-                                                        }
-                                                    }, 200)
                                                 },
                                             }
                                         })
@@ -507,6 +532,7 @@ ${obj.gvc.bindView({
                                 }
 
                             }
+
                             return getHtml()
                         }).join('')
                         resolve(html)
@@ -537,9 +563,9 @@ ${obj.gvc.bindView({
                             }
                             resolve(true)
                         }).then(() => {
+                            gvc.glitter.consoleLog(`renderFinish-${(new Date().getTime() - start) / 1000}`)
                             gvc.glitter.defaultSetting.pageLoadingFinish();
                             option.jsFinish && option.jsFinish()
-                            gvc.glitter.deBugMessage('render finish')
                         })
                     })
                 }
@@ -558,12 +584,14 @@ ${obj.gvc.bindView({
                     },
                     onInitial: () => {
                     },
-                    onCreate:()=>{
-                        gvc.glitter.deBugMessage(`containerRender:`+container)
+                    onCreate: () => {
+
+                        // gvc.glitter.deBugMessage(`containerRender:`+container)
                     }
                 }
             })
         };
+
         this.editor = (
             gvc: GVC,
             option = {
@@ -583,15 +611,18 @@ ${obj.gvc.bindView({
                     for (const a of set) {
                         if (['code'].indexOf(a.type) === -1) {
                             let falseArray: any[] = []
-                            if (!gvc.glitter.share.htmlExtension[gvc.glitter.htmlGenerate.resourceHook(a.js)]) {
+                            if (!gvc.glitter.share.htmlExtension[gvc.glitter.htmlGenerate.configureCDN(gvc.glitter.htmlGenerate.resourceHook(a.js))]) {
                                 await new Promise((resolve, reject) => {
                                     gvc.glitter.addMtScript(
-                                        [{src: `${gvc.glitter.htmlGenerate.resourceHook(a.js)}`, type: 'module'}],
+                                        [{
+                                            src: `${gvc.glitter.htmlGenerate.configureCDN(gvc.glitter.htmlGenerate.resourceHook(a.js))}`,
+                                            type: 'module'
+                                        }],
                                         () => {
                                             resolve(true);
                                         },
                                         () => {
-                                            falseArray.push(gvc.glitter.htmlGenerate.resourceHook(a.js))
+                                            falseArray.push(gvc.glitter.htmlGenerate.configureCDN(gvc.glitter.htmlGenerate.resourceHook(a.js)))
                                             resolve(false);
                                         },
                                         [
@@ -697,7 +728,7 @@ ${gvc.bindView(() => {
                                                         .editor()
                                                 } catch (e: any) {
                                                     HtmlGenerate.share.false[dd.js] = (HtmlGenerate.share.false[dd.js] ?? 0) + 1
-                                                    console.log(`解析錯誤:${e.message}<br>${e.stack}<br>${e.line}`)
+                                                    gvc.glitter.deBugMessage(`解析錯誤:${e.message}<br>${e.stack}<br>${e.line}`)
                                                     if (HtmlGenerate.share.false[dd.js] < 80) {
                                                         setTimeout(() => {
                                                             getData()
@@ -809,7 +840,7 @@ ${e.line}
                                     })}</div>`;
                                 } catch (e: any) {
                                     HtmlGenerate.share.false[dd.js] = (HtmlGenerate.share.false[dd.js] ?? 0) + 1
-                                    console.log(`解析錯誤:${e.message}<br>${e.stack}<br>${e.line}`)
+                                    gvc.glitter.deBugMessage(`解析錯誤:${e.message}<br>${e.stack}<br>${e.line}`)
                                     if (HtmlGenerate.share.false[dd.js] < 80) {
                                         setTimeout(() => {
                                             getData()
@@ -838,6 +869,7 @@ ${e.line}
         this.exportJson = (setting: HtmlJson[]) => {
             return JSON.stringify(setting);
         };
+
     }
 }
 

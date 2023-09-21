@@ -178,7 +178,7 @@ class Add_item_dia {
                 "src": {
                     "official": new URL('../official_view_component/official.js', import.meta.url).href
                 },
-                "name": "官方模塊"
+                "name": "開發元件"
             });
             const data = await BaseApi.create({
                 "url": `https://liondesign.tw/api/v1/app/official/plugin`,
@@ -202,7 +202,9 @@ class Add_item_dia {
             function loading() {
                 viewModel.loading = false;
                 if (viewModel.pluginList.length > 0) {
-                    viewModel.pluginList[0].toggle = true;
+                    viewModel.pluginList.map((dd) => {
+                        dd.toggle = true;
+                    });
                 }
                 glitter.addMtScript(viewModel.pluginList.map((dd) => {
                     return {
@@ -267,7 +269,7 @@ class Add_item_dia {
                                             view: () => {
                                                 if (search) {
                                                     return gvc.map(Object.keys(obg).filter((d2) => {
-                                                        return d2 !== 'document';
+                                                        return d2 !== 'document' && d2 !== 'code';
                                                     }).map((dd) => {
                                                         if (obg[dd].title.indexOf(search) !== -1) {
                                                             return html `
@@ -302,8 +304,12 @@ class Add_item_dia {
                                                 }
                                                 else {
                                                     return gvc.map(Object.keys(obg).filter((d2) => {
-                                                        return d2 !== 'document';
+                                                        return d2 !== 'document' && d2 !== 'code';
                                                     }).map((dd) => {
+                                                        if (!viewModel.selectSource) {
+                                                            viewModel.selectSource = obg[dd];
+                                                            gvc.notifyDataChange(docID);
+                                                        }
                                                         return html `
                                                                     <div class="editor_item  ${(viewModel.selectSource === obg[dd]) ? `active` : `text_unselect`}"
                                                                          onclick="${gvc.event(() => {

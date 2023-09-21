@@ -43,7 +43,7 @@ class UserUtil {
     }
     static async generateToken(userObj) {
         const iat = Math.floor(Date.now() / 1000);
-        const expTime = 5 * 60 * 60;
+        const expTime = 365 * 24 * 60 * 60;
         const payload = {
             account: userObj.account,
             userID: userObj.user_id,

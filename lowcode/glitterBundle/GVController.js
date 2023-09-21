@@ -49,10 +49,9 @@ export class GVC {
     notifyDataChange(id) {
         const gvc = this;
         try {
-            gvc.initialElemCallback(gvc.id(id));
             const refresh = (id) => {
                 var _a, _b, _c;
-                if ($(`[gvc-id="${gvc.id(id)}"]`).length === 0) {
+                if (gvc.getBindViewElem(id).length === 0) {
                     return;
                 }
                 gvc.parameter.bindViewList[id].divCreate = (_a = gvc.parameter.bindViewList[id].divCreate) !== null && _a !== void 0 ? _a : {};
@@ -60,7 +59,7 @@ export class GVC {
                 $(`[gvc-id="${gvc.id(id)}"]`).attr('class', (_b = divCreate.class) !== null && _b !== void 0 ? _b : "");
                 $(`[gvc-id="${gvc.id(id)}"]`).attr('style', (_c = divCreate.style) !== null && _c !== void 0 ? _c : "");
                 gvc.glitter.elementCallback[gvc.id(id)].updateAttribute();
-                $(`[gvc-id="${gvc.id(id)}"]`).html(gvc.parameter.bindViewList[id].view());
+                $(`[gvc-id="${gvc.id(id)}"]`).html(gvc.glitter.elementCallback[gvc.id(id)].getView());
                 if (gvc.parameter.bindViewList[id].onCreate) {
                     gvc.parameter.bindViewList[id].onCreate();
                 }

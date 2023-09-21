@@ -243,6 +243,11 @@ ${(!error.message) ? ``:`錯誤訊息:${error.message}` }${(!error.lineNumber) ?
             }
         }
     }
+    public consoleLog(text:string){
+        if (this.debugMode) {
+            console.log(text)
+        }
+    }
 
     public setUrlParameter(tag: string, value?: string) {
 

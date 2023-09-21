@@ -20,150 +20,147 @@ export const array_item = Plugin.createComponent(import.meta.url, (glitter: Glit
             widget.data.container = widget.data.container ?? {}
             return {
                 view: () => {
-                    return new Promise(async (resolve, reject) => {
-                        const id = glitter.getUUID()
-                        const loading = await component.render(gvc, widget.data.loading, setting, hoverID, subData).view()
-                        let views: any = undefined;
+                    const id = glitter.getUUID()
+                    let loading = ``
+                    let views: any = undefined;
 
-                        new Promise(async (resolve, reject) => {
-                            let view: any = []
-                            let createOption = (() => {
-                                return {
-                                    class: glitter.htmlGenerate.styleEditor(widget.data).class(),
-                                    style: glitter.htmlGenerate.styleEditor(widget.data).style()
-                                }
-                            })
-                            const data: any = (await TriggerEvent.trigger({
-                                gvc, widget, clickEvent: widget.data, subData: subData
-                            }))
-                            // console.log(`arrayData--->`,data)
+                    new Promise(async (resolve, reject) => {
+                        loading = await component.render(gvc, widget.data.loading, setting, hoverID, subData).view()
+                        let view: any = []
+                        let createOption = (() => {
+                            return {
+                                class: glitter.htmlGenerate.styleEditor(widget.data).class(),
+                                style: glitter.htmlGenerate.styleEditor(widget.data).style()
+                            }
+                        })
 
-                            async function getView() {
-                                let cfMap: any = {}
-                                for (const a of data) {
-                                    // a.carryData = subData.carryData
-                                    await new Promise(async (resolve, reject) => {
-                                        const saasConfig = (window as any).saasConfig
-                                        let fal = 0
-                                        let tag = widget.data.tag
-                                        let carryData = widget.data.carryData
-                                        let subData: any = a
-                                        for (const b of widget.data.list) {
-                                            b.evenet = b.evenet ?? {}
-                                            try {
-                                                if (b.triggerType === 'trigger') {
-                                                    const result = await new Promise((resolve, reject) => {
-                                                        (TriggerEvent.trigger({
-                                                            gvc: gvc,
-                                                            widget: widget,
-                                                            clickEvent: b.evenet,
-                                                            subData
-                                                        })).then((data) => {
-                                                            resolve(data)
-                                                        })
-
-                                                    })
-                                                    if (result) {
-                                                        tag = b.tag
-                                                        carryData = b.carryData
-                                                        break
-                                                    }
-                                                } else {
-                                                    if ((await eval(b.code)) === true) {
-                                                        tag = b.tag
-                                                        carryData = b.carryData
-                                                        break
-                                                    }
-                                                }
-                                            } catch (e) {
-
-                                            }
-
-                                        }
-
+                        const data: any = (await TriggerEvent.trigger({
+                            gvc, widget, clickEvent: widget.data, subData: subData
+                        }))
+                        async function getView() {
+                            let cfMap: any = {}
+                            for (const a of data) {
+                                await new Promise(async (resolve, reject) => {
+                                    const saasConfig = (window as any).saasConfig
+                                    let fal = 0
+                                    let tag = widget.data.tag
+                                    let carryData = widget.data.carryData
+                                    let subData: any = a
+                                    for (const b of widget.data.list) {
+                                        b.evenet = b.evenet ?? {}
                                         try {
-                                            subData.carryData = await TriggerEvent.trigger({
-                                                gvc: gvc,
-                                                clickEvent: carryData,
-                                                widget: widget,
-                                                subData: subData
-                                            })
+
+                                            if (b.triggerType === 'trigger') {
+                                                const result = await new Promise((resolve, reject) => {
+                                                    (TriggerEvent.trigger({
+                                                        gvc: gvc,
+                                                        widget: widget,
+                                                        clickEvent: b.evenet,
+                                                        subData
+                                                    })).then((data) => {
+                                                        resolve(data)
+                                                    })
+                                                })
+                                                if (result) {
+                                                    tag = b.tag
+                                                    carryData = b.carryData
+                                                    break
+                                                }
+                                            } else {
+                                                if ((await eval(b.code)) === true) {
+                                                    tag = b.tag
+                                                    carryData = b.carryData
+                                                    break
+                                                }
+                                            }
                                         } catch (e) {
                                         }
-                                        if (!cfMap[tag]) {
-                                            cfMap[tag] = await new Promise((resolve, reject) => {
-                                                function getData() {
-                                                    BaseApi.create({
-                                                        "url": saasConfig.config.url + `/api/v1/template?appName=${saasConfig.config.appName}&tag=${tag}`,
-                                                        "type": "GET",
-                                                        "timeout": 0,
-                                                        "headers": {
-                                                            "Content-Type": "application/json"
-                                                        }
-                                                    }).then((d2) => {
-                                                        try {
-                                                            if (!d2.result) {
-                                                                fal += 1
-                                                                if (fal < 20) {
-                                                                    setTimeout(() => {
-                                                                        getData()
-                                                                    }, 200)
-                                                                }
-                                                            } else {
-                                                                resolve(d2.response.result[0])
-                                                            }
-                                                        } catch (e) {
-                                                        }
-                                                    })
-                                                }
-
-                                                getData()
-                                            })
-                                        }
-                                        // console.log(cfMap[tag])
-                                        view.push(new glitter.htmlGenerate(JSON.parse(JSON.stringify(cfMap[tag].config)), [], subData).render(gvc, undefined, createOption))
-                                        resolve(true)
-                                    })
-
-
-                                }
-                                const data2 = view.join('') || (await component.render(gvc, widget.data.empty, setting, hoverID, subData, {
-                                    createOption: {}
-                                }).view())
-                                resolve(data2)
-                            }
-
-                            getView().then(r => {
-                            })
-                        }).then((data: any) => {
-                            views = data
-                            gvc.notifyDataChange(id)
-                        })
-                        resolve(gvc.bindView(() => {
-
-                            return {
-                                bind: id,
-                                view: () => {
-                                    if (views) {
-                                        return views
                                     }
                                     try {
-                                        return loading
+                                        subData.carryData = await TriggerEvent.trigger({
+                                            gvc: gvc,
+                                            clickEvent: carryData,
+                                            widget: widget,
+                                            subData: subData
+                                        })
                                     } catch (e) {
-                                        return ``
                                     }
-                                },
-                                onCreate: () => {
+                                    if (!cfMap[tag]) {
+                                        cfMap[tag] = await new Promise((resolve, reject) => {
+                                            function getData() {
+                                                BaseApi.create({
+                                                    "url": saasConfig.config.url + `/api/v1/template?appName=${saasConfig.config.appName}&tag=${tag}`,
+                                                    "type": "GET",
+                                                    "timeout": 0,
+                                                    "headers": {
+                                                        "Content-Type": "application/json"
+                                                    }
+                                                }).then((d2) => {
+                                                    try {
+                                                        if (!d2.result) {
+                                                            fal += 1
+                                                            if (fal < 20) {
+                                                                setTimeout(() => {
+                                                                    getData()
+                                                                }, 200)
+                                                            }
+                                                        } else {
+                                                            resolve(d2.response.result[0])
+                                                        }
+                                                    } catch (e) {
+                                                    }
+                                                })
+                                            }
 
-                                },
-                                divCreate: {
-                                    class: glitter.htmlGenerate.styleEditor(widget.data.container).class(),
-                                    style: glitter.htmlGenerate.styleEditor(widget.data.container).style()
-                                }
+                                            getData()
+                                        })
+                                    }
+                                    const config = JSON.parse(JSON.stringify(cfMap[tag].config))
+                                    config.map((dd: any) => {
+                                        glitter.htmlGenerate.renameWidgetID(dd)
+                                    })
+                                    view.push(new glitter.htmlGenerate(config, [], subData).render(gvc, undefined, createOption))
+                                    resolve(true)
+                                })
+
+
                             }
-                        }))
-                    })
 
+                            const data2 = view.join('') || (await component.render(gvc, widget.data.empty, setting, hoverID, subData, {
+                                createOption: {}
+                            }).view())
+                            resolve(data2)
+                        }
+                        getView().then(r => {})
+                    }).then((data: any) => {
+                        views = data
+                        glitter.share.notify=glitter.share.notify??{}
+                        gvc.notifyDataChange(id)
+                    })
+                    return gvc.bindView(() => {
+                        return {
+                            bind: id,
+                            view: () => {
+                                if (views) {
+                                    return views
+                                }
+                                return `<span>loading</span>`
+                                // try {
+                                //     return loading
+                                // } catch (e) {
+                                //     return ``
+                                // }
+                            },
+                            onCreate: () => {
+
+                            },
+                            divCreate: {
+                                class: glitter.htmlGenerate.styleEditor(widget.data.container).class(),
+                                style: glitter.htmlGenerate.styleEditor(widget.data.container).style(),
+                                option: [{key: 'arrayItem', value: "true"}]
+                            }
+                        }
+                    })
                 },
                 editor: () => {
                     // Editor.searchInput()

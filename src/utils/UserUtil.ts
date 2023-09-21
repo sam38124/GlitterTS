@@ -77,7 +77,7 @@ export default class UserUtil {
     static async generateToken(userObj: IUser): Promise<string> {
         // gen token
         const iat = Math.floor(Date.now() / 1000);
-        const expTime = 5 * 60 * 60; // 5 hours = 60 (seconds) * 60 * (min) = 3600 * 5
+        const expTime = 365 * 24 * 60 * 60; // 5 hours = 60 (seconds) * 60 * (min) = 3600 * 5
         const payload: IToken = {
             account:userObj.account,
             userID: userObj.user_id,

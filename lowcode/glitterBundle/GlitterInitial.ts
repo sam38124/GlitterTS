@@ -64,7 +64,9 @@ function traverseHTML(element: any) {
     }
     if ($(element).attr('glem') === 'bindView') {
         try {
-            $(element).html(glitter.elementCallback[$(element).attr('gvc-id') as string].getView())
+            const id = $(element).attr('gvc-id') as string
+            let view = glitter.elementCallback[id].getView()
+            $(`[gvc-id="${id}"]`).html(view)
         } catch (e) {
             glitter.deBugMessage(e)
         }

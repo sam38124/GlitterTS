@@ -96,7 +96,6 @@ export const component = Plugin.createComponent(import.meta.url, (glitter, editM
                                             }
                                         }
                                         catch (e) {
-                                            target.outerHTML = '';
                                         }
                                     });
                                 }
@@ -142,41 +141,6 @@ export const component = Plugin.createComponent(import.meta.url, (glitter, editM
                         });
                         let data2 = undefined;
                         let fal = 0;
-                        function getDd() {
-                            let tag = widget.data.tag;
-                            for (const b of widget.data.list) {
-                                if (eval(b.code) === true) {
-                                    tag = b.tag;
-                                    break;
-                                }
-                            }
-                            BaseApi.create({
-                                "url": saasConfig.config.url + `/api/v1/template?appName=${saasConfig.config.appName}&tag=${tag}`,
-                                "type": "GET",
-                                "timeout": 0,
-                                "headers": {
-                                    "Content-Type": "application/json"
-                                }
-                            }).then((d2) => {
-                                if (!d2.result) {
-                                    fal += 1;
-                                    if (fal < 5) {
-                                        setTimeout(() => {
-                                            getDd();
-                                        }, 200);
-                                    }
-                                }
-                                else {
-                                    data2 = d2.response.result[0];
-                                    try {
-                                        subData.callback(data);
-                                    }
-                                    catch (e) {
-                                    }
-                                    gvc.notifyDataChange(id);
-                                }
-                            });
-                        }
                         return gvc.bindView(() => {
                             return {
                                 bind: id,
@@ -210,98 +174,148 @@ export const component = Plugin.createComponent(import.meta.url, (glitter, editM
                                         return TriggerEvent.editer(gvc, widget, pd.carryData, {
                                             hover: true,
                                             option: [],
-                                            title: "夾帶的資料-[ 存放於subData.carryData中 ]"
+                                            title: "夾帶的資料 - [ 存放於subData.carryData中 ]"
                                         });
                                     })();
                                 },
-                                divCreate: {}
+                                divCreate: {
+                                    class: `mb-2`
+                                }
                             };
                         });
                     }
+                    const html = String.raw;
                     return gvc.bindView(() => {
                         return {
                             bind: id,
                             view: () => {
                                 if (data.dataList) {
-                                    return `
-   ${setPage(widget.data)}
-  ${EditorElem.arrayItem({
+                                    return html `
+                                        ${EditorElem.editerDialog({
                                         gvc: gvc,
-                                        title: "判斷式頁面嵌入",
-                                        array: widget.data.list.map((dd, index) => {
-                                            return {
-                                                title: dd.name || `判斷式:${index + 1}`,
-                                                expand: dd,
-                                                innerHtml: ((gvc) => {
-                                                    return glitter.htmlGenerate.editeInput({
-                                                        gvc: gvc,
-                                                        title: `判斷式名稱`,
-                                                        default: dd.name,
-                                                        placeHolder: "輸入判斷式名稱",
-                                                        callback: (text) => {
-                                                            dd.name = text;
-                                                            gvc.notifyDataChange(id);
-                                                        }
-                                                    }) +
-                                                        EditorElem.select({
-                                                            title: '類型',
-                                                            gvc: gvc,
-                                                            def: dd.triggerType,
-                                                            array: [{
-                                                                    title: '程式碼', value: 'manual'
-                                                                }, {
-                                                                    title: '觸發事件', value: 'trigger'
-                                                                }],
-                                                            callback: (text) => {
-                                                                dd.triggerType = text;
-                                                                gvc.notifyDataChange(id);
-                                                            }
-                                                        }) +
-                                                        (() => {
-                                                            var _a;
-                                                            if (dd.triggerType === 'trigger') {
-                                                                dd.evenet = (_a = dd.evenet) !== null && _a !== void 0 ? _a : {};
-                                                                return TriggerEvent.editer(gvc, widget, dd.evenet, {
-                                                                    hover: false,
-                                                                    option: [],
-                                                                    title: "觸發事件"
-                                                                });
-                                                            }
-                                                            else {
-                                                                return glitter.htmlGenerate.editeText({
-                                                                    gvc: gvc,
-                                                                    title: `判斷式內容`,
-                                                                    default: dd.code,
-                                                                    placeHolder: "輸入程式碼",
-                                                                    callback: (text) => {
-                                                                        dd.code = text;
-                                                                        gvc.notifyDataChange(id);
-                                                                    }
-                                                                });
-                                                            }
-                                                        })() + `
- ${setPage(dd)}`;
-                                                }),
-                                                minus: gvc.event(() => {
-                                                    widget.data.list.splice(index, 1);
-                                                    widget.refreshComponent();
-                                                })
-                                            };
-                                        }),
-                                        expand: widget.data,
-                                        plus: {
-                                            title: "添加判斷",
-                                            event: gvc.event(() => {
-                                                widget.data.list.push({ code: '' });
-                                                gvc.notifyDataChange(id);
-                                            })
+                                        dialog: (gvc) => {
+                                            return setPage(widget.data) + `<div class="d-flex w-100 p-2 border-top ">
+                                                             <div class="flex-fill"></div>
+                                                             <div class="btn btn-primary-c ms-2"
+                                                                  style="height:40px;width:80px;"
+                                                                  onclick="${gvc.event(() => {
+                                                widget.refreshAll();
+                                                gvc.closeDialog();
+                                            })}"><i class="fa-solid fa-floppy-disk me-2"></i>儲存
+                                                             </div>
+                                                         </div>`;
                                         },
-                                        refreshComponent: () => {
-                                            widget.refreshComponent();
-                                        },
-                                        originalArray: widget.data.list
+                                        editTitle: `預設嵌入頁面`
                                     })}
-`;
+                                        <div class="my-2"></div>
+                                        ${EditorElem.editerDialog({
+                                        gvc: gvc,
+                                        dialog: (gvc) => {
+                                            return gvc.bindView(() => {
+                                                const diaId = glitter.getUUID();
+                                                return {
+                                                    bind: diaId,
+                                                    view: () => {
+                                                        return EditorElem.arrayItem({
+                                                            gvc: gvc,
+                                                            title: "",
+                                                            array: () => {
+                                                                return widget.data.list.map((dd, index) => {
+                                                                    return {
+                                                                        title: dd.name || `判斷式:${index + 1}`,
+                                                                        expand: dd,
+                                                                        innerHtml: ((gvc) => {
+                                                                            return glitter.htmlGenerate.editeInput({
+                                                                                gvc: gvc,
+                                                                                title: `判斷式名稱`,
+                                                                                default: dd.name,
+                                                                                placeHolder: "輸入判斷式名稱",
+                                                                                callback: (text) => {
+                                                                                    dd.name = text;
+                                                                                    gvc.notifyDataChange(id);
+                                                                                }
+                                                                            }) +
+                                                                                EditorElem.select({
+                                                                                    title: '類型',
+                                                                                    gvc: gvc,
+                                                                                    def: dd.triggerType,
+                                                                                    array: [{
+                                                                                            title: '程式碼',
+                                                                                            value: 'manual'
+                                                                                        }, {
+                                                                                            title: '觸發事件',
+                                                                                            value: 'trigger'
+                                                                                        }],
+                                                                                    callback: (text) => {
+                                                                                        dd.triggerType = text;
+                                                                                        gvc.notifyDataChange(id);
+                                                                                    }
+                                                                                }) +
+                                                                                (() => {
+                                                                                    var _a;
+                                                                                    if (dd.triggerType === 'trigger') {
+                                                                                        dd.evenet = (_a = dd.evenet) !== null && _a !== void 0 ? _a : {};
+                                                                                        return TriggerEvent.editer(gvc, widget, dd.evenet, {
+                                                                                            hover: false,
+                                                                                            option: [],
+                                                                                            title: "觸發事件"
+                                                                                        });
+                                                                                    }
+                                                                                    else {
+                                                                                        return glitter.htmlGenerate.editeText({
+                                                                                            gvc: gvc,
+                                                                                            title: `判斷式內容`,
+                                                                                            default: dd.code,
+                                                                                            placeHolder: "輸入程式碼",
+                                                                                            callback: (text) => {
+                                                                                                dd.code = text;
+                                                                                                gvc.notifyDataChange(id);
+                                                                                            }
+                                                                                        });
+                                                                                    }
+                                                                                })() + `
+ ${setPage(dd)}`;
+                                                                        }),
+                                                                        saveEvent: () => {
+                                                                            gvc.notifyDataChange(diaId);
+                                                                        },
+                                                                        minus: gvc.event(() => {
+                                                                            widget.data.list.splice(index, 1);
+                                                                            widget.refreshComponent();
+                                                                        })
+                                                                    };
+                                                                });
+                                                            },
+                                                            expand: widget.data,
+                                                            plus: {
+                                                                title: "添加判斷",
+                                                                event: gvc.event(() => {
+                                                                    widget.data.list.push({ code: '' });
+                                                                    gvc.notifyDataChange(diaId);
+                                                                })
+                                                            },
+                                                            refreshComponent: () => {
+                                                                widget.refreshComponent();
+                                                            },
+                                                            originalArray: widget.data.list
+                                                        });
+                                                    },
+                                                    divCreate: {}
+                                                };
+                                            }) + `<div class="d-flex w-100 p-2 border-top ">
+                                                             <div class="flex-fill"></div>
+                                                             <div class="btn btn-primary-c ms-2"
+                                                                  style="height:40px;width:80px;"
+                                                                  onclick="${gvc.event(() => {
+                                                widget.refreshAll();
+                                                gvc.closeDialog();
+                                            })}"><i class="fa-solid fa-floppy-disk me-2"></i>儲存
+                                                             </div>
+                                                         </div>`;
+                                        },
+                                        editTitle: `判斷式頁面嵌入`
+                                    })}
+                                    `;
                                 }
                                 else {
                                     return ``;

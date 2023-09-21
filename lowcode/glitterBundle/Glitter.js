@@ -536,6 +536,11 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
             }
         }
     }
+    consoleLog(text) {
+        if (this.debugMode) {
+            console.log(text);
+        }
+    }
     setUrlParameter(tag, value) {
         var search = (value !== undefined) ? this.setSearchParam(this.removeSearchParam(window.location.search, tag), tag, value) :
             this.removeSearchParam(window.location.search, tag);

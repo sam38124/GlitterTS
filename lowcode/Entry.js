@@ -6,7 +6,8 @@ import { BaseApi } from "./api/base.js";
 export class Entry {
     static onCreate(glitter) {
         var _a;
-        glitter.debugMode = true;
+        glitter.share.start = new Date();
+        glitter.debugMode = false;
         const vm = {
             pageData: ApiPageConfig.getPage(config.appName, (_a = glitter.getUrlParameter('page')) !== null && _a !== void 0 ? _a : glitter.getUUID()),
             appConfig: []
@@ -53,7 +54,7 @@ export class Entry {
                     for (const data of ((_b = dd.response.data.initialList) !== null && _b !== void 0 ? _b : [])) {
                         try {
                             if (data.type === 'script') {
-                                const url = new URL(glitter.htmlGenerate.resourceHook(data.src.link));
+                                const url = new URL(glitter.htmlGenerate.configureCDN(glitter.htmlGenerate.resourceHook(data.src.link)));
                                 glitter.share.callBackList = (_c = glitter.share.callBackList) !== null && _c !== void 0 ? _c : {};
                                 const callbackID = glitter.getUUID();
                                 url.searchParams.set('callback', callbackID);
@@ -88,11 +89,31 @@ export class Entry {
                     toBackendEditor(glitter);
                 }
                 else if (glitter.getUrlParameter("type") === 'htmlEditor') {
+                    let timer = 0;
+                    var bodyElement = document.body;
+                    var observer = new ResizeObserver(function (entries, observer) {
+                        function scrollToItem(element) {
+                            if (element) {
+                                element.scrollIntoView({
+                                    behavior: 'smooth',
+                                    block: 'center',
+                                });
+                                console.log(`scrollTO-intoView`);
+                            }
+                        }
+                        clearInterval(timer);
+                        timer = setTimeout(() => { scrollToItem(document.querySelector('.selectComponentHover')); }, 100);
+                        console.log(`heightChange`);
+                    });
+                    observer.observe(bodyElement);
                     window.parent.glitter.share.evalPlace = ((evals) => {
                         return eval(evals);
                     });
                     glitter.addMtScript(window.parent.editerData.setting.map((dd) => {
-                        return { src: `${glitter.htmlGenerate.resourceHook(dd.js)}`, type: 'module' };
+                        return {
+                            src: `${glitter.htmlGenerate.configureCDN(glitter.htmlGenerate.resourceHook(dd.js))}`,
+                            type: 'module'
+                        };
                     }), () => {
                     }, () => {
                     }, [
@@ -123,7 +144,10 @@ export class Entry {
                         }
                         try {
                             glitter.addMtScript(data.response.result[0].config.map((dd) => {
-                                return { src: `${glitter.htmlGenerate.resourceHook(dd.js)}`, type: 'module' };
+                                return {
+                                    src: `${glitter.htmlGenerate.configureCDN(glitter.htmlGenerate.resourceHook(dd.js))}`,
+                                    type: 'module'
+                                };
                             }), () => {
                             }, () => {
                             }, [
