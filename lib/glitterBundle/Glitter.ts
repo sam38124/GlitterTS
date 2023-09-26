@@ -126,7 +126,7 @@ export class Glitter {
         }, callBack, option);
     }
 
-    public getPro(tag: string, callBack: (data: {}) => void, option: { defineType?: any, webFunction: (data: any, callback: (data: any) => void) => any }
+    public getPro(tag: string, callBack: (response: {data:any}) => void, option: { defineType?: any, webFunction: (data: any, callback: (data: any) => void) => any }
         = {
         webFunction: (data: any, callback: (data: any) => void) => {
             callback({result: true, data: Glitter.glitter.getCookieByName(tag)})

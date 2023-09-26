@@ -147,7 +147,13 @@ export class TriggerEvent {
         let returnData = ''
         async function run(event: any) {
             return new Promise<any>(async (resolve, reject) => {
+                let hasRun=false
                 async function pass() {
+                    if(hasRun){
+                        return
+                    }else{
+                        hasRun=true
+                    }
                     try {
                         const time=new Date()
                         const gvc = oj.gvc

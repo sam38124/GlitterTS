@@ -252,7 +252,8 @@ class Add_item_dia {
                                     }
                                     return html `
                                         <div class="w-100 px-2 ${(search && !haveItem) ? `d-none` : ``}">
-                                            <div class="mx-0 d-flex mx-n2  px-2 hi fw-bold d-flex align-items-center border-bottom border-top py-2 bgf6" style="color:#151515;font-size:16px;gap:0px;"
+                                            <div class="mx-0 d-flex mx-n2  px-2 hi fw-bold d-flex align-items-center border-bottom border-top py-2 bgf6"
+                                                 style="color:#151515;font-size:16px;gap:0px;"
                                                  onclick="${gvc.event(() => {
                                         dd.toggle = !dd.toggle;
                                         gvc.notifyDataChange([tabID, docID]);
@@ -260,7 +261,8 @@ class Add_item_dia {
                                                     ．${dd.name}
                                                 <div class="flex-fill"></div>
 
-                                                <i class="fa-solid  ${(dd.toggle || search) ? `fa-angle-down` : `fa-angle-right`} d-flex align-items-center justify-content-center me-2" style="cursor:pointer;"></i>
+                                                <i class="fa-solid  ${(dd.toggle || search) ? `fa-angle-down` : `fa-angle-right`} d-flex align-items-center justify-content-center me-2"
+                                                   style="cursor:pointer;"></i>
                                             </div>
                                             ${(() => {
                                         const id = gvc.glitter.getUUID();
@@ -308,6 +310,22 @@ class Add_item_dia {
                                                     }).map((dd) => {
                                                         if (!viewModel.selectSource) {
                                                             viewModel.selectSource = obg[dd];
+                                                            viewModel.addEvent = () => {
+                                                                var _a;
+                                                                const ob = JSON.parse(JSON.stringify(obg));
+                                                                glitter.share.addComponent({
+                                                                    'id': glitter.getUUID(),
+                                                                    'data': (_a = ob[dd].defaultData) !== null && _a !== void 0 ? _a : {},
+                                                                    'style': ob[dd].style,
+                                                                    'class': ob[dd].class,
+                                                                    'type': dd,
+                                                                    'label': tryReturn(() => {
+                                                                        return ob[dd].title;
+                                                                    }, dd),
+                                                                    'js': source
+                                                                });
+                                                                glitter.closeDiaLog();
+                                                            };
                                                             gvc.notifyDataChange(docID);
                                                         }
                                                         return html `
@@ -522,7 +540,8 @@ class Add_item_dia {
                                     }
                                     return html `
                                         <div class="w-100 px-2 ${(search && !haveItem) ? `d-none` : ``}">
-                                            <div class="mx-0 d-flex mx-n2  px-2 hi fw-bold d-flex align-items-center border-bottom border-top py-2 bgf6" style="color:black;"
+                                            <div class="mx-0 d-flex mx-n2  px-2 hi fw-bold d-flex align-items-center border-bottom border-top py-2 bgf6"
+                                                 style="color:black;"
                                                  onclick="${gvc.event(() => {
                                         dd.toggle = !dd.toggle;
                                         gvc.notifyDataChange([tabID, docID]);
@@ -530,7 +549,8 @@ class Add_item_dia {
                                                     ．${dd.name}
                                                 <div class="flex-fill"></div>
 
-                                                <i class="fa-solid  ${(dd.toggle || search) ? `fa-angle-down` : `fa-angle-right`} d-flex align-items-center justify-content-center me-2" style="cursor:pointer;"></i>
+                                                <i class="fa-solid  ${(dd.toggle || search) ? `fa-angle-down` : `fa-angle-right`} d-flex align-items-center justify-content-center me-2"
+                                                   style="cursor:pointer;"></i>
                                             </div>
                                             ${(() => {
                                         const id = gvc.glitter.getUUID();
@@ -992,14 +1012,14 @@ class Add_item_dia {
             });
         });
     }
-    static add_style(gvc) {
+    static add_style(gvc, callback) {
         return gvc.bindView(() => {
             const id = gvc.glitter.getUUID();
             return {
                 bind: id,
                 view: () => {
                     return html `<a class="dropdown-item" style="cursor:pointer;" onclick="${gvc.event(() => {
-                        gvc.glitter.share.addComponent({
+                        const data = {
                             'id': gvc.glitter.getUUID(),
                             "data": {
                                 "attr": [],
@@ -1017,10 +1037,16 @@ class Add_item_dia {
                             'type': 'widget',
                             'label': 'STYLE代碼',
                             'js': '$style1/official.js'
-                        });
+                        };
+                        if (callback) {
+                            callback(data);
+                        }
+                        else {
+                            gvc.glitter.share.addComponent(data);
+                        }
                     })}">添加設計代碼</a>
                     <a class="dropdown-item" style="cursor:pointer;" onclick="${gvc.event(() => {
-                        gvc.glitter.share.addComponent({
+                        const data = {
                             "id": gvc.glitter.getUUID(),
                             "js": "https://sam38124.github.io/One-page-plugin/src/official.js",
                             "css": { "class": {}, "style": {} },
@@ -1047,13 +1073,19 @@ class Add_item_dia {
                             "styleList": [],
                             "refreshAllParameter": {},
                             "refreshComponentParameter": {}
-                        });
+                        };
+                        if (callback) {
+                            callback(data);
+                        }
+                        else {
+                            gvc.glitter.share.addComponent(data);
+                        }
                     })}">添加資源連結</a>`;
                 }
             };
         });
     }
-    static add_script(gvc) {
+    static add_script(gvc, callback) {
         return gvc.bindView(() => {
             const id = gvc.glitter.getUUID();
             return {
@@ -1061,7 +1093,7 @@ class Add_item_dia {
                 view: () => {
                     return html `
                         <a class="dropdown-item" style="cursor:pointer;" onclick="${gvc.event(() => {
-                        gvc.glitter.share.addComponent({
+                        const data = {
                             "id": gvc.glitter.getUUID(),
                             "js": "https://sam38124.github.io/One-page-plugin/src/official.js",
                             "data": {
@@ -1073,10 +1105,16 @@ class Add_item_dia {
                             },
                             "type": "widget",
                             "label": "SCRIPT代碼"
-                        });
+                        };
+                        if (callback) {
+                            callback(data);
+                        }
+                        else {
+                            gvc.glitter.share.addComponent(data);
+                        }
                     })}">添加SCRIPT代碼</a>
                         <a class="dropdown-item" style="cursor:pointer;" onclick="${gvc.event(() => {
-                        gvc.glitter.share.addComponent({
+                        const data = {
                             "id": gvc.glitter.getUUID(),
                             "js": "https://sam38124.github.io/One-page-plugin/src/official.js",
                             "data": {
@@ -1101,10 +1139,16 @@ class Add_item_dia {
                             "type": "widget",
                             "label": "SCRIPT資源",
                             "styleList": []
-                        });
+                        };
+                        if (callback) {
+                            callback(data);
+                        }
+                        else {
+                            gvc.glitter.share.addComponent(data);
+                        }
                     })}">添加SCRIPT資源</a>
                         <a class="dropdown-item" style="cursor:pointer;" onclick="${gvc.event(() => {
-                        gvc.glitter.share.addComponent({
+                        const data = {
                             "id": gvc.glitter.getUUID(),
                             "data": { "triggerTime": "first", "clickEvent": {} },
                             "type": "code",
@@ -1114,7 +1158,13 @@ class Add_item_dia {
                             "css": { "style": {}, "class": {} },
                             "refreshAllParameter": {},
                             "refreshComponentParameter": {}
-                        });
+                        };
+                        if (callback) {
+                            callback(data);
+                        }
+                        else {
+                            gvc.glitter.share.addComponent(data);
+                        }
                     })}">添加觸發事件</a>
                     `;
                 }

@@ -254,7 +254,7 @@ ${EditorElem.arrayItem({
         return tabIndex.map((dd, index) => {
             return `<div class="tab-pane ${(index === 0) ? `show active` : `fade`}" id="${dd.index}" role="tabpanel" aria-labelledby="profile-tab">
 ${dd.html}</div>`
-        }).join('')
+        }).join('') 
     })()}
 </div>
     `

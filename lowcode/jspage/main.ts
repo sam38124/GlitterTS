@@ -257,6 +257,7 @@ init((gvc, glitter, gBundle) => {
         gvc.notifyDataChange(createID)
     }
     glitter.share.inspect = glitter.share.inspect ?? true
+    glitter.share.editorViewModel=viewModel
     return {
         onCreateView: () => {
             return gvc.bindView({
