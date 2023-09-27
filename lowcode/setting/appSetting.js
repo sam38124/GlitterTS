@@ -426,20 +426,6 @@ export function appCreate(gvc, viewModel, id) {
     }
     const tabIndex = [
         {
-            title: 'WEB',
-            key: 'WEB',
-            html: gvc.bindView(() => {
-                const id = glitter.getUUID();
-                return {
-                    bind: id,
-                    view: () => {
-                        return ``;
-                    },
-                    divCreate: {}
-                };
-            })
-        },
-        {
             title: 'IOS',
             key: 'IOS',
             html: getHtml('IOS')
@@ -450,7 +436,7 @@ export function appCreate(gvc, viewModel, id) {
         }
     ];
     let vm = {
-        select: `WEB`,
+        select: `IOS`,
     };
     return {
         saveEvent: (() => {

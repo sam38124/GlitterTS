@@ -91,6 +91,7 @@ export class PageEditor {
                                                             ].map((dd: { key: string, label: string }) => {
                                                                 return `<div class="add_item_button ${(dd.key === vm.select) ? `add_item_button_active` : ``}" onclick="${
                                                                         gvc.event((e, event) => {
+                                                                            viewModel.selectItem=undefined;
                                                                             (vm as any).select = dd.key
                                                                             gvc.notifyDataChange(id)
                                                                         })

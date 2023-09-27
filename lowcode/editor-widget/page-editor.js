@@ -734,6 +734,7 @@ PageEditor.openDialog = {
                             }
                         ].map((dd) => {
                             return `<div class="add_item_button ${(dd.key === vm.select) ? `add_item_button_active` : ``}" onclick="${gvc.event((e, event) => {
+                                viewModel.selectItem = undefined;
                                 vm.select = dd.key;
                                 gvc.notifyDataChange(id);
                             })}">${dd.label}</div>`;

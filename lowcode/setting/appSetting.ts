@@ -430,20 +430,20 @@ export function appCreate(gvc: GVC, viewModel: any, id: string) {
     }
 
     const tabIndex = [
-        {
-            title: 'WEB',
-            key: 'WEB',
-            html: gvc.bindView(()=>{
-                const id=glitter.getUUID()
-                return {
-                    bind:id,
-                    view:()=>{
-                        return ``
-                    },
-                    divCreate:{}
-                }
-            })
-        },
+        // {
+        //     title: 'WEB',
+        //     key: 'WEB',
+        //     html: gvc.bindView(()=>{
+        //         const id=glitter.getUUID()
+        //         return {
+        //             bind:id,
+        //             view:()=>{
+        //                 return ``
+        //             },
+        //             divCreate:{}
+        //         }
+        //     })
+        // },
         {
             title: 'IOS',
             key: 'IOS',
@@ -454,7 +454,7 @@ export function appCreate(gvc: GVC, viewModel: any, id: string) {
             html: getHtml('Android')
         }]
     let vm = {
-        select: `WEB`,
+        select: `IOS`,
     }
     return {
         saveEvent: (() => {

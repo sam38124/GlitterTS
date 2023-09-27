@@ -14,3 +14,22 @@
       },
     ],
   });</script>
+<span class="position-absolute end-0 position-relative " style="z-index: -1;top:-50%;transform: translateY(50%);"></span>
+<script>
+  setTimeout(()=>{
+    const rotatingObject = document.getElementById('rotatingObject');
+    let rotationAngle = 0; // 初始旋转角度
+
+    function rotateObject() {
+      // 递增旋转角度
+      rotationAngle += 5;
+
+      // 应用旋转样式
+      rotatingObject.style.transform = `rotate(${rotationAngle}deg)`;
+    }
+
+    // 每100毫秒执行一次rotateObject函数，实现定时旋转
+    const rotationInterval = setInterval(rotateObject, 100);
+  },2000)
+
+</script>
