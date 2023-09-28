@@ -2,6 +2,9 @@ import {GVC} from "../glitterBundle/GVController.js";
 import Add_item_dia from "../editor/add_item_dia.js";
 import {Swal} from "../modules/sweetAlert.js";
 import {Main_editor} from "../jspage/main_editor.js";
+import {EditorElem} from "../glitterBundle/plugins/editor-elem.js";
+import {Dialog} from "../dialog/dialog-mobile.js";
+import {ShareDialog} from "../glitterBundle/dialog/ShareDialog.js";
 
 
 const html = String.raw
@@ -16,7 +19,7 @@ export class PageEditor {
                 let searchInterval: any = 0
                 const id = gvc.glitter.getUUID()
                 const vm: {
-                    select: 'style' | 'script'
+                    select: 'style' | 'script' | 'value'
                 } = {
                     select: "style"
                 }
@@ -28,7 +31,16 @@ export class PageEditor {
                             <div class="flex-fill"></div>
                             <div class="hoverBtn p-2 me-2" style="color:black;font-size:20px;"
                                  onclick="${gvc.event(() => {
-                                     gvc.closeDialog()
+                                    new ShareDialog(gvc.glitter).checkYesOrNot({
+                                        text:'是否儲存更改內容?',
+                                        callback:(result)=>{
+                                            if(result){
+                                                gvc.glitter.htmlGenerate.saveEvent()
+                                            }
+                                            gvc.closeDialog()
+                                        }
+                                    })
+                                   
                                  })}"
                             ><i class="fa-sharp fa-regular fa-circle-xmark"></i>
                             </div>
@@ -71,6 +83,14 @@ export class PageEditor {
                                                         gvc.notifyDataChange([contentVM.leftID, contentVM.rightID])
                                                     })
                                                     break
+                                                case "value":
+                                                    PageEditor.valueRender(gvc).then((response) => {
+                                                        contentVM.loading = false
+                                                        contentVM.leftBar = response.left
+                                                        contentVM.rightBar = response.right
+                                                        gvc.notifyDataChange([contentVM.leftID, contentVM.rightID])
+                                                    })
+                                                    break
                                                 default:
                                                     break
                                             }
@@ -82,11 +102,15 @@ export class PageEditor {
                                                             ${[
                                                                 {
                                                                     key: 'style',
-                                                                    label: "STYLE / 設計區塊"
+                                                                    label: "STYLE"
                                                                 }
                                                                 , {
                                                                     key: 'script',
-                                                                    label: "SCRIPT / 觸發事件"
+                                                                    label: "SCRIPT"
+                                                                },
+                                                                {
+                                                                    key: 'value',
+                                                                    label: "VALUE"
                                                                 }
                                                             ].map((dd: { key: string, label: string }) => {
                                                                 return `<div class="add_item_button ${(dd.key === vm.select) ? `add_item_button_active` : ``}" onclick="${
@@ -147,7 +171,9 @@ export class PageEditor {
         this.editorID=editorID
     }
 
-    public renderLineItem(array: any, child: boolean, original: any) {
+    public renderLineItem(array: any, child: boolean, original: any,option:{
+        addComponentView?:(gvc: GVC, callback?: (data: any) => void)=>string
+    }={}) {
         const gvc = this.gvc
         console.log(`gvc--`, gvc)
         const glitter = gvc.glitter
@@ -300,7 +326,28 @@ export class PageEditor {
                                                 event.stopPropagation()
                                                 event.preventDefault()
                                             })}">
-                                                                                <div class="d-flex align-items-center justify-content-center w-100 h-100"
+                                                                                ${(option.addComponentView) ? `
+                                                                                    <div class=""
+                                     style="cursor:pointer;gap:5px;"
+                                     data-bs-toggle="dropdown"
+                                     aria-haspopup="true"
+                                     aria-expanded="false">
+                                    <i class="fa-regular fa-circle-plus d-flex align-items-center justify-content-center subBt "></i>
+                                </div>
+                                                                                  <div class="dropdown-menu mx-1 position-fixed pb-0 border "
+                                     style="z-index:999999;"
+                                     onclick="${gvc.event((e, event) => {
+                                                event.preventDefault()
+                                                event.stopPropagation()
+
+                                            })}">
+                                    ${option.addComponentView(gvc,(response)=>{
+                                                dd.data.setting.push(response)
+                                                dd.toggle=true
+                                                gvc.notifyDataChange(parId)
+                                            })}
+                                </div>
+                                                                                `: ` <div class="d-flex align-items-center justify-content-center w-100 h-100"
                                                                                    onclick="${gvc.event(() => {
                                                 glitter.innerDialog((gvc: GVC) => {
                                                     viewModel.selectContainer = dd.data.setting
@@ -308,7 +355,8 @@ export class PageEditor {
                                                 }, 'Add_item_dia')
                                             })}">
                                                                                     <i class="fa-regular fa-circle-plus d-flex align-items-center justify-content-center subBt"></i>
-                                                                                </div>
+                                                                                </div>`}
+                                                                               
                                                                             </l1>` : ``}
                                             <div class="subBt" onclick="${gvc.event((e, event) => {
                                                 viewModel.selectContainer = array
@@ -404,7 +452,7 @@ export class PageEditor {
                                         return `<l1 class="${(dd.toggle || (checkChildSelect(dd.data.setting))) ? `` : `d-none`}" style="padding-left:20px;">${this.renderLineItem(dd.data.setting.map((dd: any, index: number) => {
                                             dd.index = index
                                             return dd
-                                        }), true, dd.data.setting)}</l1>`
+                                        }), true, dd.data.setting,option)}</l1>`
                                     }
                                 } else {
                                     return ``
@@ -600,6 +648,166 @@ export class PageEditor {
                                 <div class="alert alert-info mt-3 mx-n3 p-2 text-start" style="white-space: normal;font-size: 15px;font-weight: 500;">
                                     <p class="m-0">．全域資源在所有頁面皆會加載。</p>
                                     <p class="pt-1 m-0">．頁面資源僅會於本當前頁面中進行加載。</p>
+                                </div>
+                                </h3>
+                            </div>
+                        `
+                            }
+
+
+                        },
+                        divCreate: () => {
+                            return {
+                                class: ` h-100 p-2 d-flex flex-column`, style: `width:350px;`
+                            }
+                        },
+                        onCreate: () => {
+                        }
+                    }
+                })
+            })
+        })
+    }
+
+    public static valueRender(gvc: GVC) {
+        const html = String.raw
+        const glitter = gvc.glitter
+        const viewModel = gvc.glitter.share.editorViewModel
+        const docID=glitter.getUUID()
+        const vid=glitter.getUUID()
+        viewModel.globalValue = viewModel.globalValue ?? []
+        return new Promise<{ left: string, right: string }>((resolve, reject) => {
+            resolve({
+                left: gvc.bindView(()=>{
+                    return {
+                        bind:vid,
+                        view:()=>{
+                            return [
+                                html`
+                        <div class="d-flex   px-2   hi fw-bold d-flex align-items-center border-bottom"
+                             style="font-size:14px;">共用參數管理
+                            <div class="flex-fill"></div>
+                            <l1 class="btn-group dropend" onclick="${gvc.event(() => {
+                                    viewModel.selectContainer = viewModel.globalStyle
+                                })}">
+                                <div class="editor_item   px-2 me-0 d-none" style="cursor:pointer; "
+                                     onclick="${gvc.event(() => {
+                                    viewModel.selectContainer = viewModel.globalValue
+                                    glitter.share.pastEvent()
+                                })}"
+                                >
+                                    <i class="fa-duotone fa-paste"></i>
+                                </div>
+                                <div class="editor_item   px-2 ms-0 me-n1"
+                                     style="cursor:pointer;gap:5px;"
+                                     data-bs-toggle="dropdown"
+                                     aria-haspopup="true"
+                                     aria-expanded="false">
+                                    <i class="fa-regular fa-circle-plus "></i>
+                                </div>
+                                <div class="dropdown-menu mx-1 position-fixed pb-0 border "
+                                     style="z-index:999999;"
+                                     onclick="${gvc.event((e, event) => {
+                                    event.preventDefault()
+                                    event.stopPropagation()
+
+                                })}">
+                                    ${Add_item_dia.add_content_folder(gvc,(response)=>{
+                                    viewModel.globalValue.push(response)
+                                    gvc.notifyDataChange(vid)
+                                })}
+                                </div>
+                            </l1>
+                        </div>`,
+                                new PageEditor(gvc, vid,docID).renderLineItem(viewModel.globalValue.map((dd: any, index: number) => {
+                                    dd.index = index
+                                    return dd
+                                }), false, viewModel.globalValue,{addComponentView:Add_item_dia.add_content_folder})
+                            ].join('')
+                        },
+                        divCreate:{}
+                    }
+                }),
+                right: gvc.bindView(()=>{
+
+                    return {
+                        bind: docID,
+                        view: () => {
+                            if(viewModel.selectItem){
+                                return html`
+                            <div class="d-flex mx-n2 mt-n2 px-2 hi fw-bold d-flex align-items-center border-bottom border-top py-2 bgf6"
+                                 style="color:#151515;font-size:16px;gap:0px;height:48px;">
+                                ${viewModel.selectItem.label}
+                            </div>
+                           ${gvc.bindView(() => {
+                                    return {
+                                        bind: `htmlGenerate`,
+                                        view: () => {
+                                            return EditorElem.editeInput({
+                                                gvc:gvc,
+                                                title:`${((viewModel.selectItem.type==='container') ? `分類`:`參數`)}名稱`,
+                                                default:viewModel.selectItem.label??"",
+                                                placeHolder:`請輸入${((viewModel.selectItem.type==='container') ? `分類`:`參數`)}名稱`,
+                                                callback:(text)=>{
+                                                    viewModel.selectItem.label=text
+                                                    gvc.notifyDataChange([vid,docID])
+                                                }
+                                            })+((viewModel.selectItem.type==='container') ? ``:EditorElem.editeText({
+                                                gvc:gvc,
+                                                title:`參數內容`,
+                                                default:viewModel.selectItem.data.value ?? "",
+                                                placeHolder:'請輸入參數內容',
+                                                callback:(text)=>{
+                                                    viewModel.selectItem.data.value=text
+                                                }
+                                            }))
+                                        },
+                                        divCreate: {
+                                            class: `p-2`,style:`overflow-y:auto;max-height:calc(100vh - 270px);`
+                                        },
+                                        onCreate: () => {
+                                            setTimeout(() => {
+                                                $('#jumpToNav').scrollTop(parseInt(glitter.getCookieByName('jumpToNavScroll'), 10) ?? 0)
+                                            }, 1000)
+                                        }
+                                    };
+                                })}
+                            <div class="flex-fill"></div>
+                            <div class=" d-flex border-top align-items-center mb-n1 py-2 pt-2 mx-n2 pe-3 bgf6"
+                                 style="height:50px;">
+                                <div class="flex-fill"></div>
+                                <button class="btn btn-outline-secondary-c " style="height: 40px;width: 100px;"
+                                        onclick="${gvc.event(() => {
+                                    function checkValue(check:any){
+                                        let data:any=[]
+                                        check.map((dd:any)=>{
+                                            if(dd!==viewModel.selectItem){
+                                                data.push(dd)
+                                            }else if(dd.type==='container'){
+                                               dd.data.setting=checkValue(dd.data.setting ?? [])
+                                            }
+                                        })
+                                        return data
+                                    }
+                                    viewModel.globalValue=checkValue(viewModel.globalValue)
+                                    viewModel.selectItem=undefined
+                                    gvc.notifyDataChange([vid,docID])
+                                })}">
+                                    <i class="fa-light fa-circle-minus me-2"></i>移除參數
+                                </button>
+                            </div>
+                        `
+                            }else{
+                                return html`
+                            <div class="d-flex mx-n2 mt-n2 px-2 hi fw-bold d-flex align-items-center border-bottom border-top py-2 bgf6"
+                                 style="color:#151515;font-size:16px;gap:0px;height:48px;">
+                                說明描述
+                            </div>
+                            <div class="d-flex flex-column w-100 align-items-center justify-content-center" style="height:calc(100% - 48px);">
+                                <lottie-player src="lottie/animation_data.json"    class="mx-auto my-n4" speed="1"   style="max-width: 100%;width: 250px;height:300px;"  loop  autoplay></lottie-player>
+                                <h3 class=" text-center px-4" style="font-size:18px;">透過設定共用參數，來決定頁面的統一內容。
+                                <div class="alert alert-info mt-3 mx-n3 p-2 text-start" style="white-space: normal;font-size: 15px;font-weight: 500;">
+                                    <p class="m-0">．使用  @{{value}}  來嵌入參數。</p>
                                 </div>
                                 </h3>
                             </div>

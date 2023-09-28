@@ -91,6 +91,9 @@ export const component = Plugin.createComponent(import.meta.url, (glitter, editM
                                             }
                                             else {
                                                 data = d2.response.result[0];
+                                                data.config.map((dd) => {
+                                                    glitter.htmlGenerate.renameWidgetID(dd);
+                                                });
                                                 let createOption = (_a = (htmlGenerate !== null && htmlGenerate !== void 0 ? htmlGenerate : {}).createOption) !== null && _a !== void 0 ? _a : {};
                                                 target.outerHTML = new glitter.htmlGenerate(data.config, [], subData).render(gvc, undefined, createOption !== null && createOption !== void 0 ? createOption : {});
                                             }

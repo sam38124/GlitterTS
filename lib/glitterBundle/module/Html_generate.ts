@@ -50,7 +50,7 @@ export class HtmlGenerate {
 
     public render: (gvc: GVC, option?: { class: string; style: string; divCreate?: boolean, jsFinish?: () => void, containerID?: string }, createOption?: any) => string;
     public exportJson: (setting: HtmlJson[]) => any;
-    public editor: (gvc: GVC, option?: { return_: boolean; refreshAll: () => void; setting?: any[]; deleteEvent?: () => void }) => string;
+    public editor: (gvc: GVC, option?: { return_: boolean; refreshAll: () => void; setting?: any[]; deleteEvent?: () => void,hideInfo?:boolean }) => string;
     public static saveEvent = () => {
         alert('save');
     };
@@ -601,6 +601,7 @@ ${obj.gvc.bindView({
                 setting: setting,
                 deleteEvent: () => {
                 },
+                hideInfo:false
             }
         ) => {
             var loading = true;
@@ -760,7 +761,7 @@ ${gvc.bindView(() => {
                                                 }
                                                 try {
                                                     return gvc.map([
-                                                        `<div class="alert-warning alert">
+                                                        `<div class="alert-warning alert ${(option.hideInfo) ? `d-none`:``}">
 <h3 class="text-dark  m-1" style="font-size: 16px;">模塊路徑</h3>
 <h3 class="text-primary alert-primary  m-1 fw-bold rounded p2-" style="font-size: 16px;">${dd.js}</h3>
 <h3 class="text-dark  m-1 mt-2" style="font-size: 16px;">函式路徑</h3>

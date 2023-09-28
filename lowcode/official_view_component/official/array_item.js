@@ -142,7 +142,7 @@ export const array_item = Plugin.createComponent(import.meta.url, (glitter, edit
                                 if (views) {
                                     return views;
                                 }
-                                return `<span>loading</span>`;
+                                return `<span>loading...</span>`;
                             },
                             onCreate: () => {
                             },

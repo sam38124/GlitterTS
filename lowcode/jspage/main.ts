@@ -23,6 +23,7 @@ init((gvc, glitter, gBundle) => {
         pluginList: { name: string, src: { staging: string, official: string, open: boolean }, route: string }[],
         initialStyle: { name: string, src: { src: string }, route: string }[],
         initialStyleSheet: { name: string, src: { src: string }, route: string }[],
+        globalValue: any
         initialCode: any,
         initialList: any,
         homePage: string,
@@ -42,6 +43,7 @@ init((gvc, glitter, gBundle) => {
         loading: true,
         selectItem: undefined,
         initialStyle: [],
+        globalValue: [],
         initialStyleSheet: [],
         pluginList: [],
         initialJS: [],
@@ -115,7 +117,7 @@ init((gvc, glitter, gBundle) => {
                         viewModel.initialCode = data.response.data.initialCode ?? "";
                         viewModel.homePage = data.response.data.homePage ?? ""
                         viewModel.backendPlugins = data.response.data.backendPlugins ?? []
-
+                        viewModel.globalValue = data.response.data.globalValue ?? []
                         async function load() {
                             for (const a of [{
                                 src: {
@@ -135,9 +137,7 @@ init((gvc, glitter, gBundle) => {
                             }
                             resolve(true);
                         }
-
                         await load()
-
                     } else {
                         resolve(false);
                     }
@@ -200,6 +200,7 @@ init((gvc, glitter, gBundle) => {
                         viewModel.appConfig.homePage = viewModel.homePage
                         viewModel.appConfig.globalStyle = viewModel.globalStyle
                         viewModel.appConfig.globalScript = viewModel.globalScript
+                        viewModel.appConfig.globalValue = viewModel.globalValue
                         const api = await ApiPageConfig.setPlugin(gBundle.appName, viewModel.appConfig)
                         resolve(api.result)
                     });
@@ -257,7 +258,7 @@ init((gvc, glitter, gBundle) => {
         gvc.notifyDataChange(createID)
     }
     glitter.share.inspect = glitter.share.inspect ?? true
-    glitter.share.editorViewModel=viewModel
+    glitter.share.editorViewModel = viewModel
     return {
         onCreateView: () => {
             return gvc.bindView({
@@ -343,7 +344,8 @@ onclick="${gvc.event(() => {
                     $("#jumpToNav").scroll(function () {
                         glitter.setCookie("jumpToNavScroll", $(`#jumpToNav`).scrollTop())
                     });
-                    function scrollToItem(element:any){
+
+                    function scrollToItem(element: any) {
                         if (element) {
                             // 获取元素的位置信息
                             var elementRect = element.getBoundingClientRect();
@@ -351,10 +353,10 @@ onclick="${gvc.event(() => {
                             var elementHeight = elementRect.height;
 
                             // 获取窗口的高度
-                            var windowHeight =  document.querySelector('.scrollbar-hover')!.scrollHeight;
+                            var windowHeight = document.querySelector('.scrollbar-hover')!.scrollHeight;
                             // 计算滚动位置，以使元素的中心位于窗口的垂直中心
                             let scrollTo = elementTop - (windowHeight - elementHeight) / 2;
-                            console.log(`ewef`,scrollTo)
+                            console.log(`ewef`, scrollTo)
                             // 滚动页面
                             document.querySelector('.scrollbar-hover')!.scrollTo({
                                 top: scrollTo,
@@ -363,10 +365,11 @@ onclick="${gvc.event(() => {
                             });
                         }
                     }
-                    setTimeout(()=>{
+
+                    setTimeout(() => {
                         scrollToItem(document.querySelector(`.editor_item.active`)!)
 
-                    },200)
+                    }, 200)
 
                 }
             });

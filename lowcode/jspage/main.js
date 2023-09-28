@@ -22,6 +22,7 @@ init((gvc, glitter, gBundle) => {
         loading: true,
         selectItem: undefined,
         initialStyle: [],
+        globalValue: [],
         initialStyleSheet: [],
         pluginList: [],
         initialJS: [],
@@ -82,7 +83,7 @@ init((gvc, glitter, gBundle) => {
             }),
             (async () => {
                 return await new Promise(async (resolve) => {
-                    var _a, _b, _c, _d, _e;
+                    var _a, _b, _c, _d, _e, _f;
                     const data = glitter.share.appConfigresponse;
                     if (data.result) {
                         viewModel.appConfig = data.response.data;
@@ -96,6 +97,7 @@ init((gvc, glitter, gBundle) => {
                         viewModel.initialCode = (_c = data.response.data.initialCode) !== null && _c !== void 0 ? _c : "";
                         viewModel.homePage = (_d = data.response.data.homePage) !== null && _d !== void 0 ? _d : "";
                         viewModel.backendPlugins = (_e = data.response.data.backendPlugins) !== null && _e !== void 0 ? _e : [];
+                        viewModel.globalValue = (_f = data.response.data.globalValue) !== null && _f !== void 0 ? _f : [];
                         async function load() {
                             for (const a of [{
                                     src: {
@@ -174,6 +176,7 @@ init((gvc, glitter, gBundle) => {
                         viewModel.appConfig.homePage = viewModel.homePage;
                         viewModel.appConfig.globalStyle = viewModel.globalStyle;
                         viewModel.appConfig.globalScript = viewModel.globalScript;
+                        viewModel.appConfig.globalValue = viewModel.globalValue;
                         const api = await ApiPageConfig.setPlugin(gBundle.appName, viewModel.appConfig);
                         resolve(api.result);
                     });

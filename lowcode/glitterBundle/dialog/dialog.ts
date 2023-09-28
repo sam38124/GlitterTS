@@ -49,14 +49,14 @@ init((gvc, glitter, gBundle) => {
 <div class="vw-100 vh-100 position-fixed top-0 left-0 d-flex align-items-center justify-content-center"  style="background-color: rgba(0,0,0,0.5);z-index: 10000;">
 <div style="width: 250px;background-color: white;border-radius: 5px;display: flex;flex-direction: column;align-items: center;">
         <h3 style="height:40px;font-size:20px;color: black;margin-top: 5px;margin-bottom: 5px;border-bottom: whitesmoke solid 1px;width: 100%;display: flex;align-items: center;justify-content: center;flex-direction: column;">再次確認</h3>
-<h3 class="text-danger fw-bold mt-2" style="font-size: 16px;">${gBundle.title}</h3>
-<div style="display: flex;width: 100%;justify-content: space-around;">
-<div style="height:35px;margin-bottom:15px;margin-top:15px;border-radius: 5px;border:1px solid gray;color: black;width: calc(50% - 15px);display: flex;align-items: center;
-justify-content: center;" onclick="${gvc.event(() => {
+<h3 class="text-danger fw-bold my-2" style="font-size: 16px;">${gBundle.title}</h3>
+<div class="mb-2 border-top pt-2 mt-2" style="display: flex;width: 100%;justify-content: space-around;">
+<div style="height:35px;border-radius: 5px;border:1px solid gray;color: black;width: calc(50% - 15px);display: flex;align-items: center;
+justify-content: center;cursor: pointer;" onclick="${gvc.event(() => {
                         gBundle.callback(false)
                     })}">取消</div>
-<div style="height:35px;margin-bottom:15px;margin-top:15px;border-radius: 5px;background-color: dodgerblue;color: white;width: calc(50% - 15px);display: flex;align-items: center;
-justify-content: center;" onclick="${gvc.event(() => {
+<div style="height:35px;border-radius: 5px;background-color: dodgerblue;color: white;width: calc(50% - 15px);display: flex;align-items: center;
+justify-content: center;cursor: pointer;" onclick="${gvc.event(() => {
                         gBundle.callback(true)
                     })}">確定</div>
 </div>

@@ -1064,6 +1064,48 @@ class Add_item_dia {
         })
     }
 
+    public static add_content_folder(gvc: GVC, callback?: (data: any) => void
+    ) {
+        return gvc.bindView(() => {
+            const id = gvc.glitter.getUUID()
+            return {
+                bind: id,
+                view: () => {
+                    return html`<a class="dropdown-item" style="cursor:pointer;" onclick="${gvc.event(() => {
+                        const data = {
+                            id:gvc.glitter.getUUID(),
+                            label:"分類名稱",
+                            data:{
+                                setting:[]
+                            },
+                            type:'container'
+                        }
+                        if (callback) {
+                            callback(data)
+                        } else {
+                            gvc.glitter.share.addComponent(data);
+                        }
+
+                    })}">添加分類</a>
+                    <a class="dropdown-item" style="cursor:pointer;" onclick="${gvc.event(() => {
+                        const data = {
+                            id:gvc.glitter.getUUID(),
+                            label:"標籤名稱",
+                            data:{
+                                value:""
+                            },
+                            type:'text',
+                        }
+                        if (callback) {
+                            callback(data)
+                        } else {
+                            gvc.glitter.share.addComponent(data);
+                        }
+                    })}">添加標籤</a>`
+                }
+            }
+        })
+    }
     public static add_style(gvc: GVC, callback?: (data: any) => void
     ) {
         return gvc.bindView(() => {
