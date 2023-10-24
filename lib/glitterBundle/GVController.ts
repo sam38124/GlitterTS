@@ -78,7 +78,7 @@ export class GVC {
                 }
             };
 
-            function convID() {
+            const convID=function () {
                 if (typeof id === 'object') {
                     id.map(function (id: string) {
                         refresh(id)

@@ -317,6 +317,7 @@ function uploadImage(obj) {
                             <div class="d-flex align-items-center mb-3">
                                 <input class="flex-fill form-control "  placeholder="請輸入圖片連結" value="${obj.def}" onchange="${obj.gvc.event((e) => {
                     obj.callback(e.value);
+                    obj.def = e.value;
                     obj.gvc.notifyDataChange(id);
                 })}">
                                 <div class="" style="width: 1px;height: 25px;background-"></div>

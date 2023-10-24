@@ -18,7 +18,9 @@ router.post('/', async (req, resp) => {
 router.get('/', async (req, resp) => {
     try {
         const app = new app_1.App(req.body.token);
-        return response_1.default.succ(resp, { result: await app.getAPP() });
+        return response_1.default.succ(resp, { result: await app.getAPP({
+                app_name: req.query.app_name
+            }) });
     }
     catch (err) {
         return response_1.default.fail(resp, err);
@@ -65,6 +67,19 @@ router.get('/official/plugin', async (req, resp) => {
             data: (await app.getOfficialPlugin()),
             result: true
         });
+    }
+    catch (err) {
+        return response_1.default.fail(resp, err);
+    }
+});
+router.put('/domain', async (req, resp) => {
+    try {
+        const app = new app_1.App(req.body.token);
+        (await app.setDomain({
+            appName: req.body.app_name,
+            domain: req.body.domain
+        }));
+        return response_1.default.succ(resp, { result: true });
     }
     catch (err) {
         return response_1.default.fail(resp, err);

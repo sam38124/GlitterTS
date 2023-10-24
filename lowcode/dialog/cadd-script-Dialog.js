@@ -1,3 +1,12 @@
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 import { init } from '../glitterBundle/GVController.js';
 import { ApiPageConfig } from "../api/pageConfig.js";
 import { BaseApi } from "../api/base.js";
@@ -105,14 +114,16 @@ function cAdd(gvc) {
         loading: true,
         pluginList: []
     };
-    async function loading() {
-        viewModel.loading = true;
-        const data = await ApiPageConfig.getPlugin(gvc.getBundle().appName);
-        if (data.result) {
-            viewModel.loading = false;
-            viewModel.pluginList = data.response.data.pagePlugin;
-            gvc.notifyDataChange([tabID, docID]);
-        }
+    function loading() {
+        return __awaiter(this, void 0, void 0, function* () {
+            viewModel.loading = true;
+            const data = yield ApiPageConfig.getPlugin(gvc.getBundle().appName);
+            if (data.result) {
+                viewModel.loading = false;
+                viewModel.pluginList = data.response.data.pagePlugin;
+                gvc.notifyDataChange([tabID, docID]);
+            }
+        });
     }
     loading();
     const glitter = gvc.glitter;
@@ -409,300 +420,304 @@ function traverseHTML(element) {
     result.innerText = element.innerText.replace(/\n/, '').replace(/^\s+|\s+$/g, "");
     return result;
 }
-async function saveHTML(json, relativePath, gvc, elem) {
+function saveHTML(json, relativePath, gvc, elem) {
     var _a;
-    const dialog = new ShareDialog(gvc.glitter);
-    dialog.dataLoading({ visible: true, text: "解析資源中" });
-    const glitter = gvc.glitter;
-    let addSheet = (elem === null || elem === void 0 ? void 0 : elem.find((dd) => {
-        return (dd.elem === 'all' && dd.check) || (dd.elem === 'style' && dd.check);
-    })) || (elem === undefined);
-    let addHtml = (elem === null || elem === void 0 ? void 0 : elem.find((dd) => {
-        return (dd.elem === 'all' && dd.check) || (dd.elem === 'html' && dd.check);
-    })) || (elem === undefined);
-    let addScript = (elem === null || elem === void 0 ? void 0 : elem.find((dd) => {
-        return (dd.elem === 'all' && dd.check) || (dd.elem === 'script' && dd.check);
-    })) || (elem === undefined);
-    const styleSheet = {
-        "id": glitter.getUUID(),
-        "js": "https://sam38124.github.io/One-page-plugin/src/official.js",
-        "css": { "class": {}, "style": {} },
-        "data": {
-            "elem": "glitterStyle",
-            "dataFrom": "static",
-            "atrExpand": { "expand": false },
-            "elemExpand": { "expand": true },
-            "innerEvenet": {},
-            "setting": []
-        },
-        "type": "container",
-        "label": "所有設計樣式",
-    };
-    const jsLink = {
-        "id": glitter.getUUID(),
-        "js": "https://sam38124.github.io/One-page-plugin/src/official.js",
-        "css": { "class": {}, "style": {} },
-        "data": {
-            "elem": "glitterJS",
-            "dataFrom": "static",
-            "atrExpand": { "expand": false },
-            "elemExpand": { "expand": true },
-            "innerEvenet": {},
-            "setting": []
-        },
-        "type": "container",
-        "label": "所有JS資源",
-    };
-    async function convert(obj) {
-        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k;
-        obj.children = (_a = obj.children) !== null && _a !== void 0 ? _a : [];
-        obj.attributes = (_b = obj.attributes) !== null && _b !== void 0 ? _b : {};
-        const originalHref = obj.attributes.href;
-        const originalSrc = obj.attributes.src;
-        obj.innerText = (_c = obj.innerText) !== null && _c !== void 0 ? _c : "";
-        const a = await new Promise((resolve, reject) => {
-            try {
-                if (obj.tag.toLowerCase() === 'link' && obj.attributes.rel === 'stylesheet' && addSheet) {
-                    const src = obj.attributes.href;
-                    const url = new URL(src, relativePath);
-                    $.ajax({
-                        url: url.href,
-                        type: 'get',
-                        crossDomain: true,
-                        processData: false,
-                        success: (data2) => {
-                            const saasConfig = window.saasConfig;
-                            saasConfig.api.uploadFile(glitter.getUUID() + ".css").then((data) => {
-                                const data1 = data.response;
-                                $.ajax({
-                                    url: data1.url,
-                                    type: 'put',
-                                    data: data2,
-                                    headers: {
-                                        "Content-Type": data1.type
-                                    },
-                                    processData: false,
-                                    crossDomain: true,
-                                    success: () => {
-                                        obj.attributes.href = data1.fullUrl;
-                                        resolve(true);
-                                    },
-                                    error: () => {
-                                        resolve(true);
-                                    },
-                                });
-                            });
-                        },
-                        error: (err) => {
-                            resolve(true);
-                        },
-                    });
-                }
-                else if (obj.tag.toLowerCase() === 'script' && obj.attributes.src && addScript) {
-                    const src = obj.attributes.src;
-                    const url = new URL(src, relativePath);
-                    alert(url.href);
-                    $.ajax({
-                        url: url.href,
-                        processData: false,
-                        type: 'get',
-                        crossDomain: true,
-                        success: (data2) => {
-                            const saasConfig = window.saasConfig;
-                            saasConfig.api.uploadFile(glitter.getUUID() + ".js").then((data) => {
-                                const data1 = data.response;
-                                $.ajax({
-                                    url: data1.url,
-                                    type: 'put',
-                                    data: data2,
-                                    headers: {
-                                        "Content-Type": data1.type
-                                    },
-                                    processData: false,
-                                    crossDomain: true,
-                                    success: () => {
-                                        alert('data1.fullUrl');
-                                        obj.attributes.src = data1.fullUrl;
-                                        resolve(true);
-                                    },
-                                    error: (jqXHR, textStatus, errorThrown) => {
-                                        alert(errorThrown);
-                                        resolve(true);
-                                    },
-                                });
-                            });
-                        },
-                        error: (err) => {
-                            resolve(true);
-                            console.log(err);
-                        },
-                    });
-                }
-                else {
-                    resolve(true);
-                }
-            }
-            catch (e) {
-                resolve(true);
-            }
-        });
-        let setting = [];
-        if (obj.textIndex === 0 && (obj.innerText.replace(/ /g, '').replace(/\n/g, '').length > 0 && (((_d = obj.children) !== null && _d !== void 0 ? _d : []).length > 0))) {
-            setting.push(await convert({
-                tag: 'span',
-                innerText: obj.innerText
-            }));
-        }
-        if (obj.children.length > 0) {
-            obj.innerText = '';
-        }
-        for (const dd of ((_e = obj.children) !== null && _e !== void 0 ? _e : [])) {
-            const data = await convert(dd);
-            if (data.data.elem !== 'meta') {
-                if (data.data.elem === 'style' || (data.data.elem === 'link' && (obj.attributes.rel === 'stylesheet'))) {
-                    if ((data.data.elem === 'link' && (obj.attributes.rel === 'stylesheet'))) {
-                        data.data.note = "源代碼路徑:" + originalHref;
-                    }
-                    if (addSheet) {
-                        styleSheet.data.setting.push(data);
-                    }
-                }
-                else if (data.data.elem === 'script') {
-                    if ((obj.attributes.src)) {
-                        data.data.note = "源代碼路徑:" + originalSrc;
-                    }
-                    if (addScript) {
-                        jsLink.data.setting.push(data);
-                    }
-                }
-                else {
-                    if (addHtml) {
-                        setting.push(data);
-                    }
-                }
-            }
-        }
-        if (obj.textIndex > 0 && (obj.innerText.replace(/ /g, '').replace(/\n/g, '').length > 0 && (((_f = obj.children) !== null && _f !== void 0 ? _f : []).length > 0))) {
-            setting.push(await convert({
-                tag: 'span',
-                innerText: obj.innerText
-            }));
-        }
-        let x = {
+    return __awaiter(this, void 0, void 0, function* () {
+        const dialog = new ShareDialog(gvc.glitter);
+        dialog.dataLoading({ visible: true, text: "解析資源中" });
+        const glitter = gvc.glitter;
+        let addSheet = (elem === null || elem === void 0 ? void 0 : elem.find((dd) => {
+            return (dd.elem === 'all' && dd.check) || (dd.elem === 'style' && dd.check);
+        })) || (elem === undefined);
+        let addHtml = (elem === null || elem === void 0 ? void 0 : elem.find((dd) => {
+            return (dd.elem === 'all' && dd.check) || (dd.elem === 'html' && dd.check);
+        })) || (elem === undefined);
+        let addScript = (elem === null || elem === void 0 ? void 0 : elem.find((dd) => {
+            return (dd.elem === 'all' && dd.check) || (dd.elem === 'script' && dd.check);
+        })) || (elem === undefined);
+        const styleSheet = {
             "id": glitter.getUUID(),
             "js": "https://sam38124.github.io/One-page-plugin/src/official.js",
             "css": { "class": {}, "style": {} },
             "data": {
-                "class": (_g = obj.attributes.class) !== null && _g !== void 0 ? _g : "",
-                "style": ((_h = obj.attributes.style) !== null && _h !== void 0 ? _h : ""),
-                "attr": Object.keys(obj.attributes).filter((key) => {
-                    return key !== 'class' && key !== 'style' && key !== 'id';
-                }).map((dd) => {
-                    const of = obj.attributes[dd];
-                    return {
-                        "attr": dd,
-                        "type": "par",
-                        "value": of,
-                        "expand": false,
-                    };
-                }),
-                "elem": obj.tag.toLowerCase(),
-                "inner": (_j = obj.innerText) !== null && _j !== void 0 ? _j : "",
+                "elem": "glitterStyle",
                 "dataFrom": "static",
-                "atrExpand": { "expand": true },
+                "atrExpand": { "expand": false },
                 "elemExpand": { "expand": true },
                 "innerEvenet": {},
-                "setting": setting
+                "setting": []
             },
-            "type": (obj.children && obj.children.length > 0) ? "container" : "widget",
-            "label": (() => {
-                var _a;
-                if (obj.tag.toLowerCase() === 'link' && (obj.attributes.rel === 'stylesheet')) {
-                    return `style資源`;
-                }
-                const source = ['script', 'style'].indexOf(obj.tag.toLowerCase());
-                if (source >= 0) {
-                    return ['script資源', 'style資源'][source];
-                }
-                let lab = (_a = obj.innerText) !== null && _a !== void 0 ? _a : ((obj.type === 'container') ? `HTML容器` : `HTML元件`);
-                lab = lab.trim().replace(/&nbsp;/g, '');
-                if (lab.length > 10) {
-                    return lab.substring(0, 10);
-                }
-                else {
-                    if (lab.length === 0) {
-                        return ((obj.type === 'container') ? `HTML容器` : `HTML元件`);
-                    }
-                    else {
-                        return lab;
-                    }
-                }
-            })(),
-            "styleList": []
+            "type": "container",
+            "label": "所有設計樣式",
         };
-        if (x.data.style.length > 0) {
-            x.data.style += ";";
-        }
-        if (x.data.elem === 'img') {
-            x.data.inner = ((_k = x.data.attr.find((dd) => {
-                return dd.attr === 'src';
-            })) !== null && _k !== void 0 ? _k : { value: "" }).value;
-            x.data.attr = x.data.attr.filter((dd) => {
-                return dd.attr !== 'src';
+        const jsLink = {
+            "id": glitter.getUUID(),
+            "js": "https://sam38124.github.io/One-page-plugin/src/official.js",
+            "css": { "class": {}, "style": {} },
+            "data": {
+                "elem": "glitterJS",
+                "dataFrom": "static",
+                "atrExpand": { "expand": false },
+                "elemExpand": { "expand": true },
+                "innerEvenet": {},
+                "setting": []
+            },
+            "type": "container",
+            "label": "所有JS資源",
+        };
+        function convert(obj) {
+            var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k;
+            return __awaiter(this, void 0, void 0, function* () {
+                obj.children = (_a = obj.children) !== null && _a !== void 0 ? _a : [];
+                obj.attributes = (_b = obj.attributes) !== null && _b !== void 0 ? _b : {};
+                const originalHref = obj.attributes.href;
+                const originalSrc = obj.attributes.src;
+                obj.innerText = (_c = obj.innerText) !== null && _c !== void 0 ? _c : "";
+                const a = yield new Promise((resolve, reject) => {
+                    try {
+                        if (obj.tag.toLowerCase() === 'link' && obj.attributes.rel === 'stylesheet' && addSheet) {
+                            const src = obj.attributes.href;
+                            const url = new URL(src, relativePath);
+                            $.ajax({
+                                url: url.href,
+                                type: 'get',
+                                crossDomain: true,
+                                processData: false,
+                                success: (data2) => {
+                                    const saasConfig = window.saasConfig;
+                                    saasConfig.api.uploadFile(glitter.getUUID() + ".css").then((data) => {
+                                        const data1 = data.response;
+                                        $.ajax({
+                                            url: data1.url,
+                                            type: 'put',
+                                            data: data2,
+                                            headers: {
+                                                "Content-Type": data1.type
+                                            },
+                                            processData: false,
+                                            crossDomain: true,
+                                            success: () => {
+                                                obj.attributes.href = data1.fullUrl;
+                                                resolve(true);
+                                            },
+                                            error: () => {
+                                                resolve(true);
+                                            },
+                                        });
+                                    });
+                                },
+                                error: (err) => {
+                                    resolve(true);
+                                },
+                            });
+                        }
+                        else if (obj.tag.toLowerCase() === 'script' && obj.attributes.src && addScript) {
+                            const src = obj.attributes.src;
+                            const url = new URL(src, relativePath);
+                            alert(url.href);
+                            $.ajax({
+                                url: url.href,
+                                processData: false,
+                                type: 'get',
+                                crossDomain: true,
+                                success: (data2) => {
+                                    const saasConfig = window.saasConfig;
+                                    saasConfig.api.uploadFile(glitter.getUUID() + ".js").then((data) => {
+                                        const data1 = data.response;
+                                        $.ajax({
+                                            url: data1.url,
+                                            type: 'put',
+                                            data: data2,
+                                            headers: {
+                                                "Content-Type": data1.type
+                                            },
+                                            processData: false,
+                                            crossDomain: true,
+                                            success: () => {
+                                                alert('data1.fullUrl');
+                                                obj.attributes.src = data1.fullUrl;
+                                                resolve(true);
+                                            },
+                                            error: (jqXHR, textStatus, errorThrown) => {
+                                                alert(errorThrown);
+                                                resolve(true);
+                                            },
+                                        });
+                                    });
+                                },
+                                error: (err) => {
+                                    resolve(true);
+                                    console.log(err);
+                                },
+                            });
+                        }
+                        else {
+                            resolve(true);
+                        }
+                    }
+                    catch (e) {
+                        resolve(true);
+                    }
+                });
+                let setting = [];
+                if (obj.textIndex === 0 && (obj.innerText.replace(/ /g, '').replace(/\n/g, '').length > 0 && (((_d = obj.children) !== null && _d !== void 0 ? _d : []).length > 0))) {
+                    setting.push(yield convert({
+                        tag: 'span',
+                        innerText: obj.innerText
+                    }));
+                }
+                if (obj.children.length > 0) {
+                    obj.innerText = '';
+                }
+                for (const dd of ((_e = obj.children) !== null && _e !== void 0 ? _e : [])) {
+                    const data = yield convert(dd);
+                    if (data.data.elem !== 'meta') {
+                        if (data.data.elem === 'style' || (data.data.elem === 'link' && (obj.attributes.rel === 'stylesheet'))) {
+                            if ((data.data.elem === 'link' && (obj.attributes.rel === 'stylesheet'))) {
+                                data.data.note = "源代碼路徑:" + originalHref;
+                            }
+                            if (addSheet) {
+                                styleSheet.data.setting.push(data);
+                            }
+                        }
+                        else if (data.data.elem === 'script') {
+                            if ((obj.attributes.src)) {
+                                data.data.note = "源代碼路徑:" + originalSrc;
+                            }
+                            if (addScript) {
+                                jsLink.data.setting.push(data);
+                            }
+                        }
+                        else {
+                            if (addHtml) {
+                                setting.push(data);
+                            }
+                        }
+                    }
+                }
+                if (obj.textIndex > 0 && (obj.innerText.replace(/ /g, '').replace(/\n/g, '').length > 0 && (((_f = obj.children) !== null && _f !== void 0 ? _f : []).length > 0))) {
+                    setting.push(yield convert({
+                        tag: 'span',
+                        innerText: obj.innerText
+                    }));
+                }
+                let x = {
+                    "id": glitter.getUUID(),
+                    "js": "https://sam38124.github.io/One-page-plugin/src/official.js",
+                    "css": { "class": {}, "style": {} },
+                    "data": {
+                        "class": (_g = obj.attributes.class) !== null && _g !== void 0 ? _g : "",
+                        "style": ((_h = obj.attributes.style) !== null && _h !== void 0 ? _h : ""),
+                        "attr": Object.keys(obj.attributes).filter((key) => {
+                            return key !== 'class' && key !== 'style' && key !== 'id';
+                        }).map((dd) => {
+                            const of = obj.attributes[dd];
+                            return {
+                                "attr": dd,
+                                "type": "par",
+                                "value": of,
+                                "expand": false,
+                            };
+                        }),
+                        "elem": obj.tag.toLowerCase(),
+                        "inner": (_j = obj.innerText) !== null && _j !== void 0 ? _j : "",
+                        "dataFrom": "static",
+                        "atrExpand": { "expand": true },
+                        "elemExpand": { "expand": true },
+                        "innerEvenet": {},
+                        "setting": setting
+                    },
+                    "type": (obj.children && obj.children.length > 0) ? "container" : "widget",
+                    "label": (() => {
+                        var _a;
+                        if (obj.tag.toLowerCase() === 'link' && (obj.attributes.rel === 'stylesheet')) {
+                            return `style資源`;
+                        }
+                        const source = ['script', 'style'].indexOf(obj.tag.toLowerCase());
+                        if (source >= 0) {
+                            return ['script資源', 'style資源'][source];
+                        }
+                        let lab = (_a = obj.innerText) !== null && _a !== void 0 ? _a : ((obj.type === 'container') ? `HTML容器` : `HTML元件`);
+                        lab = lab.trim().replace(/&nbsp;/g, '');
+                        if (lab.length > 10) {
+                            return lab.substring(0, 10);
+                        }
+                        else {
+                            if (lab.length === 0) {
+                                return ((obj.type === 'container') ? `HTML容器` : `HTML元件`);
+                            }
+                            else {
+                                return lab;
+                            }
+                        }
+                    })(),
+                    "styleList": []
+                };
+                if (x.data.style.length > 0) {
+                    x.data.style += ";";
+                }
+                if (x.data.elem === 'img') {
+                    x.data.inner = ((_k = x.data.attr.find((dd) => {
+                        return dd.attr === 'src';
+                    })) !== null && _k !== void 0 ? _k : { value: "" }).value;
+                    x.data.attr = x.data.attr.filter((dd) => {
+                        return dd.attr !== 'src';
+                    });
+                }
+                if ((x.data.elem === 'html') || (x.data.elem === 'head')) {
+                    x.data.elem = 'div';
+                }
+                return new Promise((resolve, reject) => {
+                    resolve(x);
+                });
             });
         }
-        if ((x.data.elem === 'html') || (x.data.elem === 'head')) {
-            x.data.elem = 'div';
-        }
-        return new Promise((resolve, reject) => {
-            resolve(x);
-        });
-    }
-    let waitPush = [];
-    for (const dd of json.children) {
-        if ((dd.tag.toLowerCase() !== 'title')) {
-            dd.attributes = (_a = dd.attributes) !== null && _a !== void 0 ? _a : {};
-            const originalHref = dd.attributes.href;
-            const originalSrc = dd.attributes.src;
-            const obj = await convert(dd);
-            if (obj.data.elem !== 'meta' && !(((obj.data.elem === 'link') && (dd.attributes.rel !== 'stylesheet')))) {
-                if (obj.data.elem === 'style' || ((obj.data.elem === 'link') && (dd.attributes.rel === 'stylesheet'))) {
-                    if ((obj.data.elem === 'link' && (dd.attributes.rel === 'stylesheet'))) {
-                        obj.data.note = "源代碼路徑:" + originalHref;
+        let waitPush = [];
+        for (const dd of json.children) {
+            if ((dd.tag.toLowerCase() !== 'title')) {
+                dd.attributes = (_a = dd.attributes) !== null && _a !== void 0 ? _a : {};
+                const originalHref = dd.attributes.href;
+                const originalSrc = dd.attributes.src;
+                const obj = yield convert(dd);
+                if (obj.data.elem !== 'meta' && !(((obj.data.elem === 'link') && (dd.attributes.rel !== 'stylesheet')))) {
+                    if (obj.data.elem === 'style' || ((obj.data.elem === 'link') && (dd.attributes.rel === 'stylesheet'))) {
+                        if ((obj.data.elem === 'link' && (dd.attributes.rel === 'stylesheet'))) {
+                            obj.data.note = "源代碼路徑:" + originalHref;
+                        }
+                        if (addSheet) {
+                            styleSheet.data.setting.push(obj);
+                        }
                     }
-                    if (addSheet) {
-                        styleSheet.data.setting.push(obj);
+                    else if (obj.data.elem === 'script') {
+                        if (addScript) {
+                            obj.data.note = "源代碼路徑:" + originalSrc;
+                            jsLink.data.setting.push(obj);
+                        }
                     }
-                }
-                else if (obj.data.elem === 'script') {
-                    if (addScript) {
-                        obj.data.note = "源代碼路徑:" + originalSrc;
-                        jsLink.data.setting.push(obj);
-                    }
-                }
-                else {
-                    if (addHtml) {
-                        waitPush.push(obj);
+                    else {
+                        if (addHtml) {
+                            waitPush.push(obj);
+                        }
                     }
                 }
             }
         }
-    }
-    if (styleSheet.data.setting.length > 0) {
-        styleSheet.data.setting.map((dd) => {
-            gvc.getBundle().callback(dd);
+        if (styleSheet.data.setting.length > 0) {
+            styleSheet.data.setting.map((dd) => {
+                gvc.getBundle().callback(dd);
+            });
+        }
+        if (jsLink.data.setting.length > 0) {
+            gvc.getBundle().callback(jsLink);
+        }
+        waitPush.map((obj) => {
+            gvc.getBundle().callback(obj);
         });
-    }
-    if (jsLink.data.setting.length > 0) {
-        gvc.getBundle().callback(jsLink);
-    }
-    waitPush.map((obj) => {
-        gvc.getBundle().callback(obj);
+        setTimeout((() => {
+            dialog.dataLoading({ visible: false });
+            glitter.closeDiaLog();
+        }), 1000);
     });
-    setTimeout((() => {
-        dialog.dataLoading({ visible: false });
-        glitter.closeDiaLog();
-    }), 1000);
 }
 function empty(gvc) {
     const glitter = gvc.glitter;

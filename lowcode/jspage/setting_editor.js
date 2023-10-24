@@ -72,6 +72,46 @@ export class Setting_editor {
                                                 (save)();
                                             })
                                         };
+                                    })(),
+                                    (() => {
+                                        return {
+                                            title: "開發金鑰",
+                                            view: (gvc) => {
+                                                return `<div class="alert alert-danger mt-2"
+style="white-space:normal;word-break: break-word;"
+><strong>請注意!!!!!!</strong><br>開發金鑰能使用官方開發的API，來修改頁面參數內容，請勿洩露此密鑰，以免造成資安風險。</div>` + gvc.bindView(() => {
+                                                    const vm = {
+                                                        visible: false,
+                                                        token: ''
+                                                    };
+                                                    const id = glitter.getUUID();
+                                                    const saasConfig = window.saasConfig;
+                                                    saasConfig.api.getEditorToken().then((response) => {
+                                                        vm.token = response.response.token;
+                                                        gvc.notifyDataChange(id);
+                                                    });
+                                                    return {
+                                                        bind: id,
+                                                        view: () => {
+                                                            return `    
+<input class="form-control" type="${vm.visible ? 'text' : 'password'}"
+                                                               value="${vm.token}" readonly>
+                                                        <label class="password-toggle-btn"
+                                                               aria-label="Show/hide password" onclick="${gvc.event(() => {
+                                                                vm.visible = !vm.visible;
+                                                                gvc.notifyDataChange(id);
+                                                            })}">
+                                                            <input class="password-toggle-check" type="checkbox">
+                                                            <span class="password-toggle-indicator"></span>
+                                                        </label>`;
+                                                        },
+                                                        divCreate: { class: `password-toggle my-2` }
+                                                    };
+                                                });
+                                            },
+                                            width: '500px',
+                                            saveAble: false
+                                        };
                                     })()
                                 ];
                                 return `
@@ -87,7 +127,8 @@ export class Setting_editor {
                                                 innerHtml: dd.view,
                                                 editTitle: dd.title,
                                                 saveEvent: dd.saveEvent,
-                                                width: dd.width
+                                                width: dd.width,
+                                                saveAble: dd.saveAble
                                             };
                                         });
                                     },

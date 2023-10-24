@@ -15,6 +15,7 @@ import db from './modules/database';
 import {createBucket, listBuckets} from "./modules/AWSLib";
 import AWS from "aws-sdk";
 import {Live_source} from "./live_source";
+import * as process from "process";
 
 //Glitter FrontEnd Rout
 export const app = express();
@@ -212,12 +213,12 @@ export async function createAPP(dd: any) {
                             redirect+=`&type=${req.query.type}`
                         }
                     }
-                    return (() => {
+                    return  `${(() => {
                         data.page_config = data.page_config ?? {}
                         if (data && data.page_config) {
                             const d = data.page_config.seo ?? {}
                             return `<title>${d.title ?? "尚未設定標題"}</title>
- <link rel="canonical" href="./?page=${data.tag}">
+    <link rel="canonical" href="./?page=${data.tag}">
     <meta name="keywords" content="${d.keywords ?? "尚未設定關鍵字"}" />
     <link id="appImage" rel="shortcut icon" href="${d.logo ?? ""}" type="image/x-icon">
     <link rel="icon" href="${d.logo ?? ""}" type="image/png" sizes="128x128">
@@ -239,12 +240,14 @@ window.location.href='?page=${redirect}';
 window.location.href='?page=${redirect}';
 </script>`
                         }
-                    })() + `<script>
+                    })()}<script>
 window.appName='${dd.appName}';
+window.glitterBackend='${config.domain}';
 </script>`
                 } catch (e) {
                     return `<script>
 window.appName='${dd.appName}';
+window.glitterBackend='${config.domain}';
 </script>`
                 }
 

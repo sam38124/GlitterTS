@@ -31,28 +31,39 @@ export class Main_editor {
                         });
                     }
                     checkSelect(viewModel.data.config);
-                    if ((glitter.getCookieByName("ViewType") === ViewType.col3)) {
+                    if ((glitter.getCookieByName("ViewType") === ViewType.col3) || (glitter.getCookieByName("ViewType") === ViewType.mobile)) {
                         gvc.notifyDataChange('right_NAV');
                     }
                     console.log(`viewModel.selectItem-->`, viewModel.selectItem);
-                    if (viewModel.selectItem && (glitter.getCookieByName("ViewType") !== ViewType.col3) && (viewModel.selectItem.type !== 'code') && (viewModel.selectItem.type !== 'widget' || (viewModel.selectItem.data.elem !== 'style' && viewModel.selectItem.data.elem !== 'link' && viewModel.selectItem.data.elem !== 'script'))) {
+                    if (viewModel.selectItem && (glitter.getCookieByName("ViewType") !== ViewType.col3) &&
+                        (glitter.getCookieByName("ViewType") !== ViewType.mobile) &&
+                        (viewModel.selectItem.type !== 'code') && (viewModel.selectItem.type !== 'widget' || (viewModel.selectItem.data.elem !== 'style' && viewModel.selectItem.data.elem !== 'link' && viewModel.selectItem.data.elem !== 'script'))) {
                         return Main_editor.editorContent(gvc, viewModel, vid);
                     }
                     else {
                         return html `
-                            <li class="w-100 align-items-center  d-flex editor_item_title position-sticky top-0 start-0 bg-white z-index-9"
+                            <li class="w-100 align-items-center  d-flex editor_item_title position-sticky top-0 start-0  z-index-9 bgf6"
                                 style="z-index: 999;"
                                 onclick="${gvc.event(() => {
                         })}"
-                            >${viewModel.data.name}-區段
-                                <div class="ms-auto d-flex align-items-center justify-content-center hoverBtn me-2 border"
+                            >
+                                開發工具
+
+                                <div class="bg-white ms-auto d-flex align-items-center justify-content-center   me-2 border"
+                                     style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;"
+                                     onclick="${gvc.event(() => {
+                            PageEditor.openDialog.seo_with_domain(gvc);
+                        })}">
+                                    <i class="fa-sharp fa-regular fa-globe-pointer"></i>
+                                </div>
+                                <div class="bg-white d-flex align-items-center justify-content-center  me-2 border"
                                      style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;"
                                      onclick="${gvc.event(() => {
                             PageEditor.openDialog.page_config(gvc);
                         })}">
                                     <i class="fa-solid fa-code"></i>
                                 </div>
-                                <div class=" d-flex align-items-center justify-content-center hoverBtn me-2 border"
+                                <div class="bg-white d-flex align-items-center justify-content-center hoverBtn me-2 border"
                                      style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;"
                                      onclick="${gvc.event(() => {
                             viewModel.selectContainer = viewModel.data.config;
@@ -63,6 +74,15 @@ export class Main_editor {
                                     <i class="fa-regular fa-circle-plus"></i>
                                 </div>
                             </li>
+                            <li class="w-100 align-items-center  d-flex editor_item_title  start-0 bg-white z-index-9"
+                                style="z-index: 999;"
+                                onclick="${gvc.event(() => {
+                        })}"
+                            >${viewModel.data.name}-區段
+                              
+                            </li>
+                           
+                           
                             ${(() => {
                             return gvc.map([
                                 html `

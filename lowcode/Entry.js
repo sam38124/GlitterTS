@@ -1,4 +1,13 @@
 'use strict';
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 import { ApiUser } from "./api/user.js";
 import { config } from "./config.js";
 import { ApiPageConfig } from "./api/pageConfig.js";
@@ -6,6 +15,7 @@ import { BaseApi } from "./api/base.js";
 export class Entry {
     static onCreate(glitter) {
         var _a;
+        glitter.share.editerVersion = "V_2.9.72";
         glitter.share.start = new Date();
         glitter.debugMode = false;
         const vm = {
@@ -20,9 +30,25 @@ export class Entry {
         ApiPageConfig.getPlugin(config.appName).then((dd) => {
             vm.appConfig = dd.response.data;
             glitter.share.appConfigresponse = dd;
+            glitter.share.globalValue = {};
+            function loopCheckGlobalValue(array) {
+                try {
+                    array.map((dd) => {
+                        if (dd.type === 'container') {
+                            loopCheckGlobalValue(dd.data.setting);
+                        }
+                        else {
+                            glitter.share.globalValue[dd.data.tag] = dd.data.value;
+                        }
+                    });
+                }
+                catch (e) {
+                }
+            }
+            loopCheckGlobalValue(glitter.share.appConfigresponse.response.data.globalValue);
             window.saasConfig.appConfig = dd.response.data;
-            (async () => {
-                return new Promise(async (resolve, reject) => {
+            (() => __awaiter(this, void 0, void 0, function* () {
+                return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
                     var _a, _b, _c;
                     if (glitter.getUrlParameter("type") !== 'editor') {
                         for (const data of ((_a = dd.response.data.initialStyleSheet) !== null && _a !== void 0 ? _a : [])) {
@@ -70,7 +96,7 @@ export class Entry {
                                 });
                             }
                             else {
-                                const dd = await eval(data.src.official);
+                                const dd = yield eval(data.src.official);
                                 vm.count--;
                             }
                         }
@@ -79,10 +105,11 @@ export class Entry {
                             vm.count--;
                         }
                     }
-                });
-            })().then(() => {
+                }));
+            }))().then(() => {
                 var _a;
                 if (glitter.getUrlParameter("type") === 'editor') {
+                    glitter.share.EditorMode = true;
                     glitter.share.evalPlace = ((evals) => {
                         return eval(evals);
                     });
@@ -98,12 +125,12 @@ export class Entry {
                                     behavior: 'smooth',
                                     block: 'center',
                                 });
-                                console.log(`scrollTO-intoView`);
                             }
                         }
                         clearInterval(timer);
-                        timer = setTimeout(() => { scrollToItem(document.querySelector('.selectComponentHover')); }, 100);
-                        console.log(`heightChange`);
+                        timer = setTimeout(() => {
+                            scrollToItem(document.querySelector('.selectComponentHover'));
+                        }, 100);
                     });
                     observer.observe(bodyElement);
                     window.parent.glitter.share.evalPlace = ((evals) => {
@@ -119,6 +146,12 @@ export class Entry {
                     }, [
                         { key: "async", value: "true" }
                     ]);
+                    glitter.htmlGenerate.loadScript(glitter, window.parent.editerData.setting.map((dd) => {
+                        return {
+                            src: `${glitter.htmlGenerate.configureCDN(glitter.htmlGenerate.resourceHook(dd.js))}`,
+                            type: 'module'
+                        };
+                    }));
                     glitter.share.evalPlace = ((evals) => {
                         return eval(evals);
                     });
@@ -142,20 +175,13 @@ export class Entry {
                             location.href = url.href;
                             return;
                         }
-                        try {
-                            glitter.addMtScript(data.response.result[0].config.map((dd) => {
-                                return {
-                                    src: `${glitter.htmlGenerate.configureCDN(glitter.htmlGenerate.resourceHook(dd.js))}`,
-                                    type: 'module'
-                                };
-                            }), () => {
-                            }, () => {
-                            }, [
-                                { key: "async", value: "true" }
-                            ]);
-                        }
-                        catch (e) {
-                        }
+                        glitter.htmlGenerate.loadScript(glitter, data.response.result[0].config.map((dd) => {
+                            return {
+                                src: `${glitter.htmlGenerate.configureCDN(glitter.htmlGenerate.resourceHook(dd.js))}`,
+                                callback: () => {
+                                }
+                            };
+                        }));
                         glitter.htmlGenerate.setHome({
                             app_config: vm.appConfig,
                             page_config: data.response.result[0].page_config,
@@ -170,37 +196,39 @@ export class Entry {
     }
 }
 function toBackendEditor(glitter) {
-    async function running() {
-        config.token = glitter.getCookieByName('glitterToken');
-        glitter.addStyleLink([
-            'assets/vendor/boxicons/css/boxicons.min.css',
-            'assets/css/theme.min.css',
-            'css/editor.css',
-        ]);
-        await new Promise((resolve, reject) => {
-            glitter.addMtScript([
-                'https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js',
-                'https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js',
-                'assets/vendor/smooth-scroll/dist/smooth-scroll.polyfills.min.js',
-                'assets/vendor/swiper/swiper-bundle.min.js',
-                'assets/js/theme.min.js',
-                'https://kit.fontawesome.com/cccedec0f8.js'
-            ], () => {
-                resolve(true);
-            }, () => {
-                resolve(true);
+    function running() {
+        return __awaiter(this, void 0, void 0, function* () {
+            config.token = glitter.getCookieByName('glitterToken');
+            glitter.addStyleLink([
+                'assets/vendor/boxicons/css/boxicons.min.css',
+                'assets/css/theme.min.css',
+                'css/editor.css',
+            ]);
+            yield new Promise((resolve, reject) => {
+                glitter.addMtScript([
+                    'https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js',
+                    'https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js',
+                    'assets/vendor/smooth-scroll/dist/smooth-scroll.polyfills.min.js',
+                    'assets/vendor/swiper/swiper-bundle.min.js',
+                    'assets/js/theme.min.js',
+                    'https://kit.fontawesome.com/cccedec0f8.js'
+                ], () => {
+                    resolve(true);
+                }, () => {
+                    resolve(true);
+                });
             });
+            return;
         });
-        return;
     }
     window.mode = 'light';
     window.root = document.getElementsByTagName('html')[0];
     window.root.classList.add('light-mode');
     function toNext() {
-        running().then(async () => {
+        running().then(() => __awaiter(this, void 0, void 0, function* () {
             var _a;
             {
-                let data = await ApiPageConfig.getPage(config.appName, (_a = glitter.getUrlParameter('page')) !== null && _a !== void 0 ? _a : glitter.getUUID());
+                let data = yield ApiPageConfig.getPage(config.appName, (_a = glitter.getUrlParameter('page')) !== null && _a !== void 0 ? _a : glitter.getUUID());
                 if (data.response.result.length === 0) {
                     glitter.setUrlParameter('page', data.response.redirect);
                 }
@@ -220,7 +248,7 @@ function toBackendEditor(glitter) {
                     });
                 })();
             }
-        });
+        }));
     }
     if (glitter.getUrlParameter('account')) {
         ApiUser.login({

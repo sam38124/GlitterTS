@@ -6,9 +6,12 @@ import {Main_editor} from "./main_editor.js";
 import {Page_editor} from "./page_editor.js";
 import {Setting_editor} from "./setting_editor.js";
 import {Plugin_editor} from "./plugin_editor.js";
+import * as triggerBridge from "../editor-bridge/trigger-event.js";
+import {TriggerEvent} from "../glitterBundle/plugins/trigger-event.js";
 
 const html = String.raw
 init((gvc, glitter, gBundle) => {
+    triggerBridge.initial()
     gvc.addStyle(`
     .swal2-title {
     color:black!important;
@@ -32,13 +35,19 @@ init((gvc, glitter, gBundle) => {
         selectIndex: any,
         waitCopy: any,
         appConfig: any,
+        originalConfig:any,
         globalScript: any,
         globalStyle: any,
-        appName: string
+        appName: string,
+        originalData: any,
+        domain:string,
+        originalDomain:string
     } = {
         appName: gBundle.appName,
         appConfig: undefined,
+        originalConfig:undefined,
         dataList: undefined,
+        originalData: undefined,
         data: undefined,
         loading: true,
         selectItem: undefined,
@@ -55,7 +64,9 @@ init((gvc, glitter, gBundle) => {
         selectIndex: undefined,
         waitCopy: undefined,
         globalScript: undefined,
-        globalStyle: undefined
+        globalStyle: undefined,
+        domain:'',
+        originalDomain:''
     };
     const swal = new Swal(gvc);
     const doc = new Editor(gvc, viewModel);
@@ -73,10 +84,18 @@ init((gvc, glitter, gBundle) => {
     async function lod() {
         swal.loading('加載中...');
         const waitGetData = [
+            (async ()=>{
+                return await new Promise(async (resolve, reject)=>{
+                    ApiPageConfig.getAppConfig().then((res)=>{
+                       viewModel.domain=res.response.result[0].domain
+                       viewModel.originalDomain=viewModel.domain
+                       resolve(true)
+                    })
+                })
+            }),
             (async () => {
                 return await new Promise(async (resolve) => {
                     const data = await ApiPageConfig.getPage(gBundle.appName)
-
                     if (data.result) {
                         data.response.result.map((dd: any) => {
                             dd.page_config = dd.page_config ?? {}
@@ -90,6 +109,7 @@ init((gvc, glitter, gBundle) => {
                         });
                         viewModel.data = viewModel.data ?? data.response.result[0];
                         viewModel.dataList = data.response.result;
+                        viewModel.originalData = JSON.parse(JSON.stringify(viewModel.dataList))
                         glitter.share.allPageResource = JSON.parse(JSON.stringify(data.response.result))
                         const htmlGenerate = new gvc.glitter.htmlGenerate((viewModel.data! as any).config, [], undefined, true);
                         (window as any).editerData = htmlGenerate;
@@ -119,14 +139,15 @@ init((gvc, glitter, gBundle) => {
                         viewModel.backendPlugins = data.response.data.backendPlugins ?? []
                         viewModel.globalValue = data.response.data.globalValue ?? []
                         async function load() {
-                            for (const a of [{
+                            glitter.share.globalJsList = [{
                                 src: {
-                                    official: "official_event/event.js"
+                                    official: "./official_event/event.js"
                                 }
-                            }].concat(viewModel.initialJS)) {
+                            }].concat(viewModel.initialJS)
+                            for (const a of glitter.share.globalJsList) {
                                 await new Promise((resolve) => {
                                     glitter.addMtScript([{
-                                        src: glitter.htmlGenerate.resourceHook(a.src.official) + `?resource=${a.src.official}`,
+                                        src: TriggerEvent.getLink(a.src.official),
                                         type: 'module'
                                     }], () => {
                                         resolve(true);
@@ -137,6 +158,7 @@ init((gvc, glitter, gBundle) => {
                             }
                             resolve(true);
                         }
+
                         await load()
                     } else {
                         resolve(false);
@@ -159,6 +181,7 @@ init((gvc, glitter, gBundle) => {
     }
 
     glitter.htmlGenerate.saveEvent = () => {
+        glitter.closeDiaLog()
         glitter.setCookie("jumpToNavScroll", $(`#jumpToNav`).scrollTop())
         swal.loading('更新中...');
 
@@ -169,6 +192,7 @@ init((gvc, glitter, gBundle) => {
 
                     function getID(set: any) {
                         set.map((dd: any) => {
+                            dd.js = (dd.js).replace(`${location.origin}/${(window as any).appName}/`, './')
                             if (haveID.indexOf(dd.id) !== -1) {
                                 dd.id = glitter.getUUID();
                             }
@@ -181,18 +205,45 @@ init((gvc, glitter, gBundle) => {
                     }
 
                     getID((viewModel.data as any).config);
-                    return new Promise(async resolve => {
-                        const api = await ApiPageConfig.setPage({
-                            id: viewModel.data.id,
-                            appName: gBundle.appName,
-                            tag: (viewModel.data as any).tag,
-                            name: (viewModel.data as any).name,
-                            config: (viewModel.data as any).config,
-                            group: (viewModel.data as any).group,
-                            page_config: viewModel.data.page_config
-                        })
 
-                        resolve(api.result)
+                    return new Promise(async resolve => {
+                        let result = true
+                        const map = viewModel.dataList.filter((dd: any, index: number) => {
+                            return JSON.stringify({
+                                tag: (dd).tag,
+                                name: (dd).name,
+                                config: (dd).config,
+                                group: (dd).group,
+                                page_config: dd.page_config
+                            }) !== JSON.stringify({
+                                tag: (viewModel.originalData[index]).tag,
+                                name: (viewModel.originalData[index]).name,
+                                config: (viewModel.originalData[index]).config,
+                                group: (viewModel.originalData[index]).group,
+                                page_config: viewModel.originalData[index].page_config
+                            })
+                        })
+                        let index = map.length
+                        for (const a of map) {
+                            ApiPageConfig.setPage({
+                                id: a.id,
+                                appName: gBundle.appName,
+                                tag: (a).tag,
+                                name: (a).name,
+                                config: (a).config,
+                                group: (a).group,
+                                page_config: a.page_config
+                            }).then((api) => {
+                                result = result && api.result
+                                index--
+                                if (index === 0) {
+                                    resolve(result)
+                                }
+                            })
+                        }
+                        if (index === 0) {
+                            resolve(result)
+                        }
                     });
                 }),
                 (async () => {
@@ -205,7 +256,17 @@ init((gvc, glitter, gBundle) => {
                         resolve(api.result)
                     });
 
-                })
+                }),
+                ((async ()=>{
+                    return new Promise(async resolve=>{
+                        if(viewModel.originalDomain!==viewModel.domain){
+                            await ApiPageConfig.setDomain(viewModel.domain)
+                            resolve(true)
+                        }else {
+                            resolve(true)
+                        }
+                    })
+                }))
             ];
             for (const a of waitSave) {
                 if (!await a()) {
@@ -243,7 +304,7 @@ init((gvc, glitter, gBundle) => {
         var copy = JSON.parse(glitter.share.copycomponent)
 
         function checkId(dd: any) {
-            copy.id = glitter.getUUID()
+            dd.id = glitter.getUUID()
             if (dd.type === 'container') {
                 dd.data.setting.map((d2: any) => {
                     checkId(d2)

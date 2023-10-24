@@ -1,4 +1,13 @@
 "use strict";
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 import { GVCType } from "./module/PageManager.js";
 const $ = window.$;
 class LifeCycle {
@@ -64,7 +73,7 @@ export class GVC {
                     gvc.parameter.bindViewList[id].onCreate();
                 }
             };
-            function convID() {
+            const convID = function () {
                 if (typeof id === 'object') {
                     id.map(function (id) {
                         refresh(id);
@@ -73,7 +82,7 @@ export class GVC {
                 else {
                     refresh(id);
                 }
-            }
+            };
             convID();
         }
         catch (e) {
@@ -294,34 +303,36 @@ export class GVC {
             gvc.parameter.styleList.push(sl);
         }
     }
-    async addStyleLink(fs) {
-        const gvc = this;
-        function add(filePath) {
-            var head = document.head;
-            const id = gvc.glitter.getUUID();
-            var link = document.createElement("link");
-            link.type = "text/css";
-            link.rel = "stylesheet";
-            link.href = filePath;
-            link.id = id;
-            if (!gvc.parameter.styleLinks.find((dd) => {
-                return dd.src === filePath;
-            })) {
-                gvc.parameter.styleLinks.push({
-                    id: id,
-                    src: filePath
-                });
-                head.appendChild(link);
+    addStyleLink(fs) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const gvc = this;
+            function add(filePath) {
+                var head = document.head;
+                const id = gvc.glitter.getUUID();
+                var link = document.createElement("link");
+                link.type = "text/css";
+                link.rel = "stylesheet";
+                link.href = filePath;
+                link.id = id;
+                if (!gvc.parameter.styleLinks.find((dd) => {
+                    return dd.src === filePath;
+                })) {
+                    gvc.parameter.styleLinks.push({
+                        id: id,
+                        src: filePath
+                    });
+                    head.appendChild(link);
+                }
             }
-        }
-        if (typeof fs === 'string') {
-            add(fs);
-        }
-        else {
-            fs.map((dd) => {
-                add(dd);
-            });
-        }
+            if (typeof fs === 'string') {
+                add(fs);
+            }
+            else {
+                fs.map((dd) => {
+                    add(dd);
+                });
+            }
+        });
     }
     addMtScript(urlArray, success, error) {
         const glitter = this.glitter;

@@ -1,3 +1,12 @@
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 import { init } from "../glitterBundle/GVController.js";
 import { config } from "../config.js";
 import { ApiPageConfig } from "../api/pageConfig.js";
@@ -24,8 +33,8 @@ init((gvc, glitter, gBundle) => {
                 vm.appConfig = dd.response.data;
                 glitter.share.appConfigresponse = dd;
                 window.saasConfig.appConfig = dd.response.data;
-                (async () => {
-                    return new Promise(async (resolve, reject) => {
+                (() => __awaiter(void 0, void 0, void 0, function* () {
+                    return new Promise((resolve, reject) => __awaiter(void 0, void 0, void 0, function* () {
                         var _a, _b, _c;
                         if (glitter.getUrlParameter("type") !== 'editor') {
                             for (const data of ((_a = dd.response.data.initialStyleSheet) !== null && _a !== void 0 ? _a : [])) {
@@ -73,9 +82,9 @@ init((gvc, glitter, gBundle) => {
                                     });
                                 }
                                 else if (data.type === 'event') {
-                                    new Promise(async () => {
+                                    new Promise(() => __awaiter(void 0, void 0, void 0, function* () {
                                         try {
-                                            await TriggerEvent.trigger({
+                                            yield TriggerEvent.trigger({
                                                 gvc: gvc, widget: dd, clickEvent: data.src.event
                                             }).then(() => {
                                                 vm.count--;
@@ -87,10 +96,10 @@ init((gvc, glitter, gBundle) => {
                                             console.log(e);
                                             vm.count--;
                                         }
-                                    });
+                                    }));
                                 }
                                 else {
-                                    const dd = await eval(data.src.official);
+                                    const dd = yield eval(data.src.official);
                                     vm.count--;
                                 }
                             }
@@ -99,8 +108,8 @@ init((gvc, glitter, gBundle) => {
                                 vm.count--;
                             }
                         }
-                    });
-                })().then(() => {
+                    }));
+                }))().then(() => {
                     var _a;
                     if (glitter.getUrlParameter("type") === 'editor') {
                         glitter.share.evalPlace = ((evals) => {
@@ -161,37 +170,39 @@ init((gvc, glitter, gBundle) => {
     };
 });
 function toBackendEditor(glitter) {
-    async function running() {
-        config.token = glitter.getCookieByName('glitterToken');
-        glitter.addStyleLink([
-            'assets/vendor/boxicons/css/boxicons.min.css',
-            'assets/css/theme.min.css',
-            'css/editor.css',
-        ]);
-        await new Promise((resolve, reject) => {
-            glitter.addMtScript([
-                'https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js',
-                'assets/vendor/bootstrap/dist/js/bootstrap.bundle.min.js',
-                'assets/vendor/smooth-scroll/dist/smooth-scroll.polyfills.min.js',
-                'assets/vendor/swiper/swiper-bundle.min.js',
-                'assets/js/theme.min.js',
-                'https://kit.fontawesome.com/cccedec0f8.js'
-            ], () => {
-                resolve(true);
-            }, () => {
-                resolve(true);
+    function running() {
+        return __awaiter(this, void 0, void 0, function* () {
+            config.token = glitter.getCookieByName('glitterToken');
+            glitter.addStyleLink([
+                'assets/vendor/boxicons/css/boxicons.min.css',
+                'assets/css/theme.min.css',
+                'css/editor.css',
+            ]);
+            yield new Promise((resolve, reject) => {
+                glitter.addMtScript([
+                    'https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js',
+                    'assets/vendor/bootstrap/dist/js/bootstrap.bundle.min.js',
+                    'assets/vendor/smooth-scroll/dist/smooth-scroll.polyfills.min.js',
+                    'assets/vendor/swiper/swiper-bundle.min.js',
+                    'assets/js/theme.min.js',
+                    'https://kit.fontawesome.com/cccedec0f8.js'
+                ], () => {
+                    resolve(true);
+                }, () => {
+                    resolve(true);
+                });
             });
+            return;
         });
-        return;
     }
     window.mode = 'light';
     window.root = document.getElementsByTagName('html')[0];
     window.root.classList.add('light-mode');
     function toNext() {
-        running().then(async () => {
+        running().then(() => __awaiter(this, void 0, void 0, function* () {
             var _a;
             {
-                let data = await ApiPageConfig.getPage(config.appName, (_a = glitter.getUrlParameter('page')) !== null && _a !== void 0 ? _a : glitter.getUUID());
+                let data = yield ApiPageConfig.getPage(config.appName, (_a = glitter.getUrlParameter('page')) !== null && _a !== void 0 ? _a : glitter.getUUID());
                 if (data.response.result.length === 0) {
                     glitter.setUrlParameter('page', data.response.redirect);
                 }
@@ -211,7 +222,7 @@ function toBackendEditor(glitter) {
                     });
                 })();
             }
-        });
+        }));
     }
     if (glitter.getUrlParameter('account')) {
         ApiUser.login({

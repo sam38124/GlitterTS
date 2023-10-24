@@ -105,12 +105,20 @@ export class App {
 
     }
 
-    public async getAPP() {
+    public async getAPP(query:{
+        app_name?:string
+    }) {
         try {
             return (await db.execute(`
                 SELECT *
                 FROM \`${saasConfig.SAAS_NAME}\`.app_config
-                where user = '${this.token.userID}';
+                where  ${(()=>{
+                    const sql=[`user = '${this.token.userID}'`]
+                    if(query.app_name){
+                        sql.push(` appName='${query.app_name}' `)
+                    }
+                    return sql.join(' and ')
+                })()};
             `, []))
         } catch (e: any) {
             throw exception.BadRequestError(e.code ?? 'BAD_REQUEST', e, null);
@@ -144,7 +152,6 @@ export class App {
 
     public async setAppConfig(config: { appName: string, data: any }) {
         try {
-            console.log(`lambdaView--`, config.data.lambdaView)
             const official = (await db.query(`SELECT count(1)
                                               FROM \`${saasConfig.SAAS_NAME}\`.user
                                               where userID = ?
@@ -172,6 +179,19 @@ export class App {
                                       where appName = ${db.escape(config.appName)}
                                         and user = '${this.token.userID}'
             `, [config.data]))['changedRows'] == true
+        } catch (e: any) {
+            throw exception.BadRequestError(e.code ?? 'BAD_REQUEST', e, null);
+        }
+    }
+
+    public async setDomain(config:{
+        appName:string,
+        domain:string
+    }) {
+        try {
+            return ((await db.execute(`
+                update \`${saasConfig.SAAS_NAME}\`.app_config set domain=? where appName=?
+            `, [config.domain,config.appName])))
         } catch (e: any) {
             throw exception.BadRequestError(e.code ?? 'BAD_REQUEST', e, null);
         }

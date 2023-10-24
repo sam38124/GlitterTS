@@ -1,3 +1,12 @@
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 import { BaseApi } from "../api/base.js";
 import { GlobalUser } from "../glitter-base/global/global-user.js";
 import { TriggerEvent } from "../glitterBundle/plugins/trigger-event.js";
@@ -31,7 +40,21 @@ GlobalData.data = {
 };
 TriggerEvent.create(import.meta.url, {
     link: {
-        title: '官方事件-畫面-頁面跳轉',
+        title: '官方事件 / 畫面 / 頁面跳轉',
+        subContent: questionText([
+            {
+                title: "內部連結跳轉",
+                content: `使用此事件可以跳轉至GLITTER內部頁面，採用SPA的開發技術，來降低頁面延遲，使轉場的效果更加順暢。`
+            },
+            {
+                title: "外連結跳轉",
+                content: `使用此事件可以跳轉至外部頁面。`
+            },
+            {
+                title: "HashTag",
+                content: `使用此事件可以滾動至此標籤的位置。`
+            }
+        ]),
         fun: (gvc, widget, object) => {
             return {
                 editor: () => {
@@ -165,7 +188,7 @@ ${EditorElem.h3("選擇頁面")}
                     var _a;
                     object.link_change_type = (_a = object.link_change_type) !== null && _a !== void 0 ? _a : object.type;
                     if (object.link_change_type === 'inlink') {
-                        return new Promise(async (resolve, reject) => {
+                        return new Promise((resolve, reject) => __awaiter(void 0, void 0, void 0, function* () {
                             const url = new URL('./', location.href);
                             url.searchParams.set('page', object.link);
                             const saasConfig = window.saasConfig;
@@ -206,7 +229,7 @@ ${EditorElem.h3("選擇頁面")}
                                     resolve(true);
                                 }
                             });
-                        });
+                        }));
                     }
                     else if (object.link_change_type === 'hashTag') {
                         const yOffset = $("header").length > 0 ? -$("header").height() : 0;
@@ -229,7 +252,21 @@ ${EditorElem.h3("選擇頁面")}
         },
     },
     dialog: {
-        title: '官方事件-畫面-彈跳視窗',
+        title: '官方事件 / 畫面 / 彈跳視窗',
+        subContent: questionText([
+            {
+                title: "打開彈跳視窗",
+                content: `使用此事件可以開啟彈跳視窗，可以實現 表單 / 加載動畫 / 錯誤提醒 ....等效果都可以透過頁面彈窗來進行實現。`
+            },
+            {
+                title: "關閉彈跳視窗",
+                content: `於跳轉的頁面執行 <span style="color:#295ed1;">gvc.closeDialog()</span> 即可關閉彈跳視窗。`
+            },
+            {
+                title: "夾帶資料",
+                content: `返回要挾帶的資料並且於彈跳視窗的頁面中，透過 <span style="color:#295ed1;">gvc.getBundle().carryData</span>  ，來取得夾帶內容。`
+            }
+        ]),
         fun: (gvc, widget, object, subData, element) => {
             return {
                 editor: () => {
@@ -278,28 +315,42 @@ ${EditorElem.h3("選擇頁面")}
                 },
                 event: () => {
                     subData = subData !== null && subData !== void 0 ? subData : {};
-                    return new Promise(async (resolve, reject) => {
-                        const data = await TriggerEvent.trigger({
+                    return new Promise((resolve, reject) => __awaiter(void 0, void 0, void 0, function* () {
+                        const data = yield TriggerEvent.trigger({
                             gvc, widget, clickEvent: widget.data.coverData, subData
                         });
                         gvc.glitter.innerDialog((gvc) => {
                             gvc.getBundle().carryData = data;
-                            return new Promise(async (resolve, reject) => {
-                                const view = await component.render(gvc, {
+                            return new Promise((resolve, reject) => __awaiter(void 0, void 0, void 0, function* () {
+                                const view = yield component.render(gvc, {
                                     data: {
                                         tag: object.link
                                     }
                                 }, [], [], subData).view();
                                 resolve(view);
-                            });
+                            }));
                         }, gvc.glitter.getUUID());
-                    });
+                    }));
                 }
             };
         }
     },
     close_dialog: {
-        title: '官方事件-畫面-視窗關閉',
+        title: '官方事件 / 畫面 / 視窗關閉',
+        subContent: questionText([
+            {
+                title: "當前視窗",
+                content: `僅關閉當前的彈跳視窗。`
+            },
+            {
+                title: "所有視窗",
+                content: `關閉所有彈跳視窗。`
+            },
+            {
+                title: "標籤",
+                content: `關閉具有此標籤的視窗。`
+            }
+        ]),
         fun: (gvc, widget, object, subData, element) => {
             return {
                 editor: () => {
@@ -313,7 +364,17 @@ ${EditorElem.h3("選擇頁面")}
         }
     },
     drawer: {
-        title: '官方事件-畫面-左側導覽列',
+        title: '官方事件 / 畫面 / 左側導覽列',
+        subContent: `<div class="d-flex flex-column w-100 align-items-center justify-content-center"
+                                             style="height:400px;">
+<video src="video/open_navagation.mov" class="mx-auto " style="max-width: 100%;height: 300px;" loop
+                                                           autoplay>
+                                                           
+</video>
+                                            <h3 class=" text-center px-4 mt-2" style="font-size:18px;">
+                                                選擇頁面並嵌入來實現導覽列的效果。
+                                            </h3>
+                                        </div>`,
         fun: (gvc, widget, object, subData, element) => {
             return {
                 editor: () => {
@@ -362,30 +423,32 @@ ${gvc.glitter.htmlGenerate.styleEditor(object, gvc).editor(gvc, () => {
                 event: () => {
                     let fal = 0;
                     let data = undefined;
-                    async function getData() {
-                        return new Promise(async (resolve, reject) => {
-                            const saasConfig = window.saasConfig;
-                            BaseApi.create({
-                                "url": saasConfig.config.url + `/api/v1/template?appName=${saasConfig.config.appName}&tag=${object.link}`,
-                                "type": "GET",
-                                "timeout": 0,
-                                "headers": {
-                                    "Content-Type": "application/json"
-                                }
-                            }).then((d2) => {
-                                if (!d2.result) {
-                                    fal += 1;
-                                    if (fal < 20) {
-                                        setTimeout(() => {
-                                            getData();
-                                        }, 200);
+                    function getData() {
+                        return __awaiter(this, void 0, void 0, function* () {
+                            return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
+                                const saasConfig = window.saasConfig;
+                                BaseApi.create({
+                                    "url": saasConfig.config.url + `/api/v1/template?appName=${saasConfig.config.appName}&tag=${object.link}`,
+                                    "type": "GET",
+                                    "timeout": 0,
+                                    "headers": {
+                                        "Content-Type": "application/json"
                                     }
-                                }
-                                else {
-                                    data = d2.response.result[0];
-                                    resolve(data);
-                                }
-                            });
+                                }).then((d2) => {
+                                    if (!d2.result) {
+                                        fal += 1;
+                                        if (fal < 20) {
+                                            setTimeout(() => {
+                                                getData();
+                                            }, 200);
+                                        }
+                                    }
+                                    else {
+                                        data = d2.response.result[0];
+                                        resolve(data);
+                                    }
+                                });
+                            }));
                         });
                     }
                     getData().then((data) => {
@@ -412,7 +475,8 @@ style="${gvc.glitter.htmlGenerate.styleEditor(object, gvc).style()}"
         },
     },
     reload: {
-        title: '官方事件-觸發-刷新瀏覽器',
+        title: '官方事件 / 觸發 / 刷新瀏覽器',
+        subContent: `<div class="w-100 alert alert-light" style="white-space: normal;word-break: break-word;">透過<span class="mx-2" style="color:#295ed1;">location.reload()</span>來刷新整個瀏覽器。</div>`,
         fun: (gvc, widget, object, subData, element) => {
             return {
                 editor: () => {
@@ -425,7 +489,8 @@ style="${gvc.glitter.htmlGenerate.styleEditor(object, gvc).style()}"
         },
     },
     reloadPage: {
-        title: '官方事件-觸發-刷新頁面',
+        title: '官方事件 / 觸發 / 刷新頁面',
+        subContent: `<div class="w-100 alert alert-light" style="white-space: normal;word-break: break-word;">透過<span class="mx-2" style="color:#295ed1;">gvc.recreateView()</span>來刷新當前頁面。</div>`,
         fun: (gvc, widget, object, subData, element) => {
             return {
                 editor: () => {
@@ -438,26 +503,32 @@ style="${gvc.glitter.htmlGenerate.styleEditor(object, gvc).style()}"
         },
     },
     code: {
-        title: '官方事件-觸發-代碼區塊',
+        title: '官方事件 / 觸發 / 代碼區塊',
+        subContent: `<div class="w-100 alert alert-light" style="white-space: normal;word-break: break-word;">於內容編輯器中，直接輸入代碼來執行事件。</div>`,
         fun: (gvc, widget, object, subData, element) => {
             return {
                 editor: () => {
-                    var _a;
-                    return gvc.glitter.htmlGenerate.editeText({
+                    object.codeVersion = 'v2';
+                    const html = String.raw;
+                    return html `<div style="width:600px;">
+${EditorElem.codeEditor({
                         gvc: gvc,
+                        height: 300,
+                        initial: object.code,
                         title: "代碼區塊",
-                        default: (_a = object.code) !== null && _a !== void 0 ? _a : "",
-                        placeHolder: "請輸入代碼區塊",
                         callback: (text) => {
                             object.code = text;
                         }
-                    });
+                    })}
+</div>`;
                 },
                 event: () => {
-                    return new Promise(async (resolve, reject) => {
+                    return new Promise((resolve, reject) => __awaiter(void 0, void 0, void 0, function* () {
                         var _a;
                         try {
-                            const a = (eval(object.code));
+                            const a = (object.codeVersion == 'v2') ? (eval(`(()=>{
+    ${object.code}
+                            })()`)) : (eval(object.code));
                             if (a.then) {
                                 a.then((data) => {
                                     resolve(data);
@@ -470,13 +541,13 @@ style="${gvc.glitter.htmlGenerate.styleEditor(object, gvc).style()}"
                         catch (e) {
                             resolve((_a = object.errorCode) !== null && _a !== void 0 ? _a : false);
                         }
-                    });
+                    }));
                 },
             };
         },
     },
     codeArray: {
-        title: '官方事件-觸發-多項事件判斷',
+        title: '官方事件 / 觸發 / 多項事件判斷',
         fun: (gvc, widget, object, subData, element) => {
             return {
                 editor: () => {
@@ -491,44 +562,46 @@ style="${gvc.glitter.htmlGenerate.styleEditor(object, gvc).style()}"
                                     return EditorElem.arrayItem({
                                         originalArray: object.eventList,
                                         gvc: gvc,
-                                        title: '事件列表',
-                                        array: object.eventList.map((dd, index) => {
-                                            var _a, _b;
-                                            dd.yesEvent = (_a = dd.yesEvent) !== null && _a !== void 0 ? _a : {};
-                                            dd.trigger = (_b = dd.trigger) !== null && _b !== void 0 ? _b : {};
-                                            return {
-                                                title: dd.title || `事件:${index + 1}`,
-                                                expand: dd,
-                                                innerHtml: (() => {
-                                                    var _a;
-                                                    return gvc.map([
-                                                        gvc.glitter.htmlGenerate.editeInput({
-                                                            gvc: gvc,
-                                                            title: '事件標題',
-                                                            default: (_a = dd.title) !== null && _a !== void 0 ? _a : "",
-                                                            placeHolder: '請輸入事件標題',
-                                                            callback: (text) => {
-                                                                dd.title = text;
-                                                                gvc.notifyDataChange(id);
-                                                            },
-                                                        }),
-                                                        TriggerEvent.editer(gvc, widget, dd.yesEvent, {
-                                                            hover: true,
-                                                            option: [],
-                                                            title: "判斷式-返回true則執行事件"
-                                                        }),
-                                                        TriggerEvent.editer(gvc, widget, dd.trigger, {
-                                                            hover: true,
-                                                            option: [],
-                                                            title: "執行事件"
-                                                        })
-                                                    ]);
-                                                }),
-                                                minus: gvc.event(() => {
-                                                    object.eventList.splice(index, 1);
-                                                    gvc.notifyDataChange(id);
-                                                }),
-                                            };
+                                        title: '',
+                                        array: (() => {
+                                            return object.eventList.map((dd, index) => {
+                                                var _a, _b;
+                                                dd.yesEvent = (_a = dd.yesEvent) !== null && _a !== void 0 ? _a : {};
+                                                dd.trigger = (_b = dd.trigger) !== null && _b !== void 0 ? _b : {};
+                                                return {
+                                                    title: dd.title || `事件:${index + 1}`,
+                                                    expand: dd,
+                                                    innerHtml: (() => {
+                                                        var _a;
+                                                        return gvc.map([
+                                                            gvc.glitter.htmlGenerate.editeInput({
+                                                                gvc: gvc,
+                                                                title: '事件標題',
+                                                                default: (_a = dd.title) !== null && _a !== void 0 ? _a : "",
+                                                                placeHolder: '請輸入事件標題',
+                                                                callback: (text) => {
+                                                                    dd.title = text;
+                                                                    gvc.notifyDataChange(id);
+                                                                },
+                                                            }),
+                                                            TriggerEvent.editer(gvc, widget, dd.yesEvent, {
+                                                                hover: true,
+                                                                option: [],
+                                                                title: "判斷式-返回true則執行事件"
+                                                            }),
+                                                            TriggerEvent.editer(gvc, widget, dd.trigger, {
+                                                                hover: true,
+                                                                option: [],
+                                                                title: "執行事件"
+                                                            })
+                                                        ]);
+                                                    }),
+                                                    minus: gvc.event(() => {
+                                                        object.eventList.splice(index, 1);
+                                                        gvc.notifyDataChange(id);
+                                                    }),
+                                                };
+                                            });
                                         }),
                                         expand: object,
                                         plus: {
@@ -540,7 +613,8 @@ style="${gvc.glitter.htmlGenerate.styleEditor(object, gvc).style()}"
                                         },
                                         refreshComponent: () => {
                                             gvc.notifyDataChange(id);
-                                        }
+                                        },
+                                        customEditor: true
                                     });
                                 }
                                 catch (e) {
@@ -552,18 +626,18 @@ style="${gvc.glitter.htmlGenerate.styleEditor(object, gvc).style()}"
                     });
                 },
                 event: () => {
-                    return new Promise(async (resolve, reject) => {
+                    return new Promise((resolve, reject) => __awaiter(void 0, void 0, void 0, function* () {
                         var _a;
                         try {
                             for (const a of object.eventList) {
-                                const result = await TriggerEvent.trigger({
+                                const result = yield TriggerEvent.trigger({
                                     gvc: gvc,
                                     widget: widget,
                                     clickEvent: a.yesEvent,
                                     subData: subData
                                 });
                                 if (result) {
-                                    const response = await TriggerEvent.trigger({
+                                    const response = yield TriggerEvent.trigger({
                                         gvc: gvc,
                                         widget: widget,
                                         clickEvent: a.trigger,
@@ -578,13 +652,13 @@ style="${gvc.glitter.htmlGenerate.styleEditor(object, gvc).style()}"
                         catch (e) {
                             resolve((_a = object.errorCode) !== null && _a !== void 0 ? _a : false);
                         }
-                    });
+                    }));
                 },
             };
         },
     },
     registerNotify: {
-        title: '官方事件-推播-註冊推播頻道',
+        title: '官方事件 / 推播 / 註冊推播頻道',
         fun: (gvc, widget, object, subData, element) => {
             var _a;
             object.getEvent = (_a = object.getEvent) !== null && _a !== void 0 ? _a : {};
@@ -597,10 +671,10 @@ style="${gvc.glitter.htmlGenerate.styleEditor(object, gvc).style()}"
                     });
                 },
                 event: () => {
-                    return new Promise(async (resolve, reject) => {
+                    return new Promise((resolve, reject) => __awaiter(void 0, void 0, void 0, function* () {
                         var _a;
                         try {
-                            const topic = await TriggerEvent.trigger({
+                            const topic = yield TriggerEvent.trigger({
                                 gvc, widget, clickEvent: object.getEvent, subData: subData, element
                             });
                             if (typeof topic != "object") {
@@ -622,20 +696,20 @@ style="${gvc.glitter.htmlGenerate.styleEditor(object, gvc).style()}"
                         catch (e) {
                             resolve((_a = object.errorCode) !== null && _a !== void 0 ? _a : false);
                         }
-                    });
+                    }));
                 },
             };
         },
     },
     getFcm: {
-        title: '官方事件-推播-取得推播ID',
+        title: '官方事件 / 推播 / 取得推播ID',
         fun: (gvc, widget, object, subData, element) => {
             return {
                 editor: () => {
                     return ``;
                 },
                 event: () => {
-                    return new Promise(async (resolve, reject) => {
+                    return new Promise((resolve, reject) => __awaiter(void 0, void 0, void 0, function* () {
                         var _a;
                         try {
                             gvc.glitter.runJsInterFace("getFireBaseToken", {}, (response) => {
@@ -645,20 +719,20 @@ style="${gvc.glitter.htmlGenerate.styleEditor(object, gvc).style()}"
                         catch (e) {
                             resolve((_a = object.errorCode) !== null && _a !== void 0 ? _a : false);
                         }
-                    });
+                    }));
                 },
             };
         },
     },
     deleteFireBaseToken: {
-        title: '官方事件-推播-移除推播註冊',
+        title: '官方事件 / 推播 / 移除推播註冊',
         fun: (gvc, widget, object, subData, element) => {
             return {
                 editor: () => {
                     return ``;
                 },
                 event: () => {
-                    return new Promise(async (resolve, reject) => {
+                    return new Promise((resolve, reject) => __awaiter(void 0, void 0, void 0, function* () {
                         var _a;
                         try {
                             gvc.glitter.runJsInterFace("deleteFireBaseToken", {}, (response) => {
@@ -668,13 +742,13 @@ style="${gvc.glitter.htmlGenerate.styleEditor(object, gvc).style()}"
                         catch (e) {
                             resolve((_a = object.errorCode) !== null && _a !== void 0 ? _a : false);
                         }
-                    });
+                    }));
                 },
             };
         },
     },
     api: {
-        title: "官方事件-Lambda-API",
+        title: "官方事件 / Lambda / API",
         fun: (gvc, widget, object, subData, element) => {
             var _a, _b, _c, _d;
             object.postEvent = (_a = object.postEvent) !== null && _a !== void 0 ? _a : {};
@@ -765,8 +839,8 @@ style="${gvc.glitter.htmlGenerate.styleEditor(object, gvc).style()}"
                     });
                 },
                 event: () => {
-                    return new Promise(async (resolve, reject) => {
-                        const data = await TriggerEvent.trigger({
+                    return new Promise((resolve, reject) => __awaiter(void 0, void 0, void 0, function* () {
+                        const data = yield TriggerEvent.trigger({
                             gvc: gvc,
                             widget: widget,
                             clickEvent: object.postEvent,
@@ -777,7 +851,7 @@ style="${gvc.glitter.htmlGenerate.styleEditor(object, gvc).style()}"
                         for (const b of object.queryParameters) {
                             query.push({
                                 key: b.key,
-                                value: (await TriggerEvent.trigger({
+                                value: (yield TriggerEvent.trigger({
                                     gvc: gvc,
                                     widget: widget,
                                     clickEvent: b,
@@ -815,12 +889,32 @@ style="${gvc.glitter.htmlGenerate.styleEditor(object, gvc).style()}"
                                 resolve(undefined);
                             }
                         });
-                    });
+                    }));
                 }
             };
         }
     }
 });
+function questionText(data) {
+    return `<div class="bg-secondary rounded-3 py-2 px-2 ">
+          <h2 class="text-center my-3 mt-2" style="font-size:22px;">使用方法說明</h2>
+             <div class="accordion mx-2" id="faq">
+                ${data.map((dd, index) => {
+        return ` <div class="accordion-item border-0 rounded-3 shadow-sm mb-3">
+                  <h3 class="accordion-header">
+                    <button class="accordion-button shadow-none rounded-3 ${(index === 0) ? '' : 'collapsed'}" type="button" data-bs-toggle="collapse" data-bs-target="#q-${index}" aria-expanded="false" aria-controls="q-1">${dd.title}</button>
+                  </h3>
+                  <div class="accordion-collapse collapse ${(index === 0) ? 'show' : ''}" id="q-${index}" data-bs-parent="#faq" style="">
+                    <div class="accordion-body fs-sm pt-0">
+                     ${dd.content}
+                    </div>
+                  </div>
+                </div>`;
+    }).join('')}
+              
+              </div>
+        </div>`;
+}
 function getConfig() {
     const saasConfig = window.saasConfig;
     return saasConfig;

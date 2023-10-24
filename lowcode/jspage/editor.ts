@@ -63,7 +63,7 @@ export class Editor {
    background: -webkit-linear-gradient(135deg, #667eea 0%, #764ba2 100%);
    background-clip: text;
    -webkit-background-clip: text;
-   color: transparent;">GLITTER.EDITOR </span>
+   color: transparent;">GLITTER.EDITOR<span class="ms-1" style="font-size: 11px;">${glitter.share.editerVersion}</span></span>
 
                             </div>
                             <div class="d-flex align-items-center w-100">
@@ -164,6 +164,7 @@ export class Editor {
                                     </div>
                                 </div>
                                 <div class="flex-fill"></div>
+                              
                                 <div class="d-flex align-items-center justify-content-center  me-2 border ${(glitter.share.inspect) ? `activeBtn`:``}"
                                      style="height:36px;width:36px;border-radius:10px;cursor:pointer;"
                                      onclick="${gvc.event(() => {
@@ -172,7 +173,6 @@ export class Editor {
                                      })}">
                                     <i class="fa-sharp fa-regular fa-arrow-pointer"></i>
                                 </div>
-                               
                                 <div class="d-flex align-items-center justify-content-center hoverBtn me-2 border"
                                      style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;"
                                      onclick="${gvc.event(() => {
@@ -247,7 +247,7 @@ export class Editor {
    background: -webkit-linear-gradient(135deg, #667eea 0%, #764ba2 100%);
    background-clip: text;
    -webkit-background-clip: text;
-   color: transparent;">GLITTER.EDITOR </span>
+   color: transparent;">GLITTER.EDITOR<span class="ms-1" style="font-size: 11px;">${glitter.share.editerVersion}</span></span>
 
                             </div>
                         </div>
@@ -255,7 +255,7 @@ export class Editor {
                     </aside>
                     <!-- Page container -->
                     <main class="docs-container"
-                          style="padding-top: 40px;padding-right:${(viewModel.type===ViewType.col3) ? `290`:`0`}px;${(viewModel.type === ViewType.fullScreen) ? `padding-left:0px;` : `
+                          style="padding-top: 40px;padding-right:${(viewModel.type===ViewType.col3 || viewModel.type===ViewType.mobile) ? `290`:`0`}px;${(viewModel.type === ViewType.fullScreen) ? `padding-left:0px;` : `
                           padding-left:20rem;
                           `}">
                         ${gvc.bindView({
@@ -280,7 +280,7 @@ export class Editor {
                             },
                             divCreate:{
                                 elem:`aside`,
-                                class:`p-0  side-nav-end  position-fixed top-0 end-0 vh-100 border-start  bg-white ${(viewModel.type===ViewType.col3) ? ``:`d-none`}`,style:`width: 290px;padding-top:60px !important;`
+                                class:`p-0  side-nav-end  position-fixed top-0 end-0 vh-100 border-start  bg-white ${(viewModel.type===ViewType.col3 || (viewModel.type===ViewType.mobile)) ? ``:`d-none`}`,style:`width: 290px;padding-top:60px !important;`
                             }
                         }
                     })}

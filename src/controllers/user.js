@@ -4,6 +4,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 const express_1 = __importDefault(require("express"));
 const response_1 = __importDefault(require("../modules/response"));
+const database_1 = __importDefault(require("../modules/database"));
+const config_1 = require("../config");
 const user_1 = require("../services/user");
 const exception_1 = __importDefault(require("../modules/exception"));
 const router = express_1.default.Router();
@@ -28,6 +30,17 @@ router.post('/login', async (req, resp) => {
         else {
             return response_1.default.succ(resp, { userData: await user_1.User.login(req.body.account, req.body.pwd) });
         }
+    }
+    catch (err) {
+        return response_1.default.fail(resp, err);
+    }
+});
+router.get('/editorToken', async (req, resp) => {
+    try {
+        return response_1.default.succ(resp, {
+            result: true,
+            token: ((await database_1.default.execute(`select editor_token from \`${config_1.saasConfig.SAAS_NAME}\`.user where account=?`, [req.body.token.account]))[0]['editor_token'])
+        });
     }
     catch (err) {
         return response_1.default.fail(resp, err);

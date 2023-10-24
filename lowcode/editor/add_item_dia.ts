@@ -896,7 +896,7 @@ class Add_item_dia {
                     dialog.errorMessage({text: "請輸入描述語句"})
                     return
                 }
-                glitter.openDiaLog('dialog/ai-progress.js', 'ai-progress', {})
+                dialog.dataLoading({text:"AI運算中",visible:true})
                 BaseApi.create({
                     "url": config.url + `/api/v1/ai/generate-html`,
                     "type": "POST",
@@ -908,7 +908,7 @@ class Add_item_dia {
                         "search": configText
                     })
                 }).then((re) => {
-                    glitter.closeDiaLog('ai-progress')
+                    dialog.dataLoading({visible:false})
                     if (re.result) {
                         const html = document.createElement('body');
                         console.log(`responseData:` + re.response.data)
@@ -1101,7 +1101,7 @@ class Add_item_dia {
                         } else {
                             gvc.glitter.share.addComponent(data);
                         }
-                    })}">添加標籤</a>`
+                    })}">添加資源</a>`
                 }
             }
         })

@@ -40,6 +40,7 @@ const database_2 = __importDefault(require("./modules/database"));
 const AWSLib_1 = require("./modules/AWSLib");
 const aws_sdk_1 = __importDefault(require("aws-sdk"));
 const live_source_1 = require("./live_source");
+const process = __importStar(require("process"));
 exports.app = (0, express_1.default)();
 const logger = new logger_1.default();
 const corsOptions = {
@@ -219,13 +220,13 @@ async function createAPP(dd) {
                             redirect += `&type=${req.query.type}`;
                         }
                     }
-                    return (() => {
+                    return `${(() => {
                         var _a, _b, _c, _d, _e, _f, _g, _h, _j;
                         data.page_config = (_a = data.page_config) !== null && _a !== void 0 ? _a : {};
                         if (data && data.page_config) {
                             const d = (_b = data.page_config.seo) !== null && _b !== void 0 ? _b : {};
                             return `<title>${(_c = d.title) !== null && _c !== void 0 ? _c : "尚未設定標題"}</title>
- <link rel="canonical" href="./?page=${data.tag}">
+    <link rel="canonical" href="./?page=${data.tag}">
     <meta name="keywords" content="${(_d = d.keywords) !== null && _d !== void 0 ? _d : "尚未設定關鍵字"}" />
     <link id="appImage" rel="shortcut icon" href="${(_e = d.logo) !== null && _e !== void 0 ? _e : ""}" type="image/x-icon">
     <link rel="icon" href="${(_f = d.logo) !== null && _f !== void 0 ? _f : ""}" type="image/png" sizes="128x128">
@@ -249,13 +250,15 @@ window.location.href='?page=${redirect}';
 window.location.href='?page=${redirect}';
 </script>`;
                         }
-                    })() + `<script>
+                    })()}<script>
 window.appName='${dd.appName}';
+window.glitterBackend='${config_1.config.domain}';
 </script>`;
                 }
                 catch (e) {
                     return `<script>
 window.appName='${dd.appName}';
+window.glitterBackend='${config_1.config.domain}';
 </script>`;
                 }
             }

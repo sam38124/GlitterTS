@@ -2,6 +2,32 @@ import { config } from "../config.js";
 import { BaseApi } from "./base.js";
 export class ApiPageConfig {
     constructor() { }
+    static getAppConfig() {
+        return BaseApi.create({
+            "url": config.url + `/api/v1/app?app_name=${config.appName}`,
+            "type": "GET",
+            "timeout": 0,
+            "headers": {
+                "Content-Type": "application/json",
+                "Authorization": config.token
+            }
+        });
+    }
+    static setDomain(domain) {
+        return BaseApi.create({
+            "url": config.url + `/api/v1/app/domain`,
+            "type": "PUT",
+            "timeout": 0,
+            "headers": {
+                "Content-Type": "application/json",
+                "Authorization": config.token
+            },
+            data: JSON.stringify({
+                app_name: config.appName,
+                domain: domain
+            })
+        });
+    }
     static getPage(appName, tag) {
         return BaseApi.create({
             "url": config.url + `/api/v1/template?appName=${appName}` + (tag ? `&tag=${tag}` : ""),
@@ -90,6 +116,16 @@ export class ApiPageConfig {
     static getPrivateConfig(appName, key) {
         return BaseApi.create({
             "url": config.url + `/api/v1/private?appName=${appName}&key=${key}`,
+            "type": "GET",
+            "headers": {
+                "Content-Type": "application/json",
+                "Authorization": config.token
+            }
+        });
+    }
+    static getEditorToken() {
+        return BaseApi.create({
+            "url": config.url + `/api/v1/user/editorToken`,
             "type": "GET",
             "headers": {
                 "Content-Type": "application/json",

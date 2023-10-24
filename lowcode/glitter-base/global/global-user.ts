@@ -4,7 +4,7 @@ export class GlobalUser {
     public static getTag(tag: string) {
         return `${GlobalUser.tagId}${tag}`
     }
-
+    //@ts-ignore
     public static get token() {
         return (window as any).glitter.getCookieByName(GlobalUser.getTag('token'))
     }

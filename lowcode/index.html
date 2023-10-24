@@ -140,13 +140,13 @@
   }
 </style>
 <script>
-    const count = (str) => {
-        const re = /\//g
-        return ((str || '').match(re) || []).length
-    }
-    if(count(location.pathname)===1){
-        location.pathname=location.pathname+"/"
-    }
+    // const count = (str) => {
+    //     const re = /\//g
+    //     return ((str || '').match(re) || []).length
+    // }
+    // if(count(location.pathname)===1){
+    //     location.pathname=location.pathname+"/"
+    // }
 </script>
 <script src="glitterBundle/jquery.js"></script>
 <script src="glitterBundle/GlitterInitial.js" type="module"></script>
@@ -164,5 +164,6 @@
      <div id='Navigation' style="width: 100%;height: 100%;z-index:99999;"></div>
  </aside>
 </body>
+
 
 </html>

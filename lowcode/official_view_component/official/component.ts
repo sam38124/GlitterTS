@@ -28,7 +28,6 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
                                 let fal = 0
                                 let tag = widget.data.tag
                                 let carryData = widget.data.carryData
-
                                 async function getData() {
                                     for (const b of widget.data.list) {
                                         b.evenet = b.evenet ?? {}
@@ -43,7 +42,6 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
                                                     })).then((data) => {
                                                         resolve(data)
                                                     })
-
                                                 })
                                                 if (result) {
                                                     tag = b.tag
@@ -57,12 +55,9 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
                                                     break
                                                 }
                                             }
-                                        } catch (e) {
-
-                                        }
-
+                                        } catch (e) {}
                                     }
-                                    let sub: any = subData ?? {}
+                                    let sub: any =  JSON.parse(JSON.stringify(subData))
                                     try {
                                         sub.carryData = await TriggerEvent.trigger({
                                             gvc: gvc,
@@ -80,7 +75,6 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
                                             "Content-Type": "application/json"
                                         }
                                     }).then((d2) => {
-                                        console.log(`data====`, d2)
                                         try {
                                             if (!d2.result) {
                                                 fal += 1
@@ -96,7 +90,7 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
                                                 })
 
                                                 let createOption = (htmlGenerate ?? {}).createOption ?? {}
-                                                target!.outerHTML = new glitter.htmlGenerate(data.config, [], subData).render(gvc, undefined, createOption ?? {});
+                                                target!.outerHTML = new glitter.htmlGenerate(data.config, [], sub).render(gvc, undefined, createOption ?? {});
 
                                             }
                                         } catch (e) {
@@ -181,7 +175,7 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
                                         return TriggerEvent.editer(gvc, widget, pd.carryData, {
                                             hover: true,
                                             option: [],
-                                            title: "夾帶的資料 - [ 存放於subData.carryData中 ]"
+                                            title: "夾帶資料<[ subData.carryData ]>"
                                         })
                                     })()
                                 },
@@ -207,8 +201,8 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
                                                              <div class="btn btn-primary-c ms-2"
                                                                   style="height:40px;width:80px;"
                                                                   onclick="${gvc.event(() => {
-                                                    widget.refreshAll()
                                                     gvc.closeDialog();
+                                                    widget.refreshComponent()
                                                 })}"><i class="fa-solid fa-floppy-disk me-2"></i>儲存
                                                              </div>
                                                          </div>`

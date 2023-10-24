@@ -107,13 +107,19 @@ class App {
             throw exception_1.default.BadRequestError((_a = e.code) !== null && _a !== void 0 ? _a : 'BAD_REQUEST', e, null);
         }
     }
-    async getAPP() {
+    async getAPP(query) {
         var _a;
         try {
             return (await database_1.default.execute(`
                 SELECT *
                 FROM \`${config_1.saasConfig.SAAS_NAME}\`.app_config
-                where user = '${this.token.userID}';
+                where  ${(() => {
+                const sql = [`user = '${this.token.userID}'`];
+                if (query.app_name) {
+                    sql.push(` appName='${query.app_name}' `);
+                }
+                return sql.join(' and ');
+            })()};
             `, []));
         }
         catch (e) {
@@ -151,7 +157,6 @@ class App {
     async setAppConfig(config) {
         var _a, _b;
         try {
-            console.log(`lambdaView--`, config.data.lambdaView);
             const official = (await database_1.default.query(`SELECT count(1)
                                               FROM \`${config_1.saasConfig.SAAS_NAME}\`.user
                                               where userID = ?
@@ -181,6 +186,17 @@ class App {
         }
         catch (e) {
             throw exception_1.default.BadRequestError((_b = e.code) !== null && _b !== void 0 ? _b : 'BAD_REQUEST', e, null);
+        }
+    }
+    async setDomain(config) {
+        var _a;
+        try {
+            return ((await database_1.default.execute(`
+                update \`${config_1.saasConfig.SAAS_NAME}\`.app_config set domain=? where appName=?
+            `, [config.domain, config.appName])));
+        }
+        catch (e) {
+            throw exception_1.default.BadRequestError((_a = e.code) !== null && _a !== void 0 ? _a : 'BAD_REQUEST', e, null);
         }
     }
     async deleteAPP(config) {

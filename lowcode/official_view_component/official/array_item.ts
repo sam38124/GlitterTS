@@ -23,9 +23,10 @@ export const array_item = Plugin.createComponent(import.meta.url, (glitter: Glit
                     const id = glitter.getUUID()
                     let loading = ``
                     let views: any = undefined;
-
+                    const vm={
+                        loading:true
+                    }
                     new Promise(async (resolve, reject) => {
-                        loading = await component.render(gvc, widget.data.loading, setting, hoverID, subData).view()
                         let view: any = []
                         let createOption = (() => {
                             return {
@@ -33,7 +34,6 @@ export const array_item = Plugin.createComponent(import.meta.url, (glitter: Glit
                                 style: glitter.htmlGenerate.styleEditor(widget.data).style()
                             }
                         })
-
                         const data: any = (await TriggerEvent.trigger({
                             gvc, widget, clickEvent: widget.data, subData: subData
                         }))
@@ -49,7 +49,6 @@ export const array_item = Plugin.createComponent(import.meta.url, (glitter: Glit
                                     for (const b of widget.data.list) {
                                         b.evenet = b.evenet ?? {}
                                         try {
-
                                             if (b.triggerType === 'trigger') {
                                                 const result = await new Promise((resolve, reject) => {
                                                     (TriggerEvent.trigger({
@@ -126,13 +125,12 @@ export const array_item = Plugin.createComponent(import.meta.url, (glitter: Glit
 
                             }
 
-                            const data2 = view.join('') || (await component.render(gvc, widget.data.empty, setting, hoverID, subData, {
-                                createOption: {}
-                            }).view())
+                            const data2 = view.join('')
                             resolve(data2)
                         }
                         getView().then(r => {})
                     }).then((data: any) => {
+                        vm.loading=false
                         views = data
                         glitter.share.notify=glitter.share.notify??{}
                         gvc.notifyDataChange(id)
@@ -141,11 +139,15 @@ export const array_item = Plugin.createComponent(import.meta.url, (glitter: Glit
                         return {
                             bind: id,
                             view: () => {
+if(vm.loading){
+    return component.render(gvc, widget.data.loading, setting, hoverID, subData).view() || `<span>loading...</span>`
+}else if(views){
+    return views
+}else{
+    return  component.render(gvc, widget.data.empty, setting, hoverID, subData).view()
+}
 
-                                if (views) {
-                                    return views
-                                }
-                                return `<span>loading...</span>`
+
                                 // try {
                                 //     return loading
                                 // } catch (e) {

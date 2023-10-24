@@ -126,6 +126,7 @@ export class TriggerEvent {
 
     public static create(url: string, event: {
         [name: string]: {
+            subContent?:string,
             title: string, fun: (gvc: GVC, widget: HtmlJson, obj: any, subData?: any, element?: { e: any, event: any }) => {
                 editor: () => string,
                 event: (() => void) | Promise<any>
@@ -256,283 +257,29 @@ export class TriggerEvent {
         option: string[],
         title?: string
     } = {hover: false, option: []}) {
-        // return ``
-        return `
-<div class="w-100">
-<button class="btn btn-warning border-white mt-2 w-100 text-dark" onclick="${gvc.event(() => {
-            const tag = gvc.glitter.getUUID();
-            gvc.glitter.share.clickEvent = gvc.glitter.share.clickEvent ?? {}
-            const glitter = gvc.glitter
-            let arrayEvent: any[] = []
-            if (obj.clickEvent !== undefined && Array.isArray(obj.clickEvent)) {
-                arrayEvent = obj.clickEvent
-            } else if (obj.clickEvent !== undefined) {
-                arrayEvent = [JSON.parse(JSON.stringify(obj))]
-            }
-            obj.clickEvent = arrayEvent;
-            (window as any).glitter.innerDialog((gvc: GVC) => {
-                return gvc.bindView(() => {
-                    const did = glitter.getUUID()
-                    return {
-                        bind: did,
-                        view: () => {
-                            return ` <div class="w-100 d-flex align-items-center border-bottom justify-content-center position-relative" style="height: 68px;">
-        <h3 class="modal-title fs-4">事件叢集設定</h3>
-        <i class="fa-solid fa-xmark text-dark position-absolute " style="font-size:20px;transform: translateY(-50%);right: 20px;top: 50%;cursor: pointer;"
-        onclick="${gvc.event(() => {
-                                glitter.closeDiaLog(tag);
-                            })}"></i>
-</div>    
-
-<div class="mt-2 border border-white p-2">
-<div class="alert alert-info " style="white-space:normal;">
-透過事件來為您的元件添加觸發事件，包含連結跳轉/內容取得/資料儲存/頁面渲染/動畫事件/內容發布....等，都能透過事件來完成．
-</div>
-${Editor.arrayItem({
-                                originalArray: arrayEvent,
-                                gvc: gvc,
-                                title: '事件集',
-                                array: arrayEvent.map((obj: any, index: number) => {
-                                    return {
-                                        title: `第${index + 1}個觸發事件`,
-                                        expand: obj,
-                                        innerHtml: () => {
-                                            const selectID = glitter.getUUID()
-                                            return gvc.bindView(() => {
-                                                return {
-                                                    bind: selectID,
-                                                    view: () => {
-                                                        var select = false
-                                                        return `<select class="form-select m-0 mt-2" onchange="${gvc.event((e) => {
-                                                            if (e.value === 'undefined') {
-                                                                obj.clickEvent = undefined
-                                                            } else {
-                                                                obj.clickEvent = JSON.parse(e.value)
-                                                                obj.clickEvent.src = TriggerEvent.getUrlParameter(obj.clickEvent.src, 'resource') ?? obj.clickEvent.src
-                                                            }
-                                                            gvc.notifyDataChange(selectID)
-                                                        })}">
-                        
-                        ${gvc.map(Object.keys(glitter.share?.clickEvent || {}).filter((dd) => {
-                                                            return TriggerEvent.getUrlParameter(dd, "resource") !== undefined
-                                                        }).map((key) => {
-                                                            const value = glitter.share.clickEvent[key]
-                                                            return gvc.map(Object.keys(value).map((v2) => {
-                                                                if (option.option.length > 0) {
-                                                                    if (option.option.indexOf(v2) === -1) {
-                                                                        return ``
-                                                                    }
-                                                                }
-                                                                const value2 = value[v2]
-                                                                const selected = JSON.stringify({
-                                                                    src: TriggerEvent.getUrlParameter(key, 'resource') ?? obj.clickEvent.src,
-                                                                    route: v2
-                                                                }) === JSON.stringify(obj.clickEvent)
-                                                                select = selected || select
-                                                                return `<option value='${JSON.stringify({
-                                                                    src: key,
-                                                                    route: v2
-                                                                })}' ${(selected) ? `selected` : ``}>${value2.title}</option>`
-                                                            }))
-                                                        }))
-                                                        }
-<option value="undefined"  ${(!select) ? `selected` : ``}>未定義</option>
-</select>
-<div class="mt-2">${(() => {
-                                                            obj.pluginExpand = obj.pluginExpand ?? {}
-                                                            return Editor.toggleExpand({
-                                                                gvc: gvc,
-                                                                title: "<span class='text-black' style=''>插件拓展項目</span>",
-                                                                data: obj.pluginExpand,
-                                                                innerText: () => {
-                                                                    return gvc.bindView(() => {
-                                                                        const id = glitter.getUUID()
-                                                                        setTimeout(() => {
-                                                                            gvc.notifyDataChange(id)
-                                                                        }, 200)
-                                                                        return {
-                                                                            bind: id,
-                                                                            view: () => {
-                                                                                try {
-                                                                                    let text = ``
-                                                                                    if (!glitter.share.clickEvent[TriggerEvent.getLink(obj.clickEvent.src)]) {
-                                                                                        text = ``
-                                                                                    } else {
-                                                                                        text = glitter.share.clickEvent[TriggerEvent.getLink(obj.clickEvent.src)][obj.clickEvent.route].fun(gvc, widget, obj).editor()
-                                                                                    }
-                                                                                    if (text.replace(/ /g, '') === '') {
-                                                                                        return `<span>此事件無設定拓展項目</span>`
-                                                                                    }
-                                                                                    return text
-                                                                                } catch (e) {
-                                                                                    return ``
-                                                                                }
-                                                                            },
-                                                                            divCreate: {},
-                                                                            onCreate: () => {
-                                                                                console.log(`reload---`, TriggerEvent.getLink(obj.clickEvent.src))
-                                                                                glitter.share.clickEvent = glitter.share.clickEvent ?? {}
-                                                                                try {
-                                                                                    if (!glitter.share.clickEvent[TriggerEvent.getLink(obj.clickEvent.src)]) {
-                                                                                        glitter.addMtScript([
-                                                                                            {
-                                                                                                src: TriggerEvent.getLink(obj.clickEvent.src),
-                                                                                                type: 'module'
-                                                                                            }
-                                                                                        ], () => {
-                                                                                            setTimeout(() => {
-                                                                                                gvc.notifyDataChange(id)
-                                                                                            }, 200)
-
-                                                                                        }, () => {
-                                                                                            console.log(`loadingError:` + obj.clickEvent.src)
-                                                                                        })
-                                                                                    }
-                                                                                } catch (e) {
-                                                                                }
-
-                                                                            }
-                                                                        }
-                                                                    })
-                                                                },
-                                                                class: ` `,
-                                                                style: `background:#65379B;border:2px solid white;`,
-                                                            })
-                                                        })()}</div>
-${(() => {
-                                                            obj.dataPlaceExpand = obj.dataPlaceExpand ?? {}
-                                                            obj.errorPlaceExpand = obj.errorPlaceExpand ?? {}
-                                                            obj.blockExpand = obj.blockExpand ?? {}
-                                                            return `<div class="mt-2 border-white rounded" style="border-width:3px;">
-${Editor.toggleExpand({
-                                                                gvc: gvc,
-                                                                title: "<span class='text-black' style=''>返回事件</span>",
-                                                                data: obj.dataPlaceExpand,
-                                                                innerText: () => {
-                                                                    return glitter.htmlGenerate.editeText({
-                                                                        gvc: gvc,
-                                                                        title: "",
-                                                                        default: obj.dataPlace ?? "",
-                                                                        placeHolder: `執行事件或儲存返回資料:
-範例:
- (()=>{
-   //將資料儲存於當前頁面．
-   gvc.saveData=response;
-   //將資料儲存於全域變數中
-   glitter.share.saveData=response
-     })()`,
-                                                                        callback: (text: string) => {
-                                                                            obj.dataPlace = text
-                                                                            widget.refreshComponent()
-                                                                        }
-                                                                    })
-                                                                },
-                                                                class: ` `,
-                                                                style: `background:#65379B;border:2px solid white;`,
-                                                            })}
-</div>` + `<div class="mt-2 border-white rounded" style="border-width:3px;">${Editor.toggleExpand({
-                                                                gvc: gvc,
-                                                                title: "<span class='text-black' style=''>異常返回值</span>",
-                                                                data: obj.errorPlaceExpand,
-                                                                innerText: () => {
-                                                                    return glitter.htmlGenerate.editeInput({
-                                                                        gvc: gvc,
-                                                                        title: "",
-                                                                        default: obj.errorCode ?? "",
-                                                                        placeHolder: `請輸入參數值`,
-                                                                        callback: (text: string) => {
-                                                                            obj.errorCode = text
-                                                                            widget.refreshComponent()
-                                                                        }
-                                                                    })
-                                                                },
-                                                                class: ` `,
-                                                                style: `background:#65379B;border:2px solid white;`,
-                                                            })}</div>` + `<div class="mt-2 border-white rounded" style="border-width:3px;">
-${Editor.toggleExpand({
-                                                                gvc: gvc,
-                                                                title: "<span class='text-black' style=''>中斷指令</span>",
-                                                                data: obj.blockExpand,
-                                                                innerText: () => {
-                                                                    return glitter.htmlGenerate.editeText({
-                                                                        gvc: gvc,
-                                                                        title: "",
-                                                                        default: obj.blockCommand ?? "",
-                                                                        placeHolder: `返回true則中斷指令不往下繼續執行:
-範例:
- (()=>{
-  return gvc.getBundle()['identify']==='';
-     })()`,
-                                                                        callback: (text: string) => {
-                                                                            obj.blockCommand = text
-                                                                            widget.refreshComponent()
-                                                                        }
-                                                                    })
-                                                                },
-                                                                class: ` `,
-                                                                style: `background:#65379B;border:2px solid white;`,
-                                                            })}
-</div>`
-                                                        })()}
-
-`
-                                                    },
-                                                    divCreate: {}
-                                                }
-                                            })
-                                        },
-                                        minus: gvc.event(() => {
-                                            arrayEvent.splice(index, 1);
-                                            gvc.notifyDataChange(did)
-                                        }),
-                                    };
-                                }),
-                                expand: {expand: true},
-                                plus: {
-                                    title: '添加事件',
-                                    event: gvc.event(() => {
-                                        arrayEvent.push({});
-                                        gvc.notifyDataChange(did)
-                                    }),
-                                },
-                                refreshComponent: () => {
-                                    gvc.recreateView()
-                                }
-                            })}
-</div>
-<div class="d-flex border-top py-2 px-2 justify-content-end">
-<button class="btn btn-warning d-flex align-items-center text-dark" onclick="${gvc.event(() => {
-                                glitter.closeDiaLog(tag);
-                            })}"><i class="fa-solid fa-floppy-disk me-2"></i>儲存</button>
-</div>
-`
-                        },
-                        divCreate: {
-                            class: `m-auto bg-white shadow rounded overflow-auto`,
-                            style: `max-width: 100%;max-height: calc(100% - 20px);width:700px;`
-                        }
-                    }
-                })
-
-            }, tag)
-        })}">${option.title ?? "觸發事件"}</button>
-</div>
-
-`
+        const glitter = (window as any).glitter
+        if(TriggerEvent.isEditMode()){
+            return glitter.share.editorBridge['TriggerEventBridge'].editer(gvc,widget,obj,option)
+        }else{
+            return ``
+        }
     }
 
     public static getLink(url: string) {
-        // alert('ss')
-        const glitter = (window as any).glitter
-        url=glitter.htmlGenerate.resourceHook(url)
-        if(!url.startsWith('http')&&!url.startsWith('https')){
-            if(TriggerEvent.isEditMode()){
-                url=new URL(`./${url}`,location.href).href
-            }else{
-                url=new URL(`./${url}`,location.href).href
+        if((window as any).glitter.htmlGenerate.getResourceLink){
+            return (window as any).glitter.htmlGenerate.getResourceLink(url)
+        }else{
+            const glitter = (window as any).glitter
+            url=glitter.htmlGenerate.resourceHook(url)
+            if(!url.startsWith('http')&&!url.startsWith('https')){
+                if(TriggerEvent.isEditMode()){
+                    url=new URL(`./${url}`,location.href).href
+                }else{
+                    url=new URL(`./${url}`,location.href).href
+                }
             }
+            return url
         }
-        return url
     }
     public static isEditMode() {
         try {

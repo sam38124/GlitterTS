@@ -6,6 +6,7 @@ const express_1 = __importDefault(require("express"));
 const response_1 = __importDefault(require("../../modules/response"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const redis_1 = __importDefault(require("../../modules/redis"));
+const database_1 = __importDefault(require("../../modules/database"));
 const config_1 = require("../../config");
 const router = express_1.default.Router();
 const logger_1 = __importDefault(require("../../modules/logger"));
@@ -66,8 +67,11 @@ async function doAuthAction(req, resp, next) {
         req.body.token = jsonwebtoken_1.default.verify(token, config_1.config.SECRET_KEY);
         const redisToken = await redis_1.default.getValue(token);
         if (!redisToken) {
-            logger.error(TAG, 'Token is not match in redis.');
-            return response_1.default.fail(resp, exception_1.default.PermissionError('INVALID_TOKEN', 'invalid token'));
+            const tokenCheck = await database_1.default.query(`select count(1)  from  \`${config_1.saasConfig.SAAS_NAME}\`.user where editor_token=?`, [token]);
+            if (tokenCheck[0]['count(1)'] !== 1) {
+                logger.error(TAG, 'Token is not match in redis.');
+                return response_1.default.fail(resp, exception_1.default.PermissionError('INVALID_TOKEN', 'invalid token'));
+            }
         }
         next();
     }

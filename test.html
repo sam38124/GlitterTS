@@ -1,35 +1,36 @@
-<div style="height: 2000px;" id="testContainer">
-  <lottie-player src="https://cdn.shopify.com/s/files/1/0704/0158/9548/files/data_646bc852-1e63-4e09-91d9-c2bfda0f8f84.json?v=1693306862" background="Transparent" speed="1" style="width:100%; max-width: 1000px; margin: 0 auto; position: sticky; top:50px; height: auto; z-index: 99;" direction="1" mode="normal" loop id="Lottie1"></lottie-player>
+<div style="width: 1440px; height: 252px; padding-left: 1069px; padding-right: 366px; flex-direction: column; justify-content: flex-end; align-items: flex-start; display: inline-flex">
+  <div style="width: 5px; height: 252px; flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 16px; display: inline-flex">
+    <div style="align-self: stretch; height: 14px; background: #EF9A3B; border-radius: 6px"></div>
+    <div style="align-self: stretch; height: 14px; background: #EF9A3B; border-radius: 6px"></div>
+    <div style="align-self: stretch; height: 13px; background: #EF9A3B; border-radius: 6px"></div>
+    <div style="align-self: stretch; height: 13px; background: #EF9A3B; border-radius: 6px"></div>
+    <div style="align-self: stretch; height: 14px; background: #EF9A3B; border-radius: 6px"></div>
+    <div style="align-self: stretch; height: 14px; background: #EF9A3B; border-radius: 6px"></div>
+    <div style="align-self: stretch; height: 14px; background: #EF9A3B; border-radius: 6px"></div>
+    <div style="align-self: stretch; height: 14px; background: #EF9A3B; border-radius: 6px"></div>
+    <div  class="flex-md-row-reverse" style="align-self: stretch; height: 14px; background: #EF9A3B; border-radius: 6px"></div>
+  </div>
+  <div clonauxclick="overflow-x" style="overflow:hidden;width: 5px; height: 252px; position: relative; background: white;justify-content: center;align-items: center;transform: translateY(100px); " class="rounded-circle "></div>
 </div>
-<script>
-  LottieInteractivity.create({
-    mode: 'scroll',
-    player: '#Lottie1',
-    container: "#testContainer",
-    actions: [
-      {
-        visibility: [0.5, 0.7],
-        type: 'seek',
-        frames: [0, 509],
-      },
-    ],
-  });</script>
-<span class="position-absolute end-0 position-relative " style="z-index: -1;top:-50%;transform: translateY(50%);"></span>
-<script>
-  setTimeout(()=>{
-    const rotatingObject = document.getElementById('rotatingObject');
-    let rotationAngle = 0; // 初始旋转角度
 
-    function rotateObject() {
-      // 递增旋转角度
-      rotationAngle += 5;
 
-      // 应用旋转样式
-      rotatingObject.style.transform = `rotate(${rotationAngle}deg)`;
-    }
 
-    // 每100毫秒执行一次rotateObject函数，实现定时旋转
-    const rotationInterval = setInterval(rotateObject, 100);
-  },2000)
+server {
 
-</script>
+server_name ".glitter-ai.com" ;
+
+
+location / {
+# 反向代理到同一台主機的 3000 Port
+proxy_pass http://127.0.0.1:3080;
+# 把 IP、Protocol 等 header 都一起送給反向代理的 server
+proxy_set_header X-Real-IP $remote_addr;
+proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+proxy_set_header X-Forwarded-Proto $http_x_forwarded_proto;
+}
+
+}
+
+sudo certbot --nginx -d glitter-ai.com -d www.glitter-ai.com --non-interactive --agree-tos -m sam38124@gmail.com
+
+nginx -s reload

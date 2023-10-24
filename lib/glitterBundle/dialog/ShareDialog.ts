@@ -30,7 +30,7 @@ export class ShareDialog {
             glitter.openDiaLog('glitterBundle/dialog/dialog.js', 'policy', {type:'policy'})
         };
         this.checkYesOrNot = (obj:{text:string,callback:(response:boolean)=>void})=>{
-            glitter.openDiaLog('glitterBundle/dialog/Dialog.js', 'checkYesOrNot', {
+            glitter.openDiaLog('glitterBundle/dialog/dialog.js', 'checkYesOrNot', {
                 type: 'checkYesOrNot', callback: (response: boolean) => {
                     glitter.closeDiaLog('checkYesOrNot')
                     obj.callback(response)

@@ -23,6 +23,7 @@ exports.SaasScheme = {
   \`pwd\` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   \`userData\` json DEFAULT NULL,
   \`created_time\` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  \`editor_token\` text COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   PRIMARY KEY (\`id\`,\`userID\`),
   UNIQUE KEY \`userID_UNIQUE\` (\`userID\`),
   UNIQUE KEY \`account_UNIQUE\` (\`account\`),

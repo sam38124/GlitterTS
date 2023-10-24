@@ -28,6 +28,16 @@ export class User{
     public static async login(account:string,pwd:string){
         try {
             const data:any=(await db.execute(`select * from \`${saasConfig.SAAS_NAME}\`.user where account=?`,[account]) as any)[0]
+            if(!data.editor_token){
+                const token = await UserUtil.generateToken({
+                    user_id: data["userID"],
+                    account:data["account"],
+                    userData:data
+                });
+                await db.execute(`update \`${saasConfig.SAAS_NAME}\`.user set editor_token=${db.escape(token)} where account=?`,[account])
+            }
+            data['token']=undefined;
+            data['editor_token']=undefined;
             if(await tool.compareHash(pwd, data.pwd)){
                 return {
                     account:account,

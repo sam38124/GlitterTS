@@ -1,11 +1,8 @@
 import {GVC} from "../glitterBundle/GVController.js";
 import {pageManager} from "../setting/pageManager.js";
 import {appCreate, appSetting, fileManager} from "../setting/appSetting.js";
-import {Editor} from "../glitterBundle/plugins/editor.js";
 import {ShareDialog} from "../dialog/ShareDialog.js";
 import {EditorElem} from "../glitterBundle/plugins/editor-elem.js";
-import {HtmlGenerate} from "../glitterBundle/module/Html_generate.js";
-import {TriggerEvent} from "../glitterBundle/plugins/trigger-event.js";
 
 export class Setting_editor {
     public static index = '2'
@@ -86,6 +83,50 @@ export class Setting_editor {
                                                 (save)()
                                             })
                                         }
+                                    })(),
+                                    (() => {
+                                        return {
+                                            title: "開發金鑰",
+                                            view: (gvc: GVC) => {
+                                                return `<div class="alert alert-danger mt-2"
+style="white-space:normal;word-break: break-word;"
+><strong>請注意!!!!!!</strong><br>開發金鑰能使用官方開發的API，來修改頁面參數內容，請勿洩露此密鑰，以免造成資安風險。</div>` + gvc.bindView(() => {
+                                                    const vm = {
+                                                        visible: false,
+                                                        token: ''
+                                                    }
+                                                    const id = glitter.getUUID()
+                                                    const saasConfig: {
+                                                        config: any;
+                                                        api: any;
+                                                    } = (window as any).saasConfig;
+                                                    saasConfig.api.getEditorToken().then((response: any) => {
+                                                        vm.token = response.response.token
+                                                        gvc.notifyDataChange(id)
+                                                    })
+                                                    return {
+                                                        bind: id,
+                                                        view: () => {
+                                                            return `    
+<input class="form-control" type="${vm.visible ? 'text' : 'password'}"
+                                                               value="${vm.token}" readonly>
+                                                        <label class="password-toggle-btn"
+                                                               aria-label="Show/hide password" onclick="${gvc.event(() => {
+                                                                vm.visible = !vm.visible
+                                                                gvc.notifyDataChange(id)
+                                                            })}">
+                                                            <input class="password-toggle-check" type="checkbox">
+                                                            <span class="password-toggle-indicator"></span>
+                                                        </label>`
+                                                        },
+                                                        divCreate: {class: `password-toggle my-2`}
+                                                    }
+                                                })
+
+                                            },
+                                            width: '500px',
+                                            saveAble: false
+                                        }
                                     })()
                                 ]
                                 return `
@@ -101,7 +142,8 @@ export class Setting_editor {
                                                 innerHtml: dd.view,
                                                 editTitle: dd.title,
                                                 saveEvent: dd.saveEvent,
-                                                width: dd.width
+                                                width: dd.width,
+                                                saveAble: dd.saveAble
                                             }
                                         })
                                     },
@@ -172,7 +214,7 @@ export class Setting_editor {
                                                     return vm.data.array.map((dd: any) => {
                                                         return {
                                                             title: dd.title,
-                                                            innerHtml: (gvc:GVC) => {
+                                                            innerHtml: (gvc: GVC) => {
                                                                 return gvc.bindView(() => {
                                                                     glitter.share.backendPlugins = glitter.share.backendPlugins ?? {}
                                                                     const vid = glitter.getUUID()

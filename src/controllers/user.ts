@@ -32,6 +32,18 @@ router.post('/login', async (req: express.Request, resp: express.Response) => {
         return response.fail(resp, err);
     }
 });
+router.get('/editorToken', async (req: express.Request, resp: express.Response) => {
+    try {
+
+       return  response.succ(resp,{
+           result:true,
+           token:((await db.execute(`select editor_token from \`${saasConfig.SAAS_NAME}\`.user where account=?`,[req.body.token.account]) as any)[0]['editor_token'])
+       })
+    } catch (err) {
+        return response.fail(resp, err);
+    }
+});
+
 
 router.get('/checkToken', async (req: express.Request, resp: express.Response) => {
     try {

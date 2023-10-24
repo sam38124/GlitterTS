@@ -6,6 +6,7 @@ import autosize from '../plugins/autosize.js'
 import {widgetComponent} from "../html-component/widget.js";
 import {codeComponent} from "../html-component/code.js";
 import {response} from "express";
+import {TriggerEvent} from "../plugins/trigger-event.js";
 
 export interface HtmlJson {
     route: string;
@@ -50,10 +51,88 @@ export class HtmlGenerate {
 
     public render: (gvc: GVC, option?: { class: string; style: string; divCreate?: boolean, jsFinish?: () => void, containerID?: string }, createOption?: any) => string;
     public exportJson: (setting: HtmlJson[]) => any;
-    public editor: (gvc: GVC, option?: { return_: boolean; refreshAll: () => void; setting?: any[]; deleteEvent?: () => void,hideInfo?:boolean }) => string;
+    public editor: (gvc: GVC, option?: { return_: boolean; refreshAll: () => void; setting?: any[]; deleteEvent?: () => void, hideInfo?: boolean }) => string;
     public static saveEvent = () => {
         alert('save');
     };
+    public static getResourceLink(url: string) {
+        const glitter = (window as any).glitter
+        url=glitter.htmlGenerate.resourceHook(url)
+        if(!url.startsWith('http')&&!url.startsWith('https')){
+            url = new URL(`./${url}`, new URL('../../', import.meta.url).href).href
+        }
+        return url
+    }
+    public static loadScript = (glitter: Glitter, js: { src: string, callback?: (widget: any) => void }[]) => {
+        glitter.share.htmlExtension = glitter.share.htmlExtension ?? {}
+        js.map((dd) => {
+            let key = glitter.htmlGenerate.resourceHook(dd.src)
+            if (!key.includes('http')) {
+                key = new URL(key, new URL('../../', import.meta.url).href).href
+            }
+
+            function checkStore() {
+                const result = glitter.share.htmlExtension[key]
+                if (result) {
+                    dd.callback && dd.callback(glitter.share.htmlExtension[key])
+                }
+                return result
+            }
+
+            if (!checkStore()) {
+                glitter.share.htmlExtensionResourceCallback = glitter.share.htmlExtensionResourceCallback ?? {}
+                glitter.share.htmlExtensionResourceCallback[key] = glitter.share.htmlExtensionResourceCallback[key] ?? []
+                glitter.share.htmlExtensionResourceCallback[key].push(dd.callback)
+                if (!glitter.share.htmlExtension[`_init_${key}`]) {
+                    glitter.share.htmlExtension[`_init_${key}`] = true
+                    Object.defineProperty(glitter.share.htmlExtension, key, {
+                        // getter 函数返回属性的值
+                        get() {
+                            return glitter.share.htmlExtension[`_${key}`];
+                        },
+                        // setter 函数设置属性的值，并触发监听事件
+                        set(newValue) {
+                            glitter.share.htmlExtension[`_${key}`] = newValue
+                            glitter.share.htmlExtensionResourceCallback[key].map((callback: any) => {
+                                callback && callback(newValue)
+                            })
+                        },
+                        // 可选：指定属性是否可枚举
+                        enumerable: true,
+                        // 可选：指定属性是否可配置
+                        configurable: true
+                    });
+                }
+
+            }
+        })
+        glitter.addMtScript(
+            js.map((dd) => {
+                let key = glitter.htmlGenerate.configureCDN(glitter.htmlGenerate.resourceHook(dd.src))
+                if (!key.includes('http')) {
+                    key = new URL(key, new URL('../../', import.meta.url).href).href
+                }
+                return {
+                    type: 'module',
+                    src: key
+                }
+            }),
+            () => {
+            },
+            () => {
+            },
+            [
+                {key: "async", value: "true"}
+            ]
+        );
+    }
+    public static getKey = (js: string) => {
+        let key = (window as any).glitter.htmlGenerate.resourceHook(js)
+        if (!key.includes('http')) {
+            key = new URL(key, location.href).href
+        }
+        return key
+    }
     public static renameWidgetID = (dd: any) => {
         dd.id = (window as any).glitter.getUUID()
         if (dd.type === 'container') {
@@ -94,6 +173,7 @@ export class HtmlGenerate {
 
     public static styleEditor(data: any, gvc?: GVC, widget?: HtmlJson, subData?: any) {
         const glitter = (gvc ?? (window as any)).glitter
+
         return {
             editor: (gvc: GVC, widget: HtmlJson | (() => void), title?: string, option?: any) => {
                 const glitter = (window as any).glitter;
@@ -116,21 +196,75 @@ export class HtmlGenerate {
                 }">${title ?? "設計樣式"}</div><br>`;
             },
             class: () => {
-                let classs = ''
-                try {
-                    classs = eval(data.class)
-                } catch (e) {
-                    classs = data.class
+
+                function getClass(data: any) {
+                    if((data.class ?? "").includes('position-relative mx-auto flex-sm-row')){
+                        console.log(`data.classDataType--`,(data.classDataType))
+                    }
+
+                    let classs = ''
+                    if(data.classDataType==='static'){
+                        return data.class
+                    }else{
+                        try {
+                            if(data.classDataType==='code'){
+                                classs = eval(`(()=>{
+         ${data.class}
+                            })()`)
+                            }else{
+                                classs = eval(data.class)
+                            }
+
+                        } catch (e) {
+                            classs = data.class
+                        }
+                        return classs
+                    }
                 }
-                return classs;
+
+                const tempMap: any = {};
+                (data.stylist ?? []).map((dd: any) => {
+                    tempMap[dd.size] = (() => {
+                        return getClass(dd)
+                    })
+                })
+
+                return glitter.ut.frSize(tempMap, (() => {
+                    return getClass(data)
+                }))()
             },
             style: () => {
                 let styles = ''
-                try {
-                    styles = eval(data.style)
-                } catch (e) {
-                    styles = data.style
+                function getStyle(data: any) {
+
+                    let style = ''
+                    if(data.dataType==='static'){
+                        return data.style
+                    }else{
+
+                        try {
+                            if(data.dataType==='code'){
+                                style = eval(`(()=>{
+         ${data.style}
+                            })()`)
+                            }else{
+                                style = eval(data.style)
+                            }
+                        } catch (e) {
+                            style = data.style
+                        }
+                        return style
+                    }
                 }
+                const tempMap: any = {};
+                (data.stylist ?? []).map((dd: any) => {
+                    tempMap[dd.size] = (() => {
+                        return getStyle(dd)
+                    })
+                })
+                styles=glitter.ut.frSize(tempMap, (() => {
+                    return getStyle(data)
+                }))()
                 let styleString: string[] = [styles];
                 (data.styleList ?? []).map((dd: any) => {
                     Object.keys(dd.data).map((d2) => {
@@ -149,54 +283,7 @@ export class HtmlGenerate {
         style: () => string
     } {
         const glitter = (gvc ?? (window as any)).glitter
-        const response = {
-            editor: (gvc: GVC, widget: HtmlJson | (() => void), title?: string, option?: {
-                writeOnly: string[]
-            }) => {
-                const glitter = (window as any).glitter;
-                return `
-<div type="button" class="btn  w-100 " style="background:white;width:calc(100%);border-radius:8px;
-                    min-height:45px;border:1px solid black;color:#151515;" onclick="${
-                    gvc.event(() => {
-                        glitter.openDiaLog("glitterBundle/plugins/dialog-style-editor.js", "dialog-style-editor", {
-                            callback: () => {
-                                if (typeof widget === 'function') {
-                                    widget()
-                                } else {
-                                    (widget as any).refreshComponent()
-                                }
-                            },
-                            option: option,
-                            data: data
-                        })
-                    })
-                }">${title ?? "設計樣式"}</div><br>`;
-            },
-            class: () => {
-                let classs = ''
-                try {
-                    classs = eval(data.class)
-                } catch (e) {
-                    classs = data.class
-                }
-                return classs;
-            },
-            style: () => {
-                let styles = ''
-                try {
-                    styles = eval(data.style)
-                } catch (e) {
-                    styles = data.style
-                }
-                let styleString: string[] = [styles];
-                (data.styleList ?? []).map((dd: any) => {
-                    Object.keys(dd.data).map((d2) => {
-                        styleString.push([d2, dd.data[d2]].join(':'));
-                    });
-                });
-                return styleString.join(';');
-            },
-        }
+        const response = glitter.htmlGenerate.  styleEditor(data, gvc, widget, subData)
         Object.keys(data).map((dd: string) => {
             if (['styleList', 'class', 'style'].indexOf(dd) === -1) {
                 Object.defineProperty(response, dd, {
@@ -325,6 +412,7 @@ ${obj.gvc.bindView({
             return dd;
         });
 
+
         this.render = (gvc: GVC, option: { class: string; style: string, jsFinish?: () => void, containerID?: string } = {
             class: ``,
             style: ``,
@@ -340,7 +428,7 @@ ${obj.gvc.bindView({
                 let htmlInner = ''
 
                 function startRender() {
-                    const start=new Date().getTime()
+                    const start = new Date().getTime()
                     new Promise(async (resolve, reject) => {
                         //The component module need to be initial.
                         function initialComponent(set: any[]) {
@@ -362,14 +450,7 @@ ${obj.gvc.bindView({
                             return waitAdd
                         }
 
-                        gvc.glitter.addMtScript(
-                            initialComponent(setting),
-                            () => {
-                            },
-                            () => {
-                            },
-                            []
-                        );
+                        gvc.glitter.htmlGenerate.loadScript(gvc.glitter, initialComponent(setting))
 
                         //The script or trigger function need to be execute first.
                         async function initialScript() {
@@ -381,6 +462,17 @@ ${obj.gvc.bindView({
                         }
 
                         await initialScript()
+
+                        for (const b of setting) {
+                            if ((b as any).preloadEvenet) {
+                                await TriggerEvent.trigger({
+                                    gvc,
+                                    widget: b as any,
+                                    clickEvent: (b as any).preloadEvenet
+                                })
+                            }
+
+                        }
                         //Set htmlGenerate content.
                         const html = setting.map((dd) => {
                             dd.refreshAllParameter!.view1 = () => {
@@ -411,28 +503,20 @@ ${obj.gvc.bindView({
 
                             //Render Component
                             function renderView(callback: (data: string) => void) {
-                                let data: string | Promise<string> = ''
-                                try {
-                                    data = gvc.glitter.share.htmlExtension[gvc.glitter.htmlGenerate.resourceHook(dd.js)][dd.type]
-                                        .render(gvc, dd, setting, hover, subdata)
-                                        .view()
-                                } catch (e: any) {
-                                    HtmlGenerate.share.false[dd.js] = (HtmlGenerate.share.false[dd.js] ?? 0) + 1
-                                    gvc.glitter.deBugMessage(`解析錯誤:${e.message}<br>${e.stack}<br>${e.line}`)
-                                    if (HtmlGenerate.share.false[dd.js] < 80) {
-                                        setTimeout(() => {
-                                            renderView(callback)
-                                        }, 100)
+                                gvc.glitter.htmlGenerate.loadScript(gvc.glitter, [{
+                                    src: dd.js,
+                                    callback: (data: any) => {
+                                        data = data[dd.type].render(gvc, dd, setting, hover, subdata)
+                                            .view()
+                                        if (typeof data === 'string') {
+                                            callback(data as string)
+                                        } else {
+                                            data.then((dd: any) => {
+                                                callback(dd as string)
+                                            })
+                                        }
                                     }
-                                    return ``;
-                                }
-                                if (typeof data === 'string') {
-                                    callback(data as string)
-                                } else {
-                                    data.then((dd) => {
-                                        callback(dd as string)
-                                    })
-                                }
+                                }])
                             }
 
                             //Get the html content for this component
@@ -517,9 +601,9 @@ ${obj.gvc.bindView({
                                                     return innerText
                                                 },
                                                 divCreate: {
-                                                    style: `${HtmlGenerate.styleEditor(dd).style()} `,
+                                                    style: `${gvc.glitter.htmlGenerate.styleEditor(dd, gvc).style()} `,
                                                     class: `position-relative ${dd.class ?? ''} glitterTag${dd.hashTag} ${hover.indexOf(component) !== -1 ? ` selectComponentHover` : ``}
-                                                        ${HtmlGenerate.styleEditor(dd).class()}`,
+                                                        ${gvc.glitter.htmlGenerate.styleEditor(dd, gvc).class()}`,
                                                     option: option
                                                 },
                                                 onCreate: () => {
@@ -549,7 +633,7 @@ ${obj.gvc.bindView({
                             for (const a of waitAddScript) {
                                 // console.log(`loadScript:` + a)
                                 await new Promise((resolve, reject) => {
-                                    gvc.addMtScript([{
+                                    gvc.glitter.addMtScript([{
                                         src: a
                                     }], () => {
                                         setTimeout(() => {
@@ -601,54 +685,35 @@ ${obj.gvc.bindView({
                 setting: setting,
                 deleteEvent: () => {
                 },
-                hideInfo:false
+                hideInfo: false
             }
         ) => {
             var loading = true;
             const oset = this.setting;
 
             function getData() {
-                async function add(set: any[]) {
+                function initialComponent(set: any[]) {
+                    let waitAdd: any = []
                     for (const a of set) {
                         if (['code'].indexOf(a.type) === -1) {
-                            let falseArray: any[] = []
-                            if (!gvc.glitter.share.htmlExtension[gvc.glitter.htmlGenerate.configureCDN(gvc.glitter.htmlGenerate.resourceHook(a.js))]) {
-                                await new Promise((resolve, reject) => {
-                                    gvc.glitter.addMtScript(
-                                        [{
-                                            src: `${gvc.glitter.htmlGenerate.configureCDN(gvc.glitter.htmlGenerate.resourceHook(a.js))}`,
-                                            type: 'module'
-                                        }],
-                                        () => {
-                                            resolve(true);
-                                        },
-                                        () => {
-                                            falseArray.push(gvc.glitter.htmlGenerate.configureCDN(gvc.glitter.htmlGenerate.resourceHook(a.js)))
-                                            resolve(false);
-                                        },
-                                        [
-                                            {key: "async", value: "true"}
-                                        ]
-                                    );
-                                });
+
+                            if ((a.type !== 'widget') && (a.type !== 'container') && !gvc.glitter.share.htmlExtension[gvc.glitter.htmlGenerate.configureCDN(gvc.glitter.htmlGenerate.configureCDN(gvc.glitter.htmlGenerate.resourceHook(a.js)))]) {
+                                waitAdd.push({
+                                    src: `${gvc.glitter.htmlGenerate.configureCDN(gvc.glitter.htmlGenerate.resourceHook(a.js))}`,
+                                    type: 'module'
+                                })
                             }
                             if (a.type === 'container') {
-                                await add(a.data.setting);
-                            }
-                            if (falseArray.length > 0) {
-                                await add(falseArray)
+                                waitAdd = waitAdd.concat(initialComponent(a.data.setting))
                             }
                         }
                     }
-                    return true;
+                    return waitAdd
                 }
 
-                add(option.setting ?? setting).then((data) => {
-                    loading = false;
-                    setTimeout(() => {
-                        gvc.notifyDataChange(editContainer);
-                    }, 100);
-                });
+                gvc.glitter.htmlGenerate.loadScript(gvc.glitter, initialComponent(option.setting ?? setting))
+                loading = false;
+                gvc.notifyDataChange(editContainer);
             }
 
             getData();
@@ -723,29 +788,24 @@ ${gvc.bindView(() => {
                                                 gvc.notifyDataChange(component)
                                             } else {
                                                 loading = true
-                                                try {
-                                                    data = gvc.glitter.share.htmlExtension[gvc.glitter.htmlGenerate.resourceHook(dd.js)][dd.type]
-                                                        .render(gvc, dd, setting, hover, subdata)
-                                                        .editor()
-                                                } catch (e: any) {
-                                                    HtmlGenerate.share.false[dd.js] = (HtmlGenerate.share.false[dd.js] ?? 0) + 1
-                                                    gvc.glitter.deBugMessage(`解析錯誤:${e.message}<br>${e.stack}<br>${e.line}`)
-                                                    if (HtmlGenerate.share.false[dd.js] < 80) {
-                                                        setTimeout(() => {
-                                                            getData()
-                                                        }, 100)
+                                                gvc.glitter.htmlGenerate.loadScript(gvc.glitter, [{
+                                                    src: gvc.glitter.htmlGenerate.resourceHook(dd.js),
+                                                    callback: (data2: any) => {
+                                                        data = data2[dd.type].render(gvc, dd, setting, hover, subdata)
+                                                            .editor()
+
+                                                        if (typeof data === 'string') {
+                                                            loading = false
+                                                            gvc.notifyDataChange(component)
+                                                        } else {
+                                                            data2.then((dd: any) => {
+                                                                data = dd
+                                                                loading = false
+                                                                gvc.notifyDataChange(component)
+                                                            })
+                                                        }
                                                     }
-                                                }
-                                                if (typeof data === 'string') {
-                                                    loading = false
-                                                    gvc.notifyDataChange(component)
-                                                } else {
-                                                    data.then((dd) => {
-                                                        data = dd
-                                                        loading = false
-                                                        gvc.notifyDataChange(component)
-                                                    })
-                                                }
+                                                }])
                                             }
                                         }
 
@@ -761,7 +821,7 @@ ${gvc.bindView(() => {
                                                 }
                                                 try {
                                                     return gvc.map([
-                                                        `<div class="alert-warning alert ${(option.hideInfo) ? `d-none`:``}">
+                                                        `<div class="alert-warning alert ${(option.hideInfo) ? `d-none` : ``}">
 <h3 class="text-dark  m-1" style="font-size: 16px;">模塊路徑</h3>
 <h3 class="text-primary alert-primary  m-1 fw-bold rounded p2-" style="font-size: 16px;">${dd.js}</h3>
 <h3 class="text-dark  m-1 mt-2" style="font-size: 16px;">函式路徑</h3>
@@ -803,13 +863,19 @@ ${gvc.bindView(() => {
                                                                     if ((dd.type === 'widget') || (dd.type === 'container')) {
                                                                         return ``
                                                                     }
+                                                                    dd.preloadEvenet = dd.preloadEvenet ?? {};
+
                                                                     return gvc.glitter.htmlGenerate.styleEditor(dd).editor(
                                                                         gvc,
                                                                         () => {
                                                                             option.refreshAll();
                                                                         },
                                                                         '模塊容器樣式'
-                                                                    );
+                                                                    ) + TriggerEvent.editer(gvc, dd, dd.preloadEvenet, {
+                                                                        title: "模塊預載事件",
+                                                                        option: [],
+                                                                        hover: false
+                                                                    });
                                                                 },
                                                                 divCreate: {
                                                                     class: 'mt-2 mb-2 '
@@ -870,6 +936,7 @@ ${e.line}
         this.exportJson = (setting: HtmlJson[]) => {
             return JSON.stringify(setting);
         };
+
 
     }
 }

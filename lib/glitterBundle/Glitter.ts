@@ -46,6 +46,8 @@ export class Glitter {
     public elementCallback: { [name: string]: { onCreate: () => void, onInitial: () => void, notifyDataChange: () => void, getView: () => string, updateAttribute: () => void, onDestroy: () => void, rendered: boolean } } = {}
 
     /*Getter*/
+
+    //@ts-ignore
     get baseUrl() {
         var getUrl = window.location;
         return getUrl.protocol + "//" + getUrl.host + "/" + getUrl.pathname.split('/')[1];
@@ -126,7 +128,7 @@ export class Glitter {
         }, callBack, option);
     }
 
-    public getPro(tag: string, callBack: (response: {data:any}) => void, option: { defineType?: any, webFunction: (data: any, callback: (data: any) => void) => any }
+    public getPro(tag: string, callBack: (response: { data: any }) => void, option: { defineType?: any, webFunction: (data: any, callback: (data: any) => void) => any }
         = {
         webFunction: (data: any, callback: (data: any) => void) => {
             callback({result: true, data: Glitter.glitter.getCookieByName(tag)})
@@ -227,11 +229,11 @@ export class Glitter {
     public deBugMessage(error: any) {
         if (this.debugMode) {
             try {
-                if (error&&error.message) {
+                if (error && error.message) {
                     console.error(`${error}
-${(!error.message) ? ``:`錯誤訊息:${error.message}` }${(!error.lineNumber) ? ``:`錯誤行數:${!error.lineNumber}` }${(!error.columnNumber) ? ``:`錯誤位置:${error.columnNumber}` }\n${this.ut.dateFormat(new Date(), "yyyy-MM-dd hh:mm:ss")}
+${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) ? `` : `錯誤行數:${!error.lineNumber}`}${(!error.columnNumber) ? `` : `錯誤位置:${error.columnNumber}`}\n${this.ut.dateFormat(new Date(), "yyyy-MM-dd hh:mm:ss")}
                 `)
-                }else{
+                } else {
                     console.log(error)
                 }
 
@@ -243,7 +245,8 @@ ${(!error.message) ? ``:`錯誤訊息:${error.message}` }${(!error.lineNumber) ?
             }
         }
     }
-    public consoleLog(text:string){
+
+    public consoleLog(text: string) {
         if (this.debugMode) {
             console.log(text)
         }
@@ -261,23 +264,27 @@ ${(!error.message) ? ``:`錯誤訊息:${error.message}` }${(!error.lineNumber) ?
 
     public setDrawer(src: string, callback: () => void) {
         const gliter = this;
-        this.$("#Navigation").html(src);
+        $("#Navigation").hide()
         if ((window as any).drawer === undefined) {
             gliter.addMtScript(['glitterBundle/plugins/NaviGation.js'], () => {
                 callback()
+                $("#Navigation").html(src);
             }, () => {
             })
         } else {
             callback()
+            $("#Navigation").html(src);
         }
     };
 
     public openDrawer() {
         if ((window as any).drawer !== undefined) {
+            $("#Navigation").show();
             (window as any).drawer.open();
         } else {
             var timer = setInterval(function () {
                 if ((window as any).drawer !== undefined) {
+                    $("#Navigation").show();
                     (window as any).drawer.open();
                     clearInterval(timer);
                 }
@@ -604,25 +611,18 @@ ${(!error.message) ? ``:`錯誤訊息:${error.message}` }${(!error.lineNumber) ?
             document.body.removeChild(link);
         },
         frSize(sizeMap: any, def: any) {
+            let returnSize = def;
             var wi = $('html').width() as number
-            var sm = (sizeMap.sm ?? def)
-            var me = (sizeMap.me ?? sm)
-            var lg = (sizeMap.lg ?? me)
-            var xl = (sizeMap.xl ?? lg)
-            var xxl = (sizeMap.xxl ?? xl)
-            if (wi < 576) {
-                return def
-            } else if ((wi >= 576 && wi < 768)) {
-                return sm
-            } else if ((wi >= 768 && wi < 992)) {
-                return me
-            } else if ((wi >= 992 && wi < 1200)) {
-                return lg
-            } else if ((wi >= 1200 && wi < 1400)) {
-                return xl
-            } else if ((wi >= 1400)) {
-                return xxl
-            }
+            var lastIndex = 0
+            Object.keys(sizeMap).map((dd) => {
+                let index: any = {sm: 576, me: 768, lg: 992, xl: 1200, xxl: 1400}
+                let sizeCompare = (index[dd] ?? parseInt(dd,10))
+                if (wi >= sizeCompare && sizeCompare > lastIndex) {
+                    returnSize = sizeMap[dd]
+                    lastIndex = sizeCompare
+                }
+            })
+            return returnSize
         },
         chooseMediaCallback(option: { single?: boolean, accept: string, callback(data: { data: any, file: any, type: string, name: string, extension: string }[]): void }) {
             const $ = this.glitter.$

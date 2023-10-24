@@ -34,6 +34,16 @@ class User {
     static async login(account, pwd) {
         try {
             const data = (await database_1.default.execute(`select * from \`${config_1.saasConfig.SAAS_NAME}\`.user where account=?`, [account]))[0];
+            if (!data.editor_token) {
+                const token = await UserUtil_1.default.generateToken({
+                    user_id: data["userID"],
+                    account: data["account"],
+                    userData: data
+                });
+                await database_1.default.execute(`update \`${config_1.saasConfig.SAAS_NAME}\`.user set editor_token=${database_1.default.escape(token)} where account=?`, [account]);
+            }
+            data['token'] = undefined;
+            data['editor_token'] = undefined;
             if (await tool_1.default.compareHash(pwd, data.pwd)) {
                 return {
                     account: account,

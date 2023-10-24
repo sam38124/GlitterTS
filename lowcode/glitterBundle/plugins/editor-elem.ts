@@ -92,6 +92,116 @@ export class EditorElem {
         })}`;
     }
 
+    public static styleEditor(obj: {
+        gvc: GVC
+        height: number,
+        initial:string,
+        title:string,
+        dontRefactor?:boolean,
+        callback:(data:string)=>void
+    }) {
+        const html = String.raw
+        return (obj.title ? EditorElem.h3(obj.title):'')+obj.gvc.bindView(() => {
+            const id = obj.gvc.glitter.getUUID()
+            const frameID=obj.gvc.glitter.getUUID()
+            const domain='https://sam38124.github.io/code_component'
+            let listener = function (event: any) {
+                if(event.data.type==='initial'){
+                    const childWindow = (document.getElementById(frameID)! as any).contentWindow!!;
+                    function addNewlineAfterSemicolon(inputString:string) {
+                        // 使用正则表达式将分号后面没有换行的地方替换为分号和换行符
+                        const regex = /;/g;
+                        const resultString = inputString.replace(regex, ';\n');
+                        return resultString;
+                    }
+                    childWindow.postMessage({
+                        type:'getData',
+                        value: obj.dontRefactor ?  obj.initial:`style {
+${addNewlineAfterSemicolon(obj.initial)}
+}`,
+                        language:'css',
+                        refactor:!obj.dontRefactor
+                    }, domain);
+                }else if(event.data.data.callbackID===id){
+                    if(obj.dontRefactor){
+                        obj.callback(event.data.data.value)
+                    }else{
+                        const array=event.data.data.value.split('\n')
+                        obj.callback(array.filter((dd:any,index:number)=>{
+                            return index!==0 && index!==(array.length-1)
+                        }).join(''))
+                    }
+
+                }
+            }
+            return {
+                bind: id,
+                view: () => {
+                    return html`
+                        <iframe id="${frameID}" class="w-100 h-100 border rounded-3"
+                                src="${domain}/browser-amd-editor/component.html?height=${obj.height}&link=${location.origin}&callbackID=${id}"></iframe>
+                    `
+                },
+                divCreate: {class: `w-100 `, style: `height:${obj.height}px;`},
+                onDestroy: () => {
+                    window.removeEventListener('message', listener)
+                },
+                onCreate: () => {
+                    window.addEventListener('message', listener)
+                }
+            }
+        })
+    }
+
+    public static codeEditor(obj: {
+        gvc: GVC
+        height: number,
+        initial:string,
+        title:string,
+        callback:(data:string)=>void
+    }) {
+        const html = String.raw
+        return EditorElem.h3(obj.title)+obj.gvc.bindView(() => {
+            const id = obj.gvc.glitter.getUUID()
+            const frameID=obj.gvc.glitter.getUUID()
+            const domain='https://sam38124.github.io/code_component'
+            let listener = function (event: any) {
+                if(event.data.type==='initial'){
+                    const childWindow = (document.getElementById(frameID)! as any).contentWindow!!;
+                    childWindow.postMessage({
+                        type:'getData',
+                        value:`(()=>{
+${obj.initial}
+})()`,
+                        language:'javascript',
+                        refactor:true
+                    }, domain);
+                }else if(event.data.data.callbackID===id){
+                    const array=event.data.data.value.split('\n')
+                    obj.callback(array.filter((dd:any,index:number)=>{
+                        return index!==0 && index!==(array.length-1)
+                    }).join('\n'))
+                }
+            }
+            return {
+                bind: id,
+                view: () => {
+                    return html`
+                        <iframe id="${frameID}" class="w-100 h-100 border rounded-3"
+                                src="${domain}/browser-amd-editor/component.html?height=${obj.height}&link=${location.origin}&callbackID=${id}"></iframe>
+                    `
+                },
+                divCreate: {class: `w-100 `, style: `height:${obj.height}px;`},
+                onDestroy: () => {
+                    window.removeEventListener('message', listener)
+                },
+                onCreate: () => {
+                    window.addEventListener('message', listener)
+                }
+            }
+        })
+    }
+
     public static uploadFile(obj: { title: string; gvc: any; def: string; callback: (data: string) => void }) {
         const glitter = (window as any).glitter;
         const $ = glitter.$;
@@ -498,23 +608,22 @@ export class EditorElem {
         `;
     }
 
-    public static editerDialog(par:{
+    public static editerDialog(par: {
         gvc: GVC,
         dialog: (gvc: GVC) => string,
-        width?:string,
-        editTitle?:string
+        width?: string,
+        editTitle?: string
     }) {
         const html = String.raw
-        return `<div type="button" class="btn  w-100 " style="background:white;width:calc(100%);border-radius:8px;
-                    min-height:45px;border:1px solid black;color:#151515;" onclick="${par.gvc.event(() => {
+        return `<button type="button" class="btn btn-primary-c  w-100" style="" onclick="${par.gvc.event(() => {
             par.gvc.glitter.innerDialog((gvc: GVC) => {
                 return html`
-                    <div class="dropdown-menu mx-0 position-fixed pb-0 border p-0 show"
-                         style="z-index:999999;${(par.width) ? `width:${par.width};` : ``};"
+                    <div class="dropdown-menu mx-0 position-fixed pb-0 border p-0 show "
+                         style="z-index:999999;${(par.width) ? `width:${par.width + ';'}` : ``}"
                          onclick="${gvc.event((e: any, event: any) => {
-                    event.preventDefault()
-                    event.stopPropagation()
-                })}">
+                             event.preventDefault()
+                             event.stopPropagation()
+                         })}">
                         <div class="d-flex align-items-center px-2 border-bottom"
                              style="height:50px;min-width:400px;">
                             <h3 style="font-size:15px;font-weight:500;" class="m-0">
@@ -524,21 +633,21 @@ export class EditorElem {
                                  aria-haspopup="true" aria-expanded="false"
                                  style="color:black;font-size:20px;"
                                  onclick="${gvc.event((e: any, event: any) => {
-                    gvc.closeDialog()
-                })}"><i
+                                     gvc.closeDialog()
+                                 })}"><i
                                     class="fa-sharp fa-regular fa-circle-xmark"></i>
                             </div>
                         </div>
-                        <div class="px-2 pb-2"
+                        <div class="px-2 pb-2 pt-2"
                              style="max-height:calc(100vh - 150px);overflow-y:auto;">
                             ${par.dialog(gvc)}
                         </div>
                     </div>`
             }, par.gvc.glitter.getUUID())
-        })}">${par.editTitle}</div>`
+        })}">${par.editTitle}</button>`
     }
 
-    public static   arrayItem(obj: {
+    public static arrayItem(obj: {
         gvc: any;
         title: string;
         array: () => { title: string; innerHtml: string | ((gvc: GVC) => string); editTitle?: string, saveEvent?: () => void, width?: string, saveAble?: boolean }[];
@@ -551,7 +660,8 @@ export class EditorElem {
         refreshComponent: () => void,
         minus?: boolean,
         draggable?: boolean,
-        copyable?: boolean
+        copyable?: boolean,
+        customEditor?: boolean
     }) {
         const gvc = obj.gvc
         const glitter = gvc.glitter
@@ -600,6 +710,7 @@ export class EditorElem {
                     swapArr(original, array[dragModel.firstIndex].index, array[(dragModel.currentIndex > 0) ? dragModel.currentIndex - 1 : 0].index);
                     // swapArr(array, dragModel.firstIndex, ((dragModel.currentIndex - 1 < dragModel.firstIndex) && (dragModel.currentIndex + 1 < array.length)) ? dragModel.currentIndex : (dragModel.currentIndex >= 0) ? dragModel.currentIndex - 1 : 0)
                     obj.gvc.notifyDataChange([viewId])
+                    obj.refreshComponent()
                 }
                 document.removeEventListener('mouseup', mup_Linstener)
                 document.removeEventListener('mousemove', move_Linstener)
@@ -676,66 +787,71 @@ export class EditorElem {
                                     <div class="editor_item d-flex   px-2 my-0 hi me-n1 "
                                          style=""
                                          onclick="${gvc.event(() => {
-                                const originalData = JSON.parse(JSON.stringify(original[index]))
-                                gvc.glitter.innerDialog((gvc: GVC) => {
-                                    return html`
-                                                     <div class="dropdown-menu mx-0 position-fixed pb-0 border p-0 show"
-                                                          style="z-index:999999;${(dd.width) ? `width:${dd.width};` : ``};"
-                                                          onclick="${gvc.event((e: any, event: any) => {
-                                        event.preventDefault()
-                                        event.stopPropagation()
-                                    })}">
-                                                         <div class="d-flex align-items-center px-2 border-bottom"
-                                                              style="height:50px;min-width:400px;">
-                                                             <h3 style="font-size:15px;font-weight:500;" class="m-0">
-                                                                 ${dd.editTitle ? dd.editTitle : `編輯項目「${dd.title}」`}</h3>
-                                                             <div class="flex-fill"></div>
-                                                             <div class="hoverBtn p-2" data-bs-toggle="dropdown"
-                                                                  aria-haspopup="true" aria-expanded="false"
-                                                                  style="color:black;font-size:20px;"
-                                                                  onclick="${gvc.event((e: any, event: any) => {
-                                        original[index] = originalData
-                                        gvc.closeDialog()
-                                        obj.refreshComponent()
-                                    })}"><i
-                                                                     class="fa-sharp fa-regular fa-circle-xmark"></i>
+                                             if (obj.customEditor) {
+                                                 dd.innerHtml(gvc)
+                                             } else {
+                                                 const originalData = JSON.parse(JSON.stringify(original[index]))
+                                                 gvc.glitter.innerDialog((gvc: GVC) => {
+                                                     return html`
+                                                         <div class="dropdown-menu mx-0 position-fixed pb-0 border p-0 show"
+                                                              style="z-index:999999;${(dd.width) ? `width:${dd.width + ';'}` : ``}"
+                                                              onclick="${gvc.event((e: any, event: any) => {
+                                                                  event.preventDefault()
+                                                                  event.stopPropagation()
+                                                              })}">
+                                                             <div class="d-flex align-items-center px-2 border-bottom"
+                                                                  style="height:50px;min-width:400px;">
+                                                                 <h3 style="font-size:15px;font-weight:500;"
+                                                                     class="m-0">
+                                                                     ${dd.editTitle ? dd.editTitle : `編輯項目「${dd.title}」`}</h3>
+                                                                 <div class="flex-fill"></div>
+                                                                 <div class="hoverBtn p-2" data-bs-toggle="dropdown"
+                                                                      aria-haspopup="true" aria-expanded="false"
+                                                                      style="color:black;font-size:20px;"
+                                                                      onclick="${gvc.event((e: any, event: any) => {
+                                                                          original[index] = originalData
+                                                                          gvc.closeDialog()
+                                                                          obj.refreshComponent()
+                                                                      })}"><i
+                                                                         class="fa-sharp fa-regular fa-circle-xmark"></i>
+                                                                 </div>
                                                              </div>
-                                                         </div>
-                                                         <div class="px-2"
-                                                              style="max-height:calc(100vh - 150px);overflow-y:auto;">
-                                                             ${dd.innerHtml(gvc)}
-                                                         </div>
+                                                             <div class="px-2"
+                                                                  style="max-height:calc(100vh - 150px);overflow-y:auto;">
+                                                                 ${dd.innerHtml(gvc)}
+                                                             </div>
 
-                                                         <div class="d-flex w-100 p-2 border-top ${(dd.saveAble === false) ? `d-none` : ``}">
-                                                             <div class="flex-fill"></div>
-                                                             <div class="btn btn-secondary"
-                                                                  style="height:40px;width:80px;"
-                                                                  onclick="${gvc.event(() => {
-                                        original[index] = originalData
-                                        gvc.closeDialog()
-                                        obj.refreshComponent()
-                                    })}">取消
+                                                             <div class="d-flex w-100 p-2 border-top ${(dd.saveAble === false) ? `d-none` : ``}">
+                                                                 <div class="flex-fill"></div>
+                                                                 <div class="btn btn-secondary"
+                                                                      style="height:40px;width:80px;"
+                                                                      onclick="${gvc.event(() => {
+                                                                          original[index] = originalData
+                                                                          gvc.closeDialog()
+                                                                          obj.refreshComponent()
+                                                                      })}">取消
+                                                                 </div>
+                                                                 <div class="btn btn-primary-c ms-2"
+                                                                      style="height:40px;width:80px;"
+                                                                      onclick="${gvc.event(() => {
+                                                                          gvc.closeDialog();
+                                                                          (dd.saveEvent && dd.saveEvent()) || obj.refreshComponent();
+                                                                      })}"><i class="fa-solid fa-floppy-disk me-2"></i>儲存
+                                                                 </div>
                                                              </div>
-                                                             <div class="btn btn-primary-c ms-2"
-                                                                  style="height:40px;width:80px;"
-                                                                  onclick="${gvc.event(() => {
-                                        gvc.closeDialog();
-                                        (dd.saveEvent && dd.saveEvent()) || obj.refreshComponent();
-                                    })}"><i class="fa-solid fa-floppy-disk me-2"></i>儲存
-                                                             </div>
-                                                         </div>
 
-                                                     </div>`
-                                }, glitter.getUUID())
-                            })}"
+                                                         </div>`
+                                                 }, glitter.getUUID())
+                                             }
+                                         })}"
                                     >
                                         <div class="subBt ms-n2 ${(obj.minus === false) ? `d-none` : ``}"
                                              onclick="${gvc.event((e: any, event: any) => {
-                                obj.originalArray.splice(index, 1)
-                                obj.refreshComponent()
-                                gvc.notifyDataChange(viewId)
-                                event.stopPropagation()
-                            })}">
+                                                 obj.originalArray.splice(index, 1)
+                                                 obj.refreshComponent()
+                                                 gvc.notifyDataChange(viewId)
+                                                 event.stopPropagation()
+                                             })}">
                                             <i class="fa-regular fa-circle-minus d-flex align-items-center justify-content-center subBt "
                                                style="width:15px;height:15px;color:red;"
                                             ></i>
@@ -745,38 +861,40 @@ export class EditorElem {
                                         <div class="flex-fill"></div>
                                         <div class="subBt ${(obj.copyable === false) ? `d-none` : ``}"
                                              onclick="${gvc.event((e: any, event: any) => {
-                                obj.originalArray.push(original[index])
-                                swal.toast({
-                                    icon: 'success',
-                                    title: "複製成功．"
-                                })
-                                gvc.notifyDataChange(viewId)
-                                event.stopPropagation()
-                            })}">
+                                                 obj.originalArray.push(JSON.parse(JSON.stringify(original[index])))
+                                                 swal.toast({
+                                                     icon: 'success',
+                                                     title: "複製成功．"
+                                                 })
+                                                 gvc.notifyDataChange(viewId)
+                                                 event.stopPropagation()
+                                             })}">
                                             <i class="fa-sharp fa-regular fa-scissors d-flex align-items-center justify-content-center subBt"
                                                style="width:15px;height:15px;"
                                             ></i>
                                         </div>
                                         <div class="subBt ${(obj.draggable === false) ? `d-none` : ``}" onmousedown="${
-                                gvc.event((e: any, event: any) => {
-                                    dragModel.firstIndex = index
-                                    dragModel.currentIndex = index
-                                    dragModel.draggableElement = glitter.getUUID()
-                                    dragModel.dragStart = event.clientY
-                                    dragModel.dragOffsetY = $(e).parent().parent().get(0).offsetTop;
-                                    dragModel.maxHeight = ($(e).parent().parent().parent().height() as number);
-                                    $(e).parent().addClass('d-none')
-                                    dragModel.hover_item = []
-                                    $(e).parent().parent().append(`<div class="editor_item active  hv"></div>`)
-                                    $(e).parent().parent().parent().addClass('select_container')
-                                    $('.select_container').children().each(function (index) {
-                                        // 在這裡執行對每個 li 元素的操作
-                                        dragModel.hover_item.push({
-                                            elem: $(this),
-                                            offsetTop: $(this).get(0)!.offsetTop
-                                        })
-                                    });
-                                    $(e).parent().parent().parent().append(html`
+                                                gvc.event((e: any, event: any) => {
+                                                    dragModel.firstIndex = index
+                                                    dragModel.currentIndex = index
+                                                    dragModel.draggableElement = glitter.getUUID()
+                                                    dragModel.dragStart = event.clientY
+                                                    dragModel.dragOffsetY = $(e).parent().parent().get(0).offsetTop;
+                                                    dragModel.maxHeight = ($(e).parent().parent().parent().height() as number);
+                                                    $(e).parent().addClass('d-none')
+                                                    dragModel.hover_item = []
+                                                    $(e).parent().parent().append(`<div class="editor_item active  hv"></div>`)
+                                                    $(e).parent().parent().parent().addClass('select_container')
+                                                    $('.select_container').children().each(function (index) {
+                                                        // 在這裡執行對每個 li 元素的操作
+                                                        if ($(this).get(0)!.offsetTop > 0) {
+                                                            dragModel.hover_item.push({
+                                                                elem: $(this),
+                                                                offsetTop: $(this).get(0)!.offsetTop
+                                                            })
+                                                        }
+                                                    });
+                                                    $(e).parent().parent().parent().append(html`
                                                         <l1 class="btn-group position-absolute  "
                                                             style="width:${($(e).parent().parent().width() as any) - 50}px;right:15px;top:${dragModel.dragOffsetY}px;z-index:99999;border-radius:10px;background:white!important;"
                                                             id="${dragModel.draggableElement}">
@@ -790,9 +908,9 @@ export class EditorElem {
                                                                    style="width:20px;height:20px;"></i>
                                                             </div>
                                                         </l1>`)
-                                    document.addEventListener("mouseup", mup_Linstener);
-                                    document.addEventListener("mousemove", move_Linstener);
-                                })}">
+                                                    document.addEventListener("mouseup", mup_Linstener);
+                                                    document.addEventListener("mousemove", move_Linstener);
+                                                })}">
                                             <i class="fa-solid fa-grip-dots-vertical d-flex align-items-center justify-content-center  "
                                                style="width:15px;height:15px;"></i>
                                         </div>

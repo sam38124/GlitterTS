@@ -5,6 +5,7 @@ import {Glitter} from './Glitter.js';
 var glitter = new Glitter(window); //glitter變數
 (window as any).glitter = glitter;
 (window as any).rootGlitter = glitter;
+
 window.addEventListener('resize', function () {
     for (var a = 0; a < glitter.windowUtil.windowHeightChangeListener.length; a++) {
         try {
@@ -30,6 +31,7 @@ function listenElementChange(query: string) {
             // 檢查是否是目標元素的子節點被插入
             if (mutation.addedNodes.length > 0) {
                 // 在這裡編寫對元素插入內容的處理程式碼
+                //@ts-ignore
                 for (const b of mutation.addedNodes) {
                     traverseHTML($(b).get(0))
                 }
@@ -99,7 +101,33 @@ function traverseHTML(element: any) {
             } catch (e) {
                 glitter.deBugMessage(e)
             }
-
+        }else if(!glitter.share.EditorMode){
+            const inputString = attributes[i].value;
+            // 正则表达式模式
+            const pattern = /@{{(.*?)}}/g;
+            // 使用正则表达式的 exec 方法来提取匹配项
+            let match;
+            while ((match = pattern.exec(inputString)) !== null) {
+                const placeholder = match[0]; // 完整的匹配项，例如 "@{{value}}"
+                const value = match[1]; // 提取的值，例如 "value"
+                if(glitter.share.globalValue&&glitter.share.globalValue[value]){
+                    attributes[i].value=attributes[i].value.replace(placeholder,glitter.share.globalValue[value])
+                }
+            }
+        }
+    }
+    if(!glitter.share.EditorMode){
+        const inputString = $(element).html();
+        // 正则表达式模式
+        const pattern = /@{{(.*?)}}/g;
+        // 使用正则表达式的 exec 方法来提取匹配项
+        let match;
+        while ((match = pattern.exec(inputString)) !== null) {
+            const placeholder = match[0]; // 完整的匹配项，例如 "@{{value}}"
+            const value = match[1]; // 提取的值，例如 "value"
+            if(glitter.share.globalValue&&glitter.share.globalValue[value]){
+                $(element).html($(element).html().replace(placeholder,glitter.share.globalValue[value]));
+            }
         }
     }
     // 返回 JSON 結果

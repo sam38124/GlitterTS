@@ -7,7 +7,9 @@ export declare class App {
         appName: string;
         copyApp: string;
     }): Promise<boolean>;
-    getAPP(): Promise<any>;
+    getAPP(query: {
+        app_name?: string;
+    }): Promise<any>;
     getAppConfig(config: {
         appName: string;
     }): Promise<any>;
@@ -16,6 +18,10 @@ export declare class App {
         appName: string;
         data: any;
     }): Promise<boolean>;
+    setDomain(config: {
+        appName: string;
+        domain: string;
+    }): Promise<any>;
     deleteAPP(config: {
         appName: string;
     }): Promise<void>;

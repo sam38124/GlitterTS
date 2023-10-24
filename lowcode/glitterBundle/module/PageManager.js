@@ -76,6 +76,14 @@ export class PageManager {
     static hideLoadingView() {
         Glitter.glitter.$('#loadingView').hide();
     }
+    static getRelativeUrl(url) {
+        if (!url.startsWith('http')) {
+            return new URL(url, new URL('../../', import.meta.url).href).href;
+        }
+        else {
+            return url;
+        }
+    }
     static setHome(url, tag, obj, option = {}) {
         var _a, _b;
         const glitter = Glitter.glitter;
@@ -128,7 +136,7 @@ background: ${config.backGroundColor};display: none;z-index: 9999;overflow: hidd
             }
             else {
                 glitter.addMtScript([{
-                        src: url,
+                        src: PageManager.getRelativeUrl(url),
                         type: 'module',
                         id: config.id
                     }], () => {
@@ -246,7 +254,7 @@ background: transparent;background: ${config.backGroundColor};display: none;posi
             }
             else {
                 glitter.addMtScript([{
-                        src: url,
+                        src: PageManager.getRelativeUrl(url),
                         type: 'module',
                         id: config.id
                     }], () => {
@@ -300,7 +308,7 @@ background: ${config.backGroundColor};display: none;z-index:99999;overflow: hidd
         }
         else {
             glitter.addMtScript([{
-                    src: url,
+                    src: PageManager.getRelativeUrl(url),
                     type: 'module',
                     id: config.id
                 }], () => {
