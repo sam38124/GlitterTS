@@ -230,7 +230,7 @@ export class App {
             const response = await new Promise((resolve, reject) => {
                 Ssh.exec([
                     `sudo docker cp $(sudo docker ps --filter "expose=3080" --format "{{.ID}}"):/nginx.config /etc/nginx/sites-enabled/default.conf`,
-                    `sudo certbot --nginx -d ${config.domain} -d www.${config.domain} --non-interactive --agree-tos -m sam38124@gmail.com`,
+                    `sudo certbot --nginx -d ${config.domain} --non-interactive --agree-tos -m sam38124@gmail.com`,
                     `sudo nginx -s reload`
                 ]).then((res:any) => {
                     resolve(res && res.join('').indexOf('Successfully')!==-1)
