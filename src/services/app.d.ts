@@ -3,7 +3,6 @@ export declare class App {
     token: IToken;
     static getAdConfig(app: string, key: string): Promise<any>;
     createApp(config: {
-        domain: string;
         appName: string;
         copyApp: string;
     }): Promise<boolean>;

@@ -140,6 +140,19 @@
   }
 </style>
 <script>
+    let clockF= ()=>{
+        return {
+            start: new Date(),
+            stop: function () {
+                return ((new Date()).getTime() - (this.start).getTime())
+            },
+            zeroing: function () {
+                this.start = new Date()
+            }
+        }
+    }
+    let renderClock=clockF();
+    (window.renderClock)=renderClock
     // const count = (str) => {
     //     const re = /\//g
     //     return ((str || '').match(re) || []).length

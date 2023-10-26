@@ -3,6 +3,7 @@ import { Swal } from "../modules/sweetAlert.js";
 import { EditorElem } from "../glitterBundle/plugins/editor-elem.js";
 import { ShareDialog } from "../glitterBundle/dialog/ShareDialog.js";
 import { TriggerEvent } from "../glitterBundle/plugins/trigger-event.js";
+import { ApiPageConfig } from "../api/pageConfig.js";
 const html = String.raw;
 export class PageEditor {
     constructor(gvc, vid, editorID = '') {
@@ -199,7 +200,8 @@ export class PageEditor {
                                                                                 </div>`}
                                                                                
                                                                             </l1>` : ``}
-                                            <div class="subBt ${(option.readonly) ? `d-none` : ``}"  onclick="${gvc.event((e, event) => {
+                                            <div class="subBt ${(option.readonly) ? `d-none` : ``}"
+                                                 onclick="${gvc.event((e, event) => {
                             if (option.copyType === 'directly') {
                                 const copy = JSON.parse(JSON.stringify(dd));
                                 copy.id = glitter.getUUID();
@@ -240,7 +242,7 @@ export class PageEditor {
                                                 </div>
                                             ` : ``}
 
-                                            <div class="subBt ${(option.readonly) ? `d-none` : ``}"  onmousedown="${gvc.event((e, event) => {
+                                            <div class="subBt ${(option.readonly) ? `d-none` : ``}" onmousedown="${gvc.event((e, event) => {
                             dragModel.firstIndex = index;
                             dragModel.currentIndex = index;
                             dragModel.draggableElement = glitter.getUUID();
@@ -1368,31 +1370,89 @@ export class PageEditor {
                     return {
                         bind: vid,
                         view: () => {
-                            return [
-                                EditorElem.editeInput({
-                                    gvc: gvc,
-                                    title: "網域設定",
-                                    default: viewModel.domain,
-                                    placeHolder: `網域設定`,
-                                    callback: (text) => {
-                                        viewModel.domain = text;
-                                    }
-                                })
-                            ].join('');
+                            return questionText(`網域上架步驟`, [
+                                {
+                                    title: '步驟一：購買網域', content: `前往第三方網站購買網域，例如:<br>
+                             -<a class="fw-bold mt-2" href="https://domain.hinet.net/#/" target="_blank">中華電信HiNet</a><br>
+                             -<a class="fw-bold" href="https://tw.godaddy.com/" target="_blank">GoDaddy</a><br>
+                             -<a class="fw-bold" href="https://aws.amazon.com/tw/route53/" target="_blank">AWS Router 53</a><br>
+                             `
+                                },
+                                {
+                                    title: '步驟二：更改DNS', content: `
+                             前往DNS設定，並將A標籤設置為3.36.55.11。
+                             `
+                                },
+                                {
+                                    title: '步驟三：填寫網域名稱', content: `
+                             請輸入您的網域名稱:${EditorElem.editeInput({
+                                        gvc: gvc,
+                                        title: "",
+                                        default: viewModel.domain,
+                                        placeHolder: `網域名稱`,
+                                        callback: (text) => {
+                                            viewModel.domain = text;
+                                        }
+                                    })}`
+                                },
+                                {
+                                    title: '步驟四：部署網域', content: `<button type="button" class="btn btn-primary-c  w-100" style=""
+onclick="${gvc.event(() => {
+                                        const dialog = new ShareDialog(glitter);
+                                        dialog.dataLoading({ text: '', visible: true });
+                                        ApiPageConfig.setDomain(viewModel.domain).then((response) => {
+                                            dialog.dataLoading({ text: '', visible: false });
+                                            if (response.result) {
+                                                gvc.closeDialog();
+                                                dialog.successMessage({ text: "設定成功!" });
+                                            }
+                                            else {
+                                                dialog.errorMessage({ text: "設定失敗，請確認網域所有權。" });
+                                            }
+                                        });
+                                    })}"
+>點我部署</button>`
+                                }
+                            ]);
                         },
-                        divCreate: { class: `p-2` }
+                        divCreate: { class: `p-2 position-relative mx-n2 my-n2`, style: `width:400px;` }
                     };
                 }),
                 right: gvc.bindView(() => {
                     return {
                         bind: docID,
                         view: () => {
-                            return ``;
+                            return questionText(`網域上架步驟`, [
+                                {
+                                    title: '步驟一', content: `前往第三方網站購買網域，例如:<br>
+                             -<a class="fw-bold mt-2" href="https://domain.hinet.net/#/" target="_blank">中華電信HiNet</a><br>
+                             -<a class="fw-bold" href="https://tw.godaddy.com/" target="_blank">GoDaddy</a><br>
+                             -<a class="fw-bold" href="https://aws.amazon.com/tw/route53/" target="_blank">AWS Router 53</a><br>
+                             `
+                                },
+                                {
+                                    title: '步驟二', content: `
+                             前往DNS設定，並將A標籤設置為3.36.55.11。
+                             `
+                                },
+                                {
+                                    title: '步驟三', content: `
+                             於左側填入您的網域名稱，例如:<br>
+                             <span class="fw-bold">glitter-ai.com</span><br>
+                             <span class="fw-bold">liondesign.com</span>
+                             `
+                                },
+                                {
+                                    title: '步驟四', content: `
+                             儲存並等待部署。
+                             `
+                                }
+                            ]);
                         },
                         divCreate: () => {
                             return {
-                                class: `d-none h-100 p-2 d-flex flex-column`,
-                                style: `max-height:80vh;overflow-y:auto;overflow-x:hidden;`
+                                class: `d-none h-100 p-2 d-flex flex-column mx-n2 my-n2`,
+                                style: `max-height:80vh;overflow-y:auto;overflow-x:hidden;width:350px;`
                             };
                         },
                         onCreate: () => {
@@ -1792,7 +1852,7 @@ PageEditor.openDialog = {
                         }
                         return html `
                                                 <div class="d-flex">
-                                                    <div style="width:300px;" class="border-end">
+                                                    <div style="min-width:300px;" class="border-end">
                                                         <div class="d-flex border-bottom ">
                                                             ${[
                             {
@@ -1919,4 +1979,24 @@ function uploadImage(obj) {
             divCreate: {}
         };
     });
+}
+function questionText(title, data) {
+    return `<div class="bg-secondary rounded-3 py-2 px-2 ">
+          <h2 class="text-center my-3 mt-2" style="font-size:22px;">${title}</h2>
+             <div class="accordion mx-2" id="faq">
+                ${data.map((dd, index) => {
+        return ` <div class="accordion-item border-0 rounded-3 shadow-sm mb-3">
+                  <h3 class="accordion-header">
+                    <button class="accordion-button shadow-none rounded-3 ${(index === 0) ? '' : 'collapsed'}" type="button" data-bs-toggle="collapse" data-bs-target="#q-${index}" aria-expanded="false" aria-controls="q-1">${dd.title}</button>
+                  </h3>
+                  <div class="accordion-collapse collapse ${(index === 0) ? 'show' : ''}" id="q-${index}" data-bs-parent="#faq" style="">
+                    <div class="accordion-body fs-sm pt-0">
+                     ${dd.content}
+                    </div>
+                  </div>
+                </div>`;
+    }).join('')}
+              
+              </div>
+        </div>`;
 }

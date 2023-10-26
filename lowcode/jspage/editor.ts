@@ -176,7 +176,7 @@ export class Editor {
                                 <div class="d-flex align-items-center justify-content-center hoverBtn me-2 border"
                                      style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;"
                                      onclick="${gvc.event(() => {
-                                         const url = new URL("", location.href)
+                                         const url = new URL("", (glitter.share.editorViewModel.domain) ? `https://${glitter.share.editorViewModel.domain}/?page=index`:location.href)
                                          url.searchParams.delete('type')
                                          url.searchParams.set("page", glitter.getUrlParameter("page"))
                                          glitter.openNewTab(url.href)

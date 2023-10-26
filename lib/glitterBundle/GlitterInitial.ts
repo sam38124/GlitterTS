@@ -5,6 +5,7 @@ import {Glitter} from './Glitter.js';
 var glitter = new Glitter(window); //glitter變數
 (window as any).glitter = glitter;
 (window as any).rootGlitter = glitter;
+
 window.addEventListener('resize', function () {
     for (var a = 0; a < glitter.windowUtil.windowHeightChangeListener.length; a++) {
         try {

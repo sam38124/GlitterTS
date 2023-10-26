@@ -15,7 +15,8 @@ import { BaseApi } from "./api/base.js";
 export class Entry {
     static onCreate(glitter) {
         var _a;
-        glitter.share.editerVersion = "V_2.9.72";
+        console.log(`Entry-time:`, window.renderClock.stop());
+        glitter.share.editerVersion = "V_2.9.96";
         glitter.share.start = new Date();
         glitter.debugMode = false;
         const vm = {
@@ -28,6 +29,7 @@ export class Entry {
             appConfig: undefined
         };
         ApiPageConfig.getPlugin(config.appName).then((dd) => {
+            console.log(`getPlugin-time:`, window.renderClock.stop());
             vm.appConfig = dd.response.data;
             glitter.share.appConfigresponse = dd;
             glitter.share.globalValue = {};
@@ -168,7 +170,9 @@ export class Entry {
                     glitter.share.evalPlace = ((evals) => {
                         return eval(evals);
                     });
+                    console.log(`exePlugin-time:`, window.renderClock.stop());
                     vm.pageData.then((data) => {
+                        console.log(`getPageData-time:`, window.renderClock.stop());
                         if (data.response.result.length === 0) {
                             const url = new URL("./", location.href);
                             url.searchParams.set('page', data.response.redirect);
@@ -178,8 +182,7 @@ export class Entry {
                         glitter.htmlGenerate.loadScript(glitter, data.response.result[0].config.map((dd) => {
                             return {
                                 src: `${glitter.htmlGenerate.configureCDN(glitter.htmlGenerate.resourceHook(dd.js))}`,
-                                callback: () => {
-                                }
+                                callback: () => { }
                             };
                         }));
                         glitter.htmlGenerate.setHome({

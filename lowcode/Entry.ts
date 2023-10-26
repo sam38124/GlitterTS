@@ -7,7 +7,8 @@ import {BaseApi} from "./api/base.js";
 
 export class Entry {
     public static onCreate(glitter: Glitter) {
-        glitter.share.editerVersion = "V_2.9.73"
+        console.log(`Entry-time:`,(window as any).renderClock.stop())
+        glitter.share.editerVersion = "V_2.9.96"
         glitter.share.start = new Date()
         glitter.debugMode = false
         const vm = {
@@ -20,6 +21,7 @@ export class Entry {
             appConfig: undefined
         }
         ApiPageConfig.getPlugin(config.appName).then((dd) => {
+            console.log(`getPlugin-time:`,(window as any).renderClock.stop())
             vm.appConfig = dd.response.data;
             glitter.share.appConfigresponse = dd;
             glitter.share.globalValue = {}
@@ -132,7 +134,6 @@ export class Entry {
                     (window.parent as any).glitter.share.evalPlace = ((evals: string) => {
                         return eval(evals)
                     })
-
                     glitter.addMtScript(
                         (window.parent as any).editerData.setting.map((dd: any) => {
                             return {
@@ -173,7 +174,9 @@ export class Entry {
                     glitter.share.evalPlace = ((evals: string) => {
                         return eval(evals)
                     })
+                    console.log(`exePlugin-time:`,(window as any).renderClock.stop())
                     vm.pageData.then((data) => {
+                        console.log(`getPageData-time:`,(window as any).renderClock.stop())
                         if (data.response.result.length === 0) {
                             const url = new URL("./", location.href)
                             url.searchParams.set('page', data.response.redirect)

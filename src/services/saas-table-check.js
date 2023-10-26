@@ -53,17 +53,16 @@ exports.SaasScheme = {
                 table: 'app_config',
                 sql: `(
   \`id\` int NOT NULL AUTO_INCREMENT,
-  \`domain\` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  \`domain\` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   \`user\` varchar(45) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   \`appName\` varchar(45) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   \`created_time\` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   \`dead_line\` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   \`config\` json DEFAULT NULL,
-  PRIMARY KEY (\`id\`,\`domain\`),
+  PRIMARY KEY (\`id\`),
   UNIQUE KEY \`user_app\` (\`user\`,\`appName\`),
-  UNIQUE KEY \`domain_UNIQUE\` (\`domain\`),
   KEY \`find_user\` (\`user\`)
-) ENGINE=InnoDB AUTO_INCREMENT=113 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`
+) ENGINE=InnoDB AUTO_INCREMENT=117 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`
             },
             {
                 scheme: config_1.saasConfig.SAAS_NAME,

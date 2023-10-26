@@ -9,6 +9,9 @@ const exception_1 = __importDefault(require("../modules/exception"));
 const config_1 = require("../config");
 const index_js_1 = require("../index.js");
 const config_js_1 = __importDefault(require("../config.js"));
+const fs_1 = __importDefault(require("fs"));
+const ssh_js_1 = require("../modules/ssh.js");
+const nginx_conf_1 = require("nginx-conf");
 class App {
     constructor(token) {
         this.token = token;
@@ -28,7 +31,7 @@ class App {
             const count = await database_1.default.execute(`
                 select count(1)
                 from \`${config_1.saasConfig.SAAS_NAME}\`.app_config
-                where appName = ${database_1.default.escape(config.appName)} || \`domain\` = ${database_1.default.escape(config.domain)}
+                where appName = ${database_1.default.escape(config.appName)} 
             `, []);
             if (count[0]["count(1)"] === 1) {
                 throw exception_1.default.BadRequestError('Forbidden', 'This app already be used.', null);
@@ -48,10 +51,9 @@ class App {
                                                    where app_name = ${database_1.default.escape(config.copyApp)} `, []));
             }
             const trans = await database_1.default.Transaction.build();
-            await trans.execute(`insert into \`${config_1.saasConfig.SAAS_NAME}\`.app_config (domain, user, appName, dead_line, \`config\`)
-                                 values (?, ?, ?, ?,
+            await trans.execute(`insert into \`${config_1.saasConfig.SAAS_NAME}\`.app_config (user, appName, dead_line, \`config\`)
+                                 values ( ?, ?, ?,
                                          ${database_1.default.escape(JSON.stringify((copyAppData && copyAppData.config) || {}))})`, [
-                config.domain,
                 this.token.userID,
                 config.appName,
                 addDays(new Date(), config_1.saasConfig.DEF_DEADLINE)
@@ -113,7 +115,7 @@ class App {
             return (await database_1.default.execute(`
                 SELECT *
                 FROM \`${config_1.saasConfig.SAAS_NAME}\`.app_config
-                where  ${(() => {
+                where ${(() => {
                 const sql = [`user = '${this.token.userID}'`];
                 if (query.app_name) {
                     sql.push(` appName='${query.app_name}' `);
@@ -163,7 +165,9 @@ class App {
                                                 and company = ?`, [this.token.userID, 'LION']))[0]['count(1)'] == 1;
             if (official) {
                 const trans = await database_1.default.Transaction.build();
-                await trans.execute(`delete from \`${config_1.saasConfig.SAAS_NAME}\`.official_component where app_name=?`, [config.appName]);
+                await trans.execute(`delete
+                                     from \`${config_1.saasConfig.SAAS_NAME}\`.official_component
+                                     where app_name = ?`, [config.appName]);
                 for (const b of ((_a = config.data.lambdaView) !== null && _a !== void 0 ? _a : [])) {
                     await trans.execute(`insert into \`${config_1.saasConfig.SAAS_NAME}\`.official_component
                                          set ?`, [
@@ -190,9 +194,59 @@ class App {
     }
     async setDomain(config) {
         var _a;
+        let checkExists = (await database_1.default.query(`select count(1)
+                                           from \`${config_1.saasConfig.SAAS_NAME}\`.app_config
+                                           where domain =?
+                                             and user !=?`, [config.domain, this.token.userID]))['count(1)'] > 0;
+        if (checkExists) {
+            throw exception_1.default.BadRequestError('BAD_REQUEST', 'this domain already on use.', null);
+        }
         try {
+            const data = await ssh_js_1.Ssh.readFile('/etc/nginx/sites-enabled/default.conf');
+            let result = await new Promise((resolve, reject) => {
+                nginx_conf_1.NginxConfFile.createFromSource(data, (err, conf) => {
+                    const server = [];
+                    for (const b of conf.nginx.server) {
+                        if (b.server_name.toString().indexOf(config.domain) === -1) {
+                            console.log(b.server_name.toString());
+                            server.push(b);
+                        }
+                    }
+                    conf.nginx.server = server;
+                    resolve(conf.toString());
+                });
+            });
+            result += `\n\nserver {
+       server_name ${config.domain};
+    location / {
+       proxy_pass http://127.0.0.1:3080/${config.appName}/;
+       proxy_set_header X-Real-IP $remote_addr;
+       proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+       proxy_set_header X-Forwarded-Proto $http_x_forwarded_proto;
+    }
+}`;
+            fs_1.default.writeFileSync('/nginx.config', result);
+            const response = await new Promise((resolve, reject) => {
+                ssh_js_1.Ssh.exec([
+                    `sudo docker cp $(sudo docker ps --filter "expose=3080" --format "{{.ID}}"):/nginx.config /etc/nginx/sites-enabled/default.conf`,
+                    `sudo certbot --nginx -d ${config.domain} -d www.${config.domain} --non-interactive --agree-tos -m sam38124@gmail.com`,
+                    `sudo nginx -s reload`
+                ]).then((res) => {
+                    resolve(res && res.join('').indexOf('Successfully') !== -1);
+                });
+            });
+            if (!response) {
+                throw exception_1.default.BadRequestError('BAD_REQUEST', '網域驗證失敗!', null);
+            }
+            ((await database_1.default.execute(`
+                update \`${config_1.saasConfig.SAAS_NAME}\`.app_config
+                set domain=?
+                where domain = ?
+            `, [null, config.domain])));
             return ((await database_1.default.execute(`
-                update \`${config_1.saasConfig.SAAS_NAME}\`.app_config set domain=? where appName=?
+                update \`${config_1.saasConfig.SAAS_NAME}\`.app_config
+                set domain=?
+                where appName = ?
             `, [config.domain, config.appName])));
         }
         catch (e) {

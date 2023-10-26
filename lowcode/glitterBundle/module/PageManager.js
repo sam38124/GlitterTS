@@ -87,43 +87,54 @@ export class PageManager {
     static setHome(url, tag, obj, option = {}) {
         var _a, _b;
         const glitter = Glitter.glitter;
-        if (glitter.waitChangePage || PageManager.clock.stop() < 300) {
-            setTimeout(() => {
-                glitter.setHome(url, tag, obj, option);
-            }, 100);
-        }
-        else {
-            glitter.defaultSetting.pageLoading();
-            PageManager.clock.zeroing();
-            glitter.waitChangePage = true;
-            for (let a = glitter.pageConfig.length - 1; a >= 0; a--) {
-                if (glitter.pageConfig[a].type !== GVCType.Dialog) {
-                    glitter.hidePageView(glitter.pageConfig[a].id, true);
-                }
+        console.log(`setHome-time:`, window.renderClock.stop());
+        glitter.defaultSetting.pageLoading();
+        PageManager.clock.zeroing();
+        glitter.waitChangePage = true;
+        for (let a = glitter.pageConfig.length - 1; a >= 0; a--) {
+            if (glitter.pageConfig[a].type !== GVCType.Dialog) {
+                glitter.hidePageView(glitter.pageConfig[a].id, true);
             }
-            const config = new PageConfig({
-                id: glitter.getUUID(),
-                obj: obj,
-                goBack: true,
-                src: url,
-                tag: tag,
-                deleteResource: () => {
-                },
-                createResource: () => {
-                },
-                backGroundColor: (_a = option.backGroundColor) !== null && _a !== void 0 ? _a : 'white',
-                type: GVCType.Page,
-                animation: (_b = option.animation) !== null && _b !== void 0 ? _b : glitter.animation.none
-            });
-            $('#glitterPage').append(`<page-box id="page${config.id}" style="min-width: 100vw;min-height: 100vh;left: 0;top: 0;width:100vw;
+        }
+        const config = new PageConfig({
+            id: glitter.getUUID(),
+            obj: obj,
+            goBack: true,
+            src: url,
+            tag: tag,
+            deleteResource: () => {
+            },
+            createResource: () => {
+            },
+            backGroundColor: (_a = option.backGroundColor) !== null && _a !== void 0 ? _a : 'white',
+            type: GVCType.Page,
+            animation: (_b = option.animation) !== null && _b !== void 0 ? _b : glitter.animation.none
+        });
+        $('#glitterPage').append(`<page-box id="page${config.id}" style="min-width: 100vw;min-height: 100vh;left: 0;top: 0;width:100vw;
 background: ${config.backGroundColor};display: none;z-index: 9999;overflow: hidden;">
 </page-box>`);
-            glitter.nowPageConfig = config;
-            let module = glitter.modelJsList.find((dd) => {
-                return `${dd.src}` == url;
-            });
-            if (module) {
-                module.create(glitter);
+        glitter.nowPageConfig = config;
+        let module = glitter.modelJsList.find((dd) => {
+            return `${dd.src}` == url;
+        });
+        if (module) {
+            module.create(glitter);
+            const search = glitter.setSearchParam(glitter.removeSearchParam(glitter.window.location.search, 'page'), 'page', tag);
+            try {
+                glitter.window.history.pushState({}, glitter.document.title, search);
+            }
+            catch (e) {
+            }
+            glitter.pageConfig = [];
+            glitter.pageConfig.push(config);
+            glitter.setUrlParameter('page', tag);
+        }
+        else {
+            glitter.addMtScript([{
+                    src: PageManager.getRelativeUrl(url),
+                    type: 'module',
+                    id: config.id
+                }], () => {
                 const search = glitter.setSearchParam(glitter.removeSearchParam(glitter.window.location.search, 'page'), 'page', tag);
                 try {
                     glitter.window.history.pushState({}, glitter.document.title, search);
@@ -133,27 +144,10 @@ background: ${config.backGroundColor};display: none;z-index: 9999;overflow: hidd
                 glitter.pageConfig = [];
                 glitter.pageConfig.push(config);
                 glitter.setUrlParameter('page', tag);
-            }
-            else {
-                glitter.addMtScript([{
-                        src: PageManager.getRelativeUrl(url),
-                        type: 'module',
-                        id: config.id
-                    }], () => {
-                    const search = glitter.setSearchParam(glitter.removeSearchParam(glitter.window.location.search, 'page'), 'page', tag);
-                    try {
-                        glitter.window.history.pushState({}, glitter.document.title, search);
-                    }
-                    catch (e) {
-                    }
-                    glitter.pageConfig = [];
-                    glitter.pageConfig.push(config);
-                    glitter.setUrlParameter('page', tag);
-                }, () => {
-                    console.log('can\'t find script src:' + url);
-                    glitter.waitChangePage = false;
-                });
-            }
+            }, () => {
+                console.log('can\'t find script src:' + url);
+                glitter.waitChangePage = false;
+            });
         }
     }
     ;

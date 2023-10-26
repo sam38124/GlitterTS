@@ -241,18 +241,7 @@ init((gvc, glitter, gBundle) => {
                             const api = yield ApiPageConfig.setPlugin(gBundle.appName, viewModel.appConfig);
                             resolve(api.result);
                         }));
-                    })),
-                    ((() => __awaiter(this, void 0, void 0, function* () {
-                        return new Promise((resolve) => __awaiter(this, void 0, void 0, function* () {
-                            if (viewModel.originalDomain !== viewModel.domain) {
-                                yield ApiPageConfig.setDomain(viewModel.domain);
-                                resolve(true);
-                            }
-                            else {
-                                resolve(true);
-                            }
-                        }));
-                    })))
+                    }))
                 ];
                 for (const a of waitSave) {
                     if (!(yield a())) {

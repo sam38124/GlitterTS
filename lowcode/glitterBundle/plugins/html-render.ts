@@ -63,6 +63,7 @@ init((gvc, glitter, gBundle) => {
 
     return {
         onCreateView: () => {
+            console.log(`onCreateView-time:`,(window as any).renderClock.stop())
             return new glitter.htmlGenerate(gBundle.app_config.globalScript ?? [], [],undefined,true).render(gvc,{
                 class:``,
                 style:``,
@@ -82,7 +83,7 @@ init((gvc, glitter, gBundle) => {
                     if(vm.loading){
                         return ``
                     }
-
+                    console.log(`Render-time:`,(window as any).renderClock.stop())
                     return new glitter.htmlGenerate(gBundle.app_config.globalStyle, [],undefined,true).render(gvc)+(
                         (gBundle.editMode && gBundle.editMode.render(gvc))
                         ||

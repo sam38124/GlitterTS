@@ -256,17 +256,7 @@ init((gvc, glitter, gBundle) => {
                         resolve(api.result)
                     });
 
-                }),
-                ((async ()=>{
-                    return new Promise(async resolve=>{
-                        if(viewModel.originalDomain!==viewModel.domain){
-                            await ApiPageConfig.setDomain(viewModel.domain)
-                            resolve(true)
-                        }else {
-                            resolve(true)
-                        }
-                    })
-                }))
+                })
             ];
             for (const a of waitSave) {
                 if (!await a()) {

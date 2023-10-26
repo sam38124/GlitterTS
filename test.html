@@ -19,7 +19,6 @@ server {
 
 server_name ".glitter-ai.com" ;
 
-
 location / {
 # 反向代理到同一台主機的 3000 Port
 proxy_pass http://127.0.0.1:3080;

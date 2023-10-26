@@ -134,6 +134,7 @@ function traverseHTML(element: any) {
     return result;
 }
 
+
 glitter.$(document).ready(function () {
     if ((window as any).GL !== undefined) {
         glitter.deviceType = glitter.deviceTypeEnum.Android;

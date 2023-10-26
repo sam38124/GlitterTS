@@ -7,6 +7,11 @@ import {createAPP} from "../index.js";
 import AWS from "aws-sdk";
 import {IToken} from "../models/Auth.js";
 import config from "../config.js";
+import fs from "fs";
+import {exec} from "child_process";
+import {Ssh} from "../modules/ssh.js";
+import {NginxConfFile} from "nginx-conf";
+import * as process from "process";
 
 export class App {
     public token: IToken;
@@ -21,12 +26,12 @@ export class App {
         })
     }
 
-    public async createApp(config: { domain: string, appName: string, copyApp: string }) {
+    public async createApp(config: { appName: string, copyApp: string }) {
         try {
             const count = await db.execute(`
                 select count(1)
                 from \`${saasConfig.SAAS_NAME}\`.app_config
-                where appName = ${db.escape(config.appName)} || \`domain\` = ${db.escape(config.domain)}
+                where appName = ${db.escape(config.appName)} 
             `, [])
             if (count[0]["count(1)"] === 1) {
                 throw  exception.BadRequestError('Forbidden', 'This app already be used.', null);
@@ -46,10 +51,9 @@ export class App {
                                                    where app_name = ${db.escape(config.copyApp)} `, []));
             }
             const trans = await db.Transaction.build();
-            await trans.execute(`insert into \`${saasConfig.SAAS_NAME}\`.app_config (domain, user, appName, dead_line, \`config\`)
-                                 values (?, ?, ?, ?,
+            await trans.execute(`insert into \`${saasConfig.SAAS_NAME}\`.app_config (user, appName, dead_line, \`config\`)
+                                 values ( ?, ?, ?,
                                          ${db.escape(JSON.stringify((copyAppData && copyAppData.config) || {}))})`, [
-                config.domain,
                 this.token.userID,
                 config.appName,
                 addDays(new Date(), saasConfig.DEF_DEADLINE)
@@ -105,16 +109,16 @@ export class App {
 
     }
 
-    public async getAPP(query:{
-        app_name?:string
+    public async getAPP(query: {
+        app_name?: string
     }) {
         try {
             return (await db.execute(`
                 SELECT *
                 FROM \`${saasConfig.SAAS_NAME}\`.app_config
-                where  ${(()=>{
-                    const sql=[`user = '${this.token.userID}'`]
-                    if(query.app_name){
+                where ${(() => {
+                    const sql = [`user = '${this.token.userID}'`]
+                    if (query.app_name) {
                         sql.push(` appName='${query.app_name}' `)
                     }
                     return sql.join(' and ')
@@ -139,6 +143,7 @@ export class App {
             throw exception.BadRequestError(e.code ?? 'BAD_REQUEST', e, null);
         }
     }
+
     public async getOfficialPlugin() {
         try {
             return ((await db.execute(`
@@ -158,13 +163,15 @@ export class App {
                                                 and company = ?`, [this.token.userID, 'LION']))[0]['count(1)'] == 1;
             if (official) {
                 const trans = await db.Transaction.build()
-                await trans.execute(`delete from \`${saasConfig.SAAS_NAME}\`.official_component where app_name=?`,[config.appName])
+                await trans.execute(`delete
+                                     from \`${saasConfig.SAAS_NAME}\`.official_component
+                                     where app_name = ?`, [config.appName])
                 for (const b of (config.data.lambdaView ?? [])) {
                     await trans.execute(`insert into \`${saasConfig.SAAS_NAME}\`.official_component
                                          set ?`, [
                         {
-                            key:b.key,
-                            group:b.name,
+                            key: b.key,
+                            group: b.name,
                             userID: this.token.userID,
                             app_name: config.appName,
                             url: b.path,
@@ -184,14 +191,64 @@ export class App {
         }
     }
 
-    public async setDomain(config:{
-        appName:string,
-        domain:string
+    public async setDomain(config: {
+        appName: string,
+        domain: string
     }) {
+        let checkExists = (await db.query(`select count(1)
+                                           from \`${saasConfig.SAAS_NAME}\`.app_config
+                                           where domain =?
+                                             and user !=?`, [config.domain, this.token.userID]))['count(1)'] > 0;
+        if (checkExists) {
+            throw exception.BadRequestError('BAD_REQUEST', 'this domain already on use.', null);
+        }
         try {
+            const data=await Ssh.readFile('/etc/nginx/sites-enabled/default.conf')
+            let result :string= await new Promise((resolve, reject) => {
+                NginxConfFile.createFromSource(data as string, (err, conf) => {
+                    const server: any = []
+                    for (const b of conf!.nginx.server as any) {
+                        if (b.server_name.toString().indexOf(config.domain) === -1) {
+                            console.log(b.server_name.toString())
+                            server.push(b)
+                        }
+                    }
+                    conf!.nginx.server = server
+                    resolve(conf!.toString())
+                })
+            })
+            result += `\n\nserver {
+       server_name ${config.domain};
+    location / {
+       proxy_pass http://127.0.0.1:3080/${config.appName}/;
+       proxy_set_header X-Real-IP $remote_addr;
+       proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+       proxy_set_header X-Forwarded-Proto $http_x_forwarded_proto;
+    }
+}`
+            fs.writeFileSync('/nginx.config', result);
+            const response = await new Promise((resolve, reject) => {
+                Ssh.exec([
+                    `sudo docker cp $(sudo docker ps --filter "expose=3080" --format "{{.ID}}"):/nginx.config /etc/nginx/sites-enabled/default.conf`,
+                    `sudo certbot --nginx -d ${config.domain} -d www.${config.domain} --non-interactive --agree-tos -m sam38124@gmail.com`,
+                    `sudo nginx -s reload`
+                ]).then((res:any) => {
+                    resolve(res && res.join('').indexOf('Successfully')!==-1)
+                })
+            });
+            if (!response) {
+                throw exception.BadRequestError('BAD_REQUEST', '網域驗證失敗!', null);
+            }
+            ((await db.execute(`
+                update \`${saasConfig.SAAS_NAME}\`.app_config
+                set domain=?
+                where domain = ?
+            `, [null, config.domain])))
             return ((await db.execute(`
-                update \`${saasConfig.SAAS_NAME}\`.app_config set domain=? where appName=?
-            `, [config.domain,config.appName])))
+                update \`${saasConfig.SAAS_NAME}\`.app_config
+                set domain=?
+                where appName = ?
+            `, [config.domain, config.appName])))
         } catch (e: any) {
             throw exception.BadRequestError(e.code ?? 'BAD_REQUEST', e, null);
         }
