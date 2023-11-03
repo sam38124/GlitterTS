@@ -359,6 +359,7 @@ ${EditorElem.h3("選擇頁面")}
             }
         ]),
         fun: (gvc, widget, object, subData, element) => {
+
             return {
                 editor: () => {
                     return ``
@@ -579,8 +580,8 @@ ${EditorElem.codeEditor({
                                                 return {
                                                     title: dd.title || `事件:${index + 1}`,
                                                     expand: dd,
-                                                    innerHtml: (() => {
-                                                        return gvc.map([
+                                                    innerHtml: ((gvc:GVC) => {
+                                                        return [
                                                             gvc.glitter.htmlGenerate.editeInput({
                                                                 gvc: gvc,
                                                                 title: '事件標題',
@@ -596,12 +597,13 @@ ${EditorElem.codeEditor({
                                                                 option: [],
                                                                 title: "判斷式-返回true則執行事件"
                                                             }),
+                                                            `<div class="mt-2"></div>`,
                                                             TriggerEvent.editer(gvc, widget, dd.trigger, {
                                                                 hover: true,
                                                                 option: [],
                                                                 title: "執行事件"
                                                             })
-                                                        ])
+                                                        ].join('')
                                                     }),
                                                     minus: gvc.event(() => {
                                                         object.eventList.splice(index, 1);
@@ -621,7 +623,7 @@ ${EditorElem.codeEditor({
                                         refreshComponent: () => {
                                             gvc.notifyDataChange(id)
                                         },
-                                        customEditor:true
+                                        customEditor:false
                                     })
                                 } catch (e) {
                                     return ``

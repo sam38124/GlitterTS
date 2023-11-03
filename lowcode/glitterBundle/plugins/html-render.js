@@ -28,15 +28,13 @@ init((gvc, glitter, gBundle) => {
                         yield TriggerEvent.trigger({
                             gvc: gvc, widget: b, clickEvent: b.src.event
                         }).then(() => {
-                            resolve(true);
                         }).catch(() => {
-                            resolve(true);
                         });
                     }
                     catch (e) {
-                        resolve(true);
                     }
                 }
+                resolve(true);
             })));
             yield (new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
                 var _c;
@@ -48,7 +46,8 @@ init((gvc, glitter, gBundle) => {
                                     gvc: gvc, widget: undefined, clickEvent: dd
                                 });
                             }
-                            catch (e) { }
+                            catch (e) {
+                            }
                         }
                         else {
                             try {
@@ -66,13 +65,15 @@ init((gvc, glitter, gBundle) => {
                     try {
                         gvc.addStyleLink(data);
                     }
-                    catch (e) { }
+                    catch (e) {
+                    }
                 }
                 else {
                     try {
                         gvc.addStyle(data.src.official);
                     }
-                    catch (e) { }
+                    catch (e) {
+                    }
                 }
             }));
         });
@@ -82,11 +83,14 @@ init((gvc, glitter, gBundle) => {
         onCreateView: () => {
             var _a;
             console.log(`onCreateView-time:`, window.renderClock.stop());
+            console.log(`globalScript:`, gBundle.app_config.globalScript);
             return new glitter.htmlGenerate((_a = gBundle.app_config.globalScript) !== null && _a !== void 0 ? _a : [], [], undefined, true).render(gvc, {
                 class: ``,
                 style: ``,
                 jsFinish: () => {
+                    console.log(`jsFinish-time:`, window.renderClock.stop());
                     load().then(() => {
+                        console.log(`loadFinish-time:`, window.renderClock.stop());
                         if (vm.loading) {
                             vm.loading = false;
                             gvc.notifyDataChange('main');
@@ -105,7 +109,8 @@ init((gvc, glitter, gBundle) => {
                             new glitter.htmlGenerate(gBundle.config, [], undefined, true).render(gvc));
                 },
                 divCreate: {
-                    class: glitter.htmlGenerate.styleEditor(gBundle.page_config).class(), style: `min-height: 100vh;min-width: 100vw;${glitter.htmlGenerate.styleEditor(gBundle.page_config).style()}`
+                    class: glitter.htmlGenerate.styleEditor(gBundle.page_config).class(),
+                    style: `min-height: 100vh;min-width: 100vw;${glitter.htmlGenerate.styleEditor(gBundle.page_config).style()}`
                 },
                 onCreate: () => {
                     var _a;
@@ -114,7 +119,8 @@ init((gvc, glitter, gBundle) => {
                             try {
                                 eval(dd.src.official);
                             }
-                            catch (e) { }
+                            catch (e) {
+                            }
                         }
                     });
                 }

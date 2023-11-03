@@ -152,14 +152,10 @@
         }
     }
     let renderClock=clockF();
-    (window.renderClock)=renderClock
-    // const count = (str) => {
-    //     const re = /\//g
-    //     return ((str || '').match(re) || []).length
-    // }
-    // if(count(location.pathname)===1){
-    //     location.pathname=location.pathname+"/"
-    // }
+    (window.renderClock)=renderClock;
+    if(location.pathname.slice(-1)!=='/'&&!location.pathname.endsWith("html")){
+        location.pathname=location.pathname+"/"
+    }
 </script>
 <script src="glitterBundle/jquery.js"></script>
 <script src="glitterBundle/GlitterInitial.js" type="module"></script>

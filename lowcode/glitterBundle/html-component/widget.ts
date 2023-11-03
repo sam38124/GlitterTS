@@ -188,6 +188,7 @@ export const widgetComponent = {
                                                 }],
                                                 callback: (text) => {
                                                     widget.type = text
+                                                    gvc.notifyDataChange('HtmlEditorContainer')
                                                     widget.refreshComponent()
                                                 }
                                             })
@@ -329,7 +330,7 @@ export const widgetComponent = {
                                                                         }
                                                                     })
                                                                 } else {
-                                                                    return TriggerEvent.editer(gvc, widget, widget.data.innerEvenet, {
+                                                                    return  `<div class="mt-2"></div>`+TriggerEvent.editer(gvc, widget, widget.data.innerEvenet, {
                                                                         option: [],
                                                                         hover: false,
                                                                         title: "程式碼"
@@ -379,7 +380,7 @@ export const widgetComponent = {
                                                                 }
                                                             })
                                                         } else {
-                                                            return TriggerEvent.editer(gvc, widget, widget.data.innerEvenet, {
+                                                            return `<div class="mt-2"></div>`+TriggerEvent.editer(gvc, widget, widget.data.innerEvenet, {
                                                                 option: [],
                                                                 hover: false,
                                                                 title: "程式碼"
@@ -443,7 +444,7 @@ export const widgetComponent = {
                                                                     })
                                                                 }
                                                             } else {
-                                                                return TriggerEvent.editer(gvc, widget, widget.data.innerEvenet, {
+                                                                return `<div class="mt-2"></div>`+TriggerEvent.editer(gvc, widget, widget.data.innerEvenet, {
                                                                     option: [],
                                                                     hover: false,
                                                                     title: "程式碼"
@@ -454,16 +455,7 @@ export const widgetComponent = {
                                                     })()
                                                 ])
                                         }
-                                    })(),
-                                    glitter.htmlGenerate.editeText({
-                                        gvc: gvc,
-                                        title: "備註",
-                                        default: widget.data.note ?? "",
-                                        placeHolder: "請輸入元件備註內容",
-                                        callback: (text: string) => {
-                                            widget.data.note = text
-                                        }
-                                    })
+                                    })()
                                 ])
                             }
                         }),
@@ -568,7 +560,7 @@ export const widgetComponent = {
                                                     })
                                                 }
                                             } else {
-                                                return TriggerEvent.editer(gvc, widget, dd, {
+                                                return `<div class="mt-2"></div>`+TriggerEvent.editer(gvc, widget, dd, {
                                                     option: [],
                                                     hover: false,
                                                     title: "觸發事件"

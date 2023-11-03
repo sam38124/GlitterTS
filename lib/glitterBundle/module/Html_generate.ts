@@ -173,7 +173,18 @@ export class HtmlGenerate {
 
     public static styleEditor(data: any, gvc?: GVC, widget?: HtmlJson, subData?: any) {
         const glitter = (gvc ?? (window as any)).glitter
-
+        function getStyleData(){
+            const globalStyle = glitter.share.globalStyle
+            if(data.style_from==='tag'){
+                if(globalStyle[data.tag]){
+                    return  globalStyle[data.tag]
+                }else{
+                    return data
+                }
+            }else{
+                return data
+            }
+        }
         return {
             editor: (gvc: GVC, widget: HtmlJson | (() => void), title?: string, option?: any) => {
                 const glitter = (window as any).glitter;
@@ -196,7 +207,7 @@ export class HtmlGenerate {
                 }">${title ?? "設計樣式"}</div><br>`;
             },
             class: () => {
-
+                const data=getStyleData()
                 function getClass(data: any) {
                     if((data.class ?? "").includes('position-relative mx-auto flex-sm-row')){
                         console.log(`data.classDataType--`,(data.classDataType))
@@ -234,6 +245,7 @@ export class HtmlGenerate {
                 }))()
             },
             style: () => {
+                const data=getStyleData()
                 let styles = ''
                 function getStyle(data: any) {
 
@@ -449,20 +461,24 @@ ${obj.gvc.bindView({
                             }
                             return waitAdd
                         }
-
                         gvc.glitter.htmlGenerate.loadScript(gvc.glitter, initialComponent(setting))
 
                         //The script or trigger function need to be execute first.
                         async function initialScript() {
+                            //異步執行的事件
+                            for (const script of setting.filter((dd) => {
+                                return dd.type === 'code' && dd.data.triggerTime === 'async'
+                            })) {
+                                codeComponent.render(gvc, script as any, setting as any, [], subdata).view()
+                            }
+                            //同步渲染前需執行
                             for (const script of setting.filter((dd) => {
                                 return dd.type === 'code' && dd.data.triggerTime === 'first'
                             })) {
                                 await codeComponent.render(gvc, script as any, setting as any, [], subdata).view()
                             }
                         }
-
                         await initialScript()
-
                         for (const b of setting) {
                             if ((b as any).preloadEvenet) {
                                 await TriggerEvent.trigger({
@@ -601,9 +617,9 @@ ${obj.gvc.bindView({
                                                     return innerText
                                                 },
                                                 divCreate: {
-                                                    style: `${gvc.glitter.htmlGenerate.styleEditor(dd, gvc).style()} `,
+                                                    style: `${gvc.glitter.htmlGenerate.styleEditor(dd, gvc,dd,{}).style()} `,
                                                     class: `position-relative ${dd.class ?? ''} glitterTag${dd.hashTag} ${hover.indexOf(component) !== -1 ? ` selectComponentHover` : ``}
-                                                        ${gvc.glitter.htmlGenerate.styleEditor(dd, gvc).class()}`,
+                                                        ${gvc.glitter.htmlGenerate.styleEditor(dd, gvc,dd,{}).class()}`,
                                                     option: option
                                                 },
                                                 onCreate: () => {
@@ -865,17 +881,17 @@ ${gvc.bindView(() => {
                                                                     }
                                                                     dd.preloadEvenet = dd.preloadEvenet ?? {};
 
-                                                                    return gvc.glitter.htmlGenerate.styleEditor(dd).editor(
+                                                                    return [gvc.glitter.htmlGenerate.styleEditor(dd,gvc,dd,{}).editor(
                                                                         gvc,
                                                                         () => {
                                                                             option.refreshAll();
                                                                         },
                                                                         '模塊容器樣式'
-                                                                    ) + TriggerEvent.editer(gvc, dd, dd.preloadEvenet, {
+                                                                    ) ,TriggerEvent.editer(gvc, dd, dd.preloadEvenet, {
                                                                         title: "模塊預載事件",
                                                                         option: [],
                                                                         hover: false
-                                                                    });
+                                                                    })].join(`<div class="my-2"></div>`) ;
                                                                 },
                                                                 divCreate: {
                                                                     class: 'mt-2 mb-2 '

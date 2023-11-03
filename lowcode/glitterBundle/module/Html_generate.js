@@ -91,6 +91,11 @@ export class HtmlGenerate {
                         function initialScript() {
                             return __awaiter(this, void 0, void 0, function* () {
                                 for (const script of setting.filter((dd) => {
+                                    return dd.type === 'code' && dd.data.triggerTime === 'async';
+                                })) {
+                                    codeComponent.render(gvc, script, setting, [], subdata).view();
+                                }
+                                for (const script of setting.filter((dd) => {
                                     return dd.type === 'code' && dd.data.triggerTime === 'first';
                                 })) {
                                     yield codeComponent.render(gvc, script, setting, [], subdata).view();
@@ -232,9 +237,9 @@ export class HtmlGenerate {
                                                     return innerText;
                                                 },
                                                 divCreate: {
-                                                    style: `${gvc.glitter.htmlGenerate.styleEditor(dd, gvc).style()} `,
+                                                    style: `${gvc.glitter.htmlGenerate.styleEditor(dd, gvc, dd, {}).style()} `,
                                                     class: `position-relative ${(_a = dd.class) !== null && _a !== void 0 ? _a : ''} glitterTag${dd.hashTag} ${hover.indexOf(component) !== -1 ? ` selectComponentHover` : ``}
-                                                        ${gvc.glitter.htmlGenerate.styleEditor(dd, gvc).class()}`,
+                                                        ${gvc.glitter.htmlGenerate.styleEditor(dd, gvc, dd, {}).class()}`,
                                                     option: option
                                                 },
                                                 onCreate: () => {
@@ -481,13 +486,13 @@ ${gvc.bindView(() => {
                                                                     return ``;
                                                                 }
                                                                 dd.preloadEvenet = (_a = dd.preloadEvenet) !== null && _a !== void 0 ? _a : {};
-                                                                return gvc.glitter.htmlGenerate.styleEditor(dd).editor(gvc, () => {
-                                                                    option.refreshAll();
-                                                                }, '模塊容器樣式') + TriggerEvent.editer(gvc, dd, dd.preloadEvenet, {
-                                                                    title: "模塊預載事件",
-                                                                    option: [],
-                                                                    hover: false
-                                                                });
+                                                                return [gvc.glitter.htmlGenerate.styleEditor(dd, gvc, dd, {}).editor(gvc, () => {
+                                                                        option.refreshAll();
+                                                                    }, '模塊容器樣式'), TriggerEvent.editer(gvc, dd, dd.preloadEvenet, {
+                                                                        title: "模塊預載事件",
+                                                                        option: [],
+                                                                        hover: false
+                                                                    })].join(`<div class="my-2"></div>`);
                                                             },
                                                             divCreate: {
                                                                 class: 'mt-2 mb-2 '
@@ -581,6 +586,20 @@ ${e.line}
     }
     static styleEditor(data, gvc, widget, subData) {
         const glitter = (gvc !== null && gvc !== void 0 ? gvc : window).glitter;
+        function getStyleData() {
+            const globalStyle = glitter.share.globalStyle;
+            if (data.style_from === 'tag') {
+                if (globalStyle[data.tag]) {
+                    return globalStyle[data.tag];
+                }
+                else {
+                    return data;
+                }
+            }
+            else {
+                return data;
+            }
+        }
         return {
             editor: (gvc, widget, title, option) => {
                 const glitter = window.glitter;
@@ -603,6 +622,7 @@ ${e.line}
             },
             class: () => {
                 var _a;
+                const data = getStyleData();
                 function getClass(data) {
                     var _a;
                     if (((_a = data.class) !== null && _a !== void 0 ? _a : "").includes('position-relative mx-auto flex-sm-row')) {
@@ -641,6 +661,7 @@ ${e.line}
             },
             style: () => {
                 var _a, _b;
+                const data = getStyleData();
                 let styles = '';
                 function getStyle(data) {
                     let style = '';

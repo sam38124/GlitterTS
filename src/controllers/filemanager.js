@@ -69,7 +69,7 @@ router.post('/uploadTemplate', async (req, resp) => {
     }
 });
 router.post('/upload', async (req, resp) => {
-    var _a, _b;
+    var _a, _b, _c;
     try {
         const TAG = `[AWS-S3][Upload]`;
         const logger = new logger_1.default();
@@ -89,7 +89,8 @@ router.post('/upload', async (req, resp) => {
                 else {
                     return mime.getType(fullUrl.split('.').pop());
                 }
-            })()
+            })(),
+            CacheControl: (_c = req.body.cache) !== null && _c !== void 0 ? _c : (3600 * 24 * 7),
         };
         console.log(`fullUrl:${params.ContentType}`);
         await AWSLib_1.default.getSignedUrl('putObject', params, async (err, url) => {

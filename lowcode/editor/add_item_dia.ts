@@ -152,7 +152,7 @@ class Add_item_dia {
                                                         },
                                                         divCreate: {
                                                             class: ``,
-                                                            style: `max-height:calc(90vh - 150px);height:490px;overflow-y:auto;`
+                                                            style: `max-height:calc(90vh - 150px);min-height:490px;overflow-y:auto;`
                                                         }
                                                     }
                                                 })}
@@ -998,6 +998,7 @@ class Add_item_dia {
 
     public static past_data(gvc: GVC) {
         return new Promise<{ left: string, right: string }>((resolve, reject) => {
+            let copyCount=1
             const textID = gvc.glitter.getUUID()
             const glitter = gvc.glitter
             let configText = ''
@@ -1014,7 +1015,9 @@ class Add_item_dia {
                     return
                 }
                 glitter.share.copycomponent = configText;
-                glitter.share.pastEvent()
+                for(let c=0;c<copyCount;c++){
+                    glitter.share.pastEvent()
+                }
                 gvc.closeDialog()
             }
 
@@ -1028,7 +1031,17 @@ class Add_item_dia {
                             const id = gvc.glitter.getUUID()
                             return `<div class=" alert alert-info mt-2 p-2" style="white-space: normal;word-break:break-all;">
 將複製於剪貼簿的元件貼上於下方區塊，確認後來產生元件．
-</div>` + gvc.bindView({
+</div>
+` +EditorElem.editeInput({
+                                gvc:gvc,
+                                title:"複製數量",
+                                default:`${copyCount}`,
+                                placeHolder:"複製數量",
+                                callback:(text)=>{
+                                    copyCount=parseInt(text,10)
+                                },
+                                type:'number'
+                            })+ gvc.bindView({
                                 bind: id,
                                 view: () => {
                                     return configText ?? ""
@@ -1049,7 +1062,7 @@ class Add_item_dia {
                                     //@ts-ignore
                                     autosize(obj.gvc.getBindViewElem(id))
                                 }
-                            }) + ` <button class="btn btn-primary-c flex-fill mt-2 w-100" style="flex:1;" onclick="${gvc.event(() => {
+                            }) + `<button class="btn btn-primary-c flex-fill mt-2 w-100" style="flex:1;" onclick="${gvc.event(() => {
                                 trigger()
                             })}">
                                  確認並複製
@@ -1187,7 +1200,7 @@ class Add_item_dia {
                 bind: id,
                 view: () => {
                     return html`
-                        <a class="dropdown-item" style="cursor:pointer;" onclick="${gvc.event(() => {
+                        <a class="dropdown-item d-none" style="cursor:pointer;" onclick="${gvc.event(() => {
                             const data = {
                                 "id": gvc.glitter.getUUID(),
                                 "js": "https://sam38124.github.io/One-page-plugin/src/official.js",

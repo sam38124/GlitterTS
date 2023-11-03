@@ -67,7 +67,11 @@ export class PageManager {
             glitter.pageConfig[index].createResource();
             glitter.setUrlParameter('page', glitter.pageConfig[index].tag);
             if (glitter.pageConfig[index].type === GVCType.Page) {
-                Glitter.glitter.$('html').stop().animate({ scrollTop: glitter.pageConfig[index].scrollTop });
+                window.scrollTo({
+                    top: glitter.pageConfig[index].scrollTop,
+                    behavior: 'auto'
+                });
+                console.log(`scroll----`, glitter.pageConfig[index].scrollTop);
             }
         }
         catch (e) {
@@ -77,6 +81,9 @@ export class PageManager {
         Glitter.glitter.$('#loadingView').hide();
     }
     static getRelativeUrl(url) {
+        if (typeof url === 'string') {
+            url = `${url}`;
+        }
         if (!url.startsWith('http')) {
             return new URL(url, new URL('../../', import.meta.url).href).href;
         }
@@ -184,6 +191,14 @@ background: ${config.backGroundColor};display: none;z-index: 9999;overflow: hidd
         page.getElement().addClass(`position-fixed`);
         page.getElement().show();
         glitter.defaultSetting.pageLoadingFinish();
+        let lastPage = glitter.pageConfig.filter((a) => {
+            return a.type !== GVCType.Dialog;
+        });
+        lastPage = lastPage[lastPage.length - 2];
+        if (lastPage) {
+            lastPage.scrollTop = window.scrollY;
+            console.log('lastPage.scrollTop:' + lastPage.scrollTop);
+        }
         page.animation.inView(page, () => {
             closePreviousPage();
             page.getElement().removeClass('position-fixed');
@@ -191,15 +206,10 @@ background: ${config.backGroundColor};display: none;z-index: 9999;overflow: hidd
             setTimeout(() => {
                 glitter.waitChangePage = false;
                 if (page.type === GVCType.Page) {
-                    let lastPage = glitter.pageConfig.filter((a) => {
-                        return a.type !== GVCType.Dialog;
+                    window.scrollTo({
+                        top: 0,
+                        behavior: 'auto'
                     });
-                    lastPage = lastPage[lastPage.length - 2];
-                    if (lastPage) {
-                        lastPage.scrollTop = glitter.$('html').get(0).scrollTop;
-                        console.log('lastPage.scrollTop:' + lastPage.scrollTop);
-                    }
-                    glitter.$('html').stop().animate({ scrollTop: 0 }, 0);
                 }
             }, 100);
         });
@@ -234,7 +244,7 @@ background: ${config.backGroundColor};display: none;z-index: 9999;overflow: hidd
 min-width: 100vw; min-height: 100vh;  z-index: 9999; overflow: hidden;width:100vw;
 background: transparent;background: ${config.backGroundColor};display: none;position: absolute;top: 0;left: 0;">
 </div>`);
-            config.scrollTop = glitter.$('html').get(0).scrollTop;
+            config.scrollTop = window.scrollY;
             glitter.nowPageConfig = config;
             let module = glitter.modelJsList.find((dd) => {
                 return `${dd.src}` == url;

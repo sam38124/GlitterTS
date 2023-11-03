@@ -7,7 +7,7 @@ class TriggerEventBridge {
         const html = String.raw;
         return `
 <div class="w-100">
-<button class="btn btn-primary-c  mt-2 w-100 " onclick="${gvc.event(() => {
+<button class="btn btn-primary-c  w-100 " onclick="${gvc.event(() => {
             var _a;
             const tag = gvc.glitter.getUUID();
             gvc.glitter.share.clickEvent = (_a = gvc.glitter.share.clickEvent) !== null && _a !== void 0 ? _a : {};

@@ -87,100 +87,138 @@ export class EditorElem {
         })}`;
     }
     static styleEditor(obj) {
-        const html = String.raw;
-        return (obj.title ? EditorElem.h3(obj.title) : '') + obj.gvc.bindView(() => {
-            const id = obj.gvc.glitter.getUUID();
-            const frameID = obj.gvc.glitter.getUUID();
-            const domain = 'https://sam38124.github.io/code_component';
-            let listener = function (event) {
-                if (event.data.type === 'initial') {
-                    const childWindow = document.getElementById(frameID).contentWindow;
-                    function addNewlineAfterSemicolon(inputString) {
-                        const regex = /;/g;
-                        const resultString = inputString.replace(regex, ';\n');
-                        return resultString;
-                    }
-                    childWindow.postMessage({
-                        type: 'getData',
-                        value: obj.dontRefactor ? obj.initial : `style {
+        let idlist = [];
+        function getComponent(gvc, height) {
+            return gvc.bindView(() => {
+                const id = obj.gvc.glitter.getUUID();
+                idlist.push(id);
+                const frameID = obj.gvc.glitter.getUUID();
+                const domain = 'https://sam38124.github.io/code_component';
+                let listener = function (event) {
+                    if (event.data.type === 'initial') {
+                        const childWindow = document.getElementById(frameID).contentWindow;
+                        function addNewlineAfterSemicolon(inputString) {
+                            const regex = /;/g;
+                            const resultString = inputString.replace(regex, ';\n');
+                            return resultString;
+                        }
+                        childWindow.postMessage({
+                            type: 'getData',
+                            value: obj.dontRefactor ? obj.initial : `style {
 ${addNewlineAfterSemicolon(obj.initial)}
 }`,
-                        language: 'css',
-                        refactor: !obj.dontRefactor
-                    }, domain);
-                }
-                else if (event.data.data.callbackID === id) {
-                    if (obj.dontRefactor) {
-                        obj.callback(event.data.data.value);
+                            language: 'css',
+                            refactor: !obj.dontRefactor
+                        }, domain);
                     }
-                    else {
-                        const array = event.data.data.value.split('\n');
-                        obj.callback(array.filter((dd, index) => {
-                            return index !== 0 && index !== (array.length - 1);
-                        }).join(''));
+                    else if (event.data.data.callbackID === id) {
+                        if (obj.dontRefactor) {
+                            obj.initial = event.data.data.value;
+                            obj.callback(event.data.data.value);
+                        }
+                        else {
+                            const array = event.data.data.value.split('\n');
+                            const cb = array.filter((dd, index) => {
+                                return index !== 0 && index !== (array.length - 1);
+                            }).join('');
+                            obj.callback(cb);
+                            obj.initial = cb;
+                        }
                     }
-                }
-            };
-            return {
-                bind: id,
-                view: () => {
-                    return html `
-                        <iframe id="${frameID}" class="w-100 h-100 border rounded-3"
-                                src="${domain}/browser-amd-editor/component.html?height=${obj.height}&link=${location.origin}&callbackID=${id}"></iframe>
-                    `;
-                },
-                divCreate: { class: `w-100 `, style: `height:${obj.height}px;` },
-                onDestroy: () => {
-                    window.removeEventListener('message', listener);
-                },
-                onCreate: () => {
-                    window.addEventListener('message', listener);
-                }
-            };
-        });
+                };
+                return {
+                    bind: id,
+                    view: () => {
+                        return gvc.glitter.html `
+                            <iframe id="${frameID}" class="w-100 h-100 border rounded-3"
+                                    src="${domain}/browser-amd-editor/component.html?height=${height}&link=${location.origin}&callbackID=${id}"></iframe>
+                        `;
+                    },
+                    divCreate: { class: `w-100 `, style: `height:${height}px;` },
+                    onDestroy: () => {
+                        window.removeEventListener('message', listener);
+                    },
+                    onCreate: () => {
+                        window.addEventListener('message', listener);
+                    }
+                };
+            });
+        }
+        return obj.gvc.glitter.html `
+        <div class="d-flex">
+        ${(obj.title ? EditorElem.h3(obj.title) : '')}
+        <div class="d-flex align-items-center justify-content-center" style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;"
+        onclick="${obj.gvc.event(() => {
+            openEditorDialog(obj.gvc, (gvc) => {
+                return getComponent(gvc, window.innerHeight - 100);
+            }, () => {
+                obj.gvc.notifyDataChange(idlist);
+            });
+        })}"><i class="fa-solid fa-expand"></i></div>
+</div>
+        ` + getComponent(obj.gvc, obj.height);
     }
     static codeEditor(obj) {
-        const html = String.raw;
-        return EditorElem.h3(obj.title) + obj.gvc.bindView(() => {
-            const id = obj.gvc.glitter.getUUID();
-            const frameID = obj.gvc.glitter.getUUID();
-            const domain = 'https://sam38124.github.io/code_component';
-            let listener = function (event) {
-                if (event.data.type === 'initial') {
-                    const childWindow = document.getElementById(frameID).contentWindow;
-                    childWindow.postMessage({
-                        type: 'getData',
-                        value: `(()=>{
-${obj.initial}
+        let idlist = [];
+        function getComponent(gvc, height) {
+            return gvc.bindView(() => {
+                const id = obj.gvc.glitter.getUUID();
+                const frameID = obj.gvc.glitter.getUUID();
+                const domain = 'https://sam38124.github.io/code_component';
+                let listener = function (event) {
+                    var _a;
+                    if (event.data.type === 'initial') {
+                        const childWindow = document.getElementById(frameID).contentWindow;
+                        childWindow.postMessage({
+                            type: 'getData',
+                            value: `(()=>{
+${(_a = obj.initial) !== null && _a !== void 0 ? _a : ""}
 })()`,
-                        language: 'javascript',
-                        refactor: true
-                    }, domain);
-                }
-                else if (event.data.data.callbackID === id) {
-                    const array = event.data.data.value.split('\n');
-                    obj.callback(array.filter((dd, index) => {
-                        return index !== 0 && index !== (array.length - 1);
-                    }).join('\n'));
-                }
-            };
-            return {
-                bind: id,
-                view: () => {
-                    return html `
+                            language: 'javascript',
+                            refactor: true
+                        }, domain);
+                    }
+                    else if (event.data.data.callbackID === id) {
+                        const array = event.data.data.value.split('\n');
+                        const data = array.filter((dd, index) => {
+                            return index !== 0 && index !== (array.length - 1);
+                        }).join('\n');
+                        obj.initial = data;
+                        obj.callback(data);
+                    }
+                };
+                return {
+                    bind: id,
+                    view: () => {
+                        return html `
                         <iframe id="${frameID}" class="w-100 h-100 border rounded-3"
-                                src="${domain}/browser-amd-editor/component.html?height=${obj.height}&link=${location.origin}&callbackID=${id}"></iframe>
+                                src="${domain}/browser-amd-editor/component.html?height=${height}&link=${location.origin}&callbackID=${id}"></iframe>
                     `;
-                },
-                divCreate: { class: `w-100 `, style: `height:${obj.height}px;` },
-                onDestroy: () => {
-                    window.removeEventListener('message', listener);
-                },
-                onCreate: () => {
-                    window.addEventListener('message', listener);
-                }
-            };
-        });
+                    },
+                    divCreate: { class: `w-100 `, style: `height:${height}px;` },
+                    onDestroy: () => {
+                        window.removeEventListener('message', listener);
+                    },
+                    onCreate: () => {
+                        window.addEventListener('message', listener);
+                    }
+                };
+            });
+        }
+        const html = String.raw;
+        return obj.gvc.glitter.html `
+        <div class="d-flex">
+        ${(obj.title ? EditorElem.h3(obj.title) : '')}
+        <div class="d-flex align-items-center justify-content-center" style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;"
+        onclick="${obj.gvc.event(() => {
+            openEditorDialog(obj.gvc, (gvc) => {
+                return getComponent(gvc, window.innerHeight - 100);
+            }, () => {
+                obj.gvc.notifyDataChange(idlist);
+            });
+        })}"><i class="fa-solid fa-expand"></i></div>
+</div>
+        ` + getComponent(obj.gvc, obj.height);
     }
     static uploadFile(obj) {
         const glitter = window.glitter;
@@ -836,7 +874,7 @@ ${obj.initial}
                         class: `d-flex flex-column ${(child) ? `` : ``} position-relative`,
                     }
                 };
-            }) + ((obj.plus) ? `<l1 class="btn-group mt-1 ps-1 pe-2 w-100 border-bottom pb-2">
+            }) + ((obj.plus) ? `<l1 class="btn-group mt-2 ps-1 pe-2 w-100 border-bottom pb-2">
                     <div class="btn-outline-secondary-c btn ms-2 " style="height:30px;flex:1;" onclick="${obj.plus.event}"><i class="fa-regular fa-circle-plus me-2"></i>${obj.plus.title}</div>
 </l1>` : ``);
         }
@@ -855,6 +893,41 @@ ${obj.initial}
             };
         });
     }
+}
+function openEditorDialog(gvc, inner, close) {
+    return gvc.glitter.innerDialog((gvc) => {
+        return gvc.glitter.html `
+            <div class="dropdown-menu mx-0 position-fixed pb-0 border p-0 show "
+                 style="z-index:999999;1200px;"
+                 onclick="${gvc.event((e, event) => {
+            event.preventDefault();
+            event.stopPropagation();
+        })}">
+                <div class="d-flex align-items-center px-2 border-bottom"
+                     style="height:50px;min-width: ${gvc.glitter.ut.frSize({
+            1400: 1200,
+            1600: 1400,
+            1900: 1600
+        }, '1200')}px;">
+                    <h3 style="font-size:15px;font-weight:500;" class="m-0">
+                        ${`代碼編輯`}</h3>
+                    <div class="flex-fill"></div>
+                    <div class="hoverBtn p-2" data-bs-toggle="dropdown"
+                         aria-haspopup="true" aria-expanded="false"
+                         style="color:black;font-size:20px;"
+                         onclick="${gvc.event((e, event) => {
+            close();
+            gvc.closeDialog();
+        })}"><i
+                            class="fa-sharp fa-regular fa-circle-xmark"></i>
+                    </div>
+                </div>
+                <div class="px-2 pb-2 pt-2"
+                     style="max-height:calc(100vh - 150px);overflow-y:auto;">
+                    ${inner(gvc)}
+                </div>
+            </div>`;
+    }, gvc.glitter.getUUID());
 }
 function swapArr(arr, index1, index2) {
     const data = arr[index1];

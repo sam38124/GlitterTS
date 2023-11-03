@@ -64,7 +64,6 @@ async function initial(serverPort) {
         await (0, AWSLib_1.createBucket)(config_1.config.AWS_S3_NAME);
         logger.info('[Init]', `Server start with env: ${process.env.NODE_ENV || 'local'}`);
         await exports.app.listen(serverPort);
-        console.log(`domain`, config_1.config.domain);
         logger.info('[Init]', `Server is listening on port: ${serverPort}`);
         console.log('Starting up the server now.');
     })();

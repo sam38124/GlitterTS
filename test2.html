@@ -1,108 +1,62 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title>Title</title>
+  <meta charset="utf-8">
+  <title>3D Color Picker</title>
 </head>
-<style>
-  body {
-    background: none;
-    font: bold 78% Helvetica, sans-serif;
-  }
-
-  .circle {
-    width: 30em;
-    height: 30em;
-    margin: 4em auto 0;
-  }
-
-  .circle svg {
-    display: block;
-    overflow: visible;
-    transition: 10s;
-  }
-
-  .circle svg:hover {
-    transform: rotate(-2turn);
-  }
-
-  .circle path {
-    fill: none;
-  }
-</style>
 <body>
-<div id="rotatingObject" style="width:100vh;height:100vh;z-index: 1;position: relative;display: flex;align-items: center;justify-content: center;">
-  <div id="" style="width: 573.14px; height: 572.03px; position: relative; transform: rotate(179deg); transform-origin: 0 0">
-    <div style="left: -578.08px; top: -277.91px; position: absolute; transform: rotate(-85.92deg); transform-origin: 0 0; font-size: 56.98px; font-family: Righteous; font-weight: 400; line-height: 56.98px; word-wrap: break-word">W</div>
-    <div style="left: -573.40px; top: -330.22px; position: absolute; transform: rotate(-76.71deg); transform-origin: 0 0; font-size: 56.98px; font-family: Righteous; font-weight: 400; line-height: 56.98px; word-wrap: break-word">E</div>
-    <div style="left: -564.45px; top: -365.62px; position: absolute; transform: rotate(-71.29deg); transform-origin: 0 0; font-size: 56.98px; font-family: Righteous; font-weight: 400; line-height: 56.98px; word-wrap: break-word"> </div>
-    <div style="left: -558.93px; top: -383.17px; position: absolute; transform: rotate(-65.30deg); transform-origin: 0 0; font-size: 56.98px; font-family: Righteous; font-weight: 400; line-height: 56.98px; word-wrap: break-word">B</div>
-    <div style="left: -540.94px; top: -421.55px; position: absolute; transform: rotate(-56.64deg); transform-origin: 0 0; font-size: 56.98px; font-family: Righteous; font-weight: 400; line-height: 56.98px; word-wrap: break-word">U</div>
-    <div style="left: -516.60px; top: -456.98px; position: absolute; transform: rotate(-50.37deg); transform-origin: 0 0; font-size: 56.98px; font-family: Righteous; font-weight: 400; line-height: 56.98px; word-wrap: break-word">I</div>
-    <div style="left: -503.87px; top: -472.64px; position: absolute; transform: rotate(-44.75deg); transform-origin: 0 0; font-size: 56.98px; font-family: Righteous; font-weight: 400; line-height: 56.98px; word-wrap: break-word">L</div>
-    <div style="left: -478.13px; top: -498.01px; position: absolute; transform: rotate(-37.03deg); transform-origin: 0 0; font-size: 56.98px; font-family: Righteous; font-weight: 400; line-height: 56.98px; word-wrap: break-word">D</div>
-    <div style="left: -445.01px; top: -522.03px; position: absolute; transform: rotate(-31.15deg); transform-origin: 0 0; font-size: 56.98px; font-family: Righteous; font-weight: 400; line-height: 56.98px; word-wrap: break-word">,</div>
-    <div style="left: -430.51px; top: -530.70px; position: absolute; transform: rotate(-27.76deg); transform-origin: 0 0; font-size: 56.98px; font-family: Righteous; font-weight: 400; line-height: 56.98px; word-wrap: break-word"> </div>
-    <div style="left: -414.18px; top: -540.10px; position: absolute; transform: rotate(-20.71deg); transform-origin: 0 0; font-size: 56.98px; font-family: Righteous; font-weight: 400; line-height: 56.98px; word-wrap: break-word">W</div>
-    <div style="left: -365.14px; top: -557.59px; position: absolute; transform: rotate(-11.58deg); transform-origin: 0 0; font-size: 56.98px; font-family: Righteous; font-weight: 400; line-height: 56.98px; word-wrap: break-word">E</div>
-    <div style="left: -328.84px; top: -564.37px; position: absolute; transform: rotate(-6.08deg); transform-origin: 0 0; font-size: 56.98px; font-family: Righteous; font-weight: 400; line-height: 56.98px; word-wrap: break-word"> </div>
-    <div style="left: -309.76px; top: -566.71px; position: absolute; font-size: 56.98px; font-family: Righteous; font-weight: 400; line-height: 56.98px; word-wrap: break-word">C</div>
-    <div style="left: -267.44px; top: -566.39px; position: absolute; transform: rotate(8.48deg); transform-origin: 0 0; font-size: 56.98px; font-family: Righteous; font-weight: 400; line-height: 56.98px; word-wrap: break-word">R</div>
-    <div style="left: -225.58px; top: -559.86px; position: absolute; transform: rotate(17.20deg); transform-origin: 0 0; font-size: 56.98px; font-family: Righteous; font-weight: 400; line-height: 56.98px; word-wrap: break-word">A</div>
-    <div style="left: -183.94px; top: -546.35px; position: absolute; transform: rotate(25.13deg); transform-origin: 0 0; font-size: 56.98px; font-family: Righteous; font-weight: 400; line-height: 56.98px; word-wrap: break-word">F</div>
-    <div style="left: -151.28px; top: -530.75px; position: absolute; transform: rotate(32.73deg); transform-origin: 0 0; font-size: 56.98px; font-family: Righteous; font-weight: 400; line-height: 56.98px; word-wrap: break-word">T</div>
-    <div style="left: -120.60px; top: -510.34px; position: absolute; transform: rotate(38.17deg); transform-origin: 0 0; font-size: 56.98px; font-family: Righteous; font-weight: 400; line-height: 56.98px; word-wrap: break-word">,</div>
-    <div style="left: -107.41px; top: -499.90px; position: absolute; transform: rotate(41.50deg); transform-origin: 0 0; font-size: 56.98px; font-family: Righteous; font-weight: 400; line-height: 56.98px; word-wrap: break-word"> </div>
-    <div style="left: -93.02px; top: -488.14px; position: absolute; transform: rotate(48.37deg); transform-origin: 0 0; font-size: 56.98px; font-family: Righteous; font-weight: 400; line-height: 56.98px; word-wrap: break-word">W</div>
-    <div style="left: -59.32px; top: -448.83px; position: absolute; transform: rotate(57.37deg); transform-origin: 0 0; font-size: 56.98px; font-family: Righteous; font-weight: 400; line-height: 56.98px; word-wrap: break-word">E</div>
-    <div style="left: -40px; top: -417.48px; position: absolute; transform: rotate(62.87deg); transform-origin: 0 0; font-size: 56.98px; font-family: Righteous; font-weight: 400; line-height: 56.98px; word-wrap: break-word"> </div>
-    <div style="left: -31.33px; top: -401.44px; position: absolute; transform: rotate(68.86deg); transform-origin: 0 0; font-size: 56.98px; font-family: Righteous; font-weight: 400; line-height: 56.98px; word-wrap: break-word">D</div>
-    <div style="left: -16.44px; top: -361.58px; position: absolute; transform: rotate(77.11deg); transform-origin: 0 0; font-size: 56.98px; font-family: Righteous; font-weight: 400; line-height: 56.98px; word-wrap: break-word">E</div>
-    <div style="left: -8.24px; top: -324.98px; position: absolute; transform: rotate(84.80deg); transform-origin: 0 0; font-size: 56.98px; font-family: Righteous; font-weight: 400; line-height: 56.98px; word-wrap: break-word">S</div>
-    <div style="left: -5.31px; top: -284.34px; position: absolute; transform: rotate(90.99deg); transform-origin: 0 0; font-size: 56.98px; font-family: Righteous; font-weight: 400; line-height: 56.98px; word-wrap: break-word">I</div>
-    <div style="left: -5.21px; top: -264.95px; position: absolute; transform: rotate(96.95deg); transform-origin: 0 0; font-size: 56.98px; font-family: Righteous; font-weight: 400; line-height: 56.98px; word-wrap: break-word">G</div>
-    <div style="left: -10.58px; top: -222.88px; position: absolute; transform: rotate(105.68deg); transform-origin: 0 0; font-size: 56.98px; font-family: Righteous; font-weight: 400; line-height: 56.98px; word-wrap: break-word">N</div>
-    <div style="left: -23.11px; top: -181.38px; position: absolute; transform: rotate(111.93deg); transform-origin: 0 0; font-size: 56.98px; font-family: Righteous; font-weight: 400; line-height: 56.98px; word-wrap: break-word">,</div>
-    <div style="left: -29.48px; top: -165.67px; position: absolute; transform: rotate(115.34deg); transform-origin: 0 0; font-size: 56.98px; font-family: Righteous; font-weight: 400; line-height: 56.98px; word-wrap: break-word"> </div>
-    <div style="left: -36.83px; top: -149.36px; position: absolute; transform: rotate(120.84deg); transform-origin: 0 0; font-size: 56.98px; font-family: Righteous; font-weight: 400; line-height: 56.98px; word-wrap: break-word">T</div>
-    <div style="left: -56.25px; top: -116.50px; position: absolute; transform: rotate(129.63deg); transform-origin: 0 0; font-size: 56.98px; font-family: Righteous; font-weight: 400; line-height: 56.98px; word-wrap: break-word">O</div>
-    <div style="left: -88.21px; top: -78.73px; position: absolute; transform: rotate(138.79deg); transform-origin: 0 0; font-size: 56.98px; font-family: Righteous; font-weight: 400; line-height: 56.98px; word-wrap: break-word">G</div>
-    <div style="left: -121.08px; top: -50.55px; position: absolute; transform: rotate(146.95deg); transform-origin: 0 0; font-size: 56.98px; font-family: Righteous; font-weight: 400; line-height: 56.98px; word-wrap: break-word">E</div>
-    <div style="left: -153.02px; top: -30.03px; position: absolute; transform: rotate(154.58deg); transform-origin: 0 0; font-size: 56.98px; font-family: Righteous; font-weight: 400; line-height: 56.98px; word-wrap: break-word">T</div>
-    <div style="left: -186.56px; top: -14.01px; position: absolute; transform: rotate(162.75deg); transform-origin: 0 0; font-size: 56.98px; font-family: Righteous; font-weight: 400; line-height: 56.98px; word-wrap: break-word">H</div>
-    <div style="left: -228.84px; top: -1.31px; position: absolute; transform: rotate(171.05deg); transform-origin: 0 0; font-size: 56.98px; font-family: Righteous; font-weight: 400; line-height: 56.98px; word-wrap: break-word">E</div>
-    <div style="left: -267.56px; top: 4.67px; position: absolute; transform: rotate(179.22deg); transform-origin: 0 0; font-size: 56.98px; font-family: Righteous; font-weight: 400; line-height: 56.98px; word-wrap: break-word">R</div>
-    <div style="left: -309.49px; top: 4.51px; position: absolute; transform: rotate(-174.82deg); transform-origin: 0 0; font-size: 56.98px; font-family: Righteous; font-weight: 400; line-height: 56.98px; word-wrap: break-word">,</div>
-    <div style="left: -325.51px; top: 3.06px; position: absolute; transform: rotate(-171.52deg); transform-origin: 0 0; font-size: 56.98px; font-family: Righteous; font-weight: 400; line-height: 56.98px; word-wrap: break-word"> </div>
-    <div style="left: -343.88px; top: 1.22px; position: absolute; transform: rotate(-164.53deg); transform-origin: 0 0; font-size: 56.98px; font-family: Righteous; font-weight: 400; line-height: 56.98px; word-wrap: break-word">W</div>
-    <div style="left: -394.60px; top: -13.71px; position: absolute; transform: rotate(-155.30deg); transform-origin: 0 0; font-size: 56.98px; font-family: Righteous; font-weight: 400; line-height: 56.98px; word-wrap: break-word">E</div>
-    <div style="left: -427.89px; top: -29.62px; position: absolute; transform: rotate(-149.80deg); transform-origin: 0 0; font-size: 56.98px; font-family: Righteous; font-weight: 400; line-height: 56.98px; word-wrap: break-word"> </div>
-    <div style="left: -443.52px; top: -38.21px; position: absolute; transform: rotate(-144.13deg); transform-origin: 0 0; font-size: 56.98px; font-family: Righteous; font-weight: 400; line-height: 56.98px; word-wrap: break-word">S</div>
-    <div style="left: -477.04px; top: -62.71px; position: absolute; transform: rotate(-135.58deg); transform-origin: 0 0; font-size: 56.98px; font-family: Righteous; font-weight: 400; line-height: 56.98px; word-wrap: break-word">H</div>
-    <div style="left: -506.93px; top: -93.05px; position: absolute; transform: rotate(-129.33deg); transform-origin: 0 0; font-size: 56.98px; font-family: Righteous; font-weight: 400; line-height: 56.98px; word-wrap: break-word">I</div>
-    <div style="left: -520.01px; top: -108.24px; position: absolute; transform: rotate(-123.05deg); transform-origin: 0 0; font-size: 56.98px; font-family: Righteous; font-weight: 400; line-height: 56.98px; word-wrap: break-word">N</div>
-    <div style="left: -543.66px; top: -145.45px; position: absolute; transform: rotate(-114.78deg); transform-origin: 0 0; font-size: 56.98px; font-family: Righteous; font-weight: 400; line-height: 56.98px; word-wrap: break-word">E</div>
-    <div style="left: -558.75px; top: -179.56px; position: absolute; transform: rotate(-109.20deg); transform-origin: 0 0; font-size: 56.98px; font-family: Righteous; font-weight: 400; line-height: 56.98px; word-wrap: break-word">.</div>
-  </div>
-</div>
+<div id="color-picker"></div>
 
+<script src="https://threejs.org/build/three.js"></script>
 <script>
-  setTimeout(()=>{
-   
-    const rotatingObject = document.getElementById('rotatingObject');
-    let rotationAngle = 0; // 初始旋转角度
+  // 初始化場景、相機和渲染器
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+  const renderer = new THREE.WebGLRenderer();
 
-    function rotateObject() {
-      // 递增旋转角度
-      rotationAngle += 5;
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  document.getElementById('color-picker').appendChild(renderer.domElement);
 
-      // 应用旋转样式
-      rotatingObject.style.transform = `rotate(${rotationAngle}deg)`;
+  // 創建一個立方體，用來顯示選定的顏色
+  const cubeGeometry = new THREE.BoxGeometry(1, 1, 1);
+  const cubeMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+  const cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
+  scene.add(cube);
+
+  // 移動相機位置以查看立方體
+  camera.position.z = 5;
+
+  // 創建一個raycaster來檢測滑鼠點擊
+  const raycaster = new THREE.Raycaster();
+  const mouse = new THREE.Vector2();
+
+  // 監聽滑鼠點擊事件
+  document.addEventListener('click', onMouseClick, false);
+
+  function onMouseClick(event) {
+    event.preventDefault();
+    mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+    mouse.y = - (event.clientY / window.innerHeight) * 2 + 1;
+    raycaster.setFromCamera(mouse, camera);
+
+    // 檢測立方體是否被點擊
+    const intersects = raycaster.intersectObject(cube);
+    if (intersects.length > 0) {
+      // 使用滑鼠點擊的顏色更新立方體的材料
+      const color = new THREE.Color(Math.random(), Math.random(), Math.random());
+      cube.material.color = color;
     }
+  }
 
-    // 每100毫秒执行一次rotateObject函数，实现定时旋转
-    const rotationInterval = setInterval(rotateObject, 100);
-  },1000)
+  // 創建動畫循環以更新渲染
+  const animate = function () {
+    requestAnimationFrame(animate);
+    cube.rotation.x += 0.01;
+    cube.rotation.y += 0.01;
+    renderer.render(scene, camera);
+  };
+
+  animate();
 </script>
 </body>
 </html>

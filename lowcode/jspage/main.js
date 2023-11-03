@@ -40,6 +40,7 @@ init((gvc, glitter, gBundle) => {
         initialStyleSheet: [],
         pluginList: [],
         initialJS: [],
+        globalStyleTag: [],
         initialCode: '',
         initialList: [],
         backendPlugins: [],
@@ -110,21 +111,22 @@ init((gvc, glitter, gBundle) => {
                 })),
                 (() => __awaiter(this, void 0, void 0, function* () {
                     return yield new Promise((resolve) => __awaiter(this, void 0, void 0, function* () {
-                        var _b, _c, _d, _e, _f, _g;
+                        var _b, _c, _d, _e, _f, _g, _h;
                         const data = glitter.share.appConfigresponse;
                         if (data.result) {
                             viewModel.appConfig = data.response.data;
                             viewModel.globalScript = (_b = data.response.data.globalScript) !== null && _b !== void 0 ? _b : [];
                             viewModel.globalStyle = (_c = data.response.data.globalStyle) !== null && _c !== void 0 ? _c : [];
+                            viewModel.globalStyleTag = (_d = data.response.data.globalStyleTag) !== null && _d !== void 0 ? _d : [];
                             viewModel.initialList = data.response.data.initialList;
                             viewModel.initialJS = data.response.data.eventPlugin;
                             viewModel.pluginList = data.response.data.pagePlugin;
                             viewModel.initialStyleSheet = data.response.data.initialStyleSheet;
                             viewModel.initialStyle = data.response.data.initialStyle;
-                            viewModel.initialCode = (_d = data.response.data.initialCode) !== null && _d !== void 0 ? _d : "";
-                            viewModel.homePage = (_e = data.response.data.homePage) !== null && _e !== void 0 ? _e : "";
-                            viewModel.backendPlugins = (_f = data.response.data.backendPlugins) !== null && _f !== void 0 ? _f : [];
-                            viewModel.globalValue = (_g = data.response.data.globalValue) !== null && _g !== void 0 ? _g : [];
+                            viewModel.initialCode = (_e = data.response.data.initialCode) !== null && _e !== void 0 ? _e : "";
+                            viewModel.homePage = (_f = data.response.data.homePage) !== null && _f !== void 0 ? _f : "";
+                            viewModel.backendPlugins = (_g = data.response.data.backendPlugins) !== null && _g !== void 0 ? _g : [];
+                            viewModel.globalValue = (_h = data.response.data.globalValue) !== null && _h !== void 0 ? _h : [];
                             function load() {
                                 return __awaiter(this, void 0, void 0, function* () {
                                     glitter.share.globalJsList = [{
@@ -238,6 +240,7 @@ init((gvc, glitter, gBundle) => {
                             viewModel.appConfig.globalStyle = viewModel.globalStyle;
                             viewModel.appConfig.globalScript = viewModel.globalScript;
                             viewModel.appConfig.globalValue = viewModel.globalValue;
+                            viewModel.appConfig.globalStyleTag = viewModel.globalStyleTag;
                             const api = yield ApiPageConfig.setPlugin(gBundle.appName, viewModel.appConfig);
                             resolve(api.result);
                         }));
@@ -292,6 +295,7 @@ init((gvc, glitter, gBundle) => {
     };
     glitter.share.inspect = (_a = glitter.share.inspect) !== null && _a !== void 0 ? _a : true;
     glitter.share.editorViewModel = viewModel;
+    console.log(`viewModel---`, viewModel);
     return {
         onCreateView: () => {
             return gvc.bindView({
@@ -384,7 +388,6 @@ onclick="${gvc.event(() => {
                             var elementHeight = elementRect.height;
                             var windowHeight = document.querySelector('.scrollbar-hover').scrollHeight;
                             let scrollTo = elementTop - (windowHeight - elementHeight) / 2;
-                            console.log(`ewef`, scrollTo);
                             document.querySelector('.scrollbar-hover').scrollTo({
                                 top: scrollTo,
                                 left: 0,

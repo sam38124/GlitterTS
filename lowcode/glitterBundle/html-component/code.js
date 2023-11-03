@@ -29,7 +29,8 @@ export const codeComponent = {
                         def: widget.data.triggerTime,
                         array: [
                             { title: "渲染前", value: "first" },
-                            { title: "渲染後", value: "last" }
+                            { title: "渲染後", value: "last" },
+                            { title: "異步執行", value: "async" }
                         ],
                         callback: (text) => {
                             widget.data.triggerTime = text;

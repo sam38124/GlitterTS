@@ -7,8 +7,14 @@ import {BaseApi} from "./api/base.js";
 
 export class Entry {
     public static onCreate(glitter: Glitter) {
-        console.log(`Entry-time:`,(window as any).renderClock.stop())
-        glitter.share.editerVersion = "V_2.9.96"
+        glitter.addStyle(glitter.html`@media (prefers-reduced-motion: no-preference) {
+    :root {
+        scroll-behavior: auto !important;
+    }
+}`);
+        (window as any).renderClock = (window as any).renderClock ?? clockF()
+        console.log(`Entry-time:`, (window as any).renderClock.stop())
+        glitter.share.editerVersion = "V_3.1.2"
         glitter.share.start = new Date()
         glitter.debugMode = false
         const vm = {
@@ -21,27 +27,35 @@ export class Entry {
             appConfig: undefined
         }
         ApiPageConfig.getPlugin(config.appName).then((dd) => {
-            console.log(`getPlugin-time:`,(window as any).renderClock.stop())
+            console.log(`getPlugin-time:`, (window as any).renderClock.stop())
             vm.appConfig = dd.response.data;
             glitter.share.appConfigresponse = dd;
             glitter.share.globalValue = {}
+            glitter.share.globalStyle = {}
+            glitter.share.appConfigresponse.response.data.globalValue = glitter.share.appConfigresponse.response.data.globalValue ?? []
+            glitter.share.appConfigresponse.response.data.globalStyleTag = glitter.share.appConfigresponse.response.data.globalStyleTag ?? []
 
-            function loopCheckGlobalValue(array: any) {
+            function loopCheckGlobalValue(array: any, tag: string) {
                 try {
                     array.map((dd: any) => {
                         if (dd.type === 'container') {
-                            loopCheckGlobalValue(dd.data.setting)
+                            loopCheckGlobalValue(dd.data.setting, tag)
                         } else {
-                            glitter.share.globalValue[dd.data.tag] = dd.data.value
+                            glitter.share[tag][dd.data.tag] = dd.data.value
                         }
                     })
                 } catch (e) {
-
                 }
+            };
 
+            if (glitter.getUrlParameter("type") === 'htmlEditor') {
+                loopCheckGlobalValue((window.parent as any).glitter.share.editorViewModel.globalStyleTag, 'globalStyle');
+                loopCheckGlobalValue((window.parent as any).glitter.share.editorViewModel.globalValue, 'globalValue');
+
+            } else {
+                loopCheckGlobalValue(glitter.share.appConfigresponse.response.data.globalStyleTag, 'globalStyle');
+                loopCheckGlobalValue(glitter.share.appConfigresponse.response.data.globalValue, 'globalValue');
             }
-
-            loopCheckGlobalValue(glitter.share.appConfigresponse.response.data.globalValue);
             (window as any).saasConfig.appConfig = dd.response.data;
             (async () => {
                 return new Promise(async (resolve, reject) => {
@@ -98,8 +112,9 @@ export class Entry {
                             vm.count--
                         }
                     }
-
-
+                    if (countI === 0) {
+                        resolve(true)
+                    }
                 })
             })().then(() => {
                 if (glitter.getUrlParameter("type") === 'editor') {
@@ -109,6 +124,7 @@ export class Entry {
                     })
                     toBackendEditor(glitter)
                 } else if (glitter.getUrlParameter("type") === 'htmlEditor') {
+                    (window.parent as any).glitter.share.editerGlitter = glitter;
                     let timer: any = 0
                     // 获取<body>元素
                     var bodyElement = document.body;
@@ -167,16 +183,18 @@ export class Entry {
                             config: (window.parent as any).editerData.setting,
                             editMode: (window.parent as any).editerData,
                             data: {},
-                            tag: 'htmlEditor'
+                            tag: (window.parent as any).glitter.getUrlParameter('page')
                         }
                     );
                 } else {
+
                     glitter.share.evalPlace = ((evals: string) => {
                         return eval(evals)
                     })
-                    console.log(`exePlugin-time:`,(window as any).renderClock.stop())
+                    console.log(`exePlugin-time:`, (window as any).renderClock.stop())
                     vm.pageData.then((data) => {
-                        console.log(`getPageData-time:`,(window as any).renderClock.stop())
+                        console.log(`pageConfig===`, data.response.result[0]);
+                        console.log(`getPageData-time:`, (window as any).renderClock.stop())
                         if (data.response.result.length === 0) {
                             const url = new URL("./", location.href)
                             url.searchParams.set('page', data.response.redirect)
@@ -187,7 +205,8 @@ export class Entry {
                         glitter.htmlGenerate.loadScript(glitter, data.response.result[0].config.map((dd: any) => {
                             return {
                                 src: `${glitter.htmlGenerate.configureCDN(glitter.htmlGenerate.resourceHook(dd.js))}`,
-                                callback: () => {}
+                                callback: () => {
+                                }
                             }
                         }))
 
@@ -306,6 +325,18 @@ function toBackendEditor(glitter: Glitter) {
                 }
             })
 
+        }
+    }
+}
+
+let clockF = () => {
+    return {
+        start: new Date(),
+        stop: function () {
+            return ((new Date()).getTime() - (this.start).getTime())
+        },
+        zeroing: function () {
+            this.start = new Date()
         }
     }
 }

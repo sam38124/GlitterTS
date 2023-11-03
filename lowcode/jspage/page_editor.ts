@@ -117,6 +117,7 @@ export class Page_editor {
                                                    if (viewModel.data.tag === viewModel.homePage) {
                                                        seo.type = 'custom'
                                                    }
+                                                  
                                                    return html`
                                                        ${(viewModel.data.tag === viewModel.homePage) ? ``:EditorElem.h3('SEO參照')}
                                                     <select class="mt-2 form-select form-control ${(viewModel.data.tag === viewModel.homePage) && 'd-none'}"

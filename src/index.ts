@@ -46,7 +46,7 @@ export async function initial(serverPort: number) {
         await app.listen(serverPort);
         // await createDomain('glitter-base.com');
         // await setDNS('glitter-base.com')
-console.log(`domain`,config.domain)
+// console.log(`domain`,config.domain)
         logger.info('[Init]', `Server is listening on port: ${serverPort}`);
         console.log('Starting up the server now.');
     })();

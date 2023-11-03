@@ -86,7 +86,8 @@ router.post('/upload', async (req: express.Request, resp: express.Response) => {
                 } else {
                     return mime.getType(fullUrl.split('.').pop())
                 }
-            })()
+            })(),
+            CacheControl: req.body.cache ?? (3600 * 24 * 7),
         };
         console.log(`fullUrl:${params.ContentType}`)
         await s3bucket.getSignedUrl('putObject', params, async (err: any, url: any) => {

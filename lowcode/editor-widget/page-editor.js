@@ -126,7 +126,7 @@ export class PageEditor {
                         });
                         const checkChildSelect = (setting) => {
                             for (const b of setting) {
-                                if (b === viewModel.selectItem) {
+                                if (b === viewModel.selectItem || (option.selectEv && option.selectEv(b))) {
                                     return true;
                                 }
                                 if (b.data && b.data.setting && checkChildSelect(b.data.setting)) {
@@ -144,7 +144,7 @@ export class PageEditor {
                         return html `
                                     <l1 class="btn-group "
                                         style="margin-top:1px;margin-bottom:1px;">
-                                        <div class="editor_item d-flex   px-2 my-0 hi me-n1 ${(viewModel.selectItem === dd || selectChild) ? `active` : ``}"
+                                        <div class="editor_item d-flex   px-2 my-0 hi me-n1 ${(viewModel.selectItem === dd || selectChild || (option.selectEv && option.selectEv(dd))) ? `active` : ``}"
                                              style=""
                                              onclick="${option.selectEvent || gvc.event(() => {
                             viewModel.selectContainer = original;
@@ -540,10 +540,10 @@ export class PageEditor {
                             return [
                                 html `
                                     <div class="d-flex   px-2   hi fw-bold d-flex align-items-center border-bottom"
-                                         style="font-size:14px;">共用參數管理
+                                         style="font-size:14px;">共用資源管理
                                         <div class="flex-fill"></div>
                                         <l1 class="btn-group dropend" onclick="${gvc.event(() => {
-                                    viewModel.selectContainer = viewModel.globalStyle;
+                                    viewModel.selectContainer = viewModel.globalValue;
                                 })}">
                                             <div class="editor_item   px-2 me-0 d-none" style="cursor:pointer; "
                                                  onclick="${gvc.event(() => {
@@ -869,7 +869,7 @@ export class PageEditor {
                                 return html `
                                     <div class="d-flex mx-n2 mt-n2 px-2 hi fw-bold d-flex align-items-center border-bottom border-top py-2 bgf6"
                                          style="color:#151515;font-size:16px;gap:0px;height:48px;">
-                                        設計代碼編輯
+                                        觸發事件編輯
                                     </div>
                                     ${gvc.bindView(() => {
                                     return {
@@ -924,7 +924,7 @@ export class PageEditor {
                                         <div class="flex-fill"></div>
                                         <button class="btn btn-outline-secondary-c " style="height: 40px;width: 100px;"
                                                 onclick="${gvc.event(() => {
-                                    viewModel.globalStyle = viewModel.globalStyle.filter((dd) => {
+                                    viewModel.globalScript = viewModel.globalScript.filter((dd) => {
                                         return dd !== viewModel.selectItem;
                                     });
                                     viewModel.data.config = viewModel.data.config.filter((dd) => {
@@ -1272,9 +1272,10 @@ export class PageEditor {
                                 return {
                                     bind: id,
                                     view: () => {
-                                        var _a, _b, _c, _d, _e, _f;
+                                        var _a, _b, _c, _d, _e, _f, _g;
+                                        editData.page_config.seo = (_a = editData.page_config.seo) !== null && _a !== void 0 ? _a : {};
                                         const seo = editData.page_config.seo;
-                                        seo.type = (_a = seo.type) !== null && _a !== void 0 ? _a : "def";
+                                        seo.type = (_b = seo.type) !== null && _b !== void 0 ? _b : "def";
                                         if (editData.tag === viewModel.homePage) {
                                             seo.type = 'custom';
                                         }
@@ -1295,7 +1296,7 @@ export class PageEditor {
                                                     ${(seo.type === "def") ? `` : gvc.map([uploadImage({
                                                 gvc: gvc,
                                                 title: `網頁logo`,
-                                                def: (_b = seo.logo) !== null && _b !== void 0 ? _b : "",
+                                                def: (_c = seo.logo) !== null && _c !== void 0 ? _c : "",
                                                 callback: (data) => {
                                                     seo.logo = data;
                                                 }
@@ -1303,7 +1304,7 @@ export class PageEditor {
                                             uploadImage({
                                                 gvc: gvc,
                                                 title: `預覽圖片`,
-                                                def: (_c = seo.image) !== null && _c !== void 0 ? _c : "",
+                                                def: (_d = seo.image) !== null && _d !== void 0 ? _d : "",
                                                 callback: (data) => {
                                                     seo.image = data;
                                                 }
@@ -1311,7 +1312,7 @@ export class PageEditor {
                                             glitter.htmlGenerate.editeInput({
                                                 gvc: gvc,
                                                 title: "網頁標題",
-                                                default: (_d = seo.title) !== null && _d !== void 0 ? _d : "",
+                                                default: (_e = seo.title) !== null && _e !== void 0 ? _e : "",
                                                 placeHolder: "請輸入網頁標題",
                                                 callback: (text) => {
                                                     seo.title = text;
@@ -1320,7 +1321,7 @@ export class PageEditor {
                                             glitter.htmlGenerate.editeText({
                                                 gvc: gvc,
                                                 title: "網頁描述",
-                                                default: (_e = seo.content) !== null && _e !== void 0 ? _e : "",
+                                                default: (_f = seo.content) !== null && _f !== void 0 ? _f : "",
                                                 placeHolder: "請輸入網頁標題",
                                                 callback: (text) => {
                                                     seo.content = text;
@@ -1329,7 +1330,7 @@ export class PageEditor {
                                             glitter.htmlGenerate.editeText({
                                                 gvc: gvc,
                                                 title: "關鍵字設定",
-                                                default: (_f = seo.keywords) !== null && _f !== void 0 ? _f : "",
+                                                default: (_g = seo.keywords) !== null && _g !== void 0 ? _g : "",
                                                 placeHolder: "關鍵字設定",
                                                 callback: (text) => {
                                                     seo.keywords = text;

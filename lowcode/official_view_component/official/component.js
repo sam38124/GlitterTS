@@ -59,10 +59,21 @@ export const component = Plugin.createComponent(import.meta.url, (glitter, editM
                                                     }
                                                 }
                                                 else {
-                                                    if ((yield eval(b.code)) === true) {
-                                                        tag = b.tag;
-                                                        carryData = b.carryData;
-                                                        break;
+                                                    if (b.codeVersion === 'v2') {
+                                                        if ((yield eval(`(()=>{
+                                              ${b.code}
+                                                })()`)) === true) {
+                                                            tag = b.tag;
+                                                            carryData = b.carryData;
+                                                            break;
+                                                        }
+                                                    }
+                                                    else {
+                                                        if ((yield eval(b.code)) === true) {
+                                                            tag = b.tag;
+                                                            carryData = b.carryData;
+                                                            break;
+                                                        }
                                                     }
                                                 }
                                             }
@@ -158,37 +169,37 @@ export const component = Plugin.createComponent(import.meta.url, (glitter, editM
                                 bind: id,
                                 view: () => {
                                     var _a;
-                                    return EditorElem.select({
-                                        title: "選擇嵌入頁面",
-                                        gvc: gvc,
-                                        def: (_a = pd.tag) !== null && _a !== void 0 ? _a : "",
-                                        array: [
-                                            {
-                                                title: '選擇嵌入頁面', value: ''
-                                            }
-                                        ].concat(data.dataList.sort((function (a, b) {
-                                            if (a.group.toUpperCase() < b.group.toUpperCase()) {
-                                                return -1;
-                                            }
-                                            if (a.group.toUpperCase() > b.group.toUpperCase()) {
-                                                return 1;
-                                            }
-                                            return 0;
-                                        })).map((dd) => {
-                                            return {
-                                                title: `${dd.group}-${dd.name}`, value: dd.tag
-                                            };
-                                        })),
-                                        callback: (text) => {
-                                            pd.tag = text;
-                                        },
-                                    }) + (() => {
-                                        return TriggerEvent.editer(gvc, widget, pd.carryData, {
-                                            hover: true,
-                                            option: [],
-                                            title: "夾帶資料<[ subData.carryData ]>"
-                                        });
-                                    })();
+                                    return [EditorElem.select({
+                                            title: "選擇嵌入頁面",
+                                            gvc: gvc,
+                                            def: (_a = pd.tag) !== null && _a !== void 0 ? _a : "",
+                                            array: [
+                                                {
+                                                    title: '選擇嵌入頁面', value: ''
+                                                }
+                                            ].concat(data.dataList.sort((function (a, b) {
+                                                if (a.group.toUpperCase() < b.group.toUpperCase()) {
+                                                    return -1;
+                                                }
+                                                if (a.group.toUpperCase() > b.group.toUpperCase()) {
+                                                    return 1;
+                                                }
+                                                return 0;
+                                            })).map((dd) => {
+                                                return {
+                                                    title: `${dd.group}-${dd.name}`, value: dd.tag
+                                                };
+                                            })),
+                                            callback: (text) => {
+                                                pd.tag = text;
+                                            },
+                                        }), (() => {
+                                            return TriggerEvent.editer(gvc, widget, pd.carryData, {
+                                                hover: true,
+                                                option: [],
+                                                title: "夾帶資料<[ subData.carryData ]>"
+                                            });
+                                        })()].join(`<div class="my-2"></div>`);
                                 },
                                 divCreate: {
                                     class: `mb-2`
@@ -274,15 +285,16 @@ export const component = Plugin.createComponent(import.meta.url, (glitter, editM
                                                                                         });
                                                                                     }
                                                                                     else {
-                                                                                        return glitter.htmlGenerate.editeText({
+                                                                                        return EditorElem.codeEditor({
                                                                                             gvc: gvc,
                                                                                             title: `判斷式內容`,
-                                                                                            default: dd.code,
-                                                                                            placeHolder: "輸入程式碼",
+                                                                                            initial: dd.code,
                                                                                             callback: (text) => {
+                                                                                                dd.codeVersion = 'v2';
                                                                                                 dd.code = text;
                                                                                                 gvc.notifyDataChange(id);
-                                                                                            }
+                                                                                            },
+                                                                                            height: 400
                                                                                         });
                                                                                     }
                                                                                 })() + `
@@ -294,7 +306,8 @@ export const component = Plugin.createComponent(import.meta.url, (glitter, editM
                                                                         minus: gvc.event(() => {
                                                                             widget.data.list.splice(index, 1);
                                                                             widget.refreshComponent();
-                                                                        })
+                                                                        }),
+                                                                        width: '600px'
                                                                     };
                                                                 });
                                                             },
@@ -325,6 +338,7 @@ export const component = Plugin.createComponent(import.meta.url, (glitter, editM
                                                              </div>
                                                          </div>`;
                                         },
+                                        width: "400px",
                                         editTitle: `判斷式頁面嵌入`
                                     })}
                                     `;

@@ -526,7 +526,8 @@ export class PageEditor {
         addComponentView?: (gvc: GVC, callback?: (data: any) => void) => string,
         copyType?: 'directly',
         readonly?: boolean,
-        selectEvent?: string
+        selectEvent?: string,
+        selectEv?:(dd:any)=>boolean
     } = {}) {
         const gvc = this.gvc
         const glitter = gvc.glitter
@@ -657,7 +658,7 @@ export class PageEditor {
                         })
                         const checkChildSelect = (setting: any) => {
                             for (const b of setting) {
-                                if (b === viewModel.selectItem) {
+                                if (b === viewModel.selectItem ||(option.selectEv&&option.selectEv(b))) {
                                     return true
                                 }
                                 if (b.data && b.data.setting && checkChildSelect(b.data.setting)) {
@@ -675,7 +676,7 @@ export class PageEditor {
                         return html`
                                     <l1 class="btn-group "
                                         style="margin-top:1px;margin-bottom:1px;">
-                                        <div class="editor_item d-flex   px-2 my-0 hi me-n1 ${(viewModel.selectItem === dd || selectChild) ? `active` : ``}"
+                                        <div class="editor_item d-flex   px-2 my-0 hi me-n1 ${(viewModel.selectItem === dd || selectChild || (option.selectEv&&option.selectEv(dd))) ? `active` : ``}"
                                              style=""
                                              onclick="${option.selectEvent || gvc.event(() => {
                                                  viewModel.selectContainer = original
@@ -1078,10 +1079,10 @@ export class PageEditor {
                             return [
                                 html`
                                     <div class="d-flex   px-2   hi fw-bold d-flex align-items-center border-bottom"
-                                         style="font-size:14px;">共用參數管理
+                                         style="font-size:14px;">共用資源管理
                                         <div class="flex-fill"></div>
                                         <l1 class="btn-group dropend" onclick="${gvc.event(() => {
-                                            viewModel.selectContainer = viewModel.globalStyle
+                                            viewModel.selectContainer = viewModel.globalValue
                                         })}">
                                             <div class="editor_item   px-2 me-0 d-none" style="cursor:pointer; "
                                                  onclick="${gvc.event(() => {
@@ -1414,7 +1415,7 @@ export class PageEditor {
                                 return html`
                                     <div class="d-flex mx-n2 mt-n2 px-2 hi fw-bold d-flex align-items-center border-bottom border-top py-2 bgf6"
                                          style="color:#151515;font-size:16px;gap:0px;height:48px;">
-                                        設計代碼編輯
+                                        觸發事件編輯
                                     </div>
                                     ${gvc.bindView(() => {
                                         return {
@@ -1467,7 +1468,7 @@ export class PageEditor {
                                         <div class="flex-fill"></div>
                                         <button class="btn btn-outline-secondary-c " style="height: 40px;width: 100px;"
                                                 onclick="${gvc.event(() => {
-                                                    viewModel.globalStyle = viewModel.globalStyle.filter((dd: any) => {
+                                                    viewModel.globalScript = viewModel.globalScript.filter((dd: any) => {
                                                         return dd !== viewModel.selectItem
                                                     });
                                                     (viewModel.data! as any).config = (viewModel.data! as any).config.filter((dd: any) => {
@@ -1819,6 +1820,7 @@ export class PageEditor {
                                         return {
                                             bind: id,
                                             view: () => {
+                                                editData.page_config.seo=editData.page_config.seo??{}
                                                 const seo = editData.page_config.seo
                                                 seo.type = seo.type ?? "def"
                                                 if (editData.tag === viewModel.homePage) {

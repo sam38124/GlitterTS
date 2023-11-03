@@ -135,18 +135,16 @@ function traverseHTML(element: any) {
 }
 
 
-glitter.$(document).ready(function () {
-    if ((window as any).GL !== undefined) {
-        glitter.deviceType = glitter.deviceTypeEnum.Android;
-    } else if (navigator.userAgent === 'iosGlitter') {
-        glitter.deviceType = glitter.deviceTypeEnum.Ios;
-    }
-    listenElementChange(`#glitterPage`)
-    listenElementChange(`#Navigation`)
-    listenElementChange(`head`)
-    glitter.closeDrawer()
-    Entry.onCreate(glitter);
-});
+if ((window as any).GL !== undefined) {
+    glitter.deviceType = glitter.deviceTypeEnum.Android;
+} else if (navigator.userAgent === 'iosGlitter') {
+    glitter.deviceType = glitter.deviceTypeEnum.Ios;
+}
+listenElementChange(`#glitterPage`)
+listenElementChange(`#Navigation`)
+listenElementChange(`head`)
+glitter.closeDrawer()
+Entry.onCreate(glitter);
 
 function glitterInitial() {
     if (glitter.deviceType !== glitter.deviceTypeEnum.Android) {

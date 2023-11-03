@@ -353,7 +353,7 @@ export const component = Plugin.createComponent(import.meta.url, (glitter, editM
                                                             });
                                                         }
                                                         else {
-                                                            return TriggerEvent.editer(gvc, widget, widget.data.innerEvenet, {
+                                                            return `<div class="mt-2"></div>` + TriggerEvent.editer(gvc, widget, widget.data.innerEvenet, {
                                                                 option: [],
                                                                 hover: false,
                                                                 title: "程式碼"

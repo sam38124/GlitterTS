@@ -49,11 +49,22 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
                                                     break
                                                 }
                                             } else {
-                                                if ((await eval(b.code)) === true) {
-                                                    tag = b.tag
-                                                    carryData = b.carryData
-                                                    break
+                                                if(b.codeVersion==='v2'){
+                                                    if ((await eval(`(()=>{
+                                              ${b.code}
+                                                })()`)) === true) {
+                                                        tag = b.tag
+                                                        carryData = b.carryData
+                                                        break
+                                                    }
+                                                }else{
+                                                    if ((await eval(b.code)) === true) {
+                                                        tag = b.tag
+                                                        carryData = b.carryData
+                                                        break
+                                                    }
                                                 }
+
                                             }
                                         } catch (e) {}
                                     }
@@ -90,6 +101,7 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
                                                 })
 
                                                 let createOption = (htmlGenerate ?? {}).createOption ?? {}
+                                                // data.config
                                                 target!.outerHTML = new glitter.htmlGenerate(data.config, [], sub).render(gvc, undefined, createOption ?? {});
 
                                             }
@@ -146,7 +158,7 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
                             return {
                                 bind: id,
                                 view: () => {
-                                    return EditorElem.select({
+                                    return [EditorElem.select({
                                         title: "選擇嵌入頁面",
                                         gvc: gvc,
                                         def: pd.tag ?? "",
@@ -170,14 +182,14 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
                                         callback: (text: string) => {
                                             pd.tag = text;
                                         },
-                                    }) + (() => {
+                                    }),(() => {
                                         //
                                         return TriggerEvent.editer(gvc, widget, pd.carryData, {
                                             hover: true,
                                             option: [],
                                             title: "夾帶資料<[ subData.carryData ]>"
                                         })
-                                    })()
+                                    })()].join(`<div class="my-2"></div>`)
                                 },
                                 divCreate: {
                                     class: `mb-2`
@@ -222,6 +234,7 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
                                                                 gvc: gvc,
                                                                 title: "",
                                                                 array: () => {
+                                                                   
                                                                     return widget.data.list.map((dd: any, index: number) => {
                                                                         return {
                                                                             title: dd.name || `判斷式:${index + 1}`,
@@ -262,15 +275,16 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
                                                                                                     title: "觸發事件"
                                                                                                 })
                                                                                             } else {
-                                                                                                return glitter.htmlGenerate.editeText({
+                                                                                                return EditorElem.codeEditor({
                                                                                                     gvc: gvc,
                                                                                                     title: `判斷式內容`,
-                                                                                                    default: dd.code,
-                                                                                                    placeHolder: "輸入程式碼",
+                                                                                                    initial: dd.code,
                                                                                                     callback: (text) => {
+                                                                                                        dd.codeVersion='v2'
                                                                                                         dd.code = text
                                                                                                         gvc.notifyDataChange(id)
-                                                                                                    }
+                                                                                                    },
+                                                                                                    height:400
                                                                                                 })
                                                                                             }
                                                                                         })() + `
@@ -283,7 +297,8 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
                                                                             minus: gvc.event(() => {
                                                                                 widget.data.list.splice(index, 1)
                                                                                 widget.refreshComponent()
-                                                                            })
+                                                                            }),
+                                                                            width:'600px'
                                                                         }
                                                                     })
                                                                 },
@@ -314,6 +329,7 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
                                                              </div>
                                                          </div>`
                                             },
+                                            width:"400px",
                                             editTitle: `判斷式頁面嵌入`
                                         })}
                                     `

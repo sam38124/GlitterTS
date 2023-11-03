@@ -1,4 +1,4 @@
-import {init} from '../glitterBundle/GVController.js';
+import {GVC, init} from '../glitterBundle/GVController.js';
 import {Editor} from './editor.js';
 import {ApiPageConfig} from '../api/pageConfig.js';
 import {Swal} from '../modules/sweetAlert.js';
@@ -8,9 +8,11 @@ import {Setting_editor} from "./setting_editor.js";
 import {Plugin_editor} from "./plugin_editor.js";
 import * as triggerBridge from "../editor-bridge/trigger-event.js";
 import {TriggerEvent} from "../glitterBundle/plugins/trigger-event.js";
+import {EditorElem} from "../glitterBundle/plugins/editor-elem.js";
 
 const html = String.raw
 init((gvc, glitter, gBundle) => {
+
     triggerBridge.initial()
     gvc.addStyle(`
     .swal2-title {
@@ -38,6 +40,7 @@ init((gvc, glitter, gBundle) => {
         originalConfig:any,
         globalScript: any,
         globalStyle: any,
+        globalStyleTag:any,
         appName: string,
         originalData: any,
         domain:string,
@@ -56,6 +59,7 @@ init((gvc, glitter, gBundle) => {
         initialStyleSheet: [],
         pluginList: [],
         initialJS: [],
+        globalStyleTag:[],
         initialCode: '',
         initialList: [],
         backendPlugins: [],
@@ -129,6 +133,7 @@ init((gvc, glitter, gBundle) => {
                         viewModel.appConfig = data.response.data
                         viewModel.globalScript = data.response.data.globalScript ?? []
                         viewModel.globalStyle = data.response.data.globalStyle ?? []
+                        viewModel.globalStyleTag = data.response.data.globalStyleTag ?? []
                         viewModel.initialList = data.response.data.initialList;
                         viewModel.initialJS = data.response.data.eventPlugin;
                         viewModel.pluginList = data.response.data.pagePlugin;
@@ -252,6 +257,7 @@ init((gvc, glitter, gBundle) => {
                         viewModel.appConfig.globalStyle = viewModel.globalStyle
                         viewModel.appConfig.globalScript = viewModel.globalScript
                         viewModel.appConfig.globalValue = viewModel.globalValue
+                        viewModel.appConfig.globalStyleTag = viewModel.globalStyleTag
                         const api = await ApiPageConfig.setPlugin(gBundle.appName, viewModel.appConfig)
                         resolve(api.result)
                     });
@@ -310,6 +316,8 @@ init((gvc, glitter, gBundle) => {
     }
     glitter.share.inspect = glitter.share.inspect ?? true
     glitter.share.editorViewModel = viewModel
+    console.log(`viewModel---`,viewModel)
+
     return {
         onCreateView: () => {
             return gvc.bindView({
@@ -407,7 +415,6 @@ onclick="${gvc.event(() => {
                             var windowHeight = document.querySelector('.scrollbar-hover')!.scrollHeight;
                             // 计算滚动位置，以使元素的中心位于窗口的垂直中心
                             let scrollTo = elementTop - (windowHeight - elementHeight) / 2;
-                            console.log(`ewef`, scrollTo)
                             // 滚动页面
                             document.querySelector('.scrollbar-hover')!.scrollTo({
                                 top: scrollTo,

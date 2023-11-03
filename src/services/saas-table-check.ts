@@ -18,6 +18,7 @@ export const SaasScheme = {
   \`company\` varchar(200) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   \`pwd\` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   \`userData\` json DEFAULT NULL,
+    \`status\` int NOT NULL DEFAULT '1',
   \`created_time\` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   \`editor_token\` text COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   PRIMARY KEY (\`id\`,\`userID\`),
