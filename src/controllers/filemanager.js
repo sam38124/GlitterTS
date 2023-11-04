@@ -90,7 +90,7 @@ router.post('/upload', async (req, resp) => {
                     return mime.getType(fullUrl.split('.').pop());
                 }
             })(),
-            CacheControl: (_c = req.body.cache) !== null && _c !== void 0 ? _c : (3600 * 24 * 7),
+            CacheControl: `${(_c = req.body.cache) !== null && _c !== void 0 ? _c : (3600 * 24 * 7)}`,
         };
         console.log(`fullUrl:${params.ContentType}`);
         await AWSLib_1.default.getSignedUrl('putObject', params, async (err, url) => {

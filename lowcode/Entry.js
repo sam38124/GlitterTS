@@ -15,6 +15,10 @@ import { BaseApi } from "./api/base.js";
 export class Entry {
     static onCreate(glitter) {
         var _a, _b;
+        if (glitter.getUrlParameter('appName')) {
+            window.appName = glitter.getUrlParameter('appName');
+            config.appName = glitter.getUrlParameter('appName');
+        }
         glitter.addStyle(glitter.html `@media (prefers-reduced-motion: no-preference) {
     :root {
         scroll-behavior: auto !important;
@@ -22,7 +26,7 @@ export class Entry {
 }`);
         window.renderClock = (_a = window.renderClock) !== null && _a !== void 0 ? _a : clockF();
         console.log(`Entry-time:`, window.renderClock.stop());
-        glitter.share.editerVersion = "V_3.1.2";
+        glitter.share.editerVersion = "V_3.1.6";
         glitter.share.start = new Date();
         glitter.debugMode = false;
         const vm = {
@@ -199,6 +203,9 @@ export class Entry {
                         if (data.response.result.length === 0) {
                             const url = new URL("./", location.href);
                             url.searchParams.set('page', data.response.redirect);
+                            if (glitter.getUrlParameter('appName')) {
+                                url.searchParams.set('appName', glitter.getUrlParameter('appName'));
+                            }
                             location.href = url.href;
                             return;
                         }

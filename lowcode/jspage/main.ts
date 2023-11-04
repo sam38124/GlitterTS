@@ -336,7 +336,6 @@ init((gvc, glitter, gBundle) => {
                                                     {src: `fa-table-layout`, index: Main_editor.index},
                                                     {src: `fa-solid fa-list-check`, index: Setting_editor.index},
                                                     {src: `fa-sharp fa-regular fa-file-dashed-line`, index: Page_editor.index},
-                                                    {src: `fa-regular fa-puzzle-piece-simple`, index: Plugin_editor.index},
                                                 ].map((da: any) => {
                                                     return `<i class="fa-regular ${da.src} fs-5 fw-bold ${(selectPosition === `${da.index}`) ? `text-primary` : ``}  p-2 rounded" style="cursor:pointer;${(selectPosition === `${da.index}`) ? `background-color: rgba(10,83,190,0.1);` : ``}"
 onclick="${gvc.event(() => {

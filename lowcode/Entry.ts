@@ -7,6 +7,10 @@ import {BaseApi} from "./api/base.js";
 
 export class Entry {
     public static onCreate(glitter: Glitter) {
+        if (glitter.getUrlParameter('appName')) {
+            (window as any).appName = glitter.getUrlParameter('appName')
+            config.appName = glitter.getUrlParameter('appName')
+        }
         glitter.addStyle(glitter.html`@media (prefers-reduced-motion: no-preference) {
     :root {
         scroll-behavior: auto !important;
@@ -14,7 +18,7 @@ export class Entry {
 }`);
         (window as any).renderClock = (window as any).renderClock ?? clockF()
         console.log(`Entry-time:`, (window as any).renderClock.stop())
-        glitter.share.editerVersion = "V_3.1.2"
+        glitter.share.editerVersion = "V_3.1.6"
         glitter.share.start = new Date()
         glitter.debugMode = false
         const vm = {
@@ -198,6 +202,9 @@ export class Entry {
                         if (data.response.result.length === 0) {
                             const url = new URL("./", location.href)
                             url.searchParams.set('page', data.response.redirect)
+                            if (glitter.getUrlParameter('appName')) {
+                                url.searchParams.set('appName', glitter.getUrlParameter('appName'))
+                            }
                             location.href = url.href;
                             return
                         }
@@ -230,7 +237,6 @@ export class Entry {
 }
 
 function toBackendEditor(glitter: Glitter) {
-
     async function running() {
         config.token = glitter.getCookieByName('glitterToken')
         glitter.addStyleLink([

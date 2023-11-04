@@ -7,6 +7,7 @@ import {Dialog} from "../dialog/dialog-mobile.js";
 import {ShareDialog} from "../glitterBundle/dialog/ShareDialog.js";
 import {TriggerEvent} from "../glitterBundle/plugins/trigger-event.js";
 import {ApiPageConfig} from "../api/pageConfig.js";
+import {HtmlGenerate} from "../glitterBundle/module/Html_generate.js";
 
 
 const html = String.raw
@@ -34,16 +35,7 @@ export class PageEditor {
                             <div class="flex-fill"></div>
                             <div class="hoverBtn p-2 me-2" style="color:black;font-size:20px;"
                                  onclick="${gvc.event(() => {
-                                     new ShareDialog(gvc.glitter).checkYesOrNot({
-                                         text: '是否儲存更改內容?',
-                                         callback: (result) => {
-                                             if (result) {
-                                                 gvc.glitter.htmlGenerate.saveEvent()
-                                             }
-                                             gvc.closeDialog()
-                                         }
-                                     })
-
+                                     gvc.closeDialog()
                                  })}"
                             ><i class="fa-sharp fa-regular fa-circle-xmark"></i>
                             </div>
@@ -109,11 +101,150 @@ export class PageEditor {
                                                                 }
                                                                 , {
                                                                     key: 'script',
-                                                                    label: "頁面代碼"
+                                                                    label: "觸發事件"
                                                                 },
                                                                 {
                                                                     key: 'value',
                                                                     label: "全局資源"
+                                                                }
+                                                            ].map((dd: { key: string, label: string }) => {
+                                                                return `<div class="add_item_button ${(dd.key === vm.select) ? `add_item_button_active` : ``}" onclick="${
+                                                                        gvc.event((e, event) => {
+                                                                            viewModel.selectItem = undefined;
+                                                                            (vm as any).select = dd.key
+                                                                            gvc.notifyDataChange(id)
+                                                                        })
+                                                                }">${dd.label}</div>`
+                                                            }).join('')}
+                                                        </div>
+                                                        ${gvc.bindView(() => {
+                                                            return {
+                                                                bind: contentVM.leftID,
+                                                                view: () => {
+                                                                    return contentVM.leftBar
+                                                                },
+                                                                divCreate: {
+                                                                    class: ``,
+                                                                    style: `max-height:calc(90vh - 150px);overflow-y:auto;overflow-x:hidden;`
+                                                                }
+                                                            }
+                                                        })}
+                                                    </div>
+                                                    ${gvc.bindView(() => {
+                                                        return {
+                                                            bind: contentVM.rightID,
+                                                            view: () => {
+                                                                return contentVM.rightBar
+                                                            },
+                                                            divCreate: {}
+                                                        }
+                                                    })}
+                                                </div>`
+                                        },
+                                        divCreate: {
+                                            style: `overflow-y:auto;`
+                                        },
+                                        onCreate: () => {
+
+                                        }
+                                    }
+                                })}
+                            </div>
+                        </div>
+                    </div>
+                `
+            }, "EditItem")
+        },
+        //插件設定
+        plugin_setting: (gvc: GVC) => {
+            const viewModel = gvc.glitter.share.editorViewModel
+            viewModel.selectItem = undefined
+            gvc.glitter.innerDialog((gvc: GVC) => {
+                let searchText = ''
+                let searchInterval: any = 0
+                const id = gvc.glitter.getUUID()
+                const vm: {
+                    select: 'view' | 'event' | 'router'
+                } = {
+                    select: "view"
+                }
+                return html`
+                    <div class="bg-white rounded" style="max-height:90vh;">
+                        <div class="d-flex w-100 border-bottom align-items-center" style="height:50px;">
+                            <h3 style="font-size:15px;font-weight:500;" class="m-0 ps-3">
+                                插件設定</h3>
+                            <div class="flex-fill"></div>
+                            <div class="hoverBtn p-2 me-2" style="color:black;font-size:20px;"
+                                 onclick="${gvc.event(() => {
+                                     gvc.closeDialog()
+                                 })}"
+                            ><i class="fa-sharp fa-regular fa-circle-xmark"></i>
+                            </div>
+                        </div>
+                        <div class="d-flex " style="">
+                            <div>
+                                ${gvc.bindView(() => {
+                                    return {
+                                        bind: id,
+                                        view: () => {
+
+                                            const contentVM: {
+                                                loading: boolean,
+                                                leftID: string,
+                                                rightID: string,
+                                                leftBar: string,
+                                                rightBar: string
+                                            } = {
+                                                loading: true,
+                                                leftID: gvc.glitter.getUUID(),
+                                                rightID: gvc.glitter.getUUID(),
+                                                leftBar: '',
+                                                rightBar: ''
+                                            }
+
+                                            switch (vm.select) {
+                                                case "view":
+                                                    PageEditor.pluginViewRender(gvc).then((data) => {
+                                                        contentVM.loading = false
+                                                        contentVM.leftBar = data.left
+                                                        contentVM.rightBar = data.right
+                                                        gvc.notifyDataChange([contentVM.leftID, contentVM.rightID])
+                                                    })
+                                                    break
+                                                case "event":
+                                                    PageEditor.eventRender(gvc).then((data) => {
+                                                        contentVM.loading = false
+                                                        contentVM.leftBar = data.left
+                                                        contentVM.rightBar = data.right
+                                                        gvc.notifyDataChange([contentVM.leftID, contentVM.rightID])
+                                                    })
+                                                    break
+                                                default:
+                                                    PageEditor.resourceInitial(gvc).then((data) => {
+                                                        contentVM.loading = false
+                                                        contentVM.leftBar = data.left
+                                                        contentVM.rightBar = data.right
+                                                        gvc.notifyDataChange([contentVM.leftID, contentVM.rightID])
+                                                    })
+                                                    break
+                                            }
+
+                                            return html`
+                                                <div class="d-flex">
+                                                    <div style="width:300px;" class="border-end">
+                                                        <div class="d-flex border-bottom ">
+                                                            ${[
+                                                                {
+                                                                    key: 'view',
+                                                                    label: "頁面模塊"
+                                                                }
+                                                                , {
+                                                                    key: 'event',
+                                                                    label: "事件模塊"
+                                                                },
+                                                                {
+                                                                    key: 'router',
+                                                                    label: "資源初始化"
                                                                 }
                                                             ].map((dd: { key: string, label: string }) => {
                                                                 return `<div class="add_item_button ${(dd.key === vm.select) ? `add_item_button_active` : ``}" onclick="${
@@ -310,15 +441,7 @@ export class PageEditor {
                             <div class="flex-fill"></div>
                             <div class="hoverBtn p-2 me-2" style="color:black;font-size:20px;"
                                  onclick="${gvc.event(() => {
-                                     new ShareDialog(gvc.glitter).checkYesOrNot({
-                                         text: '是否儲存更改內容?',
-                                         callback: (result) => {
-                                             if (result) {
-                                                 gvc.glitter.htmlGenerate.saveEvent()
-                                             }
-                                             gvc.closeDialog()
-                                         }
-                                     })
+                                     gvc.closeDialog()
 
                                  })}"
                             ><i class="fa-sharp fa-regular fa-circle-xmark"></i>
@@ -393,15 +516,7 @@ export class PageEditor {
                             <div class="flex-fill"></div>
                             <div class="hoverBtn p-2 me-2" style="color:black;font-size:20px;"
                                  onclick="${gvc.event(() => {
-                                     new ShareDialog(gvc.glitter).checkYesOrNot({
-                                         text: '是否儲存更改內容?',
-                                         callback: (result) => {
-                                             if (result) {
-                                                 gvc.glitter.htmlGenerate.saveEvent()
-                                             }
-                                             gvc.closeDialog()
-                                         }
-                                     })
+                                     gvc.closeDialog()
 
                                  })}"
                             ><i class="fa-sharp fa-regular fa-circle-xmark"></i>
@@ -527,7 +642,7 @@ export class PageEditor {
         copyType?: 'directly',
         readonly?: boolean,
         selectEvent?: string,
-        selectEv?:(dd:any)=>boolean
+        selectEv?: (dd: any) => boolean
     } = {}) {
         const gvc = this.gvc
         const glitter = gvc.glitter
@@ -658,7 +773,7 @@ export class PageEditor {
                         })
                         const checkChildSelect = (setting: any) => {
                             for (const b of setting) {
-                                if (b === viewModel.selectItem ||(option.selectEv&&option.selectEv(b))) {
+                                if (b === viewModel.selectItem || (option.selectEv && option.selectEv(b))) {
                                     return true
                                 }
                                 if (b.data && b.data.setting && checkChildSelect(b.data.setting)) {
@@ -676,7 +791,7 @@ export class PageEditor {
                         return html`
                                     <l1 class="btn-group "
                                         style="margin-top:1px;margin-bottom:1px;">
-                                        <div class="editor_item d-flex   px-2 my-0 hi me-n1 ${(viewModel.selectItem === dd || selectChild || (option.selectEv&&option.selectEv(dd))) ? `active` : ``}"
+                                        <div class="editor_item d-flex   px-2 my-0 hi me-n1 ${(viewModel.selectItem === dd || selectChild || (option.selectEv && option.selectEv(dd))) ? `active` : ``}"
                                              style=""
                                              onclick="${option.selectEvent || gvc.event(() => {
                                                  viewModel.selectContainer = original
@@ -1519,6 +1634,389 @@ export class PageEditor {
         })
     }
 
+    //頁面初始化事件
+    public static pluginViewRender(gvc: GVC) {
+        const html = String.raw
+        const glitter = gvc.glitter
+        const viewModel = gvc.glitter.share.editorViewModel
+        const docID = glitter.getUUID()
+        const vid = glitter.getUUID()
+        return new Promise<{ left: string, right: string }>((resolve, reject) => {
+            resolve({
+                left: gvc.bindView(() => {
+                    const id = vid
+                    return {
+                        bind: id,
+                        view: () => {
+                            return `
+${EditorElem.arrayItem({
+                                originalArray: viewModel.pluginList,
+                                gvc: gvc,
+                                customEditor: true,
+                                title: '',
+                                array: () => {
+                                    return viewModel.pluginList.map((dd: any, index: number) => {
+                                        return {
+                                            title: `<span style="color: black;">${dd.name || `區塊:${index}`}</span>`,
+                                            innerHtml: (() => {
+                                                viewModel.selectItem = dd
+                                                gvc.notifyDataChange(docID)
+                                            })
+                                        }
+                                    })
+                                },
+                                expand: undefined,
+                                plus: {
+                                    title: '頁面模塊',
+                                    event: gvc.event(() => {
+                                        viewModel.pluginList.push({
+                                            name: '',
+                                            route: '',
+                                            src: {
+                                                official: '',
+                                                staging: '',
+                                                open: true
+                                            }
+                                        });
+                                        gvc.notifyDataChange(id);
+                                    }),
+                                },
+                                refreshComponent: () => {
+                                    viewModel.selectItem = viewModel.pluginList.find((dd: any) => {
+                                        return dd === viewModel.selectItem
+                                    })
+                                    gvc.notifyDataChange(id);
+                                    gvc.notifyDataChange(docID);
+                                }
+                            })}`
+                        },
+                        divCreate: {}
+                    }
+                }),
+                right: gvc.bindView(() => {
+                    return {
+                        bind: docID,
+                        view: () => {
+                            const dd = viewModel.selectItem
+                            if (!dd) {
+                                return html`
+                                    <div class="d-flex ps-2 hi fw-bold d-flex align-items-center border-bottom border-top py-2 bgf6"
+                                         style="color:#151515;font-size:16px;gap:0px;height:48px;">
+                                        插件說明
+                                    </div>
+                                    <div class="d-flex flex-column w-100 align-items-center justify-content-center"
+                                         style="height:calc(100% - 48px);">
+                                        <div class="alert alert-info m-2 p-3" style="white-space: normal;word-break: break-all;">頁面模塊決定您能夠在網站上使用哪些設計模塊。您可以從官方或第三方資源中獲取連結，或自行開發插件上傳以供使用。</div>
+                                    </div>
+                                    
+                                `
+                            }
+                            return html`
+                                <div class="d-flex ps-2 hi fw-bold d-flex align-items-center border-bottom border-top py-2 bgf6"
+                                     style="color:#151515;font-size:16px;gap:0px;height:48px;">
+                                    插件設定
+                                </div>
+                                <div class="px-2">
+                                    ${[EditorElem.editeInput({
+                                        gvc,
+                                        title: '自定義模塊名稱',
+                                        default: dd.name,
+                                        placeHolder: '自定義模塊名稱',
+                                        callback: (text) => {
+                                            dd.name = text;
+                                            gvc.notifyDataChange(vid)
+                                        }
+                                    }), EditorElem.editeInput({
+                                        gvc,
+                                        title: '模塊路徑',
+                                        default: dd.src.official,
+                                        placeHolder: '模塊路徑',
+                                        callback: (text) => {
+                                            dd.src.official = text;
+                                        }
+                                    })].join('')}
+                                </div>
+                            `
+                        },
+                        divCreate: {
+                            style: `width:300px;min-height:400px;height:400px;`
+                        }
+                    }
+                })
+            })
+        })
+    }
+
+    //事件初始化事件
+    public static eventRender(gvc: GVC) {
+        const html = String.raw
+        const glitter = gvc.glitter
+        const viewModel = gvc.glitter.share.editorViewModel
+        const docID = glitter.getUUID()
+        const vid = glitter.getUUID()
+        return new Promise<{ left: string, right: string }>((resolve, reject) => {
+            resolve({
+                left: gvc.bindView(() => {
+                    const id = vid
+                    return {
+                        bind: id,
+                        view: () => {
+                            return EditorElem.arrayItem({
+                                originalArray: viewModel.initialJS,
+                                gvc: gvc,
+                                title: '',
+                                array: () => {
+                                    return viewModel.initialJS.map((dd: any, index: number) => {
+                                        return {
+                                            title: `<span style="color: black;">${dd.name || `區塊:${index}`}</span>`,
+                                            innerHtml: (() => {
+                                                viewModel.selectItem = dd
+                                                gvc.notifyDataChange(docID)
+                                            }),
+                                            expand: dd,
+                                            minus: gvc.event(() => {
+                                                viewModel.initialJS.splice(index, 1);
+                                                gvc.notifyDataChange(id);
+                                            })
+                                        }
+                                    })
+                                },
+                                expand: undefined,
+                                customEditor: true,
+                                plus: {
+                                    title: '觸發事件',
+                                    event: gvc.event(() => {
+                                        viewModel.initialJS.push({
+                                            name: '',
+                                            route: '',
+                                            src: {
+                                                official: '',
+                                                open: true
+                                            }
+                                        });
+                                        gvc.notifyDataChange(id);
+                                    }),
+                                },
+                                refreshComponent: () => {
+                                    viewModel.selectItem = viewModel.initialJS.find((dd: any) => {
+                                        return dd === viewModel.selectItem
+                                    })
+                                    gvc.notifyDataChange(id);
+                                }
+                            })
+                        }
+                    }
+                }),
+                right: gvc.bindView(() => {
+                    return {
+                        bind: docID,
+                        view: () => {
+                            const dd = viewModel.selectItem
+                            if (!dd) {
+                                return html`
+                                    <div class="d-flex ps-2 hi fw-bold d-flex align-items-center border-bottom border-top py-2 bgf6"
+                                         style="color:#151515;font-size:16px;gap:0px;height:48px;">
+                                        插件說明
+                                    </div>
+                                    
+                                    <div class="d-flex flex-column w-100 align-items-center justify-content-center"
+                                         style="height:calc(100% - 48px);">
+                                        <div class="alert alert-info m-2 p-3"
+                                             style="white-space: normal;word-break: break-all;">
+                                            為您的元件添加各樣的觸發事件，包含連結跳轉/內容取得/資料儲存/頁面渲染/動畫事件/內容發布....等，都能透過事件來完成。
+                                        </div>
+                                    </div>
+                                `
+                            }
+                            return html`
+                                <div class="d-flex ps-2 hi fw-bold d-flex align-items-center border-bottom border-top py-2 bgf6"
+                                     style="color:#151515;font-size:16px;gap:0px;height:48px;">
+                                    插件設定
+                                </div>
+                                <div class="px-2">
+                                    ${[EditorElem.editeInput({
+                                        gvc,
+                                        title: '自定義模塊名稱',
+                                        default: dd.name,
+                                        placeHolder: '自定義模塊名稱',
+                                        callback: (text) => {
+                                            dd.name = text;
+                                            gvc.notifyDataChange(vid)
+                                        }
+                                    }), EditorElem.editeInput({
+                                        gvc,
+                                        title: '模塊路徑',
+                                        default: dd.src.official,
+                                        placeHolder: '模塊路徑',
+                                        callback: (text) => {
+                                            dd.src.official = text;
+                                        }
+                                    })].join('')}
+                                </div>
+                            `
+                        },
+                        divCreate: {
+                            style: `width:300px;min-height:400px;height:400px;`
+                        }
+                    }
+                })
+            })
+        })
+    }
+
+    //資源初始化
+    public static resourceInitial(gvc: GVC) {
+        const html = String.raw
+        const glitter = gvc.glitter
+        const viewModel = gvc.glitter.share.editorViewModel
+        const docID = glitter.getUUID()
+        const vid = glitter.getUUID()
+        return new Promise<{ left: string, right: string }>((resolve, reject) => {
+            resolve({
+                left: gvc.bindView(() => {
+                    const id = vid
+                    return {
+                        bind: id,
+                        view: () => {
+                            return EditorElem.arrayItem({
+                                originalArray: viewModel.initialList,
+                                gvc: gvc,
+                                title: '',
+                                array: (() => {
+                                    return viewModel.initialList.map((dd: any, index: number) => {
+                                        return {
+                                            title: `<span style="color:black;">${dd.name || `區塊:${index}`}</span>`,
+                                            innerHtml: () => {
+                                                viewModel.selectItem = dd
+                                                gvc.notifyDataChange(docID)
+                                            },
+                                            expand: dd,
+                                            minus: gvc.event(() => {
+                                                viewModel.initialList.splice(index, 1);
+                                                gvc.notifyDataChange(id);
+                                            })
+                                        }
+                                    })
+                                }),
+                                expand: undefined,
+                                plus: {
+                                    title: '添加代碼區塊',
+                                    event: gvc.event(() => {
+                                        viewModel.initialList.push({
+                                            name: '代碼區塊',
+                                            src: {
+                                                official: '',
+                                                staging: '',
+                                                open: true
+                                            }
+                                        });
+                                        gvc.notifyDataChange(id);
+                                    }),
+                                },
+                                refreshComponent: () => {
+                                    viewModel.selectItem = viewModel.initialList.find((dd: any) => {
+                                        return dd === viewModel.selectItem
+                                    })
+                                    gvc.notifyDataChange(id);
+                                },
+                                customEditor: true
+                            })
+                        }
+                    }
+                }),
+                right: gvc.bindView(() => {
+                    return {
+                        bind: docID,
+                        view: () => {
+                            const dd = viewModel.selectItem
+                            if (!dd) {
+                                return html`
+                                    <div class="d-flex ps-2 hi fw-bold d-flex align-items-center border-bottom border-top py-2 bgf6"
+                                         style="color:#151515;font-size:16px;gap:0px;height:48px;">
+                                        插件說明
+                                    </div>
+                                    <div class="d-flex flex-column w-100 align-items-center justify-content-center"
+                                         style="height:calc(100% - 48px);">
+                                        <div class="alert alert-info mx-2 p-3" style="white-space: normal;word-break: break-all;">資源初始代碼會在頁面載入之前執行，通常處理一些基本配置行為，例如設定插件路徑與後端API路徑...等，這些初始化代碼會按照順序執行。</div>
+                                    </div>
+                                `
+                            }
+                            return html`
+                                <div class="d-flex ps-2 hi fw-bold d-flex align-items-center border-bottom border-top py-2 bgf6"
+                                     style="color:#151515;font-size:16px;gap:0px;height:48px;">
+                                    事件設定
+                                </div>
+                                <div class="p-2">  ${
+                                    EditorElem.select({
+                                        title: '類型',
+                                        gvc: gvc,
+                                        def: dd.type ?? 'code',
+                                        callback: (text: string) => {
+                                            dd.type = text
+                                            gvc.notifyDataChange(docID)
+                                        },
+                                        array: [{title: "自定義", value: "code"}, {
+                                            title: "程式碼路徑",
+                                            value: "script"
+                                        }, {title: "觸發事件", value: "event"}],
+                                    })
+                            }
+                                ${HtmlGenerate.editeInput({
+                                    gvc,
+                                    title: '自定義程式區塊名稱',
+                                    default: dd.name,
+                                    placeHolder: '自定義程式區塊名稱',
+                                    callback: (text) => {
+                                        dd.name = text;
+                                        gvc.notifyDataChange(vid);
+                                    }
+                                })}
+                                ${(() => {
+                                    if (dd.type === 'script') {
+                                        return EditorElem.uploadFile({
+                                            gvc,
+                                            title: '輸入或上傳路徑連結',
+                                            def: dd.src.link ?? "",
+                                            callback: (text) => {
+                                                dd.src.link = text;
+                                                gvc.notifyDataChange(docID)
+                                            }
+                                        })
+                                    } else if (dd.type === "event") {
+                                        dd.src.event = dd.src.event ?? {};
+                                        return TriggerEvent.editer(gvc, ({
+                                            refreshComponent: () => {
+                                                gvc.notifyDataChange(docID)
+                                            }
+                                        } as any), dd.src.event, {
+                                            title: "觸發事件",
+                                            hover: false,
+                                            option: []
+                                        })
+                                    } else {
+                                        return gvc.map([
+                                            HtmlGenerate.editeText({
+                                                gvc,
+                                                title: '區塊代碼',
+                                                default: dd.src.official,
+                                                placeHolder: '請輸入代碼',
+                                                callback: (text) => {
+                                                    dd.src.official = text;
+                                                }
+                                            })
+                                        ])
+                                    }
+                                })()} </div>`;
+                        },
+                        divCreate: {
+                            style: `width:300px;height:600px;`
+                        }
+                    }
+                })
+            })
+        })
+    }
+
     //頁面事件
     public static eventEditor(gvc: GVC, callback: (event: any) => void, from: string = 'official') {
         const html = String.raw
@@ -1820,7 +2318,7 @@ export class PageEditor {
                                         return {
                                             bind: id,
                                             view: () => {
-                                                editData.page_config.seo=editData.page_config.seo??{}
+                                                editData.page_config.seo = editData.page_config.seo ?? {}
                                                 const seo = editData.page_config.seo
                                                 seo.type = seo.type ?? "def"
                                                 if (editData.tag === viewModel.homePage) {
@@ -1960,7 +2458,7 @@ onclick="${gvc.event(() => {
                                             } else {
                                                 dialog.errorMessage({text: "設定失敗，請確認網域所有權。"})
                                             }
-                                           
+
                                         })
                                     })}"
 >點我部署</button>`

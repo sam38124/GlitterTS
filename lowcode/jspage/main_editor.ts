@@ -41,57 +41,64 @@ export class Main_editor {
 
                     checkSelect((viewModel.data! as any).config)
 
-                    if ((glitter.getCookieByName("ViewType") === ViewType.col3)||(glitter.getCookieByName("ViewType") === ViewType.mobile)) {
+                    if ((glitter.getCookieByName("ViewType") === ViewType.col3) || (glitter.getCookieByName("ViewType") === ViewType.mobile)) {
                         gvc.notifyDataChange('right_NAV')
                     }
-                   console.log(`viewModel.selectItem-->`,viewModel.selectItem)
+                    console.log(`viewModel.selectItem-->`, viewModel.selectItem)
                     if (viewModel.selectItem && (glitter.getCookieByName("ViewType") !== ViewType.col3) &&
                         (glitter.getCookieByName("ViewType") !== ViewType.mobile) &&
                         (viewModel.selectItem.type !== 'code') && (viewModel.selectItem.type !== 'widget' || (viewModel.selectItem.data.elem !== 'style' && viewModel.selectItem.data.elem !== 'link' && viewModel.selectItem.data.elem !== 'script'))) {
                         return Main_editor.editorContent(gvc, viewModel, vid)
                     } else {
                         return html`
-                            <li class="w-100 align-items-center  d-flex editor_item_title position-sticky top-0 start-0  z-index-9 bgf6"
+                            <li class="w-100 align-items-center  d-flex editor_item_title position-sticky top-0 start-0  z-index-9 bgf6 pe-1"
                                 style="z-index: 999;"
                                 onclick="${gvc.event(() => {
                                 })}"
                             >
                                 開發工具
-
-                                <div class="bg-white ms-auto d-flex align-items-center justify-content-center   me-2 border"
+                                ${[
+                                    `<div class="bg-white ms-auto d-flex align-items-center justify-content-center    border"
                                      style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;"
                                      onclick="${gvc.event(() => {
-                                         PageEditor.openDialog.seo_with_domain(gvc)
-                                     })}">
+                                        PageEditor.openDialog.seo_with_domain(gvc)
+                                    })}">
                                     <i class="fa-sharp fa-regular fa-globe-pointer"></i>
-                                </div>
-                                <div class="bg-white d-flex align-items-center justify-content-center  me-2 border"
+                                </div>`,
+                                    `  <div class="bg-white d-flex align-items-center justify-content-center  border"
                                      style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;"
                                      onclick="${gvc.event(() => {
-                                         PageEditor.openDialog.page_config(gvc)
-                                     })}">
-                                    <i class="fa-solid fa-code"></i>
-                                </div>
-                                <div class="bg-white d-flex align-items-center justify-content-center hoverBtn me-2 border"
+                                        PageEditor.openDialog.page_config(gvc)
+                                    })}">
+                                    <i class="fa-duotone fa-file-code"></i>
+                                </div>`,
+                                    ` <div class="bg-white d-flex align-items-center justify-content-center   border " style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;"
+  onclick="${gvc.event(() => {
+                                        PageEditor.openDialog.plugin_setting(gvc)
+                                    })}">
+                                    <i class="fa-solid fa-puzzle-piece-simple"></i>
+
+                                </div>`,
+                                    ` <div class="bg-white d-flex align-items-center justify-content-center hoverBtn  border"
                                      style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;"
                                      onclick="${gvc.event(() => {
-                                         viewModel.selectContainer = (viewModel.data! as any).config
-                                         gvc.glitter.innerDialog((gvc: GVC) => {
-                                             return Add_item_dia.view(gvc)
-                                         }, 'Add_Item')
-                                     })}">
+                                        viewModel.selectContainer = (viewModel.data! as any).config
+                                        gvc.glitter.innerDialog((gvc: GVC) => {
+                                            return Add_item_dia.view(gvc)
+                                        }, 'Add_Item')
+                                    })}">
                                     <i class="fa-regular fa-circle-plus"></i>
-                                </div>
+                                </div>`
+                                ].join(`<div class="me-1"></div>`)}
                             </li>
                             <li class="w-100 align-items-center  d-flex editor_item_title  start-0 bg-white z-index-9"
                                 style="z-index: 999;"
                                 onclick="${gvc.event(() => {
                                 })}"
-                            >${viewModel.data.name}-區段
-                              
+                            ><span style="font-size:14px;">${viewModel.data.name}-區段</span>
                             </li>
-                           
-                           
+
+
                             ${(() => {
                                 return gvc.map([
                                     html`
@@ -301,7 +308,7 @@ export class Main_editor {
                  style="${(viewModel.type === ViewType.mobile) ? `width: 414px;height: calc(100vh - 50px);padding-top: 20px;` : `width: calc(100% - 20px);margin-left:10px;height: calc(100vh - 50px);padding-top: 20px;"`}">
                 <div class="bg-white" style="width:100%;height: calc(100%);">
                     <iframe class="w-100 h-100 rounded"
-                            src="index.html?type=htmlEditor&page=${gvc.glitter.getUrlParameter('page')}"></iframe>
+                            src="index.html?type=htmlEditor&page=${gvc.glitter.getUrlParameter('page')}&appName=${gvc.glitter.getUrlParameter('appName')}"></iframe>
                 </div>
             </div>`
     }

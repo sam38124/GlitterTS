@@ -170,11 +170,15 @@ async function createAPP(dd) {
             path: path_1.default.resolve(__dirname, '../lowcode'),
             seoManager: async (req, resp) => {
                 var _a;
+                let appName = dd.appName;
+                if (req.query.appName) {
+                    appName = req.query.appName;
+                }
                 try {
                     let data = (await database_2.default.execute(`SELECT page_config, \`${config_1.saasConfig.SAAS_NAME}\`.app_config.\`config\`,tag
                                                   FROM \`${config_1.saasConfig.SAAS_NAME}\`.page_config,
                                                        \`${config_1.saasConfig.SAAS_NAME}\`.app_config
-                                                  where \`${config_1.saasConfig.SAAS_NAME}\`.page_config.appName = ${database_2.default.escape(dd.appName)}
+                                                  where \`${config_1.saasConfig.SAAS_NAME}\`.page_config.appName = ${database_2.default.escape(appName)}
                                                     and tag = ${database_2.default.escape(req.query.page)}
                                                     and \`${config_1.saasConfig.SAAS_NAME}\`.page_config.appName = \`${config_1.saasConfig.SAAS_NAME}\`.app_config.appName;
                     `, []))[0];
@@ -185,7 +189,7 @@ async function createAPP(dd) {
                             data = (await database_2.default.execute(`SELECT page_config, \`${config_1.saasConfig.SAAS_NAME}\`.app_config.\`config\`,tag
                                                       FROM \`${config_1.saasConfig.SAAS_NAME}\`.page_config,
                                                            \`${config_1.saasConfig.SAAS_NAME}\`.app_config
-                                                      where \`${config_1.saasConfig.SAAS_NAME}\`.page_config.appName = ${database_2.default.escape(dd.appName)}
+                                                      where \`${config_1.saasConfig.SAAS_NAME}\`.page_config.appName = ${database_2.default.escape(appName)}
                                                         and tag = ${database_2.default.escape(data.config.homePage)}
                                                         and \`${config_1.saasConfig.SAAS_NAME}\`.page_config.appName = \`${config_1.saasConfig.SAAS_NAME}\`.app_config.appName;
                             `, []))[0];
@@ -194,11 +198,11 @@ async function createAPP(dd) {
                     else {
                         const config = (await database_2.default.execute(`SELECT \`${config_1.saasConfig.SAAS_NAME}\`.app_config.\`config\`
                                                           FROM \`${config_1.saasConfig.SAAS_NAME}\`.app_config
-                                                          where \`${config_1.saasConfig.SAAS_NAME}\`.app_config.appName = ${database_2.default.escape(dd.appName)} limit 0,1
+                                                          where \`${config_1.saasConfig.SAAS_NAME}\`.app_config.appName = ${database_2.default.escape(appName)} limit 0,1
                         `, []))[0]['config'];
                         if (config && ((await database_2.default.execute(`SELECT count(1)
                                                           FROM \`${config_1.saasConfig.SAAS_NAME}\`.page_config
-                                                          where \`${config_1.saasConfig.SAAS_NAME}\`.page_config.appName = ${database_2.default.escape(dd.appName)}
+                                                          where \`${config_1.saasConfig.SAAS_NAME}\`.page_config.appName = ${database_2.default.escape(appName)}
                                                             and tag = ${database_2.default.escape(config['homePage'])}
                         `, []))[0]["count(1)"] === 1)) {
                             redirect = config['homePage'];
@@ -206,18 +210,21 @@ async function createAPP(dd) {
                         else {
                             redirect = (await database_2.default.execute(`SELECT tag
                                                           FROM \`${config_1.saasConfig.SAAS_NAME}\`.page_config
-                                                          where \`${config_1.saasConfig.SAAS_NAME}\`.page_config.appName = ${database_2.default.escape(dd.appName)} limit 0,1
+                                                          where \`${config_1.saasConfig.SAAS_NAME}\`.page_config.appName = ${database_2.default.escape(appName)} limit 0,1
                             `, []))[0]['tag'];
                         }
                         data = (await database_2.default.execute(`SELECT page_config, \`${config_1.saasConfig.SAAS_NAME}\`.app_config.\`config\`,tag
                                                   FROM \`${config_1.saasConfig.SAAS_NAME}\`.page_config,
                                                        \`${config_1.saasConfig.SAAS_NAME}\`.app_config
-                                                  where \`${config_1.saasConfig.SAAS_NAME}\`.page_config.appName = ${database_2.default.escape(dd.appName)}
+                                                  where \`${config_1.saasConfig.SAAS_NAME}\`.page_config.appName = ${database_2.default.escape(appName)}
                                                     and tag = ${database_2.default.escape(redirect)}
                                                     and \`${config_1.saasConfig.SAAS_NAME}\`.page_config.appName = \`${config_1.saasConfig.SAAS_NAME}\`.app_config.appName;
                         `, []))[0];
                         if (req.query.type) {
                             redirect += `&type=${req.query.type}`;
+                        }
+                        if (req.query.appName) {
+                            redirect += `&appName=${req.query.appName}`;
                         }
                     }
                     return `${(() => {
@@ -251,13 +258,13 @@ window.location.href='?page=${redirect}';
 </script>`;
                         }
                     })()}<script>
-window.appName='${dd.appName}';
+window.appName='${appName}';
 window.glitterBackend='${config_1.config.domain}';
 </script>`;
                 }
                 catch (e) {
                     return `<script>
-window.appName='${dd.appName}';
+window.appName='${appName}';
 window.glitterBackend='${config_1.config.domain}';
 </script>`;
                 }
