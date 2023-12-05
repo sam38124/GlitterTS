@@ -41,17 +41,20 @@ const AWSLib_1 = require("./modules/AWSLib");
 const aws_sdk_1 = __importDefault(require("aws-sdk"));
 const live_source_1 = require("./live_source");
 const process = __importStar(require("process"));
+const body_parser_1 = __importDefault(require("body-parser"));
 exports.app = (0, express_1.default)();
 const logger = new logger_1.default();
-const corsOptions = {
-    origin: '*',
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
-    allowedHeaders: ['Content-Type', 'Authorization'],
-};
-exports.app.use((0, cors_1.default)(corsOptions));
+exports.app.options('/*', (req, res) => {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH');
+    res.header('Access-Control-Allow-Headers', 'Content-Type,Authorization,g-app');
+    res.status(200).send();
+});
+exports.app.use((0, cors_1.default)());
 exports.app.use(express_1.default.raw());
 exports.app.use(express_1.default.json({ limit: '50MB' }));
 exports.app.use(createContext);
+exports.app.use(body_parser_1.default.raw({ type: '*/*' }));
 exports.app.use(contollers);
 exports.app.use(public_contollers);
 async function initial(serverPort) {
@@ -227,6 +230,7 @@ async function createAPP(dd) {
                             redirect += `&appName=${req.query.appName}`;
                         }
                     }
+                    console.log(req.query);
                     return `${(() => {
                         var _a, _b, _c, _d, _e, _f, _g, _h, _j;
                         data.page_config = (_a = data.page_config) !== null && _a !== void 0 ? _a : {};
@@ -240,6 +244,29 @@ async function createAPP(dd) {
     <meta property="og:image" content="${(_g = d.image) !== null && _g !== void 0 ? _g : ""}">
     <meta property="og:title" content="${(_h = d.title) !== null && _h !== void 0 ? _h : ""}">
     <meta name="description" content="${(_j = d.content) !== null && _j !== void 0 ? _j : ""}">
+  ${(() => {
+                                var _a;
+                                if (req.query.type === 'editor') {
+                                    return ``;
+                                }
+                                else {
+                                    return `  ${((_a = data.config.globalStyle) !== null && _a !== void 0 ? _a : []).map((dd) => {
+                                        try {
+                                            if (dd.data.elem === 'style') {
+                                                return `<style>${dd.data.inner}</style>`;
+                                            }
+                                            else if (dd.data.elem === 'link') {
+                                                return `<link type="text/css" rel="stylesheet" href="${dd.data.attr.find((dd) => {
+                                                    return dd.attr === 'href';
+                                                }).value}">`;
+                                            }
+                                        }
+                                        catch (e) {
+                                            return ``;
+                                        }
+                                    }).join('')}`;
+                                }
+                            })()}
     ${(() => {
                                 if (redirect) {
                                     return `<script>

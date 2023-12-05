@@ -17065,3 +17065,8 @@ img-comparison-slider:focus {
 .dark-mode .ap-seek-slider::-webkit-slider-runnable-track {
   background: linear-gradient(to right, rgba(255, 255, 255, 0.55) var(--buffered-width), rgba(255, 255, 255, 0.3) var(--buffered-width));
 }
+
+.badge-success{
+  background-color: #cdfee1;
+  color: #0c5132;
+}

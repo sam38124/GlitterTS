@@ -76,7 +76,7 @@ ${EditorElem.searchInput({
                 })}</div>`,`
                ${(()=>{
                    var deleteText=''
-                   return ` <div class="w-100 d-flex align-items-center justify-content-center" style="">
+                   return `<div class="w-100 d-flex align-items-center justify-content-center" style="">
 <h3 style="font-size: 16px;width: 100px;white-space: nowrap;" class="m-0 me-2 mb-2">刪除頁面:</h3>
 ${glitter.htmlGenerate.editeInput({
                        gvc: gvc,

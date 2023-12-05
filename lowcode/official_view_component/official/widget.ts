@@ -1,7 +1,7 @@
 import {HtmlJson, Plugin} from "../../glitterBundle/plugins/plugin-creater.js";
 import {Glitter} from "../../glitterBundle/Glitter.js";
 import {GVC} from "../../glitterBundle/GVController.js";
-import {BaseApi} from "../../api/base.js";
+import {BaseApi} from "../../glitterBundle/api/base.js";
 import {TriggerEvent} from "../../glitterBundle/plugins/trigger-event.js";
 import {EditorElem} from "../../glitterBundle/plugins/editor-elem.js";
 

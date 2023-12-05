@@ -38,6 +38,8 @@ export declare const config: {
         message: string;
         smtp: string;
         lambda: string;
+        ec: string;
+        manager: string;
     };
     route: {
         user: string;

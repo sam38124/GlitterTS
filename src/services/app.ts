@@ -12,6 +12,7 @@ import {exec} from "child_process";
 import {Ssh} from "../modules/ssh.js";
 import {NginxConfFile} from "nginx-conf";
 import * as process from "process";
+import {ApiPublic} from "../api-public/services/public-table-check.js";
 
 export class App {
     public token: IToken;
@@ -26,12 +27,13 @@ export class App {
         })
     }
 
-    public async createApp(config: { appName: string, copyApp: string }) {
+    public async createApp(config: { appName: string, copyApp: string, copyWith: string[] }) {
         try {
+            config.copyWith=config.copyWith??[]
             const count = await db.execute(`
                 select count(1)
                 from \`${saasConfig.SAAS_NAME}\`.app_config
-                where appName = ${db.escape(config.appName)} 
+                where appName = ${db.escape(config.appName)}
             `, [])
             if (count[0]["count(1)"] === 1) {
                 throw  exception.BadRequestError('Forbidden', 'This app already be used.', null);
@@ -40,6 +42,7 @@ export class App {
             let copyPageData: any = undefined
             let privateConfig: any = undefined
             if (config.copyApp) {
+                await ApiPublic.createScheme(config.copyApp)
                 copyAppData = (await db.execute(`select *
                                                  from \`${saasConfig.SAAS_NAME}\`.app_config
                                                  where appName = ${db.escape(config.copyApp)}`, []))[0];
@@ -50,14 +53,77 @@ export class App {
                                                    from \`${saasConfig.SAAS_NAME}\`.private_config
                                                    where app_name = ${db.escape(config.copyApp)} `, []));
             }
+
+            await ApiPublic.createScheme(config.appName)
             const trans = await db.Transaction.build();
             await trans.execute(`insert into \`${saasConfig.SAAS_NAME}\`.app_config (user, appName, dead_line, \`config\`)
-                                 values ( ?, ?, ?,
+                                 values (?, ?, ?,
                                          ${db.escape(JSON.stringify((copyAppData && copyAppData.config) || {}))})`, [
                 this.token.userID,
                 config.appName,
                 addDays(new Date(), saasConfig.DEF_DEADLINE)
             ]);
+            if (config.copyWith.indexOf('checkout') !== -1) {
+                for (const dd of (await db.query(`SELECT *
+                                                  FROM \`${config.copyApp}\`.t_checkout`, []))) {
+                    dd.orderData=dd.orderData && JSON.stringify(dd.orderData)
+                    await trans.execute(`
+                        insert into \`${config.appName}\`.t_checkout
+                        SET ?;
+                    `, [
+                        dd
+                    ]);
+                }
+            }
+            if (config.copyWith.indexOf('manager_post') !== -1) {
+                for (const dd of (await db.query(`SELECT *
+                                                  FROM \`${config.copyApp}\`.t_manager_post`, []))) {
+                    dd.content=dd.content && JSON.stringify(dd.content)
+                    dd.userID=this.token.userID
+                    await trans.execute(`
+                        insert into \`${config.appName}\`.t_manager_post
+                        SET ?;
+                    `, [
+                        dd
+                    ]);
+                }
+            }
+            if (config.copyWith.indexOf('user_post') !== -1) {
+                for (const dd of (await db.query(`SELECT *
+                                                  FROM \`${config.copyApp}\`.t_post`, []))) {
+                    dd.content=dd.content && JSON.stringify(dd.content)
+                    await trans.execute(`
+                        insert into \`${config.appName}\`.t_post
+                        SET ?;
+                    `, [
+                        dd
+                    ]);
+                }
+            }
+            if (config.copyWith.indexOf('user') !== -1) {
+                for (const dd of (await db.query(`SELECT *
+                                                  FROM \`${config.copyApp}\`.t_user`, []))) {
+                    dd.userData=dd.userData && JSON.stringify(dd.userData)
+                    await trans.execute(`
+                        insert into \`${config.appName}\`.t_user
+                        SET ?;
+                    `, [
+                        dd
+                    ]);
+                }
+            }
+            if (config.copyWith.indexOf('public_config') !== -1) {
+                for (const dd of (await db.query(`SELECT *
+                                                  FROM \`${config.copyApp}\`.public_config`, []))) {
+                    dd.value=dd.value && JSON.stringify(dd.value)
+                    await trans.execute(`
+                        insert into \`${config.appName}\`.public_config
+                        SET ?;
+                    `, [
+                        dd
+                    ]);
+                }
+            }
             if (privateConfig) {
                 for (const dd of privateConfig) {
                     await trans.execute(`
@@ -203,8 +269,8 @@ export class App {
             throw exception.BadRequestError('BAD_REQUEST', 'this domain already on use.', null);
         }
         try {
-            const data=await Ssh.readFile('/etc/nginx/sites-enabled/default.conf')
-            let result :string= await new Promise((resolve, reject) => {
+            const data = await Ssh.readFile('/etc/nginx/sites-enabled/default.conf')
+            let result: string = await new Promise((resolve, reject) => {
                 NginxConfFile.createFromSource(data as string, (err, conf) => {
                     const server: any = []
                     for (const b of conf!.nginx.server as any) {
@@ -232,8 +298,8 @@ export class App {
                     `sudo docker cp $(sudo docker ps --filter "expose=3080" --format "{{.ID}}"):/nginx.config /etc/nginx/sites-enabled/default.conf`,
                     `sudo certbot --nginx -d ${config.domain} --non-interactive --agree-tos -m sam38124@gmail.com`,
                     `sudo nginx -s reload`
-                ]).then((res:any) => {
-                    resolve(res && res.join('').indexOf('Successfully')!==-1)
+                ]).then((res: any) => {
+                    resolve(res && res.join('').indexOf('Successfully') !== -1)
                 })
             });
             if (!response) {

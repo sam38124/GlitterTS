@@ -12,6 +12,14 @@ export class GlobalUser {
     public static set token(value) {
         (window as any).glitter.setCookie(GlobalUser.getTag('token'), value)
     }
+    //@ts-ignore
+    public static get language() {
+        return (window as any).glitter.getCookieByName(GlobalUser.getTag('language'))
+    }
+
+    public static set language(value) {
+        (window as any).glitter.setCookie(GlobalUser.getTag('language'), value)
+    }
 
     public static userInfo: any = {}
 

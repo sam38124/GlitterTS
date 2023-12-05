@@ -482,7 +482,7 @@ export function appCreate(gvc, viewModel, id) {
         })
     };
 }
-export function fileManager(gvc, viewModel, id, fileVm) {
+export function fileManager(gvc, id, fileVm) {
     const glitter = gvc.glitter;
     const saasConfig = window.saasConfig;
     return `
@@ -500,7 +500,7 @@ ${gvc.bindView(() => {
             bind: id,
             view: () => {
                 if (!load) {
-                    return `                                        <div class="d-flex align-items-center justify-content-center w-100 flex-column">
+                    return `<div class="d-flex align-items-center justify-content-center w-100 flex-column">
                                         <div class="spinner-border" role="status">
   <span class="sr-only"></span>
 </div>
@@ -572,7 +572,7 @@ ${gvc.bindView(() => {
                         }
                     });
             },
-            divCreate: { class: `mx-n2 mt-2` }
+            divCreate: { class: `mt-2 w-100` }
         };
     })}
     `;

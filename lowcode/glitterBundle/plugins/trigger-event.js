@@ -25,62 +25,40 @@ export class TriggerEvent {
     }
     static setEventRouter(original, relative) {
         const glitter = window.glitter;
-        const url = new URL(relative, original);
-        url.searchParams.set("original", original);
+        const url = new URL(relative, original).href;
         return (gvc, widget, obj, subData, element) => {
-            var _a, _b, _c;
-            const editViewId = glitter.getUUID();
-            glitter.share.componentData = (_a = glitter.share.componentData) !== null && _a !== void 0 ? _a : {};
-            let val = glitter.share.componentData[url.href];
-            glitter.share.componentCallback = (_b = glitter.share.componentCallback) !== null && _b !== void 0 ? _b : {};
-            glitter.share.componentCallback[url.href] = (_c = glitter.share.componentCallback[url.href]) !== null && _c !== void 0 ? _c : [];
-            glitter.share.componentCallback[url.href].push((dd) => {
-                glitter.share.componentData[url.href] = dd;
-                gvc.notifyDataChange(editViewId);
-            });
-            gvc.glitter.addMtScript([
-                {
-                    src: url,
-                    type: 'module'
-                }
-            ], () => {
-                val = glitter.share.componentData[url.href];
-                console.log('setComponent-->' + url);
-            }, () => {
-            });
             return {
                 event: () => {
                     return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
-                        const event = yield (new Promise((resolve, reject) => {
-                            const timer = setInterval(() => {
-                                if (val) {
-                                    resolve(val);
-                                    clearInterval(timer);
-                                }
-                            }, 20);
-                            setTimeout(() => {
-                                clearInterval(timer);
-                                resolve(false);
-                            }, 3000);
-                        }));
-                        if (event) {
-                            resolve((yield val.fun(gvc, widget, obj, subData, element).event()));
-                        }
-                        else {
-                            resolve(false);
-                        }
+                        glitter.htmlGenerate.loadEvent(glitter, [
+                            {
+                                src: url,
+                                callback: (data) => __awaiter(this, void 0, void 0, function* () {
+                                    resolve((yield data.fun(gvc, widget, obj, subData, element).event()));
+                                })
+                            }
+                        ]);
                     }));
                 },
                 editor: () => {
                     return gvc.bindView(() => {
+                        const editViewId = glitter.getUUID();
+                        glitter.htmlGenerate.loadEvent(glitter, [
+                            {
+                                src: url,
+                                callback: (data) => {
+                                    gvc.notifyDataChange(editViewId);
+                                }
+                            }
+                        ]);
                         return {
                             bind: editViewId,
                             view: () => {
-                                if (!val) {
+                                if (!glitter.share.componentData[url]) {
                                     return ``;
                                 }
                                 else {
-                                    return val.fun(gvc, widget, obj, subData, element).editor();
+                                    return glitter.share.componentData[url].fun(gvc, widget, obj, subData, element).editor();
                                 }
                             },
                             divCreate: {}
@@ -93,26 +71,7 @@ export class TriggerEvent {
     static createSingleEvent(url, fun) {
         const glitter = window.glitter;
         const val = fun(glitter);
-        let fal = 0;
-        function tryLoop() {
-            try {
-                let delete2 = 0;
-                glitter.share.componentCallback[url].map((dd, index) => {
-                    dd(val);
-                    delete2 = index;
-                });
-                glitter.share.componentCallback[url].splice(0, delete2);
-            }
-            catch (e) {
-                if (fal < 10) {
-                    setTimeout(() => {
-                        tryLoop();
-                    }, 100);
-                }
-                fal += 1;
-            }
-        }
-        tryLoop();
+        glitter.share.componentData[url] = val;
         return val;
     }
     static create(url, event) {
@@ -152,11 +111,21 @@ export class TriggerEvent {
                                 if (event.dataPlace) {
                                     eval(event.dataPlace);
                                 }
+                                oj.subData = response;
                                 if (event.blockCommand) {
                                     try {
-                                        passCommand = eval(event.blockCommand);
+                                        if (event.blockCommandV2) {
+                                            passCommand = eval(`(()=>{
+    ${event.blockCommand}
+                                    })()`);
+                                        }
+                                        else {
+                                            passCommand = eval(event.blockCommand);
+                                        }
                                     }
                                     catch (e) {
+                                        alert(event.blockCommandV2);
+                                        console.log(e);
                                     }
                                 }
                                 if (passCommand) {
@@ -181,7 +150,8 @@ export class TriggerEvent {
                             if (!oj.gvc.glitter.share.clickEvent[TriggerEvent.getLink(event.clickEvent.src)]) {
                                 oj.gvc.glitter.addMtScript([
                                     { src: `${TriggerEvent.getLink(event.clickEvent.src)}`, type: 'module' }
-                                ], () => { }, () => {
+                                ], () => {
+                                }, () => {
                                     clearInterval(interval);
                                     resolve(false);
                                 });

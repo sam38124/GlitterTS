@@ -9,6 +9,7 @@ import {Plugin_editor} from "./plugin_editor.js";
 import * as triggerBridge from "../editor-bridge/trigger-event.js";
 import {TriggerEvent} from "../glitterBundle/plugins/trigger-event.js";
 import {EditorElem} from "../glitterBundle/plugins/editor-elem.js";
+import {StoreHelper} from "../helper/store-helper.js";
 
 const html = String.raw
 init((gvc, glitter, gBundle) => {
@@ -115,7 +116,7 @@ init((gvc, glitter, gBundle) => {
                         viewModel.dataList = data.response.result;
                         viewModel.originalData = JSON.parse(JSON.stringify(viewModel.dataList))
                         glitter.share.allPageResource = JSON.parse(JSON.stringify(data.response.result))
-                        const htmlGenerate = new gvc.glitter.htmlGenerate((viewModel.data! as any).config, [], undefined, true);
+                        const htmlGenerate = new gvc.glitter.htmlGenerate((viewModel.data! as any).config, [glitter.getCookieByName('lastSelect')], undefined, true);
                         (window as any).editerData = htmlGenerate;
                         (window as any).page_config = (viewModel.data! as any).page_config
                         if (!data) {
@@ -131,6 +132,7 @@ init((gvc, glitter, gBundle) => {
                     const data = glitter.share.appConfigresponse
                     if (data.result) {
                         viewModel.appConfig = data.response.data
+                        viewModel.originalConfig=JSON.parse(JSON.stringify(viewModel.appConfig))
                         viewModel.globalScript = data.response.data.globalScript ?? []
                         viewModel.globalStyle = data.response.data.globalStyle ?? []
                         viewModel.globalStyleTag = data.response.data.globalStyleTag ?? []
@@ -185,7 +187,7 @@ init((gvc, glitter, gBundle) => {
         gvc.notifyDataChange(createID);
     }
 
-    glitter.htmlGenerate.saveEvent = () => {
+    glitter.htmlGenerate.saveEvent = (refresh:boolean=true) => {
         glitter.closeDiaLog()
         glitter.setCookie("jumpToNavScroll", $(`#jumpToNav`).scrollTop())
         swal.loading('更新中...');
@@ -258,8 +260,7 @@ init((gvc, glitter, gBundle) => {
                         viewModel.appConfig.globalScript = viewModel.globalScript
                         viewModel.appConfig.globalValue = viewModel.globalValue
                         viewModel.appConfig.globalStyleTag = viewModel.globalStyleTag
-                        const api = await ApiPageConfig.setPlugin(gBundle.appName, viewModel.appConfig)
-                        resolve(api.result)
+                        resolve(await StoreHelper.setPlugin(viewModel.originalConfig,viewModel.appConfig))
                     });
 
                 })
@@ -273,7 +274,11 @@ init((gvc, glitter, gBundle) => {
             }
             swal.nextStep(`更新成功`, () => {
             });
-            location.reload()
+            viewModel.originalConfig=JSON.parse(JSON.stringify(viewModel.appConfig))
+            if(refresh){
+                location.reload()
+            }
+
         }
 
         saveEvent().then(r => {
@@ -316,7 +321,6 @@ init((gvc, glitter, gBundle) => {
     }
     glitter.share.inspect = glitter.share.inspect ?? true
     glitter.share.editorViewModel = viewModel
-    console.log(`viewModel---`,viewModel)
 
     return {
         onCreateView: () => {
@@ -324,6 +328,7 @@ init((gvc, glitter, gBundle) => {
                 bind: createID,
                 view: () => {
                     let selectPosition = glitter.getUrlParameter('editorPosition') ?? "0"
+
                     if (viewModel.loading) {
                         return ``;
                     } else {
@@ -335,7 +340,7 @@ init((gvc, glitter, gBundle) => {
                                                 ${[
                                                     {src: `fa-table-layout`, index: Main_editor.index},
                                                     {src: `fa-solid fa-list-check`, index: Setting_editor.index},
-                                                    {src: `fa-sharp fa-regular fa-file-dashed-line`, index: Page_editor.index},
+                                                    // {src: `fa-sharp fa-regular fa-file-dashed-line`, index: Page_editor.index},
                                                 ].map((da: any) => {
                                                     return `<i class="fa-regular ${da.src} fs-5 fw-bold ${(selectPosition === `${da.index}`) ? `text-primary` : ``}  p-2 rounded" style="cursor:pointer;${(selectPosition === `${da.index}`) ? `background-color: rgba(10,83,190,0.1);` : ``}"
 onclick="${gvc.event(() => {

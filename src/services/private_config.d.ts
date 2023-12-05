@@ -10,6 +10,10 @@ export declare class Private_config {
         appName: string;
         key: string;
     }): Promise<any>;
+    static getConfig(config: {
+        appName: string;
+        key: string;
+    }): Promise<any>;
     verifyPermission(appName: string): Promise<boolean>;
     constructor(token: IToken);
 }

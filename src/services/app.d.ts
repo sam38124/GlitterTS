@@ -5,6 +5,7 @@ export declare class App {
     createApp(config: {
         appName: string;
         copyApp: string;
+        copyWith: string[];
     }): Promise<boolean>;
     getAPP(query: {
         app_name?: string;

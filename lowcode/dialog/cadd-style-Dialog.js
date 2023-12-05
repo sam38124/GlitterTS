@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 import { init } from '../glitterBundle/GVController.js';
 import { ApiPageConfig } from "../api/pageConfig.js";
-import { BaseApi } from "../api/base.js";
+import { BaseApi } from "../glitterBundle/api/base.js";
 import { config } from "../config.js";
 import { ShareDialog } from "../dialog/ShareDialog.js";
 import { EditorElem } from "../glitterBundle/plugins/editor-elem.js";

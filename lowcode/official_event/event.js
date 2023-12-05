@@ -7,7 +7,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import { BaseApi } from "../api/base.js";
+import { BaseApi } from "../glitterBundle/api/base.js";
 import { GlobalUser } from "../glitter-base/global/global-user.js";
 import { TriggerEvent } from "../glitterBundle/plugins/trigger-event.js";
 import { EditorElem } from "../glitterBundle/plugins/editor-elem.js";
@@ -55,7 +55,7 @@ TriggerEvent.create(import.meta.url, {
                 content: `使用此事件可以滾動至此標籤的位置。`
             }
         ]),
-        fun: (gvc, widget, object) => {
+        fun: (gvc, widget, object, subData) => {
             return {
                 editor: () => {
                     return gvc.bindView(() => {
@@ -204,7 +204,7 @@ ${EditorElem.h3("選擇頁面")}
                                         app_config: saasConfig.appConfig,
                                         page_config: data.response.result[0].page_config,
                                         config: data.response.result[0].config,
-                                        data: {},
+                                        data: subData !== null && subData !== void 0 ? subData : {},
                                         tag: object.link,
                                         option: {
                                             animation: gvc.glitter.animation.fade,
@@ -217,7 +217,7 @@ ${EditorElem.h3("選擇頁面")}
                                         app_config: saasConfig.appConfig,
                                         page_config: data.response.result[0].page_config,
                                         config: data.response.result[0].config,
-                                        data: {},
+                                        data: subData !== null && subData !== void 0 ? subData : {},
                                         tag: object.link,
                                         goBack: true,
                                         option: {
@@ -268,12 +268,12 @@ ${EditorElem.h3("選擇頁面")}
             }
         ]),
         fun: (gvc, widget, object, subData, element) => {
+            var _a;
+            object.coverData = (_a = object.coverData) !== null && _a !== void 0 ? _a : {};
             return {
                 editor: () => {
-                    var _a;
                     const id = gvc.glitter.getUUID();
                     const glitter = gvc.glitter;
-                    widget.data.coverData = (_a = widget.data.coverData) !== null && _a !== void 0 ? _a : {};
                     function recursive() {
                         if (GlobalData.data.pageList.length === 0) {
                             GlobalData.data.run();
@@ -303,11 +303,11 @@ ${EditorElem.h3("選擇頁面")}
                                                     ${dd.group}-${dd.name}
                                                 </option>`;
                                     })}
-                                        </select>`, TriggerEvent.editer(gvc, widget, widget.data.coverData, {
+                                        </select>`, TriggerEvent.editer(gvc, widget, object.coverData, {
                                         hover: true,
                                         option: [],
                                         title: "夾帶資料-[將存於新頁面的gvc.getBundle().carryData之中]"
-                                    })].join('');
+                                    })].join('<div class="my-2"></div>');
                             },
                             divCreate: {}
                         };
@@ -317,7 +317,7 @@ ${EditorElem.h3("選擇頁面")}
                     subData = subData !== null && subData !== void 0 ? subData : {};
                     return new Promise((resolve, reject) => __awaiter(void 0, void 0, void 0, function* () {
                         const data = yield TriggerEvent.trigger({
-                            gvc, widget, clickEvent: widget.data.coverData, subData
+                            gvc, widget, clickEvent: object.coverData, subData
                         });
                         gvc.glitter.innerDialog((gvc) => {
                             gvc.getBundle().carryData = data;
@@ -329,7 +329,11 @@ ${EditorElem.h3("選擇頁面")}
                                 }, [], [], subData).view();
                                 resolve(view);
                             }));
-                        }, gvc.glitter.getUUID());
+                        }, gvc.glitter.getUUID(), {
+                            dismiss: () => {
+                                resolve(true);
+                            }
+                        });
                     }));
                 }
             };
@@ -453,7 +457,8 @@ ${gvc.glitter.htmlGenerate.styleEditor(object, gvc).editor(gvc, () => {
                     }
                     getData().then((data) => {
                         const id = gvc.glitter.getUUID();
-                        gvc.glitter.setDrawer(`<div class="w-100 h-100 ${gvc.glitter.htmlGenerate.styleEditor(object, gvc).class()}"
+                        gvc.glitter.setDrawer(`  <!-- tag=${object.link} -->
+  <div class="w-100 h-100 ${gvc.glitter.htmlGenerate.styleEditor(object, gvc).class()}"
 style="${gvc.glitter.htmlGenerate.styleEditor(object, gvc).style()}"
 >${gvc.bindView(() => {
                             return {
@@ -474,22 +479,22 @@ style="${gvc.glitter.htmlGenerate.styleEditor(object, gvc).style()}"
             };
         },
     },
-    reload: {
-        title: '官方事件 / 觸發 / 刷新瀏覽器',
-        subContent: `<div class="w-100 alert alert-light" style="white-space: normal;word-break: break-word;">透過<span class="mx-2" style="color:#295ed1;">location.reload()</span>來刷新整個瀏覽器。</div>`,
+    closeDrawer: {
+        title: '官方事件 / 畫面 / 關閉導覽列',
+        subContent: `<div class="w-100 alert alert-light" style="white-space: normal;word-break: break-word;">透過<span class="mx-2" style="color:#295ed1;">glitter.closeDrawer()</span>來關閉左側導覽列。</div>`,
         fun: (gvc, widget, object, subData, element) => {
             return {
                 editor: () => {
                     return ``;
                 },
                 event: () => {
-                    location.reload();
+                    gvc.glitter.closeDrawer();
                 },
             };
         },
     },
     reloadPage: {
-        title: '官方事件 / 觸發 / 刷新頁面',
+        title: '官方事件 / 畫面 / 頁面刷新',
         subContent: `<div class="w-100 alert alert-light" style="white-space: normal;word-break: break-word;">透過<span class="mx-2" style="color:#295ed1;">gvc.recreateView()</span>來刷新當前頁面。</div>`,
         fun: (gvc, widget, object, subData, element) => {
             return {
@@ -502,16 +507,43 @@ style="${gvc.glitter.htmlGenerate.styleEditor(object, gvc).style()}"
             };
         },
     },
+    reload: {
+        title: '官方事件 / 畫面 / 刷新瀏覽器',
+        subContent: `<div class="w-100 alert alert-light" style="white-space: normal;word-break: break-word;">透過<span class="mx-2" style="color:#295ed1;">location.reload()</span>來刷新整個瀏覽器。</div>`,
+        fun: (gvc, widget, object, subData, element) => {
+            return {
+                editor: () => {
+                    return ``;
+                },
+                event: () => {
+                    location.reload();
+                },
+            };
+        },
+    },
+    notify: {
+        title: '官方事件 / 畫面 / 區塊刷新',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './glitter-util/refresh-block.js'),
+    },
+    getFormData: {
+        title: '官方事件 / 表單 / 取得表單資料',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './glitter-util/get-form.js')
+    },
+    checkForm: {
+        title: '官方事件 / 表單 / 判斷表單是否填寫完畢',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './glitter-util/check-form.js')
+    },
     code: {
-        title: '官方事件 / 觸發 / 代碼區塊',
+        title: '官方事件 / 開發工具 / 代碼區塊',
         subContent: `<div class="w-100 alert alert-light" style="white-space: normal;word-break: break-word;">於內容編輯器中，直接輸入代碼來執行事件。</div>`,
         fun: (gvc, widget, object, subData, element) => {
             return {
                 editor: () => {
                     object.codeVersion = 'v2';
                     const html = String.raw;
-                    return html `<div style="width:600px;">
-${EditorElem.codeEditor({
+                    return html `
+                        <div style="width:600px;">
+                            ${EditorElem.codeEditor({
                         gvc: gvc,
                         height: 300,
                         initial: object.code,
@@ -520,14 +552,14 @@ ${EditorElem.codeEditor({
                             object.code = text;
                         }
                     })}
-</div>`;
+                        </div>`;
                 },
                 event: () => {
                     return new Promise((resolve, reject) => __awaiter(void 0, void 0, void 0, function* () {
                         var _a;
                         try {
-                            const a = (object.codeVersion == 'v2') ? (eval(`(()=>{
-    ${object.code}
+                            const a = (object.codeVersion == 'v2') ? (eval(`(() => {
+                                ${object.code}
                             })()`)) : (eval(object.code));
                             if (a.then) {
                                 a.then((data) => {
@@ -547,7 +579,7 @@ ${EditorElem.codeEditor({
         },
     },
     codeArray: {
-        title: '官方事件 / 觸發 / 多項事件判斷',
+        title: '官方事件 / 開發工具 / 多項事件判斷',
         fun: (gvc, widget, object, subData, element) => {
             return {
                 editor: () => {
@@ -658,6 +690,26 @@ ${EditorElem.codeEditor({
             };
         },
     },
+    setURl: {
+        title: '官方事件 / 開發工具 / 設定URL參數',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './glitter-util/set-url.js'),
+    },
+    getLanguageCode: {
+        title: '官方事件 / 開發工具 / 取得多國語言代號',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './glitter-util/get-language.js'),
+    },
+    setLanguageCode: {
+        title: '官方事件 / 開發工具 / 設定多國語言代號',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './glitter-util/set-language.js'),
+    },
+    getGlobalResource: {
+        title: '官方事件 / 開發工具 / 取得全局資源',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './glitter-util/get-global-value.js'),
+    },
+    getURl: {
+        title: '官方事件 / 開發工具 / 取得URL參數',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './glitter-util/get-url.js'),
+    },
     registerNotify: {
         title: '官方事件 / 推播 / 註冊推播頻道',
         fun: (gvc, widget, object, subData, element) => {
@@ -749,7 +801,7 @@ ${EditorElem.codeEditor({
         },
     },
     api: {
-        title: "官方事件 / Lambda / API",
+        title: "官方事件 / API / Glitter-Lambda",
         fun: (gvc, widget, object, subData, element) => {
             var _a, _b, _c, _d;
             object.postEvent = (_a = object.postEvent) !== null && _a !== void 0 ? _a : {};
@@ -894,6 +946,94 @@ ${EditorElem.codeEditor({
                 }
             };
         }
+    },
+    getProduct: {
+        title: '電子商務 / 選擇商品',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './e-commerce/getProduct.js'),
+    },
+    allProduct: {
+        title: '電子商務 / 列出所有商品',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './e-commerce/all-product.js'),
+    },
+    getCollection: {
+        title: '電子商務 / 取得商品系列',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './e-commerce/all-collection.js'),
+    },
+    addToCart: {
+        title: '電子商務 / 加入購物車',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './e-commerce/add-to-cart.js'),
+    },
+    getCart: {
+        title: '電子商務 / 取得購物車內容',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './e-commerce/get-cart.js'),
+    },
+    getCount: {
+        title: '電子商務 / 取得購物車數量',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './e-commerce/get-count.js'),
+    },
+    getOrder: {
+        title: '電子商務 / 取得訂單列表',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './e-commerce/get-order.js'),
+    },
+    getOrderDetail: {
+        title: '電子商務 / 取得單一訂單紀錄',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './e-commerce/get-order-detail.js'),
+    },
+    toCheckout: {
+        title: '電子商務 / 前往結帳',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './e-commerce/to-checkout.js'),
+    },
+    setVoucher: {
+        title: '電子商務 / 設定優惠券',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './e-commerce/set-voucher.js'),
+    },
+    deleteVoucher: {
+        title: '電子商務 / 清空優惠券',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './e-commerce/delete-voucher.js'),
+    },
+    getVoucher: {
+        title: '電子商務 / 取得優惠券代碼',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './e-commerce/get-voucher.js'),
+    },
+    login: {
+        title: '用戶相關 / 用戶登入',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './user/login.js')
+    },
+    register: {
+        title: '用戶相關 / 用戶註冊',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './user/register.js')
+    },
+    logout: {
+        title: '用戶相關 / 用戶登出',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './user/logout.js')
+    },
+    user_initial: {
+        title: '用戶相關 / 用戶初始化',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './user/initial.js')
+    },
+    user_token_check: {
+        title: '用戶相關 / 判斷用戶是否登入',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './user/check_login.js')
+    },
+    get_user_data: {
+        title: '用戶相關 / 取得用戶資料',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './user/get-userdata.js')
+    },
+    set_user_data: {
+        title: '用戶相關 / 設定用戶資料',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './user/set-userdata.js')
+    },
+    forgetPwd: {
+        title: '用戶相關 / 忘記密碼',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './user/forget_pwd.js')
+    },
+    forgetPwd_Reset: {
+        title: '用戶相關 / 忘記密碼 / 進行重設',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './user/forget_reset_pwd.js')
+    },
+    reset_pwd: {
+        title: '用戶相關 / 個人檔案 / 重設密碼',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './user/reset_pwd.js')
     }
 });
 function questionText(data) {

@@ -63,13 +63,11 @@ export class Swal {
             this.init(() => {
                 const toast = sw.mixin({
                     toast: true,
-                    position: 'top',
+                    position: 'left',
                     showConfirmButton: false,
-                    timer: 3000,
+                    timer: 1000,
                     timerProgressBar: true,
                     didOpen: (t) => {
-                        t.addEventListener('mouseenter', sw.stopTimer);
-                        t.addEventListener('mouseleave', sw.resumeTimer);
                     },
                 });
                 toast.fire({ icon: data.icon, title: data.title });

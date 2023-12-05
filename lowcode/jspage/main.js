@@ -17,6 +17,7 @@ import { Setting_editor } from "./setting_editor.js";
 import { Plugin_editor } from "./plugin_editor.js";
 import * as triggerBridge from "../editor-bridge/trigger-event.js";
 import { TriggerEvent } from "../glitterBundle/plugins/trigger-event.js";
+import { StoreHelper } from "../helper/store-helper.js";
 const html = String.raw;
 init((gvc, glitter, gBundle) => {
     var _a;
@@ -97,7 +98,7 @@ init((gvc, glitter, gBundle) => {
                             viewModel.dataList = data.response.result;
                             viewModel.originalData = JSON.parse(JSON.stringify(viewModel.dataList));
                             glitter.share.allPageResource = JSON.parse(JSON.stringify(data.response.result));
-                            const htmlGenerate = new gvc.glitter.htmlGenerate(viewModel.data.config, [], undefined, true);
+                            const htmlGenerate = new gvc.glitter.htmlGenerate(viewModel.data.config, [glitter.getCookieByName('lastSelect')], undefined, true);
                             window.editerData = htmlGenerate;
                             window.page_config = viewModel.data.page_config;
                             if (!data) {
@@ -115,6 +116,7 @@ init((gvc, glitter, gBundle) => {
                         const data = glitter.share.appConfigresponse;
                         if (data.result) {
                             viewModel.appConfig = data.response.data;
+                            viewModel.originalConfig = JSON.parse(JSON.stringify(viewModel.appConfig));
                             viewModel.globalScript = (_b = data.response.data.globalScript) !== null && _b !== void 0 ? _b : [];
                             viewModel.globalStyle = (_c = data.response.data.globalStyle) !== null && _c !== void 0 ? _c : [];
                             viewModel.globalStyleTag = (_d = data.response.data.globalStyleTag) !== null && _d !== void 0 ? _d : [];
@@ -170,7 +172,7 @@ init((gvc, glitter, gBundle) => {
             gvc.notifyDataChange(createID);
         });
     }
-    glitter.htmlGenerate.saveEvent = () => {
+    glitter.htmlGenerate.saveEvent = (refresh = true) => {
         glitter.closeDiaLog();
         glitter.setCookie("jumpToNavScroll", $(`#jumpToNav`).scrollTop());
         swal.loading('更新中...');
@@ -241,8 +243,7 @@ init((gvc, glitter, gBundle) => {
                             viewModel.appConfig.globalScript = viewModel.globalScript;
                             viewModel.appConfig.globalValue = viewModel.globalValue;
                             viewModel.appConfig.globalStyleTag = viewModel.globalStyleTag;
-                            const api = yield ApiPageConfig.setPlugin(gBundle.appName, viewModel.appConfig);
-                            resolve(api.result);
+                            resolve(yield StoreHelper.setPlugin(viewModel.originalConfig, viewModel.appConfig));
                         }));
                     }))
                 ];
@@ -255,7 +256,10 @@ init((gvc, glitter, gBundle) => {
                 }
                 swal.nextStep(`更新成功`, () => {
                 });
-                location.reload();
+                viewModel.originalConfig = JSON.parse(JSON.stringify(viewModel.appConfig));
+                if (refresh) {
+                    location.reload();
+                }
             });
         }
         saveEvent().then(r => {
@@ -295,7 +299,6 @@ init((gvc, glitter, gBundle) => {
     };
     glitter.share.inspect = (_a = glitter.share.inspect) !== null && _a !== void 0 ? _a : true;
     glitter.share.editorViewModel = viewModel;
-    console.log(`viewModel---`, viewModel);
     return {
         onCreateView: () => {
             return gvc.bindView({
@@ -315,7 +318,6 @@ init((gvc, glitter, gBundle) => {
                                                 ${[
                                 { src: `fa-table-layout`, index: Main_editor.index },
                                 { src: `fa-solid fa-list-check`, index: Setting_editor.index },
-                                { src: `fa-sharp fa-regular fa-file-dashed-line`, index: Page_editor.index },
                             ].map((da) => {
                                 return `<i class="fa-regular ${da.src} fs-5 fw-bold ${(selectPosition === `${da.index}`) ? `text-primary` : ``}  p-2 rounded" style="cursor:pointer;${(selectPosition === `${da.index}`) ? `background-color: rgba(10,83,190,0.1);` : ``}"
 onclick="${gvc.event(() => {

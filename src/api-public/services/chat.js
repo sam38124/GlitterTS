@@ -161,7 +161,7 @@ class Chat {
                 if (!userData[dd.userID]) {
                     try {
                         userData[dd.userID] = (await database_1.default.query(`select userData
-                                                               from \`${this.app}\`.\`user\`
+                                                               from \`${this.app}\`.\`t_user\`
                                                                where userID = ${dd.userID}`, []))[0]['userData'];
                     }
                     catch (e) {
@@ -174,7 +174,7 @@ class Chat {
                 count: (await database_1.default.query(`select count(1)
                                         from \`${this.app}\`.\`t_post\`
                                         where userID in (select userID
-                                                         from \`${this.app}\`.\`user\`)
+                                                         from \`${this.app}\`.\`t_user\`)
                                             ${query}`, [
                     content
                 ]))[0]["count(1)"]

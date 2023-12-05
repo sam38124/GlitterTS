@@ -59,5 +59,10 @@ class="my-1 mx-2" style="border-radius: 10px;">
             subContent: "設定所需執行的代碼事件．",
             render: Plugin.setComponent(import.meta.url, new URL('./official/code.js', import.meta.url)),
         },
+        form: {
+            title: "FORM表單",
+            subContent: "設定FORM表單與提交內容。",
+            render: Plugin.setComponent(import.meta.url, new URL('./official/form.js', import.meta.url)),
+        },
     };
 });

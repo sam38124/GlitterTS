@@ -9,7 +9,6 @@ init((gvc, glitter, gBundle) => {
     const vm = {
         loading: true
     };
-
     async function load() {
         await (new Promise(async (resolve, reject) => {
             for (const b of gBundle.app_config.initialList ?? []) {
@@ -63,8 +62,7 @@ init((gvc, glitter, gBundle) => {
     return {
         onCreateView: () => {
             console.log(`onCreateView-time:`, (window as any).renderClock.stop())
-            console.log(`globalScript:`,gBundle.app_config.globalScript)
-            return new glitter.htmlGenerate(gBundle.app_config.globalScript ?? [], [], undefined, true).render(gvc, {
+           return new glitter.htmlGenerate(gBundle.app_config.globalScript ?? [], [], undefined, true).render(gvc, {
                 class: ``,
                 style: ``,
                 jsFinish: () => {

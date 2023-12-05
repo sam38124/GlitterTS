@@ -46,6 +46,17 @@ class Private_config {
             throw exception_js_1.default.BadRequestError("ERROR", "ERROR." + e, null);
         }
     }
+    static async getConfig(config) {
+        try {
+            return await database_js_1.default.execute(`select * from \`${config_js_1.saasConfig.SAAS_NAME}\`.private_config where app_name=${database_js_1.default.escape(config.appName)} and 
+                                             \`key\`=${database_js_1.default.escape(config.key)}
+            `, []);
+        }
+        catch (e) {
+            console.log(e);
+            throw exception_js_1.default.BadRequestError("ERROR", "ERROR." + e, null);
+        }
+    }
     async verifyPermission(appName) {
         const count = await database_js_1.default.execute(`
             select count(1)

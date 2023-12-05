@@ -26,8 +26,8 @@ init((gvc, glitter, gBundle) => {
             return `
             <div  class="w-100 h-100 d-flex flex-column align-items-center justify-content-center" style="background-color: rgba(0,0,0,0.5);" >
             <div class="m-auto rounded shadow bg-white" style="max-width: 100%;max-height: 100%;width: 360px;">
-        <div class="w-100 d-flex align-items-center border-bottom justify-content-center position-relative" style="height: 68px;">
-        <h3 class="modal-title fs-4" >添加頁面</h3>
+        <div class="w-100 d-flex align-items-center border-bottom justify-content-center position-relative py-3" style="">
+        <h3 class="modal-title fs-5" >添加頁面</h3>
         <i class="fa-solid fa-xmark text-dark position-absolute " style="font-size:20px;transform: translateY(-50%);right: 20px;top: 50%;cursor: pointer;"
         onclick="${gvc.event(() => {
                 glitter.closeDiaLog();
@@ -59,7 +59,10 @@ ${gvc.bindView(() => {
                                 }
                             }),
                             EditorElem.searchInput({
-                                title: "頁面分類",
+                                title: `頁面分類
+<div class="alert alert-info p-2 mt-2" style="word-break: break-all;white-space:normal">
+可加入 / 進行分類:<br>例如:頁面/權限相關/註冊頁面
+</div>`,
                                 gvc: gvc,
                                 def: "",
                                 array: (() => {
@@ -118,7 +121,9 @@ ${gvc.bindView(() => {
                     setTimeout(() => {
                         dialog.dataLoading({text: "", visible: false})
                         if (it.result) {
-                            location.href = `index.html?page=${tdata.tag}&type=editor`
+                            const li=new URL(location.href)
+                            li.searchParams.set('page',tdata.tag)
+                            location.href = li.href
                         } else {
                             dialog.errorMessage({
                                 text: "已有此頁面標籤"

@@ -12,6 +12,7 @@ const config_js_1 = __importDefault(require("../config.js"));
 const fs_1 = __importDefault(require("fs"));
 const ssh_js_1 = require("../modules/ssh.js");
 const nginx_conf_1 = require("nginx-conf");
+const public_table_check_js_1 = require("../api-public/services/public-table-check.js");
 class App {
     constructor(token) {
         this.token = token;
@@ -26,12 +27,13 @@ class App {
         });
     }
     async createApp(config) {
-        var _a;
+        var _a, _b;
         try {
+            config.copyWith = (_a = config.copyWith) !== null && _a !== void 0 ? _a : [];
             const count = await database_1.default.execute(`
                 select count(1)
                 from \`${config_1.saasConfig.SAAS_NAME}\`.app_config
-                where appName = ${database_1.default.escape(config.appName)} 
+                where appName = ${database_1.default.escape(config.appName)}
             `, []);
             if (count[0]["count(1)"] === 1) {
                 throw exception_1.default.BadRequestError('Forbidden', 'This app already be used.', null);
@@ -40,6 +42,7 @@ class App {
             let copyPageData = undefined;
             let privateConfig = undefined;
             if (config.copyApp) {
+                await public_table_check_js_1.ApiPublic.createScheme(config.copyApp);
                 copyAppData = (await database_1.default.execute(`select *
                                                  from \`${config_1.saasConfig.SAAS_NAME}\`.app_config
                                                  where appName = ${database_1.default.escape(config.copyApp)}`, []))[0];
@@ -50,14 +53,76 @@ class App {
                                                    from \`${config_1.saasConfig.SAAS_NAME}\`.private_config
                                                    where app_name = ${database_1.default.escape(config.copyApp)} `, []));
             }
+            await public_table_check_js_1.ApiPublic.createScheme(config.appName);
             const trans = await database_1.default.Transaction.build();
             await trans.execute(`insert into \`${config_1.saasConfig.SAAS_NAME}\`.app_config (user, appName, dead_line, \`config\`)
-                                 values ( ?, ?, ?,
+                                 values (?, ?, ?,
                                          ${database_1.default.escape(JSON.stringify((copyAppData && copyAppData.config) || {}))})`, [
                 this.token.userID,
                 config.appName,
                 addDays(new Date(), config_1.saasConfig.DEF_DEADLINE)
             ]);
+            if (config.copyWith.indexOf('checkout') !== -1) {
+                for (const dd of (await database_1.default.query(`SELECT *
+                                                  FROM \`${config.copyApp}\`.t_checkout`, []))) {
+                    dd.orderData = dd.orderData && JSON.stringify(dd.orderData);
+                    await trans.execute(`
+                        insert into \`${config.appName}\`.t_checkout
+                        SET ?;
+                    `, [
+                        dd
+                    ]);
+                }
+            }
+            if (config.copyWith.indexOf('manager_post') !== -1) {
+                for (const dd of (await database_1.default.query(`SELECT *
+                                                  FROM \`${config.copyApp}\`.t_manager_post`, []))) {
+                    dd.content = dd.content && JSON.stringify(dd.content);
+                    dd.userID = this.token.userID;
+                    await trans.execute(`
+                        insert into \`${config.appName}\`.t_manager_post
+                        SET ?;
+                    `, [
+                        dd
+                    ]);
+                }
+            }
+            if (config.copyWith.indexOf('user_post') !== -1) {
+                for (const dd of (await database_1.default.query(`SELECT *
+                                                  FROM \`${config.copyApp}\`.t_post`, []))) {
+                    dd.content = dd.content && JSON.stringify(dd.content);
+                    await trans.execute(`
+                        insert into \`${config.appName}\`.t_post
+                        SET ?;
+                    `, [
+                        dd
+                    ]);
+                }
+            }
+            if (config.copyWith.indexOf('user') !== -1) {
+                for (const dd of (await database_1.default.query(`SELECT *
+                                                  FROM \`${config.copyApp}\`.t_user`, []))) {
+                    dd.userData = dd.userData && JSON.stringify(dd.userData);
+                    await trans.execute(`
+                        insert into \`${config.appName}\`.t_user
+                        SET ?;
+                    `, [
+                        dd
+                    ]);
+                }
+            }
+            if (config.copyWith.indexOf('public_config') !== -1) {
+                for (const dd of (await database_1.default.query(`SELECT *
+                                                  FROM \`${config.copyApp}\`.public_config`, []))) {
+                    dd.value = dd.value && JSON.stringify(dd.value);
+                    await trans.execute(`
+                        insert into \`${config.appName}\`.public_config
+                        SET ?;
+                    `, [
+                        dd
+                    ]);
+                }
+            }
             if (privateConfig) {
                 for (const dd of privateConfig) {
                     await trans.execute(`
@@ -106,7 +171,7 @@ class App {
         }
         catch (e) {
             console.log(JSON.stringify(e));
-            throw exception_1.default.BadRequestError((_a = e.code) !== null && _a !== void 0 ? _a : 'BAD_REQUEST', e, null);
+            throw exception_1.default.BadRequestError((_b = e.code) !== null && _b !== void 0 ? _b : 'BAD_REQUEST', e, null);
         }
     }
     async getAPP(query) {

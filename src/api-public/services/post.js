@@ -35,14 +35,14 @@ class Post {
     static addPostObserver(callback) {
         Post.postObserverList.push(callback);
     }
-    async postContent(content) {
+    async postContent(content, tb = 't_post') {
         try {
-            const data = await database_1.default.query(`INSERT INTO \`${this.app}\`.\`t_post\`
+            const data = await database_1.default.query(`INSERT INTO \`${this.app}\`.\`${tb}\`
                                          SET ?`, [content]);
             const reContent = JSON.parse(content.content);
             reContent.id = data.insertId;
             content.content = JSON.stringify(reContent);
-            await database_1.default.query(`update \`${this.app}\`.t_post
+            await database_1.default.query(`update \`${this.app}\`.\`${tb}\`
                             SET ?
                             WHERE id = ${data.insertId}`, [content]);
             Post.postObserverList.map((value, index, array) => {
@@ -87,7 +87,7 @@ class Post {
                 let user = undefined;
                 if (this.token) {
                     user = (_b = (await sql.query(`select *
-                                             from user
+                                             from t_user
                                              where userID = ${(_a = this.token.userID) !== null && _a !== void 0 ? _a : 0}`, []))[0]) !== null && _b !== void 0 ? _b : user;
                 }
                 const html = String.raw;
@@ -138,10 +138,10 @@ class Post {
             throw exception_1.default.BadRequestError('BAD_REQUEST', 'SqlApi Error:' + e, null);
         }
     }
-    async putContent(content) {
+    async putContent(content, tb = 't_post') {
         try {
             const reContent = JSON.parse(content.content);
-            const data = await database_1.default.query(`update \`${this.app}\`.\`t_post\`
+            const data = await database_1.default.query(`update \`${this.app}\`.\`${tb}\`
                                          SET ?
                                          where 1 = 1
                                            and id = ${reContent.id}`, [
@@ -150,7 +150,7 @@ class Post {
             reContent.id = data.insertId;
             content.content = JSON.stringify(reContent);
             content.updated_time = new Date();
-            await database_1.default.query(`update \`${this.app}\`.t_post
+            await database_1.default.query(`update \`${this.app}\`.${tb}
                             SET ?
                             WHERE id = ${data.insertId}`, [content]);
             return data;
@@ -266,7 +266,7 @@ class Post {
                     if (!userData[dd.userID]) {
                         try {
                             userData[dd.userID] = (await v.query(`select userData
-                                                                  from \`${this.app}\`.\`user\`
+                                                                  from \`${this.app}\`.\`t_user\`
                                                                   where userID = ${dd.userID}`, []))[0]['userData'];
                         }
                         catch (e) {

@@ -78,7 +78,7 @@ export declare function createViewComponent(config: {
     auth: {
         account: string;
         pwd: string;
-    };
+    } | string;
     router: {
         prefix: string;
         path: string;

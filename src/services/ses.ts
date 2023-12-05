@@ -24,7 +24,6 @@ export function sendmail(sender: any, recipient: any, subject: any, body: any) {
                 },
             },
         };
-
         ses.sendEmail(params, (err: any, data: any) => {
             if (err) {
                 console.log('Error sending email:', err);

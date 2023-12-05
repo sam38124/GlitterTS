@@ -1,5 +1,6 @@
 import {HtmlJson, Plugin} from "../glitterBundle/plugins/plugin-creater.js";
 import {Glitter} from "../glitterBundle/Glitter.js";
+
 Plugin.create(import.meta.url, (glitter: Glitter, editMode: boolean) => {
     return {
         widget: {
@@ -52,7 +53,7 @@ Plugin.create(import.meta.url, (glitter: Glitter, editMode: boolean) => {
         //     defaultData: {},
         //     render: Plugin.setComponent(import.meta.url, new URL('./official/footer.js', import.meta.url)),
         // },
-        arrayItem:{
+        arrayItem: {
             title: '多項列表元件',
             subContent: `<div class="flex-fill"></div>
 <img src="https://liondesign-prd.s3.amazonaws.com/file/guest/1695256644922-Screenshot 2023-09-21 at 8.37.16 AM.png"
@@ -61,10 +62,15 @@ class="my-1 mx-2" style="border-radius: 10px;">
             defaultData: {},
             render: Plugin.setComponent(import.meta.url, new URL('./official/array_item.js', import.meta.url)),
         },
-        code:{
-            title:"代碼區塊",
-            subContent:"設定所需執行的代碼事件．",
+        code: {
+            title: "代碼區塊",
+            subContent: "設定所需執行的代碼事件．",
             render: Plugin.setComponent(import.meta.url, new URL('./official/code.js', import.meta.url)),
+        },
+        form: {
+            title: "FORM表單",
+            subContent: "設定FORM表單與提交內容。",
+            render: Plugin.setComponent(import.meta.url, new URL('./official/form.js', import.meta.url)),
         },
     }
 })

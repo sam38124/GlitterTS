@@ -16,5 +16,6 @@ declare const _default: {
     createOrderId: typeof createOrderId;
     randomString: (max: number) => string;
     compareHash: (pwd: string, has: string) => Promise<boolean>;
+    randomNumber: (max: number) => string;
 };
 export default _default;

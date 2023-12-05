@@ -11,7 +11,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 import { ApiUser } from "./api/user.js";
 import { config } from "./config.js";
 import { ApiPageConfig } from "./api/pageConfig.js";
-import { BaseApi } from "./api/base.js";
+import { BaseApi } from "./glitterBundle/api/base.js";
+import { GlobalUser } from "./glitter-base/global/global-user.js";
 export class Entry {
     static onCreate(glitter) {
         var _a, _b;
@@ -26,7 +27,7 @@ export class Entry {
 }`);
         window.renderClock = (_a = window.renderClock) !== null && _a !== void 0 ? _a : clockF();
         console.log(`Entry-time:`, window.renderClock.stop());
-        glitter.share.editerVersion = "V_3.1.6";
+        glitter.share.editerVersion = "V_3.7.5";
         glitter.share.start = new Date();
         glitter.debugMode = false;
         const vm = {
@@ -41,6 +42,7 @@ export class Entry {
         ApiPageConfig.getPlugin(config.appName).then((dd) => {
             var _a, _b;
             console.log(`getPlugin-time:`, window.renderClock.stop());
+            GlobalUser.language = GlobalUser.language || navigator.language;
             vm.appConfig = dd.response.data;
             glitter.share.appConfigresponse = dd;
             glitter.share.globalValue = {};
@@ -54,7 +56,16 @@ export class Entry {
                             loopCheckGlobalValue(dd.data.setting, tag);
                         }
                         else {
-                            glitter.share[tag][dd.data.tag] = dd.data.value;
+                            if (dd.data.tagType === 'language') {
+                                if (dd.data.value.length > 0) {
+                                    glitter.share[tag][dd.data.tag] = (dd.data.value.find((dd) => {
+                                        return dd.lan.toLowerCase().indexOf(GlobalUser.language.toLowerCase()) !== -1;
+                                    }) || dd.data.value[0]).text;
+                                }
+                            }
+                            else {
+                                glitter.share[tag][dd.data.tag] = dd.data.value;
+                            }
                         }
                     });
                 }
@@ -150,7 +161,7 @@ export class Entry {
                         function scrollToItem(element) {
                             if (element) {
                                 element.scrollIntoView({
-                                    behavior: 'smooth',
+                                    behavior: 'auto',
                                     block: 'center',
                                 });
                             }
@@ -193,12 +204,16 @@ export class Entry {
                     });
                 }
                 else {
+                    if (glitter.getUrlParameter('token') && glitter.getUrlParameter('return_type') === 'resetPassword') {
+                        GlobalUser.token = glitter.getUrlParameter('token');
+                        glitter.setUrlParameter('token');
+                        glitter.setUrlParameter('return_type');
+                    }
                     glitter.share.evalPlace = ((evals) => {
                         return eval(evals);
                     });
                     console.log(`exePlugin-time:`, window.renderClock.stop());
                     vm.pageData.then((data) => {
-                        console.log(`pageConfig===`, data.response.result[0]);
                         console.log(`getPageData-time:`, window.renderClock.stop());
                         if (data.response.result.length === 0) {
                             const url = new URL("./", location.href);
@@ -235,7 +250,7 @@ function toBackendEditor(glitter) {
             config.token = glitter.getCookieByName('glitterToken');
             glitter.addStyleLink([
                 'assets/vendor/boxicons/css/boxicons.min.css',
-                'assets/css/theme.min.css',
+                'assets/css/theme.css',
                 'css/editor.css',
             ]);
             yield new Promise((resolve, reject) => {

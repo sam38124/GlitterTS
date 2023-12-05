@@ -64,44 +64,90 @@ function traverseHTML(element: any) {
             result.children.push(traverseHTML(children[j]));
         }
     }
+
+    function replaceGlobalValue(inputString: string) {
+        if ((glitter.share.EditorMode === true)) {
+            return inputString
+        }
+        const pattern = /@{{(.*?)}}/g;
+        // 使用正则表达式的 exec 方法来提取匹配项
+        let match;
+        let convert = inputString
+        while ((match = pattern.exec(inputString)) !== null) {
+            const placeholder = match[0]; // 完整的匹配项，例如 "@{{value}}"
+            const value = match[1]; // 提取的值，例如 "value"
+            if (glitter.share.globalValue && glitter.share.globalValue[value]) {
+                convert = (convert.replace(placeholder, glitter.share.globalValue[value]));
+            }
+        }
+        return convert
+    }
+
     if ($(element).attr('glem') === 'bindView') {
-        try {
-            const id = $(element).attr('gvc-id') as string
-            let view = glitter.elementCallback[id].getView()
-            $(`[gvc-id="${id}"]`).html(view)
-        } catch (e) {
-            glitter.deBugMessage(e)
+        function renderBindView() {
+            function notifyLiseCycle() {
+                try {
+                    glitter.elementCallback[$(element).attr('gvc-id') as string].updateAttribute()
+                } catch (e) {
+                    glitter.deBugMessage(e)
+                }
+                try {
+                    glitter.elementCallback[$(element).attr('gvc-id') as string].onInitial()
+                } catch (e) {
+                    glitter.deBugMessage(e)
+                }
+                try {
+                    glitter.elementCallback[$(element).attr('gvc-id') as string].onCreate()
+                } catch (e) {
+                    glitter.deBugMessage(e)
+                }
+            }
+
+            try {
+                const id = $(element).attr('gvc-id') as string
+                let view = glitter.elementCallback[id].getView()
+                glitter.elementCallback[$(element).attr('gvc-id') as string].rendered = true
+                if (typeof view === 'string') {
+                    $(`[gvc-id="${id}"]`).html(replaceGlobalValue(view))
+                    notifyLiseCycle()
+                } else {
+                    view.then((data) => {
+                        $(`[gvc-id="${id}"]`).html(replaceGlobalValue(data))
+                        notifyLiseCycle()
+                    })
+                }
+                (document.querySelector(`[gvc-id="${id}"]`) as any).recreateView = renderBindView
+            } catch (e) {
+                glitter.deBugMessage(e)
+            }
         }
-        try {
-            glitter.elementCallback[$(element).attr('gvc-id') as string].updateAttribute()
-        } catch (e) {
-            glitter.deBugMessage(e)
-        }
-        try {
-            glitter.elementCallback[$(element).attr('gvc-id') as string].onInitial()
-        } catch (e) {
-            glitter.deBugMessage(e)
-        }
-        try {
-            glitter.elementCallback[$(element).attr('gvc-id') as string].onCreate()
-        } catch (e) {
-            glitter.deBugMessage(e)
-        }
-        glitter.elementCallback[$(element).attr('gvc-id') as string].rendered = true
+
+        renderBindView()
+
+
     }
     for (let i = 0; i < attributes.length; i++) {
-        if (attributes[i].value.includes('clickMap') && (attributes[i].name.substring(0, 2) === 'on')) {
+        if ((attributes[i].value.includes('clickMap') || attributes[i].value.includes('editorEvent')) && (attributes[i].name.substring(0, 2) === 'on')) {
             try {
                 const funString = `${attributes[i].value}`
                 $(element).off(attributes[i].name.substring(2));
+                const name=attributes[i].name
                 element.addEventListener(attributes[i].name.substring(2), function () {
-                    eval(funString)
+                    if (glitter.htmlGenerate.isEditMode()&&!glitter.share.EditorMode) {
+                        if (funString.indexOf('editorEvent') !== -1) {
+                            eval(funString.replace('editorEvent', 'clickMap'))
+                        } else if (name.substring(2) !== 'click') {
+                            eval(funString)
+                        }
+                    } else {
+                        eval(funString)
+                    }
                 });
                 element.removeAttribute(attributes[i].name);
             } catch (e) {
                 glitter.deBugMessage(e)
             }
-        }else if(!glitter.share.EditorMode){
+        } else if (!(glitter.share.EditorMode === true)) {
             const inputString = attributes[i].value;
             // 正则表达式模式
             const pattern = /@{{(.*?)}}/g;
@@ -110,25 +156,17 @@ function traverseHTML(element: any) {
             while ((match = pattern.exec(inputString)) !== null) {
                 const placeholder = match[0]; // 完整的匹配项，例如 "@{{value}}"
                 const value = match[1]; // 提取的值，例如 "value"
-                if(glitter.share.globalValue&&glitter.share.globalValue[value]){
-                    attributes[i].value=attributes[i].value.replace(placeholder,glitter.share.globalValue[value])
+                if (glitter.share.globalValue && glitter.share.globalValue[value]) {
+                    attributes[i].value = attributes[i].value.replace(placeholder, glitter.share.globalValue[value])
                 }
             }
         }
     }
-    if(!glitter.share.EditorMode){
+    if (!(glitter.share.EditorMode === true)) {
+
         const inputString = $(element).html();
         // 正则表达式模式
-        const pattern = /@{{(.*?)}}/g;
-        // 使用正则表达式的 exec 方法来提取匹配项
-        let match;
-        while ((match = pattern.exec(inputString)) !== null) {
-            const placeholder = match[0]; // 完整的匹配项，例如 "@{{value}}"
-            const value = match[1]; // 提取的值，例如 "value"
-            if(glitter.share.globalValue&&glitter.share.globalValue[value]){
-                $(element).html($(element).html().replace(placeholder,glitter.share.globalValue[value]));
-            }
-        }
+        inputString != replaceGlobalValue(inputString) && $(element).html(replaceGlobalValue(inputString))
     }
     // 返回 JSON 結果
     return result;

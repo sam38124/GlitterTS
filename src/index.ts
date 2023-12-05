@@ -16,21 +16,27 @@ import {createBucket, listBuckets} from "./modules/AWSLib";
 import AWS from "aws-sdk";
 import {Live_source} from "./live_source";
 import * as process from "process";
+import bodyParser from 'body-parser'
+import {Post} from "./api-public/services/post.js";
+import response from "./modules/response.js";
 
 //Glitter FrontEnd Rout
 export const app = express();
 const logger = new Logger();
 
-const corsOptions = {
-    origin: '*',
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
-    allowedHeaders: ['Content-Type', 'Authorization'],
-};
-
-app.use(cors(corsOptions));
+app.options('/*', (req, res) => {
+    // 处理 OPTIONS 请求，返回允许的方法和头信息
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH');
+    res.header('Access-Control-Allow-Headers', 'Content-Type,Authorization,g-app');
+    res.status(200).send();
+});
+// 添加路由和其他中间件
+app.use(cors());
 app.use(express.raw());
 app.use(express.json({limit: '50MB'}));
 app.use(createContext);
+app.use(bodyParser.raw({ type: '*/*' }));
 app.use(contollers);
 app.use(public_contollers);
 
@@ -221,6 +227,7 @@ export async function createAPP(dd: any) {
                             redirect+=`&appName=${req.query.appName}`
                         }
                     }
+console.log(req.query)
                     return  `${(() => {
                         data.page_config = data.page_config ?? {}
                         if (data && data.page_config) {
@@ -233,6 +240,25 @@ export async function createAPP(dd: any) {
     <meta property="og:image" content="${d.image ?? ""}">
     <meta property="og:title" content="${d.title ?? ""}">
     <meta name="description" content="${d.content ?? ""}">
+  ${(()=>{
+      if(req.query.type==='editor'){
+          return ``
+      }else{
+          return  `  ${(data.config.globalStyle ?? []).map((dd:any)=>{
+              try {
+                  if(dd.data.elem==='style'){
+                      return  `<style>${dd.data.inner}</style>`
+                  }else if(dd.data.elem==='link'){
+                      return  `<link type="text/css" rel="stylesheet" href="${dd.data.attr.find((dd:any)=>{
+                          return dd.attr==='href'
+                      }).value}">`
+                  }
+              }catch (e){
+                  return``
+              }
+          }).join('')}`
+      }
+                            })()}
     ${(() => {
                                 if (redirect) {
                                     return `<script>

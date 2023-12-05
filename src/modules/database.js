@@ -203,6 +203,6 @@ exports.default = {
     Transaction,
     getPagination,
     escape,
-    queryLambada: exports.queryLambada
+    queryLambada: exports.queryLambada,
 };
 //# sourceMappingURL=database.js.map

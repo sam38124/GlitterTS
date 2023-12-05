@@ -12,7 +12,7 @@ export const widgetComponent = {
         widget.data.elem = widget.data.elem ?? "div"
         widget.data.inner = widget.data.inner ?? ""
         widget.data.attr = widget.data.attr ?? []
-
+        widget.data.onCreateEvent=widget.data.onCreateEvent??{}
         const id = htmlGenerate.widgetComponentID
         subData = subData ?? {}
         let formData = subData
@@ -64,7 +64,13 @@ export const widgetComponent = {
                 if (widget.type === 'container') {
                     const glitter = (window as any).glitter
                     const htmlGenerate = new glitter.htmlGenerate(widget.data.setting, hoverID, subData);
-                    return htmlGenerate.render(gvc, {containerID: widget.id}, getCreateOption())
+                    widget.data.inner=''
+                    return htmlGenerate.render(gvc, {containerID: widget.id,onCreate:()=>{  TriggerEvent.trigger({
+                            gvc:gvc,
+                            widget:widget,
+                            clickEvent:widget.data.onCreateEvent,
+                            subData:subData
+                        })}}, getCreateOption())
                 }
                 if ((widget.data.dataFrom === "code")) {
                     if (widget.data.elem !== 'select') {
@@ -86,62 +92,77 @@ export const widgetComponent = {
                     })
                 }
                 return gvc.bindView(() => {
-                    const vm: {
-                        callback: () => void,
-                        data: any
-                    } = {
-                        callback: () => {
-                            gvc.notifyDataChange(id)
-                        },
-                        data: []
-                    }
-                    if (widget.data.elem === 'select' && widget.data.selectType === 'api') {
-                        widget.data.selectAPI = widget.data.selectAPI ?? {}
-                        TriggerEvent.trigger({
-                            gvc: gvc, widget: widget, clickEvent: widget.data.selectAPI, subData: vm
-                        })
-                    }
-
                     return {
                         bind: id,
                         view: () => {
-                            // console.log(`finishNotifyID:${id}-${widget.data.inner}`)
-                            switch (widget.data.elem) {
-                                case 'select':
-                                    formData[widget.data.key] = widget.data.inner
-                                    if (widget.data.selectType === 'api') {
-                                        return vm.data.map((dd: any) => {
-                                            formData[widget.data.key] = formData[widget.data.key] ?? dd.value
-                                            if (dd.visible === 'invisible' && (dd.value !== formData[widget.data.key])) {
-                                                return ``
-                                            }
-                                            return /*html*/ `<option class="" value="${dd.value}" ${`${dd.value}` === `${formData[widget.data.key]}` ? `selected` : ``}>
+                            return new Promise(async (resolve, reject)=>{
+                                const vm: {
+                                    callback:()=>void,
+                                    data: any
+                                } = {
+                                    callback:()=>{
+
+                                    },
+                                    data: []
+                                }
+                                await new Promise((resolve, reject)=>{
+                                    if (widget.data.elem === 'select' && widget.data.selectType === 'api') {
+                                        widget.data.selectAPI = widget.data.selectAPI ?? {}
+                                        vm.callback=()=>{
+                                            resolve(true)
+                                        }
+                                        TriggerEvent.trigger({
+                                            gvc: gvc, widget: widget, clickEvent: widget.data.selectAPI, subData: vm
+                                        })
+                                    }else{
+                                        resolve(true)
+                                    }
+                                })
+                                switch (widget.data.elem) {
+                                    case 'select':
+                                        formData[widget.data.key] = widget.data.inner
+                                        if (widget.data.selectType === 'api') {
+                                             resolve(vm.data.map((dd: any) => {
+                                                formData[widget.data.key] = formData[widget.data.key] ?? dd.value
+                                                if (dd.visible === 'invisible' && (dd.value !== formData[widget.data.key])) {
+                                                    return ``
+                                                }
+                                                return /*html*/ `<option class="" value="${dd.value}" ${`${dd.value}` === `${formData[widget.data.key]}` ? `selected` : ``}>
                                 ${dd.key}
                             </option>`;
-                                        }).join('') + `<option value="" ${formData[widget.data.key] === '' ? `selected` : ``}>
+                                            }).join('') + `<option value="" ${formData[widget.data.key] === '' ? `selected` : ``}>
                                 選擇${widget.data.label}
-                            </option>`
-                                    } else {
-                                        return widget.data.selectList.map((dd: any) => {
-                                            if (dd.visible === 'invisible' && (dd.value !== formData[widget.data.key])) {
-                                                return ``
-                                            }
-                                            formData[widget.data.key] = formData[widget.data.key] ?? dd.value
-                                            return /*html*/ `<option value="${dd.value}" ${dd.value === formData[widget.data.key] ? `selected` : ``}>
+                            </option>`)
+                                        } else {
+                                             resolve(widget.data.selectList.map((dd: any) => {
+                                                 if (dd.visible === 'invisible' && (dd.value !== formData[widget.data.key])) {
+                                                     return ``
+                                                 }
+                                                 formData[widget.data.key] = formData[widget.data.key] ?? dd.value
+                                                 return /*html*/ `<option value="${dd.value}" ${dd.value === formData[widget.data.key] ? `selected` : ``}>
                                 ${dd.name}
                             </option>`;
-                                        }).join('')
-                                    }
-                                case 'img':
-                                case 'input':
-                                    return ``
-                                default:
-                                    return widget.data.inner
-                            }
+                                             }).join(''))
+                                        }
+                                        break
+                                    case 'img':
+                                    case 'input':
+                                         resolve(``)
+                                        break
+                                    default:
+                                        resolve(widget.data.inner)
+                                        break
+                                }
+                            })
                         },
                         divCreate: getCreateOption,
                         onCreate: () => {
-
+                            TriggerEvent.trigger({
+                                gvc:gvc,
+                                widget:widget,
+                                clickEvent:widget.data.onCreateEvent,
+                                subData:subData
+                            })
                         },
                         onInitial: () => {
                         }
@@ -541,23 +562,45 @@ export const widgetComponent = {
                                                         }
                                                     })
                                                 } else {
-                                                    return glitter.htmlGenerate.editeText({
-                                                        gvc: gvc,
-                                                        title: '參數內容',
-                                                        default: dd.value ?? "",
-                                                        placeHolder: `直接輸入參數數值，或者撰寫程式碼來帶入內容:
-範例:
- 1.(()=>{
-     //從此頁面的資料儲存物件中拉取資料．
-     return gvc.getBundle()['value'];
-     })()
-     
-     `,
-                                                        callback: (text) => {
-                                                            dd.value = text
-                                                            widget.refreshComponent()
-                                                        }
-                                                    })
+                                                    dd.valueFrom=dd.valueFrom??"manual"
+                                                    return [
+                                                        EditorElem.h3('參數內容'),
+                                                        EditorElem.select({
+                                                            title:'',
+                                                            gvc:gvc,
+                                                            def:dd.valueFrom,
+                                                            array:[
+                                                                {title:'帶入值',value:"manual"},
+                                                                {title:'程式碼',value:"code"}
+                                                            ],
+                                                            callback:(text)=>{
+                                                                dd.valueFrom=text
+                                                                widget.refreshComponent()
+                                                            }
+                                                        }),
+                                                        (()=>{
+                                                            if(dd.valueFrom==='code'){
+                                                                dd.valueTrigger=dd.valueTrigger??{}
+                                                                return TriggerEvent.editer(gvc,widget,dd.valueTrigger,{
+                                                                    hover:false,
+                                                                    option:[],
+                                                                    title:''
+                                                                })
+                                                            }else{
+                                                                return glitter.htmlGenerate.editeText({
+                                                                    gvc: gvc,
+                                                                    title: '',
+                                                                    default: dd.value ?? "",
+                                                                    placeHolder: `請輸入參數內容`,
+                                                                    callback: (text) => {
+                                                                        dd.value = text
+                                                                        widget.refreshComponent()
+                                                                    }
+                                                                })
+                                                            }
+                                                        })()
+                                                    ].join('<div class="my-1"></div>');
+
                                                 }
                                             } else {
                                                 return `<div class="mt-2"></div>`+TriggerEvent.editer(gvc, widget, dd, {
@@ -586,6 +629,11 @@ export const widgetComponent = {
                         refreshComponent: () => {
                             widget.refreshComponent();
                         }
+                    }),
+                    TriggerEvent.editer(gvc,widget,widget.data.onCreateEvent,{
+                        hover:false,
+                        option:[],
+                        title:"[onCreate]建立事件"
                     })
                 ]);
             },

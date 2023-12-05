@@ -124,6 +124,16 @@ export class Glitter {
                     return defaultData;
                 }
             },
+            tryMethod(method) {
+                method.map((dd) => {
+                    try {
+                        dd();
+                    }
+                    catch (e) {
+                        console.log(e);
+                    }
+                });
+            },
             downloadFile(href) {
                 const link = document.createElement('a');
                 link.href = href;

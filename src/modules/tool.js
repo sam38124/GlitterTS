@@ -78,6 +78,13 @@ const randomString = (max) => {
         text += possible.charAt(Math.floor(Math.random() * possible.length));
     return text;
 };
+const randomNumber = (max) => {
+    const possible = '0123456789';
+    let text = possible.charAt(Math.floor(Math.random() * (possible.length - 10)));
+    for (let i = 1; i < max; i++)
+        text += possible.charAt(Math.floor(Math.random() * possible.length));
+    return text;
+};
 const compareHash = async (pwd, has) => bcrypt_1.default.compare(pwd, has);
 exports.default = {
     isNull,
@@ -88,5 +95,6 @@ exports.default = {
     createOrderId,
     randomString,
     compareHash,
+    randomNumber
 };
 //# sourceMappingURL=tool.js.map

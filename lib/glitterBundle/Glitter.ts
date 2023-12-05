@@ -43,7 +43,7 @@ export class Glitter {
     public pageConfig: PageConfig[] = []
     public nowPageConfig?: PageConfig
     public waitChangePage = false
-    public elementCallback: { [name: string]: { onCreate: () => void, onInitial: () => void, notifyDataChange: () => void, getView: () => string, updateAttribute: () => void, onDestroy: () => void, rendered: boolean } } = {}
+    public elementCallback: { [name: string]: { onCreate: () => void, onInitial: () => void, notifyDataChange: () => void, getView: () => string | Promise<string>, updateAttribute: () => void, onDestroy: () => void, rendered: boolean } } = {}
     public html=String.raw
     /*Getter*/
 
@@ -601,6 +601,15 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
                 glitter.deBugMessage(e)
                 return defaultData
             }
+        },
+        tryMethod(method:(()=>void)[]){
+            method.map((dd)=>{
+                try {
+                    dd()
+                }catch (e) {
+                    console.log(e)
+                }
+            })
         },
         downloadFile(href: string) {
             const link = document.createElement('a');

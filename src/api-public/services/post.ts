@@ -15,14 +15,14 @@ export class Post {
         Post.postObserverList.push(callback)
     }
 
-    public async postContent(content: any) {
+    public async postContent(content: any,tb:string='t_post') {
         try {
-            const data = await db.query(`INSERT INTO \`${this.app}\`.\`t_post\`
+            const data = await db.query(`INSERT INTO \`${this.app}\`.\`${tb}\`
                                          SET ?`, [content])
             const reContent = JSON.parse(content.content)
             reContent.id = data.insertId
             content.content = JSON.stringify(reContent)
-            await db.query(`update \`${this.app}\`.t_post
+            await db.query(`update \`${this.app}\`.\`${tb}\`
                             SET ?
                             WHERE id = ${data.insertId}`, [content])
             Post.postObserverList.map((value, index, array) => {
@@ -67,7 +67,7 @@ export class Post {
                 let user :any = undefined;
                 if (this.token) {
                     user = (await sql.query(`select *
-                                             from user
+                                             from t_user
                                              where userID = ${this.token.userID ?? 0}`, []))[0] ?? user
                 }
                 const html = String.raw
@@ -126,11 +126,11 @@ export class Post {
         }
     }
 
-    public async putContent(content: any) {
+    public async putContent(content: any,tb:string='t_post') {
         try {
 
             const reContent = JSON.parse(content.content)
-            const data = await db.query(`update \`${this.app}\`.\`t_post\`
+            const data = await db.query(`update \`${this.app}\`.\`${tb}\`
                                          SET ?
                                          where 1 = 1
                                            and id = ${reContent.id}`, [
@@ -139,7 +139,7 @@ export class Post {
             reContent.id = data.insertId
             content.content = JSON.stringify(reContent)
             content.updated_time = new Date()
-            await db.query(`update \`${this.app}\`.t_post
+            await db.query(`update \`${this.app}\`.${tb}
                             SET ?
                             WHERE id = ${data.insertId}`, [content])
             return data
@@ -254,7 +254,7 @@ export class Post {
                     if (!userData[dd.userID]) {
                         try {
                             userData[dd.userID] = (await v.query(`select userData
-                                                                  from \`${this.app}\`.\`user\`
+                                                                  from \`${this.app}\`.\`t_user\`
                                                                   where userID = ${dd.userID}`, []))[0]['userData']
                         } catch (e) {
 

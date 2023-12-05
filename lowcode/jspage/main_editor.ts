@@ -1,10 +1,11 @@
 import {GVC} from "../glitterBundle/GVController.js";
 import {Swal} from "../modules/sweetAlert.js";
-import Add_item_dia from "../editor/add_item_dia.js";
+import Add_item_dia from "../glitterBundle/plugins/add_item_dia.js";
 import {EditorElem} from "../glitterBundle/plugins/editor-elem.js";
-import {PageEditor} from "../editor-widget/page-editor.js";
+import {PageEditor} from "../editor/page-editor.js";
 import {fileManager} from "../setting/appSetting.js";
 import {ShareDialog} from "../dialog/ShareDialog.js";
+import {allKeys} from "underscore";
 
 
 enum ViewType {
@@ -27,7 +28,6 @@ export class Main_editor {
             return {
                 bind: vid,
                 view: () => {
-
                     function checkSelect(array: any) {
                         array.map((dd: any) => {
                             if (dd.id === glitter.getCookieByName('lastSelect')) {
@@ -38,13 +38,11 @@ export class Main_editor {
                             }
                         })
                     }
-
                     checkSelect((viewModel.data! as any).config)
 
                     if ((glitter.getCookieByName("ViewType") === ViewType.col3) || (glitter.getCookieByName("ViewType") === ViewType.mobile)) {
                         gvc.notifyDataChange('right_NAV')
                     }
-                    console.log(`viewModel.selectItem-->`, viewModel.selectItem)
                     if (viewModel.selectItem && (glitter.getCookieByName("ViewType") !== ViewType.col3) &&
                         (glitter.getCookieByName("ViewType") !== ViewType.mobile) &&
                         (viewModel.selectItem.type !== 'code') && (viewModel.selectItem.type !== 'widget' || (viewModel.selectItem.data.elem !== 'style' && viewModel.selectItem.data.elem !== 'link' && viewModel.selectItem.data.elem !== 'script'))) {
@@ -70,7 +68,7 @@ export class Main_editor {
                                      onclick="${gvc.event(() => {
                                         PageEditor.openDialog.page_config(gvc)
                                     })}">
-                                    <i class="fa-duotone fa-file-code"></i>
+                                 <i class="fa-regular fa-file-code"></i>
                                 </div>`,
                                     ` <div class="bg-white d-flex align-items-center justify-content-center   border " style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;"
   onclick="${gvc.event(() => {
@@ -126,10 +124,14 @@ export class Main_editor {
                                                 </div>
                                             </l1>
                                         </div>`,
-                                    new PageEditor(gvc, vid).renderLineItem((viewModel.data! as any).config.filter((dd: any, index: number) => {
+                                    new PageEditor(gvc, 'MainEditorLeft','MainEditorRight').renderLineItem((viewModel.data! as any).config.filter((dd: any, index: number) => {
                                         dd.index = index
                                         return (dd.type !== 'code') && (dd.type !== 'widget' || (dd.data.elem !== 'style' && dd.data.elem !== 'link' && dd.data.elem !== 'script'))
-                                    }), false, (viewModel.data! as any).config)
+                                    }), false, (viewModel.data! as any).config,{
+                                        selectEv:(dd)=>{
+                                            return dd.id===glitter.getCookieByName('lastSelect')
+                                        }
+                                    })
                                 ])
                             })()}
                         `
@@ -138,26 +140,16 @@ export class Main_editor {
                 },
                 divCreate: {class: `swiper-slide h-100 position-relative`},
                 onCreate: () => {
-                    function check() {
-                        if (!viewModel.data) {
-                            setTimeout(() => {
-                                check()
-                            }, 1000)
-                        } else {
-                            const htmlGenerate = new gvc.glitter.htmlGenerate((viewModel.data! as any).config, [], undefined, true);
-                            (window as any).editerData = htmlGenerate;
-                            (window as any).page_config = (viewModel.data! as any).page_config
-                            gvc.notifyDataChange('showView')
-                        }
-                    }
-
-                    check()
+                    const htmlGenerate = new gvc.glitter.htmlGenerate((viewModel.data! as any).config, [glitter.getCookieByName('lastSelect')], undefined, true);
+                    (window as any).editerData = htmlGenerate;
+                    (window as any).page_config = (viewModel.data! as any).page_config
                 }
             }
         })
     }
 
     public static right(gvc: GVC, viewModel: any, createID: string, gBundle: any) {
+        alert('s')
         const glitter = gvc.glitter
         return gvc.bindView(() => {
             let haveAdd = true;
@@ -168,6 +160,15 @@ export class Main_editor {
                     if (viewModel.selectItem !== undefined) {
                         hoverList.push((viewModel.selectItem as any).id);
                     }
+
+alert('s')
+                    if (!viewModel.selectItem) {
+                        return `<div class="position-absolute w-100 top-50 d-flex align-items-center justify-content-center flex-column translate-middle-y">
+<iframe src="https://embed.lottiefiles.com/animation/84663" class="w-100" style="width: 400px;height: 400px"></iframe>
+<h3>請於左側選擇元件編輯</h3>
+</div>`
+                    }
+                    alert(JSON.stringify(viewModel.selectItem))
                     const htmlGenerate = new glitter.htmlGenerate((viewModel.data! as any).config, hoverList, undefined, true);
                     (window as any).editerData = htmlGenerate;
                     (window as any).page_config = (viewModel.data! as any).page_config
@@ -177,12 +178,6 @@ export class Main_editor {
                         dd.refreshComponentParameter = undefined;
                     });
 
-                    if (!viewModel.selectItem) {
-                        return `<div class="position-absolute w-100 top-50 d-flex align-items-center justify-content-center flex-column translate-middle-y">
-<iframe src="https://embed.lottiefiles.com/animation/84663" class="w-100" style="width: 400px;height: 400px"></iframe>
-<h3>請於左側選擇元件編輯</h3>
-</div>`
-                    }
                     return htmlGenerate.editor(gvc, {
                         return_: false,
                         refreshAll: () => {
@@ -216,14 +211,6 @@ export class Main_editor {
 
     public static editorContent(gvc: GVC, viewModel: any, vid?: any) {
         const glitter = gvc.glitter
-        if (viewModel.selectItem === undefined) {
-            return `<div class="position-absolute w-100 top-50 d-flex align-items-center justify-content-center flex-column translate-middle-y">
-<img class="border" src="https://liondesign-prd.s3.amazonaws.com/file/252530754/1692927479829-Screenshot 2023-08-25 at 9.36.15 AM.png"  >
-<lottie-player src="https://lottie.host/23df5e29-6a51-428a-b112-ff6901c4650e/yxNS0Bw8mk.json" class="position-relative" background="transparent" speed="1" style="margin-top:-70px;" loop  autoplay direction="1" mode="normal"></lottie-player>
-<div style="font-size:16px;margin-top:-10px;width:calc(100% - 20px);word-break:break-all !important;display:inline-block;white-space:normal;" class="p-2 text-center alert alert-secondary" >
-請直接點擊頁面元件，或於左側頁面區段來選擇元件進行編輯。</div>
-</div>`
-        }
         return [html`
             <div class="h-100 " style="overflow-y:auto;">
                 <div class="w-100 d-flex align-items-center px-3 border-bottom ${(vid) ? `` : `d-none`}"
@@ -240,6 +227,15 @@ export class Main_editor {
                     return {
                         bind: `htmlGenerate`,
                         view: () => {
+                            gvc.notifyDataChange('editFooter')
+                            if (viewModel.selectItem === undefined || viewModel.selectItem.js === undefined) {
+                                return `<div class="position-absolute w-100 top-50 d-flex align-items-center justify-content-center flex-column translate-middle-y">
+<img class="border" src="https://liondesign-prd.s3.amazonaws.com/file/252530754/1692927479829-Screenshot 2023-08-25 at 9.36.15 AM.png"  >
+<lottie-player src="https://lottie.host/23df5e29-6a51-428a-b112-ff6901c4650e/yxNS0Bw8mk.json" class="position-relative" background="transparent" speed="1" style="margin-top:-70px;" loop  autoplay direction="1" mode="normal"></lottie-player>
+<div style="font-size:16px;margin-top:-10px;width:calc(100% - 20px);word-break:break-all !important;display:inline-block;white-space:normal;" class="p-2 text-center alert alert-secondary" >
+請直接點擊頁面元件，或於左側頁面區段來選擇元件進行編輯。</div>
+</div>`
+                            }
                             let hoverList: string[] = [];
                             if (viewModel.selectItem !== undefined) {
                                 hoverList.push((viewModel.selectItem as any).id);
@@ -283,31 +279,40 @@ export class Main_editor {
                 <div class="w-100" style="height:50px;"></div>
             </div>
         `,
-            html`
-                <div class="w-100  position-absolute bottom-0 border-top d-flex align-items-center ps-3"
+            gvc.bindView(()=>{
+                return {
+                    bind:'editFooter',
+                    view:()=>{
+                        if (viewModel.selectItem === undefined || viewModel.selectItem.js === undefined) {
+                            return ``
+                        }
+                        return `  <div class="w-100  position-absolute bottom-0 border-top d-flex align-items-center ps-3"
                      style="height:50px;background:#f6f6f6;font-size:14px;">
                     <div class="hoverBtn fw-bold" style="color:#8e1f0b;cursor:pointer;"
                          onclick="${gvc.event(() => {
-                             for (let a = 0; a < viewModel.selectContainer.length; a++) {
-                                 if (viewModel.selectContainer[a] == viewModel.selectItem) {
-                                     viewModel.selectContainer.splice(a, 1)
-                                 }
-                             }
-                             viewModel.selectItem = undefined
-                             gvc.notifyDataChange(['HtmlEditorContainer']);
-                         })}">
+                            for (let a = 0; a < viewModel.selectContainer.length; a++) {
+                                if (viewModel.selectContainer[a] == viewModel.selectItem) {
+                                    viewModel.selectContainer.splice(a, 1)
+                                }
+                            }
+                            viewModel.selectItem = undefined
+                            gvc.notifyDataChange(['HtmlEditorContainer']);
+                        })}">
                         <i class="fa-solid fa-trash-can me-2"></i>移除區塊
                     </div>
                 </div>`
+                    }
+                }
+            })
         ].join('')
     }
 
     public static center(viewModel: any, gvc: GVC) {
         return html`
-            <div class="${(viewModel.type === ViewType.mobile) ? `d-flex align-items-center justify-content-center flex-column mx-auto` : `d-flex align-items-center justify-content-center flex-column`}"
-                 style="${(viewModel.type === ViewType.mobile) ? `width: 414px;height: calc(100vh - 50px);padding-top: 20px;` : `width: calc(100% - 20px);margin-left:10px;height: calc(100vh - 50px);padding-top: 20px;"`}">
-                <div class="bg-white" style="width:100%;height: calc(100%);">
-                    <iframe class="w-100 h-100 rounded"
+            <div class="${(viewModel.type === ViewType.mobile && gvc.glitter.getUrlParameter('editorPosition')!=='2') ? `d-flex align-items-center justify-content-center flex-column mx-auto` : `d-flex align-items-center justify-content-center flex-column`}"
+                 style="${(viewModel.type === ViewType.mobile && gvc.glitter.getUrlParameter('editorPosition')!=='2') ? `width: 414px;height: calc(100vh - 50px);padding-top: 20px;` : `width: calc(100% - 20px);margin-left:10px;height: calc(100vh - 50px);padding-top: 20px;"`}">
+                <div class="" style="width:100%;height: calc(100%);" id="editerCenter">
+                    <iframe class="w-100 h-100 rounded bg-white"
                             src="index.html?type=htmlEditor&page=${gvc.glitter.getUrlParameter('page')}&appName=${gvc.glitter.getUrlParameter('appName')}"></iframe>
                 </div>
             </div>`

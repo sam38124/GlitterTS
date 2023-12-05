@@ -69,7 +69,7 @@ export const config = {
         return process.env.AWS_SecretAccessKey
     },
     get AWS_S3_PREFIX_DOMAIN_NAME() {
-        return `https://${process.env.AWS_S3_NAME}.s3.amazonaws.com/`
+        return process.env.AWS_S3_DOMAIN+'/'
     },
     get SINGLE_TYPE() {
         return `${process.env.SINGLE_TYPE}` == "true"
@@ -91,7 +91,9 @@ export const config = {
         post: '/post',
         message: '/message',
         smtp: '/smtp',
-        lambda:'/lambda'
+        lambda:'/lambda',
+        ec:'/ec',
+        manager:'/manager'
     },
     route: {
         user: "/user",

@@ -1,5 +1,5 @@
 import { config } from "../config.js";
-import { BaseApi } from "./base.js";
+import { BaseApi } from "../glitterBundle/api/base.js";
 export class ApiUser {
     constructor() { }
     static login(userData) {

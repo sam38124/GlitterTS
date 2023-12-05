@@ -294,7 +294,7 @@ export function appCreate(gvc: GVC, viewModel: any, id: string) {
     }
     function save(key: string, next: () => void) {
         dialog.dataLoading({text: '設定中', visible: true})
-        saasConfig.api.setPrivateConfig(saasConfig.config.appName, `glitter_appPost_${key}`, vmk[key]).then((r: { response: any, result: boolean }) => {
+       saasConfig.api.setPrivateConfig(saasConfig.config.appName, `glitter_appPost_${key}`, vmk[key]).then((r: { response: any, result: boolean }) => {
             dialog.dataLoading({visible: false})
             if (r.response) {
                 next()
@@ -503,7 +503,7 @@ export function appCreate(gvc: GVC, viewModel: any, id: string) {
 }
 
 
-export function fileManager(gvc: GVC, viewModel: any, id: string, fileVm: {
+export function fileManager(gvc: GVC, id: string, fileVm: {
     data: any[]
 }) {
     const glitter = gvc.glitter
@@ -511,7 +511,6 @@ export function fileManager(gvc: GVC, viewModel: any, id: string, fileVm: {
         config: any,
         api: any
     } = (window as any).saasConfig
-
     return `
 ${gvc.bindView(() => {
         const id = glitter.getUUID()
@@ -527,7 +526,7 @@ ${gvc.bindView(() => {
             bind: id,
             view: () => {
                 if (!load) {
-                    return `                                        <div class="d-flex align-items-center justify-content-center w-100 flex-column">
+                    return `<div class="d-flex align-items-center justify-content-center w-100 flex-column">
                                         <div class="spinner-border" role="status">
   <span class="sr-only"></span>
 </div>
@@ -598,7 +597,7 @@ ${gvc.bindView(() => {
                         }
                     })
             },
-            divCreate: {class: `mx-n2 mt-2`}
+            divCreate: {class: `mt-2 w-100`}
         }
     })}
     `

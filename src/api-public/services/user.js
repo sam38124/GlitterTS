@@ -30,11 +30,16 @@ const UserUtil_1 = __importDefault(require("../../utils/UserUtil"));
 const config_js_1 = __importDefault(require("../../config.js"));
 const ses_js_1 = require("../../services/ses.js");
 const app_js_1 = __importDefault(require("../../app.js"));
+const redis_js_1 = __importDefault(require("../../modules/redis.js"));
+const tool_js_1 = __importDefault(require("../../modules/tool.js"));
+const process_1 = __importDefault(require("process"));
+const ut_database_js_1 = require("../utils/ut-database.js");
 class User {
     constructor(app) {
         this.app = app;
     }
     async createUser(account, pwd, userData, req) {
+        var _a;
         try {
             const userID = generateUserID();
             let data = await database_1.default.query(`select \`value\`
@@ -49,35 +54,41 @@ class User {
                     verify: `normal`
                 };
             }
-            if (data.verify != 'normal') {
+            if (userData.verify_code) {
+                if ((userData.verify_code !== (await redis_js_1.default.getValue(`verify-${account}`)))) {
+                    throw exception_1.default.BadRequestError('BAD_REQUEST', 'Verify code error.', null);
+                }
+                else {
+                    data.verify = 'normal';
+                }
+            }
+            else if (data.verify != 'normal') {
                 await database_1.default.execute(`delete
-                                  from \`${this.app}\`.\`user\`
+                                  from \`${this.app}\`.\`t_user\`
                                   where account = ${database_1.default.escape(account)}
                                     and status = 0`, []);
                 if (data.verify == 'mail') {
-                    const checkToken = (0, tool_1.getUUID)();
-                    userData = userData !== null && userData !== void 0 ? userData : {};
-                    userData.mailVerify = checkToken;
-                    const url = `<h1>${data.name}</h1><p>
-<a href="${config_js_1.default.domain}/api-public/v1/user/checkMail?g-app=${this.app}&token=${checkToken}">點我前往認證您的信箱</a></p>`;
-                    console.log(`url:${url}`);
-                    await (0, ses_js_1.sendmail)(`service@ncdesign.info`, account, `信箱認證`, url);
+                    data.content = (_a = data.content) !== null && _a !== void 0 ? _a : '';
+                    const code = tool_js_1.default.randomNumber(6);
+                    await redis_js_1.default.setValue(`verify-${account}`, code);
+                    if (data.content.indexOf('@{{code}}') === -1) {
+                        data.content = `嗨！歡迎加入 ${data.name || 'GLITTER.AI'}，請輸入驗證碼「 @{{code}}  」。請於1分鐘內輸入並完成驗證。`;
+                    }
+                    data.content = data.content.replace(`@{{code}}`, code);
+                    data.title = data.title || `嗨！歡迎加入 ${data.name || 'GLITTER.AI'}，請輸入驗證碼`;
+                    (0, ses_js_1.sendmail)(`${data.name} <${process_1.default.env.smtp}>`, account, data.title, data.content);
+                    return {
+                        verify: data.verify
+                    };
                 }
             }
-            await database_1.default.execute(`INSERT INTO \`${this.app}\`.\`user\` (\`userID\`, \`account\`, \`pwd\`, \`userData\`, \`status\`)
+            await database_1.default.execute(`INSERT INTO \`${this.app}\`.\`t_user\` (\`userID\`, \`account\`, \`pwd\`, \`userData\`, \`status\`)
                               VALUES (?, ?, ?, ?, ?);`, [
                 userID,
                 account,
                 await tool_1.default.hashPwd(pwd),
                 userData !== null && userData !== void 0 ? userData : {},
-                (() => {
-                    if (data.verify != 'normal') {
-                        return 0;
-                    }
-                    else {
-                        return 1;
-                    }
-                })()
+                1
             ]);
             const generateToken = await UserUtil_1.default.generateToken({
                 user_id: parseInt(userID, 10),
@@ -129,9 +140,13 @@ class User {
     async login(account, pwd) {
         try {
             const data = (await database_1.default.execute(`select *
-                                                 from \`${this.app}\`.user
+                                                 from \`${this.app}\`.t_user
                                                  where account = ?
                                                    and status = 1`, [account]))[0];
+            console.log(`select *
+                         from \`${this.app}\`.t_user
+                         where account = ${database_1.default.escape(account)}
+                           and status = 1`);
             if (await tool_1.default.compareHash(pwd, data.pwd)) {
                 data.pwd = undefined;
                 data.token = await UserUtil_1.default.generateToken({
@@ -152,7 +167,7 @@ class User {
     async getUserData(userID) {
         try {
             const data = (await database_1.default.execute(`select *
-                                                 from \`${this.app}\`.user
+                                                 from \`${this.app}\`.t_user
                                                  where userID = ?`, [userID]))[0];
             data.pwd = undefined;
             return data;
@@ -161,48 +176,101 @@ class User {
             throw exception_1.default.BadRequestError('BAD_REQUEST', 'Login Error:' + e, null);
         }
     }
+    async getUserList(query) {
+        var _a, _b;
+        try {
+            query.page = (_a = query.page) !== null && _a !== void 0 ? _a : 0;
+            query.limit = (_b = query.limit) !== null && _b !== void 0 ? _b : 50;
+            const querySql = [];
+            console.log(query.search);
+            query.search && querySql.push([
+                `(UPPER(JSON_UNQUOTE(JSON_EXTRACT(userData, '$.name')) LIKE UPPER('%${query.search}%')))`,
+                `(UPPER(JSON_UNQUOTE(JSON_EXTRACT(userData, '$.email')) LIKE UPPER('%${query.search}%')))`,
+                `(UPPER(JSON_UNQUOTE(JSON_EXTRACT(userData, '$.phone')) LIKE UPPER('%${query.search}%')))`
+            ].join(` || `));
+            const data = await new ut_database_js_1.UtDatabase(this.app, `t_user`).querySql(querySql, query);
+            data.data.map((dd) => {
+                dd.pwd = undefined;
+            });
+            return data;
+        }
+        catch (e) {
+            throw exception_1.default.BadRequestError('BAD_REQUEST', 'Login Error:' + e, null);
+        }
+    }
+    async deleteUser(query) {
+        try {
+            await database_1.default.query(`delete
+                            FROM \`${this.app}\`.t_user
+                            where id in (?)`, [query.id.split(',')]);
+            return {
+                result: true
+            };
+        }
+        catch (e) {
+            throw exception_1.default.BadRequestError('BAD_REQUEST', 'GetProduct Error:' + e, null);
+        }
+    }
     async updateUserData(userID, par) {
         try {
             const userData = (await database_1.default.query(`select *
-                                              from \`${this.app}\`.\`user\`
+                                              from \`${this.app}\`.\`t_user\`
                                               where userID = ${database_1.default.escape(userID)}`, []))[0];
-            let mailVerify = false;
-            if (userData.account !== par.account) {
-                const result = (await this.updateAccount(par.account, userID));
-                if (result.type === 'mail') {
-                    par.account = undefined;
-                    par.userData.mailVerify = result.mailVerify;
-                    par.userData.updateAccount = result.updateAccount;
-                    mailVerify = true;
-                }
+            const configAd = await app_js_1.default.getAdConfig(this.app, 'glitter_loginConfig');
+            if (par.userData.email && (par.userData.email !== userData.account) && (!par.userData.verify_code || (par.userData.verify_code !== (await redis_js_1.default.getValue(`verify-${par.userData.email}`))))) {
+                const code = tool_js_1.default.randomNumber(6);
+                await redis_js_1.default.setValue(`verify-${par.userData.email}`, code);
+                (0, ses_js_1.sendmail)(`${configAd.name} <${process_1.default.env.smtp}>`, par.userData.email, '信箱驗證', `請輸入驗證碼「 ${code} 」。並於1分鐘內輸入並完成驗證。`);
+                return {
+                    data: 'emailVerify'
+                };
             }
+            else if (par.userData.email) {
+                userData.account = par.userData.email;
+            }
+            delete par.userData.verify_code;
             par = {
-                account: par.account,
+                account: userData.account,
                 userData: JSON.stringify(par.userData)
             };
             if (!par.account) {
                 delete par.account;
             }
             return {
-                mailVerify: mailVerify,
-                data: await database_1.default.query(`update \`${this.app}\`.user
+                data: await database_1.default.query(`update \`${this.app}\`.t_user
                                        SET ?
                                        WHERE 1 = 1
                                          and userID = ?`, [par, userID])
             };
         }
         catch (e) {
+            throw exception_1.default.BadRequestError('BAD_REQUEST', 'Update user error:' + e, null);
+        }
+    }
+    async resetPwd(userID, newPwd) {
+        try {
+            const result = await database_1.default.query(`update \`${this.app}\`.t_user
+                                            SET ?
+                                            WHERE 1 = 1
+                                              and userID = ?`, [{
+                    pwd: await tool_1.default.hashPwd(newPwd)
+                }, userID]);
+            return {
+                result: true
+            };
+        }
+        catch (e) {
             throw exception_1.default.BadRequestError('BAD_REQUEST', 'Login Error:' + e, null);
         }
     }
-    async resetPwd(userID, pwd, newPwd) {
+    async resetPwdNeedCheck(userID, pwd, newPwd) {
         try {
             const data = (await database_1.default.execute(`select *
-                                                 from \`${this.app}\`.user
+                                                 from \`${this.app}\`.t_user
                                                  where userID = ?
                                                    and status = 1`, [userID]))[0];
             if (await tool_1.default.compareHash(pwd, data.pwd)) {
-                const result = await database_1.default.query(`update \`${this.app}\`.user
+                const result = await database_1.default.query(`update \`${this.app}\`.t_user
                                                 SET ?
                                                 WHERE 1 = 1
                                                   and userID = ?`, [{
@@ -223,10 +291,10 @@ class User {
     async updateAccountBack(token) {
         try {
             const sql = `select userData
-                                              from \`${this.app}\`.user
-                                              where JSON_EXTRACT(userData, '$.mailVerify') = ${database_1.default.escape(token)}`;
+                         from \`${this.app}\`.t_user
+                         where JSON_EXTRACT(userData, '$.mailVerify') = ${database_1.default.escape(token)}`;
             const userData = (await database_1.default.query(sql, []))[0]['userData'];
-            await database_1.default.execute(`update \`${this.app}\`.user
+            await database_1.default.execute(`update \`${this.app}\`.t_user
                               set account=${database_1.default.escape(userData.updateAccount)}
                               where JSON_EXTRACT(userData, '$.mailVerify') = ?`, [token]);
         }
@@ -239,7 +307,7 @@ class User {
             const par = {
                 status: 1
             };
-            return await database_1.default.query(`update \`${this.app}\`.user
+            return await database_1.default.query(`update \`${this.app}\`.t_user
                                     SET ?
                                     WHERE 1 = 1
                                       and JSON_EXTRACT(userData, '$.mailVerify') = ?`, [par, token]);
@@ -251,7 +319,7 @@ class User {
     async checkUserExists(account) {
         try {
             return (await database_1.default.execute(`select count(1)
-                                      from \`${this.app}\`.user
+                                      from \`${this.app}\`.t_user
                                       where account = ?
                                         and status!=0`, [account]))[0]["count(1)"] == 1;
         }

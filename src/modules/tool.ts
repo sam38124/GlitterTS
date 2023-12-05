@@ -193,6 +193,14 @@ const randomString = (max: number) => {
     return text;
 };
 
+// 生成隨機數字字串
+const randomNumber = (max: number) => {
+    const possible = '0123456789';
+    let text = possible.charAt(Math.floor(Math.random() * (possible.length - 10)));
+    for (let i = 1; i < max; i++) text += possible.charAt(Math.floor(Math.random() * possible.length));
+    return text;
+};
+
 const compareHash = async (pwd: string, has: string) => bcrypt.compare(pwd, has);
 
 export default {
@@ -204,4 +212,5 @@ export default {
     createOrderId,
     randomString,
     compareHash,
+    randomNumber
 };

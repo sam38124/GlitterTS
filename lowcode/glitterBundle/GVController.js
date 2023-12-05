@@ -43,6 +43,7 @@ export class GVC {
             jsList: [],
             styleLinks: [],
         };
+        this.share = {};
         this.recreateView = () => {
         };
     }
@@ -68,10 +69,25 @@ export class GVC {
                 $(`[gvc-id="${gvc.id(id)}"]`).attr('class', (_b = divCreate.class) !== null && _b !== void 0 ? _b : "");
                 $(`[gvc-id="${gvc.id(id)}"]`).attr('style', (_c = divCreate.style) !== null && _c !== void 0 ? _c : "");
                 gvc.glitter.elementCallback[gvc.id(id)].updateAttribute();
-                $(`[gvc-id="${gvc.id(id)}"]`).html(gvc.glitter.elementCallback[gvc.id(id)].getView());
-                if (gvc.parameter.bindViewList[id].onCreate) {
-                    gvc.parameter.bindViewList[id].onCreate();
+                function notifyLifeCycle() {
+                    if (gvc.parameter.bindViewList[id].onCreate) {
+                        gvc.parameter.bindViewList[id].onCreate();
+                    }
                 }
+                function refreshView() {
+                    const view = gvc.glitter.elementCallback[gvc.id(id)].getView();
+                    if (typeof view === 'string') {
+                        $(`[gvc-id="${gvc.id(id)}"]`).html(view);
+                        notifyLifeCycle();
+                    }
+                    else {
+                        view.then((resolve) => {
+                            $(`[gvc-id="${gvc.id(id)}"]`).html(resolve);
+                            notifyLifeCycle();
+                        });
+                    }
+                }
+                refreshView();
             };
             const convID = function () {
                 if (typeof id === 'object') {
@@ -211,9 +227,20 @@ export class GVC {
         gvc.initialElemCallback(gvc.id(map.bind));
         if (map.dataList) {
             map.dataList.map(function (data) {
-                $(`[gvc-id="${gvc.id(map.bind)}"]`).html(map.view());
+                function refreshView() {
+                    const view = map.view();
+                    if (typeof view === 'string') {
+                        $(`[gvc-id="${gvc.id(map.bind)}"]`).html(view);
+                    }
+                    else {
+                        view.then((resolve) => {
+                            $(`[gvc-id="${gvc.id(map.bind)}"]`).html(resolve);
+                        });
+                    }
+                }
+                refreshView();
                 gvc.addObserver(data, function () {
-                    $(`[gvc-id="${gvc.id(map.bind)}"]`).html(map.view());
+                    refreshView();
                     if (map.onCreate()) {
                         map.onCreate();
                     }
@@ -233,12 +260,22 @@ export class GVC {
                 ((_a = divCreate2.option) !== null && _a !== void 0 ? _a : []).map((dd) => {
                     try {
                         const element = $(`[gvc-id="${id}"]`);
-                        if (dd.value.includes('clickMap') && (dd.key.substring(0, 2) === 'on')) {
+                        if ((dd.value.includes('clickMap') || dd.value.includes('editorEvent')) && (dd.key.substring(0, 2) === 'on')) {
                             try {
                                 const funString = `${dd.value}`;
                                 element.get(0).off(dd.key.substring(2));
                                 element.get(0).addEventListener(dd.key.substring(2), function () {
-                                    eval(funString);
+                                    if (gvc.glitter.htmlGenerate.isEditMode() && !gvc.glitter.share.EditorMode) {
+                                        if (funString.indexOf('editorEvent') !== -1) {
+                                            eval(funString.replace('editorEvent', 'clickMap'));
+                                        }
+                                        else if (dd.key !== 'onclick') {
+                                            eval(funString);
+                                        }
+                                    }
+                                    else {
+                                        eval(funString);
+                                    }
                                 });
                             }
                             catch (e) {
@@ -281,6 +318,24 @@ export class GVC {
                 noCycle: true
             };
             return `clickMap['${gvc.parameter.pageConfig.id}']['${noCycle}'].fun(this,event);`;
+        }
+    }
+    editorEvent(fun, noCycle) {
+        const gvc = this;
+        if (noCycle === undefined) {
+            gvc.parameter.clickID++;
+            gvc.parameter.clickMap[`${gvc.parameter.clickID}`] = {
+                fun: fun,
+                noCycle: false
+            };
+            return `editorEvent['${gvc.parameter.pageConfig.id}']['${gvc.parameter.clickID}'].fun(this,event);`;
+        }
+        else {
+            gvc.parameter.clickMap[noCycle] = {
+                fun: fun,
+                noCycle: true
+            };
+            return `editorEvent['${gvc.parameter.pageConfig.id}']['${noCycle}'].fun(this,event);`;
         }
     }
     addStyle(style) {

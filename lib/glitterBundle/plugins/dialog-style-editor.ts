@@ -1,8 +1,9 @@
 import {GVC, init} from '../GVController.js';
 import {EditorElem} from "./editor-elem.js";
-import Add_item_dia from "../../editor/add_item_dia.js";
-import {PageEditor} from "../../editor-widget/page-editor.js";
-import {ShareDialog} from "../dialog/ShareDialog.js";
+import Add_item_dia from "./add_item_dia.js";
+//@ts-ignore
+import {Swal} from "../../modules/sweetAlert.js";
+
 
 const html = String.raw
 
@@ -310,7 +311,7 @@ function styleRender(gvc: GVC,tag?:string) {
                                         </div>
                                     </l1>
                                 </div>`,
-                            new PageEditor(gvc, vid, docID).renderLineItem(viewModel.globalStyleTag.map((dd: any, index: number) => {
+                            new Render(gvc, vid, docID).renderLineItem(viewModel.globalStyleTag.map((dd: any, index: number) => {
                                 dd.index = index
                                 return dd
                             }), false, viewModel.globalStyleTag, {
@@ -598,7 +599,7 @@ function styleEditor(gvc: GVC, styleData: any, classs: string = 'mx-2') {
             return {
                 bind: id,
                 view: () => {
-                    return `<div class="mx-2">
+                    return `<div class="mx-2 mt-2">
             ${EditorElem.editerDialog({
                         gvc: gvc,
                         dialog: (gvc: GVC) => {
@@ -659,3 +660,346 @@ function styleEditor(gvc: GVC, styleData: any, classs: string = 'mx-2') {
 }
 
 
+class Render{
+    public gvc: GVC
+    public vid: string
+
+    public editorID: string
+    public renderLineItem(array: any, child: boolean, original: any, option: {
+        addComponentView?: (gvc: GVC, callback?: (data: any) => void) => string,
+        copyType?: 'directly',
+        readonly?: boolean,
+        selectEvent?: string,
+        selectEv?: (dd: any) => boolean
+    } = {}) {
+        const gvc = this.gvc
+        const glitter = gvc.glitter
+        const vid = this.vid
+        const viewModel = gvc.glitter.share.editorViewModel
+        const parId = gvc.glitter.getUUID()
+        const swal = new Swal(gvc);
+        const dragModel: {
+            draggableElement: string,
+            dragOffsetY: number,
+            dragStart: number,
+            maxHeight: number,
+            editor_item: any[],
+            hover_item: any[],
+            currentIndex: number,
+            firstIndex: number
+            changeIndex: number
+        } = {
+            draggableElement: '',
+            dragOffsetY: 0,
+            dragStart: 0,
+            maxHeight: 0,
+            editor_item: [],
+            hover_item: [],
+            currentIndex: 0,
+            changeIndex: 0,
+            firstIndex: 0
+        }
+        const mup_Linstener = function (event: MouseEvent) {
+            // 更新页面上的文本显示滑鼠放開狀態
+            if (dragModel.draggableElement) {
+                dragModel.currentIndex = (dragModel.currentIndex > array.length) ? array.length - 1 : dragModel.currentIndex
+                // alert(`${array[dragModel.firstIndex].index}-${array[dragModel.currentIndex].index}`)
+                $('.select_container').toggleClass('select_container')
+                document.getElementById(dragModel.draggableElement)!.remove()
+                dragModel.draggableElement = ''
+
+
+                swapArr(original, array[dragModel.firstIndex].index, array[(dragModel.currentIndex > 0) ? dragModel.currentIndex - 1 : 0].index);
+                // swapArr(array, dragModel.firstIndex, ((dragModel.currentIndex - 1 < dragModel.firstIndex) && (dragModel.currentIndex + 1 < array.length)) ? dragModel.currentIndex : (dragModel.currentIndex >= 0) ? dragModel.currentIndex - 1 : 0)
+                gvc.notifyDataChange([vid, 'htmlGenerate', 'showView'])
+            }
+            document.removeEventListener('mouseup', mup_Linstener)
+            document.removeEventListener('mousemove', move_Linstener)
+        }
+        const move_Linstener = function (event: MouseEvent) {
+            if (!dragModel.draggableElement) {
+                return
+            }
+            let off = event.clientY - dragModel.dragStart + dragModel.dragOffsetY
+            if (off < 5) {
+                off = 5
+            } else if (off > dragModel.maxHeight) {
+                off = dragModel.maxHeight
+            }
+            console.log(`offsetY`, off)
+
+            function findClosestNumber(ar: any, target: any) {
+                if (ar.length === 0) return null;
+                const arr = JSON.parse(JSON.stringify(ar))
+                let index = 0
+                let closest = arr[0];
+                arr.push(ar[ar.length - 1] + 34)
+                let minDifference = Math.abs(target - closest);
+                for (let i = 1; i < arr.length; i++) {
+                    const difference = Math.abs(target - arr[i]);
+                    if (difference < minDifference) {
+                        closest = arr[i];
+                        index = i
+                        minDifference = difference;
+                    }
+                }
+                return index;
+            }
+
+            let closestNumber: number = findClosestNumber(dragModel.hover_item.map((dd, index) => {
+                return (34 * index + 1) - 17;
+            }), off) as number;
+            console.log(`closestNumber`, closestNumber)
+            dragModel.changeIndex = (closestNumber as number)
+            dragModel.currentIndex = (closestNumber as number)
+            $('.editor_item.hv').remove();
+            if (dragModel.currentIndex == array.length) {
+                $('.select_container').append(`<div class="editor_item active hv"></div>`)
+            } else if (dragModel.currentIndex == 1) {
+                $('.select_container').prepend(`<div class="editor_item active hv"></div>`)
+            } else {
+                const parentElement = document.getElementsByClassName("select_container")[0];
+                const referenceElement = dragModel.hover_item[dragModel.currentIndex].elem.get(0);
+                const newElement = document.createElement("div", {});
+                newElement.classList.add("editor_item")
+                newElement.classList.add("active")
+                newElement.classList.add("hv")
+                newElement.textContent = "";
+                parentElement.insertBefore(newElement, referenceElement);
+            }
+            $(`#${dragModel.draggableElement}`).css("position", "absolute");
+            $(`#${dragModel.draggableElement}`).css("right", "0px");
+            $(`#${dragModel.draggableElement}`).css("top", off + "px");
+        }
+
+        return gvc.bindView(() => {
+            return {
+                bind: parId,
+                view: () => {
+                    return array.map((dd: any, index: number) => {
+
+                        dd.selectEditEvent = () => {
+                            if (!glitter.share.inspect) {
+                                return false
+                            }
+                            viewModel.selectContainer = original
+                            viewModel.selectItem = dd
+                            glitter.setCookie('lastSelect', dd.id);
+                            gvc.notifyDataChange([vid, this.editorID])
+                            return true
+                        }
+                        let toggle = gvc.event((e, event) => {
+                            dd.toggle = !dd.toggle
+                            if ((() => {
+                                return dd.type === 'container' && checkChildSelect(dd.data.setting)
+                            })() && !dd.toggle) {
+                                viewModel.selectItem = undefined
+                            }
+                            gvc.notifyDataChange(parId)
+                            event.preventDefault()
+                            event.stopPropagation()
+                        })
+                        const checkChildSelect = (setting: any) => {
+                            for (const b of setting) {
+                                if (b === viewModel.selectItem || (option.selectEv && option.selectEv(b))) {
+                                    return true
+                                }
+                                if (b.data && b.data.setting && checkChildSelect(b.data.setting)) {
+                                    return true
+                                }
+                            }
+                            return false;
+                        }
+                        let selectChild = (() => {
+                            return dd.type === 'container' && checkChildSelect(dd.data.setting)
+                        })()
+                        if (selectChild) {
+                            dd.toggle = true
+                        }
+                        return html`
+                                    <l1 class="btn-group "
+                                        style="margin-top:1px;margin-bottom:1px;">
+                                        <div class="editor_item d-flex   px-2 my-0 hi me-n1 ${(viewModel.selectItem === dd || selectChild || (option.selectEv && option.selectEv(dd))) ? `active` : ``}"
+                                             style=""
+                                             onclick="${option.selectEvent || gvc.event(() => {
+                                viewModel.selectContainer = original
+                                viewModel.selectItem = dd
+                                glitter.setCookie('lastSelect', dd.id);
+                                gvc.notifyDataChange(['htmlGenerate', 'showView', vid, this.editorID]);
+                            })}">
+                                            ${(dd.type === 'container') ? html`
+                                                <div class="subBt ps-0 ms-n2" onclick="${toggle}">
+                                                    ${((dd.toggle) ? `<i class="fa-regular fa-angle-down hoverBtn " ></i>` : `
+                                                                        <i class="fa-regular fa-angle-right hoverBtn " ></i>
+                                                                        `)}
+                                                </div>` : ``}
+                                            ${dd.label}
+                                            <div class="flex-fill"></div>
+                                            ${(dd.type === 'container') ? ` <l1 class="btn-group me-0 subBt"
+                                                                                style=""
+                                                                                onclick="${gvc.event((e, event) => {
+                                dd.data.setting = dd.data.setting ?? []
+                                viewModel.selectContainer = dd.data.setting
+                                event.stopPropagation()
+                                event.preventDefault()
+                            })}">
+                                                                                ${(option.addComponentView) ? `
+                                                                                    <div class="${(option.readonly) ? `d-none` : ``}"
+                                     style="cursor:pointer;gap:5px;"
+                                     data-bs-toggle="dropdown"
+                                     aria-haspopup="true"
+                                     aria-expanded="false">
+                                    <i class="fa-regular fa-circle-plus d-flex align-items-center justify-content-center subBt "></i>
+                                </div>
+                                                                                  <div class="dropdown-menu mx-1 position-fixed pb-0 border "
+                                     style="z-index:999999;"
+                                     onclick="${gvc.event((e, event) => {
+                                event.preventDefault()
+                                event.stopPropagation()
+
+                            })}">
+                                    ${option.addComponentView(gvc, (response) => {
+                                dd.data.setting.push(response)
+                                dd.toggle = true
+                                gvc.notifyDataChange(parId)
+                            })}
+                                </div>
+                                                                                ` : ` <div class="d-flex align-items-center justify-content-center w-100 h-100 ${(option.readonly) ? `d-none` : ``}" 
+                                                                                   onclick="${gvc.event(() => {
+                                glitter.innerDialog((gvc: GVC) => {
+                                    viewModel.selectContainer = dd.data.setting
+                                    return Add_item_dia.view(gvc)
+                                }, 'Add_item_dia')
+                            })}">
+                                                                                    <i class="fa-regular fa-circle-plus d-flex align-items-center justify-content-center subBt "></i>
+                                                                                </div>`}
+                                                                               
+                                                                            </l1>` : ``}
+                                            <div class="subBt ${(option.readonly) ? `d-none` : ``}"
+                                                 onclick="${gvc.event((e, event) => {
+                                if (option.copyType === 'directly') {
+                                    const copy = JSON.parse(JSON.stringify(dd))
+                                    copy.id = glitter.getUUID()
+                                    viewModel.selectContainer = array
+                                    viewModel.selectItem = copy
+                                    original.push(copy)
+                                    gvc.notifyDataChange([vid])
+                                } else {
+                                    viewModel.selectContainer = array
+                                    viewModel.waitCopy = dd
+                                    glitter.share.copycomponent = JSON.stringify(viewModel.waitCopy);
+                                    navigator.clipboard.writeText(JSON.stringify(viewModel.waitCopy));
+                                    swal.toast({
+                                        icon: 'success',
+                                        title: "已複製至剪貼簿，選擇新增模塊來添加項目．"
+                                    })
+                                }
+
+                                event.stopPropagation()
+                            })}">
+                                                <i class="fa-sharp fa-regular fa-scissors d-flex align-items-center justify-content-center subBt "
+                                                   style="width:15px;height:15px;"
+                                                ></i>
+                                            </div>
+                                            ${(dd.type === 'container') ? html`
+                                                <div class="subBt d-none"
+                                                     onclick="${gvc.event((e, event) => {
+                                viewModel.selectContainer = original.find((d2: any) => {
+                                    return d2.id === dd.id
+                                }).data.setting
+                                glitter.share.pastEvent()
+                                event.stopPropagation()
+                                event.preventDefault()
+                            })}">
+                                                    <i class="fa-duotone fa-paste d-flex align-items-center justify-content-center subBt"
+                                                       style="width:15px;height:15px;"
+                                                    ></i>
+                                                </div>
+                                            ` : ``}
+
+                                            <div class="subBt ${(option.readonly) ? `d-none` : ``}" onmousedown="${
+                                gvc.event((e, event) => {
+                                    dragModel.firstIndex = index
+                                    dragModel.currentIndex = index
+                                    dragModel.draggableElement = glitter.getUUID()
+                                    dragModel.dragStart = event.clientY
+                                    dragModel.dragOffsetY = $(e).parent().parent().get(0).offsetTop;
+                                    dragModel.maxHeight = ($(e).parent().parent().parent().height() as number);
+                                    $(e).parent().addClass('d-none')
+                                    dragModel.hover_item = []
+                                    $(e).parent().parent().append(`<div class="editor_item active  hv"></div>`)
+                                    $(e).parent().parent().parent().addClass('select_container')
+                                    $('.select_container').children().each(function (index) {
+                                        // 在這裡執行對每個 li 元素的操作
+                                        if ($(this).get(0)!.offsetTop > 0) {
+                                            dragModel.hover_item.push({
+                                                elem: $(this),
+                                                offsetTop: $(this).get(0)!.offsetTop
+                                            })
+                                        }
+
+                                    });
+                                    console.log(`hover_item`, dragModel.hover_item)
+                                    $(e).parent().parent().parent().append(html`
+                                                            <l1 class="btn-group position-absolute  "
+                                                                style="width:${($(e).parent().parent().width() as any) - 50}px;right:15px;top:${dragModel.dragOffsetY}px;z-index:99999;border-radius:10px;background:white!important;"
+                                                                id="${dragModel.draggableElement}">
+                                                                <div class="editor_item d-flex   px-2 my-0"
+                                                                     style="background:white!important;">
+                                                                    ${dd.label}
+                                                                    <div class="flex-fill"></div>
+                                                                    <i class="d-none fa-solid fa-pencil d-flex align-items-center justify-content-center subBt"
+                                                                       style="width:20px;height:20px;"></i>
+                                                                    <i class="d-none fa-solid fa-grip-dots-vertical d-flex align-items-center justify-content-center subBt"
+                                                                       style="width:20px;height:20px;"></i>
+                                                                </div>
+                                                            </l1>`)
+                                    document.addEventListener("mouseup", mup_Linstener);
+                                    document.addEventListener("mousemove", move_Linstener);
+                                })}">
+                                                <i class="fa-solid fa-grip-dots-vertical d-flex align-items-center justify-content-center  "
+                                                   style="width:15px;height:15px;"></i>
+                                            </div>
+
+                                        </div>
+                                    </l1>` +
+                            (() => {
+                                if (dd.type === 'container') {
+                                    if (dd.data.setting.length === 0) {
+                                        return ``
+                                    } else {
+
+
+                                        checkChildSelect(dd.data.setting)
+                                        return `<l1 class="${(dd.toggle || (checkChildSelect(dd.data.setting))) ? `` : `d-none`}" style="padding-left:5px;">${this.renderLineItem(dd.data.setting.map((dd: any, index: number) => {
+                                            dd.index = index
+                                            return dd
+                                        }), true, dd.data.setting, option)}</l1>`
+                                    }
+                                } else {
+                                    return ``
+                                }
+                            })()
+                    }).join('')
+                },
+                divCreate: {
+                    class: `d-flex flex-column ${(child) ? `` : ``} position-relative border-bottom`,
+                },
+                onDestroy: () => {
+                }
+            }
+        })
+    }
+
+    public constructor(gvc: GVC, vid: string, editorID: string = '') {
+        this.gvc = gvc
+        this.vid = vid
+        this.editorID = editorID
+    }
+}
+
+function swapArr(arr: any, index1: number, index2: number) {
+    const data = arr[index1];
+    arr.splice(index1, 1);
+    arr.splice(index2, 0, data);
+}

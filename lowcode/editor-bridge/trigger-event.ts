@@ -1,7 +1,7 @@
 import {HtmlJson} from "../glitterBundle/module/Html_generate.js";
 import {GVC} from "../glitterBundle/GVController.js";
 import {EditorElem} from "../glitterBundle/plugins/editor-elem.js";
-import {PageEditor} from "../editor-widget/page-editor.js";
+import {PageEditor} from "../editor/page-editor.js";
 import {TriggerEvent} from "../glitterBundle/plugins/trigger-event.js";
 
 class TriggerEventBridge {
@@ -113,19 +113,12 @@ class TriggerEventBridge {
                                                                  ${EditorElem.editerDialog({
                                                                     gvc: gvc,
                                                                     dialog: (gvc) => {
-                                                                        return glitter.htmlGenerate.editeText({
-                                                                            gvc: gvc,
-                                                                            title: "",
-                                                                            default: obj.dataPlace ?? "",
-                                                                            placeHolder: `執行事件或儲存返回資料:
-範例:
- (()=>{
-   //將資料儲存於當前頁面．
-   gvc.saveData=response;
-   //將資料儲存於全域變數中
-   glitter.share.saveData=response
-     })()`,
-                                                                            callback: (text: string) => {
+                                                                       return  EditorElem.codeEditor({
+                                                                            gvc:gvc,
+                                                                            height:400,
+                                                                            initial:obj.dataPlace ?? "",
+                                                                            title:"",
+                                                                            callback:(text:string)=>{
                                                                                 obj.dataPlace = text
                                                                                 gvc.notifyDataChange(did)
                                                                             }
@@ -161,20 +154,17 @@ class TriggerEventBridge {
                                                                  ${EditorElem.editerDialog({
                                                                     gvc: gvc,
                                                                     dialog: (gvc) => {
-                                                                        return glitter.htmlGenerate.editeText({
-                                                                            gvc: gvc,
-                                                                            title: "",
-                                                                            default: obj.blockCommand ?? "",
-                                                                            placeHolder: `返回true則中斷指令不往下繼續執行:
-範例:
- (()=>{
-  return gvc.getBundle()['identify']==='';
-     })()`,
-                                                                            callback: (text: string) => {
+                                                                        return  [`<div class="alert alert-info mb-n2">返回true則中斷指令不往下繼續執行</div>`,EditorElem.codeEditor({
+                                                                            gvc:gvc,
+                                                                            height:400,
+                                                                            initial:obj.blockCommand ?? "",
+                                                                            title:``,
+                                                                            callback:(text:string)=>{
                                                                                 obj.blockCommand = text
+                                                                                obj.blockCommandV2=true
                                                                                 gvc.notifyDataChange(did)
                                                                             }
-                                                                        })
+                                                                        })].join('')
                                                                     },
                                                                     editTitle: "編輯中斷指令"
                                                                 })}

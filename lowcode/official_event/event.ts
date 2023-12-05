@@ -1,9 +1,10 @@
-import {BaseApi} from "../api/base.js";
+import {BaseApi} from "../glitterBundle/api/base.js";
 import {GVC} from "../glitterBundle/GVController.js";
 import {GlobalUser} from "../glitter-base/global/global-user.js";
 import {TriggerEvent} from "../glitterBundle/plugins/trigger-event.js";
 import {EditorElem} from "../glitterBundle/plugins/editor-elem.js";
 import {component} from "../official_view_component/official/component.js";
+import {ApiUser} from "../glitter-base/route/user.js";
 
 export class GlobalData {
     public static data = {
@@ -36,21 +37,21 @@ export class GlobalData {
 TriggerEvent.create(import.meta.url, {
     link: {
         title: '官方事件 / 畫面 / 頁面跳轉',
-        subContent:questionText([
+        subContent: questionText([
             {
-                title:"內部連結跳轉",
-                content:`使用此事件可以跳轉至GLITTER內部頁面，採用SPA的開發技術，來降低頁面延遲，使轉場的效果更加順暢。`
+                title: "內部連結跳轉",
+                content: `使用此事件可以跳轉至GLITTER內部頁面，採用SPA的開發技術，來降低頁面延遲，使轉場的效果更加順暢。`
             },
             {
-                title:"外連結跳轉",
-                content:`使用此事件可以跳轉至外部頁面。`
+                title: "外連結跳轉",
+                content: `使用此事件可以跳轉至外部頁面。`
             },
             {
-                title:"HashTag",
-                content:`使用此事件可以滾動至此標籤的位置。`
+                title: "HashTag",
+                content: `使用此事件可以滾動至此標籤的位置。`
             }
         ]),
-        fun: (gvc, widget, object) => {
+        fun: (gvc, widget, object, subData) => {
             return {
                 editor: () => {
                     return gvc.bindView(() => {
@@ -145,13 +146,13 @@ ${EditorElem.h3("選擇頁面")}
                                                 object.link = text;
                                                 widget.refreshAll();
                                             },
-                                        })+EditorElem.select({
+                                        }) + EditorElem.select({
                                             gvc: gvc,
                                             title: '跳轉方式',
                                             def: object.changeType ?? "location",
-                                            array:[
-                                                {title:"本地跳轉",value:"location"},
-                                                {title:"打開新頁面",value:"newTab"}
+                                            array: [
+                                                {title: "本地跳轉", value: "location"},
+                                                {title: "打開新頁面", value: "newTab"}
                                             ],
                                             callback: (text: string) => {
                                                 object.changeType = text;
@@ -204,7 +205,7 @@ ${EditorElem.h3("選擇頁面")}
                                             app_config: saasConfig.appConfig,
                                             page_config: data.response.result[0].page_config,
                                             config: data.response.result[0].config,
-                                            data: {},
+                                            data: subData ?? {},
                                             tag: object.link,
                                             option: {
                                                 animation: gvc.glitter.animation.fade,
@@ -218,7 +219,7 @@ ${EditorElem.h3("選擇頁面")}
                                             app_config: saasConfig.appConfig,
                                             page_config: data.response.result[0].page_config,
                                             config: data.response.result[0].config,
-                                            data: {},
+                                            data: subData ?? {},
                                             tag: object.link,
                                             goBack: true,
                                             option: {
@@ -241,9 +242,9 @@ ${EditorElem.h3("選擇頁面")}
                         window.scrollTo({top: y, behavior: "smooth"});
                         return true
                     } else {
-                        if(object.changeType==='newTab'){
+                        if (object.changeType === 'newTab') {
                             gvc.glitter.openNewTab(object.link)
-                        }else{
+                        } else {
                             gvc.glitter.location.href = object.link
                         }
 
@@ -255,27 +256,26 @@ ${EditorElem.h3("選擇頁面")}
     },
     dialog: {
         title: '官方事件 / 畫面 / 彈跳視窗',
-        subContent:questionText([
+        subContent: questionText([
             {
-                title:"打開彈跳視窗",
-                content:`使用此事件可以開啟彈跳視窗，可以實現 表單 / 加載動畫 / 錯誤提醒 ....等效果都可以透過頁面彈窗來進行實現。`
+                title: "打開彈跳視窗",
+                content: `使用此事件可以開啟彈跳視窗，可以實現 表單 / 加載動畫 / 錯誤提醒 ....等效果都可以透過頁面彈窗來進行實現。`
             },
             {
-                title:"關閉彈跳視窗",
-                content:`於跳轉的頁面執行 <span style="color:#295ed1;">gvc.closeDialog()</span> 即可關閉彈跳視窗。`
+                title: "關閉彈跳視窗",
+                content: `於跳轉的頁面執行 <span style="color:#295ed1;">gvc.closeDialog()</span> 即可關閉彈跳視窗。`
             },
             {
-                title:"夾帶資料",
-                content:`返回要挾帶的資料並且於彈跳視窗的頁面中，透過 <span style="color:#295ed1;">gvc.getBundle().carryData</span>  ，來取得夾帶內容。`
+                title: "夾帶資料",
+                content: `返回要挾帶的資料並且於彈跳視窗的頁面中，透過 <span style="color:#295ed1;">gvc.getBundle().carryData</span>  ，來取得夾帶內容。`
             }
         ]),
         fun: (gvc, widget, object, subData, element) => {
+            object.coverData = object.coverData ?? {}
             return {
                 editor: () => {
                     const id = gvc.glitter.getUUID()
                     const glitter = gvc.glitter
-                    widget.data.coverData = widget.data.coverData ?? {}
-
                     function recursive() {
                         if (GlobalData.data.pageList.length === 0) {
                             GlobalData.data.run();
@@ -306,11 +306,11 @@ ${EditorElem.h3("選擇頁面")}
                                                     ${dd.group}-${dd.name}
                                                 </option>`;
                                 })}
-                                        </select>`, TriggerEvent.editer(gvc, widget, widget.data.coverData, {
+                                        </select>`, TriggerEvent.editer(gvc, widget, object.coverData, {
                                     hover: true,
                                     option: [],
                                     title: "夾帶資料-[將存於新頁面的gvc.getBundle().carryData之中]"
-                                })].join('')
+                                })].join('<div class="my-2"></div>')
                             },
                             divCreate: {}
                         }
@@ -321,7 +321,7 @@ ${EditorElem.h3("選擇頁面")}
 
                     return new Promise(async (resolve, reject) => {
                         const data = await TriggerEvent.trigger({
-                            gvc, widget, clickEvent: widget.data.coverData, subData
+                            gvc, widget, clickEvent: object.coverData, subData
                         })
                         gvc.glitter.innerDialog((gvc: GVC) => {
                             gvc.getBundle().carryData = data
@@ -334,7 +334,11 @@ ${EditorElem.h3("選擇頁面")}
                                 resolve(view)
                             })
 
-                        }, gvc.glitter.getUUID())
+                        }, gvc.glitter.getUUID(),{
+                            dismiss:()=>{
+                                resolve(true)
+                            }
+                        })
                     })
 
 
@@ -344,18 +348,18 @@ ${EditorElem.h3("選擇頁面")}
     },
     close_dialog: {
         title: '官方事件 / 畫面 / 視窗關閉',
-        subContent:questionText([
+        subContent: questionText([
             {
-                title:"當前視窗",
-                content:`僅關閉當前的彈跳視窗。`
+                title: "當前視窗",
+                content: `僅關閉當前的彈跳視窗。`
             },
             {
-                title:"所有視窗",
-                content:`關閉所有彈跳視窗。`
+                title: "所有視窗",
+                content: `關閉所有彈跳視窗。`
             },
             {
-                title:"標籤",
-                content:`關閉具有此標籤的視窗。`
+                title: "標籤",
+                content: `關閉具有此標籤的視窗。`
             }
         ]),
         fun: (gvc, widget, object, subData, element) => {
@@ -373,7 +377,7 @@ ${EditorElem.h3("選擇頁面")}
     },
     drawer: {
         title: '官方事件 / 畫面 / 左側導覽列',
-        subContent:`<div class="d-flex flex-column w-100 align-items-center justify-content-center"
+        subContent: `<div class="d-flex flex-column w-100 align-items-center justify-content-center"
                                              style="height:400px;">
 <video src="video/open_navagation.mov" class="mx-auto " style="max-width: 100%;height: 300px;" loop
                                                            autoplay>
@@ -462,7 +466,8 @@ ${gvc.glitter.htmlGenerate.styleEditor(object, gvc).editor(gvc, () => {
 
                     getData().then((data: any) => {
                         const id = gvc.glitter.getUUID()
-                        gvc.glitter.setDrawer(`<div class="w-100 h-100 ${gvc.glitter.htmlGenerate.styleEditor(object, gvc).class()}"
+                        gvc.glitter.setDrawer(`  <!-- tag=${object.link} -->
+  <div class="w-100 h-100 ${gvc.glitter.htmlGenerate.styleEditor(object, gvc).class()}"
 style="${gvc.glitter.htmlGenerate.styleEditor(object, gvc).style()}"
 >${
                             gvc.bindView(() => {
@@ -486,23 +491,23 @@ style="${gvc.glitter.htmlGenerate.styleEditor(object, gvc).style()}"
             };
         },
     },
-    reload: {
-        title: '官方事件 / 觸發 / 刷新瀏覽器',
-        subContent:`<div class="w-100 alert alert-light" style="white-space: normal;word-break: break-word;">透過<span class="mx-2" style="color:#295ed1;">location.reload()</span>來刷新整個瀏覽器。</div>`,
+    closeDrawer: {
+        title: '官方事件 / 畫面 / 關閉導覽列',
+        subContent: `<div class="w-100 alert alert-light" style="white-space: normal;word-break: break-word;">透過<span class="mx-2" style="color:#295ed1;">glitter.closeDrawer()</span>來關閉左側導覽列。</div>`,
         fun: (gvc, widget, object, subData, element) => {
             return {
                 editor: () => {
-                    return ``
+                  return ``
                 },
                 event: () => {
-                    location.reload()
+                   gvc.glitter.closeDrawer()
                 },
             };
         },
     },
     reloadPage: {
-        title: '官方事件 / 觸發 / 刷新頁面',
-        subContent:`<div class="w-100 alert alert-light" style="white-space: normal;word-break: break-word;">透過<span class="mx-2" style="color:#295ed1;">gvc.recreateView()</span>來刷新當前頁面。</div>`,
+        title: '官方事件 / 畫面 / 頁面刷新',
+        subContent: `<div class="w-100 alert alert-light" style="white-space: normal;word-break: break-word;">透過<span class="mx-2" style="color:#295ed1;">gvc.recreateView()</span>來刷新當前頁面。</div>`,
         fun: (gvc, widget, object, subData, element) => {
             return {
                 editor: () => {
@@ -514,32 +519,59 @@ style="${gvc.glitter.htmlGenerate.styleEditor(object, gvc).style()}"
             };
         },
     },
-    code: {
-        title: '官方事件 / 觸發 / 代碼區塊',
-        subContent:`<div class="w-100 alert alert-light" style="white-space: normal;word-break: break-word;">於內容編輯器中，直接輸入代碼來執行事件。</div>`,
+    reload: {
+        title: '官方事件 / 畫面 / 刷新瀏覽器',
+        subContent: `<div class="w-100 alert alert-light" style="white-space: normal;word-break: break-word;">透過<span class="mx-2" style="color:#295ed1;">location.reload()</span>來刷新整個瀏覽器。</div>`,
         fun: (gvc, widget, object, subData, element) => {
             return {
                 editor: () => {
-                    object.codeVersion='v2'
-                    const html=String.raw
-                    return html`<div style="width:600px;">
-${EditorElem.codeEditor({
-                        gvc:gvc,
-                        height:300,
-                        initial:object.code,
-                        title:"代碼區塊",
-                        callback: (text) => {
-                            object.code = text
-                        }
-                    })}
-</div>`
+                    return ``
+                },
+                event: () => {
+                    location.reload()
+                },
+            };
+        },
+    },
+    notify:{
+        title: '官方事件 / 畫面 / 區塊刷新',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './glitter-util/refresh-block.js'),
+    },
+    getFormData: {
+        title: '官方事件 / 表單 / 取得表單資料',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './glitter-util/get-form.js')
+    },
+    checkForm: {
+        title: '官方事件 / 表單 / 判斷表單是否填寫完畢',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './glitter-util/check-form.js')
+    },
+    code: {
+        title: '官方事件 / 開發工具 / 代碼區塊',
+        subContent: `<div class="w-100 alert alert-light" style="white-space: normal;word-break: break-word;">於內容編輯器中，直接輸入代碼來執行事件。</div>`,
+        fun: (gvc, widget, object, subData, element) => {
+            return {
+                editor: () => {
+                    object.codeVersion = 'v2'
+                    const html = String.raw
+                    return html`
+                        <div style="width:600px;">
+                            ${EditorElem.codeEditor({
+                                gvc: gvc,
+                                height: 300,
+                                initial: object.code,
+                                title: "代碼區塊",
+                                callback: (text) => {
+                                    object.code = text
+                                }
+                            })}
+                        </div>`
                 },
                 event: () => {
                     return new Promise<any>(async (resolve, reject) => {
                         try {
-                            const a = (object.codeVersion=='v2') ?  (eval(`(()=>{
-    ${object.code}
-                            })()`)):(eval(object.code))
+                            const a = (object.codeVersion == 'v2') ? (eval(`(() => {
+                                ${object.code}
+                            })()`)) : (eval(object.code))
                             if (a.then) {
                                 a.then((data: any) => {
                                     resolve(data)
@@ -557,7 +589,7 @@ ${EditorElem.codeEditor({
         },
     },
     codeArray: {
-        title: '官方事件 / 觸發 / 多項事件判斷',
+        title: '官方事件 / 開發工具 / 多項事件判斷',
         fun: (gvc, widget, object, subData, element) => {
 
             return {
@@ -573,14 +605,14 @@ ${EditorElem.codeEditor({
                                         originalArray: object.eventList,
                                         gvc: gvc,
                                         title: '',
-                                        array: (()=>{
+                                        array: (() => {
                                             return object.eventList.map((dd: any, index: number) => {
                                                 dd.yesEvent = dd.yesEvent ?? {}
                                                 dd.trigger = dd.trigger ?? {}
                                                 return {
                                                     title: dd.title || `事件:${index + 1}`,
                                                     expand: dd,
-                                                    innerHtml: ((gvc:GVC) => {
+                                                    innerHtml: ((gvc: GVC) => {
                                                         return [
                                                             gvc.glitter.htmlGenerate.editeInput({
                                                                 gvc: gvc,
@@ -623,7 +655,7 @@ ${EditorElem.codeEditor({
                                         refreshComponent: () => {
                                             gvc.notifyDataChange(id)
                                         },
-                                        customEditor:false
+                                        customEditor: false
                                     })
                                 } catch (e) {
                                     return ``
@@ -665,6 +697,26 @@ ${EditorElem.codeEditor({
                 },
             };
         },
+    },
+    setURl:{
+        title: '官方事件 / 開發工具 / 設定URL參數',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './glitter-util/set-url.js'),
+    },
+    getLanguageCode:{
+        title: '官方事件 / 開發工具 / 取得多國語言代號',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './glitter-util/get-language.js'),
+    },
+    setLanguageCode:{
+        title: '官方事件 / 開發工具 / 設定多國語言代號',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './glitter-util/set-language.js'),
+    },
+    getGlobalResource:{
+        title: '官方事件 / 開發工具 / 取得全局資源',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './glitter-util/get-global-value.js'),
+    },
+    getURl:{
+        title: '官方事件 / 開發工具 / 取得URL參數',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './glitter-util/get-url.js'),
     },
     registerNotify: {
         title: '官方事件 / 推播 / 註冊推播頻道',
@@ -753,19 +805,19 @@ ${EditorElem.codeEditor({
         },
     },
     api: {
-        title: "官方事件 / Lambda / API",
+        title: "官方事件 / API / Glitter-Lambda",
         fun: (gvc, widget, object, subData, element) => {
             object.postEvent = object.postEvent ?? {}
             object.postType = object.postType ?? "POST"
             object.queryParameters = object.queryParameters ?? []
-            object.queryExpand=object.queryExpand??{}
+            object.queryExpand = object.queryExpand ?? {}
             return {
                 editor: () => {
-                    return gvc.bindView(()=>{
-                        const id=gvc.glitter.getUUID()
+                    return gvc.bindView(() => {
+                        const id = gvc.glitter.getUUID()
                         return {
-                            bind:id,
-                            view:()=>{
+                            bind: id,
+                            view: () => {
                                 return gvc.map([
                                     EditorElem.select({
                                         title: "方法",
@@ -774,7 +826,7 @@ ${EditorElem.codeEditor({
                                         array: ['GET', 'POST', 'PUT', 'DELETE'],
                                         callback: (text) => {
                                             object.postType = text
-                                           gvc.notifyDataChange(id)
+                                            gvc.notifyDataChange(id)
                                         }
                                     }),
                                     gvc.glitter.htmlGenerate.editeInput({
@@ -793,21 +845,21 @@ ${EditorElem.codeEditor({
                                         title: "傳送給API的資料"
                                     }),
                                     EditorElem.arrayItem({
-                                        originalArray:object.queryParameters,
+                                        originalArray: object.queryParameters,
                                         gvc: gvc,
                                         title: "Query參數",
                                         array: object.queryParameters.map((rowData: any, rowIndex: number) => {
                                             return {
-                                                title: `第${rowIndex+1}列參數`,
+                                                title: `第${rowIndex + 1}列參數`,
                                                 expand: rowData,
                                                 innerHtml: gvc.map([
                                                     gvc.glitter.htmlGenerate.editeInput({
-                                                        gvc:gvc,
-                                                        title:"Key值",
-                                                        default:rowData.key ?? '',
-                                                        placeHolder:'請輸入搜索Key值',
-                                                        callback:(text)=>{
-                                                            rowData.key=text
+                                                        gvc: gvc,
+                                                        title: "Key值",
+                                                        default: rowData.key ?? '',
+                                                        placeHolder: '請輸入搜索Key值',
+                                                        callback: (text) => {
+                                                            rowData.key = text
                                                             gvc.notifyDataChange(id)
                                                         }
                                                     }),
@@ -827,11 +879,11 @@ ${EditorElem.codeEditor({
                                         plus: {
                                             title: '添加參數',
                                             event: gvc.event(() => {
-                                                object.queryParameters.push({key:'',value:""});
+                                                object.queryParameters.push({key: '', value: ""});
                                                 gvc.notifyDataChange(id)
                                             }),
                                         },
-                                        refreshComponent:()=>{
+                                        refreshComponent: () => {
                                             gvc.notifyDataChange(id)
                                         }
                                     })
@@ -849,11 +901,11 @@ ${EditorElem.codeEditor({
                             subData: subData,
                             element: element
                         })
-                        let query:any=[];
-                        for (const b of object.queryParameters){
+                        let query: any = [];
+                        for (const b of object.queryParameters) {
                             query.push({
-                                key:b.key,
-                                value:(await TriggerEvent.trigger({
+                                key: b.key,
+                                value: (await TriggerEvent.trigger({
                                     gvc: gvc,
                                     widget: widget,
                                     clickEvent: b,
@@ -862,12 +914,12 @@ ${EditorElem.codeEditor({
                                 }))
                             })
                         }
-                        let queryString=""
-                        if(query.length>0){
-                            queryString='&'
+                        let queryString = ""
+                        if (query.length > 0) {
+                            queryString = '&'
                         }
 
-                        queryString+=query.map((dd:any)=>{
+                        queryString += query.map((dd: any) => {
                             return `${dd.key}=${dd.value}`
                         }).join('&')
                         BaseApi.create({
@@ -895,19 +947,107 @@ ${EditorElem.codeEditor({
                 }
             }
         }
+    },
+    getProduct: {
+        title: '電子商務 / 選擇商品',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './e-commerce/getProduct.js'),
+    },
+    allProduct: {
+        title: '電子商務 / 列出所有商品',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './e-commerce/all-product.js'),
+    },
+    getCollection: {
+        title: '電子商務 / 取得商品系列',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './e-commerce/all-collection.js'),
+    },
+    addToCart: {
+        title: '電子商務 / 加入購物車',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './e-commerce/add-to-cart.js'),
+    },
+    getCart: {
+        title: '電子商務 / 取得購物車內容',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './e-commerce/get-cart.js'),
+    },
+    getCount: {
+        title: '電子商務 / 取得購物車數量',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './e-commerce/get-count.js'),
+    },
+    getOrder: {
+        title: '電子商務 / 取得訂單列表',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './e-commerce/get-order.js'),
+    },
+    getOrderDetail: {
+        title: '電子商務 / 取得單一訂單紀錄',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './e-commerce/get-order-detail.js'),
+    },
+    toCheckout: {
+        title: '電子商務 / 前往結帳',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './e-commerce/to-checkout.js'),
+    },
+    setVoucher: {
+        title: '電子商務 / 設定優惠券',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './e-commerce/set-voucher.js'),
+    },
+    deleteVoucher: {
+        title: '電子商務 / 清空優惠券',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './e-commerce/delete-voucher.js'),
+    },
+    getVoucher: {
+        title: '電子商務 / 取得優惠券代碼',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './e-commerce/get-voucher.js'),
+    },
+    login: {
+        title: '用戶相關 / 用戶登入',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './user/login.js')
+    },
+    register: {
+        title: '用戶相關 / 用戶註冊',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './user/register.js')
+    },
+    logout: {
+        title: '用戶相關 / 用戶登出',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './user/logout.js')
+    },
+    user_initial: {
+        title: '用戶相關 / 用戶初始化',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './user/initial.js')
+    },
+    user_token_check: {
+        title: '用戶相關 / 判斷用戶是否登入',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './user/check_login.js')
+    },
+    get_user_data:{
+        title: '用戶相關 / 取得用戶資料',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './user/get-userdata.js')
+    },
+    set_user_data:{
+        title: '用戶相關 / 設定用戶資料',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './user/set-userdata.js')
+    },
+    forgetPwd: {
+        title: '用戶相關 / 忘記密碼',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './user/forget_pwd.js')
+    },
+    forgetPwd_Reset: {
+        title: '用戶相關 / 忘記密碼 / 進行重設',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './user/forget_reset_pwd.js')
+    },
+    reset_pwd: {
+        title: '用戶相關 / 個人檔案 / 重設密碼',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './user/reset_pwd.js')
     }
 });
 
-function questionText(data:{title:string,content:string}[]){
+function questionText(data: { title: string, content: string }[]) {
     return `<div class="bg-secondary rounded-3 py-2 px-2 ">
           <h2 class="text-center my-3 mt-2" style="font-size:22px;">使用方法說明</h2>
              <div class="accordion mx-2" id="faq">
-                ${data.map((dd,index)=>{
-                    return ` <div class="accordion-item border-0 rounded-3 shadow-sm mb-3">
+                ${data.map((dd, index) => {
+        return ` <div class="accordion-item border-0 rounded-3 shadow-sm mb-3">
                   <h3 class="accordion-header">
-                    <button class="accordion-button shadow-none rounded-3 ${(index===0) ? '':'collapsed'}" type="button" data-bs-toggle="collapse" data-bs-target="#q-${index}" aria-expanded="false" aria-controls="q-1">${dd.title}</button>
+                    <button class="accordion-button shadow-none rounded-3 ${(index === 0) ? '' : 'collapsed'}" type="button" data-bs-toggle="collapse" data-bs-target="#q-${index}" aria-expanded="false" aria-controls="q-1">${dd.title}</button>
                   </h3>
-                  <div class="accordion-collapse collapse ${(index===0) ? 'show':''}" id="q-${index}" data-bs-parent="#faq" style="">
+                  <div class="accordion-collapse collapse ${(index === 0) ? 'show' : ''}" id="q-${index}" data-bs-parent="#faq" style="">
                     <div class="accordion-body fs-sm pt-0">
                      ${dd.content}
                     </div>
@@ -918,6 +1058,7 @@ function questionText(data:{title:string,content:string}[]){
               </div>
         </div>`
 }
+
 function getConfig() {
     const saasConfig: { config: any; api: any } = (window as any).saasConfig;
     return saasConfig

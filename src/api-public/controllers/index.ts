@@ -16,11 +16,11 @@ import messageRouter = require('./chat');
 import invoiceRouter = require('./invoice');
 import sql_apiRouter = require('./sql_api');
 import lambda_apiRouter = require('./lambda');
+import shop_apiRouter = require('./shop');
+import manager_apiRouter = require('./manager');
 import {Live_source} from "../../live_source.js";
 import {IToken} from "../models/Auth.js";
 import {ApiPublic} from "../services/public-table-check.js";
-
-
 /*********SET UP Router*************/
 router.use('/api-public/*', doAuthAction);
 router.use(config.getRoute(config.public_route.user, 'public'), userRouter);
@@ -29,6 +29,8 @@ router.use(config.getRoute(config.public_route.message, 'public'), messageRouter
 router.use(config.getRoute(config.public_route.invoice, 'public'), invoiceRouter);
 router.use(config.getRoute(config.public_route.sql_api, 'public'), sql_apiRouter);
 router.use(config.getRoute(config.public_route.lambda, 'public'), lambda_apiRouter);
+router.use(config.getRoute(config.public_route.ec, 'public'), shop_apiRouter);
+router.use(config.getRoute(config.public_route.manager, 'public'), manager_apiRouter);
 
 /******************************/
 const whiteList: {}[] = [
@@ -45,6 +47,13 @@ const whiteList: {}[] = [
     {url: config.getRoute(config.public_route.lambda, 'public'), method: 'GET'},
     {url: config.getRoute(config.public_route.lambda, 'public'), method: 'DELETE'},
     {url: config.getRoute(config.public_route.lambda, 'public'), method: 'PUT'},
+    {url: config.getRoute(config.public_route.ec+"/product", 'public'), method: 'GET'},
+    {url: config.getRoute(config.public_route.ec+"/checkout", 'public'), method: 'POST'},
+    {url: config.getRoute(config.public_route.ec+"/checkout/preview", 'public'), method: 'POST'},
+    {url: config.getRoute(config.public_route.ec+"/redirect", 'public'), method: 'POST'},
+    {url: config.getRoute(config.public_route.ec+"/notify", 'public'), method: 'POST'},
+    {url: config.getRoute(config.public_route.manager+"/config", 'public'), method: 'GET'},
+
 ];
 
 async function doAuthAction(req: express.Request, resp: express.Response, next: express.NextFunction) {
@@ -56,7 +65,6 @@ async function doAuthAction(req: express.Request, resp: express.Response, next: 
     const logger = new Logger();
     const TAG = '[DoAuthAction]';
     const url = req.baseUrl;
-
     const matches = _.where(whiteList, {url: url, method: req.method});
     const token = req.get('Authorization')?.replace('Bearer ', '') as string;
     if (
@@ -70,6 +78,7 @@ async function doAuthAction(req: express.Request, resp: express.Response, next: 
         next();
         return;
     }
+
     try {
         req.body.token = jwt.verify(token, config.SECRET_KEY) as IToken;
         const redisToken = await redis.getValue(token);

@@ -43,6 +43,18 @@ export class Private_config {
             throw exception.BadRequestError("ERROR", "ERROR." + e, null);
         }
     }
+    public static async getConfig(config: {
+        appName: string, key: string
+    }) {
+        try {
+            return  await db.execute(`select * from \`${saasConfig.SAAS_NAME}\`.private_config where app_name=${db.escape(config.appName)} and 
+                                             \`key\`=${db.escape(config.key)}
+            `, []);
+        } catch (e) {
+            console.log(e);
+            throw exception.BadRequestError("ERROR", "ERROR." + e, null);
+        }
+    }
 
     public async verifyPermission(appName: string) {
 

@@ -18,6 +18,8 @@ const messageRouter = require("./chat");
 const invoiceRouter = require("./invoice");
 const sql_apiRouter = require("./sql_api");
 const lambda_apiRouter = require("./lambda");
+const shop_apiRouter = require("./shop");
+const manager_apiRouter = require("./manager");
 const live_source_js_1 = require("../../live_source.js");
 const public_table_check_js_1 = require("../services/public-table-check.js");
 router.use('/api-public/*', doAuthAction);
@@ -27,6 +29,8 @@ router.use(config_1.config.getRoute(config_1.config.public_route.message, 'publi
 router.use(config_1.config.getRoute(config_1.config.public_route.invoice, 'public'), invoiceRouter);
 router.use(config_1.config.getRoute(config_1.config.public_route.sql_api, 'public'), sql_apiRouter);
 router.use(config_1.config.getRoute(config_1.config.public_route.lambda, 'public'), lambda_apiRouter);
+router.use(config_1.config.getRoute(config_1.config.public_route.ec, 'public'), shop_apiRouter);
+router.use(config_1.config.getRoute(config_1.config.public_route.manager, 'public'), manager_apiRouter);
 const whiteList = [
     { url: config_1.config.getRoute(config_1.config.public_route.user + "/register", 'public'), method: 'POST' },
     { url: config_1.config.getRoute(config_1.config.public_route.user + "/login", 'public'), method: 'POST' },
@@ -41,6 +45,12 @@ const whiteList = [
     { url: config_1.config.getRoute(config_1.config.public_route.lambda, 'public'), method: 'GET' },
     { url: config_1.config.getRoute(config_1.config.public_route.lambda, 'public'), method: 'DELETE' },
     { url: config_1.config.getRoute(config_1.config.public_route.lambda, 'public'), method: 'PUT' },
+    { url: config_1.config.getRoute(config_1.config.public_route.ec + "/product", 'public'), method: 'GET' },
+    { url: config_1.config.getRoute(config_1.config.public_route.ec + "/checkout", 'public'), method: 'POST' },
+    { url: config_1.config.getRoute(config_1.config.public_route.ec + "/checkout/preview", 'public'), method: 'POST' },
+    { url: config_1.config.getRoute(config_1.config.public_route.ec + "/redirect", 'public'), method: 'POST' },
+    { url: config_1.config.getRoute(config_1.config.public_route.ec + "/notify", 'public'), method: 'POST' },
+    { url: config_1.config.getRoute(config_1.config.public_route.manager + "/config", 'public'), method: 'GET' },
 ];
 async function doAuthAction(req, resp, next) {
     var _a, _b, _c;

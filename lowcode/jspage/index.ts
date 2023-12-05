@@ -4,7 +4,7 @@ import {ApiPageConfig} from "../api/pageConfig.js";
 import {Glitter} from "../glitterBundle/Glitter.js";
 import {ApiUser} from "../api/user.js";
 import {TriggerEvent} from "../glitterBundle/plugins/trigger-event.js";
-import {BaseApi} from "../api/base.js";
+import {BaseApi} from "../glitterBundle/api/base.js";
 
 init((gvc, glitter, gBundle) => {
     return {

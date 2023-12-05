@@ -89,7 +89,6 @@ router.post('/upload', async (req: express.Request, resp: express.Response) => {
             })(),
             CacheControl: `${req.body.cache ?? (3600 * 24 * 7)}`,
         };
-        console.log(`fullUrl:${params.ContentType}`)
         await s3bucket.getSignedUrl('putObject', params, async (err: any, url: any) => {
             if (err) {
                 logger.error(TAG, String(err));

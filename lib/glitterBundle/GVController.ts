@@ -58,6 +58,7 @@ export class GVC {
         return this.parameter.pageConfig?.obj
     }
 
+    public share={}
 
     public notifyDataChange(id: any) {
         const gvc = this
@@ -71,11 +72,26 @@ export class GVC {
                 $(`[gvc-id="${gvc.id(id)}"]`).attr('class', divCreate.class ?? "");
                 $(`[gvc-id="${gvc.id(id)}"]`).attr('style', divCreate.style ?? "");
                 gvc.glitter.elementCallback[gvc.id(id)].updateAttribute()
-
-                $(`[gvc-id="${gvc.id(id)}"]`).html(gvc.glitter.elementCallback[gvc.id(id)].getView());
-                if (gvc.parameter.bindViewList[id].onCreate) {
-                    gvc.parameter.bindViewList[id].onCreate()
+                function notifyLifeCycle(){
+                    if (gvc.parameter.bindViewList[id].onCreate) {
+                        gvc.parameter.bindViewList[id].onCreate()
+                    }
                 }
+                function refreshView(){
+                    const view=gvc.glitter.elementCallback[gvc.id(id)].getView()
+                    if(typeof view==='string'){
+                        $(`[gvc-id="${gvc.id(id)}"]`).html(view)
+                        notifyLifeCycle()
+
+                    }else{
+                        view.then((resolve:string)=>{
+                            $(`[gvc-id="${gvc.id(id)}"]`).html(resolve)
+                            notifyLifeCycle()
+                        })
+                    }
+                }
+                refreshView()
+
             };
 
             const convID=function () {
@@ -215,8 +231,8 @@ export class GVC {
 
     public bindView(map: (
         () =>
-            { view: () => (string), bind: string, divCreate?: { elem?: string, style?: string, class?: string, option?: { key: string, value: string }[] } | (() => ({ elem?: string, style?: string, class?: string, option?: { key: string, value: string }[] })), dataList?: { obj: any, key: string }[], onCreate?: () => void, onInitial?: () => void ,onDestroy?:()=>void}) |
-        { view: () => (string), bind: string, divCreate?: { elem?: string, style?: string, class?: string, option?: { key: string, value: string }[] } | (() => ({ elem?: string, style?: string, class?: string, option?: { key: string, value: string }[] })), dataList?: { obj: any, key: string }[], onCreate?: () => void, onInitial?: () => void,onDestroy?:()=>void }
+            { view: () => (string) | Promise<string>, bind: string, divCreate?: { elem?: string, style?: string, class?: string, option?: { key: string, value: string }[] } | (() => ({ elem?: string, style?: string, class?: string, option?: { key: string, value: string }[] })), dataList?: { obj: any, key: string }[], onCreate?: () => void, onInitial?: () => void ,onDestroy?:()=>void}) |
+        { view: () => (string)| Promise<string>, bind: string, divCreate?: { elem?: string, style?: string, class?: string, option?: { key: string, value: string }[] } | (() => ({ elem?: string, style?: string, class?: string, option?: { key: string, value: string }[] })), dataList?: { obj: any, key: string }[], onCreate?: () => void, onInitial?: () => void,onDestroy?:()=>void }
     ): string {
         const gvc = this;
         if (typeof map === "function") {
@@ -225,9 +241,19 @@ export class GVC {
         gvc.initialElemCallback(gvc.id(map.bind));
         if (map.dataList) {
             map.dataList.map(function (data) {
-                $(`[gvc-id="${gvc.id(map.bind as string)}"]`).html((map as any).view())
+                function refreshView(){
+                    const view=(map as any).view()
+                    if(typeof view==='string'){
+                        $(`[gvc-id="${gvc.id(map.bind as string)}"]`).html(view)
+                    }else{
+                        view.then((resolve:string)=>{
+                            $(`[gvc-id="${gvc.id(map.bind as string)}"]`).html(resolve)
+                        })
+                    }
+                }
+                refreshView()
                 gvc.addObserver(data, function () {
-                    $(`[gvc-id="${gvc.id(map.bind as string)}"]`).html((map as any).view())
+                    refreshView()
                     if ((map as any).onCreate()) {
                         (map as any).onCreate()
                     }
@@ -247,12 +273,20 @@ export class GVC {
                 (divCreate2.option ?? []).map((dd: any) => {
                     try {
                         const element=$(`[gvc-id="${id}"]`)
-                        if(dd.value.includes('clickMap')&&(dd.key.substring(0,2)==='on')){
+                        if((dd.value.includes('clickMap')||dd.value.includes('editorEvent'))&&(dd.key.substring(0,2)==='on')){
                             try {
                                 const funString=`${dd.value}`;
                                 element.get(0).off(dd.key.substring(2));
                                 element.get(0).addEventListener(dd.key.substring(2), function() {
-                                    eval(funString)
+                                    if (gvc.glitter.htmlGenerate.isEditMode()&&!gvc.glitter.share.EditorMode) {
+                                        if (funString.indexOf('editorEvent') !== -1) {
+                                            eval(funString.replace('editorEvent', 'clickMap'))
+                                        } else if (dd.key!=='onclick') {
+                                            eval(funString)
+                                        }
+                                    } else {
+                                        eval(funString)
+                                    }
                                 });
                             }catch (e) {
                                 gvc.glitter.deBugMessage(e)
@@ -296,6 +330,24 @@ export class GVC {
                 noCycle: true
             }
             return `clickMap['${gvc.parameter.pageConfig!.id}']['${noCycle}'].fun(this,event);`
+        }
+    }
+
+    public editorEvent(fun: (e: any, event: any) => void, noCycle?: string) {
+        const gvc = this;
+        if (noCycle === undefined) {
+            gvc.parameter.clickID++
+            gvc.parameter.clickMap[`${gvc.parameter.clickID}`] = {
+                fun: fun,
+                noCycle: false
+            }
+            return `editorEvent['${gvc.parameter.pageConfig!.id}']['${gvc.parameter.clickID}'].fun(this,event);`
+        } else {
+            gvc.parameter.clickMap[noCycle] = {
+                fun: fun,
+                noCycle: true
+            }
+            return `editorEvent['${gvc.parameter.pageConfig!.id}']['${noCycle}'].fun(this,event);`
         }
     }
 

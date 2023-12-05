@@ -114,7 +114,7 @@ function createViewComponent(config) {
                 resolve(true);
                 return;
             }
-            const token = await new Promise((resolve, reject) => {
+            const token = (typeof config.auth === 'string') ? config.auth : await new Promise((resolve, reject) => {
                 axios_1.default.request({
                     method: 'post',
                     url: config.domain + '/api/v1/user/login',
@@ -283,7 +283,7 @@ function createViewComponent(config) {
             if (config.loop) {
                 setTimeout(() => {
                     createViewComponent(cloneConfig);
-                }, 500);
+                }, 100);
             }
         });
     });

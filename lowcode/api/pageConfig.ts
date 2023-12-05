@@ -1,11 +1,11 @@
 import {config} from "../config.js";
-import {BaseApi} from "./base.js";
+import {BaseApi} from "../glitterBundle/api/base.js";
 
 export class ApiPageConfig{
     constructor() { }
     public static getAppConfig(){
         return BaseApi.create({
-            "url": config.url+`/api/v1/app?app_name=${config.appName}`,
+            "url": config.url+`/api/v1/app?appName=${config.appName}`,
             "type": "GET",
             "timeout": 0,
             "headers": {

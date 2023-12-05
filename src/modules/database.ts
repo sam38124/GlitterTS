@@ -243,7 +243,7 @@ export default {
     Transaction,
     getPagination,
     escape,
-    queryLambada
+    queryLambada,
 };
 
 // module.exports.createPool = createPool;
