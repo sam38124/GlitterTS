@@ -9,14 +9,35 @@ export class Setting_editor {
         let vm = {
             select: `official`,
         };
-        function setBackendEditor(title, itemList, id) {
-            return EditorElem.arrayItem({
+        function setBackendEditor(fontawsome, title, itemList, id) {
+            return html `<li class="btn-group w-100" style="margin-top:1px;margin-bottom:1px;" onclick="${gvc.event(() => {
+                glitter.setUrlParameter('router', `${title}/${itemList[0].title}`);
+                gvc.recreateView();
+            })}">
+                    <div class="editor_item d-flex   align-items-center px-2 my-0 hi me-n1 w-100  fw-bold
+${(!itemList.find((dd) => {
+                return glitter.getUrlParameter('router') === `${title}/${dd.title}`;
+            })) ? `` : `bgf6 border`}
+" style="border-top-right-radius: 0;border-bottom-right-radius: 0;">
+                        <div class="subBt ms-n2 d-none">
+                            <i class="fa-regular fa-circle-minus d-flex align-items-center justify-content-center subBt "
+                               style="width:15px;height:15px;color:red;" aria-hidden="true"></i>
+                        </div>
+                        <i class="${fontawsome} me-1 d-flex align-items-center justify-content-center" style="width:20px;"></i>${title}
+                    </div>
+                </li>
+                <br>
+                <div class="ps-3 ${(!itemList.find((dd) => {
+                return glitter.getUrlParameter('router') === `${title}/${dd.title}`;
+            })) ? `d-none` : ``} pb-1 border-bottom" >
+                    ${EditorElem.arrayItem({
                 gvc: gvc,
-                title: title,
+                title: '',
                 array: () => {
                     return itemList.map((dd) => {
                         if (!glitter.getUrlParameter('router')) {
                             glitter.setUrlParameter('router', `${title}/${dd.title}`);
+                            gvc.recreateView();
                         }
                         if (glitter.getUrlParameter('router') === `${title}/${dd.title}`) {
                             $('#editerCenter').html(dd.view(gvc));
@@ -25,13 +46,14 @@ export class Setting_editor {
                             title: dd.title,
                             innerHtml: () => {
                                 glitter.setUrlParameter('router', `${title}/${dd.title}`);
-                                $('#editerCenter').html(dd.view(gvc));
+                                gvc.recreateView();
                                 return ``;
                             },
                             editTitle: dd.title,
                             saveEvent: dd.saveEvent,
                             width: dd.width,
-                            saveAble: dd.saveAble
+                            saveAble: dd.saveAble,
+                            isSelect: glitter.getUrlParameter('router') === `${title}/${dd.title}`
                         };
                     });
                 },
@@ -44,7 +66,9 @@ export class Setting_editor {
                 refreshComponent: () => {
                     gvc.notifyDataChange(id);
                 }
-            });
+            })}
+                </div>
+            `;
         }
         return gvc.bindView(() => {
             const id = glitter.getUUID();
@@ -76,12 +100,6 @@ export class Setting_editor {
                                         view: (gvc) => {
                                             return BgProject.setGlobalValue(gvc);
                                         }
-                                    },
-                                    {
-                                        title: `金流設定`,
-                                        view: (gvc) => {
-                                            return BgShopping.setFinanceWay(gvc);
-                                        }
                                     }
                                 ];
                                 return html `
@@ -89,8 +107,8 @@ export class Setting_editor {
                                          style="white-space: normal;word-break: break-all;">
                                         已下為官方提供的後台開發管理工具，能為您解決基本的系統開發需求。
                                     </div>
-                                    ${setBackendEditor("專案開發", itemList, id)}
-                                    ${setBackendEditor("用戶相關", [
+                                    ${setBackendEditor(`fa-regular fa-gear me-1`, `專案開發`, itemList, id)}
+                                    ${setBackendEditor(`fa-regular fa-user me-1`, `用戶相關`, [
                                     {
                                         title: `登入設定`,
                                         view: (gvc) => {
@@ -104,7 +122,7 @@ export class Setting_editor {
                                         }
                                     }
                                 ], id)}
-                                    ${setBackendEditor('電子商務', [
+                                    ${setBackendEditor(`fa-regular fa-shop me-1`, `電子商務`, [
                                     {
                                         title: `商品管理`,
                                         view: (gvc) => {
@@ -135,6 +153,26 @@ export class Setting_editor {
                                         title: `運費設定`,
                                         view: (gvc) => {
                                             return BgShopping.setShipment(gvc);
+                                        }
+                                    },
+                                    {
+                                        title: `金流 / 發票`,
+                                        view: (gvc) => {
+                                            return BgShopping.setFinanceWay(gvc) + BgShopping.invoice_setting(gvc);
+                                        }
+                                    }
+                                ], id)}
+                                    ${setBackendEditor(`fa-sharp fa-regular fa-cloud-arrow-up`, `應用發佈`, [
+                                    {
+                                        title: `蘋果商城`,
+                                        view: (gvc) => {
+                                            return BgProject.appRelease(gvc, 'apple_release');
+                                        }
+                                    },
+                                    {
+                                        title: `安卓商城`,
+                                        view: (gvc) => {
+                                            return BgProject.appRelease(gvc, 'android_release');
                                         }
                                     }
                                 ], id)}

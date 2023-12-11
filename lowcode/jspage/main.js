@@ -185,6 +185,7 @@ init((gvc, glitter, gBundle) => {
                             set.map((dd) => {
                                 var _a;
                                 dd.js = (dd.js).replace(`${location.origin}/${window.appName}/`, './');
+                                dd.formData = undefined;
                                 if (haveID.indexOf(dd.id) !== -1) {
                                     dd.id = glitter.getUUID();
                                 }
@@ -249,7 +250,7 @@ init((gvc, glitter, gBundle) => {
                 ];
                 for (const a of waitSave) {
                     if (!(yield a())) {
-                        swal.nextStep(`連結不可重複`, () => {
+                        swal.nextStep(`伺服器錯誤`, () => {
                         }, 'error');
                         return;
                     }

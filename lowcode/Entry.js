@@ -27,7 +27,7 @@ export class Entry {
 }`);
         window.renderClock = (_a = window.renderClock) !== null && _a !== void 0 ? _a : clockF();
         console.log(`Entry-time:`, window.renderClock.stop());
-        glitter.share.editerVersion = "V_3.7.5";
+        glitter.share.editerVersion = "V_3.8.8";
         glitter.share.start = new Date();
         glitter.debugMode = false;
         const vm = {
@@ -70,6 +70,7 @@ export class Entry {
                     });
                 }
                 catch (e) {
+                    console.log(e);
                 }
             }
             ;
@@ -81,6 +82,7 @@ export class Entry {
                 loopCheckGlobalValue(glitter.share.appConfigresponse.response.data.globalStyleTag, 'globalStyle');
                 loopCheckGlobalValue(glitter.share.appConfigresponse.response.data.globalValue, 'globalValue');
             }
+            console.log(glitter.share.appConfigresponse.response.data.globalStyleTag);
             window.saasConfig.appConfig = dd.response.data;
             (() => __awaiter(this, void 0, void 0, function* () {
                 return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
@@ -247,7 +249,7 @@ export class Entry {
 function toBackendEditor(glitter) {
     function running() {
         return __awaiter(this, void 0, void 0, function* () {
-            config.token = glitter.getCookieByName('glitterToken');
+            config.token = GlobalUser.token;
             glitter.addStyleLink([
                 'assets/vendor/boxicons/css/boxicons.min.css',
                 'assets/css/theme.css',
@@ -305,7 +307,7 @@ function toBackendEditor(glitter) {
             "pwd": glitter.getUrlParameter('pwd')
         }).then((re) => {
             if (re.result) {
-                glitter.setCookie('glitterToken', re.response.userData.token);
+                GlobalUser.token = re.response.userData.token;
                 toNext();
             }
             else {
@@ -315,7 +317,7 @@ function toBackendEditor(glitter) {
         });
     }
     else {
-        if (!glitter.getCookieByName('glitterToken')) {
+        if (!GlobalUser.token) {
             const url = new URL(glitter.location.href);
             location.href = `${url.origin}/glitter/?page=signin`;
         }
@@ -326,7 +328,7 @@ function toBackendEditor(glitter) {
                 "timeout": 0,
                 "headers": {
                     "Content-Type": "application/json",
-                    "Authorization": glitter.getCookieByName('glitterToken')
+                    "Authorization": GlobalUser.token
                 }
             }).then((d2) => {
                 if (!d2.result) {

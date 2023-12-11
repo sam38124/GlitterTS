@@ -13,6 +13,7 @@ import { ApiPageConfig } from "../api/pageConfig.js";
 import { ApiUser } from "../api/user.js";
 import { TriggerEvent } from "../glitterBundle/plugins/trigger-event.js";
 import { BaseApi } from "../glitterBundle/api/base.js";
+import { GlobalUser } from "../glitter-base/global/global-user.js";
 init((gvc, glitter, gBundle) => {
     return {
         onCreateView: () => {
@@ -172,7 +173,7 @@ init((gvc, glitter, gBundle) => {
 function toBackendEditor(glitter) {
     function running() {
         return __awaiter(this, void 0, void 0, function* () {
-            config.token = glitter.getCookieByName('glitterToken');
+            config.token = GlobalUser.token;
             glitter.addStyleLink([
                 'assets/vendor/boxicons/css/boxicons.min.css',
                 'assets/css/theme.min.css',
@@ -230,7 +231,7 @@ function toBackendEditor(glitter) {
             "pwd": glitter.getUrlParameter('pwd')
         }).then((re) => {
             if (re.result) {
-                glitter.setCookie('glitterToken', re.response.userData.token);
+                GlobalUser.token = re.response.userData.token;
                 toNext();
             }
             else {
@@ -240,7 +241,7 @@ function toBackendEditor(glitter) {
         });
     }
     else {
-        if (!glitter.getCookieByName('glitterToken')) {
+        if (!GlobalUser.token) {
             const url = new URL(glitter.location.href);
             location.href = `${url.origin}/glitter/?page=signin`;
         }
@@ -251,7 +252,7 @@ function toBackendEditor(glitter) {
                 "timeout": 0,
                 "headers": {
                     "Content-Type": "application/json",
-                    "Authorization": glitter.getCookieByName('glitterToken')
+                    "Authorization": GlobalUser.token
                 }
             }).then((d2) => {
                 if (!d2.result) {

@@ -304,7 +304,7 @@ function styleRender(gvc: GVC,tag?:string) {
                                                  event.stopPropagation()
 
                                              })}">
-                                            ${Add_item_dia.add_content_folder(gvc, (response) => {
+                                            ${Add_item_dia.add_content_folder(gvc, 'style',(response) => {
                                                 viewModel.globalStyleTag.push(response)
                                                 gvc.notifyDataChange(vid)
                                             })}
@@ -315,7 +315,9 @@ function styleRender(gvc: GVC,tag?:string) {
                                 dd.index = index
                                 return dd
                             }), false, viewModel.globalStyleTag, {
-                                addComponentView: Add_item_dia.add_content_folder,
+                                addComponentView: (gvc: GVC, callback?: (data: any) => void)=>{
+                                    return Add_item_dia.add_content_folder(gvc,'style',callback)
+                                },
                                 copyType: 'directly',
                                 selectEv:(dd:any)=>{
                                     if((dd.data ?? {}).tag&&(dd.data ?? {}).tag===tag){

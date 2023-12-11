@@ -11,7 +11,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 import { Animation } from "./module/Animation.js";
 import { GVCType, PageManager, DefaultSetting } from "./module/PageManager.js";
 import { AppearType } from "./module/Enum.js";
-import { HtmlGenerate } from "./module/Html_generate.js";
+import { HtmlGenerate } from "./module/html-generate.js";
 export class Glitter {
     constructor(window) {
         var _a;
@@ -562,7 +562,7 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
         const gliter = this;
         $("#Navigation").hide();
         if (window.drawer === undefined) {
-            gliter.addMtScript(['glitterBundle/plugins/NaviGation.js'], () => {
+            gliter.addMtScript([new URL('./plugins/NaviGation.js', import.meta.url)], () => {
                 callback();
                 $("#Navigation").html(src);
             }, () => {

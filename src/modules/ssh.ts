@@ -72,7 +72,7 @@ export class Ssh {
                                 console.log(err)
                                 resolve(false)
                             }
-                            resolve( fs.readFileSync(fileName,'utf-8'))
+                            resolve(fs.readFileSync(fileName,'utf-8'))
                             fs.rmSync(fileName)
                             conn.end(); // 关闭SSH连接
                         });

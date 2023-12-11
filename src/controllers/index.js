@@ -52,8 +52,8 @@ async function doAuthAction(req, resp, next) {
     try {
         req.body.token = jsonwebtoken_1.default.verify(token, config_1.config.SECRET_KEY);
         const redisToken = await redis_1.default.getValue(token);
-        if (!redisToken) {
-            const tokenCheck = await database_1.default.query(`select count(1)  from  \`${config_1.saasConfig.SAAS_NAME}\`.user where editor_token=?`, [token]);
+        if (!redisToken && process.env.editorToken !== req.body.token) {
+            const tokenCheck = await database_1.default.query(`select count(1) from \`${config_1.saasConfig.SAAS_NAME}\`.t_user where userData->>'$.editor_token'=?`, [token]);
             if (tokenCheck[0]['count(1)'] !== 1) {
                 logger.error(TAG, 'Token is not match in redis.');
                 return response_1.default.fail(resp, exception_1.default.PermissionError('INVALID_TOKEN', 'invalid token'));

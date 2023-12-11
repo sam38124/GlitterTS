@@ -20,6 +20,7 @@ const sql_apiRouter = require("./sql_api");
 const lambda_apiRouter = require("./lambda");
 const shop_apiRouter = require("./shop");
 const manager_apiRouter = require("./manager");
+const app_release = require("./app-release");
 const live_source_js_1 = require("../../live_source.js");
 const public_table_check_js_1 = require("../services/public-table-check.js");
 router.use('/api-public/*', doAuthAction);
@@ -31,6 +32,7 @@ router.use(config_1.config.getRoute(config_1.config.public_route.sql_api, 'publi
 router.use(config_1.config.getRoute(config_1.config.public_route.lambda, 'public'), lambda_apiRouter);
 router.use(config_1.config.getRoute(config_1.config.public_route.ec, 'public'), shop_apiRouter);
 router.use(config_1.config.getRoute(config_1.config.public_route.manager, 'public'), manager_apiRouter);
+router.use(config_1.config.getRoute(config_1.config.public_route.app, 'public'), app_release);
 const whiteList = [
     { url: config_1.config.getRoute(config_1.config.public_route.user + "/register", 'public'), method: 'POST' },
     { url: config_1.config.getRoute(config_1.config.public_route.user + "/login", 'public'), method: 'POST' },

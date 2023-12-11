@@ -186,7 +186,6 @@ init((gvc, glitter, gBundle) => {
         viewModel.loading = false;
         gvc.notifyDataChange(createID);
     }
-
     glitter.htmlGenerate.saveEvent = (refresh:boolean=true) => {
         glitter.closeDiaLog()
         glitter.setCookie("jumpToNavScroll", $(`#jumpToNav`).scrollTop())
@@ -200,6 +199,7 @@ init((gvc, glitter, gBundle) => {
                     function getID(set: any) {
                         set.map((dd: any) => {
                             dd.js = (dd.js).replace(`${location.origin}/${(window as any).appName}/`, './')
+                            dd.formData=undefined;
                             if (haveID.indexOf(dd.id) !== -1) {
                                 dd.id = glitter.getUUID();
                             }
@@ -267,7 +267,7 @@ init((gvc, glitter, gBundle) => {
             ];
             for (const a of waitSave) {
                 if (!await a()) {
-                    swal.nextStep(`連結不可重複`, () => {
+                    swal.nextStep(`伺服器錯誤`, () => {
                     }, 'error');
                     return;
                 }

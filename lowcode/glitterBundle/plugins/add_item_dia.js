@@ -1010,7 +1010,7 @@ class Add_item_dia {
                                 },
                                 divCreate: {
                                     elem: `textArea`,
-                                    style: `max-height:330px!important;min-height:330px;`,
+                                    style: `max-height:300px!important;min-height:300px;`,
                                     class: `form-control`, option: [
                                         { key: 'placeholder', value: "請將剪貼簿的內容貼上。" },
                                         {
@@ -1029,7 +1029,7 @@ class Add_item_dia {
                                  確認並複製
                                 </button>`;
                         },
-                        divCreate: { class: `w-100 px-2 ` }
+                        divCreate: { class: `w-100 px-2 `, style: `height:530px;` }
                     };
                 })}
 `,
@@ -1037,7 +1037,7 @@ class Add_item_dia {
             });
         });
     }
-    static add_content_folder(gvc, callback) {
+    static add_content_folder(gvc, tagType, callback) {
         return gvc.bindView(() => {
             const id = gvc.glitter.getUUID();
             return {
@@ -1065,7 +1065,7 @@ class Add_item_dia {
                             label: "標籤名稱",
                             data: {
                                 value: "",
-                                tagType: 'language'
+                                tagType: tagType
                             },
                             type: 'text',
                         };

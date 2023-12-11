@@ -1,4 +1,4 @@
-import {HtmlJson} from "../glitterBundle/module/Html_generate.js";
+import {HtmlJson} from "../glitterBundle/module/html-generate.js";
 import {GVC} from "../glitterBundle/GVController.js";
 import {EditorElem} from "../glitterBundle/plugins/editor-elem.js";
 import {PageEditor} from "../editor/page-editor.js";

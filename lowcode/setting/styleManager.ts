@@ -1,4 +1,4 @@
-import {HtmlGenerate} from "../glitterBundle/module/Html_generate.js";
+import {HtmlGenerate} from "../glitterBundle/module/html-generate.js";
 import {GVC} from "../glitterBundle/GVController.js";
 import {EditorElem} from "../glitterBundle/plugins/editor-elem.js";
 

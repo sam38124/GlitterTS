@@ -18,7 +18,7 @@ export interface HtmlJson {
     styleManager?: (tag: string) => { value: string, editor: (gvc: GVC, title: string) => string }
     refreshView?: () => void,
     refreshEditor?: () => void
-
+    formData?:any
 }
 
 export class Plugin {
@@ -28,14 +28,17 @@ export class Plugin {
     public static create(url: string, fun: (
         glitter: Glitter, editMode: boolean) => {
         [name: string]: {
-            defaultData?: any, render: ((gvc: GVC, widget: HtmlJson, setting: HtmlJson[], hoverID: string[], subData?: any, htmlGenerate?: any) => {
+            defaultData?: any, render: ((gvc: GVC, widget: HtmlJson, setting: any, hoverID: string[], subData?: any, htmlGenerate?: any) => {
+                view: () => (Promise<string> | string),
+                editor: () => Promise<string> | string
+            }) | ((cf: any) => {
                 view: () => (Promise<string> | string),
                 editor: () => Promise<string> | string
             })
         }
     }): ({
         [name: string]: {
-            defaultData?: any, render: ((gvc: GVC, widget: HtmlJson, setting: HtmlJson[], hoverID: string[], subData?: any, htmlGenerate?: any) => {
+            defaultData?: any, render: ((gvc: GVC, widget: HtmlJson, setting: any, hoverID: string[], subData?: any, htmlGenerate?: any) => {
                 view: () => (Promise<string> | string),
                 editor: () => Promise<string> | string
             })
@@ -46,37 +49,33 @@ export class Plugin {
         return glitter.share.htmlExtension[url]
     }
 
+    //V1
     public static createComponent(url: string, fun: (
         glitter: Glitter, editMode: boolean) => {
-        defaultData?: any, render: ((gvc: GVC, widget: HtmlJson, setting: HtmlJson[], hoverID: string[], subData?: any, htmlGenerate?: any) => {
+        defaultData?: any, render: ((gvc: GVC, widget: HtmlJson, setting: any, hoverID: string[], subData?: any, htmlGenerate?: any) => {
             view: () => (Promise<string> | string),
             editor: () => Promise<string> | string
         })
     }) {
         const glitter = (window as any).glitter
         const val = fun(glitter, isEditMode())
-        let fal = 0
+        glitter.share.htmlExtension[url]=val
+        return val;
+    }
 
-        function tryLoop() {
-            try {
-                let delete2 = 0;
-                glitter.share.componentCallback[url].map((dd: any, index: number) => {
-                    dd(val)
-                    delete2 = index
-                })
-                glitter.share.componentCallback[url].splice(0, delete2)
-            } catch (e) {
-                if (fal < 20) {
-                    setTimeout(() => {
-                        tryLoop()
-                    }, 100)
-                }
-                fal += 1
-                glitter.deBugMessage(`error` + url)
-            }
-        }
+    public static createViewComponent(url: string, fun: (
+        glitter: Glitter, editMode: boolean) => {
+        defaultData?: any, render: ((cf: {
+            gvc: GVC, widget: HtmlJson, widgetList: HtmlJson[], hoverID: string[], subData?: any, htmlGenerate?: any,formData:any
+        }) => {
+            view: () => (Promise<string> | string),
+            editor: () => Promise<string> | string
+        })
+    }) {
 
-        tryLoop()
+        const glitter = (window as any).glitter
+        const val = fun(glitter, isEditMode())
+        glitter.share.htmlExtension[url]=val
         return val;
     }
 
@@ -85,90 +84,44 @@ export class Plugin {
         editor: () => Promise<string> | string
     } {
         const glitter = (window as any).glitter
-        url.searchParams.set("original", original)
-        return (gvc: GVC, widget: HtmlJson, setting: HtmlJson[], hoverID: string[], subData?: any, htmlGenerate?: any) => {
-            glitter.share.componentData = glitter.share.componentData ?? {}
-            function startSync(callback:()=>void) {
-                if (glitter.share.componentData[url.href]) {
-                    return
-                }
-                glitter.share.componentCallback = glitter.share.componentCallback ?? {}
-                glitter.share.componentCallback[url.href] = glitter.share.componentCallback[url.href] ?? []
-                glitter.share.componentCallback[url.href].push((dd: any) => {
-                    glitter.share.componentData[url.href] = dd
-                    callback()
-                })
-                gvc.glitter.addMtScript([
-                    {
-                        src: url,
-                        type: 'module'
-                    }
-                ], () => {
-                    // val = glitter.share.componentData[url.href]
-                    glitter.deBugMessage('setComponent-->' + url)
-                }, () => {
-                })
-            }
-
+        const fun = (gvc: GVC, widget: HtmlJson, setting: HtmlJson[], hoverID: string[], subData?: any, htmlGenerate?: any) => {
             return {
                 view: () => {
-                    const tempView = glitter.getUUID()
-                    function checkView(){
-                        const target=document.querySelector(`[gvc-id="${gvc.id(tempView)}"]`)
-                        if (glitter.share.componentData[url.href]&&target) {
-                            const view=glitter.share.componentData[url.href].render(gvc, widget, setting, hoverID, subData).view()
-                            if(typeof view==='string'){
-                                target!.outerHTML=view;
-                            }else{
-                                view.then((dd:any)=>{
-                                    target!.outerHTML=dd;
-                                })
-                            }
-                        }
-                    }
-
-                    startSync(()=>{
-                        gvc.notifyDataChange(tempView)
-                    })
-
                     return gvc.bindView(() => {
+                        const tempView = glitter.getUUID()
                         return {
                             bind: tempView,
                             view: () => {
                                 return ``
                             },
                             divCreate: {
-                                class:``
+                                class: ``
                             },
                             onCreate: () => {
-                                checkView()
+                                glitter.htmlGenerate.loadScript(glitter,[
+                                    {
+                                        src: url.href,
+                                        callback:(dd:any)=>{
+                                            const target = document.querySelector(`[gvc-id="${gvc.id(tempView)}"]`)
+                                            const view = dd.render(gvc, widget, setting, hoverID, subData,htmlGenerate).view()
+                                            if (typeof view === 'string') {
+                                                target!.outerHTML = view;
+                                            } else {
+                                                view.then((dd: any) => {
+                                                    target!.outerHTML = dd;
+                                                })
+                                            }
+                                        }
+                                    }
+                                ] )
                             },
-                            onDestroy:()=>{
+                            onDestroy: () => {
                             },
                         }
                     })
-
                 },
                 editor: () => {
                     const tempView = glitter.getUUID()
-                    function checkView(){
-                        const target=document.querySelector(`[gvc-id="${gvc.id(tempView)}"]`)
-                        if (glitter.share.componentData[url.href]&&target) {
-                            const view=glitter.share.componentData[url.href].render(gvc, widget, setting, hoverID, subData).editor()
-                            if(typeof view==='string'){
-                                target!.outerHTML=view;
-                            }else{
-                                view.then((dd:any)=>{
-                                    target!.outerHTML=dd;
-                                })
-                            }
-                        }
-                    }
-
-                    startSync(()=>{
-                        gvc.notifyDataChange(tempView)
-                    })
-
                     return gvc.bindView(() => {
                         return {
                             bind: tempView,
@@ -176,18 +129,118 @@ export class Plugin {
                                 return ``
                             },
                             divCreate: {
-                                class:``
+                                class: ``
                             },
                             onCreate: () => {
-                                checkView()
+                                glitter.htmlGenerate.loadScript(glitter,[
+                                    {
+                                        src: url.href,
+                                        callback:(dd:any)=>{
+                                            const target = document.querySelector(`[gvc-id="${gvc.id(tempView)}"]`)
+                                            const view = dd.render(gvc, widget, setting, hoverID, subData,htmlGenerate).editor()
+                                            if (typeof view === 'string') {
+                                                target!.outerHTML = view;
+                                            } else {
+                                                view.then((dd: any) => {
+                                                    target!.outerHTML = dd;
+                                                })
+                                            }
+                                        }
+                                    }
+                                ] )
                             },
-                            onDestroy:()=>{
+                            onDestroy: () => {
                             },
                         }
                     })
                 }
             }
         }
+        (fun as any).version = 'v1'
+        return fun
+    }
+
+    public static setViewComponent( url: URL): (cf: any) => {
+        view: () => (Promise<string> | string),
+        editor: () => Promise<string> | string
+    } {
+        const glitter = (window as any).glitter
+        const fun = (cf: {
+            gvc: GVC, widget: HtmlJson, widgetList: HtmlJson[], hoverID: string[], subData?: any, htmlGenerate?: any
+        }) => {
+            return {
+                view: () => {
+                    const tempView = glitter.getUUID()
+                    return cf.gvc.bindView(() => {
+                        return {
+                            bind: tempView,
+                            view: () => {
+                                return ``
+                            },
+                            divCreate: {
+                                class: ``
+                            },
+                            onCreate: () => {
+                                glitter.htmlGenerate.loadScript(glitter,[
+                                    {
+                                        src: url.href,
+                                        callback:(widget:any)=>{
+                                            const target = document.querySelector(`[gvc-id="${cf.gvc.id(tempView)}"]`)
+                                            const view = widget.render(cf).view()
+                                            if (typeof view === 'string') {
+                                                target!.outerHTML = view;
+                                            } else {
+                                                view.then((dd: any) => {
+                                                    target!.outerHTML = dd;
+                                                })
+                                            }
+                                        }
+                                    }
+                                ] )
+                            },
+                            onDestroy: () => {
+                            },
+                        }
+                    })
+                },
+                editor: () => {
+                    const tempView = glitter.getUUID()
+                    return cf.gvc.bindView(() => {
+                        return {
+                            bind: tempView,
+                            view: () => {
+                                return ``
+                            },
+                            divCreate: {
+                                class: ``
+                            },
+                            onCreate: () => {
+                                glitter.htmlGenerate.loadScript(glitter,[
+                                    {
+                                        src: url.href,
+                                        callback:(widget:any)=>{
+                                            const target = document.querySelector(`[gvc-id="${cf.gvc.id(tempView)}"]`)
+                                            const view = widget.render(cf).editor()
+                                            if (typeof view === 'string') {
+                                                target!.outerHTML = view;
+                                            } else {
+                                                view.then((dd: any) => {
+                                                    target!.outerHTML = dd;
+                                                })
+                                            }
+                                        }
+                                    }
+                                ] )
+                            },
+                            onDestroy: () => {
+                            },
+                        }
+                    })
+                }
+            }
+        }
+        (fun as any).version = 'v2'
+        return fun
     }
 
     public static async initial(gvc: GVC, set: any[]) {

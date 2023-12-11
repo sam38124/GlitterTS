@@ -5,7 +5,7 @@ import {ShareDialog} from "../../dialog/ShareDialog.js";
 import {config} from "../../config.js";
 //@ts-ignore
 import {BaseApi} from "../api/base.js";
-import {HtmlGenerate} from "../module/Html_generate.js";
+import {HtmlGenerate} from "../module/html-generate.js";
 //@ts-ignore
 import autosize from "./autosize.js";
 import {component_group_key} from "./group_key.js";
@@ -1051,7 +1051,7 @@ class Add_item_dia {
                                 },
                                 divCreate: {
                                     elem: `textArea`,
-                                    style: `max-height:330px!important;min-height:330px;`,
+                                    style: `max-height:300px!important;min-height:300px;`,
                                     class: `form-control`, option: [
                                         {key: 'placeholder', value: "請將剪貼簿的內容貼上。"},
                                         {
@@ -1071,7 +1071,7 @@ class Add_item_dia {
                                  確認並複製
                                 </button>`
                         },
-                        divCreate: {class: `w-100 px-2 `}
+                        divCreate: {class: `w-100 px-2 ` ,style:`height:530px;`}
                     }
                 })}
 `,
@@ -1080,8 +1080,7 @@ class Add_item_dia {
         })
     }
 
-    public static add_content_folder(gvc: GVC, callback?: (data: any) => void
-    ) {
+    public static add_content_folder(gvc: GVC,tagType:string, callback?: (data: any) => void) {
         return gvc.bindView(() => {
             const id = gvc.glitter.getUUID()
             return {
@@ -1109,7 +1108,7 @@ class Add_item_dia {
                             label:"標籤名稱",
                             data:{
                                 value:"",
-                                tagType:'language'
+                                tagType:tagType
                             },
                             type:'text',
                         }

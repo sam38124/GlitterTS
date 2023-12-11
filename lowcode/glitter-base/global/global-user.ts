@@ -2,7 +2,11 @@ export class GlobalUser {
     public static tagId = "sjnsannsai23ij3as"
 
     public static getTag(tag: string) {
-        return `${GlobalUser.tagId}${tag}`
+        if((window as any).glitter.getUrlParameter("type") === 'editor'){
+            return `${(window as any).glitterBase}${GlobalUser.tagId}${tag}`
+        }else{
+            return `${(window as any).appName}${GlobalUser.tagId}${tag}`
+        }
     }
     //@ts-ignore
     public static get token() {

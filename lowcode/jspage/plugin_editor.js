@@ -1,5 +1,5 @@
 import { EditorElem } from "../glitterBundle/plugins/editor-elem.js";
-import { HtmlGenerate } from "../glitterBundle/module/Html_generate.js";
+import { HtmlGenerate } from "../glitterBundle/module/html-generate.js";
 import { TriggerEvent } from "../glitterBundle/plugins/trigger-event.js";
 export class Plugin_editor {
     static left(gvc, viewModel, createID, gBundle) {

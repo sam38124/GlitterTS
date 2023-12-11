@@ -1,6 +1,10 @@
 import { Swal } from "../modules/sweetAlert.js";
 import Add_item_dia from "../glitterBundle/plugins/add_item_dia.js";
+import { EditorElem } from "../glitterBundle/plugins/editor-elem.js";
 import { PageEditor } from "../editor/page-editor.js";
+import { ShareDialog } from "../dialog/ShareDialog.js";
+import { HtmlGenerate } from "../glitterBundle/module/html-generate.js";
+import { TriggerEvent } from "../glitterBundle/plugins/trigger-event.js";
 var ViewType;
 (function (ViewType) {
     ViewType["mobile"] = "mobile";
@@ -34,58 +38,32 @@ export class Main_editor {
                     if ((glitter.getCookieByName("ViewType") === ViewType.col3) || (glitter.getCookieByName("ViewType") === ViewType.mobile)) {
                         gvc.notifyDataChange('right_NAV');
                     }
-                    if (viewModel.selectItem && (glitter.getCookieByName("ViewType") !== ViewType.col3) &&
-                        (glitter.getCookieByName("ViewType") !== ViewType.mobile) &&
+                    if (viewModel.selectItem && (glitter.getCookieByName("ViewType") !== ViewType.col3) && (glitter.getCookieByName("ViewType") !== ViewType.mobile) &&
                         (viewModel.selectItem.type !== 'code') && (viewModel.selectItem.type !== 'widget' || (viewModel.selectItem.data.elem !== 'style' && viewModel.selectItem.data.elem !== 'link' && viewModel.selectItem.data.elem !== 'script'))) {
-                        return Main_editor.editorContent(gvc, viewModel, vid);
+                        return Main_editor.pageAndComponent({
+                            gvc: gvc,
+                            data: viewModel
+                        });
                     }
                     else {
                         return html `
-                            <li class="w-100 align-items-center  d-flex editor_item_title position-sticky top-0 start-0  z-index-9 bgf6 pe-1"
-                                style="z-index: 999;"
-                                onclick="${gvc.event(() => {
-                        })}"
-                            >
-                                開發工具
-                                ${[
-                            `<div class="bg-white ms-auto d-flex align-items-center justify-content-center    border"
-                                     style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;"
-                                     onclick="${gvc.event(() => {
-                                PageEditor.openDialog.seo_with_domain(gvc);
-                            })}">
-                                    <i class="fa-sharp fa-regular fa-globe-pointer"></i>
-                                </div>`,
-                            `  <div class="bg-white d-flex align-items-center justify-content-center  border"
-                                     style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;"
-                                     onclick="${gvc.event(() => {
-                                PageEditor.openDialog.page_config(gvc);
-                            })}">
-                                 <i class="fa-regular fa-file-code"></i>
-                                </div>`,
-                            ` <div class="bg-white d-flex align-items-center justify-content-center   border " style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;"
-  onclick="${gvc.event(() => {
-                                PageEditor.openDialog.plugin_setting(gvc);
-                            })}">
-                                    <i class="fa-solid fa-puzzle-piece-simple"></i>
-
-                                </div>`,
-                            ` <div class="bg-white d-flex align-items-center justify-content-center hoverBtn  border"
-                                     style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;"
-                                     onclick="${gvc.event(() => {
-                                viewModel.selectContainer = viewModel.data.config;
-                                gvc.glitter.innerDialog((gvc) => {
-                                    return Add_item_dia.view(gvc);
-                                }, 'Add_Item');
-                            })}">
-                                    <i class="fa-regular fa-circle-plus"></i>
-                                </div>`
-                        ].join(`<div class="me-1"></div>`)}
-                            </li>
                             <li class="w-100 align-items-center  d-flex editor_item_title  start-0 bg-white z-index-9"
                                 style="z-index: 999;"
                                 onclick="${gvc.event(() => {
                         })}"
-                            ><span style="font-size:14px;">${viewModel.data.name}-區段</span>
+                            >
+
+                                <span style="font-size:14px;">${viewModel.data.name}-區段</span>
+                                <div class="hoverBtn d-flex align-items-center justify-content-center   border ms-auto me-2"
+                                     style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;"
+                                     onclick="${gvc.event(() => {
+                            glitter.share.editorViewModel.selectContainer = glitter.share.editorViewModel.data.config;
+                            gvc.glitter.innerDialog((gvc) => {
+                                return Add_item_dia.view(gvc);
+                            }, 'Add_Item');
+                        })}">
+                                    <i class="fa-regular fa-circle-plus"></i>
+                                </div>
                             </li>
 
 
@@ -157,7 +135,6 @@ export class Main_editor {
 <h3>請於左側選擇元件編輯</h3>
 </div>`;
                     }
-                    alert(JSON.stringify(viewModel.selectItem));
                     const htmlGenerate = new glitter.htmlGenerate(viewModel.data.config, hoverList, undefined, true);
                     window.editerData = htmlGenerate;
                     window.page_config = viewModel.data.page_config;
@@ -197,25 +174,29 @@ export class Main_editor {
             };
         });
     }
-    static editorContent(gvc, viewModel, vid) {
-        const glitter = gvc.glitter;
+    static editorContent(option) {
+        const glitter = option.gvc.glitter;
+        const viewModel = option.viewModel;
+        const gvc = option.gvc;
+        function checkSelect(array) {
+            array.map((dd) => {
+                if (dd.id === glitter.getCookieByName('lastSelect')) {
+                    viewModel.selectContainer = array;
+                    viewModel.selectItem = dd;
+                }
+                else if (Array.isArray(dd.data.setting)) {
+                    checkSelect(dd.data.setting);
+                }
+            });
+        }
         return [html `
             <div class="h-100 " style="overflow-y:auto;">
-                <div class="w-100 d-flex align-items-center px-3 border-bottom ${(vid) ? `` : `d-none`}"
-                     style="height:49px;color:#151515;">
-                    <i class="fa-regular fa-chevron-left me-2 hoverBtn" style="cursor:pointer;"
-                       onclick="${gvc.event(() => {
-                glitter.setCookie('lastSelect', '');
-                viewModel.selectItem = undefined;
-                gvc.notifyDataChange(vid);
-            })}"></i>
-                    <span class="fw-bold" style="font-size:15px;">${viewModel.selectItem.label}</span>
-                </div>
                 ${gvc.bindView(() => {
                 return {
                     bind: `htmlGenerate`,
                     view: () => {
                         gvc.notifyDataChange('editFooter');
+                        checkSelect(viewModel.data.config);
                         if (viewModel.selectItem === undefined || viewModel.selectItem.js === undefined) {
                             return `<div class="position-absolute w-100 top-50 d-flex align-items-center justify-content-center flex-column translate-middle-y">
 <img class="border" src="https://liondesign-prd.s3.amazonaws.com/file/252530754/1692927479829-Screenshot 2023-08-25 at 9.36.15 AM.png"  >
@@ -236,24 +217,100 @@ export class Main_editor {
                             dd.refreshAllParameter = undefined;
                             dd.refreshComponentParameter = undefined;
                         });
-                        return htmlGenerate.editor(gvc, {
-                            return_: false,
-                            refreshAll: () => {
-                                if (viewModel.selectItem) {
-                                    gvc.notifyDataChange(['showView']);
+                        if (option.type === 'info') {
+                            return `<div class="alert-warning alert m-n2 mb-3 p-2" style="border-radius:0px;border:none;">
+<h3 class="text-dark  m-1" style="font-size: 16px;">模塊路徑</h3>
+<h3 class="text-primary  alert-primary m-1 fw-500 rounded p-2" style="font-size: 14px;color:black;">${HtmlGenerate.reDefineJsResource(viewModel.selectItem.js)}</h3>
+<h3 class="text-dark  m-1 mt-2" style="font-size: 16px;">函式路徑</h3>
+<h3 class="text-primary  alert-primary m-1 fw-500 rounded p-2" style="font-size: 14px;">${viewModel.selectItem.type}</h3>
+</div>
+${EditorElem.editeInput({
+                                gvc: gvc,
+                                title: '區段名稱',
+                                default: viewModel.selectItem.label,
+                                placeHolder: '請輸入自定義模塊名稱',
+                                callback: (text) => {
+                                    viewModel.selectItem.label = text;
+                                    gvc.notifyDataChange(['MainEditorLef', 'showView']);
+                                },
+                            })}
+${(() => {
+                                var _a, _b;
+                                const array = [];
+                                array.push(EditorElem.select({
+                                    title: '生成數量',
+                                    gvc: gvc,
+                                    def: (_a = viewModel.selectItem.gCount) !== null && _a !== void 0 ? _a : 'single',
+                                    array: [{
+                                            title: '單一', value: 'single'
+                                        }, {
+                                            title: '多個', value: 'multiple'
+                                        }],
+                                    callback: (text) => {
+                                        viewModel.selectItem.gCount = text;
+                                        gvc.notifyDataChange('HtmlEditorContainer');
+                                    }
+                                }));
+                                if (viewModel.selectItem.gCount === 'multiple') {
+                                    viewModel.selectItem.arrayData = (_b = viewModel.selectItem.arrayData) !== null && _b !== void 0 ? _b : {};
+                                    array.push(TriggerEvent.editer(gvc, viewModel.selectItem, viewModel.selectItem.arrayData, {
+                                        hover: false,
+                                        option: [],
+                                        title: "設定資料來源"
+                                    }));
                                 }
-                            },
-                            setting: (() => {
-                                if (viewModel.selectItem) {
-                                    return [viewModel.selectItem];
+                                return array.join(`<div class="my-2"></div>`);
+                            })()}
+${gvc.bindView(() => {
+                                const dd = viewModel.selectItem;
+                                const uid = gvc.glitter.getUUID();
+                                return {
+                                    bind: uid,
+                                    view: () => {
+                                        var _a;
+                                        dd.preloadEvenet = (_a = dd.preloadEvenet) !== null && _a !== void 0 ? _a : {};
+                                        if ((dd.type === 'widget') || (dd.type === 'container')) {
+                                            return TriggerEvent.editer(gvc, dd, dd.preloadEvenet, {
+                                                title: "模塊預載事件",
+                                                option: [],
+                                                hover: false
+                                            });
+                                        }
+                                        return [gvc.glitter.htmlGenerate.styleEditor(dd, gvc, dd, {}).editor(gvc, () => {
+                                                gvc.notifyDataChange('showView');
+                                            }, '模塊容器樣式'), TriggerEvent.editer(gvc, dd, dd.preloadEvenet, {
+                                                title: "模塊預載事件",
+                                                option: [],
+                                                hover: false
+                                            })].join(`<div class="my-2"></div>`);
+                                    },
+                                    divCreate: {
+                                        class: 'mt-2 mb-2 '
+                                    },
+                                };
+                            })}
+`;
+                        }
+                        else {
+                            return htmlGenerate.editor(gvc, {
+                                return_: false,
+                                refreshAll: () => {
+                                    if (viewModel.selectItem) {
+                                        gvc.notifyDataChange(['showView']);
+                                    }
+                                },
+                                setting: (() => {
+                                    if (viewModel.selectItem) {
+                                        return [viewModel.selectItem];
+                                    }
+                                    else {
+                                        return undefined;
+                                    }
+                                })(),
+                                deleteEvent: () => {
                                 }
-                                else {
-                                    return undefined;
-                                }
-                            })(),
-                            deleteEvent: () => {
-                            }
-                        });
+                            });
+                        }
                     },
                     divCreate: {
                         class: `p-2`
@@ -266,7 +323,7 @@ export class Main_editor {
                     }
                 };
             })}
-                <div class="w-100" style="height:50px;"></div>
+                <div class="w-100" style="height:100px;"></div>
             </div>
         `,
             gvc.bindView(() => {
@@ -276,7 +333,9 @@ export class Main_editor {
                         if (viewModel.selectItem === undefined || viewModel.selectItem.js === undefined) {
                             return ``;
                         }
-                        return `  <div class="w-100  position-absolute bottom-0 border-top d-flex align-items-center ps-3"
+                        return `
+<div style="height:100px;"></div>
+<div class="w-100  position-absolute bottom-0 border-top d-flex align-items-center ps-3"
                      style="height:50px;background:#f6f6f6;font-size:14px;">
                     <div class="hoverBtn fw-bold" style="color:#8e1f0b;cursor:pointer;"
                          onclick="${gvc.event(() => {
@@ -304,6 +363,368 @@ export class Main_editor {
                             src="index.html?type=htmlEditor&page=${gvc.glitter.getUrlParameter('page')}&appName=${gvc.glitter.getUrlParameter('appName')}"></iframe>
                 </div>
             </div>`;
+    }
+    static pageAndComponent(option) {
+        const data = option.data;
+        const gvc = option.gvc;
+        const glitter = gvc.glitter;
+        return gvc.bindView(() => {
+            const id = 'right_NAV';
+            const vm = {
+                option: [
+                    {
+                        title: '頁面編輯',
+                        key: 'page'
+                    },
+                    {
+                        title: '區段編輯',
+                        key: 'module'
+                    }
+                ],
+                select: () => {
+                    return localStorage.getItem('rightSelect') || (() => {
+                        localStorage.setItem('rightSelect', 'page');
+                        return 'page';
+                    })();
+                }
+            };
+            return {
+                bind: id,
+                view: () => {
+                    return [
+                        html `
+                            <div class="d-flex border-bottom mt-n1">
+                                ${vm.option.map((dd) => {
+                            return ` <div class="add_item_button ${(vm.select() === dd.key) ? `add_item_button_active` : ``}"
+ onclick="${gvc.event(() => {
+                                if (dd.key === vm.select()) {
+                                    return;
+                                }
+                                localStorage.setItem('rightSelect', dd.key);
+                                gvc.notifyDataChange(id);
+                            })}">${dd.title}</div>`;
+                        }).join('')}
+                            </div>`,
+                        ...(() => {
+                            let array = [];
+                            (vm.select() === 'module') && array.push(gvc.bindView(() => {
+                                const vm = {
+                                    pageID: gvc.glitter.getUUID(),
+                                    get select() {
+                                        return localStorage.getItem('uweopasi') || 'editor';
+                                    },
+                                    set select(v) {
+                                        localStorage.setItem('uweopasi', v);
+                                    },
+                                    selectItem: undefined
+                                };
+                                return {
+                                    bind: vm.pageID,
+                                    view: () => {
+                                        let array = [];
+                                        array.push(html `
+                                            <div class="d-flex bg-secondary p-2">${EditorElem.select({
+                                            title: '',
+                                            gvc: gvc,
+                                            def: vm.select,
+                                            array: [
+                                                { title: '區段編輯', value: 'editor' },
+                                                { title: '進階設定', value: 'info' }
+                                            ],
+                                            callback: (text) => {
+                                                vm.select = text;
+                                                gvc.notifyDataChange(vm.pageID);
+                                            },
+                                            style: `max-height:100%;color:black;`,
+                                            class: `form-select fw-bold text-black`
+                                        })}
+
+                                            </div>`);
+                                        (array.push(Main_editor.editorContent({
+                                            gvc: gvc,
+                                            type: vm.select,
+                                            viewModel: data
+                                        })));
+                                        return array.join('');
+                                    },
+                                    divCreate: {}
+                                };
+                            }));
+                            (vm.select() === 'page') && array.push(gvc.bindView(() => {
+                                const vm = {
+                                    pageID: gvc.glitter.getUUID(),
+                                    get select() {
+                                        return localStorage.getItem('uasi') || 'layout';
+                                    },
+                                    set select(v) {
+                                        localStorage.setItem('uasi', v);
+                                    },
+                                    selectItem: undefined
+                                };
+                                return {
+                                    bind: vm.pageID,
+                                    view: () => {
+                                        let array = [];
+                                        if (!vm.selectItem) {
+                                            array.push(html `
+                                                <div class="d-flex bg-secondary p-2">${EditorElem.select({
+                                                title: '',
+                                                gvc: gvc,
+                                                def: vm.select,
+                                                array: [
+                                                    { title: '頁面內容', value: 'layout' },
+                                                    { title: '標頭 / SEO配置', value: 'basic' },
+                                                    { title: '樣式設計', value: 'style' },
+                                                    { title: '觸發事件', value: 'script' },
+                                                    { title: '原始碼', value: 'code' }
+                                                ],
+                                                callback: (text) => {
+                                                    vm.select = text;
+                                                    gvc.notifyDataChange(vm.pageID);
+                                                },
+                                                style: `max-height:100%;color:black;`,
+                                                class: `form-select fw-bold text-black`
+                                            })}
+                                                    ${(() => {
+                                                if (vm.select === 'style') {
+                                                    return EditorElem.btnGroup({
+                                                        gvc: gvc,
+                                                        inner: `<div class="d-flex flex-column w-100 align-items-center justify-content-center position-relative"
+                                                                 style="height:300px;">
+                                                                 <i class="fa-sharp fa-regular fa-circle-xmark fs-5 position-absolute" style="right:0px;top:0px;color:black;cursor:pointer;"></i>
+                                                                <lottie-player src="lottie/animation_uiux.json"
+                                                                               class="mx-auto my-n4" speed="1"
+                                                                               style="max-width: 100%;width: 150px;height:200px;"
+                                                                               loop
+                                                                               autoplay></lottie-player>
+                                                                <h3 class="text-center px-4" style="font-size:14px;">
+                                                                    透過設定CSS標籤和連結，來決定頁面的統一樣式。
+                                                                    <div class="alert alert-info mt-3 mx-n3 p-2 text-start"
+                                                                         style="white-space: normal;font-size: 14px;font-weight: 500;">
+                                                                        <p class="m-0">-全域資源在所有頁面皆會加載。</p>
+                                                                        <p class="pt-1 m-0">
+                                                                            -頁面資源僅會於本當前頁面中進行加載。</p>
+                                                                    </div>
+                                                                </h3>
+                                                            </div>`,
+                                                        style: `width:30px;height:30px;`,
+                                                        dropDownStyle: `width:300px;height:300px;`,
+                                                        top: 100,
+                                                        fontawesome: '<i class="fa-sharp fa-regular fa-circle-question fs-5" style="color:#295ed1;"></i>'
+                                                    });
+                                                }
+                                                else if (vm.select === 'script') {
+                                                    return EditorElem.btnGroup({
+                                                        gvc: gvc,
+                                                        inner: `<div class="d-flex flex-column w-100 align-items-center justify-content-center position-relative"
+                                                                 style="height:300px;">
+                                                                 <i class="fa-sharp fa-regular fa-circle-xmark fs-5 position-absolute" style="right:0px;top:0px;color:black;cursor:pointer;"></i>
+                                                               <lottie-player src="lottie/animation_cp.json" class="mx-auto my-n4" speed="1"
+                                                       style="max-width: 100%;width: 150px;height:200px;" loop
+                                                       autoplay></lottie-player>
+                                        <h3 class=" text-center px-4" style="font-size:14px;">
+                                            設定代碼區塊與資源連結，來決定頁面加載前後所需執行的項目。
+                                            <div class="alert alert-info mt-3 mx-n3 p-2 text-start"
+                                                 style="white-space: normal;font-size: 14px;font-weight: 500;">
+                                                <p class="m-0">．全域資源在所有頁面皆會加載。</p>
+                                                <p class="pt-1 m-0">．頁面資源僅會於本當前頁面中進行加載。</p>
+                                            </div>
+                                        </h3>
+                                                            </div>`,
+                                                        style: `width:30px;height:30px;`,
+                                                        dropDownStyle: `width:300px;height:300px;`,
+                                                        top: 100,
+                                                        fontawesome: '<i class="fa-sharp fa-regular fa-circle-question fs-5" style="color:#295ed1;"></i>'
+                                                    });
+                                                }
+                                                else if (vm.select === 'layout') {
+                                                    return EditorElem.btnGroup({
+                                                        gvc: gvc,
+                                                        inner: `<div class="d-flex flex-column w-100 align-items-center justify-content-center position-relative"
+                                                                 style="height:200px;">
+                                                                 <i class="fa-sharp fa-regular fa-circle-xmark fs-5 position-absolute" style="right:0px;top:0px;color:black;cursor:pointer;"></i>
+                                                               <lottie-player src="lottie/animation_uiux.json" class="mx-auto my-n4" speed="1"
+                                                       style="max-width: 100%;width: 150px;height:200px;" loop
+                                                       autoplay></lottie-player>
+                                        <h3 class=" text-center px-4" style="font-size:14px;">
+                                            透過設定表單內容，來呈現頁面項目。
+                                        </h3>
+                                                            </div>`,
+                                                        style: `width:30px;height:30px;`,
+                                                        dropDownStyle: `width:300px;height:220px;`,
+                                                        top: 100,
+                                                        fontawesome: '<i class="fa-sharp fa-regular fa-circle-question fs-5" style="color:#295ed1;"></i>'
+                                                    });
+                                                }
+                                                else {
+                                                    return ``;
+                                                }
+                                            })()}
+                                                </div>`);
+                                            (vm.select === 'layout') && (array.push(PageEditor.formSetting({
+                                                gvc: gvc,
+                                                id: glitter.getUUID(),
+                                                vid: '',
+                                                viewModel: gvc.glitter.share.editorViewModel.data
+                                            })));
+                                            (vm.select === 'basic') && (array.push(PageEditor.pageEditorView({
+                                                gvc: gvc,
+                                                id: glitter.getUUID(),
+                                                vid: '',
+                                                viewModel: {
+                                                    get selectItem() {
+                                                        return gvc.glitter.share.editorViewModel.data;
+                                                    },
+                                                    get dataList() {
+                                                        return gvc.glitter.share.editorViewModel.dataList;
+                                                    }
+                                                }
+                                            })));
+                                            (vm.select === 'style') && (array.push(PageEditor.styleRenderSelector({
+                                                gvc: gvc,
+                                                vid: gvc.glitter.getUUID(),
+                                                viewModel: {
+                                                    selectContainer: glitter.share.editorViewModel.data.config,
+                                                    globalStyle: glitter.share.editorViewModel.globalStyle,
+                                                    data: glitter.share.editorViewModel.data
+                                                },
+                                                docID: '',
+                                                selectBack: (dd) => {
+                                                    vm.selectItem = dd;
+                                                    gvc.notifyDataChange(vm.pageID);
+                                                }
+                                            })));
+                                            (vm.select === 'script') && (array.push(PageEditor.scriptRenderSelector({
+                                                gvc: gvc,
+                                                vid: gvc.glitter.getUUID(),
+                                                viewModel: {
+                                                    selectContainer: glitter.share.editorViewModel.data.config,
+                                                    globalScript: glitter.share.editorViewModel.globalScript,
+                                                    data: glitter.share.editorViewModel.data
+                                                },
+                                                docID: '',
+                                                selectBack: (dd) => {
+                                                    vm.selectItem = dd;
+                                                    gvc.notifyDataChange(vm.pageID);
+                                                }
+                                            })));
+                                            (vm.select === 'code') && (array.push((() => {
+                                                const json = JSON.parse(JSON.stringify(glitter.share.editorViewModel.data.config));
+                                                json.map((dd) => {
+                                                    dd.refreshAllParameter = undefined;
+                                                    dd.refreshComponentParameter = undefined;
+                                                });
+                                                let value = JSON.stringify(json, null, '\t');
+                                                return gvc.bindView(() => {
+                                                    const id = glitter.getUUID();
+                                                    return {
+                                                        bind: id,
+                                                        view: () => {
+                                                            return html `
+                                                                <div class="alert alert-danger flex-fill m-0 p-2 "
+                                                                     style="white-space: normal;word-break:break-all;">
+                                                                    此頁面的配置檔包含所有設計模組和觸發事件的代碼配置項目。<br>建議由熟悉程式開發的工程師進行編輯。
+                                                                </div>
+                                                                ${EditorElem.customCodeEditor({
+                                                                gvc: gvc,
+                                                                height: window.innerHeight - 400,
+                                                                initial: value,
+                                                                title: 'JSON配置參數',
+                                                                callback: (data) => {
+                                                                    value = data;
+                                                                },
+                                                                language: 'json'
+                                                            })}
+                                                                <div class="d-flex w-100 mb-2 mt-2 justify-content-end"
+                                                                     style="gap:10px;">
+                                                                    <button class="btn btn-outline-secondary-c "
+                                                                            style="flex:1;height:40px; width:calc(50% - 10px);"
+                                                                            onclick="${gvc.event(() => {
+                                                                navigator.clipboard.writeText(JSON.stringify(json, null, '\t'));
+                                                            })}"><i
+                                                                            class="fa-regular fa-copy me-2"></i>複製到剪貼簿
+                                                                    </button>
+                                                                    <button class="btn btn-primary-c "
+                                                                            style="flex:1; height:40px; width:calc(50% - 10px);"
+                                                                            onclick="${gvc.event(() => {
+                                                                const dialog = new ShareDialog(gvc.glitter);
+                                                                try {
+                                                                    glitter.share.editorViewModel.data.config = JSON.parse(value);
+                                                                    glitter.closeDiaLog();
+                                                                    glitter.htmlGenerate.saveEvent();
+                                                                }
+                                                                catch (e) {
+                                                                    dialog.errorMessage({ text: "代碼輸入錯誤" });
+                                                                    console.log(`${e}${e.stack}${e.line}`);
+                                                                }
+                                                            })}"><i
+                                                                            class="fa-regular fa-floppy-disk me-2"></i>儲存
+                                                                    </button>
+                                                                </div>
+                                                            `;
+                                                        },
+                                                        divCreate: {
+                                                            class: `p-2`
+                                                        }
+                                                    };
+                                                });
+                                            })()));
+                                        }
+                                        else {
+                                            (vm.select === 'style') && (array.push(PageEditor.styleRenderEditor({
+                                                gvc: gvc,
+                                                vid: gvc.glitter.getUUID(),
+                                                viewModel: {
+                                                    selectItem: vm.selectItem,
+                                                    get globalStyle() {
+                                                        return glitter.share.editorViewModel.globalStyle;
+                                                    },
+                                                    set globalStyle(v) {
+                                                        glitter.share.editorViewModel.globalStyle = v;
+                                                    },
+                                                    data: glitter.share.editorViewModel.data
+                                                },
+                                                docID: '',
+                                                editFinish: () => {
+                                                    vm.selectItem = undefined;
+                                                    gvc.notifyDataChange(vm.pageID);
+                                                }
+                                            })));
+                                            (vm.select === 'script') && (array.push(PageEditor.scriptRenderEditor({
+                                                gvc: gvc,
+                                                vid: gvc.glitter.getUUID(),
+                                                viewModel: {
+                                                    selectItem: vm.selectItem,
+                                                    get globalScript() {
+                                                        return glitter.share.editorViewModel.globalScript;
+                                                    },
+                                                    set globalScript(v) {
+                                                        glitter.share.editorViewModel.globalScript = v;
+                                                    },
+                                                    data: glitter.share.editorViewModel.data
+                                                },
+                                                docID: '',
+                                                editFinish: () => {
+                                                    vm.selectItem = undefined;
+                                                    gvc.notifyDataChange(vm.pageID);
+                                                }
+                                            })));
+                                        }
+                                        return array.join('');
+                                    },
+                                    divCreate: {}
+                                };
+                            }));
+                            return array.join('');
+                        })()
+                    ].join('');
+                },
+                divCreate: option.divCreate || {
+                    class: `w-100`,
+                    style: `height:calc(100vh - 56px);overflow-y:auto;`
+                }
+            };
+        });
     }
 }
 Main_editor.index = '0';

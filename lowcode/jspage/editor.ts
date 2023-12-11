@@ -6,6 +6,9 @@ import {Plugin_editor} from "./plugin_editor.js";
 import {PageEditor} from "../editor/page-editor.js";
 import {EditorElem} from "../glitterBundle/plugins/editor-elem.js";
 import {fileManager} from "../setting/appSetting.js";
+import {ShareDialog} from "../dialog/ShareDialog.js";
+import Add_item_dia from "../glitterBundle/plugins/add_item_dia.js";
+import {FormWidget} from "../official_view_component/official/form.js";
 
 export enum ViewType {
     mobile = "mobile",
@@ -70,7 +73,52 @@ export class Editor {
    color: transparent;">GLITTER.EDITOR<span class="ms-1" style="font-size: 11px;">${glitter.share.editerVersion}</span></span>
 
                             </div>
-                            <div class="d-flex align-items-center w-100">
+                            <div style="width:30px;"></div>
+                            <div class="d-flex align-items-center flex-fill" style="">
+                                ${[
+                                    `<div class="fw-bold fs-6 me-2 " style="color:black">應用配置</div>`,
+                                    `<div class="hoverBtn ms-auto d-flex align-items-center justify-content-center    border"
+                                     style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;"
+                                     onclick="${gvc.event(() => {
+                                        PageEditor.openDialog.seo_with_domain(gvc)
+                                    })}">
+                                    <i class="fa-sharp fa-regular fa-globe-pointer"></i>
+                                </div>`,
+                                    ` <div class="hoverBtn d-flex align-items-center justify-content-center   border " style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;"
+  onclick="${gvc.event(() => {
+                                        PageEditor.openDialog.plugin_setting(gvc)
+                                    })}">
+                                    <i class="fa-solid fa-puzzle-piece-simple"></i>
+
+                                </div>`,
+                                        ` <div class="d-flex align-items-center justify-content-center hoverBtn me-2 border"
+                                     style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;"
+                                     onclick="${gvc.event(() => {
+                                            EditorElem.openEditorDialog(gvc, (gvc: GVC) => {
+                                                return gvc.bindView(()=>{
+                                                    return {
+                                                        bind:gvc.glitter.getUUID(),
+                                                        view: ()=>{
+                                                            return new Promise(async (resolve, reject)=>{
+                                                                const data=await PageEditor.valueRender(gvc)
+                                                                resolve(`
+                                                                <div class="d-flex">
+                          <div class="border-end" style="width:300px;overflow:hidden;"> ${data.left}</div>
+                                                                ${data.right}                                       
+</div>
+                                                              
+                                                                `)
+                                                            })
+                                                        }
+                                                    }
+                                                })
+                                            }, () => {
+
+                                            }, 700,'共用資源管理')
+                                        })}">
+                                    <i class="fa-regular fa-folder"></i>
+                                </div>`
+                                ].join(`<div class="me-1"></div>`)}
                                 <div class="flex-fill"></div>
                                 <div class="btn-group " style=width:350px;">
 
@@ -127,19 +175,6 @@ export class Editor {
                                     </div>
                                 </div>
                                 <div class="flex-fill"></div>
-                                <div class="d-flex align-items-center justify-content-center hoverBtn me-2 border"
-                                     style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;"
-                                     onclick="${gvc.event(() => {
-                                         EditorElem.openEditorDialog(gvc,(gvc:GVC)=>{
-                                             return `<div style="width:350px;">${fileManager(gvc,gvc.glitter.getUUID(),{
-                                                 data:[]
-                                             })}</div>`
-                                         },()=>{
-                                             
-                                         },350)
-                                     })}">
-                                    <i class="fa-regular fa-folder"></i>
-                                </div>
                                 <div class="d-flex align-items-center justify-content-center  me-2 border ${(glitter.share.inspect) ? `activeBtn` : ``}"
                                      style="height:36px;width:36px;border-radius:10px;cursor:pointer;"
                                      onclick="${gvc.event(() => {
@@ -250,20 +285,20 @@ export class Editor {
                             divCreate: {}
                         })}
                     </main>
-                    ${gvc.bindView(() => {
-                        const id = 'right_NAV'
-                        return {
-                            bind: id,
-                            view: () => {
-                                return Main_editor.editorContent(gvc, data)
-                            },
-                            divCreate: {
-                                elem: `aside`,
-                                class: `p-0  side-nav-end  position-fixed top-0 end-0 vh-100 border-start  bg-white ${((viewModel.type === ViewType.col3 || (viewModel.type === ViewType.mobile)) && glitter.getUrlParameter('editorPosition') !== Setting_editor.index) ? `` : `d-none`}`,
-                                style: `width: 290px;padding-top:60px !important;`
-                            }
+                    ${(()=>{
+                        if(((viewModel.type === ViewType.col3 || (viewModel.type === ViewType.mobile)) && glitter.getUrlParameter('editorPosition') !== Setting_editor.index)){
+                            return Main_editor.pageAndComponent({
+                                gvc:gvc,
+                                data:data,
+                                divCreate:{
+                                    class:`p-0  side-nav-end  position-fixed top-0 end-0 vh-100 border-start  bg-white `,
+                                    style:`width: 290px;padding-top:60px !important;`
+                                },
+                            })
+                        }else{
+                            return ``
                         }
-                    })}
+                    })()}
 
                     <!-- Back to top button -->
                     <a href="#top" class="btn-scroll-top " data-scroll>

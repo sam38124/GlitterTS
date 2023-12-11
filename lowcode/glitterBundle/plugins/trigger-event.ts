@@ -82,6 +82,8 @@ export class TriggerEvent {
         return val;
     }
 
+
+
     public static create(url: string, event: {
         [name: string]: {
             subContent?: string,

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CLIENT_ID</key>
+	<string>779214176135-5u02vsqjevo1rsr58j90ig6c4f3pflrt.apps.googleusercontent.com</string>
+	<key>REVERSED_CLIENT_ID</key>
+	<string>com.googleusercontent.apps.779214176135-5u02vsqjevo1rsr58j90ig6c4f3pflrt</string>
+	<key>ANDROID_CLIENT_ID</key>
+	<string>779214176135-b2h0817qjlk2q49jer8qaqbf7aiovmpp.apps.googleusercontent.com</string>
+	<key>API_KEY</key>
+	<string>AIzaSyDZ80vtCAev_D-_ibXGeAYovJHb9IEF0pE</string>
+	<key>GCM_SENDER_ID</key>
+	<string>779214176135</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>com.iamstartv.biosoli</string>
+	<key>PROJECT_ID</key>
+	<string>iamstarttv</string>
+	<key>STORAGE_BUCKET</key>
+	<string>iamstarttv.appspot.com</string>
+	<key>IS_ADS_ENABLED</key>
+	<false></false>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false></false>
+	<key>IS_APPINVITE_ENABLED</key>
+	<true></true>
+	<key>IS_GCM_ENABLED</key>
+	<true></true>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true></true>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:779214176135:ios:e691d078135a735ec49d22</string>
+</dict>
+</plist>

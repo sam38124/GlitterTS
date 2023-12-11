@@ -379,105 +379,7 @@ ${EditorElem.h3("選擇頁面")}
                                                 選擇頁面並嵌入來實現導覽列的效果。
                                             </h3>
                                         </div>`,
-        fun: (gvc, widget, object, subData, element) => {
-            return {
-                editor: () => {
-                    const id = gvc.glitter.getUUID();
-                    function recursive() {
-                        if (GlobalData.data.pageList.length === 0) {
-                            GlobalData.data.run();
-                            setTimeout(() => {
-                                recursive();
-                            }, 200);
-                        }
-                        else {
-                            gvc.notifyDataChange(id);
-                        }
-                    }
-                    recursive();
-                    return gvc.bindView(() => {
-                        return {
-                            bind: id,
-                            view: () => {
-                                return `${EditorElem.h3("選擇頁面")}
-                       <select
-                                            class="form-select form-control mt-2"
-                                            onchange="${gvc.event((e) => {
-                                    console.log(window.$(e).val());
-                                    object.link = window.$(e).val();
-                                })}"
-                                        >
-                                            ${GlobalData.data.pageList.map((dd) => {
-                                    var _a;
-                                    object.link = (_a = object.link) !== null && _a !== void 0 ? _a : dd.tag;
-                                    return `<option value="${dd.tag}" ${object.link === dd.tag ? `selected` : ``}>
-                                                    ${dd.group}-${dd.name}
-                                                </option>`;
-                                })}
-                                        </select>
-${gvc.glitter.htmlGenerate.styleEditor(object, gvc).editor(gvc, () => {
-                                    widget.refreshComponent();
-                                }, "背景樣式")}
-`;
-                            },
-                            divCreate: {}
-                        };
-                    });
-                },
-                event: () => {
-                    let fal = 0;
-                    let data = undefined;
-                    function getData() {
-                        return __awaiter(this, void 0, void 0, function* () {
-                            return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
-                                const saasConfig = window.saasConfig;
-                                BaseApi.create({
-                                    "url": saasConfig.config.url + `/api/v1/template?appName=${saasConfig.config.appName}&tag=${object.link}`,
-                                    "type": "GET",
-                                    "timeout": 0,
-                                    "headers": {
-                                        "Content-Type": "application/json"
-                                    }
-                                }).then((d2) => {
-                                    if (!d2.result) {
-                                        fal += 1;
-                                        if (fal < 20) {
-                                            setTimeout(() => {
-                                                getData();
-                                            }, 200);
-                                        }
-                                    }
-                                    else {
-                                        data = d2.response.result[0];
-                                        resolve(data);
-                                    }
-                                });
-                            }));
-                        });
-                    }
-                    getData().then((data) => {
-                        const id = gvc.glitter.getUUID();
-                        gvc.glitter.setDrawer(`  <!-- tag=${object.link} -->
-  <div class="w-100 h-100 ${gvc.glitter.htmlGenerate.styleEditor(object, gvc).class()}"
-style="${gvc.glitter.htmlGenerate.styleEditor(object, gvc).style()}"
->${gvc.bindView(() => {
-                            return {
-                                bind: id,
-                                view: () => {
-                                    if (!data) {
-                                        return ``;
-                                    }
-                                    return new window.glitter.htmlGenerate(data.config, [], subData !== null && subData !== void 0 ? subData : {}).render(gvc);
-                                },
-                                divCreate: {}
-                            };
-                        })}</div>`, () => {
-                            gvc.glitter.openDrawer();
-                        });
-                    });
-                },
-            };
-        },
+        fun: TriggerEvent.setEventRouter(import.meta.url, './view/navagation.js'),
     },
     closeDrawer: {
         title: '官方事件 / 畫面 / 關閉導覽列',
@@ -709,6 +611,10 @@ style="${gvc.glitter.htmlGenerate.styleEditor(object, gvc).style()}"
     getURl: {
         title: '官方事件 / 開發工具 / 取得URL參數',
         fun: TriggerEvent.setEventRouter(import.meta.url, './glitter-util/get-url.js'),
+    },
+    getPageFormData: {
+        title: '官方事件 / 開發工具 / 取得頁面參數',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './glitter-util/get-page-form.js'),
     },
     registerNotify: {
         title: '官方事件 / 推播 / 註冊推播頻道',
@@ -1034,7 +940,27 @@ style="${gvc.glitter.htmlGenerate.styleEditor(object, gvc).style()}"
     reset_pwd: {
         title: '用戶相關 / 個人檔案 / 重設密碼',
         fun: TriggerEvent.setEventRouter(import.meta.url, './user/reset_pwd.js')
-    }
+    },
+    getToken: {
+        title: '用戶相關 / 取得TOKEN',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './user/token.js')
+    },
+    glitterADD: {
+        title: 'GLITTER / 建立APP',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './glitter/create.js')
+    },
+    glitterPreview: {
+        title: 'GLITTER / 預覽APP',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './glitter/preview.js')
+    },
+    getTopInset: {
+        title: '手機裝置 / 取得上方導覽列高度',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './mobile/get-top-inset.js')
+    },
+    getBottomInset: {
+        title: '手機裝置 / 取得下方導覽列高度',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './mobile/get-bottom-inset.js')
+    },
 });
 function questionText(data) {
     return `<div class="bg-secondary rounded-3 py-2 px-2 ">

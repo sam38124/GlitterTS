@@ -1,4 +1,4 @@
-import { HtmlGenerate } from "../glitterBundle/module/Html_generate.js";
+import { HtmlGenerate } from "../glitterBundle/module/html-generate.js";
 import { EditorElem } from "../glitterBundle/plugins/editor-elem.js";
 export function styleManager(gvc, viewModel, id) {
     const glitter = gvc.glitter;

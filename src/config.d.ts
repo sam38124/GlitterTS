@@ -40,6 +40,7 @@ export declare const config: {
         lambda: string;
         ec: string;
         manager: string;
+        app: string;
     };
     route: {
         user: string;

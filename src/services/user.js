@@ -13,7 +13,7 @@ class User {
     static async createUser(account, pwd) {
         try {
             const userID = generateUserID();
-            await database_1.default.execute(`INSERT INTO \`${config_1.saasConfig.SAAS_NAME}\`.\`user\` (\`userID\`,\`account\`, \`pwd\`, \`userData\`,status) VALUES (?,?, ?, ?,1);`, [
+            await database_1.default.execute(`INSERT INTO \`${config_1.saasConfig.SAAS_NAME}\`.\`t_user\` (\`userID\`,\`account\`, \`pwd\`, \`userData\`,status) VALUES (?,?, ?, ?,1);`, [
                 userID,
                 account,
                 await tool_1.default.hashPwd(pwd),
@@ -33,17 +33,8 @@ class User {
     }
     static async login(account, pwd) {
         try {
-            const data = (await database_1.default.execute(`select * from \`${config_1.saasConfig.SAAS_NAME}\`.user where account=?`, [account]))[0];
-            if (!data.editor_token) {
-                const token = await UserUtil_1.default.generateToken({
-                    user_id: data["userID"],
-                    account: data["account"],
-                    userData: data
-                });
-                await database_1.default.execute(`update \`${config_1.saasConfig.SAAS_NAME}\`.user set editor_token=${database_1.default.escape(token)} where account=?`, [account]);
-            }
+            const data = (await database_1.default.execute(`select * from \`${config_1.saasConfig.SAAS_NAME}\`.t_user where account=?`, [account]))[0];
             data['token'] = undefined;
-            data['editor_token'] = undefined;
             if (await tool_1.default.compareHash(pwd, data.pwd)) {
                 return {
                     account: account,
@@ -64,7 +55,7 @@ class User {
     }
     static async checkUserExists(account) {
         try {
-            return (await database_1.default.execute(`select count(1) from \`${config_1.saasConfig.SAAS_NAME}\`.user where account=?`, [account]))[0]["count(1)"] == 1;
+            return (await database_1.default.execute(`select count(1) from \`${config_1.saasConfig.SAAS_NAME}\`.t_user where account=?`, [account]))[0]["count(1)"] == 1;
         }
         catch (e) {
             throw exception_1.default.BadRequestError('BAD_REQUEST', 'CheckUserExists Error:' + e, null);

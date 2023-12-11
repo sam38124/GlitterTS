@@ -2,7 +2,7 @@
 import {Animation, AnimationConfig} from "./module/Animation.js";
 import {PageConfig, GVCType, PageManager, DefaultSetting} from "./module/PageManager.js";
 import {AppearType} from "./module/Enum.js"
-import {HtmlGenerate} from "./module/Html_generate.js"
+import {HtmlGenerate} from "./module/html-generate.js"
 
 
 export class Glitter {
@@ -266,7 +266,7 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
         const gliter = this;
         $("#Navigation").hide()
         if ((window as any).drawer === undefined) {
-            gliter.addMtScript(['glitterBundle/plugins/NaviGation.js'], () => {
+            gliter.addMtScript([new URL('./plugins/NaviGation.js',import.meta.url)], () => {
                 callback()
                 $("#Navigation").html(src);
             }, () => {

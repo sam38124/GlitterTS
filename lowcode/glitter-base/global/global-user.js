@@ -1,6 +1,11 @@
 export class GlobalUser {
     static getTag(tag) {
-        return `${GlobalUser.tagId}${tag}`;
+        if (window.glitter.getUrlParameter("type") === 'editor') {
+            return `${window.glitterBase}${GlobalUser.tagId}${tag}`;
+        }
+        else {
+            return `${window.appName}${GlobalUser.tagId}${tag}`;
+        }
     }
     static get token() {
         return window.glitter.getCookieByName(GlobalUser.getTag('token'));

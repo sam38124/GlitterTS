@@ -56,8 +56,8 @@ async function doAuthAction(req: express.Request, resp: express.Response, next: 
     try {
         req.body.token = jwt.verify(token, config.SECRET_KEY) as IToken;
         const redisToken = await redis.getValue(token);
-        if (!redisToken) {
-            const tokenCheck=await db.query(`select count(1)  from  \`${saasConfig.SAAS_NAME}\`.user where editor_token=?`,[token])
+        if (!redisToken&&process.env.editorToken!==req.body.token) {
+            const tokenCheck=await db.query(`select count(1) from \`${saasConfig.SAAS_NAME}\`.t_user where userData->>'$.editor_token'=?`,[token])
             if(tokenCheck[0]['count(1)']!==1){
                 logger.error(TAG, 'Token is not match in redis.');
                 return response.fail(resp, exception.PermissionError('INVALID_TOKEN', 'invalid token'));

@@ -9,6 +9,9 @@ import Newebpay from "../services/newebpay";
 import {Private_config} from "../../services/private_config.js";
 import db from "../../modules/database.js";
 import {IToken} from "../models/Auth.js";
+import app from "../../app.js";
+import {EzInvoice} from "../services/ezpay/invoice.js";
+import {Invoice} from "../services/invoice.js";
 
 const router: express.Router = express.Router();
 
@@ -31,6 +34,8 @@ router.get("/product", async (req: express.Request, resp: express.Response) => {
         return response.fail(resp, err);
     }
 })
+
+
 
 router.delete("/product", async (req: express.Request, resp: express.Response) => {
     try {
@@ -191,6 +196,8 @@ router.post('/notify', upload.single('file'), async (req: express.Request, resp:
             await db.execute(`update \`${appName}\`.t_checkout
                               set status=?
                               where cart_token = ?`, [1, decodeData['Result']['MerchantOrderNo']])
+
+            new Invoice(appName).postCheckoutInvoice(decodeData['Result']['MerchantOrderNo'])
         } else {
             await db.execute(`update \`${appName}\`.t_checkout
                               set status=?

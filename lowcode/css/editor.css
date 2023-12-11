@@ -80,11 +80,12 @@ body {
     margin:2px;
 }
 .editor_item {
-    width: 100%;
+    width: calc(100% - 10px);
     margin: 5px 10px;
     cursor: pointer;
     height: var(--ed-item-height);
-    border-radius: var(--ed-item-border-radius);
+    border-top-left-radius: var(--ed-item-border-radius);
+    border-bottom-left-radius: var(--ed-item-border-radius);
     display: flex;
     align-items: center;
     padding-left: 20px;

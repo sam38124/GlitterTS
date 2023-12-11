@@ -10,6 +10,7 @@ import {ApiPageConfig} from "../api/pageConfig.js";
 import {config} from "../config.js";
 import {PageEditor} from "../editor/page-editor.js";
 import {TriggerEvent} from "../glitterBundle/plugins/trigger-event.js";
+import {GlobalUser} from "../glitter-base/global/global-user.js";
 
 const html = String.raw
 
@@ -917,7 +918,7 @@ ${[
                                 dialog.dataLoading({text: '變更優換券', visible: true})
                                 ApiPost.put({
                                     postData: voucherData,
-                                    token: gvc.glitter.getCookieByName('glitterToken'),
+                                    token: GlobalUser.token,
                                     type: 'manager'
                                 }).then((re) => {
                                     dialog.dataLoading({visible: false})
@@ -932,7 +933,7 @@ ${[
                                 dialog.dataLoading({text: '新增優換券', visible: true})
                                 ApiPost.post({
                                     postData: voucherData,
-                                    token: gvc.glitter.getCookieByName('glitterToken'),
+                                    token: GlobalUser.token,
                                     type: 'manager'
                                 }).then((re) => {
                                     dialog.dataLoading({visible: false})
@@ -2521,7 +2522,7 @@ ${BgShopping.card(EditorElem.select({
         postMD.type = 'product'
         ApiPost.post({
             postData: postMD,
-            token: gvc.glitter.getCookieByName('glitterToken'),
+            token: GlobalUser.token,
             type: 'manager'
         }).then((re) => {
             dialog.dataLoading({visible: false})
@@ -2540,7 +2541,7 @@ ${BgShopping.card(EditorElem.select({
         postMD.type = 'product'
         ApiPost.put({
             postData: postMD,
-            token: gvc.glitter.getCookieByName('glitterToken'),
+            token: GlobalUser.token,
             type: 'manager'
         }).then((re) => {
             dialog.dataLoading({visible: false})
@@ -2619,7 +2620,7 @@ ${html}
                             text: '設定成功'
                         })
                     })
-                })}">儲存並更改
+                })}">儲存金流設定
                 </button>
             </div>
             ${gvc.bindView(() => {
@@ -2687,6 +2688,156 @@ ${html}
                 }
             })}
         `, 900)
+    }
+
+    public static invoice_setting(gvc:GVC){
+        const saasConfig: {
+            config: any,
+            api: any
+        } = (window as any).saasConfig
+        const id = gvc.glitter.getUUID()
+        const vm: {
+            loading: boolean,
+            data: any
+        } = {
+            loading: true,
+            data: {}
+        }
+        saasConfig.api.getPrivateConfig(saasConfig.config.appName, "invoice_setting").then((r: { response: any, result: boolean }) => {
+            if (r.response.result[0]) {
+                vm.data = r.response.result[0].value
+            }
+            vm.loading = false
+            gvc.notifyDataChange(id)
+        })
+        const html = String.raw
+        const dialog = new ShareDialog(gvc.glitter)
+        return gvc.bindView(() => {
+            return {
+                bind: id,
+                view: () => {
+                    if (vm.loading) {
+                        return html`
+                        <div class="w-100 d-flex align-items-center justify-content-center">
+                            <div class="spinner-border"></div>
+                        </div>`
+                    }
+                    return BgShopping.container(html`
+                        <div class="d-flex w-100 align-items-center mb-3 ">
+                            ${BgShopping.title(`電子發票設定`)}
+                            <div class="flex-fill"></div>
+                            <button class="btn btn-primary-c" style="height:38px;font-size: 14px;" onclick="${gvc.event(() => {
+                                dialog.dataLoading({text: '設定中', visible: true})
+                                saasConfig.api.setPrivateConfig(saasConfig.config.appName, "invoice_setting", vm.data).then((r: { response: any, result: boolean }) => {
+                                    setTimeout(() => {
+                                        dialog.dataLoading({visible: false})
+                                        if (r.response) {
+                                            dialog.successMessage({text: "設定成功"})
+                                        } else {
+                                            dialog.errorMessage({text: "設定失敗"})
+                                        }
+                                    }, 1000)
+                                })
+                            })}">儲存發票設定
+                            </button>
+                        </div>
+          ${BgShopping.card(`
+            ${(() => {
+              vm.data.fincial = vm.data.fincial ?? "ezpay";
+              vm.data.point = vm.data.point ?? "beta";
+              return gvc.map([
+                  EditorElem.select({
+                      title: "選擇開立方式",
+                      gvc: gvc,
+                      def: vm.data.fincial,
+                      array: [
+                          {title: "藍新", value: "ezpay"},
+                          {title: "不開立電子發票", value: "nouse"}
+                      ],
+                      callback: (text) => {
+                          vm.data.fincial = text
+                      }
+                  }),
+                  EditorElem.select({
+                      title: "站點",
+                      gvc: gvc,
+                      def: vm.data.point,
+                      array: [
+                          {title: "測試區", value: "beta"},
+                          {title: "正式區", value: "official"},
+                      ],
+                      callback: (text) => {
+                          vm.data.point = text
+                          if (vm.data.point == 'beta') {
+                              vm.data.hashkey = vm.data.bhashkey
+                              vm.data.hashiv = vm.data.bhashiv
+                          } else {
+                              vm.data.hashkey = vm.data.ohashkey
+                              vm.data.hashiv = vm.data.ohashiv
+                          }
+                          gvc.notifyDataChange(id)
+                      }
+                  }),
+                  (() => {
+                      let html = ``
+                      if (vm.data.point === 'beta') {
+                          vm.data.whiteList = vm.data.whiteList ?? []
+                          vm.data.whiteListExpand = vm.data.whiteListExpand ?? {}
+                      }
+
+                      return [
+                          EditorElem.editeInput({
+                              gvc: gvc,
+                              title: '特店編號',
+                              default: vm.data.merchNO ?? "",
+                              type: "text",
+                              placeHolder: "請輸入特店編號",
+                              callback: (text) => {
+                                  vm.data.merchNO= text
+                              }
+                          }),
+                          EditorElem.editeInput({
+                              gvc: gvc,
+                              title: 'HashKey',
+                              default: vm.data.hashkey ?? "",
+                              type: "text",
+                              placeHolder: "請輸入HashKey",
+                              callback: (text) => {
+                                  vm.data.hashkey = text
+                                  if (vm.data.point == 'beta') {
+                                      vm.data.bhashkey = text
+                                  } else {
+                                      vm.data.ohashkey = text
+                                  }
+                              }
+                          }),
+                          EditorElem.editeInput({
+                              gvc: gvc,
+                              title: 'HashIV',
+                              default: vm.data.hashiv ?? "",
+                              type: "text",
+                              placeHolder: "請輸入HashIV",
+                              callback: (text) => {
+                                  vm.data.hashiv = text
+                                  if (vm.data.point == 'beta') {
+                                      vm.data.bhashiv = text
+                                  } else {
+                                      vm.data.ohashiv = text
+                                  }
+                              }
+                          }),
+                          html
+                      ].join('');
+                  })()
+              ])
+          })()}`)}
+        `, 900)
+                },
+                divCreate: {
+                    class: `d-flex justify-content-center w-100 flex-column align-items-center `
+                }
+            }
+        })
     }
 
     public static setShipment(gvc: GVC) {

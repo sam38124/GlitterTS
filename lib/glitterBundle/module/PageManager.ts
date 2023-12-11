@@ -105,6 +105,7 @@ export class PageManager {
                     top: glitter.pageConfig[index].scrollTop,
                     behavior: 'auto' // 'auto' 表示无滚动动画
                 });
+
                 console.log(`scroll----`, glitter.pageConfig[index].scrollTop)
                 // Glitter.glitter.$('html').stop().animate({scrollTop: glitter.pageConfig[index].scrollTop});
             }

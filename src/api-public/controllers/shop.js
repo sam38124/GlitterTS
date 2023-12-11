@@ -12,6 +12,7 @@ const path_1 = __importDefault(require("path"));
 const newebpay_1 = __importDefault(require("../services/newebpay"));
 const private_config_js_1 = require("../../services/private_config.js");
 const database_js_1 = __importDefault(require("../../modules/database.js"));
+const invoice_js_1 = require("../services/invoice.js");
 const router = express_1.default.Router();
 router.get("/product", async (req, resp) => {
     var _a, _b;
@@ -198,6 +199,7 @@ router.post('/notify', upload.single('file'), async (req, resp) => {
             await database_js_1.default.execute(`update \`${appName}\`.t_checkout
                               set status=?
                               where cart_token = ?`, [1, decodeData['Result']['MerchantOrderNo']]);
+            new invoice_js_1.Invoice(appName).postCheckoutInvoice(decodeData['Result']['MerchantOrderNo']);
         }
         else {
             await database_js_1.default.execute(`update \`${appName}\`.t_checkout

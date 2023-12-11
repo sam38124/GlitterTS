@@ -9,27 +9,6 @@ export const SaasScheme = {
         const sqlArray: { scheme?: string; table: string; sql: string }[]=[
             {
                 scheme:saasConfig.SAAS_NAME as string,
-                table:'user',
-                sql:`(
-  \`id\` int NOT NULL AUTO_INCREMENT,
-  \`userID\` int NOT NULL,
-  \`account\` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  \`role\` int NOT NULL DEFAULT '0' COMMENT '角色權限定義',
-  \`company\` varchar(200) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  \`status\` int NOT NULL DEFAULT '1',
-  \`pwd\` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  \`userData\` json DEFAULT NULL,
-  \`created_time\` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  \`editor_token\` text COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  UNIQUE KEY \`userID_UNIQUE\` (\`userID\`),
-  UNIQUE KEY \`account_UNIQUE\` (\`account\`),
-  PRIMARY KEY (\`id\`,\`userID\`),
-  KEY \`index4\` (\`company\`),
-  KEY \`index5\` (\`role\`)
-) ENGINE=InnoDB AUTO_INCREMENT=139 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`
-            },
-            {
-                scheme:saasConfig.SAAS_NAME as string,
                 table:'page_config',
                 sql:`(
   \`id\` int NOT NULL AUTO_INCREMENT,

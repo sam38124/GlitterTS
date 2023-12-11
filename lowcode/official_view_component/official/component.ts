@@ -104,6 +104,7 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
                                                 let createOption = (htmlGenerate ?? {}).createOption ?? {}
                                                 createOption.option = createOption.option ?? []
                                                 createOption.childContainer = true
+                                                data.config.formData=data.page_config.formData
                                                 // data.config
                                                 target!.outerHTML = `
                                                 <!-- tag=${tag} -->

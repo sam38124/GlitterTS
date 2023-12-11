@@ -18,45 +18,69 @@ export class Setting_editor {
         let vm = {
             select: `official`,
         }
-
-        function setBackendEditor(title:string,itemList: any, id: string) {
-            return EditorElem.arrayItem({
-                gvc: gvc,
-                title: title,
-                array: () => {
-                    return itemList.map((dd: any) => {
-                        if(!glitter.getUrlParameter('router')){
-                            glitter.setUrlParameter('router',`${title}/${dd.title}`)
+        function setBackendEditor(fontawsome:string,title: string, itemList: any, id: string) {
+            return html`<li class="btn-group w-100" style="margin-top:1px;margin-bottom:1px;" onclick="${
+                gvc.event(()=>{
+                    glitter.setUrlParameter('router', `${title}/${itemList[0].title}`)
+                    gvc.recreateView()
+                })
+                }">
+                    <div class="editor_item d-flex   align-items-center px-2 my-0 hi me-n1 w-100  fw-bold
+${(!itemList.find((dd:any)=>{
+                        return glitter.getUrlParameter('router') === `${title}/${dd.title}`
+                    })) ? ``:`bgf6 border`}
+" style="border-top-right-radius: 0;border-bottom-right-radius: 0;">
+                        <div class="subBt ms-n2 d-none">
+                            <i class="fa-regular fa-circle-minus d-flex align-items-center justify-content-center subBt "
+                               style="width:15px;height:15px;color:red;" aria-hidden="true"></i>
+                        </div>
+                        <i class="${fontawsome} me-1 d-flex align-items-center justify-content-center" style="width:20px;"></i>${title}
+                    </div>
+                </li>
+                <br>
+                <div class="ps-3 ${(!itemList.find((dd:any)=>{
+                    return glitter.getUrlParameter('router') === `${title}/${dd.title}`
+                })) ? `d-none`:``} pb-1 border-bottom" >
+                    ${EditorElem.arrayItem({
+                        gvc: gvc,
+                        title: '',
+                        array: () => {
+                            return itemList.map((dd: any) => {
+                                if (!glitter.getUrlParameter('router')) {
+                                    glitter.setUrlParameter('router', `${title}/${dd.title}`)
+                                    gvc.recreateView()
+                                }
+                                if (glitter.getUrlParameter('router') === `${title}/${dd.title}`) {
+                                    $('#editerCenter').html(dd.view(gvc))
+                                }
+                                return {
+                                    title: dd.title,
+                                    innerHtml: () => {
+                                        glitter.setUrlParameter('router', `${title}/${dd.title}`)
+                                      gvc.recreateView()
+                                        return ``
+                                    },
+                                    editTitle: dd.title,
+                                    saveEvent: dd.saveEvent,
+                                    width: dd.width,
+                                    saveAble: dd.saveAble,
+                                    isSelect:glitter.getUrlParameter('router') === `${title}/${dd.title}`
+                                }
+                            })
+                        },
+                        customEditor: true,
+                        minus: false,
+                        originalArray: itemList,
+                        expand: {},
+                        draggable: false,
+                        copyable: false,
+                        refreshComponent: () => {
+                            gvc.notifyDataChange(id)
                         }
-                        if (glitter.getUrlParameter('router')===`${title}/${dd.title}`){
-                            $('#editerCenter').html(dd.view(gvc))
-                        }
-                        return {
-                            title: dd.title,
-                            innerHtml: () => {
-                                glitter.setUrlParameter('router',`${title}/${dd.title}`)
-                                $('#editerCenter').html(dd.view(gvc))
-                                return ``
-                            },
-                            editTitle: dd.title,
-                            saveEvent: dd.saveEvent,
-                            width: dd.width,
-                            saveAble: dd.saveAble
-                        }
-                    })
-                },
-                customEditor: true,
-                minus: false,
-                originalArray: itemList,
-                expand: {},
-                draggable: false,
-                copyable: false,
-                refreshComponent: () => {
-                    gvc.notifyDataChange(id)
-                }
-            })
+                    })}
+                </div>
+            `
         }
-
         return gvc.bindView(() => {
             const id = glitter.getUUID()
             return {
@@ -84,75 +108,10 @@ export class Setting_editor {
                         switch (vm.select) {
                             case "official":
                                 const itemList: any[] = [
-//                                   (() => {
-//                                         let save: any = undefined
-//                                         return {
-//                                             title: "專案資源打包",
-//                                             view: (gvc: GVC) => {
-//                                                 const app = appCreate(gvc, viewModel, createID)
-//                                                 save = app.saveEvent
-//                                                 return app.html
-//                                             },
-//                                             width: '500px',
-//                                             saveEvent: (() => {
-//                                                 (save)()
-//                                             })
-//                                         }
-//                                     })(),
-//                                     (() => {
-//                                         return {
-//                                             title: "開發金鑰",
-//                                             view: (gvc: GVC) => {
-//                                                 return `<div class="alert alert-danger mt-2"
-// style="white-space:normal;word-break: break-word;"
-// ><strong>請注意!!!!!!</strong><br>開發金鑰能使用官方開發的API，來修改頁面參數內容，請勿洩露此密鑰，以免造成資安風險。</div>` + gvc.bindView(() => {
-//                                                     const vm = {
-//                                                         visible: false,
-//                                                         token: ''
-//                                                     }
-//                                                     const id = glitter.getUUID()
-//                                                     const saasConfig: {
-//                                                         config: any;
-//                                                         api: any;
-//                                                     } = (window as any).saasConfig;
-//                                                     saasConfig.api.getEditorToken().then((response: any) => {
-//                                                         vm.token = response.response.token
-//                                                         gvc.notifyDataChange(id)
-//                                                     })
-//                                                     return {
-//                                                         bind: id,
-//                                                         view: () => {
-//                                                             return `
-// <input class="form-control" type="${vm.visible ? 'text' : 'password'}"
-//                                                                value="${vm.token}" readonly>
-//                                                         <label class="password-toggle-btn"
-//                                                                aria-label="Show/hide password" onclick="${gvc.event(() => {
-//                                                                 vm.visible = !vm.visible
-//                                                                 gvc.notifyDataChange(id)
-//                                                             })}">
-//                                                             <input class="password-toggle-check" type="checkbox">
-//                                                             <span class="password-toggle-indicator"></span>
-//                                                         </label>`
-//                                                         },
-//                                                         divCreate: {class: `password-toggle my-2`}
-//                                                     }
-//                                                 })
-//
-//                                             },
-//                                             width: '500px',
-//                                             saveAble: false
-//                                         }
-//                                     })(),
                                     {
-                                        title:`共用資源`,
-                                        view:(gvc:GVC)=>{
+                                        title: `共用資源`,
+                                        view: (gvc: GVC) => {
                                             return BgProject.setGlobalValue(gvc)
-                                        }
-                                    },
-                                    {
-                                        title:`金流設定`,
-                                        view:(gvc:GVC)=>{
-                                            return BgShopping.setFinanceWay(gvc)
                                         }
                                     }
                                 ]
@@ -161,55 +120,75 @@ export class Setting_editor {
                                          style="white-space: normal;word-break: break-all;">
                                         已下為官方提供的後台開發管理工具，能為您解決基本的系統開發需求。
                                     </div>
-                                    ${setBackendEditor("專案開發",itemList, id)}
-                                    ${setBackendEditor("用戶相關",[
+                                    ${setBackendEditor(`fa-regular fa-gear me-1`,`專案開發`, itemList, id)}
+                                    ${setBackendEditor(`fa-regular fa-user me-1`,`用戶相關`, [
                                         {
-                                            title:`登入設定`,
-                                            view:(gvc:GVC)=>{
+                                            title: `登入設定`,
+                                            view: (gvc: GVC) => {
                                                 return BgProject.setLoginConfig(gvc)
                                             }
                                         },
                                         {
-                                            title:`用戶列表`,
-                                            view:(gvc:GVC)=>{
+                                            title: `用戶列表`,
+                                            view: (gvc: GVC) => {
                                                 return BgProject.userManager(gvc)
                                             }
                                         }
                                     ], id)}
-                                    ${setBackendEditor('電子商務',[
+                                    ${setBackendEditor(`fa-regular fa-shop me-1`,`電子商務`, [
                                         {
-                                            title:`商品管理`,
-                                            view:(gvc:GVC)=>{
+                                            title: `商品管理`,
+                                            view: (gvc: GVC) => {
                                                 return BgShopping.productManager(gvc)
                                             }
                                         },
                                         {
-                                            title:`商品系列`,
-                                            view:(gvc:GVC)=>{
+                                            title: `商品系列`,
+                                            view: (gvc: GVC) => {
                                                 return BgShopping.collectionManager({
-                                                    gvc:gvc
+                                                    gvc: gvc
                                                 })
                                             }
                                         },
                                         {
-                                            title:`訂單管理`,
-                                            view:(gvc:GVC)=>{
+                                            title: `訂單管理`,
+                                            view: (gvc: GVC) => {
                                                 return BgShopping.orderManager(gvc)
                                             }
                                         },
                                         {
-                                            title:`折扣管理`,
-                                            view:(gvc:GVC)=>{
+                                            title: `折扣管理`,
+                                            view: (gvc: GVC) => {
                                                 return BgShopping.voucherManager(gvc)
                                             }
                                         },
                                         {
-                                            title:`運費設定`,
-                                            view:(gvc:GVC)=>{
+                                            title: `運費設定`,
+                                            view: (gvc: GVC) => {
                                                 return BgShopping.setShipment(gvc)
                                             }
+                                        },
+                                        {
+                                            title: `金流 / 發票`,
+                                            view: (gvc: GVC) => {
+                                                return BgShopping.setFinanceWay(gvc)+BgShopping.invoice_setting(gvc)
+                                            }
                                         }
-                                    ],id)}
+                                    ], id)}
+                                    ${setBackendEditor(`fa-sharp fa-regular fa-cloud-arrow-up`,`應用發佈`, [
+                                        {
+                                            title: `蘋果商城`,
+                                            view: (gvc: GVC) => {
+                                                return BgProject.appRelease(gvc,'apple_release')
+                                            }
+                                        },
+                                        {
+                                            title: `安卓商城`,
+                                            view: (gvc: GVC) => {
+                                                return BgProject.appRelease(gvc,'android_release')
+                                            }
+                                        }
+                                    ], id)}
                                 `
                             case "custom":
                                 return gvc.bindView(() => {

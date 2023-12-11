@@ -13,7 +13,7 @@ class EzInvoice {
         const tool = new tool_1.default();
         const salesMoney = 1000;
         const timeStamp = `${new Date().valueOf()}`;
-        const params = obj.invoice_data;
+        const params = JSON.parse(JSON.stringify(obj.invoice_data));
         var dateFormat = new Date(params.TimeStamp);
         console.log(`dateFormat--${dateFormat}`);
         const qs = tool.JsonToQueryString(params);

@@ -8,7 +8,7 @@ export class User{
     public static async createUser(account:string,pwd:string){
         try {
             const userID=generateUserID();
-            await db.execute(`INSERT INTO \`${saasConfig.SAAS_NAME}\`.\`user\` (\`userID\`,\`account\`, \`pwd\`, \`userData\`,status) VALUES (?,?, ?, ?,1);`,[
+            await db.execute(`INSERT INTO \`${saasConfig.SAAS_NAME}\`.\`t_user\` (\`userID\`,\`account\`, \`pwd\`, \`userData\`,status) VALUES (?,?, ?, ?,1);`,[
                 userID,
                 account,
                 await tool.hashPwd(pwd),
@@ -27,17 +27,17 @@ export class User{
     }
     public static async login(account:string,pwd:string){
         try {
-            const data:any=(await db.execute(`select * from \`${saasConfig.SAAS_NAME}\`.user where account=?`,[account]) as any)[0]
-            if(!data.editor_token){
-                const token = await UserUtil.generateToken({
-                    user_id: data["userID"],
-                    account:data["account"],
-                    userData:data
-                });
-                await db.execute(`update \`${saasConfig.SAAS_NAME}\`.user set editor_token=${db.escape(token)} where account=?`,[account])
-            }
+            const data:any=(await db.execute(`select * from \`${saasConfig.SAAS_NAME}\`.t_user where account=?`,[account]) as any)[0]
+            // if(!data.editor_token){
+            //     const token = await UserUtil.generateToken({
+            //         user_id: data["userID"],
+            //         account:data["account"],
+            //         userData:data
+            //     });
+            //     await db.execute(`update \`${saasConfig.SAAS_NAME}\`.t_user set editor_token=${db.escape(token)} where account=?`,[account])
+            // }
             data['token']=undefined;
-            data['editor_token']=undefined;
+            // data['editor_token']=undefined;
             if(await tool.compareHash(pwd, data.pwd)){
                 return {
                     account:account,
@@ -57,7 +57,7 @@ export class User{
 
     public static async checkUserExists(account:string){
         try {
-            return (await db.execute(`select count(1) from \`${saasConfig.SAAS_NAME}\`.user where account=?`,[account]) as any)[0]["count(1)"]==1
+            return (await db.execute(`select count(1) from \`${saasConfig.SAAS_NAME}\`.t_user where account=?`,[account]) as any)[0]["count(1)"]==1
         }catch (e){
             throw exception.BadRequestError('BAD_REQUEST', 'CheckUserExists Error:'+e, null);
         }

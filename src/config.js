@@ -89,7 +89,8 @@ exports.config = {
         smtp: '/smtp',
         lambda: '/lambda',
         ec: '/ec',
-        manager: '/manager'
+        manager: '/manager',
+        app: '/app'
     },
     route: {
         user: "/user",

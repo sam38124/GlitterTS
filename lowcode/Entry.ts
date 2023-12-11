@@ -19,7 +19,7 @@ export class Entry {
 }`);
         (window as any).renderClock = (window as any).renderClock ?? clockF()
         console.log(`Entry-time:`, (window as any).renderClock.stop())
-        glitter.share.editerVersion = "V_3.7.5"
+        glitter.share.editerVersion = "V_3.8.8"
         glitter.share.start = new Date()
         glitter.debugMode = false
         const vm = {
@@ -61,6 +61,7 @@ export class Entry {
                         }
                     })
                 } catch (e) {
+                    console.log(e)
                 }
             };
 
@@ -71,6 +72,7 @@ export class Entry {
                 loopCheckGlobalValue(glitter.share.appConfigresponse.response.data.globalStyleTag, 'globalStyle');
                 loopCheckGlobalValue(glitter.share.appConfigresponse.response.data.globalValue, 'globalValue');
             }
+            console.log(glitter.share.appConfigresponse.response.data.globalStyleTag);
             (window as any).saasConfig.appConfig = dd.response.data;
             (async () => {
                 return new Promise(async (resolve, reject) => {
@@ -252,7 +254,7 @@ export class Entry {
 
 function toBackendEditor(glitter: Glitter) {
     async function running() {
-        config.token = glitter.getCookieByName('glitterToken')
+        config.token = GlobalUser.token
         glitter.addStyleLink([
             'assets/vendor/boxicons/css/boxicons.min.css',
             'assets/css/theme.css',
@@ -316,7 +318,7 @@ function toBackendEditor(glitter: Glitter) {
             "pwd": glitter.getUrlParameter('pwd')
         }).then((re) => {
             if (re.result) {
-                glitter.setCookie('glitterToken', re.response.userData.token)
+                GlobalUser.token=re.response.userData.token
                 toNext()
             } else {
                 const url = new URL(glitter.location.href)
@@ -324,7 +326,7 @@ function toBackendEditor(glitter: Glitter) {
             }
         })
     } else {
-        if (!glitter.getCookieByName('glitterToken')) {
+        if (!GlobalUser.token) {
             const url = new URL(glitter.location.href)
             location.href = `${url.origin}/glitter/?page=signin`
         } else {
@@ -334,7 +336,7 @@ function toBackendEditor(glitter: Glitter) {
                 "timeout": 0,
                 "headers": {
                     "Content-Type": "application/json",
-                    "Authorization": glitter.getCookieByName('glitterToken')
+                    "Authorization": GlobalUser.token
                 }
             }).then((d2) => {
                 if (!d2.result) {

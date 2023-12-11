@@ -7,59 +7,107 @@ export class EditorElem {
         const glitter = window.glitter;
         const $ = glitter.$;
         return `${EditorElem.h3(obj.title)}
-            <div class="d-flex align-items-center mb-3">
-                <input
+${obj.gvc.bindView(() => {
+            const id = glitter.getUUID();
+            return {
+                bind: id,
+                view: () => {
+                    return ` <input
                     class="flex-fill form-control "
                     placeholder="請輸入圖片連結"
                     value="${obj.def}"
                     onchange="${obj.gvc.event((e) => {
-            obj.callback(e.value);
-        })}"
+                        obj.callback(e.value);
+                    })}"
                 />
                 <div class="" style="width: 1px;height: 25px;background-color: white;"></div>
                <i class="fa-regular fa-eye text-black ms-2" style="cursor: pointer;" onclick="${obj.gvc.event(() => {
-            glitter.openDiaLog(new URL('../../dialog/image-preview.js', import.meta.url).href, 'preview', obj.def);
-        })}"></i>
+                        glitter.openDiaLog(new URL('../../dialog/image-preview.js', import.meta.url).href, 'preview', obj.def);
+                    })}"></i>
                 <i
                     class="fa-regular fa-upload  ms-2 text-black"
                     style="cursor: pointer;"
                     onclick="${obj.gvc.event(() => {
-            glitter.ut.chooseMediaCallback({
-                single: true,
-                accept: 'json,image/*',
-                callback(data) {
-                    const saasConfig = window.saasConfig;
-                    const dialog = new ShareDialog(obj.gvc.glitter);
-                    dialog.dataLoading({ visible: true });
-                    const file = data[0].file;
-                    saasConfig.api.uploadFile(file.name).then((data) => {
-                        dialog.dataLoading({ visible: false });
-                        const data1 = data.response;
-                        dialog.dataLoading({ visible: true });
-                        $.ajax({
-                            url: data1.url,
-                            type: 'put',
-                            data: file,
-                            headers: {
-                                "Content-Type": data1.type
-                            },
-                            processData: false,
-                            crossDomain: true,
-                            success: () => {
-                                dialog.dataLoading({ visible: false });
-                                obj.callback(data1.fullUrl);
-                            },
-                            error: () => {
-                                dialog.dataLoading({ visible: false });
-                                dialog.errorMessage({ text: '上傳失敗' });
+                        glitter.ut.chooseMediaCallback({
+                            single: true,
+                            accept: 'json,image/*',
+                            callback(data) {
+                                const saasConfig = window.saasConfig;
+                                const dialog = new ShareDialog(obj.gvc.glitter);
+                                dialog.dataLoading({ visible: true });
+                                const file = data[0].file;
+                                saasConfig.api.uploadFile(file.name).then((data) => {
+                                    dialog.dataLoading({ visible: false });
+                                    const data1 = data.response;
+                                    dialog.dataLoading({ visible: true });
+                                    $.ajax({
+                                        url: data1.url,
+                                        type: 'put',
+                                        data: file,
+                                        headers: {
+                                            "Content-Type": data1.type
+                                        },
+                                        processData: false,
+                                        crossDomain: true,
+                                        success: () => {
+                                            dialog.dataLoading({ visible: false });
+                                            obj.callback(data1.fullUrl);
+                                            obj.def = data1.fullUrl;
+                                            obj.gvc.notifyDataChange(id);
+                                        },
+                                        error: () => {
+                                            dialog.dataLoading({ visible: false });
+                                            dialog.errorMessage({ text: '上傳失敗' });
+                                        },
+                                    });
+                                });
                             },
                         });
-                    });
+                    })}"
+                ></i>`;
                 },
-            });
-        })}"
-                ></i>
-            </div>`;
+                divCreate: {
+                    class: `d-flex align-items-center mb-3`
+                }
+            };
+        })}
+            `;
+    }
+    static fileUploadEvent(file, callback) {
+        const glitter = window.glitter;
+        glitter.ut.chooseMediaCallback({
+            single: true,
+            accept: file,
+            callback(data) {
+                const saasConfig = window.saasConfig;
+                const dialog = new ShareDialog(glitter);
+                dialog.dataLoading({ visible: true });
+                const file = data[0].file;
+                saasConfig.api.uploadFile(file.name).then((data) => {
+                    dialog.dataLoading({ visible: false });
+                    const data1 = data.response;
+                    dialog.dataLoading({ visible: true });
+                    $.ajax({
+                        url: data1.url,
+                        type: 'put',
+                        data: file,
+                        headers: {
+                            "Content-Type": data1.type
+                        },
+                        processData: false,
+                        crossDomain: true,
+                        success: () => {
+                            dialog.dataLoading({ visible: false });
+                            callback(data1.fullUrl);
+                        },
+                        error: () => {
+                            dialog.dataLoading({ visible: false });
+                            dialog.errorMessage({ text: '上傳失敗' });
+                        },
+                    });
+                });
+            },
+        });
     }
     static flexMediaManager(obj) {
         obj.gvc.addStyle(`.p-hover-image:hover{
@@ -482,56 +530,69 @@ ${(_a = obj.initial) !== null && _a !== void 0 ? _a : ""}
         const glitter = window.glitter;
         const $ = glitter.$;
         return `${EditorElem.h3(obj.title)}
-            <div class="d-flex align-items-center mb-3">
-                <input
+${obj.gvc.bindView(() => {
+            const id = glitter.getUUID();
+            return {
+                bind: id,
+                view: () => {
+                    var _a;
+                    return `   <input
                     class="flex-fill form-control "
                     placeholder="請輸入檔案連結"
-                    value="${obj.def}"
+                    value="${(_a = obj.def) !== null && _a !== void 0 ? _a : ""}"
                     onchange="${obj.gvc.event((e) => {
-            obj.callback(e.value);
-        })}"
+                        obj.callback(e.value);
+                    })}"
                 />
                 <div class="" style="width: 1px;height: 25px;background-color: white;"></div>
                 <i
                     class="fa-regular fa-upload  ms-2 fs-5"
                     style="cursor: pointer;color:black;"
                     onclick="${obj.gvc.event(() => {
-            glitter.ut.chooseMediaCallback({
-                single: true,
-                accept: '*',
-                callback(data) {
-                    const saasConfig = window.saasConfig;
-                    const dialog = new ShareDialog(obj.gvc.glitter);
-                    dialog.dataLoading({ visible: true });
-                    const file = data[0].file;
-                    saasConfig.api.uploadFile(file.name).then((data) => {
-                        dialog.dataLoading({ visible: false });
-                        const data1 = data.response;
-                        dialog.dataLoading({ visible: true });
-                        $.ajax({
-                            url: data1.url,
-                            type: 'put',
-                            data: file,
-                            headers: {
-                                "Content-Type": data1.type
-                            },
-                            processData: false,
-                            crossDomain: true,
-                            success: () => {
-                                dialog.dataLoading({ visible: false });
-                                obj.callback(data1.fullUrl);
-                            },
-                            error: () => {
-                                dialog.dataLoading({ visible: false });
-                                dialog.errorMessage({ text: '上傳失敗' });
+                        glitter.ut.chooseMediaCallback({
+                            single: true,
+                            accept: '*',
+                            callback(data) {
+                                const saasConfig = window.saasConfig;
+                                const dialog = new ShareDialog(obj.gvc.glitter);
+                                dialog.dataLoading({ visible: true });
+                                const file = data[0].file;
+                                saasConfig.api.uploadFile(file.name).then((data) => {
+                                    dialog.dataLoading({ visible: false });
+                                    const data1 = data.response;
+                                    dialog.dataLoading({ visible: true });
+                                    $.ajax({
+                                        url: data1.url,
+                                        type: 'put',
+                                        data: file,
+                                        headers: {
+                                            "Content-Type": data1.type
+                                        },
+                                        processData: false,
+                                        crossDomain: true,
+                                        success: () => {
+                                            dialog.dataLoading({ visible: false });
+                                            obj.def = data1.fullUrl;
+                                            obj.callback(data1.fullUrl);
+                                            obj.gvc.notifyDataChange(id);
+                                        },
+                                        error: () => {
+                                            dialog.dataLoading({ visible: false });
+                                            dialog.errorMessage({ text: '上傳失敗' });
+                                        },
+                                    });
+                                });
                             },
                         });
-                    });
+                    })}"
+                ></i>`;
                 },
-            });
-        })}"
-                ></i>
-            </div>`;
+                divCreate: {
+                    class: `d-flex align-items-center mb-3`
+                }
+            };
+        })}
+          `;
     }
     static uploadFileFunction(obj) {
         var _a;
@@ -966,11 +1027,13 @@ ${(_a = obj.initial) !== null && _a !== void 0 ? _a : ""}
         return array.join(`<div class="my-2"></div>`);
     }
     static select(obj) {
+        var _a, _b;
         return `
             ${(obj.title) ? EditorElem.h3(obj.title) : ``}
             <select
-                class="form-select"
-                style="max-height:100%;"
+            
+                class="form-select ${(_a = obj.class) !== null && _a !== void 0 ? _a : ""}"
+                style="max-height:100%; ${(_b = obj.style) !== null && _b !== void 0 ? _b : ""};"
                 onchange="${obj.gvc.event((e) => {
             obj.callback(e.value);
         })}"
@@ -1220,8 +1283,8 @@ ${(obj.def === dd.value && dd.innerHtml) ? `<div class="mt-1">${dd.innerHtml}</d
                             return html `
                                 <li class="btn-group "
                                     style="margin-top:1px;margin-bottom:1px;">
-                                    <div class="editor_item d-flex   align-items-center px-2 my-0 hi me-n1"
-                                         style="${(obj.height) ? `height:${obj.height}px` : ``};"
+                                    <div class="editor_item d-flex   align-items-center px-2 my-0 hi me-n1 ${(dd.isSelect) ? `bgf6 border` : ``}"
+                                         style="${(obj.height) ? `height:${obj.height}px` : ``};cursor: pointer;"
                                          onclick="${gvc.event(() => {
                                 if (!dd.innerHtml) {
                                     return;
@@ -1241,6 +1304,7 @@ ${(obj.def === dd.value && dd.innerHtml) ? `<div class="mt-1">${dd.innerHtml}</d
                                         })}">
                                                              <div class="d-flex align-items-center px-2 border-bottom"
                                                                   style="height:50px;min-width:400px;">
+
                                                                  <h3 style="font-size:15px;font-weight:500;"
                                                                      class="m-0">
                                                                      ${dd.editTitle ? dd.editTitle : `編輯項目「${dd.title}」`}</h3>
@@ -1297,21 +1361,63 @@ ${(obj.def === dd.value && dd.innerHtml) ? `<div class="mt-1">${dd.innerHtml}</d
 
                                         ${dd.title}
                                         <div class="flex-fill"></div>
-                                        <div class="subBt ${(obj.copyable === false) ? `d-none` : ``}"
-                                             onclick="${gvc.event((e, event) => {
-                                obj.originalArray.push(JSON.parse(JSON.stringify(original[index])));
-                                swal.toast({
-                                    icon: 'success',
-                                    title: "複製成功．"
-                                });
-                                gvc.notifyDataChange(viewId);
-                                obj.refreshComponent();
-                                event.stopPropagation();
-                            })}">
-                                            <i class="fa-sharp fa-regular fa-scissors d-flex align-items-center justify-content-center subBt"
-                                               style="width:15px;height:15px;"
-                                            ></i>
-                                        </div>
+                                        ${(() => {
+                                let interval = undefined;
+                                if (obj.copyable === false) {
+                                    return ``;
+                                }
+                                function addIt(ind, event) {
+                                    const copy = JSON.parse(JSON.stringify(original[index]));
+                                    obj.originalArray.splice(index + ind, 0, copy);
+                                    event.stopPropagation();
+                                    gvc.notifyDataChange(viewId);
+                                    obj.refreshComponent();
+                                }
+                                return `<div class="btn-group dropend subBt" style="position: relative;"
+                                                 onmouseover="${gvc.event((e, event) => {
+                                    clearInterval(interval);
+                                    const box = $(e).get(0).getBoundingClientRect();
+                                    setTimeout(() => {
+                                        console.log('s');
+                                        $(e).children('.bt').dropdown('show');
+                                        $(e).children('.dropdown-menu').css('top', `${0}px`);
+                                    }, 100);
+                                })}" onmouseout="${gvc.event((e, event) => {
+                                    interval = setTimeout(() => {
+                                        $(e).children('.bt').dropdown('hide');
+                                    }, 200);
+                                })}" onclick="${gvc.event((e, event) => {
+                                    event.stopPropagation();
+                                })}">
+
+                                                <div type="button" class="bt" style="background:none;"
+                                                     data-bs-toggle="dropdown" aria-haspopup="true"
+                                                     aria-expanded="false">
+                                                    <i class="fa-sharp fa-regular fa-scissors"></i>
+                                                </div>
+                                                <div class="dropdown-menu mx-1 " 
+                                                     onmouseover="${gvc.event((e, event) => {
+                                    clearInterval(interval);
+                                })}" onmouseout="${gvc.event((e, event) => {
+                                    $(e).children('.bt').dropdown('hide');
+                                })}" style="height: 135px;">
+                                                    <a class="dropdown-item" onclick="${gvc.event((e, event) => {
+                                    addIt(0, event);
+                                })}">向上複製</a>
+                                                    <hr class="dropdown-divider">
+                                                    <a class="dropdown-item" onclick="${gvc.event((e, event) => {
+                                    $(e).parent().parent().children('.bt').dropdown('hide');
+                                    navigator.clipboard.writeText(JSON.stringify(original[index]));
+                                    event.stopPropagation();
+                                })}">複製到剪貼簿</a>
+                                                    <hr class="dropdown-divider">
+                                                    <a class="dropdown-item" onclick="${gvc.event((e, event) => {
+                                    $(e).parent().parent().children('.bt').dropdown('hide');
+                                    addIt(1, event);
+                                })}">向下複製</a>
+                                                </div>
+                                            </div>`;
+                            })()}
                                         <div class="subBt ${(obj.draggable === false) ? `d-none` : ``}">
                                             <i class="fa-solid fa-grip-dots-vertical d-flex align-items-center justify-content-center  "
                                                style="width:15px;height:15px;"></i>
@@ -1364,11 +1470,60 @@ ${(obj.def === dd.value && dd.innerHtml) ? `<div class="mt-1">${dd.innerHtml}</d
                         }
                     }
                 };
-            }) + ((obj.plus) ? `<l1 class="btn-group mt-2 ps-1 pe-2 w-100 border-bottom pb-2">
-                    <div class="btn-outline-secondary-c btn ms-2 " style="height:30px;flex:1;" onclick="${obj.plus.event}"><i class="fa-regular fa-circle-plus me-2"></i>${obj.plus.title}</div>
-</l1>` : ``);
+            }) + ((obj.plus) ? html `
+                <l1 class="btn-group mt-2 ps-1 pe-2 w-100 border-bottom pb-2">
+                    <div class="btn-outline-secondary-c btn ms-2 " style="height:30px;flex:1;"
+                         onclick="${obj.plus.event}">
+                        <i class="fa-regular fa-circle-plus me-2"></i>${obj.plus.title}
+                    </div>
+                    ${(() => {
+                if (obj.copyable === false) {
+                    return ``;
+                }
+                let interval = undefined;
+                return `<div class="btn-group dropend subBt my-auto ms-1">
+
+                                                <div type="button" class="bt" style="background:none;"
+                                                     data-bs-toggle="dropdown" aria-haspopup="true"
+                                                     data-placement="right"
+                                                     aria-expanded="false">
+                                                    <i class="fa-regular fa-paste"></i>
+                                                </div>
+                                                <div class="dropdown-menu mx-1 shadow-lg bgf6" data-placement="right"
+                                                    style="min-height: 150px;border:1px solid black;">
+                                                
+                                                     <div class="px-2 position-relative" style="width:250px;z-index:2;">
+                                                       <i class="fa-sharp fa-regular fa-circle-xmark fs-5 position-absolute" style="right:10px;top:-5px;color:black;cursor:pointer;"></i>
+                                                     ${(() => {
+                    let json = '';
+                    return ` ${EditorElem.editeInput({
+                        gvc: gvc,
+                        title: "剪貼簿內容",
+                        default: '',
+                        placeHolder: '請貼上JSON資料格式',
+                        callback: (text) => {
+                            json = text;
+                        }
+                    })}
+                                                       <button class="btn btn-primary-c  w-100 mt-2" onclick="${gvc.event(() => {
+                        try {
+                            obj.originalArray.push(JSON.parse(json));
+                            gvc.notifyDataChange(viewId);
+                            obj.refreshComponent();
+                        }
+                        catch (e) {
+                            alert('請貼上JSON格式');
+                        }
+                    })}">確認新增</button>`;
+                })()}
+</div>
+                                                  
+                                                </div>
+                                            </div>`;
+            })()}
+                </l1>` : ``);
         }
-        return (obj.title ? `   <div class="d-flex  px-2 hi fw-bold d-flex align-items-center border-bottom border-top py-2 bgf6"
+        return (obj.title ? `<div class="d-flex  px-2 hi fw-bold d-flex align-items-center border-bottom border-top py-2 bgf6"
                              style="color:#151515;font-size:16px;gap:0px;">
                             ${obj.title}
                         </div>` : ``) + gvc.bindView(() => {
@@ -1383,7 +1538,7 @@ ${(obj.def === dd.value && dd.innerHtml) ? `<div class="mt-1">${dd.innerHtml}</d
             };
         });
     }
-    static openEditorDialog(gvc, inner, close, width) {
+    static openEditorDialog(gvc, inner, close, width, title) {
         return gvc.glitter.innerDialog((gvc) => {
             return gvc.glitter.html `
             <div class="dropdown-menu mx-0 position-fixed pb-0 border p-0 show "
@@ -1399,7 +1554,7 @@ ${(obj.def === dd.value && dd.innerHtml) ? `<div class="mt-1">${dd.innerHtml}</d
                 1900: 1600
             }, '1200')}px;">
                     <h3 style="font-size:15px;font-weight:500;" class="m-0">
-                        ${`代碼編輯`}</h3>
+                        ${title !== null && title !== void 0 ? title : `代碼編輯`}</h3>
                     <div class="flex-fill"></div>
                     <div class="hoverBtn p-2" data-bs-toggle="dropdown"
                          aria-haspopup="true" aria-expanded="false"
@@ -1417,6 +1572,43 @@ ${(obj.def === dd.value && dd.innerHtml) ? `<div class="mt-1">${dd.innerHtml}</d
                 </div>
             </div>`;
         }, gvc.glitter.getUUID());
+    }
+    static btnGroup(obj) {
+        var _a, _b;
+        const html = String.raw;
+        const gvc = obj.gvc;
+        let interval = undefined;
+        return html `
+            <div class="position-relative btn-group dropend subBt my-auto ms-1 ${(_a = obj.classS) !== null && _a !== void 0 ? _a : ""}" style="${(_b = obj.style) !== null && _b !== void 0 ? _b : ""}"
+                 onmouseover="${obj.gvc.event((e, event) => {
+        })}"  >
+
+                <div type="button" class="bt"
+                     style="background:none;"
+                     data-bs-toggle="dropdown" aria-haspopup="true"
+                     data-placement="left"
+                     aria-expanded="false" onclick="${gvc.event((e, event) => {
+            setTimeout(() => {
+                obj.top && $(e).parent().children('.dropdown-menu').css('top', `${obj.top}px`);
+            }, 100);
+            event.stopPropagation();
+            event.preventDefault();
+        })}">
+                    ${obj.fontawesome}
+                </div>
+                <div class="dropdown-menu mx-1"
+                     data-placement="right"
+                     onmouseover="${obj.gvc.event((e, event) => {
+            clearInterval(interval);
+        })}" onmouseout="${obj.gvc.event((e, event) => {
+            $(e).children('.bt').dropdown('hide');
+        })}" style="min-height: 150px;${obj.dropDownStyle}">
+                    <div class="px-2">
+                        ${(obj.inner)}
+                    </div>
+
+                </div>
+            </div>`;
     }
 }
 function swapArr(arr, index1, index2) {

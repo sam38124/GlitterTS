@@ -18,6 +18,7 @@ import sql_apiRouter = require('./sql_api');
 import lambda_apiRouter = require('./lambda');
 import shop_apiRouter = require('./shop');
 import manager_apiRouter = require('./manager');
+import app_release =require('./app-release')
 import {Live_source} from "../../live_source.js";
 import {IToken} from "../models/Auth.js";
 import {ApiPublic} from "../services/public-table-check.js";
@@ -31,7 +32,7 @@ router.use(config.getRoute(config.public_route.sql_api, 'public'), sql_apiRouter
 router.use(config.getRoute(config.public_route.lambda, 'public'), lambda_apiRouter);
 router.use(config.getRoute(config.public_route.ec, 'public'), shop_apiRouter);
 router.use(config.getRoute(config.public_route.manager, 'public'), manager_apiRouter);
-
+router.use(config.getRoute(config.public_route.app, 'public'), app_release);
 /******************************/
 const whiteList: {}[] = [
     {url: config.getRoute(config.public_route.user + "/register", 'public'), method: 'POST'},

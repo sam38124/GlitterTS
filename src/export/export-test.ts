@@ -93,7 +93,7 @@ const a=[
             "list": [
                 {
                     "tag": "標頭未登入",
-                    "code": "(()=>{\nreturn glitter.getCookieByName('glitterToken')\n})()",
+                    "code": "(()=>{\nreturn GlobalUser.token\n})()",
                     "name": "是否登入",
                     "evenet": {},
                     "expand": true,

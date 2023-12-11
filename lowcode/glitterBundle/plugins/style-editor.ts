@@ -1,5 +1,5 @@
 import {GVC} from '../GVController.js';
-import {HtmlJson} from '../module/Html_generate.js';
+import {HtmlJson} from '../module/html-generate.js';
 const glitter=(window as any).glitter
 glitter.htmlGenerate.share.styleEditor = {
     render: (obj:{tag:string,widget:HtmlJson,gvc:GVC,title:string,def:string}) => {

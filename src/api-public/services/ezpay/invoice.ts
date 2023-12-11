@@ -19,7 +19,7 @@ export class EzInvoice {
         const salesMoney = 1000
         const timeStamp = `${new Date().valueOf()}`
         // 1. 建立請求的參數
-        const params = obj.invoice_data;
+        const params = JSON.parse(JSON.stringify(obj.invoice_data));
         var dateFormat = new Date(params.TimeStamp);
         console.log(`dateFormat--${dateFormat}`)
         // 2. 產生 Query String

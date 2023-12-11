@@ -42,6 +42,8 @@ router.get('/', async (req: express.Request, resp: express.Response) => {
         return response.fail(resp, err);
     }
 });
+
+
 router.put('/', async (req: express.Request, resp: express.Response) => {
     try {
         const post = new Post(req.get('g-app') as string, req.body.token);

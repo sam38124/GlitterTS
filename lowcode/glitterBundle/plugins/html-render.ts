@@ -83,7 +83,8 @@ init((gvc, glitter, gBundle) => {
                     if (vm.loading) {
                         return ``
                     }
-                    console.log(`Render-time:`, (window as any).renderClock.stop())
+                    console.log(`Render-time:`, (window as any).renderClock.stop());
+                    (gBundle.config.formData=gBundle.page_config.formData)
                     return new glitter.htmlGenerate(gBundle.app_config.globalStyle, [], undefined, true).render(gvc) + (
                         (gBundle.editMode && gBundle.editMode.render(gvc))
                         ||

@@ -117,6 +117,7 @@ export const component = Plugin.createComponent(import.meta.url, (glitter, editM
                                                     let createOption = (_a = (htmlGenerate !== null && htmlGenerate !== void 0 ? htmlGenerate : {}).createOption) !== null && _a !== void 0 ? _a : {};
                                                     createOption.option = (_b = createOption.option) !== null && _b !== void 0 ? _b : [];
                                                     createOption.childContainer = true;
+                                                    data.config.formData = data.page_config.formData;
                                                     target.outerHTML = `
                                                 <!-- tag=${tag} -->
                                                 ${new glitter.htmlGenerate(data.config, [], sub).render(gvc, undefined, createOption !== null && createOption !== void 0 ? createOption : {})}

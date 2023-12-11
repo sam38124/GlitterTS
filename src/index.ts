@@ -19,6 +19,9 @@ import * as process from "process";
 import bodyParser from 'body-parser'
 import {Post} from "./api-public/services/post.js";
 import response from "./modules/response.js";
+import {ApiPublic} from "./api-public/services/public-table-check.js";
+import {Release} from "./services/release.js";
+import fs from "fs";
 
 //Glitter FrontEnd Rout
 export const app = express();
@@ -44,15 +47,18 @@ export async function initial(serverPort: number) {
     await (async () => {
         await database.createPool();
         await SaasScheme.createScheme();
+        await ApiPublic.createScheme(saasConfig.SAAS_NAME as string)
         await redis.connect();
         await createAppRoute();
         await listBuckets()
         await createBucket(config.AWS_S3_NAME as string);
         logger.info('[Init]', `Server start with env: ${process.env.NODE_ENV || 'local'}`);
         await app.listen(serverPort);
+        fs.mkdirSync(path.resolve(__filename,'../app-project/work-space'), { recursive: true });
+        Release.removeAllFilesInFolder(path.resolve(__filename,'../app-project/work-space'))
         // await createDomain('glitter-base.com');
         // await setDNS('glitter-base.com')
-// console.log(`domain`,config.domain)
+        // console.log(`domain`,config.domain)
         logger.info('[Init]', `Server is listening on port: ${serverPort}`);
         console.log('Starting up the server now.');
     })();
@@ -276,11 +282,13 @@ window.location.href='?page=${redirect}';
                         }
                     })()}<script>
 window.appName='${appName}';
+window.glitterBase='${process.env.GLITTER_DB}'
 window.glitterBackend='${config.domain}';
 </script>`
                 } catch (e) {
                     return `<script>
 window.appName='${appName}';
+window.glitterBase='${process.env.GLITTER_DB}'
 window.glitterBackend='${config.domain}';
 </script>`
                 }

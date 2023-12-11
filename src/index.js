@@ -42,6 +42,9 @@ const aws_sdk_1 = __importDefault(require("aws-sdk"));
 const live_source_1 = require("./live_source");
 const process = __importStar(require("process"));
 const body_parser_1 = __importDefault(require("body-parser"));
+const public_table_check_js_1 = require("./api-public/services/public-table-check.js");
+const release_js_1 = require("./services/release.js");
+const fs_1 = __importDefault(require("fs"));
 exports.app = (0, express_1.default)();
 const logger = new logger_1.default();
 exports.app.options('/*', (req, res) => {
@@ -61,12 +64,15 @@ async function initial(serverPort) {
     await (async () => {
         await database_1.default.createPool();
         await saas_table_check_1.SaasScheme.createScheme();
+        await public_table_check_js_1.ApiPublic.createScheme(config_1.saasConfig.SAAS_NAME);
         await redis_1.default.connect();
         await createAppRoute();
         await (0, AWSLib_1.listBuckets)();
         await (0, AWSLib_1.createBucket)(config_1.config.AWS_S3_NAME);
         logger.info('[Init]', `Server start with env: ${process.env.NODE_ENV || 'local'}`);
         await exports.app.listen(serverPort);
+        fs_1.default.mkdirSync(path_1.default.resolve(__filename, '../app-project/work-space'), { recursive: true });
+        release_js_1.Release.removeAllFilesInFolder(path_1.default.resolve(__filename, '../app-project/work-space'));
         logger.info('[Init]', `Server is listening on port: ${serverPort}`);
         console.log('Starting up the server now.');
     })();
@@ -286,12 +292,14 @@ window.location.href='?page=${redirect}';
                         }
                     })()}<script>
 window.appName='${appName}';
+window.glitterBase='${process.env.GLITTER_DB}'
 window.glitterBackend='${config_1.config.domain}';
 </script>`;
                 }
                 catch (e) {
                     return `<script>
 window.appName='${appName}';
+window.glitterBase='${process.env.GLITTER_DB}'
 window.glitterBackend='${config_1.config.domain}';
 </script>`;
                 }
