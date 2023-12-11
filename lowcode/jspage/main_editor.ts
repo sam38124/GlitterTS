@@ -281,6 +281,8 @@ ${(() => {
                                                     title: "設定資料來源"
                                                 })
                                         )
+                                    }else{
+                                        viewModel.selectItem.arrayData=undefined
                                     }
                                     return array.join(`<div class="my-2"></div>`)
                                 })()}

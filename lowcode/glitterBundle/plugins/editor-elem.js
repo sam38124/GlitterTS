@@ -1459,6 +1459,9 @@ ${(obj.def === dd.value && dd.innerHtml) ? `<div class="mt-1">${dd.innerHtml}</d
                                             onStart: function (evt) {
                                                 startIndex = evt.oldIndex;
                                                 console.log(`oldIndex--`, startIndex);
+                                            },
+                                            onEnd: () => {
+                                                obj.refreshComponent();
                                             }
                                         });
                                     }

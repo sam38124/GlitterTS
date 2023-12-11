@@ -2756,7 +2756,9 @@ ${EditorElem.arrayItem({
                                 gvc: gvc,
                                 array: formFormat,
                                 refresh: () => {
-                                    gvc.notifyDataChange([docID,'showView'])
+                                    setTimeout(()=>{
+                                        gvc.notifyDataChange([docID,'showView'])
+                                    },100)
                                 },
                                 formData: obj.viewModel.page_config.formData
                             })}

@@ -261,7 +261,7 @@ ${formData[dd.key] ?? ""}
                             bind: arrayViewID,
                             view: () => {
                                 return html`
-                                    <div class="${containerClass}" style="${containerStyle}">
+                                    <div class="${containerClass} mt-2" style="${containerStyle}">
                                         ${label}
                                         ${EditorElem.arrayItem({
                                             gvc: gvc,
@@ -276,7 +276,6 @@ ${formData[dd.key] ?? ""}
                                                                 array: dd.formList,
                                                                 refresh: (key:string) => {
                                                                     obj.refresh(dd.key)
-                                                                 gvc.recreateView()
                                                                 },
                                                                 widget: obj.widget,
                                                                 subData: obj.subData,
@@ -289,6 +288,7 @@ ${formData[dd.key] ?? ""}
                                             originalArray: formData[dd.key],
                                             expand: {},
                                             refreshComponent: () => {
+                                                obj.refresh(dd.key)
                                                 gvc.notifyDataChange(arrayViewID)
                                             },
                                             plus: {

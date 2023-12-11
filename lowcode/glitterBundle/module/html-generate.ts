@@ -681,14 +681,29 @@ ${obj.gvc.bindView({
                                                                     })
                                                                 }
                                                                 const target = gvc.glitter.document.querySelector(`[gvc-id="${gvc.id(tempView)}"]`)
-                                                                target!.outerHTML = (widgetComponent.render(gvc, dd as any, setting as any, hover, subdata, {
-                                                                    option: option,
-                                                                    widgetComponentID: gvc.glitter.getUUID()
-                                                                })
-                                                                    .view() as string)
+                                                                if(dd.gCount==='multiple'){
+                                                                    new Promise(async (resolve,reject)=>{
+                                                                        const data: any = (await TriggerEvent.trigger({
+                                                                            gvc, widget:(dd as any) , clickEvent: dd.arrayData, subData: subdata
+                                                                        }))
+                                                                        target!.outerHTML = data.map((subData:any)=>{
+                                                                            return (widgetComponent.render(gvc, dd as any, setting as any, hover, subData, {
+                                                                                option: option,
+                                                                                widgetComponentID: gvc.glitter.getUUID()
+                                                                            })
+                                                                                .view() as string)
+                                                                        }).join('')
+                                                                    })
+                                                                }else{
+                                                                    target!.outerHTML = (widgetComponent.render(gvc, dd as any, setting as any, hover, subdata, {
+                                                                        option: option,
+                                                                        widgetComponentID: gvc.glitter.getUUID()
+                                                                    })
+                                                                        .view() as string)
+                                                                }
+
                                                             },
-                                                            onDestroy: () => {
-                                                            },
+                                                            onDestroy: () => {},
                                                         }
                                                     })
                                                 } else {
@@ -747,9 +762,7 @@ ${obj.gvc.bindView({
                                             } else {
                                                 return ``
                                             }
-
                                         }
-
                                         return getHtml()
                                     }).join('')
                                     resolve(html)

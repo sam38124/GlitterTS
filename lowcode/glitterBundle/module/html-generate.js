@@ -214,14 +214,29 @@ export class HtmlGenerate {
                                                                     });
                                                                 }
                                                                 const target = gvc.glitter.document.querySelector(`[gvc-id="${gvc.id(tempView)}"]`);
-                                                                target.outerHTML = widgetComponent.render(gvc, dd, setting, hover, subdata, {
-                                                                    option: option,
-                                                                    widgetComponentID: gvc.glitter.getUUID()
-                                                                })
-                                                                    .view();
+                                                                if (dd.gCount === 'multiple') {
+                                                                    new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
+                                                                        const data = (yield TriggerEvent.trigger({
+                                                                            gvc, widget: dd, clickEvent: dd.arrayData, subData: subdata
+                                                                        }));
+                                                                        target.outerHTML = data.map((subData) => {
+                                                                            return widgetComponent.render(gvc, dd, setting, hover, subData, {
+                                                                                option: option,
+                                                                                widgetComponentID: gvc.glitter.getUUID()
+                                                                            })
+                                                                                .view();
+                                                                        }).join('');
+                                                                    }));
+                                                                }
+                                                                else {
+                                                                    target.outerHTML = widgetComponent.render(gvc, dd, setting, hover, subdata, {
+                                                                        option: option,
+                                                                        widgetComponentID: gvc.glitter.getUUID()
+                                                                    })
+                                                                        .view();
+                                                                }
                                                             },
-                                                            onDestroy: () => {
-                                                            },
+                                                            onDestroy: () => { },
                                                         };
                                                     });
                                                 }

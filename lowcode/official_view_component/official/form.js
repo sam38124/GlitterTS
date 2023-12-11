@@ -246,7 +246,7 @@ ${(_e = formData[dd.key]) !== null && _e !== void 0 ? _e : ""}
                             bind: arrayViewID,
                             view: () => {
                                 return html `
-                                    <div class="${containerClass}" style="${containerStyle}">
+                                    <div class="${containerClass} mt-2" style="${containerStyle}">
                                         ${label}
                                         ${EditorElem.arrayItem({
                                     gvc: gvc,
@@ -261,7 +261,6 @@ ${(_e = formData[dd.key]) !== null && _e !== void 0 ? _e : ""}
                                                         array: dd.formList,
                                                         refresh: (key) => {
                                                             obj.refresh(dd.key);
-                                                            gvc.recreateView();
                                                         },
                                                         widget: obj.widget,
                                                         subData: obj.subData,
@@ -274,6 +273,7 @@ ${(_e = formData[dd.key]) !== null && _e !== void 0 ? _e : ""}
                                     originalArray: formData[dd.key],
                                     expand: {},
                                     refreshComponent: () => {
+                                        obj.refresh(dd.key);
                                         gvc.notifyDataChange(arrayViewID);
                                     },
                                     plus: {

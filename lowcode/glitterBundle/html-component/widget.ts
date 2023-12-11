@@ -7,7 +7,6 @@ import {EditorElem} from "../plugins/editor-elem.js";
 
 export const widgetComponent = {
     render: (gvc: GVC, widget: HtmlJson, setting: any, hoverID: string[], subData: any, htmlGenerate: any) => {
-        console.log('formData--->', widget.formData)
         const glitter = gvc.glitter
         widget.data.elem = widget.data.elem ?? "div"
         widget.data.inner = widget.data.inner ?? ""
@@ -68,7 +67,7 @@ export const widgetComponent = {
                     const htmlGenerate = new glitter.htmlGenerate(widget.data.setting, hoverID, subData);
                     widget.data.inner = ''
                     return htmlGenerate.render(gvc, {
-                        containerID: widget.id, onCreate: () => {
+                        containerID: gvc.glitter.getUUID(), onCreate: () => {
                             TriggerEvent.trigger({
                                 gvc: gvc,
                                 widget: widget,

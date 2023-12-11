@@ -13,7 +13,6 @@ import { EditorElem } from "../plugins/editor-elem.js";
 export const widgetComponent = {
     render: (gvc, widget, setting, hoverID, subData, htmlGenerate) => {
         var _a, _b, _c, _d;
-        console.log('formData--->', widget.formData);
         const glitter = gvc.glitter;
         widget.data.elem = (_a = widget.data.elem) !== null && _a !== void 0 ? _a : "div";
         widget.data.inner = (_b = widget.data.inner) !== null && _b !== void 0 ? _b : "";
@@ -75,7 +74,7 @@ export const widgetComponent = {
                     const htmlGenerate = new glitter.htmlGenerate(widget.data.setting, hoverID, subData);
                     widget.data.inner = '';
                     return htmlGenerate.render(gvc, {
-                        containerID: widget.id, onCreate: () => {
+                        containerID: gvc.glitter.getUUID(), onCreate: () => {
                             TriggerEvent.trigger({
                                 gvc: gvc,
                                 widget: widget,

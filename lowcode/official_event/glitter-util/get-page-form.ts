@@ -25,7 +25,12 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                 },
                 event: () => {
                     return new Promise(async (resolve, reject) => {
-                        resolve(widget.formData[object.key])
+                        if(!widget.formData){
+                            resolve(false)
+                        }else{
+                            resolve(widget.formData[object.key])
+                        }
+
                     })
                 },
             };

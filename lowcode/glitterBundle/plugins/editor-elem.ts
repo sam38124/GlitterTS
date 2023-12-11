@@ -1664,12 +1664,15 @@ ${(obj.def === dd.value && dd.innerHtml) ? `<div class="mt-1">${dd.innerHtml}</d
                                             // Called when dragging element changes position
                                             onChange: function (evt: any) {
                                                 swapArr(obj.originalArray, startIndex, evt.newIndex)
-                                                startIndex = evt.newIndex
+                                                startIndex = evt.newIndex;
                                             },
                                             onStart: function (evt: any) {
                                                 startIndex = evt.oldIndex
 
                                                 console.log(`oldIndex--`, startIndex)
+                                            },
+                                            onEnd:()=>{
+                                                obj.refreshComponent()
                                             }
                                         });
                                     } catch (e) {
