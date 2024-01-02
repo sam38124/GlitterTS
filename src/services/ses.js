@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.sendmail = void 0;
-function sendmail(sender, recipient, subject, body) {
+function sendmail(sender, recipient, subject, body, callback) {
     const AWS = require('aws-sdk');
     AWS.config.update({ region: 'us-west-2' });
     const ses = new AWS.SES();
@@ -24,9 +24,11 @@ function sendmail(sender, recipient, subject, body) {
         };
         ses.sendEmail(params, (err, data) => {
             if (err) {
+                callback && callback(false);
                 console.log('Error sending email:', err);
             }
             else {
+                callback && callback(true);
                 console.log('Email sent! Message ID:', data.MessageId);
             }
         });

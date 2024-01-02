@@ -102,14 +102,32 @@ export class Main_editor {
                                                 </div>
                                             </l1>
                                         </div>`,
-                                    new PageEditor(gvc, 'MainEditorLeft', 'MainEditorRight').renderLineItem((viewModel.data! as any).config.filter((dd: any, index: number) => {
-                                        dd.index = index
-                                        return (dd.type !== 'code') && (dd.type !== 'widget' || (dd.data.elem !== 'style' && dd.data.elem !== 'link' && dd.data.elem !== 'script'))
-                                    }), false, (viewModel.data! as any).config, {
-                                        selectEv: (dd) => {
-                                            return dd.id === glitter.getCookieByName('lastSelect')
+                                    (()=>{
+                                        let pageConfig = ((viewModel.data! as any).config.filter((dd: any, index: number) => {
+                                            return (dd.type !== 'code') && (dd.type !== 'widget' || (dd.data.elem !== 'style' && dd.data.elem !== 'link' && dd.data.elem !== 'script'))
+                                        }))
+                                        function setPageConfig() {
+                                            (viewModel.data! as any).config = pageConfig.concat(((viewModel.data! as any).config.filter((dd: any, index: number) => {
+                                                                return !((dd.type !== 'code') && (dd.type !== 'widget' || (dd.data.elem !== 'style' && dd.data.elem !== 'link' && dd.data.elem !== 'script')))
+                                                            })
+                                                    ));
+                                            viewModel.dataList.find((dd:any)=>{
+                                                return dd.tag===viewModel.data.tag
+                                            }).config = (viewModel.data! as any).config;
+                                            pageConfig= (viewModel.data! as any).config
+                                            gvc.notifyDataChange(vid)
                                         }
-                                    })
+                                        
+                                        return  new PageEditor(gvc, 'MainEditorLeft', 'MainEditorRight').renderLineItem(pageConfig, false, pageConfig, {
+                                            selectEv: (dd) => {
+                                                return dd.id === glitter.getCookieByName('lastSelect')
+                                            },
+                                            refreshEvent:()=>{
+                                                setPageConfig()
+                                            }
+                                        })
+                                    })()
+                                  
                                 ])
                             })()}
                         `
@@ -207,7 +225,7 @@ export class Main_editor {
         }
 
         return [html`
-            <div class="h-100 " style="overflow-y:auto;">
+            <div class=" " style="overflow-y:auto;height:calc(100vh - 200px)">
                 ${gvc.bindView(() => {
                     return {
                         bind: `htmlGenerate`,
@@ -294,12 +312,20 @@ ${
                                                 bind: uid,
                                                 view: () => {
                                                     dd.preloadEvenet = dd.preloadEvenet ?? {};
+                                                    dd.hiddenEvent = dd.hiddenEvent ?? {}
                                                     if ((dd.type === 'widget') || (dd.type === 'container')) {
-                                                        return TriggerEvent.editer(gvc, dd, dd.preloadEvenet, {
-                                                            title: "模塊預載事件",
-                                                            option: [],
-                                                            hover: false
-                                                        })
+                                                        return [
+                                                            TriggerEvent.editer(gvc, dd, dd.preloadEvenet, {
+                                                                title: "模塊預載事件",
+                                                                option: [],
+                                                                hover: false
+                                                            }),
+                                                            TriggerEvent.editer(gvc, dd, dd.hiddenEvent, {
+                                                                title: "模塊隱藏事件",
+                                                                option: [],
+                                                                hover: false
+                                                            })
+                                                        ].join(`<div class="my-2"></div>`);
                                                     }
                                                     return [gvc.glitter.htmlGenerate.styleEditor(dd, gvc, dd, {}).editor(
                                                             gvc,
@@ -311,7 +337,14 @@ ${
                                                         title: "模塊預載事件",
                                                         option: [],
                                                         hover: false
-                                                    })].join(`<div class="my-2"></div>`);
+                                                    }),
+                                                        TriggerEvent.editer(gvc, dd, dd.visibleEvent, {
+                                                            title: "模塊可見條件",
+                                                            option: [],
+                                                            hover: false
+                                                        })
+                                                    
+                                                    ].join(`<div class="my-2"></div>`);
                                                 },
                                                 divCreate: {
                                                     class: 'mt-2 mb-2 '

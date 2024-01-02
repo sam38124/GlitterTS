@@ -4,11 +4,13 @@ import {EditorElem} from "../../glitterBundle/plugins/editor-elem.js";
 import {GlobalUser} from "../../glitter-base/global/global-user.js";
 import {ApiUser} from "../../glitter-base/route/user.js";
 
+
 TriggerEvent.createSingleEvent(import.meta.url, () => {
     return {
         fun: (gvc, widget, object, subData, element) => {
             return {
                 editor: () => {
+
                     return ``
                 },
                 event: () => {
@@ -19,10 +21,10 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                             return ``
                         }
                         if(GlobalUser.userInfo){
-
                             resolve(GlobalUser.userInfo)
                         }else{
-                            ApiUser.getUserData(GlobalUser.token).then(async (r) => {
+
+                            ApiUser.getUserData(GlobalUser.token,'me').then(async (r) => {
                                 try {
                                     if (!r.result) {
                                         GlobalUser.token = ''

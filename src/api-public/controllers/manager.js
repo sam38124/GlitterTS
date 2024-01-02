@@ -4,17 +4,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 const express_1 = __importDefault(require("express"));
 const response_1 = __importDefault(require("../../modules/response"));
-const database_1 = __importDefault(require("../../modules/database"));
-const config_1 = require("../../config");
 const exception_1 = __importDefault(require("../../modules/exception"));
 const manager_js_1 = require("../services/manager.js");
+const ut_permission_js_1 = require("../utils/ut-permission.js");
 const router = express_1.default.Router();
 router.put('/config', async (req, resp) => {
     try {
-        if ((await database_1.default.query(`SELECT count(1)
-                             FROM ${config_1.saasConfig.SAAS_NAME}.app_config
-                             where user = ?
-                               and appName = ?`, [req.body.token.userID, req.get('g-app')]))[0]['count(1)'] == 1) {
+        if (await ut_permission_js_1.UtPermission.isManager(req)) {
             await (new manager_js_1.Manager(req.body.token)).setConfig({
                 appName: req.get('g-app'),
                 key: req.body.key,

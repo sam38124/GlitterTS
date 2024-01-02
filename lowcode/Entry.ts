@@ -19,19 +19,18 @@ export class Entry {
 }`);
         (window as any).renderClock = (window as any).renderClock ?? clockF()
         console.log(`Entry-time:`, (window as any).renderClock.stop())
-        glitter.share.editerVersion = "V_3.8.9"
+        glitter.share.editerVersion = "V_4.4.2"
         glitter.share.start = new Date()
         glitter.debugMode = false
         const vm = {
-            pageData: ApiPageConfig.getPage(config.appName, glitter.getUrlParameter('page') ?? glitter.getUUID()),
             appConfig: []
         };
         (window as any).saasConfig = {
             config: (window as any).config = config,
             api: ApiPageConfig,
             appConfig: undefined
-        }
-        ApiPageConfig.getPlugin(config.appName).then((dd) => {
+        };
+        (window as any).glitterInitialHelper.getPlugin((dd: any) => {
             console.log(`getPlugin-time:`, (window as any).renderClock.stop())
             //設定預設的多國語言
             GlobalUser.language = GlobalUser.language || navigator.language
@@ -41,7 +40,6 @@ export class Entry {
             glitter.share.globalStyle = {}
             glitter.share.appConfigresponse.response.data.globalValue = glitter.share.appConfigresponse.response.data.globalValue ?? []
             glitter.share.appConfigresponse.response.data.globalStyleTag = glitter.share.appConfigresponse.response.data.globalStyleTag ?? []
-
             function loopCheckGlobalValue(array: any, tag: string) {
                 try {
                     array.map((dd: any) => {
@@ -50,8 +48,8 @@ export class Entry {
                         } else {
                             if (dd.data.tagType === 'language') {
                                 if (dd.data.value.length > 0) {
-                                    glitter.share[tag][dd.data.tag] = (dd.data.value.find((dd:any)=>{
-                                        return dd.lan.toLowerCase().indexOf(GlobalUser.language.toLowerCase())!==-1
+                                    glitter.share[tag][dd.data.tag] = (dd.data.value.find((dd: any) => {
+                                        return dd.lan.toLowerCase().indexOf(GlobalUser.language.toLowerCase()) !== -1
                                     }) || dd.data.value[0]).text
                                 }
                             } else {
@@ -64,7 +62,6 @@ export class Entry {
                     console.log(e)
                 }
             };
-
             if (glitter.getUrlParameter("type") === 'htmlEditor') {
                 loopCheckGlobalValue((window.parent as any).glitter.share.editorViewModel.globalStyleTag, 'globalStyle');
                 loopCheckGlobalValue((window.parent as any).glitter.share.editorViewModel.globalValue, 'globalValue');
@@ -147,14 +144,14 @@ export class Entry {
                     var bodyElement = document.body;
                     // 创建一个ResizeObserver实例
                     var observer = new ResizeObserver(function (entries, observer) {
-                            function scrollToItem(element: any) {
-                                if (element) {
-                                    element.scrollIntoView({
-                                        behavior: 'auto', // 使用平滑滾動效果
-                                        block: 'center', // 將元素置中
-                                    })
-                                }
+                        function scrollToItem(element: any) {
+                            if (element) {
+                                element.scrollIntoView({
+                                    behavior: 'auto', // 使用平滑滾動效果
+                                    block: 'center', // 將元素置中
+                                })
                             }
+                        }
 
                         clearInterval(timer)
                         timer = setTimeout(() => {
@@ -183,8 +180,11 @@ export class Entry {
                             {key: "async", value: "true"}
                         ]
                     );
+
                     //Preload page script.
-                    glitter.htmlGenerate.loadScript(glitter, (window.parent as any).editerData.setting.map((dd: any) => {
+                    glitter.htmlGenerate.loadScript(glitter, (window.parent as any).editerData.setting.filter((dd: any) => {
+                        return ['widget', 'container', 'code'].indexOf(dd.type) === -1
+                    }).map((dd: any) => {
                         return {
                             src: `${glitter.htmlGenerate.configureCDN(glitter.htmlGenerate.resourceHook(dd.js))}`,
                             type: 'module'
@@ -212,8 +212,8 @@ export class Entry {
                     glitter.share.evalPlace = ((evals: string) => {
                         return eval(evals)
                     })
-                    console.log(`exePlugin-time:`, (window as any).renderClock.stop())
-                    vm.pageData.then((data) => {
+                    console.log(`exePlugin-time:`, (window as any).renderClock.stop());
+                    (window as any).glitterInitialHelper.getPageData(glitter.getUrlParameter('page'),(data: any) => {
                         console.log(`getPageData-time:`, (window as any).renderClock.stop())
                         if (data.response.result.length === 0) {
                             const url = new URL("./", location.href)
@@ -225,7 +225,9 @@ export class Entry {
                             return
                         }
                         //Preload page script.
-                        glitter.htmlGenerate.loadScript(glitter, data.response.result[0].config.map((dd: any) => {
+                        glitter.htmlGenerate.loadScript(glitter, data.response.result[0].config.filter((dd: any) => {
+                            return ['widget', 'container', 'code'].indexOf(dd.type) === -1
+                        }).map((dd: any) => {
                             return {
                                 src: `${glitter.htmlGenerate.configureCDN(glitter.htmlGenerate.resourceHook(dd.js))}`,
                                 callback: () => {
@@ -233,20 +235,56 @@ export class Entry {
                             }
                         }))
 
-                        glitter.htmlGenerate.setHome(
-                            {
-                                app_config: vm.appConfig,
-                                page_config: data.response.result[0].page_config,
-                                config: data.response.result[0].config,
-                                data: {},
-                                tag: glitter.getUrlParameter('page')
+                        function authPass() {
+                            glitter.htmlGenerate.setHome(
+                                {
+                                    app_config: vm.appConfig,
+                                    page_config: data.response.result[0].page_config,
+                                    config: data.response.result[0].config,
+                                    data: {},
+                                    tag: glitter.getUrlParameter('page')
+                                }
+                            );
+                        }
+
+                        function authError(message: string) {
+                            glitter.addStyleLink([
+                                'assets/vendor/boxicons/css/boxicons.min.css',
+                                'assets/css/theme.css',
+                                'css/editor.css',
+
+                            ]);
+
+                            glitter.setHome('jspage/alert.js', glitter.getUrlParameter('page'), message, {
+                                backGroundColor: `transparent;`
+                            });
+                        }
+
+                        const glitterAuth = (window as any).glitterAuth
+                        if (((window as any).appName !== (window as any).glitterBase) && (glitterAuth)) {
+                            if (glitterAuth.overdue) {
+                                authError('APP使用權限已過期，請前往GLITTER網站續費。')
+                            } else {
+                                glitterAuth.memberType = glitterAuth.memberType || 'free'
+                                const memberCheck: any = {
+                                    vip: 40,
+                                    basic: 2,
+                                    company: 10,
+                                    free: 1,
+                                    noLimit: Infinity
+                                }
+                                if (memberCheck[glitterAuth.memberType] < glitterAuth.appCount) {
+                                    authError(`當前可建立應用數量為${memberCheck[glitterAuth.memberType]}個，請前往Glitter後台升級方案，或者刪除不要使用的應用。`)
+                                } else {
+                                    authPass()
+                                }
                             }
-                        );
+                        } else {
+                            authPass()
+                        }
                     })
                 }
             });
-
-
         })
     }
 
@@ -318,7 +356,7 @@ function toBackendEditor(glitter: Glitter) {
             "pwd": glitter.getUrlParameter('pwd')
         }).then((re) => {
             if (re.result) {
-                GlobalUser.token=re.response.userData.token
+                GlobalUser.token = re.response.userData.token
                 toNext()
             } else {
                 const url = new URL(glitter.location.href)

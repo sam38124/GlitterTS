@@ -5,14 +5,14 @@ export declare class Release {
         appDomain: string;
         project_router: string;
         glitter_domain: string;
-    }): void;
+    }): Promise<void>;
     static android(cf: {
         appName: string;
         bundleID: string;
         appDomain: string;
         project_router: string;
         glitter_domain: string;
-    }): void;
+    }): Promise<void>;
     static copyFolderSync(source: string, target: string): void;
     static removeAllFilesInFolder(folderPath: string): void;
     static compressFiles(inputFolder: string, outputZip: string): Promise<unknown>;

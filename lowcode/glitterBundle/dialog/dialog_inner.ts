@@ -1,6 +1,6 @@
 import {init} from "../GVController.js";
 
-init((gvc, glitter, gBundle) => {
+init(import.meta.url,(gvc, glitter, gBundle) => {
     return {
         onCreateView: () => {
 

@@ -1,7 +1,7 @@
 import {init} from '../glitterBundle/GVController.js';
 import {ApiPageConfig} from "../api/pageConfig.js";
 
-init((gvc, glitter, gBundle) => {
+init(import.meta.url,(gvc, glitter, gBundle) => {
     console.log('sss')
     gvc.addStyle(`.nav {
   white-space: nowrap;

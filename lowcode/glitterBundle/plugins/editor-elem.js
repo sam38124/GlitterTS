@@ -291,6 +291,16 @@ ${addNewlineAfterSemicolon(obj.initial)}
 </div>
         ` + getComponent(obj.gvc, obj.height);
     }
+    static iframeComponent(cf) {
+        const href = new URL(location.href);
+        href.searchParams.set('page', cf.page);
+        href.searchParams.delete('type');
+        href.searchParams.delete('router');
+        cf.par.map((dd) => {
+            href.searchParams.set(dd.key, dd.value);
+        });
+        return `<iframe class="rounded-3" src="${href.href}" style="border: none;width:${cf.width}px;height:${cf.height}px;"></iframe>`;
+    }
     static codeEditor(obj) {
         let idlist = [];
         function getComponent(gvc, height) {
@@ -304,9 +314,9 @@ ${addNewlineAfterSemicolon(obj.initial)}
                         const childWindow = document.getElementById(frameID).contentWindow;
                         childWindow.postMessage({
                             type: 'getData',
-                            value: `(()=>{
+                            value: `${(obj.structStart) ? obj.structStart : `(()=>{`}
 ${(_a = obj.initial) !== null && _a !== void 0 ? _a : ""}
-})()`,
+${(obj.structEnd) ? obj.structEnd : "})()"}`,
                             language: 'javascript',
                             refactor: true
                         }, domain);
@@ -426,7 +436,7 @@ ${(_a = obj.initial) !== null && _a !== void 0 ? _a : ""}
                     return `<div style="" class="" id="${richID}">${obj.def}</div>`;
                 },
                 divCreate: {
-                    style: `max-height:500px;overflow-y: auto;`
+                    style: obj.style || `max-height:500px;overflow-y: auto;`
                 },
                 onCreate: () => {
                     const interval = setInterval(() => {
@@ -1021,7 +1031,7 @@ ${obj.gvc.bindView(() => {
         return `${(obj.title) ? EditorElem.h3(obj.title) : ``}
 <input class="form-control" style="${(_b = obj.style) !== null && _b !== void 0 ? _b : ""}" type="${(_c = obj.type) !== null && _c !== void 0 ? _c : 'text'}" placeholder="${obj.placeHolder}" onchange="${obj.gvc.event((e) => {
             obj.callback(e.value);
-        })}" value="${(_d = obj.default) !== null && _d !== void 0 ? _d : ''}">`;
+        })}" value="${(_d = obj.default) !== null && _d !== void 0 ? _d : ''}" ${(obj.readonly) ? `readonly` : ``}>`;
     }
     static container(array) {
         return array.join(`<div class="my-2"></div>`);
@@ -1036,6 +1046,13 @@ ${obj.gvc.bindView(() => {
                 style="max-height:100%; ${(_b = obj.style) !== null && _b !== void 0 ? _b : ""};"
                 onchange="${obj.gvc.event((e) => {
             obj.callback(e.value);
+        })}"
+                ${obj.readonly ? `disabled` : ``}
+                onclick="${obj.gvc.event((e, event) => {
+            if (obj.readonly) {
+                event.stopPropagation();
+                event.preventDefault();
+            }
         })}"
             >
                 ${obj.array
@@ -1281,8 +1298,7 @@ ${(obj.def === dd.value && dd.innerHtml) ? `<div class="mt-1">${dd.innerHtml}</d
                                 event.stopPropagation();
                             });
                             return html `
-                                <li class="btn-group "
-                                    style="margin-top:1px;margin-bottom:1px;">
+                                <li class="btn-group" style="margin-top:1px;margin-bottom:1px;">
                                     <div class="editor_item d-flex   align-items-center px-2 my-0 hi me-n1 ${(dd.isSelect) ? `bgf6 border` : ``}"
                                          style="${(obj.height) ? `height:${obj.height}px` : ``};cursor: pointer;"
                                          onclick="${gvc.event(() => {
@@ -1373,20 +1389,17 @@ ${(obj.def === dd.value && dd.innerHtml) ? `<div class="mt-1">${dd.innerHtml}</d
                                     gvc.notifyDataChange(viewId);
                                     obj.refreshComponent();
                                 }
+                                let toggle = false;
                                 return `<div class="btn-group dropend subBt" style="position: relative;"
-                                                 onmouseover="${gvc.event((e, event) => {
-                                    clearInterval(interval);
-                                    const box = $(e).get(0).getBoundingClientRect();
-                                    setTimeout(() => {
-                                        console.log('s');
+                                                 onclick="${gvc.event((e, event) => {
+                                    toggle = !toggle;
+                                    if (toggle) {
                                         $(e).children('.bt').dropdown('show');
                                         $(e).children('.dropdown-menu').css('top', `${0}px`);
-                                    }, 100);
-                                })}" onmouseout="${gvc.event((e, event) => {
-                                    interval = setTimeout(() => {
+                                    }
+                                    else {
                                         $(e).children('.bt').dropdown('hide');
-                                    }, 200);
-                                })}" onclick="${gvc.event((e, event) => {
+                                    }
                                     event.stopPropagation();
                                 })}">
 
@@ -1396,11 +1409,10 @@ ${(obj.def === dd.value && dd.innerHtml) ? `<div class="mt-1">${dd.innerHtml}</d
                                                     <i class="fa-sharp fa-regular fa-scissors"></i>
                                                 </div>
                                                 <div class="dropdown-menu mx-1 " 
-                                                     onmouseover="${gvc.event((e, event) => {
-                                    clearInterval(interval);
-                                })}" onmouseout="${gvc.event((e, event) => {
-                                    $(e).children('.bt').dropdown('hide');
-                                })}" style="height: 135px;">
+                                                   style="height: 135px;" onclick="${gvc.event((e, event) => {
+                                    toggle = false;
+                                    event.stopPropagation();
+                                })}">
                                                     <a class="dropdown-item" onclick="${gvc.event((e, event) => {
                                     addIt(0, event);
                                 })}">向上複製</a>
@@ -1408,7 +1420,6 @@ ${(obj.def === dd.value && dd.innerHtml) ? `<div class="mt-1">${dd.innerHtml}</d
                                                     <a class="dropdown-item" onclick="${gvc.event((e, event) => {
                                     $(e).parent().parent().children('.bt').dropdown('hide');
                                     navigator.clipboard.writeText(JSON.stringify(original[index]));
-                                    event.stopPropagation();
                                 })}">複製到剪貼簿</a>
                                                     <hr class="dropdown-divider">
                                                     <a class="dropdown-item" onclick="${gvc.event((e, event) => {
@@ -1494,7 +1505,6 @@ ${(obj.def === dd.value && dd.innerHtml) ? `<div class="mt-1">${dd.innerHtml}</d
                                                 </div>
                                                 <div class="dropdown-menu mx-1 shadow-lg bgf6" data-placement="right"
                                                     style="min-height: 150px;border:1px solid black;">
-                                                
                                                      <div class="px-2 position-relative" style="width:250px;z-index:2;">
                                                        <i class="fa-sharp fa-regular fa-circle-xmark fs-5 position-absolute" style="right:10px;top:-5px;color:black;cursor:pointer;"></i>
                                                      ${(() => {
@@ -1510,7 +1520,15 @@ ${(obj.def === dd.value && dd.innerHtml) ? `<div class="mt-1">${dd.innerHtml}</d
                     })}
                                                        <button class="btn btn-primary-c  w-100 mt-2" onclick="${gvc.event(() => {
                         try {
-                            obj.originalArray.push(JSON.parse(json));
+                            const data = JSON.parse(json);
+                            if (Array.isArray(data)) {
+                                data.map((dd) => {
+                                    obj.originalArray.push(dd);
+                                });
+                            }
+                            else {
+                                obj.originalArray.push(data);
+                            }
                             gvc.notifyDataChange(viewId);
                             obj.refreshComponent();
                         }
@@ -1529,6 +1547,17 @@ ${(obj.def === dd.value && dd.innerHtml) ? `<div class="mt-1">${dd.innerHtml}</d
         return (obj.title ? `<div class="d-flex  px-2 hi fw-bold d-flex align-items-center border-bottom border-top py-2 bgf6"
                              style="color:#151515;font-size:16px;gap:0px;">
                             ${obj.title}
+                            <div class="flex-fill"></div>
+                          ${(obj.copyable !== false) ? `
+                          <div class="d-flex align-items-center justify-content-center hoverBtn me-2 border" style="height:30px;width:30px;border-radius:6px;cursor:pointer;color:#151515;"
+                          onclick="${gvc.event(() => {
+            navigator.clipboard.writeText(JSON.stringify(obj.originalArray));
+            const dialog = new ShareDialog(gvc.glitter);
+            dialog.successMessage({ text: "已複製至剪貼簿!" });
+        })}">
+                                    <i class="fa-sharp fa-regular fa-scissors" aria-hidden="true"></i>
+                                </div>
+                          ` : ``}
                         </div>` : ``) + gvc.bindView(() => {
             return {
                 bind: viewId,
@@ -1582,9 +1611,10 @@ ${(obj.def === dd.value && dd.innerHtml) ? `<div class="mt-1">${dd.innerHtml}</d
         const gvc = obj.gvc;
         let interval = undefined;
         return html `
-            <div class="position-relative btn-group dropend subBt my-auto ms-1 ${(_a = obj.classS) !== null && _a !== void 0 ? _a : ""}" style="${(_b = obj.style) !== null && _b !== void 0 ? _b : ""}"
+            <div class="position-relative btn-group dropend subBt my-auto ms-1 ${(_a = obj.classS) !== null && _a !== void 0 ? _a : ""}"
+                 style="${(_b = obj.style) !== null && _b !== void 0 ? _b : ""}"
                  onmouseover="${obj.gvc.event((e, event) => {
-        })}"  >
+        })}">
 
                 <div type="button" class="bt"
                      style="background:none;"

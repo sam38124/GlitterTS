@@ -104,12 +104,14 @@ export class Template {
         appName: string, tag?: string
     }) {
         try {
-            let sql = `select *
+            let sql = `select  ${(config.tag) ? `*`:`id,userID,tag,\`group\`,name`}
                        from \`${saasConfig.SAAS_NAME}\`.page_config
                        where 1 = 1
                          and appName = ${db.escape(config.appName)}`
             if (config.tag){
-                sql+=` and tag=${db.escape(config.tag)}`
+                sql+=` and tag in (${config.tag.split(',').map((dd)=>{
+                    return db.escape(dd)
+                }).join(',')})`
             }
             return await db.query(sql, [])
         } catch (e: any) {

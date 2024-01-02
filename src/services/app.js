@@ -221,6 +221,21 @@ class App {
             throw exception_1.default.BadRequestError((_a = e.code) !== null && _a !== void 0 ? _a : 'BAD_REQUEST', e, null);
         }
     }
+    static async checkOverDue(app) {
+        const userID = (await database_1.default.query(`SELECT user
+                                        FROM \`${config_1.saasConfig.SAAS_NAME}\`.app_config
+                                        where appName = ?`, [app]))[0]['user'];
+        const userData = (await database_1.default.query(`SELECT userData
+                                          FROM \`${config_1.saasConfig.SAAS_NAME}\`.t_user
+                                          where userID = ? `, [userID]))[0];
+        let appCount = (await database_1.default.query(`SELECT count(1)
+                                                          FROM \`${config_1.saasConfig.SAAS_NAME}\`.app_config where user=?`, [userID]))[0]['count(1)'];
+        return {
+            overdue: !(userData.userData.expireDate && new Date(userData.userData.expireDate).getTime() > new Date().getTime()),
+            memberType: userData.userData.menber_type,
+            appCount: appCount
+        };
+    }
     async setAppConfig(config) {
         var _a, _b;
         try {

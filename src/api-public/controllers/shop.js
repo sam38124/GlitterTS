@@ -13,7 +13,46 @@ const newebpay_1 = __importDefault(require("../services/newebpay"));
 const private_config_js_1 = require("../../services/private_config.js");
 const database_js_1 = __importDefault(require("../../modules/database.js"));
 const invoice_js_1 = require("../services/invoice.js");
+const user_js_1 = require("../services/user.js");
+const custom_code_js_1 = require("../services/custom-code.js");
+const ut_database_js_1 = require("../utils/ut-database.js");
+const post_js_1 = require("../services/post.js");
 const router = express_1.default.Router();
+router.get('/rebate/sum', async (req, resp) => {
+    try {
+        const app = req.get('g-app');
+        await database_js_1.default.query(`update \`${app}\`.t_rebate
+                        set status = -1
+                        where userID = ?
+                          and status = 1
+                          and orderID in (select cart_token
+                                          from \`${app}\`.t_checkout
+                                          where (
+                                              status!=1 and created_time < (CURRENT_TIMESTAMP - INTERVAL 10 MINUTE)
+                                              )
+                                             or (
+                                              status = -2
+                                              ))`, [req.query.userID || req.body.token.userID]);
+        await database_js_1.default.query(`update \`${app}\`.t_rebate
+                        set status = 1
+                        where userID = ?
+                          and status = -1
+                          and orderID in (select cart_token
+                                          from \`${app}\`.t_checkout
+                                          where (
+                                                    status = 1
+                                                    ))`, [req.query.userID || req.body.token.userID]);
+        return response_1.default.succ(resp, {
+            sum: (await database_js_1.default.query(`SELECT sum(money)
+                                  FROM \`${app}\`.t_rebate
+                                  where status in (1, 2)
+                                    and userID = ?`, [req.query.userID || req.body.token.userID]))[0]['sum(money)'] || 0
+        });
+    }
+    catch (err) {
+        return response_1.default.fail(resp, err);
+    }
+});
 router.get("/product", async (req, resp) => {
     var _a, _b;
     try {
@@ -23,11 +62,90 @@ router.get("/product", async (req, resp) => {
             search: req.query.search,
             id: req.query.id,
             collection: req.query.collection,
-            minPrice: req.query.min_price,
-            maxPrice: req.query.max_price,
-            status: req.query.status
+            min_price: req.query.min_price,
+            max_price: req.query.max_price,
+            status: req.query.status,
+            order_by: (() => {
+                switch (req.query.order_by) {
+                    case 'max_price':
+                        return `order by (CAST(JSON_UNQUOTE(JSON_EXTRACT(content, '$.max_price')) AS SIGNED))  desc`;
+                    case 'min_price':
+                        return `order by (CAST(JSON_UNQUOTE(JSON_EXTRACT(content, '$.min_price')) AS SIGNED))  asc`;
+                    default:
+                        return `order by Updated_time desc`;
+                }
+            })()
         }));
         return response_1.default.succ(resp, shopping);
+    }
+    catch (err) {
+        return response_1.default.fail(resp, err);
+    }
+});
+router.get('/rebate', async (req, resp) => {
+    try {
+        const app = req.get('g-app');
+        let query = [];
+        if ((await ut_permission_1.UtPermission.isManager(req))) {
+            req.query.search && query.push(`(userID in (select userID from \`${app}\`.t_user where (UPPER(JSON_UNQUOTE(JSON_EXTRACT(userData, '$.name')) LIKE UPPER('%${req.query.search}%')))))`);
+        }
+        else {
+            query.push(`userID=${database_js_1.default.escape(req.body.token.userID)}`);
+        }
+        query.push(`status in (1,2)`);
+        const data = await new ut_database_js_1.UtDatabase(req.get('g-app'), `t_rebate`).querySql(query, req.query);
+        for (const b of data.data) {
+            let userData = (await database_js_1.default.query(`select userData
+                                            from \`${app}\`.t_user
+                                            where userID = ?`, [b.userID]))[0];
+            b.userData = (userData) && userData.userData;
+        }
+        return response_1.default.succ(resp, data);
+    }
+    catch (err) {
+        return response_1.default.fail(resp, err);
+    }
+});
+router.post('/rebate/manager', async (req, resp) => {
+    try {
+        if (await ut_permission_1.UtPermission.isManager(req)) {
+            const app = req.get('g-app');
+            let orderID = new Date().getTime();
+            for (const b of req.body.userID) {
+                await database_js_1.default.execute(`insert into \`${app}\`.t_rebate (orderID, userID, money, status, note)
+                                  values (?, ?, ?, ?, ?)`, [
+                    orderID++,
+                    b,
+                    req.body.total,
+                    2,
+                    req.body.note
+                ]);
+            }
+            return response_1.default.succ(resp, {
+                result: true
+            });
+        }
+        else {
+            return response_1.default.fail(resp, exception_1.default.BadRequestError('BAD_REQUEST', 'No permission.', null));
+        }
+    }
+    catch (err) {
+        return response_1.default.fail(resp, err);
+    }
+});
+router.delete('/rebate', async (req, resp) => {
+    try {
+        if (await ut_permission_1.UtPermission.isManager(req)) {
+            await new shopping_1.Shopping(req.get('g-app'), req.body.token).deleteRebate({
+                id: req.body.id
+            });
+            return response_1.default.succ(resp, {
+                result: true
+            });
+        }
+        else {
+            return response_1.default.fail(resp, exception_1.default.BadRequestError('BAD_REQUEST', 'No permission.', null));
+        }
     }
     catch (err) {
         return response_1.default.fail(resp, err);
@@ -56,7 +174,15 @@ router.post("/checkout", async (req, resp) => {
             email: (req.body.token && req.body.token.account) || req.body.email,
             return_url: req.body.return_url,
             user_info: req.body.user_info,
-            code: req.body.code
+            code: req.body.code,
+            use_rebate: (() => {
+                if (req.body.use_rebate && (typeof req.body.use_rebate === 'number')) {
+                    return req.body.use_rebate;
+                }
+                else {
+                    return 0;
+                }
+            })()
         })));
     }
     catch (err) {
@@ -70,7 +196,16 @@ router.post("/checkout/preview", async (req, resp) => {
             email: (req.body.token && req.body.token.account) || req.body.email,
             return_url: req.body.return_url,
             user_info: req.body.user_info,
-            code: req.body.code
+            code: req.body.code,
+            use_rebate: (() => {
+                console.log(`use-rebate-->`, req.body.use_rebate);
+                if (req.body.use_rebate && (typeof req.body.use_rebate === 'number')) {
+                    return req.body.use_rebate;
+                }
+                else {
+                    return 0;
+                }
+            })()
         }, 'preview')));
     }
     catch (err) {
@@ -196,10 +331,42 @@ router.post('/notify', upload.single('file'), async (req, resp) => {
             "MERCHANT_ID": keyData.MERCHANT_ID,
         }).decode(url.searchParams.get('TradeInfo')));
         if (decodeData['Status'] === 'SUCCESS') {
-            await database_js_1.default.execute(`update \`${appName}\`.t_checkout
-                              set status=?
-                              where cart_token = ?`, [1, decodeData['Result']['MerchantOrderNo']]);
-            new invoice_js_1.Invoice(appName).postCheckoutInvoice(decodeData['Result']['MerchantOrderNo']);
+            const notProgress = (await database_js_1.default.query(`SELECT count(1)
+                                                 FROM \`${appName}\`.t_checkout
+                                                 where cart_token = ?
+                                                   and status = 0;`, [decodeData['Result']['MerchantOrderNo']]))[0]['count(1)'];
+            if (notProgress) {
+                await database_js_1.default.execute(`update \`${appName}\`.t_checkout
+                                  set status=?
+                                  where cart_token = ?`, [1, decodeData['Result']['MerchantOrderNo']]);
+                const cartData = (await database_js_1.default.query(`SELECT *
+                                                  FROM \`${appName}\`.t_checkout
+                                                  where cart_token = ?;`, [decodeData['Result']['MerchantOrderNo']]))[0];
+                const userData = await (new user_js_1.User(appName).getUserData(cartData.email, 'account'));
+                if (cartData.orderData.rebate > 0) {
+                    await database_js_1.default.query(`insert into \`${appName}\`.t_rebate (orderID, userID, money, status, note)
+                                    values (?, ?, ?, ?, ?);`, [
+                        cartData.cart_token,
+                        userData.userID,
+                        cartData.orderData.rebate,
+                        1,
+                        JSON.stringify({
+                            note: '消費返還回饋金'
+                        })
+                    ]);
+                }
+                try {
+                    await new custom_code_js_1.CustomCode(appName).checkOutHook({
+                        userData: userData,
+                        cartData: cartData
+                    });
+                }
+                catch (e) {
+                    console.log(`webHookError`);
+                    console.log(e);
+                }
+                new invoice_js_1.Invoice(appName).postCheckoutInvoice(decodeData['Result']['MerchantOrderNo']);
+            }
         }
         else {
             await database_js_1.default.execute(`update \`${appName}\`.t_checkout
@@ -207,6 +374,76 @@ router.post('/notify', upload.single('file'), async (req, resp) => {
                               where cart_token = ?`, [-1, decodeData['Result']['MerchantOrderNo']]);
         }
         return response_1.default.succ(resp, {});
+    }
+    catch (err) {
+        return response_1.default.fail(resp, err);
+    }
+});
+router.get('/wishlist', async (req, resp) => {
+    try {
+        let query = [
+            `(content->>'$.type'='wishlist')`,
+            `userID = ${req.body.token.userID}`
+        ];
+        const data = await new ut_database_js_1.UtDatabase(req.get('g-app'), `t_post`).querySql(query, req.query);
+        return response_1.default.succ(resp, await new ut_database_js_1.UtDatabase(req.get('g-app'), `t_manager_post`).querySql([
+            `id in (${['0'].concat(data.data.map((dd) => {
+                return dd.content.product_id;
+            })).join(',')})`
+        ], req.query));
+    }
+    catch (err) {
+        return response_1.default.fail(resp, err);
+    }
+});
+router.get('/checkWishList', async (req, resp) => {
+    try {
+        return response_1.default.succ(resp, {
+            result: ((await database_js_1.default.query(`select count(1)
+                                      FROM \`${req.get('g-app')}\`.t_post
+                                      where (content ->>'$.type'='wishlist')
+                                        and userID = ?
+                                        and (content ->>'$.product_id'=${req.query.product_id})
+            `, [req.body.token.userID])))[0]['count(1)'] == '1'
+        });
+    }
+    catch (err) {
+        return response_1.default.fail(resp, err);
+    }
+});
+router.post('/wishlist', async (req, resp) => {
+    try {
+        const post = new post_js_1.Post(req.get('g-app'), req.body.token);
+        (await database_js_1.default.query(`delete
+                         FROM \`${req.get('g-app')}\`.t_post
+                         where (content ->>'$.type'='wishlist')
+                           and userID = ?
+                           and (content ->>'$.product_id'=${req.body.product_id})
+        `, [req.body.token.userID]));
+        const postData = {
+            product_id: req.body.product_id,
+            userID: (req.body.token && req.body.token.userID) || 0,
+            type: 'wishlist'
+        };
+        (await post.postContent({
+            userID: postData.userID,
+            content: JSON.stringify(postData),
+        }, 't_post'));
+        return response_1.default.succ(resp, { result: true });
+    }
+    catch (err) {
+        return response_1.default.fail(resp, err);
+    }
+});
+router.delete('/wishlist', async (req, resp) => {
+    try {
+        (await database_js_1.default.query(`delete
+                         FROM \`${req.get('g-app')}\`.t_post
+                         where (content ->>'$.type'='wishlist')
+                           and userID = ?
+                           and (content ->>'$.product_id'=${req.body.product_id})
+        `, [req.body.token.userID]));
+        return response_1.default.succ(resp, { result: true });
     }
     catch (err) {
         return response_1.default.fail(resp, err);

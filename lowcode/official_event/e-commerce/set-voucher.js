@@ -22,27 +22,28 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                         TriggerEvent.editer(gvc, widget, object.code, {
                             hover: false,
                             option: [],
-                            title: '代碼來源'
+                            title: '優惠券來源'
                         }),
                         TriggerEvent.editer(gvc, widget, object.success, {
                             hover: false,
                             option: [],
-                            title: '新增成功'
-                        }), TriggerEvent.editer(gvc, widget, object.error, {
+                            title: '優惠券新增成功'
+                        }),
+                        TriggerEvent.editer(gvc, widget, object.error, {
                             hover: false,
                             option: [],
-                            title: '新增失敗'
+                            title: '優惠券新增失敗'
                         })
                     ].join(`<div class="my-2"></div>`);
                 },
                 event: () => {
                     return new Promise((resolve, reject) => __awaiter(void 0, void 0, void 0, function* () {
-                        const code = yield TriggerEvent.trigger({
+                        const code = (yield TriggerEvent.trigger({
                             gvc: gvc,
                             widget: widget,
                             clickEvent: object.code,
                             element: element
-                        });
+                        })) || (yield ApiShop.getVoucherCode()) || '';
                         ApiShop.getCart().then((res) => __awaiter(void 0, void 0, void 0, function* () {
                             const cartData = {
                                 line_items: [],
@@ -71,22 +72,21 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                     return code && (dd.code === code);
                                 })) {
                                     yield ApiShop.setVoucherCode(code);
-                                    TriggerEvent.trigger({
+                                    yield TriggerEvent.trigger({
                                         gvc: gvc,
                                         widget: widget,
                                         clickEvent: object.success
                                     });
-                                    resolve(res.response.data);
                                 }
                                 else {
                                     yield ApiShop.setVoucherCode('');
-                                    TriggerEvent.trigger({
+                                    yield TriggerEvent.trigger({
                                         gvc: gvc,
                                         widget: widget,
                                         clickEvent: object.error
                                     });
-                                    resolve(res.response.data);
                                 }
+                                resolve(res.response.data);
                             }));
                         }));
                     }));

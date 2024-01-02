@@ -221,6 +221,7 @@ class Add_item_dia {
                     "Authorization": config.token
                 }
             });
+
             (data.response.data ?? []).map((dd: any) => {
                 if (component_group_key[dd.key]) {
                     viewModel.pluginList.push({
@@ -420,14 +421,6 @@ class Add_item_dia {
                 right: gvc.bindView({
                     bind: docID,
                     view: () => {
-                        function tryReturn(fun: () => string, defaults: string): string {
-                            try {
-                                return fun();
-                            } catch (e) {
-                                return defaults;
-                            }
-                        }
-
                         if (!viewModel.selectSource) {
                             return ``
                         }

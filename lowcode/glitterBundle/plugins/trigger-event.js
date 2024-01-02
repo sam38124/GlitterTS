@@ -87,26 +87,16 @@ export class TriggerEvent {
         function run(event) {
             return __awaiter(this, void 0, void 0, function* () {
                 return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
-                    let hasRun = false;
-                    function pass() {
+                    function pass(inter) {
                         var _a;
                         return __awaiter(this, void 0, void 0, function* () {
-                            if (hasRun) {
-                                return;
-                            }
-                            else {
-                                hasRun = true;
-                            }
                             try {
                                 const time = new Date();
                                 const gvc = oj.gvc;
                                 const subData = oj.subData;
                                 const widget = oj.widget;
                                 let passCommand = false;
-                                setTimeout(() => {
-                                    resolve(true);
-                                }, 4000);
-                                returnData = yield oj.gvc.glitter.share.clickEvent[TriggerEvent.getLink(event.clickEvent.src)][event.clickEvent.route].fun(oj.gvc, oj.widget, event, oj.subData, oj.element).event();
+                                returnData = yield inter[event.clickEvent.route].fun(oj.gvc, oj.widget, event, oj.subData, oj.element).event();
                                 const response = returnData;
                                 if (event.dataPlace) {
                                     eval(event.dataPlace);
@@ -115,8 +105,8 @@ export class TriggerEvent {
                                 if (event.blockCommand) {
                                     try {
                                         if (event.blockCommandV2) {
-                                            passCommand = eval(`(()=>{
-    ${event.blockCommand}
+                                            passCommand = eval(`(() => {
+                                        ${event.blockCommand}
                                     })()`);
                                         }
                                         else {
@@ -141,38 +131,17 @@ export class TriggerEvent {
                             }
                         });
                     }
-                    let timeOut = new Date();
-                    let interval = 0;
-                    function checkModule() {
-                        var _a;
-                        try {
-                            oj.gvc.glitter.share.clickEvent = (_a = oj.gvc.glitter.share.clickEvent) !== null && _a !== void 0 ? _a : {};
-                            if (!oj.gvc.glitter.share.clickEvent[TriggerEvent.getLink(event.clickEvent.src)]) {
-                                oj.gvc.glitter.addMtScript([
-                                    { src: `${TriggerEvent.getLink(event.clickEvent.src)}`, type: 'module' }
-                                ], () => {
-                                }, () => {
-                                    clearInterval(interval);
-                                    resolve(false);
-                                });
-                            }
-                            else {
-                                clearInterval(interval);
-                                pass();
-                            }
-                        }
-                        catch (e) {
-                            clearInterval(interval);
-                            resolve(false);
-                        }
+                    try {
+                        oj.gvc.glitter.htmlGenerate.loadScript(oj.gvc.glitter, [{
+                                src: TriggerEvent.getLink(event.clickEvent.src),
+                                callback: (data) => {
+                                    pass(data);
+                                }
+                            }], 'clickEvent');
                     }
-                    checkModule();
-                    interval = setInterval(() => {
-                        checkModule();
-                        if (((new Date().getTime()) - timeOut.getTime()) / 1000 > 4) {
-                            clearInterval(interval);
-                        }
-                    }, 50);
+                    catch (e) {
+                        resolve(false);
+                    }
                 }));
             });
         }

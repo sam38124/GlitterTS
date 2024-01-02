@@ -42,8 +42,156 @@ class TriggerEventBridge {
                     </div>
                 `
             }
+            const did = glitter.getUUID()
+            function getEventTitle(obj:any) {
+                let select = false
+                let title = `尚未定義`
+                try {
+                    title = glitter.share?.clickEvent[TriggerEvent.getLink(obj.clickEvent.src)][obj.clickEvent.route].title
+                } catch (e) {
+
+                }
+                return title
+            }
+            function setSelection(obj:any){
+              
+                const selectID = glitter.getUUID()
+                vm.right = `  <div class="d-flex  px-2 hi fw-bold d-flex align-items-center border-bottom border-top py-2 bgf6 "
+                                                                 style="color:#151515;font-size:16px;gap:0px;height:44px;">
+                                                                ${getEventTitle(obj)}
+                                                            </div>` + gvc.bindView(() => {
+                    const vm: {
+                        type: 'list' | 'detail'
+                    } = {
+                        type: 'list'
+                    }
+                    return {
+                        bind: selectID,
+                        view: () => {
+                            let text = ``
+                            const key = `${TriggerEvent.getLink(obj.clickEvent.src)}`
+                            if (!glitter.share.clickEvent[key]) {
+                                text = ``
+                            } else {
+                                text = glitter.share.clickEvent[key][obj.clickEvent.route].fun(gvc, widget, obj).editor()
+                            }
+                            if (vm.type === 'detail') {
+                                return html`
+                                                                <div class="d-flex align-items-center bg-white w-100 p-2">
+                                                                    <div class="d-flex align-items-center justify-content-center  me-2 border bg-white"
+                                                                         style="height:36px;width:36px;border-radius:10px;cursor:pointer;" onclick="${gvc.event(()=>{
+                                    vm.type='list'
+                                    gvc.notifyDataChange(selectID)
+                                })}">
+                                                                        <i class="fa-sharp fa-solid fa-arrow-left"
+                                                                           aria-hidden="true"></i>
+                                                                    </div>
+                                                                    <div class="fw-bold fs-6" style="color:black;">內容編輯</div>
+                                                                </div>
+                                                            <div class="p-2">${text}</div>
+                                                            `
+                            }
+                            return questionText(`編輯內容`, [
+                                {
+                                    title: '事件請求',
+                                    content: `<div class="mb-2 w-100" style="word-break: break-word;white-space: normal;">透過設定事件請求，來執行事件，並且取得事件返回的內容。</div>
+                                                                ${(() => {
+                                        obj.pluginExpand = obj.pluginExpand ?? {}
+                                        try {
+
+                                            if (text.replace(/ /g, '') === '') {
+                                                return ``
+                                            } else {
+                                                return `<button type="button" class="btn btn-primary-c w-100" onclick="${
+                                                    gvc.event(() => {
+                                                        vm.type = 'detail'
+                                                        gvc.notifyDataChange(selectID)
+                                                    })
+                                                }">設定事件項目</button>`
+                                            }
+                                        } catch (e) {
+                                            return ``
+                                        }
+                                    })()}
+                                                                `
+                                },
+                                {
+                                    title: '返回事件',
+                                    content: `<div class="mb-2 w-100" style="word-break: break-word;white-space: normal;">將事件返回的內容參數進行二次處理。</div>
+                                                                 ${EditorElem.editerDialog({
+                                        gvc: gvc,
+                                        dialog: (gvc) => {
+                                            return EditorElem.codeEditor({
+                                                gvc: gvc,
+                                                height: 400,
+                                                initial: obj.dataPlace ?? "",
+                                                title: "",
+                                                callback: (text: string) => {
+                                                    obj.dataPlace = text
+                                                    gvc.notifyDataChange(did)
+                                                }
+                                            })
+                                        },
+                                        editTitle: "編輯返回事件"
+                                    })}
+                                                                `
+                                },
+                                {
+                                    title: '異常返回值',
+                                    content: `<div class="mb-2 w-100" style="word-break: break-word;white-space: normal;">當事件無法正常執行時則會返回異常返回值。</div>
+                                                                 ${EditorElem.editerDialog({
+                                        gvc: gvc,
+                                        dialog: (gvc) => {
+                                            return glitter.htmlGenerate.editeInput({
+                                                gvc: gvc,
+                                                title: "",
+                                                default: obj.errorCode ?? "",
+                                                placeHolder: `請輸入參數值`,
+                                                callback: (text: string) => {
+                                                    obj.errorCode = text
+                                                    gvc.notifyDataChange(did)
+                                                }
+                                            })
+                                        },
+                                        editTitle: "編輯異常返回值"
+                                    })}`
+                                },
+                                {
+                                    title: '中斷指令',
+                                    content: `<div class="mb-2 w-100" style="word-break: break-word;white-space: normal;">判斷事件返回內容，決定事件流程是否要繼續進行。</div>
+                                                                 ${EditorElem.editerDialog({
+                                        gvc: gvc,
+                                        dialog: (gvc) => {
+                                            return [`<div class="alert alert-info mb-n2">返回true則中斷指令不往下繼續執行</div>`, EditorElem.codeEditor({
+                                                gvc: gvc,
+                                                height: 400,
+                                                initial: obj.blockCommand ?? "",
+                                                title: ``,
+                                                callback: (text: string) => {
+                                                    obj.blockCommand = text
+                                                    obj.blockCommandV2 = true
+                                                    gvc.notifyDataChange(did)
+                                                }
+                                            })].join('')
+                                        },
+                                        editTitle: "編輯中斷指令"
+                                    })}
+                                                                `
+                                }
+                            ])
+                        },
+                        divCreate: {
+                            class: `bg-secondary`,
+                            style: `max-height:660px;overflow-y:auto;min-height:450px;`
+                        }
+                    }
+                })
+                gvc.notifyDataChange(vm.rightID)
+            }
+            if(arrayEvent.length>0){
+                setSelection(arrayEvent[0])
+            }
             PageEditor.openDialog.event_trigger_list(gvc, gvc.bindView(() => {
-                const did = glitter.getUUID()
                 return {
                     bind: did,
                     view: () => {
@@ -53,132 +201,11 @@ class TriggerEventBridge {
                             title: '編輯列表',
                             array: () => {
                                 return arrayEvent.map((obj: any, index: number) => {
-                                    function getEventTitle() {
-                                        let select = false
-                                        let title = `尚未定義`
-                                        try {
-                                            title=glitter.share?.clickEvent[TriggerEvent.getLink(obj.clickEvent.src)][obj.clickEvent.route].title
-                                        }catch (e) {
-                                            
-                                        }
-                                        return title
-                                    }
-
                                     return {
-                                        title: getEventTitle(),
+                                        title: getEventTitle(obj),
                                         expand: obj,
                                         innerHtml: () => {
-                                            const selectID = glitter.getUUID()
-                                            vm.right = `  <div class="d-flex  px-2 hi fw-bold d-flex align-items-center border-bottom border-top py-2 bgf6 "
-                                                                 style="color:#151515;font-size:16px;gap:0px;height:44px;">
-                                                                ${getEventTitle()}
-                                                            </div>` + gvc.bindView(() => {
-                                                return {
-                                                    bind: selectID,
-                                                    view: () => {
-                                                        return questionText(`編輯內容`, [
-                                                            {
-                                                                title: '事件請求',
-                                                                content: `<div class="mb-2 w-100" style="word-break: break-word;white-space: normal;">透過設定事件請求，來執行事件，並且取得事件返回的內容。</div>
-                                                                ${(() => {
-                                                                    obj.pluginExpand = obj.pluginExpand ?? {}
-                                                                    try {
-                                                                        let text = ``
-                                                                        const key = `${TriggerEvent.getLink(obj.clickEvent.src)}`
-                                                                        if (!glitter.share.clickEvent[key]) {
-                                                                            text = ``
-                                                                        } else {
-                                                                            text = glitter.share.clickEvent[key][obj.clickEvent.route].fun(gvc, widget, obj).editor()
-                                                                        }
-                                                                        if (text.replace(/ /g, '') === '') {
-                                                                            return ``
-                                                                        } else {
-                                                                            return EditorElem.editerDialog({
-                                                                                gvc: gvc,
-                                                                                dialog: (gvc) => {
-                                                                                    return glitter.share.clickEvent[key][obj.clickEvent.route].fun(gvc, widget, obj).editor()
-                                                                                },
-                                                                                editTitle: "編輯事件請求"
-                                                                            })
-                                                                        }
-                                                                    } catch (e) {
-                                                                        return ``
-                                                                    }
-                                                                })()}
-                                                                `
-                                                            },
-                                                            {
-                                                                title: '返回事件',
-                                                                content: `<div class="mb-2 w-100" style="word-break: break-word;white-space: normal;">將事件返回的內容參數進行二次處理。</div>
-                                                                 ${EditorElem.editerDialog({
-                                                                    gvc: gvc,
-                                                                    dialog: (gvc) => {
-                                                                       return  EditorElem.codeEditor({
-                                                                            gvc:gvc,
-                                                                            height:400,
-                                                                            initial:obj.dataPlace ?? "",
-                                                                            title:"",
-                                                                            callback:(text:string)=>{
-                                                                                obj.dataPlace = text
-                                                                                gvc.notifyDataChange(did)
-                                                                            }
-                                                                        })
-                                                                    },
-                                                                    editTitle: "編輯返回事件"
-                                                                })}
-                                                                `
-                                                            },
-                                                            {
-                                                                title: '異常返回值',
-                                                                content: `<div class="mb-2 w-100" style="word-break: break-word;white-space: normal;">當事件無法正常執行時則會返回異常返回值。</div>
-                                                                 ${EditorElem.editerDialog({
-                                                                    gvc: gvc,
-                                                                    dialog: (gvc) => {
-                                                                        return glitter.htmlGenerate.editeInput({
-                                                                            gvc: gvc,
-                                                                            title: "",
-                                                                            default: obj.errorCode ?? "",
-                                                                            placeHolder: `請輸入參數值`,
-                                                                            callback: (text: string) => {
-                                                                                obj.errorCode = text
-                                                                                gvc.notifyDataChange(did)
-                                                                            }
-                                                                        })
-                                                                    },
-                                                                    editTitle: "編輯異常返回值"
-                                                                })}`
-                                                            },
-                                                            {
-                                                                title: '中斷指令',
-                                                                content: `<div class="mb-2 w-100" style="word-break: break-word;white-space: normal;">判斷事件返回內容，決定事件流程是否要繼續進行。</div>
-                                                                 ${EditorElem.editerDialog({
-                                                                    gvc: gvc,
-                                                                    dialog: (gvc) => {
-                                                                        return  [`<div class="alert alert-info mb-n2">返回true則中斷指令不往下繼續執行</div>`,EditorElem.codeEditor({
-                                                                            gvc:gvc,
-                                                                            height:400,
-                                                                            initial:obj.blockCommand ?? "",
-                                                                            title:``,
-                                                                            callback:(text:string)=>{
-                                                                                obj.blockCommand = text
-                                                                                obj.blockCommandV2=true
-                                                                                gvc.notifyDataChange(did)
-                                                                            }
-                                                                        })].join('')
-                                                                    },
-                                                                    editTitle: "編輯中斷指令"
-                                                                })}
-                                                                `
-                                                            }
-                                                        ])
-                                                    },
-                                                    divCreate: {
-                                                        class: `bg-secondary`,
-                                                        style: `max-height:660px;overflow-y:auto;min-height:450px;`
-                                                    }
-                                                }
-                                            })
-                                            gvc.notifyDataChange(vm.rightID)
+                                            setSelection(obj)
                                             return ``
                                         },
                                         minus: gvc.event(() => {
@@ -193,7 +220,7 @@ class TriggerEventBridge {
                                 title: '添加事件',
                                 event: gvc.event(() => {
                                     PageEditor.openDialog.event_config(gvc, (data) => {
-                                        console.log(`add--`,JSON.stringify(data))
+                                        console.log(`add--`, JSON.stringify(data))
                                         arrayEvent.push({
                                             clickEvent: {
                                                 src: data.src,

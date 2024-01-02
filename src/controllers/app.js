@@ -19,7 +19,7 @@ router.get('/', async (req, resp) => {
     try {
         const app = new app_1.App(req.body.token);
         return response_1.default.succ(resp, { result: await app.getAPP({
-                app_name: req.query.app_name
+                app_name: req.query.appName
             }) });
     }
     catch (err) {

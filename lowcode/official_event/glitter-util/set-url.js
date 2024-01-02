@@ -11,37 +11,84 @@ import { TriggerEvent } from '../../glitterBundle/plugins/trigger-event.js';
 import { EditorElem } from "../../glitterBundle/plugins/editor-elem.js";
 TriggerEvent.createSingleEvent(import.meta.url, () => {
     return {
-        fun: (gvc, widget, object, subData) => {
-            var _a, _b;
+        fun: (gvc, widget, object, subData, element) => {
+            var _a, _b, _c, _d;
             object.key = (_a = object.key) !== null && _a !== void 0 ? _a : "";
             object.value = (_b = object.value) !== null && _b !== void 0 ? _b : "";
+            object.valueFrom = (_c = object.valueFrom) !== null && _c !== void 0 ? _c : "manual";
+            object.valueData = (_d = object.valueData) !== null && _d !== void 0 ? _d : {};
             return {
                 editor: () => {
-                    return [
-                        EditorElem.editeInput({
-                            gvc: gvc,
-                            title: 'Key值',
-                            placeHolder: `請輸入Key值`,
-                            default: object.key,
-                            callback: (text) => {
-                                object.key = text;
+                    return gvc.bindView(() => {
+                        const id = gvc.glitter.getUUID();
+                        return {
+                            bind: id,
+                            view: () => {
+                                return [
+                                    EditorElem.editeInput({
+                                        gvc: gvc,
+                                        title: 'Key值',
+                                        placeHolder: `請輸入Key值`,
+                                        default: object.key,
+                                        callback: (text) => {
+                                            object.key = text;
+                                        }
+                                    }),
+                                    EditorElem.select({
+                                        title: '參數來源',
+                                        gvc: gvc,
+                                        def: object.valueFrom,
+                                        array: [
+                                            { title: '定義值', value: "manual" },
+                                            { title: '程式碼', value: "code" }
+                                        ],
+                                        callback: (text) => {
+                                            object.valueFrom = text;
+                                            gvc.notifyDataChange(id);
+                                        }
+                                    }),
+                                    ...(() => {
+                                        if (object.valueFrom === 'manual') {
+                                            return [
+                                                EditorElem.editeInput({
+                                                    gvc: gvc,
+                                                    title: '參數',
+                                                    placeHolder: `請輸入VALUE`,
+                                                    default: object.value,
+                                                    callback: (text) => {
+                                                        object.value = text;
+                                                    }
+                                                })
+                                            ];
+                                        }
+                                        else {
+                                            return [
+                                                TriggerEvent.editer(gvc, widget, object.valueData, {
+                                                    hover: false,
+                                                    option: [],
+                                                    title: "取得參數內容"
+                                                })
+                                            ];
+                                        }
+                                    })()
+                                ].join(`<div class="my-1"></div>`);
                             }
-                        }),
-                        EditorElem.editeInput({
-                            gvc: gvc,
-                            title: '參數',
-                            placeHolder: `請輸入VALUE`,
-                            default: object.value,
-                            callback: (text) => {
-                                object.value = text;
-                            }
-                        })
-                    ].join('');
+                        };
+                    });
                 },
                 event: () => {
                     return new Promise((resolve, reject) => __awaiter(void 0, void 0, void 0, function* () {
-                        gvc.glitter.setUrlParameter(object.key, object.value);
-                        resolve(true);
+                        if (object.valueFrom === 'manual') {
+                            gvc.glitter.setUrlParameter(object.key, object.value);
+                            resolve(true);
+                        }
+                        else {
+                            const formData = (yield TriggerEvent.trigger({
+                                gvc: gvc, widget: widget, clickEvent: object.valueData, subData: subData, element: element
+                            }));
+                            gvc.glitter.setUrlParameter(object.key, formData);
+                            resolve(true);
+                        }
                     }));
                 },
             };

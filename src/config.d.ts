@@ -35,12 +35,14 @@ export declare const config: {
         invoice: string;
         sql_api: string;
         post: string;
-        message: string;
+        chat: string;
         smtp: string;
+        fcm: string;
         lambda: string;
         ec: string;
         manager: string;
         app: string;
+        wallet: string;
     };
     route: {
         user: string;

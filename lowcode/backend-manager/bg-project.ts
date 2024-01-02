@@ -9,6 +9,9 @@ import {ApiUser} from "../glitter-base/route/user.js";
 import {ApiPost} from "../glitter-base/route/post.js";
 import {GlobalUser} from "../glitter-base/global/global-user.js";
 import {ApiApp} from "../glitter-base/route/app.js";
+import {FormWidget} from "../official_view_component/official/form.js";
+import {BgWallet} from "./bg-wallet.js";
+import {ApiWallet} from "../glitter-base/route/wallet.js";
 
 
 const html = String.raw
@@ -54,9 +57,9 @@ export class BgProject {
             })
         }
 
-        return BgShopping.container(html`
+        return BgWidget.container(html`
             <div class="d-flex w-100 align-items-center mb-3 ">
-                ${BgShopping.title(`登入設定`)}
+                ${BgWidget.title(`登入設定`)}
                 <div class="flex-fill"></div>
                 <button class="btn btn-primary-c" style="height:38px;font-size: 14px;" onclick="${gvc.event(() => {
                     save(() => {
@@ -82,7 +85,7 @@ export class BgProject {
                     view: () => {
                         return new Promise(async (resolve, reject) => {
                             resolve(html`
-                                <div style="width:900px;max-width:100%;"> ${BgShopping.card([
+                                <div style="width:900px;max-width:100%;"> ${BgWidget.card([
                                     EditorElem.select({
                                         title: '登入認證',
                                         gvc: gvc,
@@ -138,8 +141,8 @@ export class BgProject {
                                         }
                                     })()
                                 ].join('<div class="my-2"></div>'))}
-                                    <div class="my-4">${BgShopping.title(`忘記密碼設定`)}</div>
-                                    ${BgShopping.card([
+                                    <div class="my-4">${BgWidget.title(`忘記密碼設定`)}</div>
+                                    ${BgWidget.card([
                                         EditorElem.select({
                                             title: '忘記密碼',
                                             gvc: gvc,
@@ -312,9 +315,9 @@ export class BgProject {
                 view: () => {
                     return new Promise(async (resolve, reject) => {
                         PageEditor.valueRender(gvc).then((response) => {
-                            resolve(BgShopping.container([html`
+                            resolve(BgWidget.container([html`
                                 <div class="d-flex w-100 align-items-center mb-3 ">
-                                    ${BgShopping.title(`共用資源`)}
+                                    ${BgWidget.title(`共用資源`)}
                                     <div class="flex-fill"></div>
                                     <button class="btn btn-primary-c" style="height:38px;font-size: 14px;"
                                             onclick="${gvc.event(() => {
@@ -323,7 +326,7 @@ export class BgProject {
                                     </button>
                                 </div>
                             `,
-                                BgShopping.card(html`
+                                BgWidget.card(html`
                                     <div class="d-flex">
                                         <div class="border-end " style="width:350px;overflow:hidden;">${response.left}
                                         </div>
@@ -339,10 +342,10 @@ export class BgProject {
 
     }
 
-    public static userManager(gvc: GVC) {
+    public static userManager(gvc: GVC,type:'select'|'list'='list',callback:(list:any[])=>void=()=>{}) {
         const glitter = gvc.glitter
         const vm: {
-            type: "list" | "add" | "replace",
+            type: "list" | "add" | "replace" | 'select',
             data: any,
             dataList: any,
             query?: string
@@ -362,6 +365,69 @@ export class BgProject {
             query: ''
         }
         const filterID = gvc.glitter.getUUID()
+        let vmi:any=undefined
+        function getDatalist() {
+            return vm.dataList.map((dd: any) => {
+                return [
+                    {
+                        key: EditorElem.checkBoxOnly({
+                            gvc: gvc,
+                            def: (!vm.dataList.find((dd: any) => {
+                                return !dd.checked
+                            })),
+                            callback: (result) => {
+                                vm.dataList.map((dd: any) => {
+                                    dd.checked = result
+                                })
+                                vmi.data = getDatalist()
+                                vmi.callback()
+                                gvc.notifyDataChange(filterID)
+                                callback(vm.dataList.filter((dd:any)=>{
+                                    return dd.checked
+                                }))
+                            }
+                        }),
+                        value: EditorElem.checkBoxOnly({
+                            gvc: gvc,
+                            def: dd.checked,
+                            callback: (result) => {
+                                dd.checked = result
+                                vmi.data = getDatalist()
+                                vmi.callback()
+                                gvc.notifyDataChange(filterID)
+                                callback(vm.dataList.filter((dd:any)=>{
+                                    return dd.checked
+                                }))
+
+                            },
+                            style: "height:25px;"
+                        })
+                    },
+                    {
+                        key: '用戶名稱',
+                        value: `<span class="fs-7">${dd.userData.name}</span>`
+                    },
+                    {
+                        key: '用戶信箱',
+                        value: `<span class="fs-7">${dd.userData.email}</span>`
+                    },
+                    {
+                        key: '建立時間',
+                        value: `<span class="fs-7">${glitter.ut.dateFormat(new Date(dd.created_time), 'yyyy-MM-dd hh:mm')}</span>`
+                    },
+                    {
+                        key: '用戶狀態',
+                        value: (() => {
+                            if (dd.status === 1) {
+                                return `<div class="badge bg-info fs-7" style="max-height:34px;">啟用中</div>`
+                            } else {
+                                return `<div class="badge bg-danger fs-7" style="max-height:34px;">已停用</div>`
+                            }
+                        })()
+                    }
+                ]
+            })
+        }
         return gvc.bindView(() => {
             const id = glitter.getUUID()
             return {
@@ -369,14 +435,27 @@ export class BgProject {
                 dataList: [{obj: vm, key: 'type'}],
                 view: () => {
                     if (vm.type === 'list') {
-                        return BgShopping.container(html`
-                            <div class="d-flex w-100 align-items-center mb-3 ">
-                                ${BgShopping.title('用戶管理')}
+                        return BgWidget.container(html`
+                            <div class="d-flex w-100 align-items-center mb-3 ${(type==='select') ? `d-none`:``}">
+                                ${(type==='select') ? BgWidget.title('選擇用戶'):BgWidget.title('用戶管理')}
                                 <div class="flex-fill"></div>
+                                <button class="btn hoverBtn me-2 px-3"
+                                        style="height:35px !important;font-size: 14px;color:black;border:1px solid black;"
+                                        onclick="${
+                                                gvc.event(() => {
+                                                    BgProject.setUserForm(gvc, () => {
+                                                        gvc.notifyDataChange(id)
+                                                    })
+                                                })
+                                        }">
+                                    <i class="fa-regular fa-gear me-2 "></i>
+                                    自訂資料
+                                </button>
                             </div>
                             ${BgWidget.table({
                                 gvc: gvc,
-                                getData: (vmi) => {
+                                getData: (vd) => {
+                                    vmi=vd
                                     ApiUser.getUserList({
                                         page: vmi.page - 1,
                                         limit: 20,
@@ -384,71 +463,25 @@ export class BgProject {
                                     }).then((data) => {
                                         vmi.pageSize = Math.ceil(data.response.total / 20)
                                         vm.dataList = data.response.data
-
-                                        function getDatalist() {
-                                            return data.response.data.map((dd: any) => {
-                                                return [
-                                                    {
-                                                        key: EditorElem.checkBoxOnly({
-                                                            gvc: gvc,
-                                                            def: (!data.response.data.find((dd: any) => {
-                                                                return !dd.checked
-                                                            })),
-                                                            callback: (result) => {
-                                                                data.response.data.map((dd: any) => {
-                                                                    dd.checked = result
-                                                                })
-                                                                vmi.data = getDatalist()
-                                                                vmi.callback()
-                                                                gvc.notifyDataChange(filterID)
-                                                            }
-                                                        }),
-                                                        value: EditorElem.checkBoxOnly({
-                                                            gvc: gvc,
-                                                            def: dd.checked,
-                                                            callback: (result) => {
-                                                                dd.checked = result
-                                                                vmi.data = getDatalist()
-                                                                vmi.callback()
-                                                                gvc.notifyDataChange(filterID)
-                                                            },
-                                                            style: "height:25px;"
-                                                        })
-                                                    },
-                                                    {
-                                                        key: '用戶名稱',
-                                                        value: `<span class="fs-7">${dd.userData.name}</span>`
-                                                    },
-                                                    {
-                                                        key: '用戶信箱',
-                                                        value: `<span class="fs-7">${dd.userData.email}</span>`
-                                                    },
-                                                    {
-                                                        key: '建立時間',
-                                                        value: `<span class="fs-7">${glitter.ut.dateFormat(new Date(dd.created_time), 'yyyy-MM-dd hh:mm')}</span>`
-                                                    },
-                                                    {
-                                                        key: '用戶狀態',
-                                                        value: (() => {
-                                                            if (dd.status === 1) {
-                                                                return `<div class="badge bg-info fs-7" style="max-height:34px;">啟用中</div>`
-                                                            } else {
-                                                                return `<div class="badge bg-danger fs-7" style="max-height:34px;">已停用</div>`
-                                                            }
-                                                        })()
-                                                    }
-                                                ]
-                                            })
-                                        }
-
                                         vmi.data = getDatalist()
                                         vmi.loading = false
                                         vmi.callback()
                                     })
                                 },
                                 rowClick: (data, index) => {
-                                    vm.data = vm.dataList[index]
-                                    vm.type = "replace"
+                                  
+                                    if(type==='select'){
+                                        vm.dataList[index].checked=!vm.dataList[index].checked
+                                        vmi.data=getDatalist()
+                                        vmi.callback()
+                                        callback(vm.dataList.filter((dd:any)=>{
+                                            return dd.checked
+                                        }))
+                                    }else{
+                                        vm.data = vm.dataList[index]
+                                        vm.type = "replace"
+                                    }
+                                   
                                 },
                                 filter: html`
                                     <div style="height:50px;" class="w-100 border-bottom">
@@ -465,7 +498,7 @@ export class BgProject {
                                                     view: () => {
                                                         if (!vm.dataList || !vm.dataList.find((dd: any) => {
                                                             return dd.checked
-                                                        })) {
+                                                        }) || type==='select') {
                                                             return ``
                                                         } else {
                                                             return [
@@ -504,7 +537,7 @@ export class BgProject {
                                                         return {
                                                             class: `d-flex align-items-center p-2 py-3 ${(!vm.dataList || !vm.dataList.find((dd: any) => {
                                                                 return dd.checked
-                                                            })) ? `d-none` : ``}`,
+                                                            }) || type==='select') ? `d-none` : ``}`,
                                                             style: `height:40px;gap:10px;`
                                                         }
                                                     }
@@ -515,57 +548,79 @@ export class BgProject {
                             })}
                         `)
                     } else if (vm.type == 'replace') {
-                        console.log(JSON.stringify(vm.data))
-                        return BgShopping.container([
-                            `<div class="d-flex w-100 align-items-center mb-3 ">
-                ${BgShopping.goBack(gvc.event(() => {
+                        return this.userInformationDetail({
+                            userID: vm.data.userID,
+                            callback: () => {
                                 vm.type = 'list'
-                            }))} ${BgShopping.title(vm.data.userData.name)}
-                <div class="flex-fill"></div>
-                <button class="btn btn-primary-c" style="height:38px;font-size: 14px;"
-                        onclick="${gvc.event(() => {
-                                const dialog = new ShareDialog(gvc.glitter)
-                                dialog.dataLoading({text: "更新中", visible: true})
+                            },
+                            gvc: gvc
+                        })
+                    } else {
+                        return ``
+                    }
 
-                                ApiUser.updateUserDataManager(vm.data, vm.data.userID).then((response) => {
-                                    dialog.dataLoading({text: "", visible: false})
-                                    if (response.result) {
-                                        dialog.successMessage({text: "更新成功!"})
-                                        gvc.notifyDataChange(id)
-                                    } else {
-                                        dialog.errorMessage({text: "更新異常!"})
-                                    }
+                }
+            }
+        })
+    }
+
+    public static userInformationDetail(cf: {
+        userID: string,
+        gvc: GVC,
+        callback: () => void,
+        type?:'readonly'|'write'
+    }) {
+        const gvc = cf.gvc
+        const id = gvc.glitter.getUUID()
+        const vm :any = {
+            data: undefined
+        };
+        ( ApiUser.getPublicUserData(cf.userID)).then((dd)=>{
+            vm.data=dd.response;
+            gvc.notifyDataChange(id)
+        })
+        return gvc.bindView(() => {
+            return {
+                bind: id,
+                view: () => {
+                    return BgWidget.container([
+                        `<div class="d-flex w-100 align-items-center mb-3 ">
+                ${BgWidget.goBack(gvc.event(() => {
+                            cf.callback()
+                        }))} ${BgWidget.title(vm.data.userData.name)}
+                <div class="flex-fill"></div>
+                <button class="btn hoverBtn me-2 px-3 ${(cf.type==='readonly') ? `d-none`:``}" style="height:35px !important;font-size: 14px;color:black;border:1px solid black;" onclick="${
+                            gvc.event(() => {
+                                BgProject.setUserForm(gvc, () => {
+                                    gvc.notifyDataChange(id)
                                 })
-                            })}">儲存
+                            })
+                        }">
+                <i class="fa-regular fa-gear me-2 " ></i>
+                自訂資料
+</button>
+                <button class="btn btn-primary-c ${(cf.type==='readonly') ? `d-none`:``}" style="height:35px;font-size: 14px;"
+                        onclick="${gvc.event(() => {
+                            const dialog = new ShareDialog(gvc.glitter)
+                            dialog.dataLoading({text: "更新中", visible: true})
+                            ApiUser.updateUserDataManager(vm.data, vm.data.userID).then((response) => {
+                                dialog.dataLoading({text: "", visible: false})
+                                if (response.result) {
+                                    dialog.successMessage({text: "更新成功!"})
+                                    gvc.notifyDataChange(id)
+                                } else {
+                                    dialog.errorMessage({text: "更新異常!"})
+                                }
+                            })
+
+                        })}">儲存
                 </button>
             </div>`,
-                            BgShopping.card([
-                                ...(() => {
-                                    let map: any = [];
-                                    (vm.data.userData.name) && map.push(`
-                                    <div class="fw-bold fs-7">用戶名稱</div>
-                                    <div class="fw-normal fs-7">${vm.data.userData.name}</div>`);
-                                    (vm.data.userID) && map.push(`
-                                    <div class="fw-bold fs-7">用戶ID</div>
-                                    <div class="fw-normal fs-7">${vm.data.userID}</div>`);
-                                    (vm.data.userData.email) && map.push(`
-                                    <div class="fw-bold fs-7">用戶信箱</div>
-                                    <div class="fw-normal fs-7">${vm.data.userData.email}</div>`);
-                                    (vm.data.userData.phone) && map.push(`
-                                    <div class="fw-bold fs-7">用戶電話</div>
-                                    <div class="fw-normal fs-7">${vm.data.userData.phone}</div>`);
-                                    (vm.data.userData.address) && map.push(`
-                                    <div class="fw-bold fs-7">用戶地址</div>
-                                    <div class="fw-normal fs-7">${vm.data.userData.address}</div>`);
-                                    (vm.data.created_time) && map.push(`
-                                    <div class="fw-bold fs-7">建立時間</div>
-                                    <div class="fw-normal fs-7">${glitter.ut.dateFormat(new Date(vm.data.created_time), 'yyyy-MM-dd hh:mm')}</div>`);
-                                    return map
-                                })()
-                            ].join(`<div class="my-2 bgf6 w-100" style="height:1px;"></div>`)),
-                            BgShopping.card([
+                        `<div class="d-flex" style="gap:10px;">
+${
+                            BgWidget.card([
                                 gvc.bindView(() => {
-                                    const id = glitter.getUUID()
+                                    const id = gvc.glitter.getUUID()
                                     const vmi: {
                                         mode: 'edit' | 'read'
                                     } = {
@@ -574,47 +629,179 @@ export class BgProject {
                                     return {
                                         bind: id,
                                         view: () => {
-                                            return html`
-                                                <div class="d-flex align-items-center ">
-                                                    <div class="fw-bold fs-7">備註</div>
+                                            let map: any = [];
+                                            (vm.data.userID) && map.push(`
+ <div class="d-flex align-items-center border-bottom pb-2">
+                                                    <div class="fw-bold fs-7"></div>
+                                                      <div class="d-flex" style="gap:10px;">
+                                                  <div class="fw-bold fs-7">用戶ID</div>
+                                    <div class="fw-normal fs-7">${vm.data.userID}</div>
+ <div class="fw-bold fs-7">用戶建立時間</div>
+                                    <div class="fw-normal fs-7">${gvc.glitter.ut.dateFormat(new Date(vm.data.created_time), 'yyyy-MM-dd hh:mm')}</div>
+</div>
                                                     <div class="flex-fill"></div>
-                                                    <i class="fa-solid fa-pencil" style="cursor:pointer;" onclick="${
-                                                            gvc.event(() => {
-                                                                vmi.mode = (vmi.mode === 'edit') ? 'read' : 'edit'
-                                                                gvc.notifyDataChange(id)
-                                                            })
-                                                    }"></i>
+                                                    <i class="fa-solid fa-pencil ${(cf.type==='readonly') ? `d-none`:``}" style="cursor:pointer;" onclick="${
+                                                gvc.event(() => {
+                                                    vmi.mode = (vmi.mode === 'edit') ? 'read' : 'edit'
+                                                    gvc.notifyDataChange(id)
+                                                })
+                                            }"></i>
                                                 </div>
-                                                ${(vmi.mode == 'read') ? `
-                                                 <div class="fs-7 w-100 mt-2  lh-lg fw-normal"
-                                                     style="word-break: break-all;white-space:normal;">
-                                                    ${(vm.data.userData.managerNote ?? "尚未填寫").replace(/\n/g, `<br>`)}
-                                                </div>
-                                                ` : EditorElem.editeText({
-                                                    gvc: gvc,
-                                                    title: '',
-                                                    default: vm.data.userData.managerNote ?? "",
-                                                    placeHolder: '',
-                                                    callback: (text) => {
-                                                        vm.data.userData.managerNote = text
+
+`);
+                                            map.push(gvc.bindView(() => {
+                                                const saasConfig: {
+                                                    config: any,
+                                                    api: any
+                                                } = (window as any).saasConfig
+                                                const id = gvc.glitter.getUUID()
+
+                                                return {
+                                                    bind: id,
+                                                    view: () => {
+                                                        return new Promise(async (resolve, reject) => {
+                                                            let data = (((await saasConfig.api.getPrivateConfig(saasConfig.config.appName, `glitterUserForm`)).response.result[0]) ?? {}).value
+                                                            if (!Array.isArray(data)) {
+                                                                data = []
+                                                            }
+                                                            resolve(FormWidget.editorView({
+                                                                gvc: gvc,
+                                                                array: data,
+                                                                refresh: () => {
+
+                                                                },
+                                                                formData: vm.data.userData,
+                                                                readonly: (vmi.mode === 'edit') ? 'write' : 'read'
+                                                            }))
+                                                        })
                                                     }
-                                                })}
-                                            `
-                                        },
-                                        divCreate: {
-                                            class: `fw-normal`,
+                                                }
+                                            }))
+                                            return map.join('')
                                         }
                                     }
                                 })
                             ].join(`<div class="my-2 bgf6 w-100" style="height:1px;"></div>`))
-                        ].join('<div class="my-2"></div>'), 700)
-                    } else {
-                        return ``
-                    }
+                        }
+<div style="width:350px;">
+${BgWidget.card([
+                            `
+     <div class="fw-bold fs-7">電子錢包</div>
+     ${gvc.bindView(() => {
+                                return {
+                                    bind: gvc.glitter.getUUID(),
+                                    view: () => {
+                                        return new Promise(async (resolve, reject) => {
+                                            const sum = (await ApiWallet.getSum({userID: vm.data.userID})).response.sum
+                                            resolve(`$${sum.toLocaleString()}`)
+                                        })
+                                    },
+                                    divCreate: {
+                                        class: `fs-7 `
+                                    }
+                                }
+                            })}
+    `,
+                            `
+     <div class="fw-bold fs-7">回饋金</div>
+     <div class="fs-7">${gvc.bindView(() => {
+                                return {
+                                    bind: gvc.glitter.getUUID(),
+                                    view: () => {
+                                        return new Promise(async (resolve, reject) => {
+                                            const sum = (await ApiWallet.getRebateSum({userID: vm.data.userID})).response.sum
+                                            resolve(`$${sum.toLocaleString()}`)
+                                        })
+                                    },
+                                    divCreate: {
+                                        class: `fs-7 `
+                                    }
+                                }
+                            })}</div>
+    `
+                        ].join(`<div class="w-100 border-bottom my-2"></div>`))}
+</div>
+</div>`,
+
+                    ].join('<div class="my-2"></div>'), 800)
 
                 }
             }
         })
+
+    }
+
+    public static setUserForm(gvc: GVC, callback: () => void) {
+        const dialog = new ShareDialog(gvc.glitter)
+        const saasConfig: {
+            config: any,
+            api: any
+        } = (window as any).saasConfig
+        new Promise(async (resolve, reject) => {
+            let data = (((await saasConfig.api.getPrivateConfig(saasConfig.config.appName, `glitterUserForm`)).response.result[0]) ?? {}).value
+            if (!Array.isArray(data)) {
+                data = []
+            }
+            EditorElem.openEditorDialog(gvc, (gvc) => {
+                return [
+                    gvc.bindView(() => {
+                        const id = gvc.glitter.getUUID()
+                        return {
+                            bind: id,
+                            view: () => {
+                                return FormWidget.settingView({
+                                    gvc: gvc,
+                                    array: data,
+                                    refresh: () => {
+                                        gvc.notifyDataChange(id)
+                                    },
+                                    title: '',
+                                    styleSetting: false,
+                                    concat: (dd) => {
+                                        dd.auth = dd.auth ?? 'all';
+                                        return [
+                                            EditorElem.select({
+                                                title: "更改資料權限",
+                                                gvc: gvc,
+                                                def: dd.auth,
+                                                array: [
+                                                    {title: '用戶與管理員', value: 'all'},
+                                                    {title: '僅管理員', value: 'manager'}
+                                                ],
+                                                callback: (text) => {
+                                                    dd.auth = text
+                                                }
+                                            })
+                                        ]
+                                    }
+                                })
+                            }
+                        }
+                    }),
+                    `<div class="d-flex">
+<div class="flex-fill"></div>
+<div class=" btn-primary-c btn my-2 me-2" style="margin-left: 10px;height:35px;" onclick="${gvc.event(() => {
+                        dialog.dataLoading({text: '設定中', visible: true})
+                        saasConfig.api.setPrivateConfig(saasConfig.config.appName, "glitterUserForm", data).then((r: { response: any, result: boolean }) => {
+                            setTimeout(() => {
+                                dialog.dataLoading({visible: false})
+                                if (r.response) {
+                                    dialog.successMessage({text: "設定成功"})
+                                    callback()
+                                } else {
+                                    dialog.errorMessage({text: "設定失敗"})
+                                }
+                            }, 1000)
+                        })
+                        gvc.closeDialog()
+                    })}">儲存設定</div>
+</div>`
+                ].join('')
+            }, () => {
+
+            }, 500, '自訂表單')
+        })
+
     }
 
 
@@ -644,9 +831,9 @@ export class BgProject {
                             return BgProject.appReleaseForm(vm, gvc, type)
                         case "list":
                             const filterID = gvc.glitter.getUUID();
-                            return BgShopping.container(html`
+                            return BgWidget.container(html`
                                 <div class="d-flex w-100 align-items-center mb-3">
-                                    ${BgShopping.title((type==='android_release') ? 'Google Play應用商城':'APPLE應用商城')}
+                                    ${BgWidget.title((type === 'android_release') ? 'Google Play應用商城' : 'APPLE應用商城')}
                                     <div class="flex-fill"></div>
                                     <button class="btn btn-primary-c" style="height:45px;font-size: 14px;"
                                             onclick="${gvc.event(() => {
@@ -746,10 +933,10 @@ export class BgProject {
                                                             value: `<i class="fa-solid fa-download fs-6 ms-3" onclick="${gvc.event((e, event) => {
                                                                 const dialog = new ShareDialog(gvc.glitter)
                                                                 dialog.dataLoading({visible: true});
-                                                                (((type==='android_release') ? ApiApp.downloadAndroidRelease:ApiApp.downloadIOSRelease) as any)({
+                                                                (((type === 'android_release') ? ApiApp.downloadAndroidRelease : ApiApp.downloadIOSRelease) as any)({
                                                                     "app_name": dd.content.name,
                                                                     "bundle_id": dd.content.bundle_id
-                                                                }).then((dd:any) => {
+                                                                }).then((dd: any) => {
                                                                     dialog.dataLoading({visible: false})
                                                                     if (dd.result) {
                                                                         dialog.successMessage({
@@ -946,12 +1133,12 @@ export class BgProject {
             })
         }
 
-        return BgShopping.container(html`
+        return BgWidget.container(html`
             <div class="d-flex w-100 align-items-center mb-3 ">
-                ${BgShopping.goBack(gvc.event(() => {
+                ${BgWidget.goBack(gvc.event(() => {
                     vm.status = 'list'
                 }))}
-                ${BgShopping.title(`審核項目`)}
+                ${BgWidget.title(`審核項目`)}
                 ${
                         (() => {
                             return (() => {
@@ -984,15 +1171,15 @@ export class BgProject {
                             resolve(html`
                                 <div style="width:900px;max-width:100%;">
                                     ${[
-                                        BgShopping.card(html`
+                                        BgWidget.card(html`
                                             <div class="alert alert-info p-2 m-1" style="white-space: normal;">
                                                 <strong>請注意!!</strong><br>
                                                 審核通過的結果可能會因應用程式的完整性、商店條款、隱私權政策、以及符合蘋果公司的政策等方面而有所不同，建議送審時需再三進行確認。
                                                 審核時間會落在7-14個工作天左右。
                                             </div>`),
-                                        BgShopping.card([
+                                        BgWidget.card([
                                             html`
-                                                ${BgShopping.title('APP資訊')}
+                                                ${BgWidget.title('APP資訊')}
                                                 <div class="row">
                                                     ${[
                                                         EditorElem.editeInput({
@@ -1058,7 +1245,7 @@ export class BgProject {
                                                         const key: '6.7' | '6.5' | '5.5' | 'android' = value as any;
                                                         return EditorElem.arrayItem({
                                                             gvc: gvc,
-                                                            title: (key==='android') ? `上傳應用程式截圖 *至少三張*`:`上傳${key}寸截圖 (${
+                                                            title: (key === 'android') ? `上傳應用程式截圖 *至少三張*` : `上傳${key}寸截圖 (${
                                                                     (() => {
                                                                         switch (key) {
                                                                             case "5.5":
@@ -1104,10 +1291,10 @@ export class BgProject {
                                                     }).join('')}
                                                 </div>`
                                         ].join('<div class="my-2"></div>')),
-                                        BgShopping.card([
+                                        BgWidget.card([
                                             html`
                                                 <div class="border-bottom pb-2">
-                                                    ${BgShopping.title('商店資訊')}
+                                                    ${BgWidget.title('商店資訊')}
                                                 </div>
                                             `,
                                             `<div class="row">${
@@ -1182,5 +1369,129 @@ export class BgProject {
         `, 900)
     }
 
+    public static checkoutHook(gvc: GVC) {
+        const saasConfig: {
+            config: any,
+            api: any
+        } = (window as any).saasConfig
+        let keyData = {
+            value: ''
+        }
+        return BgWidget.container(html`
+            <div class="d-flex w-100 align-items-center mb-3 ">
+                ${BgWidget.title(`購物觸發事件`)}
+                <div class="flex-fill"></div>
+                <button class="btn btn-primary-c" style="height:38px;font-size: 14px;" onclick="${gvc.event(() => {
+                    const dialog = new ShareDialog(gvc.glitter)
+                    dialog.dataLoading({text: '設定中', visible: true})
+                    saasConfig.api.setPrivateConfig(saasConfig.config.appName, `glitter_finance_webhook`, keyData).then((r: { response: any, result: boolean }) => {
+                        dialog.dataLoading({visible: false})
+                        if (r.response) {
+                            dialog.successMessage({text: "設定成功"})
+                        } else {
+                            dialog.errorMessage({text: "設定失敗"})
+                        }
+                    })
+                })}">儲存事件設定
+                </button>
+            </div>
+            <div class="w-100 alert alert-info p-2">
+                <div class="border-bottom pb-2 mb-2"><strong>當會員完成購物時，所需執行的額外事件。</strong></div>
+                <strong>購物車資料</strong>:obj.cartData
+                <strong class="ms-2">用戶資料</strong>:obj.userData
+                <strong class="ms-2">資料庫</strong>:obj.sql
+                <strong class="ms-2">Firebase推播</strong>:obj.fcm
+            </div>
+            ${gvc.bindView(() => {
+                const id = gvc.glitter.getUUID()
+                return {
+                    bind: id,
+                    view: () => {
+                        return new Promise(async (resolve, reject) => {
+                            const data = await saasConfig.api.getPrivateConfig(saasConfig.config.appName, `glitter_finance_webhook`)
+                            if (data.response.result[0]) {
+                                keyData = data.response.result[0].value
+                            }
+                            resolve(` <div style="width:900px;max-width:100%;"> ${BgWidget.card([
+                                EditorElem.codeEditor({
+                                    gvc: gvc,
+                                    height: 600,
+                                    initial: keyData.value,
+                                    title: `區段代碼`,
+                                    callback: (text) => {
+                                        keyData.value = text
+                                    }
+                                })
+                            ].join('<div class="my-2"></div>'))}
+                </div>`)
+                        })
+                    },
+                    divCreate: {class: `d-flex flex-column flex-column-reverse  flex-md-row`, style: `gap:10px;`}
+                }
+            })}
+        `, 900)
+    }
+
+    public static loginHook(gvc: GVC) {
+        const saasConfig: {
+            config: any,
+            api: any
+        } = (window as any).saasConfig
+        let keyData = {
+            value: ''
+        }
+        return BgWidget.container(html`
+            <div class="d-flex w-100 align-items-center mb-3 ">
+                ${BgWidget.title(`登入觸發事件`)}
+                <div class="flex-fill"></div>
+                <button class="btn btn-primary-c" style="height:38px;font-size: 14px;" onclick="${gvc.event(() => {
+                    const dialog = new ShareDialog(gvc.glitter)
+                    dialog.dataLoading({text: '設定中', visible: true})
+                    saasConfig.api.setPrivateConfig(saasConfig.config.appName, `glitter_login_webhook`, keyData).then((r: { response: any, result: boolean }) => {
+                        dialog.dataLoading({visible: false})
+                        if (r.response) {
+                            dialog.successMessage({text: "設定成功"})
+                        } else {
+                            dialog.errorMessage({text: "設定失敗"})
+                        }
+                    })
+                })}">儲存事件設定
+                </button>
+            </div>
+            <div class="w-100 alert alert-info p-2">
+                <div class="border-bottom pb-2 mb-2"><strong>當會員登入 / 註冊 / 初始化時，所需執行的額外事件。</strong>
+                </div>
+                <strong class="">用戶資料</strong>:obj.userData
+                <strong class="ms-2">Firebase推播</strong>:obj.fcm
+            </div>
+            ${gvc.bindView(() => {
+                const id = gvc.glitter.getUUID()
+                return {
+                    bind: id,
+                    view: () => {
+                        return new Promise(async (resolve, reject) => {
+                            const data = await saasConfig.api.getPrivateConfig(saasConfig.config.appName, `glitter_login_webhook`)
+                            if (data.response.result[0]) {
+                                keyData = data.response.result[0].value
+                            }
+                            resolve(` <div style="width:900px;max-width:100%;"> ${BgWidget.card([
+                                EditorElem.codeEditor({
+                                    gvc: gvc,
+                                    height: 600,
+                                    initial: keyData.value,
+                                    title: `區段代碼`,
+                                    callback: (text) => {
+                                        keyData.value = text
+                                    }
+                                })
+                            ].join('<div class="my-2"></div>'))}
+                </div>`)
+                        })
+                    },
+                    divCreate: {class: `d-flex flex-column flex-column-reverse  flex-md-row`, style: `gap:10px;`}
+                }
+            })}
+        `, 900)
+    }
 
 }

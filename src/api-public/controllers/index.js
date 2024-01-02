@@ -21,26 +21,42 @@ const lambda_apiRouter = require("./lambda");
 const shop_apiRouter = require("./shop");
 const manager_apiRouter = require("./manager");
 const app_release = require("./app-release");
+const smtp = require("./smtp");
+const fcm = require("./fcm");
+const wallet = require("./wallet");
 const live_source_js_1 = require("../../live_source.js");
 const public_table_check_js_1 = require("../services/public-table-check.js");
 router.use('/api-public/*', doAuthAction);
 router.use(config_1.config.getRoute(config_1.config.public_route.user, 'public'), userRouter);
 router.use(config_1.config.getRoute(config_1.config.public_route.post, 'public'), postRouter);
-router.use(config_1.config.getRoute(config_1.config.public_route.message, 'public'), messageRouter);
+router.use(config_1.config.getRoute(config_1.config.public_route.chat, 'public'), messageRouter);
 router.use(config_1.config.getRoute(config_1.config.public_route.invoice, 'public'), invoiceRouter);
 router.use(config_1.config.getRoute(config_1.config.public_route.sql_api, 'public'), sql_apiRouter);
 router.use(config_1.config.getRoute(config_1.config.public_route.lambda, 'public'), lambda_apiRouter);
 router.use(config_1.config.getRoute(config_1.config.public_route.ec, 'public'), shop_apiRouter);
 router.use(config_1.config.getRoute(config_1.config.public_route.manager, 'public'), manager_apiRouter);
 router.use(config_1.config.getRoute(config_1.config.public_route.app, 'public'), app_release);
+router.use(config_1.config.getRoute(config_1.config.public_route.smtp, 'public'), smtp);
+router.use(config_1.config.getRoute(config_1.config.public_route.fcm, 'public'), fcm);
+router.use(config_1.config.getRoute(config_1.config.public_route.wallet, 'public'), wallet);
 const whiteList = [
+    { url: config_1.config.getRoute(config_1.config.public_route.chat, 'public'), method: 'POST' },
+    { url: config_1.config.getRoute(config_1.config.public_route.chat + '/message', 'public'), method: 'POST' },
+    { url: config_1.config.getRoute(config_1.config.public_route.chat + '/message', 'public'), method: 'GET' },
     { url: config_1.config.getRoute(config_1.config.public_route.user + "/register", 'public'), method: 'POST' },
     { url: config_1.config.getRoute(config_1.config.public_route.user + "/login", 'public'), method: 'POST' },
     { url: config_1.config.getRoute(config_1.config.public_route.user + "/forget", 'public'), method: 'POST' },
     { url: config_1.config.getRoute(config_1.config.public_route.post, 'public'), method: 'GET' },
+    { url: config_1.config.getRoute(config_1.config.public_route.post, 'public'), method: 'POST' },
+    { url: config_1.config.getRoute(config_1.config.public_route.post + '/public/config', 'public'), method: 'GET' },
+    { url: config_1.config.getRoute(config_1.config.public_route.post + '/user', 'public'), method: 'GET' },
     { url: config_1.config.getRoute(config_1.config.public_route.user + "/checkMail", 'public'), method: 'GET' },
     { url: config_1.config.getRoute(config_1.config.public_route.user + "/checkMail/updateAccount", 'public'), method: 'GET' },
     { url: config_1.config.getRoute(config_1.config.public_route.user + "/userdata", 'public'), method: 'GET' },
+    { url: config_1.config.getRoute(config_1.config.public_route.user + "/subscribe", 'public'), method: 'POST' },
+    { url: config_1.config.getRoute(config_1.config.public_route.user + "/fcm", 'public'), method: 'POST' },
+    { url: config_1.config.getRoute(config_1.config.public_route.user + "/public/config", 'public'), method: 'GET' },
+    { url: config_1.config.getRoute(config_1.config.public_route.user + "/forget", 'public'), method: 'POST' },
     { url: config_1.config.getRoute(config_1.config.public_route.sql_api, 'public'), method: 'GET' },
     { url: config_1.config.getRoute(config_1.config.public_route.sql_api, 'public'), method: 'POST' },
     { url: config_1.config.getRoute(config_1.config.public_route.lambda, 'public'), method: 'POST' },
@@ -52,6 +68,7 @@ const whiteList = [
     { url: config_1.config.getRoute(config_1.config.public_route.ec + "/checkout/preview", 'public'), method: 'POST' },
     { url: config_1.config.getRoute(config_1.config.public_route.ec + "/redirect", 'public'), method: 'POST' },
     { url: config_1.config.getRoute(config_1.config.public_route.ec + "/notify", 'public'), method: 'POST' },
+    { url: config_1.config.getRoute(config_1.config.public_route.wallet + "/notify", 'public'), method: 'POST' },
     { url: config_1.config.getRoute(config_1.config.public_route.manager + "/config", 'public'), method: 'GET' },
 ];
 async function doAuthAction(req, resp, next) {

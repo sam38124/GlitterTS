@@ -4,7 +4,7 @@ import {ShareDialog} from "./ShareDialog.js";
 import {config} from "../config.js";
 import {EditorElem} from "../glitterBundle/plugins/editor-elem.js";
 
-init((gvc, glitter, gBundle) => {
+init(import.meta.url,(gvc, glitter, gBundle) => {
     return {
         onCreateView: () => {
             const tdata: {

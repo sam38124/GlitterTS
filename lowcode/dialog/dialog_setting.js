@@ -3,7 +3,7 @@ import { initialCode } from "../setting/initialCode.js";
 import { pageManager } from "../setting/pageManager.js";
 import { appSetting } from "../setting/appSetting.js";
 import { styleManager } from "../setting/styleManager.js";
-init((gvc, glitter, gBundle) => {
+init(import.meta.url, (gvc, glitter, gBundle) => {
     function getSource(dd) {
         return dd.src.official;
     }

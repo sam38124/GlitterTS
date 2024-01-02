@@ -14,6 +14,11 @@ export declare class App {
         appName: string;
     }): Promise<any>;
     getOfficialPlugin(): Promise<any>;
+    static checkOverDue(app: string): Promise<{
+        overdue: boolean;
+        memberType: any;
+        appCount: any;
+    }>;
     setAppConfig(config: {
         appName: string;
         data: any;

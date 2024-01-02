@@ -5,7 +5,7 @@ import {config} from "../config.js";
 import {ShareDialog} from "../dialog/ShareDialog.js";
 import {EditorElem} from "../glitterBundle/plugins/editor-elem.js";
 
-init((gvc, glitter, gBundle) => {
+init(import.meta.url,(gvc, glitter, gBundle) => {
     return {
         onCreateView: () => {
             let progress = 0

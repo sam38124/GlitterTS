@@ -11,7 +11,6 @@ import { BaseApi } from "../glitterBundle/api/base.js";
 import { GlobalUser } from "../glitter-base/global/global-user.js";
 import { TriggerEvent } from "../glitterBundle/plugins/trigger-event.js";
 import { EditorElem } from "../glitterBundle/plugins/editor-elem.js";
-import { component } from "../official_view_component/official/component.js";
 export class GlobalData {
 }
 GlobalData.data = {
@@ -39,6 +38,14 @@ GlobalData.data = {
     },
 };
 TriggerEvent.create(import.meta.url, {
+    inputText: {
+        title: '官方事件 / 輸入 / Input',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './input/input.js'),
+    },
+    editorText: {
+        title: '官方事件 / 輸入 / TextArea',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './input/textArea.js'),
+    },
     link: {
         title: '官方事件 / 畫面 / 頁面跳轉',
         subContent: questionText([
@@ -55,201 +62,7 @@ TriggerEvent.create(import.meta.url, {
                 content: `使用此事件可以滾動至此標籤的位置。`
             }
         ]),
-        fun: (gvc, widget, object, subData) => {
-            return {
-                editor: () => {
-                    return gvc.bindView(() => {
-                        const id = gvc.glitter.getUUID();
-                        function recursive() {
-                            if (GlobalData.data.pageList.length === 0) {
-                                GlobalData.data.run();
-                                setTimeout(() => {
-                                    recursive();
-                                }, 200);
-                            }
-                            else {
-                                gvc.notifyDataChange(id);
-                            }
-                        }
-                        recursive();
-                        setTimeout(() => {
-                            gvc.notifyDataChange(id);
-                        }, 1000);
-                        return {
-                            bind: id,
-                            view: () => {
-                                if (![
-                                    { title: '內部連結', value: 'inlink' },
-                                    { title: '外部連結', value: 'outlink' },
-                                    { title: 'HashTag', value: 'hashTag' },
-                                ].find((dd) => {
-                                    return dd.value === object.link_change_type;
-                                })) {
-                                    object.link_change_type = 'inlink';
-                                }
-                                return ` ${EditorElem.h3('跳轉方式')}
-                                    <select
-                                        class="form-control form-select"
-                                        onchange="${gvc.event((e) => {
-                                    object.link_change_type = e.value;
-                                    gvc.notifyDataChange(id);
-                                })}"
-                                    >
-                                        ${[
-                                    { title: '內部連結', value: 'inlink' },
-                                    { title: '外部連結', value: 'outlink' },
-                                    { title: 'HashTag', value: 'hashTag' },
-                                ]
-                                    .map((dd) => {
-                                    return `<option value="${dd.value}" ${dd.value == object.link_change_type ? `selected` : ``}>
-                                            ${dd.title}
-                                        </option>`;
-                                })
-                                    .join('')}
-                                    </select>
-                                    ${(() => {
-                                    var _a, _b;
-                                    if (object.link_change_type === 'inlink') {
-                                        object.stackControl = (_a = object.stackControl) !== null && _a !== void 0 ? _a : "home";
-                                        return `
-${EditorElem.select({
-                                            title: '堆棧控制',
-                                            gvc: gvc,
-                                            def: object.stackControl,
-                                            callback: (text) => {
-                                                object.stackControl = text;
-                                                widget.refreshComponent();
-                                            },
-                                            array: [{ title: '設為首頁', value: "home" }, {
-                                                    title: '頁面跳轉',
-                                                    value: "page"
-                                                }],
-                                        })}
-${EditorElem.h3("選擇頁面")}
-<select
-                                            class="form-select form-control mt-2"
-                                            onchange="${gvc.event((e) => {
-                                            console.log(window.$(e).val());
-                                            object.link = window.$(e).val();
-                                        })}"
-                                        >
-                                            ${GlobalData.data.pageList.map((dd) => {
-                                            var _a;
-                                            object.link = (_a = object.link) !== null && _a !== void 0 ? _a : dd.tag;
-                                            return `<option value="${dd.tag}" ${object.link === dd.tag ? `selected` : ``}>
-                                                    ${dd.group}-${dd.name}
-                                                </option>`;
-                                        })}
-                                        </select>`;
-                                    }
-                                    else if (object.link_change_type === 'outlink') {
-                                        return gvc.glitter.htmlGenerate.editeInput({
-                                            gvc: gvc,
-                                            title: '',
-                                            default: object.link,
-                                            placeHolder: '輸入跳轉的連結',
-                                            callback: (text) => {
-                                                object.link = text;
-                                                widget.refreshAll();
-                                            },
-                                        }) + EditorElem.select({
-                                            gvc: gvc,
-                                            title: '跳轉方式',
-                                            def: (_b = object.changeType) !== null && _b !== void 0 ? _b : "location",
-                                            array: [
-                                                { title: "本地跳轉", value: "location" },
-                                                { title: "打開新頁面", value: "newTab" }
-                                            ],
-                                            callback: (text) => {
-                                                object.changeType = text;
-                                                widget.refreshAll();
-                                            },
-                                        });
-                                    }
-                                    else {
-                                        return gvc.glitter.htmlGenerate.editeInput({
-                                            gvc: gvc,
-                                            title: '',
-                                            default: object.link,
-                                            placeHolder: '輸入跳轉的HashTag',
-                                            callback: (text) => {
-                                                object.link = text;
-                                                widget.refreshAll();
-                                            },
-                                        });
-                                    }
-                                })()}`;
-                            },
-                            divCreate: {},
-                        };
-                    });
-                },
-                event: () => {
-                    var _a;
-                    object.link_change_type = (_a = object.link_change_type) !== null && _a !== void 0 ? _a : object.type;
-                    if (object.link_change_type === 'inlink') {
-                        return new Promise((resolve, reject) => __awaiter(void 0, void 0, void 0, function* () {
-                            const url = new URL('./', location.href);
-                            url.searchParams.set('page', object.link);
-                            const saasConfig = window.saasConfig;
-                            saasConfig.api.getPage(saasConfig.config.appName, object.link).then((data) => {
-                                if (data.response.result.length === 0) {
-                                    const url = new URL("./", location.href);
-                                    url.searchParams.set('page', data.response.redirect);
-                                    location.href = url.href;
-                                    return;
-                                }
-                                if (object.stackControl === 'home') {
-                                    gvc.glitter.htmlGenerate.setHome({
-                                        app_config: saasConfig.appConfig,
-                                        page_config: data.response.result[0].page_config,
-                                        config: data.response.result[0].config,
-                                        data: subData !== null && subData !== void 0 ? subData : {},
-                                        tag: object.link,
-                                        option: {
-                                            animation: gvc.glitter.animation.fade,
-                                        }
-                                    });
-                                    resolve(true);
-                                }
-                                else {
-                                    gvc.glitter.htmlGenerate.changePage({
-                                        app_config: saasConfig.appConfig,
-                                        page_config: data.response.result[0].page_config,
-                                        config: data.response.result[0].config,
-                                        data: subData !== null && subData !== void 0 ? subData : {},
-                                        tag: object.link,
-                                        goBack: true,
-                                        option: {
-                                            animation: gvc.glitter.ut.frSize({
-                                                sm: gvc.glitter.animation.fade
-                                            }, gvc.glitter.animation.rightToLeft)
-                                        }
-                                    });
-                                    resolve(true);
-                                }
-                            });
-                        }));
-                    }
-                    else if (object.link_change_type === 'hashTag') {
-                        const yOffset = $("header").length > 0 ? -$("header").height() : 0;
-                        const element = document.getElementsByClassName(`glitterTag${object.link}`)[0];
-                        const y = element.getBoundingClientRect().top + window.pageYOffset + yOffset;
-                        window.scrollTo({ top: y, behavior: "smooth" });
-                        return true;
-                    }
-                    else {
-                        if (object.changeType === 'newTab') {
-                            gvc.glitter.openNewTab(object.link);
-                        }
-                        else {
-                            gvc.glitter.location.href = object.link;
-                        }
-                        return true;
-                    }
-                },
-            };
-        },
+        fun: TriggerEvent.setEventRouter(import.meta.url, './page/change-page.js'),
     },
     dialog: {
         title: '官方事件 / 畫面 / 彈跳視窗',
@@ -267,77 +80,7 @@ ${EditorElem.h3("選擇頁面")}
                 content: `返回要挾帶的資料並且於彈跳視窗的頁面中，透過 <span style="color:#295ed1;">gvc.getBundle().carryData</span>  ，來取得夾帶內容。`
             }
         ]),
-        fun: (gvc, widget, object, subData, element) => {
-            var _a;
-            object.coverData = (_a = object.coverData) !== null && _a !== void 0 ? _a : {};
-            return {
-                editor: () => {
-                    const id = gvc.glitter.getUUID();
-                    const glitter = gvc.glitter;
-                    function recursive() {
-                        if (GlobalData.data.pageList.length === 0) {
-                            GlobalData.data.run();
-                            setTimeout(() => {
-                                recursive();
-                            }, 200);
-                        }
-                        else {
-                            gvc.notifyDataChange(id);
-                        }
-                    }
-                    recursive();
-                    return gvc.bindView(() => {
-                        return {
-                            bind: id,
-                            view: () => {
-                                return [`<select
-                                            class="form-select form-control mt-2"
-                                            onchange="${gvc.event((e) => {
-                                        object.link = window.$(e).val();
-                                    })}"
-                                        >
-                                            ${GlobalData.data.pageList.map((dd) => {
-                                        var _a;
-                                        object.link = (_a = object.link) !== null && _a !== void 0 ? _a : dd.tag;
-                                        return `<option value="${dd.tag}" ${object.link === dd.tag ? `selected` : ``}>
-                                                    ${dd.group}-${dd.name}
-                                                </option>`;
-                                    })}
-                                        </select>`, TriggerEvent.editer(gvc, widget, object.coverData, {
-                                        hover: true,
-                                        option: [],
-                                        title: "夾帶資料-[將存於新頁面的gvc.getBundle().carryData之中]"
-                                    })].join('<div class="my-2"></div>');
-                            },
-                            divCreate: {}
-                        };
-                    });
-                },
-                event: () => {
-                    subData = subData !== null && subData !== void 0 ? subData : {};
-                    return new Promise((resolve, reject) => __awaiter(void 0, void 0, void 0, function* () {
-                        const data = yield TriggerEvent.trigger({
-                            gvc, widget, clickEvent: object.coverData, subData
-                        });
-                        gvc.glitter.innerDialog((gvc) => {
-                            gvc.getBundle().carryData = data;
-                            return new Promise((resolve, reject) => __awaiter(void 0, void 0, void 0, function* () {
-                                const view = yield component.render(gvc, {
-                                    data: {
-                                        tag: object.link
-                                    }
-                                }, [], [], subData).view();
-                                resolve(view);
-                            }));
-                        }, gvc.glitter.getUUID(), {
-                            dismiss: () => {
-                                resolve(true);
-                            }
-                        });
-                    }));
-                }
-            };
-        }
+        fun: TriggerEvent.setEventRouter(import.meta.url, './page/dialog.js'),
     },
     close_dialog: {
         title: '官方事件 / 畫面 / 視窗關閉',
@@ -355,17 +98,7 @@ ${EditorElem.h3("選擇頁面")}
                 content: `關閉具有此標籤的視窗。`
             }
         ]),
-        fun: (gvc, widget, object, subData, element) => {
-            return {
-                editor: () => {
-                    return ``;
-                },
-                event: () => {
-                    gvc.closeDialog();
-                    return true;
-                }
-            };
-        }
+        fun: TriggerEvent.setEventRouter(import.meta.url, './page/close-dialog.js')
     },
     drawer: {
         title: '官方事件 / 畫面 / 左側導覽列',
@@ -384,16 +117,7 @@ ${EditorElem.h3("選擇頁面")}
     closeDrawer: {
         title: '官方事件 / 畫面 / 關閉導覽列',
         subContent: `<div class="w-100 alert alert-light" style="white-space: normal;word-break: break-word;">透過<span class="mx-2" style="color:#295ed1;">glitter.closeDrawer()</span>來關閉左側導覽列。</div>`,
-        fun: (gvc, widget, object, subData, element) => {
-            return {
-                editor: () => {
-                    return ``;
-                },
-                event: () => {
-                    gvc.glitter.closeDrawer();
-                },
-            };
-        },
+        fun: TriggerEvent.setEventRouter(import.meta.url, './page/close-drawer.js'),
     },
     reloadPage: {
         title: '官方事件 / 畫面 / 頁面刷新',
@@ -427,6 +151,10 @@ ${EditorElem.h3("選擇頁面")}
         title: '官方事件 / 畫面 / 區塊刷新',
         fun: TriggerEvent.setEventRouter(import.meta.url, './glitter-util/refresh-block.js'),
     },
+    setStyle: {
+        title: '官方事件 / 畫面 / 更換STYLE樣式',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './style/change-style.js')
+    },
     getFormData: {
         title: '官方事件 / 表單 / 取得表單資料',
         fun: TriggerEvent.setEventRouter(import.meta.url, './glitter-util/get-form.js')
@@ -434,6 +162,10 @@ ${EditorElem.h3("選擇頁面")}
     checkForm: {
         title: '官方事件 / 表單 / 判斷表單是否填寫完畢',
         fun: TriggerEvent.setEventRouter(import.meta.url, './glitter-util/check-form.js')
+    },
+    postForm: {
+        title: '官方事件 / 表單 / 內容發佈',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './glitter-util/post-form.js')
     },
     code: {
         title: '官方事件 / 開發工具 / 代碼區塊',
@@ -444,10 +176,10 @@ ${EditorElem.h3("選擇頁面")}
                     object.codeVersion = 'v2';
                     const html = String.raw;
                     return html `
-                        <div style="width:600px;">
+                        <div class="w-100">
                             ${EditorElem.codeEditor({
                         gvc: gvc,
-                        height: 300,
+                        height: 500,
                         initial: object.code,
                         title: "代碼區塊",
                         callback: (text) => {
@@ -616,6 +348,18 @@ ${EditorElem.h3("選擇頁面")}
         title: '官方事件 / 開發工具 / 取得頁面參數',
         fun: TriggerEvent.setEventRouter(import.meta.url, './glitter-util/get-page-form.js'),
     },
+    sizeEvent: {
+        title: '官方事件 / 開發工具 / 依照尺寸執行事件',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './glitter-util/size-event.js'),
+    },
+    delay: {
+        title: '官方事件 / 開發工具 / 延遲執行事件',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './glitter-util/delay-event.js'),
+    },
+    registerDevice: {
+        title: '官方事件 / 推播 / 註冊裝置',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './fcm/register-device.js'),
+    },
     registerNotify: {
         title: '官方事件 / 推播 / 註冊推播頻道',
         fun: (gvc, widget, object, subData, element) => {
@@ -705,6 +449,10 @@ ${EditorElem.h3("選擇頁面")}
                 },
             };
         },
+    },
+    emailSubscription: {
+        title: '官方事件 / 推播 / 信箱註冊',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './user/email-subscription.js')
     },
     api: {
         title: "官方事件 / API / Glitter-Lambda",
@@ -869,9 +617,17 @@ ${EditorElem.h3("選擇頁面")}
         title: '電子商務 / 加入購物車',
         fun: TriggerEvent.setEventRouter(import.meta.url, './e-commerce/add-to-cart.js'),
     },
+    updateToCart: {
+        title: '電子商務 / 更新商品數量',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './e-commerce/update-cart.js'),
+    },
     getCart: {
         title: '電子商務 / 取得購物車內容',
         fun: TriggerEvent.setEventRouter(import.meta.url, './e-commerce/get-cart.js'),
+    },
+    getRebate: {
+        title: '電子商務 / 取得回饋金金額',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './e-commerce/get-rebate.js'),
     },
     getCount: {
         title: '電子商務 / 取得購物車數量',
@@ -893,6 +649,10 @@ ${EditorElem.h3("選擇頁面")}
         title: '電子商務 / 設定優惠券',
         fun: TriggerEvent.setEventRouter(import.meta.url, './e-commerce/set-voucher.js'),
     },
+    setRebate: {
+        title: '電子商務 / 設定回饋金',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './e-commerce/set-rebate.js'),
+    },
     deleteVoucher: {
         title: '電子商務 / 清空優惠券',
         fun: TriggerEvent.setEventRouter(import.meta.url, './e-commerce/delete-voucher.js'),
@@ -900,6 +660,30 @@ ${EditorElem.h3("選擇頁面")}
     getVoucher: {
         title: '電子商務 / 取得優惠券代碼',
         fun: TriggerEvent.setEventRouter(import.meta.url, './e-commerce/get-voucher.js'),
+    },
+    addWishList: {
+        title: '電子商務 / 加入許願池',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './e-commerce/wish-list.js'),
+    },
+    deleteWishList: {
+        title: '電子商務 / 移除許願池',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './e-commerce/delete-wish-list.js'),
+    },
+    getWishList: {
+        title: '電子商務 / 取得許願池',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './e-commerce/get-wish-list.js'),
+    },
+    inWishList: {
+        title: '電子商務 / 判斷商品是否存在於許願池',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './e-commerce/check-wish-list.js'),
+    },
+    postWallet: {
+        title: '電子錢包 / 新增儲值金額',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './wallet/add-money.js'),
+    },
+    withdraw: {
+        title: '電子錢包 / 提領金額',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './wallet/withdraw.js'),
     },
     login: {
         title: '用戶相關 / 用戶登入',
@@ -945,6 +729,22 @@ ${EditorElem.h3("選擇頁面")}
         title: '用戶相關 / 取得TOKEN',
         fun: TriggerEvent.setEventRouter(import.meta.url, './user/token.js')
     },
+    addChatRoom: {
+        title: '訊息相關 / 建立聊天室',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './chat/add-chat-room.js')
+    },
+    sendChatMessage: {
+        title: '訊息相關 / 傳送訊息',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './chat/send-chat-message.js')
+    },
+    getChatMessage: {
+        title: '訊息相關 / 取得訊息',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './chat/get-message.js')
+    },
+    getAutoReply: {
+        title: '訊息相關 / 客服 / 取得自動答覆問題',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './chat/auto-reply.js')
+    },
     glitterADD: {
         title: 'GLITTER / 建立APP',
         fun: TriggerEvent.setEventRouter(import.meta.url, './glitter/create.js')
@@ -960,7 +760,7 @@ ${EditorElem.h3("選擇頁面")}
     getBottomInset: {
         title: '手機裝置 / 取得下方導覽列高度',
         fun: TriggerEvent.setEventRouter(import.meta.url, './mobile/get-bottom-inset.js')
-    },
+    }
 });
 function questionText(data) {
     return `<div class="bg-secondary rounded-3 py-2 px-2 ">

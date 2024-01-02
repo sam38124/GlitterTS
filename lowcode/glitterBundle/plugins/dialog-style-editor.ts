@@ -3,11 +3,12 @@ import {EditorElem} from "./editor-elem.js";
 import Add_item_dia from "./add_item_dia.js";
 //@ts-ignore
 import {Swal} from "../../modules/sweetAlert.js";
+import {TriggerEvent} from "./trigger-event.js";
 
 
 const html = String.raw
 
-init((gvc, glitter, gBundle) => {
+init(import.meta.url, (gvc, glitter, gBundle) => {
     return {
         onCreateView: () => {
             const styleData: {
@@ -107,24 +108,26 @@ init((gvc, glitter, gBundle) => {
                                                                             if (styleData.style_from === 'code') {
                                                                                 return styleEditor(gvc, styleData)
                                                                             } else if (styleData.style_from === 'tag') {
-                                                                                return html`<div class="mx-2">
+                                                                                return html`
+                                                                                    <div class="mx-2">
                                                                                         <div class="btn btn-primary-c  w-100"
                                                                                              onclick="${gvc.event(() => {
-                                                                                                 glitter.share.selectStyleCallback=(tag:string)=>{
-                                                                                                     function toOneArray(array: any,map:any) {
+                                                                                                 glitter.share.selectStyleCallback = (tag: string) => {
+                                                                                                     function toOneArray(array: any, map: any) {
                                                                                                          try {
                                                                                                              array.map((dd: any) => {
                                                                                                                  if (dd.type === 'container') {
-                                                                                                                     toOneArray(dd.data.setting,map)
+                                                                                                                     toOneArray(dd.data.setting, map)
                                                                                                                  } else {
                                                                                                                      map[dd.data.tag] = dd.data.value
                                                                                                                  }
                                                                                                              })
                                                                                                              return map
-                                                                                                         } catch (e) {}
+                                                                                                         } catch (e) {
+                                                                                                         }
                                                                                                      };
-                                                                                                     glitter.share.editerGlitter.share.globalStyle=toOneArray(glitter.share.editorViewModel.globalStyleTag,{});
-                                                                                                     (styleData as any).tag=tag
+                                                                                                     glitter.share.editerGlitter.share.globalStyle = toOneArray(glitter.share.editorViewModel.globalStyleTag, {});
+                                                                                                     (styleData as any).tag = tag
                                                                                                      glitter.closeDiaLog('EditItem')
                                                                                                      gvc.recreateView()
                                                                                                  }
@@ -144,9 +147,9 @@ init((gvc, glitter, gBundle) => {
                                                                                                                  <div class="hoverBtn p-2 me-2"
                                                                                                                       style="color:black;font-size:20px;"
                                                                                                                       onclick="${gvc.event(() => {
-                                                                                                                         if((styleData as any).tag){
-                                                                                                                             glitter.share.selectStyleCallback((styleData as any).tag)
-                                                                                                                         }
+                                                                                                                          if ((styleData as any).tag) {
+                                                                                                                              glitter.share.selectStyleCallback((styleData as any).tag)
+                                                                                                                          }
                                                                                                                       })}"
                                                                                                                  >
                                                                                                                      <i class="fa-sharp fa-regular fa-circle-xmark"></i>
@@ -174,7 +177,7 @@ init((gvc, glitter, gBundle) => {
                                                                                                                                      rightBar: ''
                                                                                                                                  }
 
-                                                                                                                                 styleRender(gvc,(styleData as any).tag).then((response) => {
+                                                                                                                                 styleRender(gvc, (styleData as any).tag).then((response) => {
                                                                                                                                      contentVM.loading = false
                                                                                                                                      contentVM.leftBar = response.left
                                                                                                                                      contentVM.rightBar = response.right
@@ -223,7 +226,7 @@ init((gvc, glitter, gBundle) => {
                                                                                                      `
                                                                                                  }, "EditItem")
                                                                                              })}">
-                                                                                           ${ (styleData as any).tag ? `當前標籤 : [${ (styleData as any).tag}]`:`設定標籤`} 
+                                                                                            ${(styleData as any).tag ? `當前標籤 : [${(styleData as any).tag}]` : `設定標籤`}
                                                                                         </div>
                                                                                     </div>`
                                                                             }
@@ -257,7 +260,7 @@ init((gvc, glitter, gBundle) => {
 })
 
 //頁面共用STYLE設計
-function styleRender(gvc: GVC,tag?:string) {
+function styleRender(gvc: GVC, tag?: string) {
     const html = String.raw
     const glitter = gvc.glitter
     const viewModel = gvc.glitter.share.editorViewModel
@@ -265,7 +268,7 @@ function styleRender(gvc: GVC,tag?:string) {
     const vid = glitter.getUUID()
     viewModel.selectItem = undefined
     viewModel.globalStyleTag = viewModel.globalStyleTag ?? [];
-    viewModel.data.page_config.globalStyleTag=viewModel.data.page_config.globalStyleTag??[]
+    viewModel.data.page_config.globalStyleTag = viewModel.data.page_config.globalStyleTag ?? []
     //viewModel.data.page_config.globalStyleTag
     //viewModel.globalStyleTag
     return new Promise<{ left: string, right: string }>((resolve, reject) => {
@@ -304,7 +307,7 @@ function styleRender(gvc: GVC,tag?:string) {
                                                  event.stopPropagation()
 
                                              })}">
-                                            ${Add_item_dia.add_content_folder(gvc, 'style',(response) => {
+                                            ${Add_item_dia.add_content_folder(gvc, 'style', (response) => {
                                                 viewModel.globalStyleTag.push(response)
                                                 gvc.notifyDataChange(vid)
                                             })}
@@ -315,17 +318,17 @@ function styleRender(gvc: GVC,tag?:string) {
                                 dd.index = index
                                 return dd
                             }), false, viewModel.globalStyleTag, {
-                                addComponentView: (gvc: GVC, callback?: (data: any) => void)=>{
-                                    return Add_item_dia.add_content_folder(gvc,'style',callback)
+                                addComponentView: (gvc: GVC, callback?: (data: any) => void) => {
+                                    return Add_item_dia.add_content_folder(gvc, 'style', callback)
                                 },
                                 copyType: 'directly',
-                                selectEv:(dd:any)=>{
-                                    if((dd.data ?? {}).tag&&(dd.data ?? {}).tag===tag){
-                                        viewModel.selectItem=dd
-                                        tag=undefined
+                                selectEv: (dd: any) => {
+                                    if ((dd.data ?? {}).tag && (dd.data ?? {}).tag === tag) {
+                                        viewModel.selectItem = dd
+                                        tag = undefined
                                         gvc.notifyDataChange(docID)
-                                       return true
-                                    }else{
+                                        return true
+                                    } else {
                                         return false
                                     }
                                 }
@@ -385,7 +388,7 @@ function styleRender(gvc: GVC,tag?:string) {
                                                     viewModel.selectItem.label = text
                                                     gvc.notifyDataChange([vid, docID])
                                                 }
-                                            }):`` + ((viewModel.selectItem.type === 'container') ? `` : (() => {
+                                            }) : `` + ((viewModel.selectItem.type === 'container') ? `` : (() => {
                                                         viewModel.selectItem.data.tagType = viewModel.selectItem.data.tagType ?? "value"
                                                         if (typeof viewModel.selectItem.data.value !== 'object') {
                                                             viewModel.selectItem.data.value = {}
@@ -464,7 +467,6 @@ function styleRender(gvc: GVC,tag?:string) {
 
 //
 function styleEditor(gvc: GVC, styleData: any, classs: string = 'mx-2') {
-    console.log(`styleData`, styleData)
     styleData.stylist = styleData.stylist ?? []
     const glitter = gvc.glitter;
 
@@ -479,9 +481,8 @@ function styleEditor(gvc: GVC, styleData: any, classs: string = 'mx-2') {
                     bind: id,
                     view: () => {
                         return [
-                            `
-                                                                                                     <h3 style="color: black;font-size: 24px;margin-bottom: 10px;" class="fw-bold mt-2">CLASS參數</h3> 
-                                                                                                        `,
+                            html`<h3 style="color: black;font-size: 24px;margin-bottom: 10px;" class="fw-bold mt-2">
+                                CLASS參數</h3>`,
                             EditorElem.select({
                                 title: "設定參數資料來源",
                                 gvc: gvc,
@@ -494,6 +495,10 @@ function styleEditor(gvc: GVC, styleData: any, classs: string = 'mx-2') {
                                     {
                                         title: '程式碼',
                                         value: 'code'
+                                    },
+                                    {
+                                        title: '觸發事件',
+                                        value: 'triggerEvent'
                                     }
                                 ],
                                 callback: (text) => {
@@ -512,6 +517,13 @@ function styleEditor(gvc: GVC, styleData: any, classs: string = 'mx-2') {
                                         callback: (text) => {
                                             data.class = text
                                         }
+                                    })
+                                } else if (data.classDataType === 'triggerEvent') {
+                                    data.trigger = data.trigger ?? {}
+                                    return TriggerEvent.editer(gvc, data as any, data.trigger, {
+                                        hover: false,
+                                        option: [],
+                                        title: '觸發事件'
                                     })
                                 } else {
                                     return EditorElem.codeEditor({
@@ -553,6 +565,10 @@ function styleEditor(gvc: GVC, styleData: any, classs: string = 'mx-2') {
                                     {
                                         title: '程式碼',
                                         value: 'code'
+                                    },
+                                    {
+                                        title: '觸發事件',
+                                        value: 'triggerEvent'
                                     }
                                 ],
                                 callback: (text) => {
@@ -571,6 +587,13 @@ function styleEditor(gvc: GVC, styleData: any, classs: string = 'mx-2') {
                                         callback: (text) => {
                                             data.style = text
                                         }
+                                    })
+                                } else if (data.dataType === 'triggerEvent') {
+                                    data.triggerStyle = data.triggerStyle ?? {}
+                                    return TriggerEvent.editer(gvc, data as any, data.triggerStyle, {
+                                        hover: false,
+                                        option: [],
+                                        title: '觸發事件'
                                     })
                                 } else {
                                     return EditorElem.codeEditor({
@@ -662,11 +685,12 @@ function styleEditor(gvc: GVC, styleData: any, classs: string = 'mx-2') {
 }
 
 
-class Render{
+class Render {
     public gvc: GVC
     public vid: string
 
     public editorID: string
+
     public renderLineItem(array: any, child: boolean, original: any, option: {
         addComponentView?: (gvc: GVC, callback?: (data: any) => void) => string,
         copyType?: 'directly',
@@ -824,11 +848,11 @@ class Render{
                                         <div class="editor_item d-flex   px-2 my-0 hi me-n1 ${(viewModel.selectItem === dd || selectChild || (option.selectEv && option.selectEv(dd))) ? `active` : ``}"
                                              style=""
                                              onclick="${option.selectEvent || gvc.event(() => {
-                                viewModel.selectContainer = original
-                                viewModel.selectItem = dd
-                                glitter.setCookie('lastSelect', dd.id);
-                                gvc.notifyDataChange(['htmlGenerate', 'showView', vid, this.editorID]);
-                            })}">
+                                                 viewModel.selectContainer = original
+                                                 viewModel.selectItem = dd
+                                                 glitter.setCookie('lastSelect', dd.id);
+                                                 gvc.notifyDataChange(['htmlGenerate', 'showView', vid, this.editorID]);
+                                             })}">
                                             ${(dd.type === 'container') ? html`
                                                 <div class="subBt ps-0 ms-n2" onclick="${toggle}">
                                                     ${((dd.toggle) ? `<i class="fa-regular fa-angle-down hoverBtn " ></i>` : `
@@ -840,11 +864,11 @@ class Render{
                                             ${(dd.type === 'container') ? ` <l1 class="btn-group me-0 subBt"
                                                                                 style=""
                                                                                 onclick="${gvc.event((e, event) => {
-                                dd.data.setting = dd.data.setting ?? []
-                                viewModel.selectContainer = dd.data.setting
-                                event.stopPropagation()
-                                event.preventDefault()
-                            })}">
+                                                dd.data.setting = dd.data.setting ?? []
+                                                viewModel.selectContainer = dd.data.setting
+                                                event.stopPropagation()
+                                                event.preventDefault()
+                                            })}">
                                                                                 ${(option.addComponentView) ? `
                                                                                     <div class="${(option.readonly) ? `d-none` : ``}"
                                      style="cursor:pointer;gap:5px;"
@@ -856,49 +880,49 @@ class Render{
                                                                                   <div class="dropdown-menu mx-1 position-fixed pb-0 border "
                                      style="z-index:999999;"
                                      onclick="${gvc.event((e, event) => {
-                                event.preventDefault()
-                                event.stopPropagation()
+                                                event.preventDefault()
+                                                event.stopPropagation()
 
-                            })}">
+                                            })}">
                                     ${option.addComponentView(gvc, (response) => {
-                                dd.data.setting.push(response)
-                                dd.toggle = true
-                                gvc.notifyDataChange(parId)
-                            })}
+                                                dd.data.setting.push(response)
+                                                dd.toggle = true
+                                                gvc.notifyDataChange(parId)
+                                            })}
                                 </div>
                                                                                 ` : ` <div class="d-flex align-items-center justify-content-center w-100 h-100 ${(option.readonly) ? `d-none` : ``}" 
                                                                                    onclick="${gvc.event(() => {
-                                glitter.innerDialog((gvc: GVC) => {
-                                    viewModel.selectContainer = dd.data.setting
-                                    return Add_item_dia.view(gvc)
-                                }, 'Add_item_dia')
-                            })}">
+                                                glitter.innerDialog((gvc: GVC) => {
+                                                    viewModel.selectContainer = dd.data.setting
+                                                    return Add_item_dia.view(gvc)
+                                                }, 'Add_item_dia')
+                                            })}">
                                                                                     <i class="fa-regular fa-circle-plus d-flex align-items-center justify-content-center subBt "></i>
                                                                                 </div>`}
                                                                                
                                                                             </l1>` : ``}
                                             <div class="subBt ${(option.readonly) ? `d-none` : ``}"
                                                  onclick="${gvc.event((e, event) => {
-                                if (option.copyType === 'directly') {
-                                    const copy = JSON.parse(JSON.stringify(dd))
-                                    copy.id = glitter.getUUID()
-                                    viewModel.selectContainer = array
-                                    viewModel.selectItem = copy
-                                    original.push(copy)
-                                    gvc.notifyDataChange([vid])
-                                } else {
-                                    viewModel.selectContainer = array
-                                    viewModel.waitCopy = dd
-                                    glitter.share.copycomponent = JSON.stringify(viewModel.waitCopy);
-                                    navigator.clipboard.writeText(JSON.stringify(viewModel.waitCopy));
-                                    swal.toast({
-                                        icon: 'success',
-                                        title: "已複製至剪貼簿，選擇新增模塊來添加項目．"
-                                    })
-                                }
+                                                     if (option.copyType === 'directly') {
+                                                         const copy = JSON.parse(JSON.stringify(dd))
+                                                         copy.id = glitter.getUUID()
+                                                         viewModel.selectContainer = array
+                                                         viewModel.selectItem = copy
+                                                         original.push(copy)
+                                                         gvc.notifyDataChange([vid])
+                                                     } else {
+                                                         viewModel.selectContainer = array
+                                                         viewModel.waitCopy = dd
+                                                         glitter.share.copycomponent = JSON.stringify(viewModel.waitCopy);
+                                                         navigator.clipboard.writeText(JSON.stringify(viewModel.waitCopy));
+                                                         swal.toast({
+                                                             icon: 'success',
+                                                             title: "已複製至剪貼簿，選擇新增模塊來添加項目．"
+                                                         })
+                                                     }
 
-                                event.stopPropagation()
-                            })}">
+                                                     event.stopPropagation()
+                                                 })}">
                                                 <i class="fa-sharp fa-regular fa-scissors d-flex align-items-center justify-content-center subBt "
                                                    style="width:15px;height:15px;"
                                                 ></i>
@@ -906,13 +930,13 @@ class Render{
                                             ${(dd.type === 'container') ? html`
                                                 <div class="subBt d-none"
                                                      onclick="${gvc.event((e, event) => {
-                                viewModel.selectContainer = original.find((d2: any) => {
-                                    return d2.id === dd.id
-                                }).data.setting
-                                glitter.share.pastEvent()
-                                event.stopPropagation()
-                                event.preventDefault()
-                            })}">
+                                                         viewModel.selectContainer = original.find((d2: any) => {
+                                                             return d2.id === dd.id
+                                                         }).data.setting
+                                                         glitter.share.pastEvent()
+                                                         event.stopPropagation()
+                                                         event.preventDefault()
+                                                     })}">
                                                     <i class="fa-duotone fa-paste d-flex align-items-center justify-content-center subBt"
                                                        style="width:15px;height:15px;"
                                                     ></i>
@@ -920,29 +944,29 @@ class Render{
                                             ` : ``}
 
                                             <div class="subBt ${(option.readonly) ? `d-none` : ``}" onmousedown="${
-                                gvc.event((e, event) => {
-                                    dragModel.firstIndex = index
-                                    dragModel.currentIndex = index
-                                    dragModel.draggableElement = glitter.getUUID()
-                                    dragModel.dragStart = event.clientY
-                                    dragModel.dragOffsetY = $(e).parent().parent().get(0).offsetTop;
-                                    dragModel.maxHeight = ($(e).parent().parent().parent().height() as number);
-                                    $(e).parent().addClass('d-none')
-                                    dragModel.hover_item = []
-                                    $(e).parent().parent().append(`<div class="editor_item active  hv"></div>`)
-                                    $(e).parent().parent().parent().addClass('select_container')
-                                    $('.select_container').children().each(function (index) {
-                                        // 在這裡執行對每個 li 元素的操作
-                                        if ($(this).get(0)!.offsetTop > 0) {
-                                            dragModel.hover_item.push({
-                                                elem: $(this),
-                                                offsetTop: $(this).get(0)!.offsetTop
-                                            })
-                                        }
+                                                    gvc.event((e, event) => {
+                                                        dragModel.firstIndex = index
+                                                        dragModel.currentIndex = index
+                                                        dragModel.draggableElement = glitter.getUUID()
+                                                        dragModel.dragStart = event.clientY
+                                                        dragModel.dragOffsetY = $(e).parent().parent().get(0).offsetTop;
+                                                        dragModel.maxHeight = ($(e).parent().parent().parent().height() as number);
+                                                        $(e).parent().addClass('d-none')
+                                                        dragModel.hover_item = []
+                                                        $(e).parent().parent().append(`<div class="editor_item active  hv"></div>`)
+                                                        $(e).parent().parent().parent().addClass('select_container')
+                                                        $('.select_container').children().each(function (index) {
+                                                            // 在這裡執行對每個 li 元素的操作
+                                                            if ($(this).get(0)!.offsetTop > 0) {
+                                                                dragModel.hover_item.push({
+                                                                    elem: $(this),
+                                                                    offsetTop: $(this).get(0)!.offsetTop
+                                                                })
+                                                            }
 
-                                    });
-                                    console.log(`hover_item`, dragModel.hover_item)
-                                    $(e).parent().parent().parent().append(html`
+                                                        });
+                                                        console.log(`hover_item`, dragModel.hover_item)
+                                                        $(e).parent().parent().parent().append(html`
                                                             <l1 class="btn-group position-absolute  "
                                                                 style="width:${($(e).parent().parent().width() as any) - 50}px;right:15px;top:${dragModel.dragOffsetY}px;z-index:99999;border-radius:10px;background:white!important;"
                                                                 id="${dragModel.draggableElement}">
@@ -956,9 +980,9 @@ class Render{
                                                                        style="width:20px;height:20px;"></i>
                                                                 </div>
                                                             </l1>`)
-                                    document.addEventListener("mouseup", mup_Linstener);
-                                    document.addEventListener("mousemove", move_Linstener);
-                                })}">
+                                                        document.addEventListener("mouseup", mup_Linstener);
+                                                        document.addEventListener("mousemove", move_Linstener);
+                                                    })}">
                                                 <i class="fa-solid fa-grip-dots-vertical d-flex align-items-center justify-content-center  "
                                                    style="width:15px;height:15px;"></i>
                                             </div>

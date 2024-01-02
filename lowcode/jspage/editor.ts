@@ -91,31 +91,31 @@ export class Editor {
                                     <i class="fa-solid fa-puzzle-piece-simple"></i>
 
                                 </div>`,
-                                        ` <div class="d-flex align-items-center justify-content-center hoverBtn me-2 border"
+                                    ` <div class="d-flex align-items-center justify-content-center hoverBtn me-2 border"
                                      style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;"
                                      onclick="${gvc.event(() => {
-                                            EditorElem.openEditorDialog(gvc, (gvc: GVC) => {
-                                                return gvc.bindView(()=>{
-                                                    return {
-                                                        bind:gvc.glitter.getUUID(),
-                                                        view: ()=>{
-                                                            return new Promise(async (resolve, reject)=>{
-                                                                const data=await PageEditor.valueRender(gvc)
-                                                                resolve(`
+                                        EditorElem.openEditorDialog(gvc, (gvc: GVC) => {
+                                            return gvc.bindView(() => {
+                                                return {
+                                                    bind: gvc.glitter.getUUID(),
+                                                    view: () => {
+                                                        return new Promise(async (resolve, reject) => {
+                                                            const data = await PageEditor.valueRender(gvc)
+                                                            resolve(`
                                                                 <div class="d-flex">
                           <div class="border-end" style="width:300px;overflow:hidden;"> ${data.left}</div>
                                                                 ${data.right}                                       
 </div>
                                                               
                                                                 `)
-                                                            })
-                                                        }
+                                                        })
                                                     }
-                                                })
-                                            }, () => {
+                                                }
+                                            })
+                                        }, () => {
 
-                                            }, 700,'共用資源管理')
-                                        })}">
+                                        }, 700, '共用資源管理')
+                                    })}">
                                     <i class="fa-regular fa-folder"></i>
                                 </div>`
                                 ].join(`<div class="me-1"></div>`)}
@@ -157,8 +157,7 @@ export class Editor {
                                                                     glitter.share.clearSelectItem()
                                                                     data.data = d3
                                                                     glitter.setUrlParameter('page', d3.tag)
-                                                                    gvc.notifyDataChange('HtmlEditorContainer')
-                                                                    gvc.notifyDataChange(id)
+                                                                    glitter.share.reloadEditor()
                                                                 }).then((data) => {
                                                                     resolve(data.left)
                                                                 })
@@ -285,17 +284,17 @@ export class Editor {
                             divCreate: {}
                         })}
                     </main>
-                    ${(()=>{
-                        if(((viewModel.type === ViewType.col3 || (viewModel.type === ViewType.mobile)) && glitter.getUrlParameter('editorPosition') !== Setting_editor.index)){
+                    ${(() => {
+                        if (((viewModel.type === ViewType.col3 || (viewModel.type === ViewType.mobile)) && glitter.getUrlParameter('editorPosition') !== Setting_editor.index)) {
                             return Main_editor.pageAndComponent({
-                                gvc:gvc,
-                                data:data,
-                                divCreate:{
-                                    class:`p-0  side-nav-end  position-fixed top-0 end-0 vh-100 border-start  bg-white `,
-                                    style:`width: 290px;padding-top:60px !important;`
+                                gvc: gvc,
+                                data: data,
+                                divCreate: {
+                                    class: `p-0  side-nav-end  position-fixed top-0 end-0 vh-100 border-start  bg-white `,
+                                    style: `width: 290px;padding-top:60px !important;`
                                 },
                             })
-                        }else{
+                        } else {
                             return ``
                         }
                     })()}

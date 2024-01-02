@@ -36,7 +36,7 @@ router.post('/release/ios/download', async (req: express.Request, resp: express.
             const file=new Date().getTime()
             const copyFile= path.resolve(__filename,`../../../app-project/work-space/${file}`)
             Release.copyFolderSync(path.resolve(__filename,'../../../app-project/ios'), copyFile)
-            Release.ios({
+            await Release.ios({
                 appName: req.body.app_name,
                 bundleID: req.body.bundle_id,
                 glitter_domain: config.domain as string,
@@ -64,7 +64,7 @@ router.post('/release/android/download', async (req: express.Request, resp: expr
             const file=new Date().getTime()
             const copyFile= path.resolve(__filename,`../../../app-project/work-space/${file}`)
             Release.copyFolderSync(path.resolve(__filename,'../../../app-project/android'), copyFile)
-            Release.android({
+            await Release.android({
                 appName: req.body.app_name,
                 bundleID: req.body.bundle_id,
                 glitter_domain: config.domain as string,

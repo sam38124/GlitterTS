@@ -21,5 +21,5 @@ export class GlobalUser {
     }
 }
 GlobalUser.tagId = "sjnsannsai23ij3as";
-GlobalUser.userInfo = {};
+GlobalUser.userInfo = undefined;
 GlobalUser.updateUserData = {};

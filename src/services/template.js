@@ -102,12 +102,14 @@ class Template {
     }
     async getPage(config) {
         try {
-            let sql = `select *
+            let sql = `select  ${(config.tag) ? `*` : `id,userID,tag,\`group\`,name`}
                        from \`${config_1.saasConfig.SAAS_NAME}\`.page_config
                        where 1 = 1
                          and appName = ${database_1.default.escape(config.appName)}`;
             if (config.tag) {
-                sql += ` and tag=${database_1.default.escape(config.tag)}`;
+                sql += ` and tag in (${config.tag.split(',').map((dd) => {
+                    return database_1.default.escape(dd);
+                }).join(',')})`;
             }
             return await database_1.default.query(sql, []);
         }

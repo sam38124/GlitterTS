@@ -1,4 +1,3 @@
-import * as Glitter from 'ts-glitter';
 import path from "path";
 import express from 'express';
 import cors from 'cors';
@@ -22,6 +21,9 @@ import response from "./modules/response.js";
 import {ApiPublic} from "./api-public/services/public-table-check.js";
 import {Release} from "./services/release.js";
 import fs from "fs";
+import {App} from "./services/app.js";
+import {Firebase} from "./modules/firebase.js";
+import {GlitterUtil} from "./helper/glitter-util.js";
 
 //Glitter FrontEnd Rout
 export const app = express();
@@ -39,7 +41,7 @@ app.use(cors());
 app.use(express.raw());
 app.use(express.json({limit: '50MB'}));
 app.use(createContext);
-app.use(bodyParser.raw({ type: '*/*' }));
+app.use(bodyParser.raw({type: '*/*'}));
 app.use(contollers);
 app.use(public_contollers);
 
@@ -54,8 +56,11 @@ export async function initial(serverPort: number) {
         await createBucket(config.AWS_S3_NAME as string);
         logger.info('[Init]', `Server start with env: ${process.env.NODE_ENV || 'local'}`);
         await app.listen(serverPort);
-        fs.mkdirSync(path.resolve(__filename,'../app-project/work-space'), { recursive: true });
-        Release.removeAllFilesInFolder(path.resolve(__filename,'../app-project/work-space'))
+        fs.mkdirSync(path.resolve(__filename, '../app-project/work-space'), {recursive: true});
+        Release.removeAllFilesInFolder(path.resolve(__filename, '../app-project/work-space'))
+        if(process.env.firebase){
+            await Firebase.initial();
+        }
         // await createDomain('glitter-base.com');
         // await setDNS('glitter-base.com')
         // console.log(`domain`,config.domain)
@@ -172,17 +177,26 @@ async function createAppRoute() {
 
 export async function createAPP(dd: any) {
     Live_source.liveAPP.push(dd.appName)
-    return await Glitter.setUP(app, [
+    return await GlitterUtil.set_frontend(app, [
         {
             rout: '/' + encodeURI(dd.appName),
             path: path.resolve(__dirname, '../lowcode'),
             seoManager: async (req, resp) => {
-                let appName=dd.appName
-                if(req.query.appName){
-                    appName=req.query.appName
+                let appName = dd.appName
+                if (req.query.appName) {
+                    appName = req.query.appName
+                }
+                let overDue = await App.checkOverDue(appName)
+                let vm = {
+                    glitterInfo: `<script>
+window.appName='${appName}';
+window.glitterBase='${process.env.GLITTER_DB}'
+window.glitterBackend='${config.domain}';
+window.glitterAuth = ${JSON.stringify(overDue)}
+</script>`
                 }
                 try {
-                    let data = (await db.execute(`SELECT page_config, \`${saasConfig.SAAS_NAME}\`.app_config.\`config\`,tag
+                    let data = (await db.execute(`SELECT page_config, \`${saasConfig.SAAS_NAME}\`.app_config.\`config\`, tag
                                                   FROM \`${saasConfig.SAAS_NAME}\`.page_config,
                                                        \`${saasConfig.SAAS_NAME}\`.app_config
                                                   where \`${saasConfig.SAAS_NAME}\`.page_config.appName = ${db.escape(appName)}
@@ -193,7 +207,7 @@ export async function createAPP(dd: any) {
                     if (data && data.page_config) {
                         const d = data.page_config.seo ?? {}
                         if (d.type !== 'custom') {
-                            data = (await db.execute(`SELECT page_config, \`${saasConfig.SAAS_NAME}\`.app_config.\`config\`,tag
+                            data = (await db.execute(`SELECT page_config, \`${saasConfig.SAAS_NAME}\`.app_config.\`config\`, tag
                                                       FROM \`${saasConfig.SAAS_NAME}\`.page_config,
                                                            \`${saasConfig.SAAS_NAME}\`.app_config
                                                       where \`${saasConfig.SAAS_NAME}\`.page_config.appName = ${db.escape(appName)}
@@ -218,7 +232,7 @@ export async function createAPP(dd: any) {
                                                           where \`${saasConfig.SAAS_NAME}\`.page_config.appName = ${db.escape(appName)} limit 0,1
                             `, []))[0]['tag']
                         }
-                        data = (await db.execute(`SELECT page_config, \`${saasConfig.SAAS_NAME}\`.app_config.\`config\`,tag
+                        data = (await db.execute(`SELECT page_config, \`${saasConfig.SAAS_NAME}\`.app_config.\`config\`, tag
                                                   FROM \`${saasConfig.SAAS_NAME}\`.page_config,
                                                        \`${saasConfig.SAAS_NAME}\`.app_config
                                                   where \`${saasConfig.SAAS_NAME}\`.page_config.appName = ${db.escape(appName)}
@@ -226,15 +240,14 @@ export async function createAPP(dd: any) {
                                                     and \`${saasConfig.SAAS_NAME}\`.page_config.appName = \`${saasConfig.SAAS_NAME}\`.app_config.appName;
                         `, []))[0]
 
-                        if(req.query.type){
-                            redirect+=`&type=${req.query.type}`
+                        if (req.query.type) {
+                            redirect += `&type=${req.query.type}`
                         }
-                        if(req.query.appName){
-                            redirect+=`&appName=${req.query.appName}`
+                        if (req.query.appName) {
+                            redirect += `&appName=${req.query.appName}`
                         }
                     }
-console.log(req.query)
-                    return  `${(() => {
+                    return `${(() => {
                         data.page_config = data.page_config ?? {}
                         if (data && data.page_config) {
                             const d = data.page_config.seo ?? {}
@@ -246,24 +259,24 @@ console.log(req.query)
     <meta property="og:image" content="${d.image ?? ""}">
     <meta property="og:title" content="${d.title ?? ""}">
     <meta name="description" content="${d.content ?? ""}">
-  ${(()=>{
-      if(req.query.type==='editor'){
-          return ``
-      }else{
-          return  `  ${(data.config.globalStyle ?? []).map((dd:any)=>{
-              try {
-                  if(dd.data.elem==='style'){
-                      return  `<style>${dd.data.inner}</style>`
-                  }else if(dd.data.elem==='link'){
-                      return  `<link type="text/css" rel="stylesheet" href="${dd.data.attr.find((dd:any)=>{
-                          return dd.attr==='href'
-                      }).value}">`
-                  }
-              }catch (e){
-                  return``
-              }
-          }).join('')}`
-      }
+  ${(() => {
+                                if (req.query.type === 'editor') {
+                                    return ``
+                                } else {
+                                    return `  ${(data.config.globalStyle ?? []).map((dd: any) => {
+                                        try {
+                                            if (dd.data.elem === 'style') {
+                                                return `<style>${dd.data.inner}</style>`
+                                            } else if (dd.data.elem === 'link') {
+                                                return `<link type="text/css" rel="stylesheet" href="${dd.data.attr.find((dd: any) => {
+                                                    return dd.attr === 'href'
+                                                }).value}">`
+                                            }
+                                        } catch (e) {
+                                            return ``
+                                        }
+                                    }).join('')}`
+                                }
                             })()}
     ${(() => {
                                 if (redirect) {
@@ -280,17 +293,9 @@ window.location.href='?page=${redirect}';
 window.location.href='?page=${redirect}';
 </script>`
                         }
-                    })()}<script>
-window.appName='${appName}';
-window.glitterBase='${process.env.GLITTER_DB}'
-window.glitterBackend='${config.domain}';
-</script>`
+                    })()}${vm.glitterInfo}`
                 } catch (e) {
-                    return `<script>
-window.appName='${appName}';
-window.glitterBase='${process.env.GLITTER_DB}'
-window.glitterBackend='${config.domain}';
-</script>`
+                    return vm.glitterInfo
                 }
 
             }

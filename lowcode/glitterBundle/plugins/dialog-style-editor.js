@@ -2,8 +2,9 @@ import { init } from '../GVController.js';
 import { EditorElem } from "./editor-elem.js";
 import Add_item_dia from "./add_item_dia.js";
 import { Swal } from "../../modules/sweetAlert.js";
+import { TriggerEvent } from "./trigger-event.js";
 const html = String.raw;
-init((gvc, glitter, gBundle) => {
+init(import.meta.url, (gvc, glitter, gBundle) => {
     return {
         onCreateView: () => {
             var _a, _b;
@@ -92,7 +93,8 @@ init((gvc, glitter, gBundle) => {
                                                 return styleEditor(gvc, styleData);
                                             }
                                             else if (styleData.style_from === 'tag') {
-                                                return html `<div class="mx-2">
+                                                return html `
+                                                                                    <div class="mx-2">
                                                                                         <div class="btn btn-primary-c  w-100"
                                                                                              onclick="${gvc.event(() => {
                                                     glitter.share.selectStyleCallback = (tag) => {
@@ -108,7 +110,8 @@ init((gvc, glitter, gBundle) => {
                                                                 });
                                                                 return map;
                                                             }
-                                                            catch (e) { }
+                                                            catch (e) {
+                                                            }
                                                         }
                                                         ;
                                                         glitter.share.editerGlitter.share.globalStyle = toOneArray(glitter.share.editorViewModel.globalStyleTag, {});
@@ -201,7 +204,7 @@ init((gvc, glitter, gBundle) => {
                                                                                                      `;
                                                     }, "EditItem");
                                                 })}">
-                                                                                           ${styleData.tag ? `當前標籤 : [${styleData.tag}]` : `設定標籤`} 
+                                                                                            ${styleData.tag ? `當前標籤 : [${styleData.tag}]` : `設定標籤`}
                                                                                         </div>
                                                                                     </div>`;
                                             }
@@ -436,7 +439,6 @@ function styleRender(gvc, tag) {
 }
 function styleEditor(gvc, styleData, classs = 'mx-2') {
     var _a;
-    console.log(`styleData`, styleData);
     styleData.stylist = (_a = styleData.stylist) !== null && _a !== void 0 ? _a : [];
     const glitter = gvc.glitter;
     function editIt(gvc, data) {
@@ -452,9 +454,8 @@ function styleEditor(gvc, styleData, classs = 'mx-2') {
                     bind: id,
                     view: () => {
                         return [
-                            `
-                                                                                                     <h3 style="color: black;font-size: 24px;margin-bottom: 10px;" class="fw-bold mt-2">CLASS參數</h3> 
-                                                                                                        `,
+                            html `<h3 style="color: black;font-size: 24px;margin-bottom: 10px;" class="fw-bold mt-2">
+                                CLASS參數</h3>`,
                             EditorElem.select({
                                 title: "設定參數資料來源",
                                 gvc: gvc,
@@ -467,6 +468,10 @@ function styleEditor(gvc, styleData, classs = 'mx-2') {
                                     {
                                         title: '程式碼',
                                         value: 'code'
+                                    },
+                                    {
+                                        title: '觸發事件',
+                                        value: 'triggerEvent'
                                     }
                                 ],
                                 callback: (text) => {
@@ -476,6 +481,7 @@ function styleEditor(gvc, styleData, classs = 'mx-2') {
                             }),
                             `<div class="mt-2"></div>`,
                             (() => {
+                                var _a;
                                 if (data.classDataType === 'static') {
                                     return EditorElem.editeText({
                                         gvc: gvc,
@@ -485,6 +491,14 @@ function styleEditor(gvc, styleData, classs = 'mx-2') {
                                         callback: (text) => {
                                             data.class = text;
                                         }
+                                    });
+                                }
+                                else if (data.classDataType === 'triggerEvent') {
+                                    data.trigger = (_a = data.trigger) !== null && _a !== void 0 ? _a : {};
+                                    return TriggerEvent.editer(gvc, data, data.trigger, {
+                                        hover: false,
+                                        option: [],
+                                        title: '觸發事件'
                                     });
                                 }
                                 else {
@@ -528,6 +542,10 @@ function styleEditor(gvc, styleData, classs = 'mx-2') {
                                     {
                                         title: '程式碼',
                                         value: 'code'
+                                    },
+                                    {
+                                        title: '觸發事件',
+                                        value: 'triggerEvent'
                                     }
                                 ],
                                 callback: (text) => {
@@ -537,6 +555,7 @@ function styleEditor(gvc, styleData, classs = 'mx-2') {
                             }),
                             `<div class="mt-2"></div>`,
                             (() => {
+                                var _a;
                                 if (data.dataType === 'static') {
                                     return EditorElem.styleEditor({
                                         gvc: gvc,
@@ -546,6 +565,14 @@ function styleEditor(gvc, styleData, classs = 'mx-2') {
                                         callback: (text) => {
                                             data.style = text;
                                         }
+                                    });
+                                }
+                                else if (data.dataType === 'triggerEvent') {
+                                    data.triggerStyle = (_a = data.triggerStyle) !== null && _a !== void 0 ? _a : {};
+                                    return TriggerEvent.editer(gvc, data, data.triggerStyle, {
+                                        hover: false,
+                                        option: [],
+                                        title: '觸發事件'
                                     });
                                 }
                                 else {

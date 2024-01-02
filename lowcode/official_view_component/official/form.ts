@@ -4,6 +4,8 @@ import {GVC} from "../../glitterBundle/GVController.js";
 import {TriggerEvent} from "../../glitterBundle/plugins/trigger-event.js";
 import {EditorElem} from "../../glitterBundle/plugins/editor-elem.js";
 import {getInitialData} from "../initial_data.js";
+//@ts-ignore
+import autosize from "../../glitterBundle/plugins/autosize.js";
 
 export class FormWidget {
     public static settingView(obj: {
@@ -12,7 +14,9 @@ export class FormWidget {
         refresh: () => void,
         widget?: any,
         subData?: any,
-        title?:string
+        title?: string,
+        styleSetting?:boolean,
+        concat?:(dd:any)=>void
     }) {
         const gvc = obj.gvc
         const array = obj.array
@@ -53,7 +57,8 @@ export class FormWidget {
                                         {title: '地址', value: 'address'},
                                         {title: '密碼', value: 'password'},
                                         {title: '多項列表元件', value: 'array'},
-                                        {title: '檔案上傳', value: 'file'}
+                                        {title: '檔案上傳', value: 'file'},
+                                        {title: '選擇器', value: 'select'}
                                     ],
                                     callback: (text) => {
                                         dd.type = text
@@ -72,7 +77,7 @@ export class FormWidget {
                                     }
                                 }),
                                 EditorElem.select({
-                                    title: "元件類型",
+                                    title: "顯示狀態",
                                     gvc: gvc,
                                     def: dd.readonly,
                                     array: [
@@ -98,6 +103,24 @@ export class FormWidget {
                                         obj.refresh()
                                     }
                                 }),
+                                ...(()=>{
+                                    if(dd.type==='array'){
+                                        return []
+                                    }else{
+                                        return  [
+                                            EditorElem.editeInput({
+                                                gvc: gvc,
+                                                title: '設定預設值',
+                                                placeHolder: `請輸入預設值`,
+                                                default: dd.def ?? '',
+                                                callback: (text) => {
+                                                    dd.def = text
+                                                    obj.refresh()
+                                                }
+                                            })
+                                        ]
+                                    }
+                                })(),
                                 ...(() => {
                                     if (dd.type === 'array') {
                                         return [
@@ -141,11 +164,83 @@ export class FormWidget {
                                                 editTitle: "編輯多項列表"
                                             })
                                         ]
+                                    } else if (dd.type === 'select') {
+                                        return [
+                                            EditorElem.editerDialog({
+                                                gvc: gvc,
+                                                dialog: (gvc: GVC) => {
+                                                    dd.formList = dd.formList ?? []
+                                                    return gvc.bindView(() => {
+                                                        const id = glitter.getUUID()
+                                                        return {
+                                                            bind: id,
+                                                            view: () => {
+                                                                return EditorElem.arrayItem({
+                                                                    gvc: gvc,
+                                                                    title: '',
+                                                                    array: () => {
+                                                                        return dd.formList.map((dd: any, index: number) => {
+                                                                            return {
+                                                                                title: dd.title || `選項 : ${index + 1}`,
+                                                                                innerHtml: (gvc: GVC) => {
+                                                                                    return [
+                                                                                        EditorElem.editeInput({
+                                                                                            gvc: gvc,
+                                                                                            title: '選項標題',
+                                                                                            placeHolder: `選項標題`,
+                                                                                            default: dd.title,
+                                                                                            callback: (text) => {
+                                                                                                dd.title = text
+                                                                                                obj.refresh()
+                                                                                            }
+                                                                                        }),
+                                                                                        EditorElem.editeInput({
+                                                                                            gvc: gvc,
+                                                                                            title: 'Key',
+                                                                                            placeHolder: `請輸入選項索引`,
+                                                                                            default: dd.key,
+                                                                                            callback: (text) => {
+                                                                                                dd.key = text
+                                                                                                obj.refresh()
+                                                                                            }
+                                                                                        }),
+                                                                                    ].join(`<div class="my-2"></div>`)
+                                                                                }
+                                                                            }
+                                                                        })
+                                                                    },
+                                                                    originalArray: dd.formList,
+                                                                    expand: {},
+                                                                    refreshComponent: () => {
+                                                                        gvc.notifyDataChange(id)
+                                                                    },
+                                                                    plus: {
+                                                                        title: "新增選項",
+                                                                        event: gvc.event(() => {
+                                                                            dd.formList.push({})
+                                                                            gvc.notifyDataChange(id)
+                                                                        })
+                                                                    }
+                                                                })
+                                                            },
+                                                            divCreate: {
+                                                                class: `m-n2`
+                                                            }
+                                                        }
+                                                    })
+                                                },
+                                                width: '400px',
+                                                editTitle: "編輯多項列表"
+                                            })
+                                        ]
                                     } else {
                                         return []
                                     }
                                 })(),
                                 ...(() => {
+                                    if(obj.styleSetting===false){
+                                        return  []
+                                    }
                                     if (dd.type === 'array') {
                                         return [
                                             containerCss.editor(gvc, () => {
@@ -171,9 +266,11 @@ export class FormWidget {
                                             }, '容器樣式')
                                         ]
                                     }
-                                })()
-
-                            ].join('<div class="my-2"></div>')
+                                })(),
+                                    ...(()=>{
+                                        return (obj.concat && obj.concat(dd)) ?? []
+                                    })()
+                            ].join('<div class="my-2"></div>')+`<div class="my-2"></div>`
                         },
                         expand: dd,
                         minus: gvc.event(() => {
@@ -221,16 +318,34 @@ export class FormWidget {
     public static editorView(obj: {
         gvc: GVC,
         array: any,
-        refresh: (key:string) => void,
+        refresh: (key: string) => void,
         widget?: any,
         subData?: any,
-        formData: any
+        formData: any,
+        readonly?: 'read' | 'write' | 'block'
     }) {
         const html = String.raw
         const glitter = obj.gvc.glitter
         const gvc = obj.gvc
         const formData = obj.formData
-        return obj.array.map((dd: any) => {
+        return obj.array.map((dd: {
+            plusBtn?: string, formList: any, referTitile?: string, title: string, key: string, readonly: 'read' | 'write' | 'block',
+            type: 'file' | 'text' | 'number' | 'textArea' | 'address' | 'array' | 'select', require: "true" | "false",
+            style_data: {
+                label: {
+                    class: string,
+                    style: string
+                },
+                input: {
+                    class: string,
+                    style: string
+                },
+                container: {
+                    class: string,
+                    style: string
+                }
+            }
+        }) => {
             const labelCSS = glitter.htmlGenerate.editor_component(dd.style_data.label, gvc, obj.widget, obj.subData)
             const inputCSS = glitter.htmlGenerate.editor_component(dd.style_data.input, gvc, obj.widget as any, obj.subData)
             const containerCss = glitter.htmlGenerate.editor_component(dd.style_data.container, gvc, obj.widget, obj.subData)
@@ -239,19 +354,51 @@ export class FormWidget {
             const containerStyle = containerCss.style() ?? ``
             const inputClass = inputCSS.class() ?? "form-control"
             const inputStyle = inputCSS.style() ?? ""
+            //當參數不可見時
+            if (dd.readonly === 'block') {
+                return ``
+            }
+            const readonly = ((dd.readonly === 'read') || obj.readonly === 'read')
             switch (dd.type) {
                 case "textArea":
+const textID=gvc.glitter.getUUID()
                     return html`
                         <div class="${containerClass}" style="${containerStyle}">
                             ${label}
-                            <textarea class="${inputClass}"
-                                      style="${inputStyle}"
-                                      onchange="${gvc.event((e, event) => {
-                                          formData[dd.key] = e.value
-                                          obj.refresh(dd.key)
-                                      })}">
-${formData[dd.key] ?? ""}
-</textarea>
+                            ${
+                                    obj.gvc.bindView({
+                                        bind: textID,
+                                        view: () => {
+                                            return formData[dd.key] ?? ""
+                                        },
+                                        divCreate: {
+                                            elem: `textArea`,
+                                            style: inputStyle,
+                                            class: inputClass, option: [
+                                                {
+                                                    key: 'onchange', value: obj.gvc.event((e) => {
+                                                        formData[dd.key] = e.value
+                                                        obj.refresh(dd.key)
+                                                    })
+                                                },
+                                                ...(() => {
+                                                    if (readonly) {
+                                                        return [
+                                                            {key: 'readonly', value: ''}
+                                                        ]
+                                                    } else {
+                                                        return []
+                                                    }
+                                                })()
+                                            ]
+                                        },
+                                        onCreate: () => {
+                                            // //@ts-ignore
+                                            autosize(obj.gvc.getBindViewElem(textID))
+                                         
+                                        }
+                                    })
+                            }
                         </div>`
                 case "array":
                     formData[dd.key] = formData[dd.key] ?? []
@@ -269,17 +416,18 @@ ${formData[dd.key] ?? ""}
                                             array: () => {
                                                 return formData[dd.key].map((d2: any, index: number) => {
                                                     return {
-                                                        title: d2[dd.referTitile] || `選項:${index + 1}`,
+                                                        title: d2[dd.referTitile!] || `選項:${index + 1}`,
                                                         innerHtml: (gvc: GVC) => {
                                                             return `<div class="my-2">${FormWidget.editorView({
                                                                 gvc: gvc,
                                                                 array: dd.formList,
-                                                                refresh: (key:string) => {
+                                                                refresh: (key: string) => {
                                                                     obj.refresh(dd.key)
                                                                 },
                                                                 widget: obj.widget,
                                                                 subData: obj.subData,
-                                                                formData: d2
+                                                                formData: d2,
+                                                                readonly: obj.readonly
                                                             })}</div>`
                                                         }
                                                     }
@@ -292,7 +440,7 @@ ${formData[dd.key] ?? ""}
                                                 gvc.notifyDataChange(arrayViewID)
                                             },
                                             plus: {
-                                                title: dd.plusBtn,
+                                                title: dd.plusBtn!,
                                                 event: gvc.event(() => {
                                                     formData[dd.key].push({})
                                                     gvc.notifyDataChange(arrayViewID)
@@ -305,12 +453,35 @@ ${formData[dd.key] ?? ""}
                     })
                 case 'file':
                     return EditorElem.uploadFile({
-                        title:label,
-                        gvc:gvc,
-                        def:formData[dd.key] ,
-                        callback:(text)=>{
-                            formData[dd.key]=text
+                        title: label,
+                        gvc: gvc,
+                        def: formData[dd.key],
+                        callback: (text) => {
+                            formData[dd.key] = text
                             obj.refresh(dd.key)
+                        }
+                    })
+                case 'select':
+                    formData[dd.key]=formData[dd.key] ?? (dd.formList[0] ?? {}).key
+                    return EditorElem.select({
+                        title: label,
+                        gvc: gvc,
+                        class: inputClass ?? '',
+                        style: inputStyle ?? '',
+                        def: formData[dd.key],
+                        array: dd.formList.map((dd: any) => {
+                            return {
+                                title: dd.title,
+                                value: dd.key
+                            }
+                        }),
+                        readonly: readonly ?? false,
+                        callback: (text) => {
+                            if(!readonly){
+                                formData[dd.key] = text
+                                obj.refresh(dd.key)
+                            }
+
                         }
                     })
                 default:
@@ -323,9 +494,12 @@ ${formData[dd.key] ?? ""}
                            style="${inputStyle}" onchange="${gvc.event((e, event) => {
                         formData[dd.key] = e.value
                         obj.refresh(dd.key)
-                    })}">
-                </div>`
-        }).join('')
+                    })}"
+                           ${readonly ? `readonly` : ``}
+                    >
+                </div>
+            `
+        }).join('<div class="my-2"></div>')
     }
 }
 
@@ -407,7 +581,7 @@ Plugin.createComponent(import.meta.url, (glitter: Glitter, editMode: boolean) =>
                                     gvc: gvc,
                                     array: config.array,
                                     refresh: (key) => {
-                                        widget.refreshComponent()
+                                        gvc.notifyDataChange(id)
                                     },
                                     widget: widget,
                                     subData: subData,

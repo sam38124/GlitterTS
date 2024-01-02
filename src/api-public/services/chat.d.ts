@@ -1,19 +1,40 @@
 import { IToken } from "../models/Auth.js";
 export interface ChatRoom {
     chat_id: string;
+    type: 'user' | 'group';
     info: any;
-    participant: any;
+    participant: string[];
+}
+export interface ChatMessage {
+    chat_id: string;
+    user_id: string;
+    message: {
+        text: string;
+        attachment: any;
+    };
 }
 export declare class Chat {
     app: string;
     token: IToken;
-    static postObserverList: ((data: any, app: string) => void)[];
-    static addPostObserver(callback: (data: any, app: string) => void): void;
     addChatRoom(room: ChatRoom): Promise<any>;
-    postContent(content: any): Promise<any>;
-    getContent(content: any): Promise<{
+    getChatRoom(qu: any, userID: string): Promise<{
         data: any;
-        count: any;
+        result: boolean;
+        total?: undefined;
+    } | {
+        data: any;
+        total: any;
+        result?: undefined;
+    }>;
+    addMessage(room: ChatMessage): Promise<void>;
+    getMessage(qu: any): Promise<{
+        data: any;
+        result: boolean;
+        total?: undefined;
+    } | {
+        data: any;
+        total: any;
+        result?: undefined;
     }>;
     constructor(app: string, token: IToken);
 }

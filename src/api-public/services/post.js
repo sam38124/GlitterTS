@@ -27,6 +27,7 @@ const database_1 = __importStar(require("../../modules/database"));
 const exception_1 = __importDefault(require("../../modules/exception"));
 const app_js_1 = require("../../services/app.js");
 const message_js_1 = require("../../firebase/message.js");
+const shopping_js_1 = require("./shopping.js");
 class Post {
     constructor(app, token) {
         this.app = app;
@@ -40,6 +41,9 @@ class Post {
             const data = await database_1.default.query(`INSERT INTO \`${this.app}\`.\`${tb}\`
                                          SET ?`, [content]);
             const reContent = JSON.parse(content.content);
+            if (reContent.type === 'product' && tb === 't_manager_post') {
+                await new shopping_js_1.Shopping(this.app, this.token).postVariantsAndPriceValue(reContent);
+            }
             reContent.id = data.insertId;
             content.content = JSON.stringify(reContent);
             await database_1.default.query(`update \`${this.app}\`.\`${tb}\`
@@ -141,18 +145,16 @@ class Post {
     async putContent(content, tb = 't_post') {
         try {
             const reContent = JSON.parse(content.content);
+            if (reContent.type === 'product' && tb === 't_manager_post') {
+                await new shopping_js_1.Shopping(this.app, this.token).postVariantsAndPriceValue(reContent);
+                content.content = JSON.stringify(reContent);
+            }
             const data = await database_1.default.query(`update \`${this.app}\`.\`${tb}\`
                                          SET ?
                                          where 1 = 1
                                            and id = ${reContent.id}`, [
                 content
             ]);
-            reContent.id = data.insertId;
-            content.content = JSON.stringify(reContent);
-            content.updated_time = new Date();
-            await database_1.default.query(`update \`${this.app}\`.${tb}
-                            SET ?
-                            WHERE id = ${data.insertId}`, [content]);
             return data;
         }
         catch (e) {

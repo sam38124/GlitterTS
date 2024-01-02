@@ -20,17 +20,6 @@ export class PageEditor {
         const viewModel = gvc.glitter.share.editorViewModel;
         const parId = gvc.glitter.getUUID();
         const swal = new Swal(gvc);
-        const dragModel = {
-            draggableElement: '',
-            dragOffsetY: 0,
-            dragStart: 0,
-            maxHeight: 0,
-            editor_item: [],
-            hover_item: [],
-            currentIndex: 0,
-            changeIndex: 0,
-            firstIndex: 0
-        };
         return gvc.bindView(() => {
             gvc.glitter.addMtScript([{
                     src: `https://raw.githack.com/SortableJS/Sortable/master/Sortable.js`
@@ -176,6 +165,7 @@ export class PageEditor {
                                 original.splice(index + ind, 0, copy);
                                 dd.toggle = false;
                                 resetID(copy);
+                                option.refreshEvent && option.refreshEvent();
                                 gvc.notifyDataChange([parId, vid]);
                             }
                             let interval = undefined;
@@ -285,40 +275,47 @@ export class PageEditor {
                     ]
                 },
                 onCreate: () => {
-                    const interval = setInterval(() => {
-                        if (window.Sortable) {
-                            try {
-                                gvc.addStyle(`ul {
+                    if (this.vid === 'MainEditorLeft') {
+                        const leftItem = document.querySelectorAll('.selectLeftItem');
+                        leftItem[leftItem.length - 1].scrollIntoView({
+                            behavior: 'auto',
+                            block: 'center',
+                        });
+                        const interval = setInterval(() => {
+                            if (window.Sortable) {
+                                try {
+                                    gvc.addStyle(`ul {
   list-style: none;
   padding: 0;
 }`);
-                                function swapArr(arr, index1, index2) {
-                                    const data = arr[index1];
-                                    arr.splice(index1, 1);
-                                    arr.splice(index2, 0, data);
-                                }
-                                let startIndex = 0;
-                                Sortable.create(document.getElementById(parId), {
-                                    group: gvc.glitter.getUUID(),
-                                    animation: 100,
-                                    onChange: function (evt) {
-                                    },
-                                    onEnd: (evt) => {
-                                        console.log(`change-${startIndex}-${evt.newIndex}-`);
-                                        swapArr(original, startIndex, evt.newIndex);
-                                        gvc.notifyDataChange(['showView', this.vid]);
-                                    },
-                                    onStart: function (evt) {
-                                        startIndex = evt.oldIndex;
-                                        console.log(`oldIndex--`, startIndex);
+                                    function swapArr(arr, index1, index2) {
+                                        const data = arr[index1];
+                                        arr.splice(index1, 1);
+                                        arr.splice(index2, 0, data);
                                     }
-                                });
+                                    let startIndex = 0;
+                                    Sortable.create(document.getElementById(parId), {
+                                        group: gvc.glitter.getUUID(),
+                                        animation: 100,
+                                        onChange: function (evt) {
+                                        },
+                                        onEnd: (evt) => {
+                                            swapArr(original, startIndex, evt.newIndex);
+                                            option.refreshEvent();
+                                            gvc.notifyDataChange('showView');
+                                        },
+                                        onStart: function (evt) {
+                                            startIndex = evt.oldIndex;
+                                            console.log(`oldIndex--`, startIndex);
+                                        }
+                                    });
+                                }
+                                catch (e) {
+                                }
+                                clearInterval(interval);
                             }
-                            catch (e) {
-                            }
-                            clearInterval(interval);
-                        }
-                    }, 100);
+                        }, 100);
+                    }
                 }
             };
         });
@@ -1235,8 +1232,8 @@ export class PageEditor {
                             })}
                                                        <button class="btn btn-primary-c  w-100 mt-2" onclick="${gvc.event(() => {
                                 try {
-                                    viewModel.data.config.push(JSON.parse(json));
-                                    gvc.notifyDataChange(obj.vid);
+                                    pageConfig.push(JSON.parse(json));
+                                    gvc.notifyDataChange(vid);
                                 }
                                 catch (e) {
                                     alert('請貼上JSON格式');
@@ -1694,6 +1691,13 @@ ${EditorElem.arrayItem({
                                 });
                                 dataList.push({
                                     type: 'container',
+                                    label: '內容輸入',
+                                    dataList: official.filter((dd) => {
+                                        return dd.label.split('/')[0].includes('輸入');
+                                    })
+                                });
+                                dataList.push({
+                                    type: 'container',
                                     label: '畫面相關',
                                     dataList: official.filter((dd) => {
                                         return dd.label.split('/')[0].includes('畫面');
@@ -1729,9 +1733,23 @@ ${EditorElem.arrayItem({
                                 });
                                 dataList.push({
                                     type: 'container',
+                                    label: '電子錢包',
+                                    dataList: official.filter((dd) => {
+                                        return dd.label.split('/')[0].includes('電子錢包');
+                                    })
+                                });
+                                dataList.push({
+                                    type: 'container',
                                     label: '用戶管理',
                                     dataList: official.filter((dd) => {
                                         return dd.label.split('/')[0].includes('用戶相關');
+                                    })
+                                });
+                                dataList.push({
+                                    type: 'container',
+                                    label: '客服 / 聊天室',
+                                    dataList: official.filter((dd) => {
+                                        return dd.label.split('/')[0].includes('訊息相關');
                                     })
                                 });
                                 dataList.push({
@@ -2195,7 +2213,7 @@ ${EditorElem.arrayItem({
                     })}">表單設置
                             </button>
                         </div>
-                        <div class="p-2">
+                        <div class="p-2" style="max-height: calc(100vh - 230px);overflow-y:auto;">
                             ${FormWidget.editorView({
                         gvc: gvc,
                         array: formFormat,
@@ -2207,7 +2225,6 @@ ${EditorElem.arrayItem({
                         formData: obj.viewModel.page_config.formData
                     })}
                         </div>
-                        
                     `;
                 }
             };

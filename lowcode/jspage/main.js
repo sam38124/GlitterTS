@@ -19,7 +19,7 @@ import * as triggerBridge from "../editor-bridge/trigger-event.js";
 import { TriggerEvent } from "../glitterBundle/plugins/trigger-event.js";
 import { StoreHelper } from "../helper/store-helper.js";
 const html = String.raw;
-init((gvc, glitter, gBundle) => {
+init(import.meta.url, (gvc, glitter, gBundle) => {
     var _a;
     triggerBridge.initial();
     gvc.addStyle(`
@@ -71,6 +71,7 @@ init((gvc, glitter, gBundle) => {
             const waitGetData = [
                 (() => __awaiter(this, void 0, void 0, function* () {
                     return yield new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
+                        const clock = gvc.glitter.ut.clock();
                         ApiPageConfig.getAppConfig().then((res) => {
                             viewModel.domain = res.response.result[0].domain;
                             viewModel.originalDomain = viewModel.domain;
@@ -80,21 +81,15 @@ init((gvc, glitter, gBundle) => {
                 })),
                 (() => __awaiter(this, void 0, void 0, function* () {
                     return yield new Promise((resolve) => __awaiter(this, void 0, void 0, function* () {
-                        var _a;
+                        const clock = gvc.glitter.ut.clock();
                         const data = yield ApiPageConfig.getPage(gBundle.appName);
+                        viewModel.data = (yield ApiPageConfig.getPage(gBundle.appName, glitter.getUrlParameter('page'))).response.result[0];
                         if (data.result) {
                             data.response.result.map((dd) => {
                                 var _a;
                                 dd.page_config = (_a = dd.page_config) !== null && _a !== void 0 ? _a : {};
-                                if (glitter.getUrlParameter('page') == undefined) {
-                                    glitter.setUrlParameter('page', dd.tag);
-                                }
-                                if (dd.tag === glitter.getUrlParameter('page')) {
-                                    viewModel.data = dd;
-                                }
                                 return dd;
                             });
-                            viewModel.data = (_a = viewModel.data) !== null && _a !== void 0 ? _a : data.response.result[0];
                             viewModel.dataList = data.response.result;
                             viewModel.originalData = JSON.parse(JSON.stringify(viewModel.dataList));
                             glitter.share.allPageResource = JSON.parse(JSON.stringify(data.response.result));
@@ -112,23 +107,24 @@ init((gvc, glitter, gBundle) => {
                 })),
                 (() => __awaiter(this, void 0, void 0, function* () {
                     return yield new Promise((resolve) => __awaiter(this, void 0, void 0, function* () {
-                        var _b, _c, _d, _e, _f, _g, _h;
+                        var _a, _b, _c, _d, _e, _f, _g;
                         const data = glitter.share.appConfigresponse;
                         if (data.result) {
                             viewModel.appConfig = data.response.data;
                             viewModel.originalConfig = JSON.parse(JSON.stringify(viewModel.appConfig));
-                            viewModel.globalScript = (_b = data.response.data.globalScript) !== null && _b !== void 0 ? _b : [];
-                            viewModel.globalStyle = (_c = data.response.data.globalStyle) !== null && _c !== void 0 ? _c : [];
-                            viewModel.globalStyleTag = (_d = data.response.data.globalStyleTag) !== null && _d !== void 0 ? _d : [];
+                            viewModel.globalScript = (_a = data.response.data.globalScript) !== null && _a !== void 0 ? _a : [];
+                            viewModel.globalStyle = (_b = data.response.data.globalStyle) !== null && _b !== void 0 ? _b : [];
+                            viewModel.globalStyleTag = (_c = data.response.data.globalStyleTag) !== null && _c !== void 0 ? _c : [];
                             viewModel.initialList = data.response.data.initialList;
                             viewModel.initialJS = data.response.data.eventPlugin;
                             viewModel.pluginList = data.response.data.pagePlugin;
                             viewModel.initialStyleSheet = data.response.data.initialStyleSheet;
                             viewModel.initialStyle = data.response.data.initialStyle;
-                            viewModel.initialCode = (_e = data.response.data.initialCode) !== null && _e !== void 0 ? _e : "";
-                            viewModel.homePage = (_f = data.response.data.homePage) !== null && _f !== void 0 ? _f : "";
-                            viewModel.backendPlugins = (_g = data.response.data.backendPlugins) !== null && _g !== void 0 ? _g : [];
-                            viewModel.globalValue = (_h = data.response.data.globalValue) !== null && _h !== void 0 ? _h : [];
+                            viewModel.initialCode = (_d = data.response.data.initialCode) !== null && _d !== void 0 ? _d : "";
+                            viewModel.homePage = (_e = data.response.data.homePage) !== null && _e !== void 0 ? _e : "";
+                            viewModel.backendPlugins = (_f = data.response.data.backendPlugins) !== null && _f !== void 0 ? _f : [];
+                            viewModel.globalValue = (_g = data.response.data.globalValue) !== null && _g !== void 0 ? _g : [];
+                            resolve(true);
                             function load() {
                                 return __awaiter(this, void 0, void 0, function* () {
                                     glitter.share.globalJsList = [{
@@ -151,7 +147,7 @@ init((gvc, glitter, gBundle) => {
                                     resolve(true);
                                 });
                             }
-                            yield load();
+                            load();
                         }
                         else {
                             resolve(false);
@@ -161,11 +157,25 @@ init((gvc, glitter, gBundle) => {
                     });
                 }))
             ];
-            for (const a of waitGetData) {
-                if (!(yield a())) {
-                    yield lod();
-                    return;
+            let count = 0;
+            let result = yield new Promise((resolve, reject) => {
+                for (const a of waitGetData) {
+                    a().then((result) => {
+                        if (result) {
+                            count++;
+                        }
+                        else {
+                            resolve(false);
+                        }
+                        if (count === waitGetData.length) {
+                            resolve(true);
+                        }
+                    });
                 }
+            });
+            if (!result) {
+                yield lod();
+                return;
             }
             swal.close();
             viewModel.loading = false;
@@ -199,42 +209,17 @@ init((gvc, glitter, gBundle) => {
                         getID(viewModel.data.config);
                         return new Promise((resolve) => __awaiter(this, void 0, void 0, function* () {
                             let result = true;
-                            const map = viewModel.dataList.filter((dd, index) => {
-                                return JSON.stringify({
-                                    tag: (dd).tag,
-                                    name: (dd).name,
-                                    config: (dd).config,
-                                    group: (dd).group,
-                                    page_config: dd.page_config
-                                }) !== JSON.stringify({
-                                    tag: (viewModel.originalData[index]).tag,
-                                    name: (viewModel.originalData[index]).name,
-                                    config: (viewModel.originalData[index]).config,
-                                    group: (viewModel.originalData[index]).group,
-                                    page_config: viewModel.originalData[index].page_config
-                                });
+                            ApiPageConfig.setPage({
+                                id: viewModel.data.id,
+                                appName: gBundle.appName,
+                                tag: viewModel.data.tag,
+                                name: viewModel.data.name,
+                                config: viewModel.data.config,
+                                group: viewModel.data.group,
+                                page_config: viewModel.data.page_config
+                            }).then((api) => {
+                                resolve(result && api.result);
                             });
-                            let index = map.length;
-                            for (const a of map) {
-                                ApiPageConfig.setPage({
-                                    id: a.id,
-                                    appName: gBundle.appName,
-                                    tag: (a).tag,
-                                    name: (a).name,
-                                    config: (a).config,
-                                    group: (a).group,
-                                    page_config: a.page_config
-                                }).then((api) => {
-                                    result = result && api.result;
-                                    index--;
-                                    if (index === 0) {
-                                        resolve(result);
-                                    }
-                                });
-                            }
-                            if (index === 0) {
-                                resolve(result);
-                            }
                         }));
                     })),
                     (() => __awaiter(this, void 0, void 0, function* () {
@@ -255,11 +240,10 @@ init((gvc, glitter, gBundle) => {
                         return;
                     }
                 }
-                swal.nextStep(`更新成功`, () => {
-                });
+                swal.close();
                 viewModel.originalConfig = JSON.parse(JSON.stringify(viewModel.appConfig));
                 if (refresh) {
-                    location.reload();
+                    lod();
                 }
             });
         }
@@ -267,6 +251,11 @@ init((gvc, glitter, gBundle) => {
         });
     };
     lod();
+    glitter.share.reloadEditor = () => {
+        viewModel.selectItem = undefined;
+        viewModel.selectContainer = undefined;
+        lod();
+    };
     window.parent.glitter.share.refreshMainLeftEditor = () => {
         gvc.notifyDataChange('MainEditorLeft');
     };

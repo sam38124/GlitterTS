@@ -7,10 +7,11 @@ export class Chat {
     }
 
     public static post(json: {
-        "data": any
+        "type": 'user' | 'group',
+        "participant": string[]
     }) {
         return BaseApi.create({
-            "url": getBaseUrl() + `/api-public/v1/message/addChatRoom`,
+            "url": getBaseUrl() + `/api-public/v1/chat`,
             "type": "POST",
             "headers": {
                 "Content-Type": "application/json",
@@ -20,6 +21,90 @@ export class Chat {
             data: JSON.stringify(json)
         })
     }
+
+    public static postMessage(json: {
+        "chat_id": string,
+        "user_id": string,
+        "message": {
+            "text": string,
+            "attachment": string
+        }
+    }) {
+        return BaseApi.create({
+            "url": getBaseUrl() + `/api-public/v1/chat/message`,
+            "type": "POST",
+            "headers": {
+                "Content-Type": "application/json",
+                "g-app": getConfig().config.appName,
+                "Authorization": GlobalUser.token
+            },
+            data: JSON.stringify(json)
+        })
+    }
+
+    public static getMessage(json: {
+        limit: number,
+        page: number,
+        chat_id: string,
+        latestID?:string
+    }) {
+        return BaseApi.create({
+            "url": getBaseUrl() + `/api-public/v1/chat/message?${(() => {
+                let par = [
+                    `limit=${json.limit}`,
+                    `page=${json.page}`,
+                    `chat_id=${json.chat_id}`
+                ]
+                json.latestID&&par.push(`after_id=${json.latestID}`)
+                return par.join('&')
+            })()}`,
+            "type": "GET",
+            "headers": {
+                "Content-Type": "application/json",
+                "g-app": getConfig().config.appName,
+                "Authorization": GlobalUser.token
+            },
+            data: JSON.stringify(json)
+        })
+    }
+    public static getChatRoom(json: {
+        limit: number,
+        page: number,
+        user_id?:string
+    }) {
+        return BaseApi.create({
+            "url": getBaseUrl() + `/api-public/v1/chat?${(() => {
+                let par = [
+                    `limit=${json.limit}`,
+                    `page=${json.page}`
+                ]
+                json.user_id&&par.push(`user_id=${json.user_id}`)
+                return par.join('&')
+            })()}`,
+            "type": "GET",
+            "headers": {
+                "Content-Type": "application/json",
+                "g-app": getConfig().config.appName,
+                "Authorization": (json.user_id) ? getConfig().config.token: GlobalUser.token
+            }
+        })
+    }
+
+    public static deleteChatRoom(json: {
+        id: string,
+        token?:string
+    }){
+        return BaseApi.create({
+            "url": getBaseUrl() + `/api-public/v1/chat?id=${json.id}`,
+            "type": "DELETE",
+            "headers": {
+                "Content-Type": "application/json",
+                "g-app": getConfig().config.appName,
+                "Authorization": json.token ||  getConfig().config.token
+            }
+        })
+    }
+
 }
 
 function getConfig() {

@@ -12,7 +12,7 @@ import {EditorElem} from "../glitterBundle/plugins/editor-elem.js";
 import {StoreHelper} from "../helper/store-helper.js";
 
 const html = String.raw
-init((gvc, glitter, gBundle) => {
+init(import.meta.url,(gvc, glitter, gBundle) => {
 
     triggerBridge.initial()
     gvc.addStyle(`
@@ -91,6 +91,7 @@ init((gvc, glitter, gBundle) => {
         const waitGetData = [
             (async ()=>{
                 return await new Promise(async (resolve, reject)=>{
+                    const clock=gvc.glitter.ut.clock()
                     ApiPageConfig.getAppConfig().then((res)=>{
                        viewModel.domain=res.response.result[0].domain
                        viewModel.originalDomain=viewModel.domain
@@ -100,19 +101,14 @@ init((gvc, glitter, gBundle) => {
             }),
             (async () => {
                 return await new Promise(async (resolve) => {
+                    const clock=gvc.glitter.ut.clock()
                     const data = await ApiPageConfig.getPage(gBundle.appName)
+                    viewModel.data = (await ApiPageConfig.getPage(gBundle.appName,glitter.getUrlParameter('page'))).response.result[0];
                     if (data.result) {
                         data.response.result.map((dd: any) => {
                             dd.page_config = dd.page_config ?? {}
-                            if (glitter.getUrlParameter('page') == undefined) {
-                                glitter.setUrlParameter('page', dd.tag)
-                            }
-                            if (dd.tag === glitter.getUrlParameter('page')) {
-                                viewModel.data = dd;
-                            }
                             return dd;
                         });
-                        viewModel.data = viewModel.data ?? data.response.result[0];
                         viewModel.dataList = data.response.result;
                         viewModel.originalData = JSON.parse(JSON.stringify(viewModel.dataList))
                         glitter.share.allPageResource = JSON.parse(JSON.stringify(data.response.result))
@@ -145,6 +141,7 @@ init((gvc, glitter, gBundle) => {
                         viewModel.homePage = data.response.data.homePage ?? ""
                         viewModel.backendPlugins = data.response.data.backendPlugins ?? []
                         viewModel.globalValue = data.response.data.globalValue ?? []
+                        resolve(true);
                         async function load() {
                             glitter.share.globalJsList = [{
                                 src: {
@@ -165,8 +162,7 @@ init((gvc, glitter, gBundle) => {
                             }
                             resolve(true);
                         }
-
-                        await load()
+                         load()
                     } else {
                         resolve(false);
                     }
@@ -175,13 +171,25 @@ init((gvc, glitter, gBundle) => {
                 });
             })
         ];
-        for (const a of waitGetData) {
-            if (!await a()) {
-                await lod();
-
-                return;
+        let count=0
+        let result=await new Promise((resolve, reject)=>{
+            for (const a of waitGetData) {
+                a().then((result)=>{
+                    if(result){
+                        count++
+                    }else{
+                        resolve(false)
+                    }
+                    if(count===waitGetData.length){
+                        resolve(true)
+                    }
+                })
             }
-        }
+        })
+       if(!result){
+           await lod()
+           return
+       }
         swal.close();
         viewModel.loading = false;
         gvc.notifyDataChange(createID);
@@ -195,7 +203,6 @@ init((gvc, glitter, gBundle) => {
             const waitSave = [
                 (async () => {
                     let haveID: string[] = [];
-
                     function getID(set: any) {
                         set.map((dd: any) => {
                             dd.js = (dd.js).replace(`${location.origin}/${(window as any).appName}/`, './')
@@ -210,47 +217,20 @@ init((gvc, glitter, gBundle) => {
                             }
                         });
                     }
-
                     getID((viewModel.data as any).config);
-
                     return new Promise(async resolve => {
                         let result = true
-                        const map = viewModel.dataList.filter((dd: any, index: number) => {
-                            return JSON.stringify({
-                                tag: (dd).tag,
-                                name: (dd).name,
-                                config: (dd).config,
-                                group: (dd).group,
-                                page_config: dd.page_config
-                            }) !== JSON.stringify({
-                                tag: (viewModel.originalData[index]).tag,
-                                name: (viewModel.originalData[index]).name,
-                                config: (viewModel.originalData[index]).config,
-                                group: (viewModel.originalData[index]).group,
-                                page_config: viewModel.originalData[index].page_config
-                            })
+                        ApiPageConfig.setPage({
+                            id: (viewModel.data! as any).id,
+                            appName: gBundle.appName,
+                            tag: (viewModel.data! as any).tag,
+                            name: (viewModel.data! as any).name,
+                            config: (viewModel.data! as any).config,
+                            group: (viewModel.data! as any).group,
+                            page_config: (viewModel.data! as any).page_config
+                        }).then((api) => {
+                            resolve(result && api.result)
                         })
-                        let index = map.length
-                        for (const a of map) {
-                            ApiPageConfig.setPage({
-                                id: a.id,
-                                appName: gBundle.appName,
-                                tag: (a).tag,
-                                name: (a).name,
-                                config: (a).config,
-                                group: (a).group,
-                                page_config: a.page_config
-                            }).then((api) => {
-                                result = result && api.result
-                                index--
-                                if (index === 0) {
-                                    resolve(result)
-                                }
-                            })
-                        }
-                        if (index === 0) {
-                            resolve(result)
-                        }
                     });
                 }),
                 (async () => {
@@ -272,19 +252,22 @@ init((gvc, glitter, gBundle) => {
                     return;
                 }
             }
-            swal.nextStep(`更新成功`, () => {
-            });
+            swal.close();
             viewModel.originalConfig=JSON.parse(JSON.stringify(viewModel.appConfig))
             if(refresh){
-                location.reload()
+                lod();
             }
 
         }
-
         saveEvent().then(r => {
         });
     };
     lod();
+    glitter.share.reloadEditor=()=>{
+        viewModel.selectItem=undefined
+        viewModel.selectContainer=undefined
+        lod()
+    }
 
     (window.parent as any).glitter.share.refreshMainLeftEditor = () => {
         gvc.notifyDataChange('MainEditorLeft')
@@ -303,7 +286,6 @@ init((gvc, glitter, gBundle) => {
             return
         }
         var copy = JSON.parse(glitter.share.copycomponent)
-
         function checkId(dd: any) {
             dd.id = glitter.getUUID()
             if (dd.type === 'container') {
@@ -312,7 +294,6 @@ init((gvc, glitter, gBundle) => {
                 })
             }
         }
-
         checkId(copy)
         glitter.setCookie('lastSelect', copy.id);
         viewModel.selectContainer.splice(0, 0, copy)
@@ -404,6 +385,7 @@ onclick="${gvc.event(() => {
                 },
                 divCreate: {},
                 onCreate: () => {
+
                     $("#jumpToNav").scroll(function () {
                         glitter.setCookie("jumpToNavScroll", $(`#jumpToNav`).scrollTop())
                     });

@@ -1,9 +1,10 @@
 'use strict';
 import { Entry } from '../Entry.js';
 import { Glitter } from './Glitter.js';
-var glitter = new Glitter(window);
+const glitter = new Glitter(window);
 window.glitter = glitter;
 window.rootGlitter = glitter;
+console.log(`GlitterInitial-time:`, window.renderClock.stop());
 window.addEventListener('resize', function () {
     for (var a = 0; a < glitter.windowUtil.windowHeightChangeListener.length; a++) {
         try {
@@ -50,25 +51,9 @@ function traverseHTML(element) {
             result.children.push(traverseHTML(children[j]));
         }
     }
-    function replaceGlobalValue(inputString) {
-        if ((glitter.share.EditorMode === true)) {
-            return inputString;
-        }
-        const pattern = /@{{(.*?)}}/g;
-        let match;
-        let convert = inputString;
-        while ((match = pattern.exec(inputString)) !== null) {
-            const placeholder = match[0];
-            const value = match[1];
-            if (glitter.share.globalValue && glitter.share.globalValue[value]) {
-                convert = (convert.replace(placeholder, glitter.share.globalValue[value]));
-            }
-        }
-        return convert;
-    }
     if ($(element).attr('glem') === 'bindView') {
         function renderBindView() {
-            function notifyLiseCycle() {
+            function notifyLifeCycle() {
                 try {
                     glitter.elementCallback[$(element).attr('gvc-id')].updateAttribute();
                 }
@@ -92,17 +77,23 @@ function traverseHTML(element) {
                 const id = $(element).attr('gvc-id');
                 let view = glitter.elementCallback[id].getView();
                 glitter.elementCallback[$(element).attr('gvc-id')].rendered = true;
-                if (typeof view === 'string') {
-                    $(`[gvc-id="${id}"]`).html(replaceGlobalValue(view));
-                    notifyLiseCycle();
+                if (!document.querySelector(`[gvc-id="${id}"]`).wasRender) {
+                    if (typeof view === 'string') {
+                        $(`[gvc-id="${id}"]`).html(glitter.renderView.replaceGlobalValue(view));
+                        notifyLifeCycle();
+                    }
+                    else {
+                        view.then((data) => {
+                            $(`[gvc-id="${id}"]`).html(glitter.renderView.replaceGlobalValue(data));
+                            notifyLifeCycle();
+                        });
+                    }
                 }
-                else {
-                    view.then((data) => {
-                        $(`[gvc-id="${id}"]`).html(replaceGlobalValue(data));
-                        notifyLiseCycle();
-                    });
-                }
-                document.querySelector(`[gvc-id="${id}"]`).recreateView = renderBindView;
+                document.querySelector(`[gvc-id="${id}"]`).recreateView = (() => {
+                    document.querySelector(`[gvc-id="${id}"]`).wasRender = false;
+                    renderBindView();
+                });
+                document.querySelector(`[gvc-id="${id}"]`).wasRender = true;
             }
             catch (e) {
                 glitter.deBugMessage(e);
@@ -110,47 +101,22 @@ function traverseHTML(element) {
         }
         renderBindView();
     }
-    for (let i = 0; i < attributes.length; i++) {
-        if ((attributes[i].value.includes('clickMap') || attributes[i].value.includes('editorEvent')) && (attributes[i].name.substring(0, 2) === 'on')) {
+    else {
+        for (let i = 0; i < attributes.length; i++) {
             try {
-                const funString = `${attributes[i].value}`;
-                $(element).off(attributes[i].name.substring(2));
-                const name = attributes[i].name;
-                element.addEventListener(attributes[i].name.substring(2), function () {
-                    if (glitter.htmlGenerate.isEditMode() && !glitter.share.EditorMode) {
-                        if (funString.indexOf('editorEvent') !== -1) {
-                            eval(funString.replace('editorEvent', 'clickMap'));
-                        }
-                        else if (name.substring(2) !== 'click') {
-                            eval(funString);
-                        }
-                    }
-                    else {
-                        eval(funString);
-                    }
-                });
-                element.removeAttribute(attributes[i].name);
+                glitter.renderView.replaceAttributeValue({
+                    key: attributes[i].name,
+                    value: attributes[i].value
+                }, element);
             }
             catch (e) {
-                glitter.deBugMessage(e);
-            }
-        }
-        else if (!(glitter.share.EditorMode === true)) {
-            const inputString = attributes[i].value;
-            const pattern = /@{{(.*?)}}/g;
-            let match;
-            while ((match = pattern.exec(inputString)) !== null) {
-                const placeholder = match[0];
-                const value = match[1];
-                if (glitter.share.globalValue && glitter.share.globalValue[value]) {
-                    attributes[i].value = attributes[i].value.replace(placeholder, glitter.share.globalValue[value]);
-                }
+                console.log(e);
             }
         }
     }
     if (!(glitter.share.EditorMode === true)) {
         const inputString = $(element).html();
-        inputString != replaceGlobalValue(inputString) && $(element).html(replaceGlobalValue(inputString));
+        inputString != glitter.renderView.replaceGlobalValue(inputString) && $(element).html(glitter.renderView.replaceGlobalValue(inputString));
     }
     return result;
 }

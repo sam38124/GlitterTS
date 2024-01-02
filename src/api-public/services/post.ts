@@ -5,6 +5,7 @@ import UserUtil from "../../utils/UserUtil";
 import {IToken} from "../models/Auth.js";
 import {App} from "../../services/app.js";
 import {sendMessage} from "../../firebase/message.js";
+import {Shopping} from "./shopping.js";
 
 export class Post {
     public app: string
@@ -15,16 +16,21 @@ export class Post {
         Post.postObserverList.push(callback)
     }
 
-    public async postContent(content: any,tb:string='t_post') {
+    public async postContent(content: any, tb: string = 't_post') {
         try {
             const data = await db.query(`INSERT INTO \`${this.app}\`.\`${tb}\`
                                          SET ?`, [content])
             const reContent = JSON.parse(content.content)
+            if (reContent.type === 'product' && tb==='t_manager_post') {
+                await new Shopping(this.app, this.token).postVariantsAndPriceValue(reContent)
+            }
             reContent.id = data.insertId
             content.content = JSON.stringify(reContent)
             await db.query(`update \`${this.app}\`.\`${tb}\`
                             SET ?
                             WHERE id = ${data.insertId}`, [content])
+
+
             Post.postObserverList.map((value, index, array) => {
                 value(content, this.app)
             })
@@ -50,7 +56,7 @@ export class Post {
         }
     }
 
-    public async lambda(query:any,router: string, datasource: any, type: string) {
+    public async lambda(query: any, router: string, datasource: any, type: string) {
         try {
             return await db.queryLambada({
                 database: this.app
@@ -64,7 +70,7 @@ export class Post {
 
                     throw exception.BadRequestError('BAD_REQUEST', `Router ${router} not exist.`, null);
                 }
-                let user :any = undefined;
+                let user: any = undefined;
                 if (this.token) {
                     user = (await sql.query(`select *
                                              from t_user
@@ -92,27 +98,27 @@ export class Post {
                 } else {
                     return new Promise<any>(async (resolve, reject) => {
                         try {
-                            (sqlType.execute(sql,{
+                            (sqlType.execute(sql, {
                                 user: user,
                                 data: datasource,
-                                app:this.app,
-                                query:query,
-                                firebase:{
-                                    sendMessage:(message:{
+                                app: this.app,
+                                query: query,
+                                firebase: {
+                                    sendMessage: (message: {
                                         notification: {
                                             title: string,
                                             body: string,
                                         },
-                                        type:"topic"|"token",
-                                        for:string
-                                    })=>{
-                                        sendMessage(apConfig.firebase,message,this.app)
+                                        type: "topic" | "token",
+                                        for: string
+                                    }) => {
+                                        sendMessage(apConfig.firebase, message, this.app)
                                     }
                                 }
                             })).then((data: any) => {
-                                resolve({result:true,data:data})
+                                resolve({result: true, data: data})
                             }).catch((e: any) => {
-                                resolve({result:false,message:e})
+                                resolve({result: false, message: e})
                             })
                         } catch (e) {
                             console.log(e)
@@ -126,22 +132,20 @@ export class Post {
         }
     }
 
-    public async putContent(content: any,tb:string='t_post') {
+    public async putContent(content: any, tb: string = 't_post') {
         try {
 
             const reContent = JSON.parse(content.content)
+            if (reContent.type === 'product' && tb==='t_manager_post') {
+                await new Shopping(this.app, this.token).postVariantsAndPriceValue(reContent)
+                content.content=JSON.stringify(reContent)
+            }
             const data = await db.query(`update \`${this.app}\`.\`${tb}\`
                                          SET ?
                                          where 1 = 1
                                            and id = ${reContent.id}`, [
                 content
             ])
-            reContent.id = data.insertId
-            content.content = JSON.stringify(reContent)
-            content.updated_time = new Date()
-            await db.query(`update \`${this.app}\`.${tb}
-                            SET ?
-                            WHERE id = ${data.insertId}`, [content])
             return data
         } catch (e) {
             throw exception.BadRequestError('BAD_REQUEST', 'PostContent Error:' + e, null);
@@ -296,6 +300,9 @@ export class Post {
         this.app = app
         this.token = token
     }
+
+
+
 }
 
 function generateUserID() {

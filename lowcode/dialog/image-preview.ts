@@ -1,6 +1,6 @@
 import {init} from "../glitterBundle/GVController.js";
 
-init((gvc, glitter, gBundle)=>{
+init(import.meta.url,(gvc, glitter, gBundle)=>{
     glitter.addMtScript([{src:`https://kit.fontawesome.com/02e2dc09e3.js`}],()=>{},()=>{})
     return {
 

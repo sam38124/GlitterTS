@@ -44,7 +44,8 @@ export class Glitter {
     public nowPageConfig?: PageConfig
     public waitChangePage = false
     public elementCallback: { [name: string]: { onCreate: () => void, onInitial: () => void, notifyDataChange: () => void, getView: () => string | Promise<string>, updateAttribute: () => void, onDestroy: () => void, rendered: boolean } } = {}
-    public html=String.raw
+    public html = String.raw
+    public promiseValueMap: any = {}
     /*Getter*/
 
     //@ts-ignore
@@ -77,6 +78,13 @@ export class Glitter {
         return uuid
     }
 
+    get macAddress(): string {
+        if (!localStorage.getItem('mac_address')) {
+            localStorage.setItem('mac_address', this.getUUID('xxxxxxxx'))
+        }
+        return localStorage.getItem('mac_address')!
+    }
+
     /*PageManager*/
     public hidePageView = PageManager.hidePageView
     public showPageView = PageManager.showPageView
@@ -96,8 +104,13 @@ export class Glitter {
     public goMenu = PageManager.goMenu
     public addChangePageListener = PageManager.addChangePageListener
 
-    /*Function*/
+    public promiseValue(fun: Promise<any> | string) {
+        const index = Object.keys(this.promiseValueMap).length + 1
+        this.promiseValueMap[`${index}`] = fun
+        return `@PROMISE{{${index}}}`
+    }
 
+    /*Function*/
     public parseCookie(): any {
         var cookieObj: any = {};
         var cookieAry = this.document.cookie.split(';');
@@ -266,7 +279,7 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
         const gliter = this;
         $("#Navigation").hide()
         if ((window as any).drawer === undefined) {
-            gliter.addMtScript([new URL('./plugins/NaviGation.js',import.meta.url)], () => {
+            gliter.addMtScript([new URL('./plugins/NaviGation.js', import.meta.url)], () => {
                 callback()
                 $("#Navigation").html(src);
             }, () => {
@@ -477,14 +490,14 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
         }
     }
 
-    public getUUID(): string {
+    public getUUID(format?:string): string {
         let d = Date.now();
 
         if (typeof performance !== 'undefined' && typeof performance.now === 'function') {
             d += performance.now(); //use high-precision timer if available
         }
 
-        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+        return (format ?? 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx').replace(/[xy]/g, function (c) {
             let r = (d + Math.random() * 16) % 16 | 0;
             d = Math.floor(d / 16);
             return "s" + (c === 'x' ? r : r & 0x3 | 0x8).toString(16);
@@ -602,11 +615,11 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
                 return defaultData
             }
         },
-        tryMethod(method:(()=>void)[]){
-            method.map((dd)=>{
+        tryMethod(method: (() => void)[]) {
+            method.map((dd) => {
                 try {
                     dd()
-                }catch (e) {
+                } catch (e) {
                     console.log(e)
                 }
             })
@@ -625,7 +638,7 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
             var lastIndex = 0
             Object.keys(sizeMap).map((dd) => {
                 let index: any = {sm: 576, me: 768, lg: 992, xl: 1200, xxl: 1400}
-                let sizeCompare = (index[dd] ?? parseInt(dd,10))
+                let sizeCompare = (index[dd] ?? parseInt(dd, 10))
                 if (wi >= sizeCompare && sizeCompare > lastIndex) {
                     returnSize = sizeMap[dd]
                     lastIndex = sizeCompare
@@ -864,6 +877,117 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
         },
         reload() {
             this.e.reload()
+        }
+    }
+    public renderView = {
+        replaceGlobalValue: function (inputString: string) {
+            const glitter: any = Glitter.glitter;
+            if ((glitter.share.EditorMode === true)) {
+                return inputString
+            }
+            const pattern = /@{{(.*?)}}/g;
+            // 使用正则表达式的 exec 方法来提取匹配项
+            let match;
+            let convert = inputString
+            while ((match = pattern.exec(inputString)) !== null) {
+                const placeholder = match[0]; // 完整的匹配项，例如 "@{{value}}"
+                const value = match[1]; // 提取的值，例如 "value"
+                if (glitter.share.globalValue && glitter.share.globalValue[value]) {
+                    convert = (convert.replace(placeholder, glitter.share.globalValue[value]));
+                }
+            }
+            return convert
+        },
+        replacePromiseValue: function (inputString: string) {
+            const glitter: any = Glitter.glitter;
+            return new Promise(async (resolve, reject) => {
+                console.log(`replacePromiseValue-1->`,inputString)
+                const pattern = /@PROMISE{{(.*?)}}/g;
+                // 使用正则表达式的 exec 方法来提取匹配项
+                let match;
+                let convert = inputString
+                while ((match = pattern.exec(inputString)) !== null) {
+                    const placeholder = match[0]; // 完整的匹配项，例如 "@{{value}}"
+                    const value = match[1]; // 提取的值，例如 "value"
+                    inputString = inputString.replace(placeholder, await glitter.promiseValueMap[value])
+                }
+                console.log(`replacePromiseValue-2->`,inputString)
+                resolve(inputString)
+            })
+        },
+        replaceAttributeValue: function (dd: any, element: Element) {
+            try {
+                dd = JSON.parse(JSON.stringify(dd))
+                if (dd.value && (typeof dd.value !== 'string')) {
+                    dd.value = `${dd.value}`
+                }
+                if (!element) {
+                    return
+                }
+                const glitter: any = Glitter.glitter;
+                (element as any).replaceAtMemory = (element as any).replaceAtMemory ?? {}
+                if (dd.value && ((dd.value.includes('clickMap') || dd.value.includes('editorEvent')) && (dd.key.substring(0, 2) === 'on'))) {
+                    try {
+                        const funString = `${dd.value}`;
+                        if (!((element as any).replaceAtMemory[dd.key])) {
+                            element.addEventListener(dd.key.substring(2), function () {
+                                if (glitter.htmlGenerate.isEditMode() && !glitter.share.EditorMode && glitter.getUrlParameter('type')==='htmlEditor') {
+                                    if (funString.indexOf('editorEvent') !== -1) {
+                                        eval(funString.replace('editorEvent', 'clickMap'))
+                                    } else if (dd.key !== 'onclick') {
+                                        eval(funString)
+                                    }
+                                } else {
+                                    eval(funString)
+                                }
+                            })
+                        }
+                        element.removeAttribute(dd.key);
+                        (element as any).replaceAtMemory[dd.key] = true
+                    } catch (e) {
+                        console.log(e)
+                        glitter.deBugMessage(e)
+                    }
+                } else {
+                    try {
+                        if (dd.value) {
+                            element.setAttribute(dd.key, dd.value)
+                        }
+                    } catch (e) {
+                    }
+                }
+                if (dd.key && dd.key.includes('@PROMISE')) {
+
+                    glitter.renderView.replacePromiseValue(dd.key).then((data: string) => {
+                        element.setAttribute(data, dd.value)
+                        console.log(`setPromise->${data} to ${dd.value}`)
+                    })
+                }
+                if (dd.value && dd.value.includes('@PROMISE')) {
+                    glitter.renderView.replacePromiseValue(dd.value).then((data: string) => {
+                        element.setAttribute(dd.key, data)
+                    })
+                }
+
+                if (!(glitter.share.EditorMode === true)) {
+                    const inputString = dd.value;
+                    // 正则表达式模式
+                    const pattern = /@{{(.*?)}}/g;
+                    // 使用正则表达式的 exec 方法来提取匹配项
+                    let match;
+                    while ((match = pattern.exec(inputString)) !== null) {
+                        const placeholder = match[0]; // 完整的匹配项，例如 "@{{value}}"
+                        const value = match[1]; // 提取的值，例如 "value"
+                        if (glitter.share.globalValue && glitter.share.globalValue[value]) {
+                            dd.value = dd.value.replace(placeholder, glitter.share.globalValue[value])
+                        }
+                    }
+                }
+            } catch (e) {
+                console.log(e)
+            }
+
+
         }
     }
 

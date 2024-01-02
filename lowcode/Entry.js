@@ -15,7 +15,7 @@ import { BaseApi } from "./glitterBundle/api/base.js";
 import { GlobalUser } from "./glitter-base/global/global-user.js";
 export class Entry {
     static onCreate(glitter) {
-        var _a, _b;
+        var _a;
         if (glitter.getUrlParameter('appName')) {
             window.appName = glitter.getUrlParameter('appName');
             config.appName = glitter.getUrlParameter('appName');
@@ -27,11 +27,10 @@ export class Entry {
 }`);
         window.renderClock = (_a = window.renderClock) !== null && _a !== void 0 ? _a : clockF();
         console.log(`Entry-time:`, window.renderClock.stop());
-        glitter.share.editerVersion = "V_3.8.9";
+        glitter.share.editerVersion = "V_4.4.2";
         glitter.share.start = new Date();
         glitter.debugMode = false;
         const vm = {
-            pageData: ApiPageConfig.getPage(config.appName, (_b = glitter.getUrlParameter('page')) !== null && _b !== void 0 ? _b : glitter.getUUID()),
             appConfig: []
         };
         window.saasConfig = {
@@ -39,7 +38,7 @@ export class Entry {
             api: ApiPageConfig,
             appConfig: undefined
         };
-        ApiPageConfig.getPlugin(config.appName).then((dd) => {
+        window.glitterInitialHelper.getPlugin((dd) => {
             var _a, _b;
             console.log(`getPlugin-time:`, window.renderClock.stop());
             GlobalUser.language = GlobalUser.language || navigator.language;
@@ -187,7 +186,9 @@ export class Entry {
                     }, [
                         { key: "async", value: "true" }
                     ]);
-                    glitter.htmlGenerate.loadScript(glitter, window.parent.editerData.setting.map((dd) => {
+                    glitter.htmlGenerate.loadScript(glitter, window.parent.editerData.setting.filter((dd) => {
+                        return ['widget', 'container', 'code'].indexOf(dd.type) === -1;
+                    }).map((dd) => {
                         return {
                             src: `${glitter.htmlGenerate.configureCDN(glitter.htmlGenerate.resourceHook(dd.js))}`,
                             type: 'module'
@@ -215,7 +216,7 @@ export class Entry {
                         return eval(evals);
                     });
                     console.log(`exePlugin-time:`, window.renderClock.stop());
-                    vm.pageData.then((data) => {
+                    window.glitterInitialHelper.getPageData(glitter.getUrlParameter('page'), (data) => {
                         console.log(`getPageData-time:`, window.renderClock.stop());
                         if (data.response.result.length === 0) {
                             const url = new URL("./", location.href);
@@ -226,20 +227,59 @@ export class Entry {
                             location.href = url.href;
                             return;
                         }
-                        glitter.htmlGenerate.loadScript(glitter, data.response.result[0].config.map((dd) => {
+                        glitter.htmlGenerate.loadScript(glitter, data.response.result[0].config.filter((dd) => {
+                            return ['widget', 'container', 'code'].indexOf(dd.type) === -1;
+                        }).map((dd) => {
                             return {
                                 src: `${glitter.htmlGenerate.configureCDN(glitter.htmlGenerate.resourceHook(dd.js))}`,
                                 callback: () => {
                                 }
                             };
                         }));
-                        glitter.htmlGenerate.setHome({
-                            app_config: vm.appConfig,
-                            page_config: data.response.result[0].page_config,
-                            config: data.response.result[0].config,
-                            data: {},
-                            tag: glitter.getUrlParameter('page')
-                        });
+                        function authPass() {
+                            glitter.htmlGenerate.setHome({
+                                app_config: vm.appConfig,
+                                page_config: data.response.result[0].page_config,
+                                config: data.response.result[0].config,
+                                data: {},
+                                tag: glitter.getUrlParameter('page')
+                            });
+                        }
+                        function authError(message) {
+                            glitter.addStyleLink([
+                                'assets/vendor/boxicons/css/boxicons.min.css',
+                                'assets/css/theme.css',
+                                'css/editor.css',
+                            ]);
+                            glitter.setHome('jspage/alert.js', glitter.getUrlParameter('page'), message, {
+                                backGroundColor: `transparent;`
+                            });
+                        }
+                        const glitterAuth = window.glitterAuth;
+                        if ((window.appName !== window.glitterBase) && (glitterAuth)) {
+                            if (glitterAuth.overdue) {
+                                authError('APP使用權限已過期，請前往GLITTER網站續費。');
+                            }
+                            else {
+                                glitterAuth.memberType = glitterAuth.memberType || 'free';
+                                const memberCheck = {
+                                    vip: 40,
+                                    basic: 2,
+                                    company: 10,
+                                    free: 1,
+                                    noLimit: Infinity
+                                };
+                                if (memberCheck[glitterAuth.memberType] < glitterAuth.appCount) {
+                                    authError(`當前可建立應用數量為${memberCheck[glitterAuth.memberType]}個，請前往Glitter後台升級方案，或者刪除不要使用的應用。`);
+                                }
+                                else {
+                                    authPass();
+                                }
+                            }
+                        }
+                        else {
+                            authPass();
+                        }
                     });
                 }
             });

@@ -8,6 +8,7 @@ import config from "../../config.js";
 import {sendmail} from "../../services/ses.js";
 import UserUtil from "../../utils/UserUtil.js";
 import {UtPermission} from "../utils/ut-permission.js";
+import {Post} from "../services/post.js";
 
 const router: express.Router = express.Router();
 
@@ -238,7 +239,7 @@ router.post('/login', async (req: express.Request, resp: express.Response) => {
 });
 router.get('/', async (req: express.Request, resp: express.Response) => {
     try {
-        if (await UtPermission.isManager(req)) {
+        if (req.query.type==='list' && (await UtPermission.isManager(req))) {
             const user = new User(req.get('g-app') as string);
             return response.succ(resp, (await user.getUserList(req.query as any)));
         } else {
@@ -253,6 +254,7 @@ router.get('/', async (req: express.Request, resp: express.Response) => {
 router.get('/userdata', async (req: express.Request, resp: express.Response) => {
     try {
         const user = new User(req.get('g-app') as string);
+        console.log(`userID-->`,req.query.userID )
         return response.succ(resp, (await user.getUserData(req.query.userID + "")));
     } catch (err) {
         return response.fail(resp, err);
@@ -260,11 +262,10 @@ router.get('/userdata', async (req: express.Request, resp: express.Response) => 
 });
 router.put('/', async (req: express.Request, resp: express.Response) => {
     try {
-        if (await UtPermission.isManager(req)) {
-            const user = new User(req.get('g-app') as string);
-            return response.succ(resp, (await user.updateUserData(req.query.userID as string, req.body.userData,)));
+        const user = new User(req.get('g-app') as string);
+        if ((await UtPermission.isManager(req)) && req.query.userID) {
+            return response.succ(resp, (await user.updateUserData(req.query.userID as string, req.body.userData,true)));
         } else {
-            const user = new User(req.get('g-app') as string);
             return response.succ(resp, (await user.updateUserData(req.body.token.userID, req.body.userData)));
         }
     } catch (err) {
@@ -303,3 +304,89 @@ router.delete('/', async (req: express.Request, resp: express.Response) => {
     }
 });
 
+router.post('/subscribe',async (req: express.Request, resp: express.Response) => {
+    try {
+        const user = new User(req.get('g-app') as string);
+       (await user.subscribe(req.body.email as string,req.body.tag as string))
+        return response.succ(resp,{
+            result:true
+        });
+    } catch (err) {
+        return response.fail(resp, err);
+    }
+})
+router.get('/subscribe',async (req: express.Request, resp: express.Response) => {
+    try {
+        const user = new User(req.get('g-app') as string);
+        return response.succ(resp,(await user.getSubScribe(req.query)));
+    } catch (err) {
+        return response.fail(resp, err);
+    }
+})
+
+router.delete('/subscribe',async (req: express.Request, resp: express.Response) => {
+    try {
+        const user = new User(req.get('g-app') as string);
+        (await user.deleteSubscribe(req.body.email as string))
+        return response.succ(resp,{
+            result:true
+        });
+    } catch (err) {
+        return response.fail(resp, err);
+    }
+})
+
+router.post('/fcm',async (req: express.Request, resp: express.Response) => {
+    try {
+        const user = new User(req.get('g-app') as string);
+        (await user.registerFcm(req.body.userID as string,req.body.deviceToken as string))
+        return response.succ(resp,{
+            result:true
+        });
+    } catch (err) {
+        return response.fail(resp, err);
+    }
+})
+
+
+router.get('/fcm',async (req: express.Request, resp: express.Response) => {
+    try {
+        const user = new User(req.get('g-app') as string);
+        return response.succ(resp,(await user.getFCM(req.query)));
+    } catch (err) {
+        return response.fail(resp, err);
+    }
+})
+
+
+router.put('/public/config', async (req: express.Request, resp: express.Response) => {
+    try {
+        const post = new User(req.get('g-app') as string,req.body.token);
+        if (await UtPermission.isManager(req)) {
+            (await post.setConfig({
+                key: req.body.key,
+                value: req.body.value,
+                user_id:req.body.user_id ?? undefined
+            }))
+        } else {
+            (await post.setConfig({
+                key: req.body.key,
+                value: req.body.value
+            }))
+        }
+        return response.succ(resp, {result: true});
+    } catch (err) {
+        return response.fail(resp, err);
+    }
+})
+router.get('/public/config', async (req: express.Request, resp: express.Response) => {
+    try {
+        const post = new User(req.get('g-app') as string, req.body.token);
+        return response.succ(resp, {result: true,value: ((await post.getConfig({
+                key:req.query.key as string,
+                user_id:req.query.user_id as string
+            }))[0] ?? {})['value'] ?? ""});
+    } catch (err) {
+        return response.fail(resp, err);
+    }
+})

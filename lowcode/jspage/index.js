@@ -14,7 +14,7 @@ import { ApiUser } from "../api/user.js";
 import { TriggerEvent } from "../glitterBundle/plugins/trigger-event.js";
 import { BaseApi } from "../glitterBundle/api/base.js";
 import { GlobalUser } from "../glitter-base/global/global-user.js";
-init((gvc, glitter, gBundle) => {
+init(import.meta.url, (gvc, glitter, gBundle) => {
     return {
         onCreateView: () => {
             return ``;

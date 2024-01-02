@@ -23,7 +23,7 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                         const orderID = await TriggerEvent.trigger({
                             gvc: gvc,
                             widget: widget,
-                            clickEvent: object.pdid
+                            clickEvent: object.orderID
                         })
                         ApiShop.getOrder({
                             limit: 50,

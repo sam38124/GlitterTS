@@ -10,9 +10,15 @@ const archiver_1 = __importDefault(require("archiver"));
 const aws_sdk_1 = __importDefault(require("aws-sdk"));
 const config_js_1 = __importDefault(require("../config.js"));
 const exception_js_1 = __importDefault(require("../modules/exception.js"));
+const firebase_js_1 = require("../modules/firebase.js");
 class Release {
-    static ios(cf) {
+    static async ios(cf) {
         try {
+            await firebase_js_1.Firebase.appRegister({
+                appName: cf.appDomain,
+                appID: cf.bundleID,
+                type: 'ios'
+            });
             let data = fs_1.default.readFileSync(cf.project_router, 'utf8');
             data = data.replace(/PRODUCT_BUNDLE_IDENTIFIER([\s\S]*?);/g, `PRODUCT_BUNDLE_IDENTIFIER = ${cf.bundleID};`)
                 .replace(/INFOPLIST_KEY_CFBundleDisplayName([\s\S]*?);/g, `INFOPLIST_KEY_CFBundleDisplayName = "${cf.appName}";`);
@@ -44,6 +50,11 @@ class Release {
 `;
             fs_1.default.writeFileSync(cf.project_router, data);
             fs_1.default.writeFileSync(path_1.default.resolve(cf.project_router, '../../proshake/Info.plist'), infoPlist);
+            fs_1.default.writeFileSync(path_1.default.resolve(cf.project_router, '../../proshake/GoogleService-Info.plist'), (await firebase_js_1.Firebase.getConfig({
+                appID: cf.bundleID,
+                type: 'ios',
+                appDomain: cf.appDomain
+            })));
             fs_1.default.writeFileSync(path_1.default.resolve(cf.project_router, '../../proshake/GlitterUI/index.html'), (() => {
                 let html = `<!DOCTYPE html>
 <meta name="viewport" content="width=device-width,height=device-height, initial-scale=1, minimum-scale=1, maximum-scale=1,user-scalable=no,initial-scale=1.0001,maximum-scale=1.0001,viewport-fit=cover">
@@ -216,8 +227,13 @@ class Release {
             console.log(e);
         }
     }
-    static android(cf) {
+    static async android(cf) {
         try {
+            await firebase_js_1.Firebase.appRegister({
+                appName: cf.appDomain,
+                appID: cf.bundleID,
+                type: 'android'
+            });
             fs_1.default.writeFileSync(path_1.default.resolve(cf.project_router, './app/src/main/assets/src/home.html'), (() => {
                 let html = `<!DOCTYPE html>
 <meta name="viewport" content="width=device-width,height=device-height, initial-scale=1, minimum-scale=1, maximum-scale=1,user-scalable=no,initial-scale=1.0001,maximum-scale=1.0001,viewport-fit=cover">

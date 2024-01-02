@@ -22,6 +22,19 @@ export default class Newebpay {
         total: number;
         email: string;
         shipment_fee: number;
+        orderID: string;
+    }): Promise<{
+        actionURL: string;
+        MerchantOrderNo: string;
+        MerchantID: string;
+        TradeInfo: string;
+        TradeSha: string;
+        Version: string;
+    }>;
+    saveMoney(orderData: {
+        total: number;
+        userID: number;
+        note: any;
     }): Promise<{
         actionURL: string;
         MerchantOrderNo: number;

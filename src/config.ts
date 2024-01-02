@@ -3,6 +3,7 @@ import path from "path";
 import dotenv from 'dotenv';
 
 
+
 export class ConfigSetting {
     public static config_path = ""
 
@@ -11,10 +12,10 @@ export class ConfigSetting {
         dotenv.config({
             path: envPath,
         });
+
     }
 }
 
-ConfigSetting.setConfig(ConfigSetting.config_path)
 export let saasConfig = {
     get SAAS_NAME() {
         return process.env.GLITTER_DB
@@ -89,12 +90,14 @@ export const config = {
         invoice: '/invoice',
         sql_api:'/sql_api',
         post: '/post',
-        message: '/message',
+        chat: '/chat',
         smtp: '/smtp',
+        fcm: '/fcm',
         lambda:'/lambda',
         ec:'/ec',
         manager:'/manager',
-        app:'/app'
+        app:'/app',
+        wallet:'/wallet'
     },
     route: {
         user: "/user",

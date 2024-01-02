@@ -18,15 +18,135 @@ export class ApiUser {
         })
     }
 
-    public static getUserData(token: string) {
+    public static getUserData(token: string, type: 'list' | 'me') {
         return BaseApi.create({
-            "url": getBaseUrl() + `/api-public/v1/user`,
+            "url": getBaseUrl() + `/api-public/v1/user?type=${type}`,
             "type": "GET",
             "headers": {
                 "g-app": getConfig().config.appName,
                 "Content-Type": "application/json",
                 "Authorization": token
             }
+        })
+    }
+
+    public static subScribe(email: string, tag: string) {
+        return BaseApi.create({
+            "url": getBaseUrl() + `/api-public/v1/user/subscribe`,
+            "type": "POST",
+            "headers": {
+                "g-app": getConfig().config.appName,
+                "Content-Type": "application/json"
+            },
+            "data": JSON.stringify({
+                email: email,
+                tag: tag
+            })
+        })
+    }
+
+    public static registerFCM(userID: string, deviceToken: string) {
+        return BaseApi.create({
+            "url": getBaseUrl() + `/api-public/v1/user/fcm`,
+            "type": "POST",
+            "headers": {
+                "g-app": getConfig().config.appName,
+                "Content-Type": "application/json"
+            },
+            "data": JSON.stringify({
+                userID: userID,
+                deviceToken: deviceToken
+            })
+        })
+    }
+
+    public static getFCM(json: {
+        limit: number,
+        page: number,
+        search?: string,
+        id?: string
+    }) {
+        return BaseApi.create({
+            "url": getBaseUrl() + `/api-public/v1/user/fcm?${(() => {
+                let par = [
+                    `limit=${json.limit}`,
+                    `page=${json.page}`
+                ]
+                json.search && par.push(`search=${json.search}`);
+                json.id && par.push(`id=${json.id}`);
+                return par.join('&')
+            })()}`,
+            "type": "GET",
+            "headers": {
+                "g-app": getConfig().config.appName,
+                "Content-Type": "application/json",
+                "Authorization": getConfig().config.token
+            }
+        })
+    }
+
+    public static getSubScribe(json: {
+        limit: number,
+        page: number,
+        search?: string,
+        id?: string
+    }) {
+        return BaseApi.create({
+            "url": getBaseUrl() + `/api-public/v1/user/subscribe?${(() => {
+                let par = [
+                    `limit=${json.limit}`,
+                    `page=${json.page}`
+                ]
+                json.search && par.push(`search=${json.search}`);
+                json.id && par.push(`id=${json.id}`);
+                return par.join('&')
+            })()}`,
+            "type": "GET",
+            "headers": {
+                "g-app": getConfig().config.appName,
+                "Content-Type": "application/json",
+                "Authorization": getConfig().config.token
+            }
+        })
+    }
+
+    public static getSubScribeMailSettingList(json: {
+        limit: number,
+        page: number,
+        search?: string,
+        id?: string
+    }) {
+        return BaseApi.create({
+            "url": getBaseUrl() + `/api-public/v1/user/subscribe?${(() => {
+                let par = [
+                    `limit=${json.limit}`,
+                    `page=${json.page}`
+                ]
+                json.search && par.push(`search=${json.search}`);
+                json.id && par.push(`id=${json.id}`);
+                return par.join('&')
+            })()}`,
+            "type": "GET",
+            "headers": {
+                "g-app": getConfig().config.appName,
+                "Content-Type": "application/json",
+                "Authorization": getConfig().config.token
+            }
+        })
+    }
+
+    public static deleteSubscribe(json: {
+        email: string
+    }) {
+        return BaseApi.create({
+            "url": getBaseUrl() + `/api-public/v1/user/subscribe`,
+            "type": "DELETE",
+            "headers": {
+                "Content-Type": "application/json",
+                "g-app": getConfig().config.appName,
+                "Authorization": getConfig().config.token
+            },
+            data: JSON.stringify(json)
         })
     }
 
@@ -37,8 +157,9 @@ export class ApiUser {
         id?: string
     }) {
         return BaseApi.create({
-            "url": getBaseUrl() + `/api-public/v1/user?${ (() => {
+            "url": getBaseUrl() + `/api-public/v1/user?${(() => {
                 let par = [
+                    `type=list`,
                     `limit=${json.limit}`,
                     `page=${json.page}`
                 ]
@@ -69,6 +190,8 @@ export class ApiUser {
             data: JSON.stringify(json)
         })
     }
+
+
     public static getPublicUserData(id: string) {
         return BaseApi.create({
             "url": getBaseUrl() + `/api-public/v1/user/userdata?userID=${id}`,
@@ -141,7 +264,8 @@ export class ApiUser {
             })
         })
     }
-    public static updateUserDataManager(json: any,userID:string) {
+
+    public static updateUserDataManager(json: any, userID: string) {
         return BaseApi.create({
             "url": getBaseUrl() + `/api-public/v1/user?userID=${userID}`,
             "type": "PUT",
@@ -155,6 +279,7 @@ export class ApiUser {
             })
         })
     }
+
     public static login(json: { account: string, pwd: string }) {
         return BaseApi.create({
             "url": getBaseUrl() + `/api-public/v1/user/login`,
@@ -167,7 +292,37 @@ export class ApiUser {
         })
     }
 
+    public static setPublicConfig(cf: {
+        key: string,
+        value: any,
+        user_id?: string
+    }) {
+        return BaseApi.create({
+            "url": getBaseUrl() + `/api-public/v1/user/public/config`,
+            "type": "PUT",
+            "headers": {
+                "Content-Type": "application/json",
+                "g-app": getConfig().config.appName,
+                "Authorization": (cf.user_id) ? getConfig().config.token : GlobalUser.token
+            },
+            data: JSON.stringify({
+                "key": cf.key,
+                "value": cf.value,
+                "user_id": cf.user_id
+            })
+        })
+    }
 
+    public static getPublicConfig(key: string, user_id: string) {
+        return BaseApi.create({
+            "url": getBaseUrl() + `/api-public/v1/user/public/config?key=${key}&user_id=${user_id}`,
+            "type": "GET",
+            "headers": {
+                "Content-Type": "application/json",
+                "g-app": getConfig().config.appName
+            }
+        })
+    }
 
 }
 

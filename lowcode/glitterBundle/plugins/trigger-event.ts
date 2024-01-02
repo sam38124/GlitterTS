@@ -1,7 +1,6 @@
 import {HtmlJson} from "./plugin-creater.js"
 import {GVC} from "../GVController.js";
 import {Glitter} from "../Glitter.js";
-import {Editor} from "./editor.js";
 
 export class TriggerEvent {
     public static getUrlParameter(url: string, sParam: string) {
@@ -83,7 +82,6 @@ export class TriggerEvent {
     }
 
 
-
     public static create(url: string, event: {
         [name: string]: {
             subContent?: string,
@@ -103,48 +101,37 @@ export class TriggerEvent {
         gvc: GVC, widget: HtmlJson, clickEvent: any, subData?: any, element?: { e: any, event: any }
     }) {
         const glitter = (window as any).glitter
-        // const event: { src: string, route: string } = oj.clickEvent.clickEvent
         let arrayEvent: any = []
         let returnData = ''
 
         async function run(event: any) {
             return new Promise<any>(async (resolve, reject) => {
-                let hasRun = false
-
-                async function pass() {
-                    if (hasRun) {
-                        return
-                    } else {
-                        hasRun = true
-                    }
+                async function pass(inter: any) {
                     try {
                         const time = new Date()
                         const gvc = oj.gvc
                         const subData = oj.subData
                         const widget = oj.widget
                         let passCommand = false
-                        setTimeout(() => {
-                            resolve(true)
-                        }, 4000)
-                        returnData = await oj.gvc.glitter.share.clickEvent[TriggerEvent.getLink(event.clickEvent.src)][event.clickEvent.route].fun(oj.gvc, oj.widget, event, oj.subData, oj.element).event()
+                        returnData = await inter[event.clickEvent.route].fun(oj.gvc, oj.widget, event, oj.subData, oj.element).event()
                         const response = returnData
                         if (event.dataPlace) {
                             eval(event.dataPlace)
                         }
-                        oj.subData=response
+                        oj.subData = response
                         if (event.blockCommand) {
                             try {
-                                if(event.blockCommandV2){
-                                    passCommand = eval(`(()=>{
-    ${event.blockCommand}
+                                if (event.blockCommandV2) {
+                                    passCommand = eval(`(() => {
+                                        ${event.blockCommand}
                                     })()`)
-                                }else{
+                                } else {
                                     passCommand = eval(event.blockCommand)
                                 }
 
                             } catch (e) {
                                 alert(event.blockCommandV2)
-console.log(e)
+                                console.log(e)
                             }
                         }
                         if (passCommand) {
@@ -158,39 +145,17 @@ console.log(e)
                     }
                 }
 
-                let timeOut = new Date()
-                let interval: any = 0
-
-                function checkModule() {
-                    try {
-                        oj.gvc.glitter.share.clickEvent = oj.gvc.glitter.share.clickEvent ?? {}
-                        if (!oj.gvc.glitter.share.clickEvent[TriggerEvent.getLink(event.clickEvent.src)]) {
-                            oj.gvc.glitter.addMtScript([
-                                {src: `${TriggerEvent.getLink(event.clickEvent.src)}`, type: 'module'}
-                            ], () => {
-                            }, () => {
-                                clearInterval(interval)
-                                resolve(false)
-                            })
-                        } else {
-                            clearInterval(interval)
-                            pass()
-
+                try {
+                    oj.gvc.glitter.htmlGenerate.loadScript(oj.gvc.glitter, [{
+                        src: TriggerEvent.getLink(event.clickEvent.src),
+                        callback: (data: any) => {
+                            pass(data)
                         }
-                    } catch (e) {
-                        clearInterval(interval)
-                        resolve(false)
-                    }
+                    }],'clickEvent')
+                } catch (e) {
+                    resolve(false)
                 }
 
-                checkModule()
-                interval = setInterval(() => {
-                    checkModule()
-                    //Time out with 4 sec.
-                    if (((new Date().getTime()) - timeOut.getTime()) / 1000 > 4) {
-                        clearInterval(interval)
-                    }
-                }, 50)
             })
         }
 

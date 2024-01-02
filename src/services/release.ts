@@ -4,13 +4,18 @@ import archiver from "archiver";
 import AWS from "aws-sdk";
 import config from "../config.js";
 import exception from "../modules/exception.js";
+import {Firebase} from "../modules/firebase.js";
 
 export class Release {
-    public static ios(cf: {
+    public static async ios(cf: {
         appName: string, bundleID: string, appDomain: string, project_router: string, glitter_domain: string
     }) {
         try {
-
+            await Firebase.appRegister({
+                appName: cf.appDomain,
+                appID: cf.bundleID,
+                type: 'ios'
+            })
             let data = fs.readFileSync(cf.project_router, 'utf8');
             data = data.replace(/PRODUCT_BUNDLE_IDENTIFIER([\s\S]*?);/g, `PRODUCT_BUNDLE_IDENTIFIER = ${cf.bundleID};`)
                 .replace(/INFOPLIST_KEY_CFBundleDisplayName([\s\S]*?);/g, `INFOPLIST_KEY_CFBundleDisplayName = "${cf.appName}";`)
@@ -42,6 +47,13 @@ export class Release {
 `
             fs.writeFileSync(cf.project_router, data);
             fs.writeFileSync(path.resolve(cf.project_router, '../../proshake/Info.plist'), infoPlist);
+            fs.writeFileSync(path.resolve(cf.project_router, '../../proshake/GoogleService-Info.plist'), (await Firebase.getConfig({
+                appID: cf.bundleID,
+                type: 'ios',
+                appDomain:cf.appDomain
+            })) as string);
+
+
             fs.writeFileSync(path.resolve(cf.project_router, '../../proshake/GlitterUI/index.html'), (() => {
                 let html = `<!DOCTYPE html>
 <meta name="viewport" content="width=device-width,height=device-height, initial-scale=1, minimum-scale=1, maximum-scale=1,user-scalable=no,initial-scale=1.0001,maximum-scale=1.0001,viewport-fit=cover">
@@ -215,10 +227,15 @@ export class Release {
 
     }
 
-    public static android(cf: {
+    public static async android(cf: {
         appName: string, bundleID: string, appDomain: string, project_router: string, glitter_domain: string
     }) {
         try {
+            await Firebase.appRegister({
+                appName: cf.appDomain,
+                appID: cf.bundleID,
+                type: 'android'
+            })
             fs.writeFileSync(path.resolve(cf.project_router, './app/src/main/assets/src/home.html'), (() => {
                 let html = `<!DOCTYPE html>
 <meta name="viewport" content="width=device-width,height=device-height, initial-scale=1, minimum-scale=1, maximum-scale=1,user-scalable=no,initial-scale=1.0001,maximum-scale=1.0001,viewport-fit=cover">
@@ -389,7 +406,7 @@ export class Release {
 
     }
 
-    public static  copyFolderSync(source:string, target:string) {
+    public static copyFolderSync(source: string, target: string) {
         // 確保目標資料夾存在，如果不存在則建立
         if (!fs.existsSync(target)) {
             fs.mkdirSync(target);
@@ -414,7 +431,7 @@ export class Release {
         });
     }
 
-    public static removeAllFilesInFolder(folderPath:string) {
+    public static removeAllFilesInFolder(folderPath: string) {
         // 读取目标文件夹内所有文件和子文件夹
         const files = fs.readdirSync(folderPath);
 
@@ -436,49 +453,50 @@ export class Release {
         });
     }
 
-    public static  compressFiles(inputFolder:string, outputZip:string) {
-       return new Promise((resolve, reject)=>{
-           // 創建壓縮器實例
-           const archive = archiver('zip', { zlib: { level: 9 } });
+    public static compressFiles(inputFolder: string, outputZip: string) {
+        return new Promise((resolve, reject) => {
+            // 創建壓縮器實例
+            const archive = archiver('zip', {zlib: {level: 9}});
 
-           // 創建壓縮檔案
-           const output = fs.createWriteStream(outputZip);
+            // 創建壓縮檔案
+            const output = fs.createWriteStream(outputZip);
 
-           // 將壓縮器與輸出流相連
-           archive.pipe(output);
+            // 將壓縮器與輸出流相連
+            archive.pipe(output);
 
-           // 將指定目錄的所有內容添加到壓縮器中
-           archive.directory(inputFolder, false);
+            // 將指定目錄的所有內容添加到壓縮器中
+            archive.directory(inputFolder, false);
 
-           // 完成壓縮
-           archive.finalize();
+            // 完成壓縮
+            archive.finalize();
 
-           // 監聽壓縮完成事件
-           output.on('close', function () {
-               resolve(true)
-           });
+            // 監聽壓縮完成事件
+            output.on('close', function () {
+                resolve(true)
+            });
 
-           // 監聽壓縮出錯事件
-           archive.on('error', function (err:any) {
-               resolve(false)
-           });
-       })
+            // 監聽壓縮出錯事件
+            archive.on('error', function (err: any) {
+                resolve(false)
+            });
+        })
     }
-    public static  uploadFile(filePath:string,fileName:string){
-        return new Promise((resolve, reject)=>{
+
+    public static uploadFile(filePath: string, fileName: string) {
+        return new Promise((resolve, reject) => {
             const s3 = new AWS.S3();
             const bucketName = config.AWS_S3_NAME; // 替换为你的S3存储桶名称
 
-            const params :any= {
+            const params: any = {
                 Bucket: bucketName,
                 Key: fileName,
                 Body: fs.createReadStream(filePath)
             };
 
-            s3.upload(params, (err:any, data:any) => {
+            s3.upload(params, (err: any, data: any) => {
                 if (err) {
                     console.error('Error uploading file:', err);
-                    throw exception.BadRequestError('S3 ERROR','upload file error.',null)
+                    throw exception.BadRequestError('S3 ERROR', 'upload file error.', null)
                 } else {
                     resolve(data.Location)
                     console.log('File uploaded successfully. S3 URL:', data.Location);
@@ -488,19 +506,20 @@ export class Release {
 
     }
 
-    public static deleteFolder(folderPath:string) {
+    public static deleteFolder(folderPath: string) {
         try {
             // 删除目标文件夹
-            fs.rmdirSync(folderPath, { recursive: true });
+            fs.rmdirSync(folderPath, {recursive: true});
             console.log(`成功删除文件夹：${folderPath}`);
         } catch (err) {
             console.error(`删除文件夹时发生错误：${err}`);
         }
     }
-    public static deleteFile(filePath:string) {
+
+    public static deleteFile(filePath: string) {
         try {
             // 删除目标文件夹
-            fs.rmSync(filePath, { recursive: true });
+            fs.rmSync(filePath, {recursive: true});
             console.log(`成功删除文件：${filePath}`);
         } catch (err) {
             console.error(`删除文件时发生错误：${err}`);

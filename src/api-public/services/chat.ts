@@ -3,171 +3,171 @@ import exception from "../../modules/exception";
 import tool from "../../services/tool";
 import UserUtil from "../../utils/UserUtil";
 import {IToken} from "../models/Auth.js";
+import {UtDatabase} from "../utils/ut-database.js";
+import {User} from "./user.js";
 
 export interface ChatRoom {
     chat_id: string,
+    type: 'user' | 'group'
     info: any,
-    participant: any
+    participant: string[]
 }
+
+export interface ChatMessage {
+    chat_id: string,
+    user_id: string,
+    message: {
+        text: string,
+        attachment: any
+    }
+}
+
 
 export class Chat {
     public app: string
     public token: IToken
-    public static postObserverList: ((data: any, app: string) => void)[] = []
-
-    public static addPostObserver(callback: (data: any, app: string) => void) {
-        Chat.postObserverList.push(callback)
-    }
 
     public async addChatRoom(room: ChatRoom) {
         try {
-            room.participant=JSON.stringify(room.participant)
-            room.info=JSON.stringify(room.info)
-            const data = await db.query(`INSERT ignore INTO \`${this.app}\`.\`t_chat_list\`
-                                         SET ?`, [
-                room
-            ])
-            Chat.postObserverList.map((value, index, array) => {
-                value({
-                    type: 'addChat',
-                    data: room
-                }, this.app)
-            })
-            return data
+            if (room.type === 'user') {
+                room.chat_id = room.participant.sort().join('-')
+            } else {
+                room.chat_id = generateChatID()
+            }
+            if (((await db.query(`select count(1)
+                                  from \`${this.app}\`.t_chat_list
+                                  where chat_id = ?`, [room.chat_id]))[0]['count(1)']) === 1) {
+                throw exception.BadRequestError('BAD_REQUEST', 'THIS CHATROOM ALREADY EXISTS.', null);
+            } else {
+                const data = await db.query(`INSERT INTO \`${this.app}\`.\`t_chat_list\`
+                                             SET ?`, [
+                    {
+                        chat_id: room.chat_id,
+                        type: room.type,
+                        info: room.info
+                    }
+                ])
+                for (const b of room.participant) {
+                    await db.query(`
+                        insert into \`${this.app}\`.\`t_chat_participants\`
+                        set ?
+                    `, [
+                        {
+                            chat_id: room.chat_id,
+                            user_id: b
+                        }
+                    ])
+                }
+                return data
+            }
         } catch (e) {
-            throw exception.BadRequestError('BAD_REQUEST', 'PostContent Error:' + e, null);
+            throw exception.BadRequestError('BAD_REQUEST', 'AddChatRoom Error:' + e, null);
         }
     }
 
-    public async postContent(content: any) {
+    public async getChatRoom(qu: any, userID: string) {
         try {
-            const data = await db.query(`INSERT INTO \`${this.app}\`.\`t_post\`
-                                         SET ?`, [
-                content
-            ])
-            const reContent = JSON.parse(content.content)
-            reContent.id = data.insertId
-            content.content = JSON.stringify(reContent)
-            await db.query(`update \`${this.app}\`.t_post
-                            SET ?
-                            WHERE id = ${data.insertId}`, [content])
-            Chat.postObserverList.map((value, index, array) => {
-                value(content, this.app)
-            })
+            let query: string[] = []
+            qu.befor_id && query.push(`id<${qu.befor_id}`)
+            qu.after_id && query.push(`id>${qu.after_id}`)
+            query.push(`chat_id in (SELECT chat_id FROM \`${this.app}\`.t_chat_participants where user_id=${db.escape(userID)})`)
+            const data = await new UtDatabase(this.app, `t_chat_list`).querySql(query, qu)
+            for (const b of data.data) {
+                if (b.type === 'user') {
+                    const user = b.chat_id.split('-').find((dd: any) => {
+                        return dd !== userID
+                    })
+                    b.topMessage = ((await db.query(`SELECT message
+                                                     FROM \`${this.app}\`.t_chat_detail
+                                                     where chat_id = ${db.escape(b.chat_id)}
+                                                     order by id desc limit 0,1;`, []))[0])
+                    b.topMessage = b.topMessage && b.topMessage.message
+                    b.who = user
+                    if (user) {
+                        try {
+                            b.user_data = await new User(this.app).getUserData(user, 'userID');
+                        } catch (e) {
+
+                        }
+                    }
+                }
+            }
             return data
-        } catch (e) {
-            throw exception.BadRequestError('BAD_REQUEST', 'PostContent Error:' + e, null);
+        } catch (e: any) {
+            throw exception.BadRequestError(e.code ?? 'BAD_REQUEST', 'GetChatRoom Error:' + e!.message, null);
         }
+
     }
 
-
-    public async getContent(content: any) {
+    public async addMessage(room: ChatMessage) {
         try {
-            let userData: any = {}
-            let query = ``;
-            const app = this.app
-            let selectOnly = ` * `
-
-            function getQueryString(dd: any): any {
-                if (!dd || dd.length === 0 || dd.key === '') {
-                    return ``
-                }
-
-                if (dd.type === 'relative_post') {
-                    dd.query = dd.query ?? []
-                    return ` and JSON_EXTRACT(content, '$.${dd.key}') in (SELECT JSON_EXTRACT(content, '$.${dd.value}') AS datakey
- from \`${app}\`.t_post where 1=1 ${dd.query.map((dd: any) => {
-                        return getQueryString(dd)
-                    }).join(`  `)})`
-                } else if (dd.type === 'in') {
-
-                    return `and JSON_EXTRACT(content, '$.${dd.key}') in (${dd.query.map((dd: any) => {
-                        return (typeof dd.value === 'string') ? `'${dd.value}'` : dd.value
-                    }).join(',')})`
-                } else if (dd.type) {
-                    return ` and JSON_EXTRACT(content, '$.${dd.key}') ${dd.type} ${(typeof dd.value === 'string') ? `'${dd.value}'` : dd.value}`
-                } else {
-                    return ` and JSON_EXTRACT(content, '$.${dd.key}') LIKE '%${dd.value}%'`
-                }
+            const chatRoom = ((await db.query(`select *
+                                               from \`${this.app}\`.t_chat_list
+                                               where chat_id = ?`, [room.chat_id])))[0]
+            if (!chatRoom) {
+                throw exception.BadRequestError('NO_CHATROOM', 'THIS CHATROOM DOES NOT EXISTS.', null);
             }
-
-            function getSelectString(dd: any): any {
-                if (!dd || dd.length === 0) {
-                    return ``
+            const particpant = await db.query(`SELECT *
+                                               FROM \`${this.app}\`.t_chat_participants
+                                               where chat_id = ?`, [room.chat_id]);
+            await db.query(`
+                insert into \`${this.app}\`.\`t_chat_detail\`
+                set ?
+            `, [
+                {
+                    chat_id: room.chat_id,
+                    user_id: room.user_id,
+                    message: JSON.stringify(room.message)
                 }
-                if (dd.type === 'SUM') {
-                    return ` SUM(JSON_EXTRACT(content, '$.${dd.key}')) AS ${dd.value}`
-                } else if (dd.type === 'count') {
-                    return ` count(1)`
-                } else if (dd.type === 'AVG') {
-                    return ` AVG(JSON_EXTRACT(content, '$.${dd.key}')) AS ${dd.value}`
-                } else {
-                    return `  JSON_EXTRACT(content, '$.${dd.key}') AS '${dd.value}' `
-                }
-            }
+            ])
 
-            if (content.query) {
-                content.query = JSON.parse(content.query)
-                content.query.map((dd: any) => {
-                    query += getQueryString(dd)
-                })
-            }
-            console.log(`query---`, query)
-            if (content.selectOnly) {
-                content.selectOnly = JSON.parse(content.selectOnly)
-                content.selectOnly.map((dd: any, index: number) => {
-                    if (index === 0) {
-                        selectOnly = ''
-                    }
-                    selectOnly += getSelectString(dd)
-                })
-            }
-            console.log(`selectOnly---`, JSON.stringify(selectOnly))
-            console.log(`select---`, selectOnly)
-            if (content.datasource) {
-                content.datasource = JSON.parse(content.datasource)
-                if (content.datasource.length > 0) {
-                    query += ` and userID in ('${content.datasource.map((dd: any) => {
-                        return dd
-                    }).join("','")}')`
-                }
-            }
-            const data = (await db.query(`select ${selectOnly}
-                                          from \`${this.app}\`.\`t_post\`
-                                          where 1 = 1
-                                              ${query}
-                                          order by id desc ${limit(content)}`, [
-                content
-            ]))
-
-            for (const dd of data) {
-                if (!dd.userID) {
-                    continue
-                }
-                if (!userData[dd.userID]) {
-                    try {
-                        userData[dd.userID] = (await db.query(`select userData
-                                                               from \`${this.app}\`.\`t_user\`
-                                                               where userID = ${dd.userID}`, []))[0]['userData']
-                    } catch (e) {
-
+            for (const b of particpant) {
+                //機器人問答
+                if (b.user_id !== room.user_id) {
+                    const post = new User(this.app, this.token);
+                    const robot = ((await post.getConfig({
+                        key: 'robot_auto_reply',
+                        user_id: b.user_id
+                    }))[0] ?? {})['value'] ?? {}
+                    if (robot.question) {
+                        for (const d of robot.question) {
+                            if (d.ask === room.message.text) {
+                                await db.query(`
+                                    insert into \`${this.app}\`.\`t_chat_detail\`
+                                    set ?
+                                `, [
+                                    {
+                                        chat_id: room.chat_id,
+                                        user_id: b.user_id,
+                                        message: JSON.stringify({
+                                            text:d.response
+                                        })
+                                    }
+                                ])
+                                break
+                            }
+                        }
                     }
                 }
-                dd.userData = userData[dd.userID]
             }
-            return {
-                data: data,
-                count: (await db.query(`select count(1)
-                                        from \`${this.app}\`.\`t_post\`
-                                        where userID in (select userID
-                                                         from \`${this.app}\`.\`t_user\`)
-                                            ${query}`, [
-                    content
-                ]))[0]["count(1)"]
-            }
-        } catch (e) {
-            throw exception.BadRequestError('BAD_REQUEST', 'PostContent Error:' + e, null);
+        } catch (e: any) {
+            throw exception.BadRequestError(e.code ?? 'BAD_REQUEST', 'AddMessage Error:' + e!.message, null);
         }
+
+    }
+
+    public async getMessage(qu: any) {
+        try {
+            let query: string[] = [
+                `chat_id=${db.escape(qu.chat_id)}`
+            ]
+            qu.befor_id && query.push(`id<${qu.befor_id}`)
+            qu.after_id && query.push(`id>${qu.after_id}`)
+            return await new UtDatabase(this.app, `t_chat_detail`).querySql(query, qu)
+        } catch (e: any) {
+            throw exception.BadRequestError(e.code ?? 'BAD_REQUEST', 'GetMessage Error:' + e!.message, null);
+        }
+
     }
 
     constructor(app: string, token: IToken) {
@@ -176,7 +176,7 @@ export class Chat {
     }
 }
 
-function generateUserID() {
+function generateChatID() {
     let userID = '';
     const characters = '0123456789';
     const charactersLength = characters.length;

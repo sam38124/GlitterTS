@@ -155,8 +155,7 @@ export class Editor {
                                     glitter.share.clearSelectItem();
                                     data.data = d3;
                                     glitter.setUrlParameter('page', d3.tag);
-                                    gvc.notifyDataChange('HtmlEditorContainer');
-                                    gvc.notifyDataChange(id);
+                                    glitter.share.reloadEditor();
                                 }).then((data) => {
                                     resolve(data.left);
                                 });

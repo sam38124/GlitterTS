@@ -180,7 +180,7 @@ ${(seo.type === "def") ? ``:gvc.map([uploadImage({
 </div>
 </div>`
         }, {
-            title: '配置檔 / Config',
+            title: '配置檔 / PublicConfig',
             index: 'pageConfig',
             html:`
 ${(() => {

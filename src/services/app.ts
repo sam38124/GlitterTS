@@ -29,7 +29,7 @@ export class App {
 
     public async createApp(config: { appName: string, copyApp: string, copyWith: string[] }) {
         try {
-            config.copyWith=config.copyWith??[]
+            config.copyWith = config.copyWith ?? []
             const count = await db.execute(`
                 select count(1)
                 from \`${saasConfig.SAAS_NAME}\`.app_config
@@ -66,7 +66,7 @@ export class App {
             if (config.copyWith.indexOf('checkout') !== -1) {
                 for (const dd of (await db.query(`SELECT *
                                                   FROM \`${config.copyApp}\`.t_checkout`, []))) {
-                    dd.orderData=dd.orderData && JSON.stringify(dd.orderData)
+                    dd.orderData = dd.orderData && JSON.stringify(dd.orderData)
                     await trans.execute(`
                         insert into \`${config.appName}\`.t_checkout
                         SET ?;
@@ -78,8 +78,8 @@ export class App {
             if (config.copyWith.indexOf('manager_post') !== -1) {
                 for (const dd of (await db.query(`SELECT *
                                                   FROM \`${config.copyApp}\`.t_manager_post`, []))) {
-                    dd.content=dd.content && JSON.stringify(dd.content)
-                    dd.userID=this.token.userID
+                    dd.content = dd.content && JSON.stringify(dd.content)
+                    dd.userID = this.token.userID
                     await trans.execute(`
                         insert into \`${config.appName}\`.t_manager_post
                         SET ?;
@@ -91,7 +91,7 @@ export class App {
             if (config.copyWith.indexOf('user_post') !== -1) {
                 for (const dd of (await db.query(`SELECT *
                                                   FROM \`${config.copyApp}\`.t_post`, []))) {
-                    dd.content=dd.content && JSON.stringify(dd.content)
+                    dd.content = dd.content && JSON.stringify(dd.content)
                     await trans.execute(`
                         insert into \`${config.appName}\`.t_post
                         SET ?;
@@ -103,7 +103,7 @@ export class App {
             if (config.copyWith.indexOf('user') !== -1) {
                 for (const dd of (await db.query(`SELECT *
                                                   FROM \`${config.copyApp}\`.t_user`, []))) {
-                    dd.userData=dd.userData && JSON.stringify(dd.userData)
+                    dd.userData = dd.userData && JSON.stringify(dd.userData)
                     await trans.execute(`
                         insert into \`${config.appName}\`.t_user
                         SET ?;
@@ -115,7 +115,7 @@ export class App {
             if (config.copyWith.indexOf('public_config') !== -1) {
                 for (const dd of (await db.query(`SELECT *
                                                   FROM \`${config.copyApp}\`.public_config`, []))) {
-                    dd.value=dd.value && JSON.stringify(dd.value)
+                    dd.value = dd.value && JSON.stringify(dd.value)
                     await trans.execute(`
                         insert into \`${config.appName}\`.public_config
                         SET ?;
@@ -219,6 +219,23 @@ export class App {
         } catch (e: any) {
             throw exception.BadRequestError(e.code ?? 'BAD_REQUEST', e, null);
         }
+    }
+
+    public static async checkOverDue(app: string) {
+        const userID = (await db.query(`SELECT user
+                                        FROM \`${saasConfig.SAAS_NAME}\`.app_config
+                                        where appName = ?`, [app]))[0]['user'];
+        const userData = (await db.query(`SELECT userData
+                                          FROM \`${saasConfig.SAAS_NAME}\`.t_user
+                                          where userID = ? `, [userID]))[0];
+        let appCount=(await db.query(`SELECT count(1)
+                                                          FROM \`${saasConfig.SAAS_NAME}\`.app_config where user=?`,[userID]))[0]['count(1)']
+        return {
+            overdue:!(userData.userData.expireDate && new Date(userData.userData.expireDate).getTime() > new Date().getTime()),
+            memberType:userData.userData.menber_type,
+            appCount:appCount
+        };
+
     }
 
     public async setAppConfig(config: { appName: string, data: any }) {

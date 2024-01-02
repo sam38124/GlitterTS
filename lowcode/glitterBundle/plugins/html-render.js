@@ -9,14 +9,15 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 import { init } from '../GVController.js';
 import { TriggerEvent } from "./trigger-event.js";
-init((gvc, glitter, gBundle) => {
+init(import.meta.url, (gvc, glitter, gBundle) => {
     var _a, _b, _c, _d;
     glitter.share.htmlExtension = (_a = glitter.share.htmlExtension) !== null && _a !== void 0 ? _a : {};
     gBundle.app_config = (_b = gBundle.app_config) !== null && _b !== void 0 ? _b : {};
     gBundle.app_config.globalStyle = (_c = gBundle.app_config.globalStyle) !== null && _c !== void 0 ? _c : [];
     gBundle.app_config.globalScript = (_d = gBundle.app_config.globalScript) !== null && _d !== void 0 ? _d : [];
     const vm = {
-        loading: true
+        loading: true,
+        mainView: ''
     };
     function load() {
         var _a;
@@ -83,6 +84,7 @@ init((gvc, glitter, gBundle) => {
         onCreateView: () => {
             var _a;
             console.log(`onCreateView-time:`, window.renderClock.stop());
+            const mainId = glitter.getUUID();
             return new glitter.htmlGenerate((_a = gBundle.app_config.globalScript) !== null && _a !== void 0 ? _a : [], [], undefined, true).render(gvc, {
                 class: ``,
                 style: ``,
@@ -92,12 +94,12 @@ init((gvc, glitter, gBundle) => {
                         console.log(`loadFinish-time:`, window.renderClock.stop());
                         if (vm.loading) {
                             vm.loading = false;
-                            gvc.notifyDataChange('main');
+                            gvc.notifyDataChange(mainId);
                         }
                     });
                 }
             }) + gvc.bindView({
-                bind: 'main',
+                bind: mainId,
                 view: () => {
                     if (vm.loading) {
                         return ``;
@@ -110,7 +112,7 @@ init((gvc, glitter, gBundle) => {
                 },
                 divCreate: {
                     class: glitter.htmlGenerate.styleEditor(gBundle.page_config).class(),
-                    style: `min-height: 100vh;min-width: 100vw;${glitter.htmlGenerate.styleEditor(gBundle.page_config).style()}`
+                    style: `overflow-x:hidden;min-height: 100vh;min-width: 100vw;${glitter.htmlGenerate.styleEditor(gBundle.page_config).style()}`
                 },
                 onCreate: () => {
                     var _a;

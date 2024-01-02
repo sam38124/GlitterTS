@@ -45,6 +45,7 @@ export class Glitter {
         this.waitChangePage = false;
         this.elementCallback = {};
         this.html = String.raw;
+        this.promiseValueMap = {};
         this.hidePageView = PageManager.hidePageView;
         this.showPageView = PageManager.showPageView;
         this.setHome = PageManager.setHome;
@@ -376,6 +377,114 @@ export class Glitter {
                 this.e.reload();
             }
         };
+        this.renderView = {
+            replaceGlobalValue: function (inputString) {
+                const glitter = Glitter.glitter;
+                if ((glitter.share.EditorMode === true)) {
+                    return inputString;
+                }
+                const pattern = /@{{(.*?)}}/g;
+                let match;
+                let convert = inputString;
+                while ((match = pattern.exec(inputString)) !== null) {
+                    const placeholder = match[0];
+                    const value = match[1];
+                    if (glitter.share.globalValue && glitter.share.globalValue[value]) {
+                        convert = (convert.replace(placeholder, glitter.share.globalValue[value]));
+                    }
+                }
+                return convert;
+            },
+            replacePromiseValue: function (inputString) {
+                const glitter = Glitter.glitter;
+                return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
+                    const pattern = /@PROMISE{{(.*?)}}/g;
+                    let match;
+                    let convert = inputString;
+                    while ((match = pattern.exec(inputString)) !== null) {
+                        const placeholder = match[0];
+                        const value = match[1];
+                        inputString = inputString.replace(placeholder, yield glitter.promiseValueMap[value]);
+                    }
+                    resolve(inputString);
+                }));
+            },
+            replaceAttributeValue: function (dd, element) {
+                var _a;
+                try {
+                    dd = JSON.parse(JSON.stringify(dd));
+                    if (dd.value && (typeof dd.value !== 'string')) {
+                        dd.value = `${dd.value}`;
+                    }
+                    if (!element) {
+                        return;
+                    }
+                    const glitter = Glitter.glitter;
+                    element.replaceAtMemory = (_a = element.replaceAtMemory) !== null && _a !== void 0 ? _a : {};
+                    if (dd.value && ((dd.value.includes('clickMap') || dd.value.includes('editorEvent')) && (dd.key.substring(0, 2) === 'on'))) {
+                        try {
+                            const funString = `${dd.value}`;
+                            if (!(element.replaceAtMemory[dd.key])) {
+                                element.addEventListener(dd.key.substring(2), function () {
+                                    if (glitter.htmlGenerate.isEditMode() && !glitter.share.EditorMode && glitter.getUrlParameter('type') === 'htmlEditor') {
+                                        if (funString.indexOf('editorEvent') !== -1) {
+                                            eval(funString.replace('editorEvent', 'clickMap'));
+                                        }
+                                        else if (dd.key !== 'onclick') {
+                                            eval(funString);
+                                        }
+                                    }
+                                    else {
+                                        eval(funString);
+                                    }
+                                });
+                            }
+                            element.removeAttribute(dd.key);
+                            element.replaceAtMemory[dd.key] = true;
+                        }
+                        catch (e) {
+                            console.log(e);
+                            glitter.deBugMessage(e);
+                        }
+                    }
+                    else {
+                        try {
+                            if (dd.value) {
+                                element.setAttribute(dd.key, dd.value);
+                            }
+                        }
+                        catch (e) {
+                        }
+                    }
+                    if (dd.key && dd.key.includes('@PROMISE')) {
+                        glitter.renderView.replacePromiseValue(dd.key).then((data) => {
+                            element.setAttribute(data, dd.value);
+                            console.log(`setPromise->${data} to ${dd.value}`);
+                        });
+                    }
+                    if (dd.value && dd.value.includes('@PROMISE')) {
+                        glitter.renderView.replacePromiseValue(dd.value).then((data) => {
+                            element.setAttribute(dd.key, data);
+                        });
+                    }
+                    if (!(glitter.share.EditorMode === true)) {
+                        const inputString = dd.value;
+                        const pattern = /@{{(.*?)}}/g;
+                        let match;
+                        while ((match = pattern.exec(inputString)) !== null) {
+                            const placeholder = match[0];
+                            const value = match[1];
+                            if (glitter.share.globalValue && glitter.share.globalValue[value]) {
+                                dd.value = dd.value.replace(placeholder, glitter.share.globalValue[value]);
+                            }
+                        }
+                    }
+                }
+                catch (e) {
+                    console.log(e);
+                }
+            }
+        };
         this.$ = window.$;
         this.location = window.location;
         this.windowUtil.es = window;
@@ -407,6 +516,17 @@ export class Glitter {
             this.document.cookie = `uuid=${uuid}; max-age=${oneYear}; path=/`;
         }
         return uuid;
+    }
+    get macAddress() {
+        if (!localStorage.getItem('mac_address')) {
+            localStorage.setItem('mac_address', this.getUUID('xxxxxxxx'));
+        }
+        return localStorage.getItem('mac_address');
+    }
+    promiseValue(fun) {
+        const index = Object.keys(this.promiseValueMap).length + 1;
+        this.promiseValueMap[`${index}`] = fun;
+        return `@PROMISE{{${index}}}`;
     }
     parseCookie() {
         var cookieObj = {};
@@ -770,12 +890,12 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
             return fun();
         }
     }
-    getUUID() {
+    getUUID(format) {
         let d = Date.now();
         if (typeof performance !== 'undefined' && typeof performance.now === 'function') {
             d += performance.now();
         }
-        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+        return (format !== null && format !== void 0 ? format : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx').replace(/[xy]/g, function (c) {
             let r = (d + Math.random() * 16) % 16 | 0;
             d = Math.floor(d / 16);
             return "s" + (c === 'x' ? r : r & 0x3 | 0x8).toString(16);

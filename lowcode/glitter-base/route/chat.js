@@ -5,7 +5,7 @@ export class Chat {
     }
     static post(json) {
         return BaseApi.create({
-            "url": getBaseUrl() + `/api-public/v1/message/addChatRoom`,
+            "url": getBaseUrl() + `/api-public/v1/chat`,
             "type": "POST",
             "headers": {
                 "Content-Type": "application/json",
@@ -13,6 +13,67 @@ export class Chat {
                 "Authorization": GlobalUser.token
             },
             data: JSON.stringify(json)
+        });
+    }
+    static postMessage(json) {
+        return BaseApi.create({
+            "url": getBaseUrl() + `/api-public/v1/chat/message`,
+            "type": "POST",
+            "headers": {
+                "Content-Type": "application/json",
+                "g-app": getConfig().config.appName,
+                "Authorization": GlobalUser.token
+            },
+            data: JSON.stringify(json)
+        });
+    }
+    static getMessage(json) {
+        return BaseApi.create({
+            "url": getBaseUrl() + `/api-public/v1/chat/message?${(() => {
+                let par = [
+                    `limit=${json.limit}`,
+                    `page=${json.page}`,
+                    `chat_id=${json.chat_id}`
+                ];
+                json.latestID && par.push(`after_id=${json.latestID}`);
+                return par.join('&');
+            })()}`,
+            "type": "GET",
+            "headers": {
+                "Content-Type": "application/json",
+                "g-app": getConfig().config.appName,
+                "Authorization": GlobalUser.token
+            },
+            data: JSON.stringify(json)
+        });
+    }
+    static getChatRoom(json) {
+        return BaseApi.create({
+            "url": getBaseUrl() + `/api-public/v1/chat?${(() => {
+                let par = [
+                    `limit=${json.limit}`,
+                    `page=${json.page}`
+                ];
+                json.user_id && par.push(`user_id=${json.user_id}`);
+                return par.join('&');
+            })()}`,
+            "type": "GET",
+            "headers": {
+                "Content-Type": "application/json",
+                "g-app": getConfig().config.appName,
+                "Authorization": (json.user_id) ? getConfig().config.token : GlobalUser.token
+            }
+        });
+    }
+    static deleteChatRoom(json) {
+        return BaseApi.create({
+            "url": getBaseUrl() + `/api-public/v1/chat?id=${json.id}`,
+            "type": "DELETE",
+            "headers": {
+                "Content-Type": "application/json",
+                "g-app": getConfig().config.appName,
+                "Authorization": json.token || getConfig().config.token
+            }
         });
     }
 }

@@ -1,14 +1,16 @@
 import {init} from '../GVController.js';
 import {TriggerEvent} from "./trigger-event.js";
 
-init((gvc, glitter, gBundle) => {
+init(import.meta.url, (gvc, glitter, gBundle) => {
     glitter.share.htmlExtension = glitter.share.htmlExtension ?? {};
     gBundle.app_config = gBundle.app_config ?? {}
     gBundle.app_config.globalStyle = gBundle.app_config.globalStyle ?? []
     gBundle.app_config.globalScript = gBundle.app_config.globalScript ?? []
     const vm = {
-        loading: true
+        loading: true,
+        mainView:''
     };
+
     async function load() {
         await (new Promise(async (resolve, reject) => {
             for (const b of gBundle.app_config.initialList ?? []) {
@@ -62,7 +64,8 @@ init((gvc, glitter, gBundle) => {
     return {
         onCreateView: () => {
             console.log(`onCreateView-time:`, (window as any).renderClock.stop())
-           return new glitter.htmlGenerate(gBundle.app_config.globalScript ?? [], [], undefined, true).render(gvc, {
+            const mainId = glitter.getUUID()
+            return new glitter.htmlGenerate(gBundle.app_config.globalScript ?? [], [], undefined, true).render(gvc, {
                 class: ``,
                 style: ``,
                 jsFinish: () => {
@@ -71,20 +74,19 @@ init((gvc, glitter, gBundle) => {
                         console.log(`loadFinish-time:`, (window as any).renderClock.stop())
                         if (vm.loading) {
                             vm.loading = false
-                            gvc.notifyDataChange('main')
+                            gvc.notifyDataChange(mainId)
                         }
 
                     })
                 }
             }) + gvc.bindView({
-                bind: 'main',
+                bind: mainId,
                 view: () => {
-
                     if (vm.loading) {
                         return ``
                     }
                     console.log(`Render-time:`, (window as any).renderClock.stop());
-                    (gBundle.config.formData=gBundle.page_config.formData)
+                    (gBundle.config.formData = gBundle.page_config.formData)
                     return new glitter.htmlGenerate(gBundle.app_config.globalStyle, [], undefined, true).render(gvc) + (
                         (gBundle.editMode && gBundle.editMode.render(gvc))
                         ||
@@ -93,7 +95,7 @@ init((gvc, glitter, gBundle) => {
                 },
                 divCreate: {
                     class: glitter.htmlGenerate.styleEditor(gBundle.page_config).class(),
-                    style: `min-height: 100vh;min-width: 100vw;${glitter.htmlGenerate.styleEditor(gBundle.page_config).style()}`
+                    style: `overflow-x:hidden;min-height: 100vh;min-width: 100vw;${glitter.htmlGenerate.styleEditor(gBundle.page_config).style()}`
                 },
                 onCreate: () => {
                     (gBundle.page_config.initialList ?? []).map((dd: any) => {

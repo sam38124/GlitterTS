@@ -9,7 +9,7 @@ export class ApiPost {
 
     public static post(json: {
         "postData": any,
-        token:string,
+        token?:string,
         type:'normal' | 'manager'
     }) {
         return BaseApi.create({
@@ -74,6 +74,89 @@ export class ApiPost {
                 "Content-Type": "application/json",
                 "g-app": getConfig().config.appName,
                 "Authorization": GlobalUser.token
+            }
+        })
+    }
+    public static getManagerPost(json: {
+        limit: number,
+        page: number,
+        type:string,
+        search?: string,
+        id?: string
+    }) {
+        return BaseApi.create({
+            "url": getBaseUrl() + `/api-public/v1/post/manager?${
+                (() => {
+                    let par = [
+                        `limit=${json.limit}`,
+                        `page=${json.page}`,
+                        `type=${json.type}`
+                    ]
+                    json.search && par.push(`search=${json.search}`);
+                    json.id && par.push(`id=${json.id}`);
+                    return par.join('&')
+                })()
+            }`,
+            "type": "GET",
+            "headers": {
+                "Content-Type": "application/json",
+                "g-app": getConfig().config.appName,
+                "Authorization":getConfig().config.token
+            }
+        })
+    }
+    public static getUserPost(json: {
+        limit: number,
+        page: number,
+        type:string,
+        search?: string,
+        id?: string
+    }) {
+        return BaseApi.create({
+            "url": getBaseUrl() + `/api-public/v1/post/user?${
+                (() => {
+                    let par = [
+                        `limit=${json.limit}`,
+                        `page=${json.page}`,
+                        `type=${json.type}`
+                    ]
+                    json.search && par.push(`search=${json.search}`);
+                    json.id && par.push(`id=${json.id}`);
+                    return par.join('&')
+                })()
+            }`,
+            "type": "GET",
+            "headers": {
+                "Content-Type": "application/json",
+                "g-app": getConfig().config.appName,
+                "Authorization":getConfig().config.token
+            }
+        })
+    }
+    public static delete(json: {
+        id: string
+    }) {
+        return BaseApi.create({
+            "url": getBaseUrl() + `/api-public/v1/post/manager?id=${json.id}`,
+            "type": "DELETE",
+            "headers": {
+                "Content-Type": "application/json",
+                "g-app": getConfig().config.appName,
+                "Authorization": getConfig().config.token
+            }
+        })
+    }
+    public static deleteUserPost(json: {
+        id: string,
+        token?:string
+    }) {
+        return BaseApi.create({
+            "url": getBaseUrl() + `/api-public/v1/post/user?id=${json.id}`,
+            "type": "DELETE",
+            "headers": {
+                "Content-Type": "application/json",
+                "g-app": getConfig().config.appName,
+                "Authorization": json.token ||  getConfig().config.token
             }
         })
     }

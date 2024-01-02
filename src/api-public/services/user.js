@@ -34,9 +34,11 @@ const redis_js_1 = __importDefault(require("../../modules/redis.js"));
 const tool_js_1 = __importDefault(require("../../modules/tool.js"));
 const process_1 = __importDefault(require("process"));
 const ut_database_js_1 = require("../utils/ut-database.js");
+const custom_code_js_1 = require("./custom-code.js");
 class User {
-    constructor(app) {
+    constructor(app, token) {
         this.app = app;
+        this.token = token;
     }
     async createUser(account, pwd, userData, req) {
         var _a;
@@ -164,16 +166,30 @@ class User {
             throw exception_1.default.BadRequestError('BAD_REQUEST', 'Login Error:' + e, null);
         }
     }
-    async getUserData(userID) {
+    async getUserData(query, type = 'userID') {
         try {
-            const data = (await database_1.default.execute(`select *
-                                                 from \`${this.app}\`.t_user
-                                                 where userID = ?`, [userID]))[0];
+            const sql = `select *
+                         from \`${this.app}\`.t_user
+                         where ${(() => {
+                let query2 = [`1=1`];
+                if (type === 'userID') {
+                    query2.push(`userID=${database_1.default.escape(query)}`);
+                }
+                else {
+                    query2.push(`account=${database_1.default.escape(query)}`);
+                }
+                return query2.join(` and `);
+            })()}`;
+            const data = (await database_1.default.execute(sql, []))[0];
+            let cf = {
+                userData: data
+            };
+            await (new custom_code_js_1.CustomCode(this.app).loginHook(cf));
             data.pwd = undefined;
             return data;
         }
         catch (e) {
-            throw exception_1.default.BadRequestError('BAD_REQUEST', 'Login Error:' + e, null);
+            throw exception_1.default.BadRequestError('BAD_REQUEST', 'GET USER DATA Error:' + e, null);
         }
     }
     async getUserList(query) {
@@ -198,6 +214,85 @@ class User {
             throw exception_1.default.BadRequestError('BAD_REQUEST', 'Login Error:' + e, null);
         }
     }
+    async subscribe(email, tag) {
+        try {
+            await database_1.default.queryLambada({
+                database: this.app
+            }, async (sql) => {
+                await sql.query(`replace
+                into t_subscribe (email,tag) values (?,?)`, [email, tag]);
+            });
+        }
+        catch (e) {
+            throw exception_1.default.BadRequestError('BAD_REQUEST', 'Subscribe Error:' + e, null);
+        }
+    }
+    async registerFcm(userID, deviceToken) {
+        try {
+            await database_1.default.queryLambada({
+                database: this.app
+            }, async (sql) => {
+                await sql.query(`replace
+                into t_fcm (userID,deviceToken) values (?,?)`, [userID, deviceToken]);
+            });
+        }
+        catch (e) {
+            throw exception_1.default.BadRequestError('BAD_REQUEST', 'RegisterFcm Error:' + e, null);
+        }
+    }
+    async deleteSubscribe(email) {
+        try {
+            await database_1.default.query(`delete
+                            FROM \`${this.app}\`.t_subscribe
+                            where email in (?)`, [email.split(',')]);
+            return {
+                result: true
+            };
+        }
+        catch (e) {
+            throw exception_1.default.BadRequestError('BAD_REQUEST', 'Delete Subscribe Error:' + e, null);
+        }
+    }
+    async getSubScribe(query) {
+        var _a, _b;
+        try {
+            query.page = (_a = query.page) !== null && _a !== void 0 ? _a : 0;
+            query.limit = (_b = query.limit) !== null && _b !== void 0 ? _b : 50;
+            const querySql = [];
+            query.search && querySql.push([
+                `(email LIKE '%${query.search}%') && (tag != ${database_1.default.escape(query.search)})`,
+                `(tag = ${database_1.default.escape(query.search)})`
+            ].join(` || `));
+            const data = await new ut_database_js_1.UtDatabase(this.app, `t_subscribe`).querySql(querySql, query);
+            data.data.map((dd) => {
+                dd.pwd = undefined;
+            });
+            return data;
+        }
+        catch (e) {
+            throw exception_1.default.BadRequestError('BAD_REQUEST', 'Login Error:' + e, null);
+        }
+    }
+    async getFCM(query) {
+        var _a, _b;
+        try {
+            query.page = (_a = query.page) !== null && _a !== void 0 ? _a : 0;
+            query.limit = (_b = query.limit) !== null && _b !== void 0 ? _b : 50;
+            const querySql = [];
+            query.search && querySql.push([
+                `(userID in (select userID from \`${this.app}\`.t_user where (UPPER(JSON_UNQUOTE(JSON_EXTRACT(userData, '$.name')) LIKE UPPER('%${query.search}%')))))`,
+            ].join(` || `));
+            const data = await new ut_database_js_1.UtDatabase(this.app, `t_fcm`).querySql(querySql, query);
+            for (const b of data.data) {
+                let userData = (await database_1.default.query(`select userData from \`${this.app}\`.t_user where userID=?`, [b.userID]))[0];
+                b.userData = (userData) && userData.userData;
+            }
+            return data;
+        }
+        catch (e) {
+            throw exception_1.default.BadRequestError('BAD_REQUEST', 'Login Error:' + e, null);
+        }
+    }
     async deleteUser(query) {
         try {
             await database_1.default.query(`delete
@@ -208,16 +303,16 @@ class User {
             };
         }
         catch (e) {
-            throw exception_1.default.BadRequestError('BAD_REQUEST', 'GetProduct Error:' + e, null);
+            throw exception_1.default.BadRequestError('BAD_REQUEST', 'Delete User Error:' + e, null);
         }
     }
-    async updateUserData(userID, par) {
+    async updateUserData(userID, par, manager = false) {
         try {
             const userData = (await database_1.default.query(`select *
                                               from \`${this.app}\`.\`t_user\`
                                               where userID = ${database_1.default.escape(userID)}`, []))[0];
             const configAd = await app_js_1.default.getAdConfig(this.app, 'glitter_loginConfig');
-            if (par.userData.email && (par.userData.email !== userData.account) && (!par.userData.verify_code || (par.userData.verify_code !== (await redis_js_1.default.getValue(`verify-${par.userData.email}`))))) {
+            if ((!manager) && par.userData.email && (par.userData.email !== userData.account) && (!par.userData.verify_code || (par.userData.verify_code !== (await redis_js_1.default.getValue(`verify-${par.userData.email}`))))) {
                 const code = tool_js_1.default.randomNumber(6);
                 await redis_js_1.default.setValue(`verify-${par.userData.email}`, code);
                 (0, ses_js_1.sendmail)(`${configAd.name} <${process_1.default.env.smtp}>`, par.userData.email, '信箱驗證', `請輸入驗證碼「 ${code} 」。並於1分鐘內輸入並完成驗證。`);
@@ -228,6 +323,11 @@ class User {
             else if (par.userData.email) {
                 userData.account = par.userData.email;
             }
+            par.userData = await this.checkUpdate({
+                updateUserData: par.userData,
+                userID: userID,
+                manager: manager
+            });
             delete par.userData.verify_code;
             par = {
                 account: userData.account,
@@ -246,6 +346,29 @@ class User {
         catch (e) {
             throw exception_1.default.BadRequestError('BAD_REQUEST', 'Update user error:' + e, null);
         }
+    }
+    async checkUpdate(cf) {
+        let config = await app_js_1.default.getAdConfig(this.app, 'glitterUserForm');
+        let originUserData = (await database_1.default.query(`select userData
+                                              from \`${this.app}\`.\`t_user\`
+                                              where userID = ${database_1.default.escape(cf.userID)}`, []))[0]['userData'];
+        if (typeof originUserData !== 'object') {
+            originUserData = {};
+        }
+        if (!Array.isArray(config)) {
+            config = [];
+        }
+        function mapUserData(userData, originUserData) {
+            Object.keys(userData).map((dd) => {
+                if (cf.manager || config.find((d2) => {
+                    return (d2.key === dd && d2.auth !== 'manager');
+                }) || dd === 'fcmToken') {
+                    originUserData[dd] = userData[dd];
+                }
+            });
+        }
+        mapUserData(cf.updateUserData, originUserData);
+        return originUserData;
     }
     async resetPwd(userID, newPwd) {
         try {
@@ -325,6 +448,35 @@ class User {
         }
         catch (e) {
             throw exception_1.default.BadRequestError('BAD_REQUEST', 'CheckUserExists Error:' + e, null);
+        }
+    }
+    async setConfig(config) {
+        var _a;
+        try {
+            await database_1.default.execute(`replace
+            into \`${this.app}\`.t_user_public_config (\`user_id\`,\`key\`,\`value\`,updated_at)
+            values (?,?,?,?)
+            `, [
+                (_a = config.user_id) !== null && _a !== void 0 ? _a : this.token.userID,
+                config.key,
+                config.value,
+                new Date()
+            ]);
+        }
+        catch (e) {
+            console.log(e);
+            throw exception_1.default.BadRequestError("ERROR", "ERROR." + e, null);
+        }
+    }
+    async getConfig(config) {
+        try {
+            return await database_1.default.execute(`select * from \`${this.app}\`.t_user_public_config where \`key\`=${database_1.default.escape(config.key)}
+            and user_id=${database_1.default.escape(config.user_id)}
+            `, []);
+        }
+        catch (e) {
+            console.log(e);
+            throw exception_1.default.BadRequestError("ERROR", "ERROR." + e, null);
         }
     }
 }

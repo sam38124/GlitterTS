@@ -33,6 +33,7 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                 });
                             }
                             const voucher = yield ApiShop.getVoucherCode();
+                            const rebate = (yield ApiShop.getRebateValue()) || 0;
                             ApiShop.getCheckout({
                                 line_items: cartData.line_items.map((dd) => {
                                     return {
@@ -41,7 +42,8 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                         count: dd.count
                                     };
                                 }),
-                                code: voucher
+                                code: voucher,
+                                use_rebate: parseInt(rebate, 10)
                             }).then((res) => {
                                 if (res.result) {
                                     resolve(res.response.data);

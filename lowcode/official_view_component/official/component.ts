@@ -22,11 +22,13 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
                                 class: ``
                             },
                             onInitial: () => {
+
                                 const target = document.querySelector(`[gvc-id="${gvc.id(tempView)}"]`)
                                 let data: any = undefined
                                 const saasConfig = (window as any).saasConfig
                                 let fal = 0
                                 let tag = widget.data.tag
+
                                 let carryData = widget.data.carryData
 
                                 async function getData() {
@@ -80,42 +82,26 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
                                         })
                                     } catch (e) {
                                     }
-                                    BaseApi.create({
-                                        "url": saasConfig.config.url + `/api/v1/template?appName=${saasConfig.config.appName}&tag=${encodeURIComponent(tag)}`,
-                                        "type": "GET",
-                                        "timeout": 0,
-                                        "headers": {
-                                            "Content-Type": "application/json"
-                                        }
-                                    }).then((d2) => {
-                                        try {
-                                            if (!d2.result) {
-                                                fal += 1
-                                                if (fal < 20) {
-                                                    setTimeout(() => {
-                                                        getData()
-                                                    }, 200)
-                                                }
-                                            } else {
-                                                data = d2.response.result[0]
-                                                data.config.map((dd: any) => {
-                                                    glitter.htmlGenerate.renameWidgetID(dd)
-                                                })
-                                                let createOption = (htmlGenerate ?? {}).createOption ?? {}
-                                                createOption.option = createOption.option ?? []
-                                                createOption.childContainer = true
-                                                data.config.formData=data.page_config.formData
-                                                // data.config
-                                                target!.outerHTML = `
+                                    if(!tag){
+                                        target!.outerHTML = ''
+                                    }else{
+                                        ((window as any).glitterInitialHelper).getPageData(tag,(d2:any)=>{
+                                            data = d2.response.result[0]
+                                            data.config.map((dd: any) => {
+                                                glitter.htmlGenerate.renameWidgetID(dd)
+                                            })
+                                            let createOption = (htmlGenerate ?? {}).createOption ?? {}
+                                            createOption.option = createOption.option ?? []
+                                            createOption.childContainer = true
+                                            data.config.formData = data.page_config.formData
+                                            // data.config
+                                            target!.outerHTML = `
                                                 <!-- tag=${tag} -->
                                                 ${new glitter.htmlGenerate(data.config, [], sub).render(gvc, undefined, createOption ?? {})}
                                                 `;
+                                        })
+                                    }
 
-                                            }
-                                        } catch (e) {
-                                            // target!.outerHTML = ''
-                                        }
-                                    })
                                 }
 
                                 getData()
@@ -188,7 +174,6 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
                                             pd.tag = text;
                                         },
                                     }), (() => {
-                                        //
                                         return TriggerEvent.editer(gvc, widget, pd.carryData, {
                                             hover: true,
                                             option: [],
@@ -285,7 +270,6 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
                                                                                                 callback: (text) => {
                                                                                                     dd.codeVersion = 'v2'
                                                                                                     dd.code = text
-                                                                                                    gvc.recreateView()
                                                                                                 },
                                                                                                 height: 400
                                                                                             })
@@ -337,55 +321,55 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
                                         }),
                                         html`
                                             <div class="mx-n2">
-${gvc.bindView(()=>{
-    const id=glitter.getUUID()
-    return {
-        bind:id,
-        view:()=>{
-            return new Promise((resolve, reject)=>{
-                BaseApi.create({
-                    "url": saasConfig.config.url + `/api/v1/template?appName=${saasConfig.config.appName}`,
-                    "type": "GET",
-                    "timeout": 0,
-                    "headers": {
-                        "Content-Type": "application/json"
-                    }
-                }).then((d2) => {
-                    data.dataList = d2.response.result
-                    let map=[
-                        `<div class="mx-0 d-flex   px-2 hi fw-bold d-flex align-items-center border-bottom border-top py-2 bgf6" style="color:#151515;font-size:16px;gap:0px;">
+                                                ${gvc.bindView(() => {
+                                                    const id = glitter.getUUID()
+                                                    return {
+                                                        bind: id,
+                                                        view: () => {
+                                                            return new Promise((resolve, reject) => {
+                                                                BaseApi.create({
+                                                                    "url": saasConfig.config.url + `/api/v1/template?appName=${saasConfig.config.appName}`,
+                                                                    "type": "GET",
+                                                                    "timeout": 0,
+                                                                    "headers": {
+                                                                        "Content-Type": "application/json"
+                                                                    }
+                                                                }).then((d2) => {
+                                                                    data.dataList = d2.response.result
+                                                                    let map = [
+                                                                        `<div class="mx-0 d-flex   px-2 hi fw-bold d-flex align-items-center border-bottom border-top py-2 bgf6" style="color:#151515;font-size:16px;gap:0px;">
                                                嵌入頁面編輯
                                             </div>`,
-                    ]
-                    const def=data.dataList.find((dd:any)=>{
-                        return dd.tag===widget.data.tag
-                    })
-                    def && map.push(`<div class="btn " style="background:white;width:calc(100% - 20px);border-radius:8px;
-                    min-height:45px;border:1px solid black;color:#151515;margin-left:10px;" onclick="${gvc.event(()=>{
-                        glitter.setUrlParameter('page',def.tag)
-                        location.reload()
-                    })}">${def.name}</div>`)
-                    widget.data.list.map((d2:any)=>{
-                        const def=data.dataList.find((dd:any)=>{
-                            return dd.tag===d2.tag
-                        })
-                        def && map.push(`<div class="btn " style="background:white;width:calc(100% - 20px);border-radius:8px;
-                    min-height:45px;border:1px solid black;color:#151515;margin-left:10px;" onclick="${gvc.event(()=>{
-                            glitter.setUrlParameter('page',def.tag)
-                            location.reload()
-                        })}">${def.name}</div>`)
-                    })
-                    if(map.length===1){
-                       resolve('')
-                    }else{
-                        resolve(map.join(`<div class="my-2"></div>`))
-                    }
-                })
-            })
-        },
-        divCreate:{}
-    }
-})}
+                                                                    ]
+                                                                    const def = data.dataList.find((dd: any) => {
+                                                                        return dd.tag === widget.data.tag
+                                                                    })
+                                                                    def && map.push(`<div class="btn " style="background:white;width:calc(100% - 20px);border-radius:8px;
+                    min-height:45px;border:1px solid black;color:#151515;margin-left:10px;" onclick="${gvc.event(() => {
+                                                                        glitter.setUrlParameter('page', def.tag)
+                                                                        glitter.share.reloadEditor()
+                                                                    })}">${def.name}</div>`)
+                                                                    widget.data.list.map((d2: any) => {
+                                                                        const def = data.dataList.find((dd: any) => {
+                                                                            return dd.tag === d2.tag
+                                                                        })
+                                                                        def && map.push(`<div class="btn " style="background:white;width:calc(100% - 20px);border-radius:8px;
+                    min-height:45px;border:1px solid black;color:#151515;margin-left:10px;" onclick="${gvc.event(() => {
+                                                                            glitter.setUrlParameter('page', def.tag)
+                                                                            location.reload()
+                                                                        })}">${def.name}</div>`)
+                                                                    })
+                                                                    if (map.length === 1) {
+                                                                        resolve('')
+                                                                    } else {
+                                                                        resolve(map.join(`<div class="my-2"></div>`))
+                                                                    }
+                                                                })
+                                                            })
+                                                        },
+                                                        divCreate: {}
+                                                    }
+                                                })}
                                             </div>`
                                     ].join(` <div class="my-2"></div>`)
                                 } else {

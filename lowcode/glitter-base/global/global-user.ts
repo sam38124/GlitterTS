@@ -25,7 +25,7 @@ export class GlobalUser {
         (window as any).glitter.setCookie(GlobalUser.getTag('language'), value)
     }
 
-    public static userInfo: any = {}
+    public static userInfo: any = undefined
 
     public static updateUserData: any = {}
 }

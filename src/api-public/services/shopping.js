@@ -8,10 +8,21 @@ const exception_js_1 = __importDefault(require("../../modules/exception.js"));
 const database_js_1 = __importDefault(require("../../modules/database.js"));
 const newebpay_js_1 = __importDefault(require("./newebpay.js"));
 const private_config_js_1 = require("../../services/private_config.js");
+const user_js_1 = require("./user.js");
 class Shopping {
     constructor(app, token) {
         this.app = app;
         this.token = token;
+    }
+    async deleteRebate(cf) {
+        try {
+            await database_js_1.default.query(`update \`${this.app}\`.t_rebate
+                            set status= -2
+                            where id in (?)`, [cf.id.split(',')]);
+        }
+        catch (e) {
+            throw exception_js_1.default.BadRequestError('BAD_REQUEST', e.message, null);
+        }
     }
     async getProduct(query) {
         try {
@@ -20,10 +31,12 @@ class Shopping {
             ];
             query.search && querySql.push(`(UPPER(JSON_UNQUOTE(JSON_EXTRACT(content, '$.title'))) LIKE UPPER('%${query.search}%'))`);
             query.id && querySql.push(`(content->>'$.id'=${query.id})`);
-            query.collection && querySql.push(`(JSON_EXTRACT(content, '$.collection') LIKE '%${query.collection}%')`);
+            query.collection && querySql.push(`(${query.collection.split(',').map((dd) => {
+                return `(JSON_EXTRACT(content, '$.collection') LIKE '%${dd}%')`;
+            }).join(' or ')})`);
             query.status && querySql.push(`(JSON_EXTRACT(content, '$.status') = '${query.status}')`);
-            query.minPrice && querySql.push(`(CAST(JSON_UNQUOTE(JSON_EXTRACT(content, '$.variants[0].sale_price')) AS SIGNED)>=${query.minPrice}) `);
-            query.maxPrice && querySql.push(`(CAST(JSON_UNQUOTE(JSON_EXTRACT(content, '$.variants[0].sale_price')) AS SIGNED)<=${query.maxPrice}) `);
+            query.min_price && querySql.push(`(CAST(JSON_UNQUOTE(JSON_EXTRACT(content, '$.variants[0].sale_price')) AS SIGNED)>=${query.min_price}) `);
+            query.max_price && querySql.push(`(CAST(JSON_UNQUOTE(JSON_EXTRACT(content, '$.variants[0].sale_price')) AS SIGNED)<=${query.max_price}) `);
             return await this.querySql(querySql, query);
         }
         catch (e) {
@@ -34,7 +47,8 @@ class Shopping {
         let sql = `SELECT *
                    FROM \`${this.app}\`.t_manager_post
                    where ${querySql.join(' & ')}
-                   order by id desc`;
+                   ${query.order_by || `order by id desc`}
+                   `;
         if (query.id) {
             const data = (await database_js_1.default.query(`SELECT *
                                           FROM (${sql}) as subqyery limit ${query.page * query.limit}, ${query.limit}`, []))[0];
@@ -81,6 +95,29 @@ class Shopping {
     async toCheckout(data, type = 'add') {
         var _a, _b;
         try {
+            if (!data.email && type !== 'preview') {
+                if (data.user_info.email) {
+                    data.email = data.user_info.email;
+                }
+                else {
+                    throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'ToCheckout Error:No email address.', null);
+                }
+            }
+            if (data.use_rebate && data.use_rebate > 0) {
+                const userData = await (new user_js_1.User(this.app).getUserData(data.email || data.user_info.email, 'account'));
+                if (userData) {
+                    const sum = (await database_js_1.default.query(`SELECT sum(money)
+                                  FROM \`${this.app}\`.t_rebate
+                                  where status in (1, 2)
+                                    and userID = ?`, [userData.userID]))[0]['sum(money)'] || 0;
+                    if (sum < data.use_rebate) {
+                        data.use_rebate = 0;
+                    }
+                }
+                else {
+                    data.use_rebate = 0;
+                }
+            }
             const shipment = ((_a = (await private_config_js_1.Private_config.getConfig({
                 appName: this.app, key: 'glitter_shipment'
             }))) !== null && _a !== void 0 ? _a : [{
@@ -92,7 +129,10 @@ class Shopping {
                 total: 0,
                 email: (_b = data.email) !== null && _b !== void 0 ? _b : ((data.user_info && data.user_info.email) || ''),
                 user_info: data.user_info,
-                shipment_fee: shipment.basic_fee
+                shipment_fee: shipment.basic_fee,
+                rebate: 0,
+                use_rebate: data.use_rebate || 0,
+                orderID: `${new Date().getTime()}`
             };
             for (const b of data.lineItems) {
                 const pd = (await this.getProduct({ page: 0, limit: 50, id: b.id })).data.content;
@@ -103,18 +143,34 @@ class Shopping {
                 b.title = pd.title;
                 b.sale_price = variant.sale_price;
                 b.collection = pd['collection'];
+                b.sku = variant.sku;
                 variant.shipment_weight = parseInt(variant.shipment_weight || 0);
                 carData.shipment_fee += (variant.shipment_weight * shipment.weight) * b.count;
                 carData.lineItems.push(b);
                 carData.total += variant.sale_price * b.count;
             }
             carData.total += carData.shipment_fee;
+            carData.total -= carData.use_rebate;
             carData.code = data.code;
             const voucherList = await this.checkVoucher(carData);
             if (type === 'preview') {
                 return {
                     data: carData
                 };
+            }
+            console.log(`使用回饋金購物${carData.use_rebate}使用回饋金購物`);
+            if (carData.use_rebate) {
+                const userData = await (new user_js_1.User(this.app).getUserData(data.email || data.user_info.email, 'account'));
+                await database_js_1.default.query(`insert into \`${this.app}\`.t_rebate (orderID, userID, money, status, note)
+                                    values (?, ?, ?, ?, ?);`, [
+                    carData.orderID,
+                    userData.userID,
+                    carData.use_rebate * -1,
+                    1,
+                    JSON.stringify({
+                        note: '使用回饋金購物'
+                    })
+                ]);
             }
             const keyData = (await private_config_js_1.Private_config.getConfig({
                 appName: this.app, key: 'glitter_finance'
@@ -151,6 +207,7 @@ class Shopping {
         cart.discount = 0;
         cart.lineItems.map((dd) => {
             dd.discount_price = 0;
+            dd.rebate = 0;
         });
         let overlay = false;
         const code = cart.code;
@@ -184,6 +241,12 @@ class Shopping {
                     });
                     (dd).bind = item;
                     return item.length > 0;
+                case "all":
+                    item = cart.lineItems.filter((dp) => {
+                        return true;
+                    });
+                    (dd).bind = item;
+                    return item.length > 0;
             }
         }).filter((dd) => {
             return (dd.trigger === 'auto') || (dd.code === `${code}`);
@@ -208,14 +271,22 @@ class Shopping {
             }
             return (dd.overlay);
         }).filter((dd) => {
-            var _a;
+            var _a, _b;
             dd.discount_total = (_a = dd.discount_total) !== null && _a !== void 0 ? _a : 0;
+            dd.rebate_total = (_b = dd.rebate_total) !== null && _b !== void 0 ? _b : 0;
             dd.bind = dd.bind.filter((d2) => {
                 let discount = (dd.method === 'percent') ? (d2.sale_price * (parseFloat(dd.value))) / 100 : parseFloat(dd.value);
                 if ((d2.discount_price + discount) < d2.sale_price) {
-                    d2.discount_price += discount;
-                    cart.discount += discount * d2.count;
-                    dd.discount_total += discount * d2.count;
+                    if (dd.reBackType === 'rebate') {
+                        d2.rebate += discount;
+                        cart.rebate += discount * d2.count;
+                        dd.rebate_total += discount * d2.count;
+                    }
+                    else {
+                        d2.discount_price += discount;
+                        cart.discount += discount * d2.count;
+                        dd.discount_total += discount * d2.count;
+                    }
                     return true;
                 }
                 else {
@@ -300,6 +371,30 @@ class Shopping {
         }
         catch (e) {
             throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'GetProduct Error:' + e, null);
+        }
+    }
+    async postVariantsAndPriceValue(content) {
+        var _a, _b, _c;
+        content.variants = (_a = content.variants) !== null && _a !== void 0 ? _a : [];
+        await database_js_1.default.query(`delete from \`${this.app}\`.t_manager_post  where (content->>'$.product_id'=${content.id})`, []);
+        for (const a of content.variants) {
+            content.min_price = (_b = content.min_price) !== null && _b !== void 0 ? _b : (a.sale_price);
+            content.max_price = (_c = content.max_price) !== null && _c !== void 0 ? _c : (a.sale_price);
+            if (a.sale_price < content.min_price) {
+                content.min_price = a.sale_price;
+            }
+            if (a.sale_price > content.max_price) {
+                content.max_price = a.sale_price;
+            }
+            a.type = 'variants';
+            a.product_id = content.id;
+            console.log(a);
+            await database_js_1.default.query(`insert into \`${this.app}\`.t_manager_post  SET ?`, [
+                {
+                    content: JSON.stringify(a),
+                    userID: this.token.userID
+                }
+            ]);
         }
     }
 }

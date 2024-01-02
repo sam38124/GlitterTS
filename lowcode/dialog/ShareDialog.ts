@@ -15,23 +15,24 @@ export class ShareDialog {
     constructor(glitter: Glitter) {
         this.dataLoading = (obj: { text?: string; visible: boolean }) => {
             if(obj.visible){
-                glitter.openDiaLog('dialog/dialog.js', 'dataLoading', {type:'dataLoading',obj:obj})
+                glitter.openDiaLog(new URL('../dialog/dialog.js', import.meta.url).href, 'dataLoading', {type:'dataLoading',obj:obj})
             }else{
                 glitter.closeDiaLog('dataLoading')
             }
         };
         this.errorMessage = (obj: { text?: string; }) => {
-            glitter.openDiaLog('dialog/dialog.js', 'errorMessage', {type:'errorMessage',obj:obj})
+
+            glitter.openDiaLog(new URL('../dialog/dialog.js', import.meta.url).href, 'errorMessage', {type:'errorMessage',obj:obj})
         };
         this.successMessage = (obj: { text?: string; }) => {
-            glitter.openDiaLog('dialog/dialog.js', 'successMessage', {type:'successMessage',obj:obj})
+            glitter.openDiaLog(new URL('../dialog/dialog.js', import.meta.url).href, 'successMessage', {type:'successMessage',obj:obj})
         };
         this.policy = () => {
-            glitter.openDiaLog('dialog/dialog.js', 'policy', {type:'policy'})
+            glitter.openDiaLog(new URL('../dialog/dialog.js', import.meta.url).href, 'policy', {type:'policy'})
         };
 
         this.checkYesOrNot = (obj:{text:string,callback:(response:boolean)=>void})=>{
-            glitter.openDiaLog('dialog/Dialog.js', 'checkYesOrNot', {
+            glitter.openDiaLog(new URL('../dialog/dialog.js', import.meta.url).href, 'checkYesOrNot', {
                 type: 'checkYesOrNot', callback: (response: boolean) => {
                     glitter.closeDiaLog('checkYesOrNot')
                     obj.callback(response)

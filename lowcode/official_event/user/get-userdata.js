@@ -28,7 +28,7 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                             resolve(GlobalUser.userInfo);
                         }
                         else {
-                            ApiUser.getUserData(GlobalUser.token).then((r) => __awaiter(void 0, void 0, void 0, function* () {
+                            ApiUser.getUserData(GlobalUser.token, 'me').then((r) => __awaiter(void 0, void 0, void 0, function* () {
                                 try {
                                     if (!r.result) {
                                         GlobalUser.token = '';

@@ -12,6 +12,7 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
             object.maxPrice = object.maxPrice ?? {}
             object.minPrice = object.minPrice ?? {}
             object.titleMatch = object.titleMatch ?? {}
+            object.orderBy= object.orderBy??{}
             return {
                 editor: () => {
                     object.getType = object.getType ?? "manual"
@@ -36,6 +37,11 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                         }),
                         TriggerEvent.editer(gvc, widget, object.minPrice, {
                             title: "最小金額",
+                            hover: false,
+                            option: []
+                        }),
+                        TriggerEvent.editer(gvc, widget, object.orderBy, {
+                            title: "排序方式",
                             hover: false,
                             option: []
                         }),
@@ -81,6 +87,12 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                 clickEvent: object.minPrice,
                                 subData: subData
                             })
+                            const orderBy=await TriggerEvent.trigger({
+                                gvc: gvc,
+                                widget: widget,
+                                clickEvent: object.orderBy,
+                                subData: subData
+                            })
                             ApiShop.getProduct({
                                 page: page as any,
                                 limit: limit as any,
@@ -88,7 +100,8 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                 maxPrice: maxPrice as string,
                                 minPrice: minPrice as string,
                                 search: titleMatch as string,
-                                status:'active'
+                                status:'active',
+                                orderBy:orderBy as string
                             }).then((data) => {
                                 data.response.data.pageSize = Math.ceil(data.response.total / parseInt(limit as any, 10))
                                 if (parseInt(page as string, 10) <= data.response.data.pageSize) {

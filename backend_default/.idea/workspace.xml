@@ -1,0 +1,293 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="8f10d821-a055-4940-9932-04ae826450db" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/../lowcode/GVControllerLegacy.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../lowcode/backend-manager/bg-notify.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../lowcode/backend-manager/bg-wallet.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../lowcode/glitter-base/route/fcm.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../lowcode/glitter-base/route/public-config.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../lowcode/glitter-base/route/smtp.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../lowcode/glitter-base/route/wallet.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../lowcode/jspage/alert.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../lowcode/official_event/chat/add-chat-room.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../lowcode/official_event/chat/auto-reply.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../lowcode/official_event/chat/get-message.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../lowcode/official_event/chat/send-chat-message.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../lowcode/official_event/e-commerce/check-wish-list.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../lowcode/official_event/e-commerce/delete-wish-list.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../lowcode/official_event/e-commerce/get-rebate.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../lowcode/official_event/e-commerce/get-wish-list.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../lowcode/official_event/e-commerce/set-rebate.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../lowcode/official_event/e-commerce/update-cart.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../lowcode/official_event/e-commerce/wish-list.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../lowcode/official_event/fcm/register-device.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../lowcode/official_event/glitter-util/delay-event.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../lowcode/official_event/glitter-util/post-form.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../lowcode/official_event/glitter-util/size-event.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../lowcode/official_event/glitter-util/stop-propagation.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../lowcode/official_event/input/input.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../lowcode/official_event/input/textArea.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../lowcode/official_event/page/change-page.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../lowcode/official_event/page/close-dialog.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../lowcode/official_event/page/close-drawer.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../lowcode/official_event/page/dialog.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../lowcode/official_event/style/change-style.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../lowcode/official_event/user/email-subscription.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../lowcode/official_event/wallet/add-money.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../lowcode/official_event/wallet/withdraw.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../src/api-public/controllers/fcm.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../src/api-public/controllers/wallet.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../src/api-public/services/custom-code.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../src/api-public/services/wallet.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../src/helper/glitter-util.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../src/modules/firebase.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../index.js" beforeDir="false" afterPath="$PROJECT_DIR$/../index.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lib/glitterBundle/module/Html_generate.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../lib/glitterBundle/module/Html_generate.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lib/glitterBundle/plugins/dialog-style-editor.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../lib/glitterBundle/plugins/dialog-style-editor.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lib/glitterBundle/plugins/vendor.min.js" beforeDir="false" afterPath="$PROJECT_DIR$/../lib/glitterBundle/plugins/vendor.min.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lowcode/Entry.js" beforeDir="false" afterPath="$PROJECT_DIR$/../lowcode/Entry.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lowcode/Entry.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../lowcode/Entry.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lowcode/assets/js/vendor.js" beforeDir="false" afterPath="$PROJECT_DIR$/../lowcode/assets/js/vendor.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lowcode/backend-manager/bg-project.js" beforeDir="false" afterPath="$PROJECT_DIR$/../lowcode/backend-manager/bg-project.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lowcode/backend-manager/bg-project.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../lowcode/backend-manager/bg-project.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lowcode/backend-manager/bg-shopping.js" beforeDir="false" afterPath="$PROJECT_DIR$/../lowcode/backend-manager/bg-shopping.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lowcode/backend-manager/bg-shopping.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../lowcode/backend-manager/bg-shopping.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lowcode/backend-manager/bg-widget.js" beforeDir="false" afterPath="$PROJECT_DIR$/../lowcode/backend-manager/bg-widget.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lowcode/backend-manager/bg-widget.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../lowcode/backend-manager/bg-widget.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lowcode/dialog/ShareDialog.js" beforeDir="false" afterPath="$PROJECT_DIR$/../lowcode/dialog/ShareDialog.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lowcode/dialog/ShareDialog.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../lowcode/dialog/ShareDialog.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lowcode/dialog/addTemplate.js" beforeDir="false" afterPath="$PROJECT_DIR$/../lowcode/dialog/addTemplate.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lowcode/dialog/addTemplate.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../lowcode/dialog/addTemplate.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lowcode/dialog/cadd-script-Dialog.js" beforeDir="false" afterPath="$PROJECT_DIR$/../lowcode/dialog/cadd-script-Dialog.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lowcode/dialog/cadd-script-Dialog.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../lowcode/dialog/cadd-script-Dialog.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lowcode/dialog/cadd-style-Dialog.js" beforeDir="false" afterPath="$PROJECT_DIR$/../lowcode/dialog/cadd-style-Dialog.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lowcode/dialog/cadd-style-Dialog.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../lowcode/dialog/cadd-style-Dialog.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lowcode/dialog/caddDialog.js" beforeDir="false" afterPath="$PROJECT_DIR$/../lowcode/dialog/caddDialog.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lowcode/dialog/caddDialog.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../lowcode/dialog/caddDialog.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lowcode/dialog/copy.js" beforeDir="false" afterPath="$PROJECT_DIR$/../lowcode/dialog/copy.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lowcode/dialog/copy.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../lowcode/dialog/copy.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lowcode/dialog/dialog.js" beforeDir="false" afterPath="$PROJECT_DIR$/../lowcode/dialog/dialog.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lowcode/dialog/dialog.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../lowcode/dialog/dialog.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lowcode/dialog/dialog_setting.js" beforeDir="false" afterPath="$PROJECT_DIR$/../lowcode/dialog/dialog_setting.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lowcode/dialog/dialog_setting.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../lowcode/dialog/dialog_setting.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lowcode/dialog/image-preview.js" beforeDir="false" afterPath="$PROJECT_DIR$/../lowcode/dialog/image-preview.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lowcode/dialog/image-preview.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../lowcode/dialog/image-preview.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lowcode/editor-bridge/trigger-event.js" beforeDir="false" afterPath="$PROJECT_DIR$/../lowcode/editor-bridge/trigger-event.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lowcode/editor-bridge/trigger-event.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../lowcode/editor-bridge/trigger-event.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lowcode/editor/page-editor.js" beforeDir="false" afterPath="$PROJECT_DIR$/../lowcode/editor/page-editor.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lowcode/editor/page-editor.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../lowcode/editor/page-editor.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lowcode/glitter-base/global/global-user.js" beforeDir="false" afterPath="$PROJECT_DIR$/../lowcode/glitter-base/global/global-user.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lowcode/glitter-base/global/global-user.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../lowcode/glitter-base/global/global-user.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lowcode/glitter-base/route/chat.js" beforeDir="false" afterPath="$PROJECT_DIR$/../lowcode/glitter-base/route/chat.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lowcode/glitter-base/route/chat.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../lowcode/glitter-base/route/chat.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lowcode/glitter-base/route/post.js" beforeDir="false" afterPath="$PROJECT_DIR$/../lowcode/glitter-base/route/post.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lowcode/glitter-base/route/post.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../lowcode/glitter-base/route/post.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lowcode/glitter-base/route/shopping.js" beforeDir="false" afterPath="$PROJECT_DIR$/../lowcode/glitter-base/route/shopping.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lowcode/glitter-base/route/shopping.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../lowcode/glitter-base/route/shopping.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lowcode/glitter-base/route/user.js" beforeDir="false" afterPath="$PROJECT_DIR$/../lowcode/glitter-base/route/user.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lowcode/glitter-base/route/user.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../lowcode/glitter-base/route/user.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lowcode/glitterBundle/GVController.js" beforeDir="false" afterPath="$PROJECT_DIR$/../lowcode/glitterBundle/GVController.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lowcode/glitterBundle/GVController.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../lowcode/glitterBundle/GVController.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lowcode/glitterBundle/Glitter.js" beforeDir="false" afterPath="$PROJECT_DIR$/../lowcode/glitterBundle/Glitter.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lowcode/glitterBundle/Glitter.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../lowcode/glitterBundle/Glitter.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lowcode/glitterBundle/GlitterInitial.js" beforeDir="false" afterPath="$PROJECT_DIR$/../lowcode/glitterBundle/GlitterInitial.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lowcode/glitterBundle/GlitterInitial.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../lowcode/glitterBundle/GlitterInitial.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lowcode/glitterBundle/dialog/dialog.js" beforeDir="false" afterPath="$PROJECT_DIR$/../lowcode/glitterBundle/dialog/dialog.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lowcode/glitterBundle/dialog/dialog.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../lowcode/glitterBundle/dialog/dialog.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lowcode/glitterBundle/dialog/dialog_inner.js" beforeDir="false" afterPath="$PROJECT_DIR$/../lowcode/glitterBundle/dialog/dialog_inner.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lowcode/glitterBundle/dialog/dialog_inner.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../lowcode/glitterBundle/dialog/dialog_inner.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lowcode/glitterBundle/html-component/code.js" beforeDir="false" afterPath="$PROJECT_DIR$/../lowcode/glitterBundle/html-component/code.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lowcode/glitterBundle/html-component/code.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../lowcode/glitterBundle/html-component/code.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lowcode/glitterBundle/html-component/widget.js" beforeDir="false" afterPath="$PROJECT_DIR$/../lowcode/glitterBundle/html-component/widget.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lowcode/glitterBundle/html-component/widget.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../lowcode/glitterBundle/html-component/widget.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lowcode/glitterBundle/module/PageManager.js" beforeDir="false" afterPath="$PROJECT_DIR$/../lowcode/glitterBundle/module/PageManager.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lowcode/glitterBundle/module/PageManager.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../lowcode/glitterBundle/module/PageManager.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lowcode/glitterBundle/module/html-generate.js" beforeDir="false" afterPath="$PROJECT_DIR$/../lowcode/glitterBundle/module/html-generate.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lowcode/glitterBundle/module/html-generate.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../lowcode/glitterBundle/module/html-generate.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lowcode/glitterBundle/plugins/add_item_dia.js" beforeDir="false" afterPath="$PROJECT_DIR$/../lowcode/glitterBundle/plugins/add_item_dia.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lowcode/glitterBundle/plugins/add_item_dia.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../lowcode/glitterBundle/plugins/add_item_dia.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lowcode/glitterBundle/plugins/dialog-style-editor.js" beforeDir="false" afterPath="$PROJECT_DIR$/../lowcode/glitterBundle/plugins/dialog-style-editor.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lowcode/glitterBundle/plugins/dialog-style-editor.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../lowcode/glitterBundle/plugins/dialog-style-editor.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lowcode/glitterBundle/plugins/editor-elem.js" beforeDir="false" afterPath="$PROJECT_DIR$/../lowcode/glitterBundle/plugins/editor-elem.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lowcode/glitterBundle/plugins/editor-elem.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../lowcode/glitterBundle/plugins/editor-elem.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lowcode/glitterBundle/plugins/html-render.js" beforeDir="false" afterPath="$PROJECT_DIR$/../lowcode/glitterBundle/plugins/html-render.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lowcode/glitterBundle/plugins/html-render.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../lowcode/glitterBundle/plugins/html-render.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lowcode/glitterBundle/plugins/trigger-event.js" beforeDir="false" afterPath="$PROJECT_DIR$/../lowcode/glitterBundle/plugins/trigger-event.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lowcode/glitterBundle/plugins/trigger-event.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../lowcode/glitterBundle/plugins/trigger-event.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lowcode/glitterBundle/plugins/vendor.min.js" beforeDir="false" afterPath="$PROJECT_DIR$/../lowcode/glitterBundle/plugins/vendor.min.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lowcode/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/../lowcode/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lowcode/jspage/editor.js" beforeDir="false" afterPath="$PROJECT_DIR$/../lowcode/jspage/editor.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lowcode/jspage/editor.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../lowcode/jspage/editor.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lowcode/jspage/index.js" beforeDir="false" afterPath="$PROJECT_DIR$/../lowcode/jspage/index.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lowcode/jspage/index.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../lowcode/jspage/index.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lowcode/jspage/main.js" beforeDir="false" afterPath="$PROJECT_DIR$/../lowcode/jspage/main.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lowcode/jspage/main.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../lowcode/jspage/main.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lowcode/jspage/main_editor.js" beforeDir="false" afterPath="$PROJECT_DIR$/../lowcode/jspage/main_editor.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lowcode/jspage/main_editor.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../lowcode/jspage/main_editor.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lowcode/jspage/nosupport.js" beforeDir="false" afterPath="$PROJECT_DIR$/../lowcode/jspage/nosupport.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lowcode/jspage/nosupport.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../lowcode/jspage/nosupport.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lowcode/jspage/setting_editor.js" beforeDir="false" afterPath="$PROJECT_DIR$/../lowcode/jspage/setting_editor.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lowcode/jspage/setting_editor.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../lowcode/jspage/setting_editor.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lowcode/official_event/e-commerce/all-product.js" beforeDir="false" afterPath="$PROJECT_DIR$/../lowcode/official_event/e-commerce/all-product.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lowcode/official_event/e-commerce/all-product.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../lowcode/official_event/e-commerce/all-product.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lowcode/official_event/e-commerce/get-cart.js" beforeDir="false" afterPath="$PROJECT_DIR$/../lowcode/official_event/e-commerce/get-cart.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lowcode/official_event/e-commerce/get-cart.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../lowcode/official_event/e-commerce/get-cart.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lowcode/official_event/e-commerce/get-count.js" beforeDir="false" afterPath="$PROJECT_DIR$/../lowcode/official_event/e-commerce/get-count.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lowcode/official_event/e-commerce/get-count.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../lowcode/official_event/e-commerce/get-count.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lowcode/official_event/e-commerce/get-order-detail.js" beforeDir="false" afterPath="$PROJECT_DIR$/../lowcode/official_event/e-commerce/get-order-detail.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lowcode/official_event/e-commerce/get-order-detail.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../lowcode/official_event/e-commerce/get-order-detail.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lowcode/official_event/e-commerce/set-voucher.js" beforeDir="false" afterPath="$PROJECT_DIR$/../lowcode/official_event/e-commerce/set-voucher.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lowcode/official_event/e-commerce/set-voucher.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../lowcode/official_event/e-commerce/set-voucher.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lowcode/official_event/e-commerce/to-checkout.js" beforeDir="false" afterPath="$PROJECT_DIR$/../lowcode/official_event/e-commerce/to-checkout.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lowcode/official_event/e-commerce/to-checkout.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../lowcode/official_event/e-commerce/to-checkout.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lowcode/official_event/event.js" beforeDir="false" afterPath="$PROJECT_DIR$/../lowcode/official_event/event.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lowcode/official_event/event.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../lowcode/official_event/event.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lowcode/official_event/glitter-util/set-url.js" beforeDir="false" afterPath="$PROJECT_DIR$/../lowcode/official_event/glitter-util/set-url.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lowcode/official_event/glitter-util/set-url.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../lowcode/official_event/glitter-util/set-url.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lowcode/official_event/user/get-userdata.js" beforeDir="false" afterPath="$PROJECT_DIR$/../lowcode/official_event/user/get-userdata.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lowcode/official_event/user/get-userdata.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../lowcode/official_event/user/get-userdata.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lowcode/official_event/user/initial.js" beforeDir="false" afterPath="$PROJECT_DIR$/../lowcode/official_event/user/initial.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lowcode/official_event/user/initial.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../lowcode/official_event/user/initial.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lowcode/official_view_component/official/array_item.js" beforeDir="false" afterPath="$PROJECT_DIR$/../lowcode/official_view_component/official/array_item.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lowcode/official_view_component/official/array_item.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../lowcode/official_view_component/official/array_item.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lowcode/official_view_component/official/component.js" beforeDir="false" afterPath="$PROJECT_DIR$/../lowcode/official_view_component/official/component.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lowcode/official_view_component/official/component.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../lowcode/official_view_component/official/component.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lowcode/official_view_component/official/form.js" beforeDir="false" afterPath="$PROJECT_DIR$/../lowcode/official_view_component/official/form.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lowcode/official_view_component/official/form.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../lowcode/official_view_component/official/form.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lowcode/r.html" beforeDir="false" afterPath="$PROJECT_DIR$/../lowcode/r.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lowcode/setting/pageManager.js" beforeDir="false" afterPath="$PROJECT_DIR$/../lowcode/setting/pageManager.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lowcode/setting/pageManager.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../lowcode/setting/pageManager.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lowcode/tsconfig.tsbuildinfo" beforeDir="false" afterPath="$PROJECT_DIR$/../lowcode/tsconfig.tsbuildinfo" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/../package-lock.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../package.json" beforeDir="false" afterPath="$PROJECT_DIR$/../package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/api-public/controllers/app-release.js" beforeDir="false" afterPath="$PROJECT_DIR$/../src/api-public/controllers/app-release.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/api-public/controllers/app-release.js.map" beforeDir="false" afterPath="$PROJECT_DIR$/../src/api-public/controllers/app-release.js.map" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/api-public/controllers/app-release.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../src/api-public/controllers/app-release.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/api-public/controllers/chat.js" beforeDir="false" afterPath="$PROJECT_DIR$/../src/api-public/controllers/chat.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/api-public/controllers/chat.js.map" beforeDir="false" afterPath="$PROJECT_DIR$/../src/api-public/controllers/chat.js.map" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/api-public/controllers/chat.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../src/api-public/controllers/chat.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/api-public/controllers/index.js" beforeDir="false" afterPath="$PROJECT_DIR$/../src/api-public/controllers/index.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/api-public/controllers/index.js.map" beforeDir="false" afterPath="$PROJECT_DIR$/../src/api-public/controllers/index.js.map" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/api-public/controllers/index.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../src/api-public/controllers/index.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/api-public/controllers/manager.js" beforeDir="false" afterPath="$PROJECT_DIR$/../src/api-public/controllers/manager.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/api-public/controllers/manager.js.map" beforeDir="false" afterPath="$PROJECT_DIR$/../src/api-public/controllers/manager.js.map" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/api-public/controllers/manager.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../src/api-public/controllers/manager.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/api-public/controllers/post.js" beforeDir="false" afterPath="$PROJECT_DIR$/../src/api-public/controllers/post.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/api-public/controllers/post.js.map" beforeDir="false" afterPath="$PROJECT_DIR$/../src/api-public/controllers/post.js.map" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/api-public/controllers/post.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../src/api-public/controllers/post.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/api-public/controllers/shop.js" beforeDir="false" afterPath="$PROJECT_DIR$/../src/api-public/controllers/shop.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/api-public/controllers/shop.js.map" beforeDir="false" afterPath="$PROJECT_DIR$/../src/api-public/controllers/shop.js.map" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/api-public/controllers/shop.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../src/api-public/controllers/shop.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/api-public/controllers/smtp.js" beforeDir="false" afterPath="$PROJECT_DIR$/../src/api-public/controllers/smtp.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/api-public/controllers/smtp.js.map" beforeDir="false" afterPath="$PROJECT_DIR$/../src/api-public/controllers/smtp.js.map" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/api-public/controllers/smtp.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../src/api-public/controllers/smtp.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/api-public/controllers/user.js" beforeDir="false" afterPath="$PROJECT_DIR$/../src/api-public/controllers/user.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/api-public/controllers/user.js.map" beforeDir="false" afterPath="$PROJECT_DIR$/../src/api-public/controllers/user.js.map" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/api-public/controllers/user.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../src/api-public/controllers/user.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/api-public/services/chat.d.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../src/api-public/services/chat.d.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/api-public/services/chat.js" beforeDir="false" afterPath="$PROJECT_DIR$/../src/api-public/services/chat.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/api-public/services/chat.js.map" beforeDir="false" afterPath="$PROJECT_DIR$/../src/api-public/services/chat.js.map" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/api-public/services/chat.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../src/api-public/services/chat.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/api-public/services/newebpay.d.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../src/api-public/services/newebpay.d.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/api-public/services/newebpay.js" beforeDir="false" afterPath="$PROJECT_DIR$/../src/api-public/services/newebpay.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/api-public/services/newebpay.js.map" beforeDir="false" afterPath="$PROJECT_DIR$/../src/api-public/services/newebpay.js.map" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/api-public/services/newebpay.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../src/api-public/services/newebpay.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/api-public/services/post.js" beforeDir="false" afterPath="$PROJECT_DIR$/../src/api-public/services/post.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/api-public/services/post.js.map" beforeDir="false" afterPath="$PROJECT_DIR$/../src/api-public/services/post.js.map" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/api-public/services/post.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../src/api-public/services/post.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/api-public/services/public-table-check.js" beforeDir="false" afterPath="$PROJECT_DIR$/../src/api-public/services/public-table-check.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/api-public/services/public-table-check.js.map" beforeDir="false" afterPath="$PROJECT_DIR$/../src/api-public/services/public-table-check.js.map" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/api-public/services/public-table-check.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../src/api-public/services/public-table-check.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/api-public/services/shopping.d.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../src/api-public/services/shopping.d.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/api-public/services/shopping.js" beforeDir="false" afterPath="$PROJECT_DIR$/../src/api-public/services/shopping.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/api-public/services/shopping.js.map" beforeDir="false" afterPath="$PROJECT_DIR$/../src/api-public/services/shopping.js.map" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/api-public/services/shopping.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../src/api-public/services/shopping.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/api-public/services/user.d.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../src/api-public/services/user.d.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/api-public/services/user.js" beforeDir="false" afterPath="$PROJECT_DIR$/../src/api-public/services/user.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/api-public/services/user.js.map" beforeDir="false" afterPath="$PROJECT_DIR$/../src/api-public/services/user.js.map" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/api-public/services/user.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../src/api-public/services/user.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/api-public/utils/ut-database.js" beforeDir="false" afterPath="$PROJECT_DIR$/../src/api-public/utils/ut-database.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/api-public/utils/ut-database.js.map" beforeDir="false" afterPath="$PROJECT_DIR$/../src/api-public/utils/ut-database.js.map" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/api-public/utils/ut-database.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../src/api-public/utils/ut-database.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/app-project/ios/proshake.xcodeproj/project.xcworkspace/xcuserdata/jianzhi.wang.xcuserdatad/UserInterfaceState.xcuserstate" beforeDir="false" afterPath="$PROJECT_DIR$/../src/app-project/ios/proshake.xcodeproj/project.xcworkspace/xcuserdata/jianzhi.wang.xcuserdatad/UserInterfaceState.xcuserstate" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/config.d.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/config.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/config.js.map" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/config.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../src/config.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/controllers/app.js" beforeDir="false" afterPath="$PROJECT_DIR$/../src/controllers/app.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/controllers/app.js.map" beforeDir="false" afterPath="$PROJECT_DIR$/../src/controllers/app.js.map" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/controllers/app.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../src/controllers/app.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/index.d.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/index.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/index.js.map" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/index.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../src/index.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/modules/logger.d.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/modules/logger.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/modules/logger.js.map" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/run.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../src/run.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/services/app.d.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../src/services/app.d.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/services/app.js" beforeDir="false" afterPath="$PROJECT_DIR$/../src/services/app.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/services/app.js.map" beforeDir="false" afterPath="$PROJECT_DIR$/../src/services/app.js.map" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/services/app.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../src/services/app.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/services/release-ios.d.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/services/release-ios.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/services/release-ios.js.map" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/services/release.d.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../src/services/release.d.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/services/release.js" beforeDir="false" afterPath="$PROJECT_DIR$/../src/services/release.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/services/release.js.map" beforeDir="false" afterPath="$PROJECT_DIR$/../src/services/release.js.map" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/services/release.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../src/services/release.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/services/ses.d.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../src/services/ses.d.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/services/ses.js" beforeDir="false" afterPath="$PROJECT_DIR$/../src/services/ses.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/services/ses.js.map" beforeDir="false" afterPath="$PROJECT_DIR$/../src/services/ses.js.map" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/services/ses.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../src/services/ses.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/services/template.js" beforeDir="false" afterPath="$PROJECT_DIR$/../src/services/template.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/services/template.js.map" beforeDir="false" afterPath="$PROJECT_DIR$/../src/services/template.js.map" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/services/template.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../src/services/template.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../tsconfig.tsbuildinfo" beforeDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
+  </component>
+  <component name="ProjectId" id="2aNgC4Ja7Ql7FzjmL2GHS9Fst62" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "WebServerToolWindowFactoryState": "false",
+    "last_opened_file_path": "/Users/jianzhi.wang/Desktop/square_studio/npm_library/Glitter/backend_default",
+    "vue.rearranger.settings.migration": "true"
+  }
+}]]></component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="8f10d821-a055-4940-9932-04ae826450db" name="Changes" comment="" />
+      <created>1704164319979</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1704164319979</updated>
+      <workItem from="1704164321256" duration="1000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+    <option name="exactExcludedFiles">
+      <list>
+        <option value="$PROJECT_DIR$/index.js" />
+        <option value="$PROJECT_DIR$/index.js.map" />
+        <option value="$PROJECT_DIR$/index.d.ts" />
+      </list>
+    </option>
+  </component>
+</project>

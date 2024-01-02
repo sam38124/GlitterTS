@@ -1,6 +1,6 @@
 import { init } from '../glitterBundle/GVController.js';
 import { ShareDialog } from "./ShareDialog.js";
-init((gvc, glitter, gBundle) => {
+init(import.meta.url, (gvc, glitter, gBundle) => {
     const dialog = new ShareDialog(glitter);
     return {
         onCreateView: () => {

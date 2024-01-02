@@ -1,4 +1,4 @@
-export function sendmail(sender: any, recipient: any, subject: any, body: any) {
+export function sendmail(sender: any, recipient: any, subject: any, body: any,callback?:(result:boolean)=>void) {
     const AWS = require('aws-sdk');
 
 // 設定 AWS 區域
@@ -26,8 +26,10 @@ export function sendmail(sender: any, recipient: any, subject: any, body: any) {
         };
         ses.sendEmail(params, (err: any, data: any) => {
             if (err) {
+                callback && callback(false)
                 console.log('Error sending email:', err);
             } else {
+                callback &&  callback(true)
                 console.log('Email sent! Message ID:', data.MessageId);
             }
         });

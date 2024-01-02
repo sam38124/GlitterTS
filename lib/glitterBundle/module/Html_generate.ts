@@ -141,6 +141,7 @@ export class HtmlGenerate {
     }
 
     public static loadEvent = (glitter: Glitter, js: { src: string, callback?: (widget: any) => void }[]) => {
+
         glitter.share.componentData = glitter.share.componentData ?? {}
         js.map((dd) => {
             let key = glitter.htmlGenerate.resourceHook(dd.src)
@@ -533,8 +534,7 @@ ${obj.gvc.bindView({
                                         let waitAdd: any = []
                                         for (const a of set) {
                                             if (['code'].indexOf(a.type) === -1) {
-
-                                                if ((a.type !== 'widget') && (a.type !== 'container') && !gvc.glitter.share.htmlExtension[gvc.glitter.htmlGenerate.configureCDN(gvc.glitter.htmlGenerate.configureCDN(gvc.glitter.htmlGenerate.resourceHook(a.js)))]) {
+                                                if ((a.type !== 'widget') && (a.type !== 'container') && !gvc.glitter.share.htmlExtension[gvc.glitter.htmlGenerate.configureCDN(gvc.glitter.htmlGenerate.resourceHook(a.js))]) {
                                                     waitAdd.push({
                                                         src: `${gvc.glitter.htmlGenerate.configureCDN(gvc.glitter.htmlGenerate.resourceHook(a.js))}`,
                                                         type: 'module'

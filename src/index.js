@@ -23,7 +23,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.createAPP = exports.initial = exports.app = void 0;
-const Glitter = __importStar(require("ts-glitter"));
 const path_1 = __importDefault(require("path"));
 const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
@@ -45,6 +44,9 @@ const body_parser_1 = __importDefault(require("body-parser"));
 const public_table_check_js_1 = require("./api-public/services/public-table-check.js");
 const release_js_1 = require("./services/release.js");
 const fs_1 = __importDefault(require("fs"));
+const app_js_1 = require("./services/app.js");
+const firebase_js_1 = require("./modules/firebase.js");
+const glitter_util_js_1 = require("./helper/glitter-util.js");
 exports.app = (0, express_1.default)();
 const logger = new logger_1.default();
 exports.app.options('/*', (req, res) => {
@@ -73,6 +75,9 @@ async function initial(serverPort) {
         await exports.app.listen(serverPort);
         fs_1.default.mkdirSync(path_1.default.resolve(__filename, '../app-project/work-space'), { recursive: true });
         release_js_1.Release.removeAllFilesInFolder(path_1.default.resolve(__filename, '../app-project/work-space'));
+        if (process.env.firebase) {
+            await firebase_js_1.Firebase.initial();
+        }
         logger.info('[Init]', `Server is listening on port: ${serverPort}`);
         console.log('Starting up the server now.');
     })();
@@ -173,7 +178,7 @@ async function createAppRoute() {
 }
 async function createAPP(dd) {
     live_source_1.Live_source.liveAPP.push(dd.appName);
-    return await Glitter.setUP(exports.app, [
+    return await glitter_util_js_1.GlitterUtil.set_frontend(exports.app, [
         {
             rout: '/' + encodeURI(dd.appName),
             path: path_1.default.resolve(__dirname, '../lowcode'),
@@ -183,8 +188,17 @@ async function createAPP(dd) {
                 if (req.query.appName) {
                     appName = req.query.appName;
                 }
+                let overDue = await app_js_1.App.checkOverDue(appName);
+                let vm = {
+                    glitterInfo: `<script>
+window.appName='${appName}';
+window.glitterBase='${process.env.GLITTER_DB}'
+window.glitterBackend='${config_1.config.domain}';
+window.glitterAuth = ${JSON.stringify(overDue)}
+</script>`
+                };
                 try {
-                    let data = (await database_2.default.execute(`SELECT page_config, \`${config_1.saasConfig.SAAS_NAME}\`.app_config.\`config\`,tag
+                    let data = (await database_2.default.execute(`SELECT page_config, \`${config_1.saasConfig.SAAS_NAME}\`.app_config.\`config\`, tag
                                                   FROM \`${config_1.saasConfig.SAAS_NAME}\`.page_config,
                                                        \`${config_1.saasConfig.SAAS_NAME}\`.app_config
                                                   where \`${config_1.saasConfig.SAAS_NAME}\`.page_config.appName = ${database_2.default.escape(appName)}
@@ -195,7 +209,7 @@ async function createAPP(dd) {
                     if (data && data.page_config) {
                         const d = (_a = data.page_config.seo) !== null && _a !== void 0 ? _a : {};
                         if (d.type !== 'custom') {
-                            data = (await database_2.default.execute(`SELECT page_config, \`${config_1.saasConfig.SAAS_NAME}\`.app_config.\`config\`,tag
+                            data = (await database_2.default.execute(`SELECT page_config, \`${config_1.saasConfig.SAAS_NAME}\`.app_config.\`config\`, tag
                                                       FROM \`${config_1.saasConfig.SAAS_NAME}\`.page_config,
                                                            \`${config_1.saasConfig.SAAS_NAME}\`.app_config
                                                       where \`${config_1.saasConfig.SAAS_NAME}\`.page_config.appName = ${database_2.default.escape(appName)}
@@ -222,7 +236,7 @@ async function createAPP(dd) {
                                                           where \`${config_1.saasConfig.SAAS_NAME}\`.page_config.appName = ${database_2.default.escape(appName)} limit 0,1
                             `, []))[0]['tag'];
                         }
-                        data = (await database_2.default.execute(`SELECT page_config, \`${config_1.saasConfig.SAAS_NAME}\`.app_config.\`config\`,tag
+                        data = (await database_2.default.execute(`SELECT page_config, \`${config_1.saasConfig.SAAS_NAME}\`.app_config.\`config\`, tag
                                                   FROM \`${config_1.saasConfig.SAAS_NAME}\`.page_config,
                                                        \`${config_1.saasConfig.SAAS_NAME}\`.app_config
                                                   where \`${config_1.saasConfig.SAAS_NAME}\`.page_config.appName = ${database_2.default.escape(appName)}
@@ -236,7 +250,6 @@ async function createAPP(dd) {
                             redirect += `&appName=${req.query.appName}`;
                         }
                     }
-                    console.log(req.query);
                     return `${(() => {
                         var _a, _b, _c, _d, _e, _f, _g, _h, _j;
                         data.page_config = (_a = data.page_config) !== null && _a !== void 0 ? _a : {};
@@ -290,18 +303,10 @@ window.location.href='?page=${redirect}';
 window.location.href='?page=${redirect}';
 </script>`;
                         }
-                    })()}<script>
-window.appName='${appName}';
-window.glitterBase='${process.env.GLITTER_DB}'
-window.glitterBackend='${config_1.config.domain}';
-</script>`;
+                    })()}${vm.glitterInfo}`;
                 }
                 catch (e) {
-                    return `<script>
-window.appName='${appName}';
-window.glitterBase='${process.env.GLITTER_DB}'
-window.glitterBackend='${config_1.config.domain}';
-</script>`;
+                    return vm.glitterInfo;
                 }
             }
         },

@@ -19,6 +19,9 @@ import lambda_apiRouter = require('./lambda');
 import shop_apiRouter = require('./shop');
 import manager_apiRouter = require('./manager');
 import app_release =require('./app-release')
+import smtp =require('./smtp')
+import fcm =require('./fcm')
+import wallet =require('./wallet')
 import {Live_source} from "../../live_source.js";
 import {IToken} from "../models/Auth.js";
 import {ApiPublic} from "../services/public-table-check.js";
@@ -26,22 +29,35 @@ import {ApiPublic} from "../services/public-table-check.js";
 router.use('/api-public/*', doAuthAction);
 router.use(config.getRoute(config.public_route.user, 'public'), userRouter);
 router.use(config.getRoute(config.public_route.post, 'public'), postRouter);
-router.use(config.getRoute(config.public_route.message, 'public'), messageRouter);
+router.use(config.getRoute(config.public_route.chat, 'public'), messageRouter);
 router.use(config.getRoute(config.public_route.invoice, 'public'), invoiceRouter);
 router.use(config.getRoute(config.public_route.sql_api, 'public'), sql_apiRouter);
 router.use(config.getRoute(config.public_route.lambda, 'public'), lambda_apiRouter);
 router.use(config.getRoute(config.public_route.ec, 'public'), shop_apiRouter);
 router.use(config.getRoute(config.public_route.manager, 'public'), manager_apiRouter);
 router.use(config.getRoute(config.public_route.app, 'public'), app_release);
+router.use(config.getRoute(config.public_route.smtp, 'public'), smtp);
+router.use(config.getRoute(config.public_route.fcm, 'public'), fcm);
+router.use(config.getRoute(config.public_route.wallet, 'public'), wallet);
 /******************************/
 const whiteList: {}[] = [
+    {url: config.getRoute(config.public_route.chat, 'public'), method: 'POST'},
+    {url: config.getRoute(config.public_route.chat+'/message', 'public'), method: 'POST'},
+    {url: config.getRoute(config.public_route.chat+'/message', 'public'), method: 'GET'},
     {url: config.getRoute(config.public_route.user + "/register", 'public'), method: 'POST'},
     {url: config.getRoute(config.public_route.user + "/login", 'public'), method: 'POST'},
     {url: config.getRoute(config.public_route.user + "/forget", 'public'), method: 'POST'},
     {url: config.getRoute(config.public_route.post, 'public'), method: 'GET'},
+    {url: config.getRoute(config.public_route.post, 'public'), method: 'POST'},
+    {url: config.getRoute(config.public_route.post+'/public/config', 'public'), method: 'GET'},
+    {url: config.getRoute(config.public_route.post+'/user', 'public'), method: 'GET'},
     {url: config.getRoute(config.public_route.user + "/checkMail", 'public'), method: 'GET'},
     {url: config.getRoute(config.public_route.user + "/checkMail/updateAccount", 'public'), method: 'GET'},
     {url: config.getRoute(config.public_route.user+"/userdata", 'public'), method: 'GET'},
+    {url: config.getRoute(config.public_route.user+"/subscribe", 'public'), method: 'POST'},
+    {url: config.getRoute(config.public_route.user+"/fcm", 'public'), method: 'POST'},
+    {url: config.getRoute(config.public_route.user + "/public/config", 'public'), method: 'GET'},
+    {url: config.getRoute(config.public_route.user + "/forget", 'public'), method: 'POST'},
     {url: config.getRoute(config.public_route.sql_api, 'public'), method: 'GET'},
     {url: config.getRoute(config.public_route.sql_api, 'public'), method: 'POST'},
     {url: config.getRoute(config.public_route.lambda, 'public'), method: 'POST'},
@@ -53,8 +69,8 @@ const whiteList: {}[] = [
     {url: config.getRoute(config.public_route.ec+"/checkout/preview", 'public'), method: 'POST'},
     {url: config.getRoute(config.public_route.ec+"/redirect", 'public'), method: 'POST'},
     {url: config.getRoute(config.public_route.ec+"/notify", 'public'), method: 'POST'},
+    {url: config.getRoute(config.public_route.wallet+"/notify", 'public'), method: 'POST'},
     {url: config.getRoute(config.public_route.manager+"/config", 'public'), method: 'GET'},
-
 ];
 
 async function doAuthAction(req: express.Request, resp: express.Response, next: express.NextFunction) {

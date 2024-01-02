@@ -94,14 +94,29 @@ export class Main_editor {
                                                 </div>
                                             </l1>
                                         </div>`,
-                                new PageEditor(gvc, 'MainEditorLeft', 'MainEditorRight').renderLineItem(viewModel.data.config.filter((dd, index) => {
-                                    dd.index = index;
-                                    return (dd.type !== 'code') && (dd.type !== 'widget' || (dd.data.elem !== 'style' && dd.data.elem !== 'link' && dd.data.elem !== 'script'));
-                                }), false, viewModel.data.config, {
-                                    selectEv: (dd) => {
-                                        return dd.id === glitter.getCookieByName('lastSelect');
+                                (() => {
+                                    let pageConfig = (viewModel.data.config.filter((dd, index) => {
+                                        return (dd.type !== 'code') && (dd.type !== 'widget' || (dd.data.elem !== 'style' && dd.data.elem !== 'link' && dd.data.elem !== 'script'));
+                                    }));
+                                    function setPageConfig() {
+                                        viewModel.data.config = pageConfig.concat((viewModel.data.config.filter((dd, index) => {
+                                            return !((dd.type !== 'code') && (dd.type !== 'widget' || (dd.data.elem !== 'style' && dd.data.elem !== 'link' && dd.data.elem !== 'script')));
+                                        })));
+                                        viewModel.dataList.find((dd) => {
+                                            return dd.tag === viewModel.data.tag;
+                                        }).config = viewModel.data.config;
+                                        pageConfig = viewModel.data.config;
+                                        gvc.notifyDataChange(vid);
                                     }
-                                })
+                                    return new PageEditor(gvc, 'MainEditorLeft', 'MainEditorRight').renderLineItem(pageConfig, false, pageConfig, {
+                                        selectEv: (dd) => {
+                                            return dd.id === glitter.getCookieByName('lastSelect');
+                                        },
+                                        refreshEvent: () => {
+                                            setPageConfig();
+                                        }
+                                    });
+                                })()
                             ]);
                         })()}
                         `;
@@ -190,7 +205,7 @@ export class Main_editor {
             });
         }
         return [html `
-            <div class="h-100 " style="overflow-y:auto;">
+            <div class=" " style="overflow-y:auto;height:calc(100vh - 200px)">
                 ${gvc.bindView(() => {
                 return {
                     bind: `htmlGenerate`,
@@ -270,14 +285,22 @@ ${gvc.bindView(() => {
                                 return {
                                     bind: uid,
                                     view: () => {
-                                        var _a;
+                                        var _a, _b;
                                         dd.preloadEvenet = (_a = dd.preloadEvenet) !== null && _a !== void 0 ? _a : {};
+                                        dd.hiddenEvent = (_b = dd.hiddenEvent) !== null && _b !== void 0 ? _b : {};
                                         if ((dd.type === 'widget') || (dd.type === 'container')) {
-                                            return TriggerEvent.editer(gvc, dd, dd.preloadEvenet, {
-                                                title: "模塊預載事件",
-                                                option: [],
-                                                hover: false
-                                            });
+                                            return [
+                                                TriggerEvent.editer(gvc, dd, dd.preloadEvenet, {
+                                                    title: "模塊預載事件",
+                                                    option: [],
+                                                    hover: false
+                                                }),
+                                                TriggerEvent.editer(gvc, dd, dd.hiddenEvent, {
+                                                    title: "模塊隱藏事件",
+                                                    option: [],
+                                                    hover: false
+                                                })
+                                            ].join(`<div class="my-2"></div>`);
                                         }
                                         return [gvc.glitter.htmlGenerate.styleEditor(dd, gvc, dd, {}).editor(gvc, () => {
                                                 gvc.notifyDataChange('showView');
@@ -285,7 +308,13 @@ ${gvc.bindView(() => {
                                                 title: "模塊預載事件",
                                                 option: [],
                                                 hover: false
-                                            })].join(`<div class="my-2"></div>`);
+                                            }),
+                                            TriggerEvent.editer(gvc, dd, dd.visibleEvent, {
+                                                title: "模塊可見條件",
+                                                option: [],
+                                                hover: false
+                                            })
+                                        ].join(`<div class="my-2"></div>`);
                                     },
                                     divCreate: {
                                         class: 'mt-2 mb-2 '

@@ -937,7 +937,6 @@ class Render{
                                                 offsetTop: $(this).get(0)!.offsetTop
                                             })
                                         }
-
                                     });
                                     console.log(`hover_item`, dragModel.hover_item)
                                     $(e).parent().parent().parent().append(html`

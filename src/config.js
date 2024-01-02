@@ -16,7 +16,6 @@ class ConfigSetting {
 }
 exports.ConfigSetting = ConfigSetting;
 ConfigSetting.config_path = "";
-ConfigSetting.setConfig(ConfigSetting.config_path);
 exports.saasConfig = {
     get SAAS_NAME() {
         return process.env.GLITTER_DB;
@@ -85,12 +84,14 @@ exports.config = {
         invoice: '/invoice',
         sql_api: '/sql_api',
         post: '/post',
-        message: '/message',
+        chat: '/chat',
         smtp: '/smtp',
+        fcm: '/fcm',
         lambda: '/lambda',
         ec: '/ec',
         manager: '/manager',
-        app: '/app'
+        app: '/app',
+        wallet: '/wallet'
     },
     route: {
         user: "/user",

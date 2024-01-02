@@ -29,7 +29,8 @@ export default class Newebpay {
         }[],
         total: number,
         email: string,
-        shipment_fee:number
+        shipment_fee: number,
+        orderID:string
     }) {
         // 1. 建立請求的參數
         const params = {
@@ -37,11 +38,12 @@ export default class Newebpay {
             RespondType: 'JSON',
             TimeStamp: Math.floor(Date.now() / 1000),
             Version: '2.0',
-            MerchantOrderNo: new Date().getTime(),
+            MerchantOrderNo: orderData.orderID,
             Amt: orderData.total,
             ItemDesc: '商品資訊',
             NotifyURL: this.keyData.NotifyURL,
             ReturnURL: this.keyData.ReturnURL,
+            TradeLimit:600
         };
 
         const appName = this.appName;
@@ -78,6 +80,60 @@ export default class Newebpay {
         };
     }
 
+    async saveMoney(orderData: {
+        total: number,
+        userID: number,
+        note: any
+    }) {
+        // 1. 建立請求的參數
+        const params = {
+            MerchantID: this.keyData.MERCHANT_ID,
+            RespondType: 'JSON',
+            TimeStamp: Math.floor(Date.now() / 1000),
+            Version: '2.0',
+            MerchantOrderNo: new Date().getTime(),
+            Amt: orderData.total,
+            ItemDesc: '加值服務',
+            NotifyURL: this.keyData.NotifyURL,
+            ReturnURL: this.keyData.ReturnURL,
+        };
+
+        const appName = this.appName;
+        await db.execute(`insert into \`${appName}\`.t_wallet (orderID,userID, money, status, note)
+                          values (?, ?, ?, ? ,?)`, [
+            params.MerchantOrderNo,
+            orderData.userID,
+            orderData.total,
+            0,
+            orderData.note
+        ]);
+
+        // 2. 產生 Query String
+        const qs = Newebpay.JsonToQueryString(params);
+        // 3. 開始加密
+        // { method: 'aes-256-cbc', inputEndcoding: 'utf-8', outputEndcoding: 'hex' };
+        // createCipheriv 方法中，key 要滿 32 字元、iv 要滿 16 字元，請之後測試多注意這點
+        const tradeInfo = Newebpay.aesEncrypt(qs, this.keyData.HASH_KEY, this.keyData.HASH_IV);
+
+        // 4. 產生檢查碼
+        const tradeSha = crypto
+            .createHash('sha256')
+            .update(`HashKey=${this.keyData.HASH_KEY}&${tradeInfo}&HashIV=${this.keyData.HASH_IV}`)
+            .digest('hex')
+            .toUpperCase();
+
+        // 5. 回傳物件
+        return {
+            actionURL: this.keyData.ActionURL,
+            MerchantOrderNo: params.MerchantOrderNo,
+            MerchantID: this.keyData.MERCHANT_ID,
+            TradeInfo: tradeInfo,
+            TradeSha: tradeSha,
+            Version: params.Version,
+        };
+    }
+
+
     generateUniqueOrderNumber() {
         const timestamp = new Date().getTime(); // 获取当前时间的时间戳
         const randomSuffix = Math.floor(Math.random() * 10000); // 生成一个随机数后缀
@@ -101,7 +157,8 @@ export default class Newebpay {
             .join('&');
         return queryString;
     }
-      // AES 加密
+
+    // AES 加密
     public static aesEncrypt(
         data: string,
         key: string,

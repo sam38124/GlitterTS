@@ -248,7 +248,7 @@ router.post('/login', async (req, resp) => {
 });
 router.get('/', async (req, resp) => {
     try {
-        if (await ut_permission_js_1.UtPermission.isManager(req)) {
+        if (req.query.type === 'list' && (await ut_permission_js_1.UtPermission.isManager(req))) {
             const user = new user_1.User(req.get('g-app'));
             return response_1.default.succ(resp, (await user.getUserList(req.query)));
         }
@@ -264,6 +264,7 @@ router.get('/', async (req, resp) => {
 router.get('/userdata', async (req, resp) => {
     try {
         const user = new user_1.User(req.get('g-app'));
+        console.log(`userID-->`, req.query.userID);
         return response_1.default.succ(resp, (await user.getUserData(req.query.userID + "")));
     }
     catch (err) {
@@ -272,12 +273,11 @@ router.get('/userdata', async (req, resp) => {
 });
 router.put('/', async (req, resp) => {
     try {
-        if (await ut_permission_js_1.UtPermission.isManager(req)) {
-            const user = new user_1.User(req.get('g-app'));
-            return response_1.default.succ(resp, (await user.updateUserData(req.query.userID, req.body.userData)));
+        const user = new user_1.User(req.get('g-app'));
+        if ((await ut_permission_js_1.UtPermission.isManager(req)) && req.query.userID) {
+            return response_1.default.succ(resp, (await user.updateUserData(req.query.userID, req.body.userData, true)));
         }
         else {
-            const user = new user_1.User(req.get('g-app'));
             return response_1.default.succ(resp, (await user.updateUserData(req.body.token.userID, req.body.userData)));
         }
     }
@@ -315,6 +315,96 @@ router.delete('/', async (req, resp) => {
         else {
             return response_1.default.fail(resp, exception_1.default.BadRequestError('BAD_REQUEST', 'No permission.', null));
         }
+    }
+    catch (err) {
+        return response_1.default.fail(resp, err);
+    }
+});
+router.post('/subscribe', async (req, resp) => {
+    try {
+        const user = new user_1.User(req.get('g-app'));
+        (await user.subscribe(req.body.email, req.body.tag));
+        return response_1.default.succ(resp, {
+            result: true
+        });
+    }
+    catch (err) {
+        return response_1.default.fail(resp, err);
+    }
+});
+router.get('/subscribe', async (req, resp) => {
+    try {
+        const user = new user_1.User(req.get('g-app'));
+        return response_1.default.succ(resp, (await user.getSubScribe(req.query)));
+    }
+    catch (err) {
+        return response_1.default.fail(resp, err);
+    }
+});
+router.delete('/subscribe', async (req, resp) => {
+    try {
+        const user = new user_1.User(req.get('g-app'));
+        (await user.deleteSubscribe(req.body.email));
+        return response_1.default.succ(resp, {
+            result: true
+        });
+    }
+    catch (err) {
+        return response_1.default.fail(resp, err);
+    }
+});
+router.post('/fcm', async (req, resp) => {
+    try {
+        const user = new user_1.User(req.get('g-app'));
+        (await user.registerFcm(req.body.userID, req.body.deviceToken));
+        return response_1.default.succ(resp, {
+            result: true
+        });
+    }
+    catch (err) {
+        return response_1.default.fail(resp, err);
+    }
+});
+router.get('/fcm', async (req, resp) => {
+    try {
+        const user = new user_1.User(req.get('g-app'));
+        return response_1.default.succ(resp, (await user.getFCM(req.query)));
+    }
+    catch (err) {
+        return response_1.default.fail(resp, err);
+    }
+});
+router.put('/public/config', async (req, resp) => {
+    var _a;
+    try {
+        const post = new user_1.User(req.get('g-app'), req.body.token);
+        if (await ut_permission_js_1.UtPermission.isManager(req)) {
+            (await post.setConfig({
+                key: req.body.key,
+                value: req.body.value,
+                user_id: (_a = req.body.user_id) !== null && _a !== void 0 ? _a : undefined
+            }));
+        }
+        else {
+            (await post.setConfig({
+                key: req.body.key,
+                value: req.body.value
+            }));
+        }
+        return response_1.default.succ(resp, { result: true });
+    }
+    catch (err) {
+        return response_1.default.fail(resp, err);
+    }
+});
+router.get('/public/config', async (req, resp) => {
+    var _a, _b;
+    try {
+        const post = new user_1.User(req.get('g-app'), req.body.token);
+        return response_1.default.succ(resp, { result: true, value: (_b = ((_a = (await post.getConfig({
+                key: req.query.key,
+                user_id: req.query.user_id
+            }))[0]) !== null && _a !== void 0 ? _a : {})['value']) !== null && _b !== void 0 ? _b : "" });
     }
     catch (err) {
         return response_1.default.fail(resp, err);

@@ -35,7 +35,7 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                             GlobalUser.token = gvc.glitter.getUrlParameter('token')
                             gvc.glitter.setUrlParameter('token', undefined)
                         }
-                        ApiUser.getUserData(GlobalUser.token).then(async (r) => {
+                        ApiUser.getUserData(GlobalUser.token,'me').then(async (r) => {
                             try {
                                 if (!r.result) {
                                     GlobalUser.token = ''

@@ -16,7 +16,7 @@ class UtDatabase {
         }
         let sql = `SELECT *
                    FROM \`${this.app}\`.\`${this.table}\`
-                   where ${querySql.join(' & ')}
+                   where ${querySql.join(' and ')}
                    order by id desc`;
         if (query.id) {
             const data = (await database_js_1.default.query(`SELECT *

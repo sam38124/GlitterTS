@@ -399,14 +399,6 @@ class Add_item_dia {
                 right: gvc.bindView({
                     bind: docID,
                     view: () => {
-                        function tryReturn(fun, defaults) {
-                            try {
-                                return fun();
-                            }
-                            catch (e) {
-                                return defaults;
-                            }
-                        }
                         if (!viewModel.selectSource) {
                             return ``;
                         }

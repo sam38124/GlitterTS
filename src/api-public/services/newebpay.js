@@ -16,11 +16,12 @@ class Newebpay {
             RespondType: 'JSON',
             TimeStamp: Math.floor(Date.now() / 1000),
             Version: '2.0',
-            MerchantOrderNo: new Date().getTime(),
+            MerchantOrderNo: orderData.orderID,
             Amt: orderData.total,
             ItemDesc: '商品資訊',
             NotifyURL: this.keyData.NotifyURL,
             ReturnURL: this.keyData.ReturnURL,
+            TradeLimit: 600
         };
         const appName = this.appName;
         await database_js_1.default.execute(`insert into \`${appName}\`.t_checkout (cart_token, status, email, orderData)
@@ -29,6 +30,43 @@ class Newebpay {
             0,
             orderData.email,
             orderData
+        ]);
+        const qs = Newebpay.JsonToQueryString(params);
+        const tradeInfo = Newebpay.aesEncrypt(qs, this.keyData.HASH_KEY, this.keyData.HASH_IV);
+        const tradeSha = crypto_1.default
+            .createHash('sha256')
+            .update(`HashKey=${this.keyData.HASH_KEY}&${tradeInfo}&HashIV=${this.keyData.HASH_IV}`)
+            .digest('hex')
+            .toUpperCase();
+        return {
+            actionURL: this.keyData.ActionURL,
+            MerchantOrderNo: params.MerchantOrderNo,
+            MerchantID: this.keyData.MERCHANT_ID,
+            TradeInfo: tradeInfo,
+            TradeSha: tradeSha,
+            Version: params.Version,
+        };
+    }
+    async saveMoney(orderData) {
+        const params = {
+            MerchantID: this.keyData.MERCHANT_ID,
+            RespondType: 'JSON',
+            TimeStamp: Math.floor(Date.now() / 1000),
+            Version: '2.0',
+            MerchantOrderNo: new Date().getTime(),
+            Amt: orderData.total,
+            ItemDesc: '加值服務',
+            NotifyURL: this.keyData.NotifyURL,
+            ReturnURL: this.keyData.ReturnURL,
+        };
+        const appName = this.appName;
+        await database_js_1.default.execute(`insert into \`${appName}\`.t_wallet (orderID,userID, money, status, note)
+                          values (?, ?, ?, ? ,?)`, [
+            params.MerchantOrderNo,
+            orderData.userID,
+            orderData.total,
+            0,
+            orderData.note
         ]);
         const qs = Newebpay.JsonToQueryString(params);
         const tradeInfo = Newebpay.aesEncrypt(qs, this.keyData.HASH_KEY, this.keyData.HASH_IV);

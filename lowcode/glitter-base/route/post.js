@@ -53,6 +53,68 @@ export class ApiPost {
             }
         });
     }
+    static getManagerPost(json) {
+        return BaseApi.create({
+            "url": getBaseUrl() + `/api-public/v1/post/manager?${(() => {
+                let par = [
+                    `limit=${json.limit}`,
+                    `page=${json.page}`,
+                    `type=${json.type}`
+                ];
+                json.search && par.push(`search=${json.search}`);
+                json.id && par.push(`id=${json.id}`);
+                return par.join('&');
+            })()}`,
+            "type": "GET",
+            "headers": {
+                "Content-Type": "application/json",
+                "g-app": getConfig().config.appName,
+                "Authorization": getConfig().config.token
+            }
+        });
+    }
+    static getUserPost(json) {
+        return BaseApi.create({
+            "url": getBaseUrl() + `/api-public/v1/post/user?${(() => {
+                let par = [
+                    `limit=${json.limit}`,
+                    `page=${json.page}`,
+                    `type=${json.type}`
+                ];
+                json.search && par.push(`search=${json.search}`);
+                json.id && par.push(`id=${json.id}`);
+                return par.join('&');
+            })()}`,
+            "type": "GET",
+            "headers": {
+                "Content-Type": "application/json",
+                "g-app": getConfig().config.appName,
+                "Authorization": getConfig().config.token
+            }
+        });
+    }
+    static delete(json) {
+        return BaseApi.create({
+            "url": getBaseUrl() + `/api-public/v1/post/manager?id=${json.id}`,
+            "type": "DELETE",
+            "headers": {
+                "Content-Type": "application/json",
+                "g-app": getConfig().config.appName,
+                "Authorization": getConfig().config.token
+            }
+        });
+    }
+    static deleteUserPost(json) {
+        return BaseApi.create({
+            "url": getBaseUrl() + `/api-public/v1/post/user?id=${json.id}`,
+            "type": "DELETE",
+            "headers": {
+                "Content-Type": "application/json",
+                "g-app": getConfig().config.appName,
+                "Authorization": json.token || getConfig().config.token
+            }
+        });
+    }
 }
 function getConfig() {
     const saasConfig = window.saasConfig;

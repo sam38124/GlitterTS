@@ -20,11 +20,10 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                            let total=0
                              for (const b of Object.keys(res)){
                                  const pd:any=(await  ApiShop.getProduct({limit:50,page:0,id:b.split('-')[0]})).response.data.content
-                                 console.log(pd)
                                  const vard=pd.variants.find((d2:any)=>{
                                      return `${pd.id}-${d2.spec.join('-')}`===b
                                  });
-                                 total+=res[b]
+                                 total+=parseInt(res[b],10)
                              }
                             resolve(total)
                         })

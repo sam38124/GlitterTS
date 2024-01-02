@@ -13,13 +13,14 @@ import { EditorElem } from "../../glitterBundle/plugins/editor-elem.js";
 TriggerEvent.createSingleEvent(import.meta.url, () => {
     return {
         fun: (gvc, widget, object, subData, element) => {
-            var _a, _b, _c, _d, _e, _f;
+            var _a, _b, _c, _d, _e, _f, _g;
             object.page = (_a = object.page) !== null && _a !== void 0 ? _a : {};
             object.limit = (_b = object.limit) !== null && _b !== void 0 ? _b : {};
             object.collection = (_c = object.collection) !== null && _c !== void 0 ? _c : {};
             object.maxPrice = (_d = object.maxPrice) !== null && _d !== void 0 ? _d : {};
             object.minPrice = (_e = object.minPrice) !== null && _e !== void 0 ? _e : {};
             object.titleMatch = (_f = object.titleMatch) !== null && _f !== void 0 ? _f : {};
+            object.orderBy = (_g = object.orderBy) !== null && _g !== void 0 ? _g : {};
             return {
                 editor: () => {
                     var _a;
@@ -45,6 +46,11 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                         }),
                         TriggerEvent.editer(gvc, widget, object.minPrice, {
                             title: "最小金額",
+                            hover: false,
+                            option: []
+                        }),
+                        TriggerEvent.editer(gvc, widget, object.orderBy, {
+                            title: "排序方式",
                             hover: false,
                             option: []
                         }),
@@ -89,6 +95,12 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                 clickEvent: object.minPrice,
                                 subData: subData
                             });
+                            const orderBy = yield TriggerEvent.trigger({
+                                gvc: gvc,
+                                widget: widget,
+                                clickEvent: object.orderBy,
+                                subData: subData
+                            });
                             ApiShop.getProduct({
                                 page: page,
                                 limit: limit,
@@ -96,7 +108,8 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                 maxPrice: maxPrice,
                                 minPrice: minPrice,
                                 search: titleMatch,
-                                status: 'active'
+                                status: 'active',
+                                orderBy: orderBy
                             }).then((data) => {
                                 data.response.data.pageSize = Math.ceil(data.response.total / parseInt(limit, 10));
                                 if (parseInt(page, 10) <= data.response.data.pageSize) {

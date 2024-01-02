@@ -1,193 +1,164 @@
 "use strict";
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Chat = void 0;
-const database_1 = __importStar(require("../../modules/database"));
+const database_1 = __importDefault(require("../../modules/database"));
 const exception_1 = __importDefault(require("../../modules/exception"));
+const ut_database_js_1 = require("../utils/ut-database.js");
+const user_js_1 = require("./user.js");
 class Chat {
     constructor(app, token) {
         this.app = app;
         this.token = token;
     }
-    static addPostObserver(callback) {
-        Chat.postObserverList.push(callback);
-    }
     async addChatRoom(room) {
         try {
-            room.participant = JSON.stringify(room.participant);
-            room.info = JSON.stringify(room.info);
-            const data = await database_1.default.query(`INSERT ignore INTO \`${this.app}\`.\`t_chat_list\`
-                                         SET ?`, [
-                room
-            ]);
-            Chat.postObserverList.map((value, index, array) => {
-                value({
-                    type: 'addChat',
-                    data: room
-                }, this.app);
-            });
+            if (room.type === 'user') {
+                room.chat_id = room.participant.sort().join('-');
+            }
+            else {
+                room.chat_id = generateChatID();
+            }
+            if (((await database_1.default.query(`select count(1)
+                                  from \`${this.app}\`.t_chat_list
+                                  where chat_id = ?`, [room.chat_id]))[0]['count(1)']) === 1) {
+                throw exception_1.default.BadRequestError('BAD_REQUEST', 'THIS CHATROOM ALREADY EXISTS.', null);
+            }
+            else {
+                const data = await database_1.default.query(`INSERT INTO \`${this.app}\`.\`t_chat_list\`
+                                             SET ?`, [
+                    {
+                        chat_id: room.chat_id,
+                        type: room.type,
+                        info: room.info
+                    }
+                ]);
+                for (const b of room.participant) {
+                    await database_1.default.query(`
+                        insert into \`${this.app}\`.\`t_chat_participants\`
+                        set ?
+                    `, [
+                        {
+                            chat_id: room.chat_id,
+                            user_id: b
+                        }
+                    ]);
+                }
+                return data;
+            }
+        }
+        catch (e) {
+            throw exception_1.default.BadRequestError('BAD_REQUEST', 'AddChatRoom Error:' + e, null);
+        }
+    }
+    async getChatRoom(qu, userID) {
+        var _a;
+        try {
+            let query = [];
+            qu.befor_id && query.push(`id<${qu.befor_id}`);
+            qu.after_id && query.push(`id>${qu.after_id}`);
+            query.push(`chat_id in (SELECT chat_id FROM \`${this.app}\`.t_chat_participants where user_id=${database_1.default.escape(userID)})`);
+            const data = await new ut_database_js_1.UtDatabase(this.app, `t_chat_list`).querySql(query, qu);
+            for (const b of data.data) {
+                if (b.type === 'user') {
+                    const user = b.chat_id.split('-').find((dd) => {
+                        return dd !== userID;
+                    });
+                    b.topMessage = ((await database_1.default.query(`SELECT message
+                                                     FROM \`${this.app}\`.t_chat_detail
+                                                     where chat_id = ${database_1.default.escape(b.chat_id)}
+                                                     order by id desc limit 0,1;`, []))[0]);
+                    b.topMessage = b.topMessage && b.topMessage.message;
+                    b.who = user;
+                    if (user) {
+                        try {
+                            b.user_data = await new user_js_1.User(this.app).getUserData(user, 'userID');
+                        }
+                        catch (e) {
+                        }
+                    }
+                }
+            }
             return data;
         }
         catch (e) {
-            throw exception_1.default.BadRequestError('BAD_REQUEST', 'PostContent Error:' + e, null);
+            throw exception_1.default.BadRequestError((_a = e.code) !== null && _a !== void 0 ? _a : 'BAD_REQUEST', 'GetChatRoom Error:' + e.message, null);
         }
     }
-    async postContent(content) {
+    async addMessage(room) {
+        var _a, _b, _c;
         try {
-            const data = await database_1.default.query(`INSERT INTO \`${this.app}\`.\`t_post\`
-                                         SET ?`, [
-                content
+            const chatRoom = ((await database_1.default.query(`select *
+                                               from \`${this.app}\`.t_chat_list
+                                               where chat_id = ?`, [room.chat_id])))[0];
+            if (!chatRoom) {
+                throw exception_1.default.BadRequestError('NO_CHATROOM', 'THIS CHATROOM DOES NOT EXISTS.', null);
+            }
+            const particpant = await database_1.default.query(`SELECT *
+                                               FROM \`${this.app}\`.t_chat_participants
+                                               where chat_id = ?`, [room.chat_id]);
+            await database_1.default.query(`
+                insert into \`${this.app}\`.\`t_chat_detail\`
+                set ?
+            `, [
+                {
+                    chat_id: room.chat_id,
+                    user_id: room.user_id,
+                    message: JSON.stringify(room.message)
+                }
             ]);
-            const reContent = JSON.parse(content.content);
-            reContent.id = data.insertId;
-            content.content = JSON.stringify(reContent);
-            await database_1.default.query(`update \`${this.app}\`.t_post
-                            SET ?
-                            WHERE id = ${data.insertId}`, [content]);
-            Chat.postObserverList.map((value, index, array) => {
-                value(content, this.app);
-            });
-            return data;
+            for (const b of particpant) {
+                if (b.user_id !== room.user_id) {
+                    const post = new user_js_1.User(this.app, this.token);
+                    const robot = (_b = ((_a = (await post.getConfig({
+                        key: 'robot_auto_reply',
+                        user_id: b.user_id
+                    }))[0]) !== null && _a !== void 0 ? _a : {})['value']) !== null && _b !== void 0 ? _b : {};
+                    if (robot.question) {
+                        for (const d of robot.question) {
+                            if (d.ask === room.message.text) {
+                                await database_1.default.query(`
+                                    insert into \`${this.app}\`.\`t_chat_detail\`
+                                    set ?
+                                `, [
+                                    {
+                                        chat_id: room.chat_id,
+                                        user_id: b.user_id,
+                                        message: JSON.stringify({
+                                            text: d.response
+                                        })
+                                    }
+                                ]);
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
         }
         catch (e) {
-            throw exception_1.default.BadRequestError('BAD_REQUEST', 'PostContent Error:' + e, null);
+            throw exception_1.default.BadRequestError((_c = e.code) !== null && _c !== void 0 ? _c : 'BAD_REQUEST', 'AddMessage Error:' + e.message, null);
         }
     }
-    async getContent(content) {
+    async getMessage(qu) {
+        var _a;
         try {
-            let userData = {};
-            let query = ``;
-            const app = this.app;
-            let selectOnly = ` * `;
-            function getQueryString(dd) {
-                var _a;
-                if (!dd || dd.length === 0 || dd.key === '') {
-                    return ``;
-                }
-                if (dd.type === 'relative_post') {
-                    dd.query = (_a = dd.query) !== null && _a !== void 0 ? _a : [];
-                    return ` and JSON_EXTRACT(content, '$.${dd.key}') in (SELECT JSON_EXTRACT(content, '$.${dd.value}') AS datakey
- from \`${app}\`.t_post where 1=1 ${dd.query.map((dd) => {
-                        return getQueryString(dd);
-                    }).join(`  `)})`;
-                }
-                else if (dd.type === 'in') {
-                    return `and JSON_EXTRACT(content, '$.${dd.key}') in (${dd.query.map((dd) => {
-                        return (typeof dd.value === 'string') ? `'${dd.value}'` : dd.value;
-                    }).join(',')})`;
-                }
-                else if (dd.type) {
-                    return ` and JSON_EXTRACT(content, '$.${dd.key}') ${dd.type} ${(typeof dd.value === 'string') ? `'${dd.value}'` : dd.value}`;
-                }
-                else {
-                    return ` and JSON_EXTRACT(content, '$.${dd.key}') LIKE '%${dd.value}%'`;
-                }
-            }
-            function getSelectString(dd) {
-                if (!dd || dd.length === 0) {
-                    return ``;
-                }
-                if (dd.type === 'SUM') {
-                    return ` SUM(JSON_EXTRACT(content, '$.${dd.key}')) AS ${dd.value}`;
-                }
-                else if (dd.type === 'count') {
-                    return ` count(1)`;
-                }
-                else if (dd.type === 'AVG') {
-                    return ` AVG(JSON_EXTRACT(content, '$.${dd.key}')) AS ${dd.value}`;
-                }
-                else {
-                    return `  JSON_EXTRACT(content, '$.${dd.key}') AS '${dd.value}' `;
-                }
-            }
-            if (content.query) {
-                content.query = JSON.parse(content.query);
-                content.query.map((dd) => {
-                    query += getQueryString(dd);
-                });
-            }
-            console.log(`query---`, query);
-            if (content.selectOnly) {
-                content.selectOnly = JSON.parse(content.selectOnly);
-                content.selectOnly.map((dd, index) => {
-                    if (index === 0) {
-                        selectOnly = '';
-                    }
-                    selectOnly += getSelectString(dd);
-                });
-            }
-            console.log(`selectOnly---`, JSON.stringify(selectOnly));
-            console.log(`select---`, selectOnly);
-            if (content.datasource) {
-                content.datasource = JSON.parse(content.datasource);
-                if (content.datasource.length > 0) {
-                    query += ` and userID in ('${content.datasource.map((dd) => {
-                        return dd;
-                    }).join("','")}')`;
-                }
-            }
-            const data = (await database_1.default.query(`select ${selectOnly}
-                                          from \`${this.app}\`.\`t_post\`
-                                          where 1 = 1
-                                              ${query}
-                                          order by id desc ${(0, database_1.limit)(content)}`, [
-                content
-            ]));
-            for (const dd of data) {
-                if (!dd.userID) {
-                    continue;
-                }
-                if (!userData[dd.userID]) {
-                    try {
-                        userData[dd.userID] = (await database_1.default.query(`select userData
-                                                               from \`${this.app}\`.\`t_user\`
-                                                               where userID = ${dd.userID}`, []))[0]['userData'];
-                    }
-                    catch (e) {
-                    }
-                }
-                dd.userData = userData[dd.userID];
-            }
-            return {
-                data: data,
-                count: (await database_1.default.query(`select count(1)
-                                        from \`${this.app}\`.\`t_post\`
-                                        where userID in (select userID
-                                                         from \`${this.app}\`.\`t_user\`)
-                                            ${query}`, [
-                    content
-                ]))[0]["count(1)"]
-            };
+            let query = [
+                `chat_id=${database_1.default.escape(qu.chat_id)}`
+            ];
+            qu.befor_id && query.push(`id<${qu.befor_id}`);
+            qu.after_id && query.push(`id>${qu.after_id}`);
+            return await new ut_database_js_1.UtDatabase(this.app, `t_chat_detail`).querySql(query, qu);
         }
         catch (e) {
-            throw exception_1.default.BadRequestError('BAD_REQUEST', 'PostContent Error:' + e, null);
+            throw exception_1.default.BadRequestError((_a = e.code) !== null && _a !== void 0 ? _a : 'BAD_REQUEST', 'GetMessage Error:' + e.message, null);
         }
     }
 }
 exports.Chat = Chat;
-Chat.postObserverList = [];
-function generateUserID() {
+function generateChatID() {
     let userID = '';
     const characters = '0123456789';
     const charactersLength = characters.length;

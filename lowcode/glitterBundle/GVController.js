@@ -33,7 +33,6 @@ class LifeCycle {
 }
 export class GVC {
     constructor() {
-        this.glitter = window.glitter;
         this.parameter = {
             clickMap: {},
             pageConfig: undefined,
@@ -46,6 +45,12 @@ export class GVC {
         this.share = {};
         this.recreateView = () => {
         };
+    }
+    get glitter() {
+        return window.glitter;
+    }
+    static get glitter() {
+        return window.glitter;
     }
     closeDialog() {
         var _a;
@@ -60,15 +65,11 @@ export class GVC {
         const gvc = this;
         try {
             const refresh = (id) => {
-                var _a, _b, _c;
+                var _a;
                 if (gvc.getBindViewElem(id).length === 0) {
                     return;
                 }
                 gvc.parameter.bindViewList[id].divCreate = (_a = gvc.parameter.bindViewList[id].divCreate) !== null && _a !== void 0 ? _a : {};
-                const divCreate = (typeof gvc.parameter.bindViewList[id].divCreate === "function") ? gvc.parameter.bindViewList[id].divCreate() : gvc.parameter.bindViewList[id].divCreate;
-                $(`[gvc-id="${gvc.id(id)}"]`).attr('class', (_b = divCreate.class) !== null && _b !== void 0 ? _b : "");
-                $(`[gvc-id="${gvc.id(id)}"]`).attr('style', (_c = divCreate.style) !== null && _c !== void 0 ? _c : "");
-                gvc.glitter.elementCallback[gvc.id(id)].updateAttribute();
                 function notifyLifeCycle() {
                     if (gvc.parameter.bindViewList[id].onCreate) {
                         gvc.parameter.bindViewList[id].onCreate();
@@ -78,11 +79,13 @@ export class GVC {
                     const view = gvc.glitter.elementCallback[gvc.id(id)].getView();
                     if (typeof view === 'string') {
                         $(`[gvc-id="${gvc.id(id)}"]`).html(view);
+                        gvc.glitter.elementCallback[gvc.id(id)].updateAttribute();
                         notifyLifeCycle();
                     }
                     else {
                         view.then((resolve) => {
                             $(`[gvc-id="${gvc.id(id)}"]`).html(resolve);
+                            gvc.glitter.elementCallback[gvc.id(id)].updateAttribute();
                             notifyLifeCycle();
                         });
                     }
@@ -248,50 +251,31 @@ export class GVC {
             });
         }
         gvc.parameter.bindViewList[map.bind] = map;
-        gvc.glitter.elementCallback[gvc.id(map.bind)].onInitial = (_a = map.onInitial) !== null && _a !== void 0 ? _a : (() => { });
-        gvc.glitter.elementCallback[gvc.id(map.bind)].onCreate = (_b = map.onCreate) !== null && _b !== void 0 ? _b : (() => { });
-        gvc.glitter.elementCallback[gvc.id(map.bind)].onDestroy = (_c = map.onDestroy) !== null && _c !== void 0 ? _c : (() => { });
+        gvc.glitter.elementCallback[gvc.id(map.bind)].onInitial = (_a = map.onInitial) !== null && _a !== void 0 ? _a : (() => {
+        });
+        gvc.glitter.elementCallback[gvc.id(map.bind)].onCreate = (_b = map.onCreate) !== null && _b !== void 0 ? _b : (() => {
+        });
+        gvc.glitter.elementCallback[gvc.id(map.bind)].onDestroy = (_c = map.onDestroy) !== null && _c !== void 0 ? _c : (() => {
+        });
         gvc.glitter.elementCallback[gvc.id(map.bind)].getView = map.view;
         gvc.glitter.elementCallback[gvc.id(map.bind)].updateAttribute = (() => {
             var _a;
             try {
                 const id = gvc.id(map.bind);
                 const divCreate2 = (typeof map.divCreate === "function") ? map.divCreate() : map.divCreate;
-                ((_a = divCreate2.option) !== null && _a !== void 0 ? _a : []).map((dd) => {
-                    try {
-                        const element = $(`[gvc-id="${id}"]`);
-                        if ((dd.value.includes('clickMap') || dd.value.includes('editorEvent')) && (dd.key.substring(0, 2) === 'on')) {
-                            try {
-                                const funString = `${dd.value}`;
-                                element.get(0).off(dd.key.substring(2));
-                                element.get(0).addEventListener(dd.key.substring(2), function () {
-                                    if (gvc.glitter.htmlGenerate.isEditMode() && !gvc.glitter.share.EditorMode) {
-                                        if (funString.indexOf('editorEvent') !== -1) {
-                                            eval(funString.replace('editorEvent', 'clickMap'));
-                                        }
-                                        else if (dd.key !== 'onclick') {
-                                            eval(funString);
-                                        }
-                                    }
-                                    else {
-                                        eval(funString);
-                                    }
-                                });
-                            }
-                            catch (e) {
-                                gvc.glitter.deBugMessage(e);
-                            }
+                if (divCreate2) {
+                    ((_a = divCreate2.option) !== null && _a !== void 0 ? _a : []).concat({ key: 'class', value: divCreate2.class }, { key: 'style', value: divCreate2.style }).map((dd) => {
+                        try {
+                            gvc.glitter.renderView.replaceAttributeValue(dd, document.querySelector(`[gvc-id="${id}"]`));
                         }
-                        else {
-                            element.attr(dd.key, dd.value);
+                        catch (e) {
+                            gvc.glitter.deBugMessage(e);
                         }
-                    }
-                    catch (e) {
-                        gvc.glitter.deBugMessage(e);
-                    }
-                });
+                    });
+                }
             }
             catch (e) {
+                console.log(e);
             }
         });
         const divCreate = (_d = ((typeof map.divCreate === "function") ? map.divCreate() : map.divCreate)) !== null && _d !== void 0 ? _d : { elem: 'div' };
@@ -461,64 +445,64 @@ export class GVC {
         return html;
     }
 }
-export function init(fun, gt) {
-    var _a, _b, _c, _d, _e, _f, _g, _h, _j;
-    const glitter = (_a = (gt)) !== null && _a !== void 0 ? _a : window.glitter;
-    const gvc = new GVC();
-    gvc.glitter = glitter;
-    gvc.parameter.pageConfig = glitter.nowPageConfig;
-    const pageData = fun(gvc, glitter, (_b = glitter.nowPageConfig) === null || _b === void 0 ? void 0 : _b.obj);
-    if (!glitter.modelJsList.find((data) => {
-        var _a;
-        return data.src === ((_a = glitter.nowPageConfig) === null || _a === void 0 ? void 0 : _a.src);
-    })) {
-        glitter.modelJsList.push({
-            src: glitter.nowPageConfig.src,
-            create: (glitter) => {
-                init(fun, window.glitter);
-            }
-        });
-    }
-    const lifeCycle = new LifeCycle();
-    lifeCycle.onResume = (_c = pageData.onResume) !== null && _c !== void 0 ? _c : lifeCycle.onResume;
-    lifeCycle.onPause = (_d = pageData.onPause) !== null && _d !== void 0 ? _d : lifeCycle.onPause;
-    lifeCycle.onDestroy = (_e = pageData.onDestroy) !== null && _e !== void 0 ? _e : lifeCycle.onDestroy;
-    lifeCycle.onCreate = (_f = pageData.onCreate) !== null && _f !== void 0 ? _f : lifeCycle.onCreate;
-    lifeCycle.onCreateView = pageData.onCreateView;
-    lifeCycle.cssInitial = (_g = pageData.cssInitial) !== null && _g !== void 0 ? _g : lifeCycle.cssInitial;
-    gvc.recreateView = () => {
-        $(`#page${gvc.parameter.pageConfig.id}`).html(lifeCycle.onCreateView());
-    };
-    if ($('.page-loading').length > 0) {
-        $('.page-loading').remove();
-    }
-    window.clickMap = (_h = window.clickMap) !== null && _h !== void 0 ? _h : {};
-    switch ((_j = gvc.parameter.pageConfig) === null || _j === void 0 ? void 0 : _j.type) {
-        case GVCType.Dialog:
-            $('#page' + gvc.parameter.pageConfig.id).html(lifeCycle.onCreateView());
-            glitter.setAnimation(gvc.parameter.pageConfig);
-            break;
-        case GVCType.Page:
-            $('#page' + gvc.parameter.pageConfig.id).html(lifeCycle.onCreateView());
-            glitter.setAnimation(gvc.parameter.pageConfig);
-            break;
-    }
-    window.clickMap[gvc.parameter.pageConfig.id] = gvc.parameter.clickMap;
-    lifeCycle.onCreate();
-    gvc.parameter.pageConfig.deleteResource = (destroy) => {
-        window.clickMap[gvc.parameter.pageConfig.id] = undefined;
-        lifeCycle.onPause();
-        gvc.parameter.styleLinks.map((dd) => {
-            $(`#${dd.id}`).remove();
-        });
-        gvc.parameter.styleList.map((dd) => {
-            $(`#${dd.id}`).remove();
-        });
-        gvc.parameter.jsList.map((dd) => {
-            $(`#${dd.id}`).remove();
-        });
-        if (destroy) {
-            lifeCycle.onDestroy();
+export function init(metaURL, fun) {
+    var _a;
+    GVC.glitter.share.GVControllerList = (_a = GVC.glitter.share.GVControllerList) !== null && _a !== void 0 ? _a : {};
+    GVC.glitter.share.GVControllerList[metaURL] = (cf) => {
+        var _a, _b, _c, _d, _e, _f;
+        const gvc = new GVC();
+        gvc.parameter.pageConfig = cf.pageConfig;
+        window.clickMap = (_a = window.clickMap) !== null && _a !== void 0 ? _a : {};
+        window.clickMap[cf.pageConfig.id] = gvc.parameter.clickMap;
+        const lifeCycle = new LifeCycle();
+        const pageData = fun(gvc, GVC.glitter, cf.pageConfig.obj);
+        lifeCycle.onResume = (_b = pageData.onResume) !== null && _b !== void 0 ? _b : lifeCycle.onResume;
+        lifeCycle.onPause = (_c = pageData.onPause) !== null && _c !== void 0 ? _c : lifeCycle.onPause;
+        lifeCycle.onDestroy = (_d = pageData.onDestroy) !== null && _d !== void 0 ? _d : lifeCycle.onDestroy;
+        lifeCycle.onCreate = (_e = pageData.onCreate) !== null && _e !== void 0 ? _e : lifeCycle.onCreate;
+        lifeCycle.onCreateView = pageData.onCreateView;
+        lifeCycle.cssInitial = (_f = pageData.cssInitial) !== null && _f !== void 0 ? _f : lifeCycle.cssInitial;
+        gvc.recreateView = () => {
+            $(`#page${cf.pageConfig.id}`).html(lifeCycle.onCreateView());
+        };
+        if ($('.page-loading').length > 0) {
+            $('.page-loading').remove();
         }
+        cf.pageConfig.createResource = () => {
+            window.clickMap[cf.pageConfig.id] = gvc.parameter.clickMap;
+            lifeCycle.onResume();
+            lifeCycle.onCreate();
+        };
+        cf.pageConfig.deleteResource = (destroy) => {
+            window.clickMap[cf.pageConfig.id] = undefined;
+            lifeCycle.onPause();
+            gvc.parameter.styleLinks.map((dd) => {
+                $(`#${dd.id}`).remove();
+            });
+            gvc.parameter.styleList.map((dd) => {
+                $(`#${dd.id}`).remove();
+            });
+            gvc.parameter.jsList.map((dd) => {
+                $(`#${dd.id}`).remove();
+            });
+            if (destroy) {
+                lifeCycle.onDestroy();
+            }
+        };
+        if (cf.pageConfig.type === GVCType.Page) {
+            $('#glitterPage').append(`<page-box id="page${cf.pageConfig.id}" style="min-width: 100vw;min-height: 100vh;left: 0;top: 0;width:100vw;
+background: ${cf.pageConfig.backGroundColor};z-index: 9999;overflow: hidden;display:none;">
+${lifeCycle.onCreateView()}
+</page-box>`);
+        }
+        else {
+            $('#glitterPage').append(`<page-box id="page${cf.pageConfig.id}" style="min-width: 100vw;min-height: 100vh;left: 0;top: 0;
+background: ${cf.pageConfig.backGroundColor};display: none;z-index:99999;overflow: hidden;position: fixed;width:100vw;height: 100vh;">
+${lifeCycle.onCreateView()}
+</page-box>`);
+        }
+        gvc.glitter.setAnimation(cf.pageConfig);
+        lifeCycle.onCreate();
+        gvc.glitter.defaultSetting.pageLoadingFinish();
     };
 }

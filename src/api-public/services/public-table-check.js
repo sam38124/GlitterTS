@@ -22,12 +22,12 @@ class ApiPublic {
                     sql: ` (
   \`id\` int NOT NULL AUTO_INCREMENT,
   \`chat_id\` varchar(120) COLLATE utf8mb4_unicode_ci NOT NULL,
-  \`t_user\` varchar(45) COLLATE utf8mb4_unicode_ci NOT NULL,
+  \`user_id\` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL,
   \`message\` json DEFAULT NULL,
   \`created_time\` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (\`id\`),
   KEY \`index2\` (\`chat_id\`),
-  KEY \`index3\` (\`t_user\`),
+  KEY \`index3\` (\`user_id\`),
   KEY \`index4\` (\`created_time\`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`
                 },
@@ -45,16 +45,42 @@ class ApiPublic {
                 },
                 {
                     scheme: appName,
+                    table: 't_user_public_config',
+                    sql: ` (
+                    \`id\` int NOT NULL AUTO_INCREMENT,
+                \`user_id\` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL,
+                \`key\` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+                \`value\` json NOT NULL,
+                \`updated_at\` datetime NOT NULL,
+                PRIMARY KEY (\`id\`),
+                UNIQUE KEY \`index2\` (\`user_id\`,\`key\`)
+        ) ENGINE=InnoDB AUTO_INCREMENT=309 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`
+                },
+                {
+                    scheme: appName,
                     table: 't_chat_list',
                     sql: `(
   \`id\` int NOT NULL AUTO_INCREMENT,
-  \`chat_id\` varchar(120) COLLATE utf8mb4_unicode_ci NOT NULL,
-  \`participant\` json DEFAULT NULL,
+  \`chat_id\` varchar(120) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  \`type\` varchar(45) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'user',
   \`info\` json DEFAULT NULL,
   \`created_time\` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (\`id\`),
-  UNIQUE KEY \`index2\` (\`chat_id\`)
+  UNIQUE KEY \`index2\` (\`chat_id\`),
+  KEY \`index3\` (\`type\`)
 ) ENGINE=InnoDB AUTO_INCREMENT=22 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`
+                },
+                {
+                    scheme: appName,
+                    table: 't_chat_participants',
+                    sql: ` (
+  \`id\` int NOT NULL AUTO_INCREMENT,
+  \`chat_id\` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL,
+  \`user_id\` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  \`created_time\` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (\`id\`),
+  UNIQUE KEY \`index2\` (\`chat_id\`,\`user_id\`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`
                 },
                 {
                     scheme: appName,
@@ -115,7 +141,78 @@ class ApiPublic {
   \`created_time\` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (\`id\`),
   UNIQUE KEY \`cart_token_UNIQUE\` (\`cart_token\`)
-) ENGINE=InnoDB AUTO_INCREMENT=3430 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci`
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci `
+                },
+                {
+                    scheme: appName,
+                    table: 't_subscribe',
+                    sql: `(
+  \`id\` int NOT NULL AUTO_INCREMENT,
+  \`email\` varchar(105) COLLATE utf8mb4_general_ci NOT NULL,
+  \`tag\` varchar(100) COLLATE utf8mb4_general_ci NOT NULL,
+  PRIMARY KEY (\`id\`),
+  UNIQUE KEY \`index2\` (\`email\`,\`tag\`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci         `
+                },
+                {
+                    scheme: appName,
+                    table: 't_fcm',
+                    sql: `(
+  \`id\` INT NOT NULL AUTO_INCREMENT,
+  \`userID\` VARCHAR(100) NULL,
+  \`deviceToken\` VARCHAR(200) NULL,
+  UNIQUE INDEX \`deviceToken_UNIQUE\` (\`deviceToken\` ASC) VISIBLE,
+  INDEX \`index2\` (\`userID\` ASC) VISIBLE,
+  PRIMARY KEY (\`id\`)
+  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+  `
+                },
+                {
+                    scheme: appName,
+                    table: 't_wallet',
+                    sql: ` (
+  \`id\` int NOT NULL AUTO_INCREMENT,
+  \`orderID\` varchar(45) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  \`userID\` varchar(45) COLLATE utf8mb4_unicode_ci NOT NULL,
+  \`money\` int NOT NULL,
+  \`status\` int NOT NULL DEFAULT '0',
+  \`note\` json DEFAULT NULL,
+  \`created_time\` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (\`id\`),
+  UNIQUE KEY \`orderID_UNIQUE\` (\`orderID\`),
+  KEY \`index2\` (\`userID\`),
+  KEY \`index3\` (\`status\`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`
+                },
+                {
+                    scheme: appName,
+                    table: 't_rebate',
+                    sql: ` (
+  \`id\` int NOT NULL AUTO_INCREMENT,
+  \`orderID\` varchar(45) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  \`userID\` varchar(45) COLLATE utf8mb4_unicode_ci NOT NULL,
+  \`money\` int NOT NULL,
+  \`status\` int NOT NULL DEFAULT '0',
+  \`note\` json DEFAULT NULL,
+  \`created_time\` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (\`id\`),
+  UNIQUE KEY \`orderID_UNIQUE\` (\`orderID\`),
+  KEY \`index2\` (\`userID\`),
+  KEY \`index3\` (\`status\`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`
+                },
+                {
+                    scheme: appName,
+                    table: 't_withdraw',
+                    sql: `(
+  \`id\` INT NOT NULL AUTO_INCREMENT,
+  \`userID\` VARCHAR(45) NOT NULL,
+  \`money\` INT NOT NULL DEFAULT 0,
+  \`status\` INT NOT NULL DEFAULT 0,
+  \`note\` JSON NULL DEFAULT NULL,
+  \`created_time\` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (\`id\`),
+  INDEX \`index2\` (\`userID\` ASC) VISIBLE) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;`
                 }
             ];
             for (const b of chunkArray(sqlArray, groupSize)) {

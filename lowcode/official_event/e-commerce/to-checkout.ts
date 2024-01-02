@@ -71,7 +71,11 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                             line_items:[],
                             total:0
                         }
+                        const voucher=await ApiShop.getVoucherCode()
+                        const rebate=await ApiShop.getRebateValue() || 0
                         function checkout(){
+                            const href=new URL(location.href)
+                            href.searchParams.set('page','')
                             ApiShop.toCheckout({
                                 line_items:cartData.line_items.map((dd)=>{
                                     return {
@@ -80,8 +84,10 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                         count:dd.count
                                     }
                                 }),
-                                return_url:location.href,
-                                user_info:userInfo as any
+                                return_url:href.href,
+                                user_info:userInfo as any,
+                                code:voucher as string,
+                                use_rebate:parseInt(rebate as string,10)
                             }).then((res)=>{
                                 $('body').html(res.response.form)
                                 setTimeout(()=>{

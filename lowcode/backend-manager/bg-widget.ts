@@ -132,4 +132,24 @@ export class BgWidget {
             };
         });
     }
+    public static card(html: string, classStyle: string = 'p-3 bg-white rounded-3 shadow border w-100 ') {
+        return `<div class="${classStyle}">
+${html}
+</div>`
+    }
+    public static container(html: string, width?: number) {
+        return `<div class="mx-auto" style="padding:24px;${(width) ? `max-width:100%;width:${width}px;` : ``};color:black;">
+${html}
+</div>`
+    }
+
+    public static title(title: string) {
+        return ` <h3 class="my-auto" style="font-size:1.25rem;">${title}</h3>`
+    }
+
+    public static goBack(event: string) {
+        return `<div class="d-flex align-items-center justify-content-center  me-2 border bg-white" style="height:36px;width:36px;border-radius:10px;cursor:pointer;" onclick="${event}">
+                                 <i class="fa-sharp fa-solid fa-arrow-left"></i>
+                                </div>`
+    }
 }

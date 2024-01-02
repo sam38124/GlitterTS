@@ -2,9 +2,10 @@ import { IToken } from "../models/Auth.js";
 interface VoucherData {
     title: string;
     method: 'percent' | 'fixed';
+    reBackType: 'rebate' | 'discount';
     trigger: 'auto' | "code";
     value: string;
-    for: 'collection' | 'product';
+    for: 'collection' | 'product' | 'all';
     rule: 'min_price' | 'min_count';
     forKey: string[];
     ruleValue: number;
@@ -23,24 +24,30 @@ interface VoucherData {
         "sale_price": number;
         "collection": string[];
         "discount_price": number;
+        "rebate": number;
     }[];
     start_ISO_Date: string;
     end_ISO_Date: string;
     discount_total: number;
+    rebate_total: number;
 }
 export declare class Shopping {
     app: string;
     token: IToken;
     constructor(app: string, token: IToken);
+    deleteRebate(cf: {
+        id: string;
+    }): Promise<void>;
     getProduct(query: {
         page: number;
         limit: number;
         id?: string;
         search?: string;
         collection?: string;
-        minPrice?: string;
-        maxPrice?: string;
+        min_price?: string;
+        max_price?: string;
         status?: string;
+        order_by?: string;
     }): Promise<{
         data: any;
         result: boolean;
@@ -54,6 +61,7 @@ export declare class Shopping {
         page: number;
         limit: number;
         id?: string;
+        order_by?: string;
     }): Promise<{
         data: any;
         result: boolean;
@@ -82,11 +90,13 @@ export declare class Shopping {
             "collection"?: string[];
             title?: string;
             preview_image?: string;
+            "sku": string;
         }[];
         "email"?: string;
         "return_url": string;
         "user_info": any;
         "code"?: string;
+        "use_rebate"?: number;
     }, type?: 'add' | 'preview'): Promise<{
         data: {
             lineItems: {
@@ -103,6 +113,9 @@ export declare class Shopping {
             user_info: any;
             code?: string | undefined;
             shipment_fee: number;
+            rebate: number;
+            use_rebate: number;
+            orderID: string;
         };
         form?: undefined;
     } | {
@@ -117,8 +130,10 @@ export declare class Shopping {
             "sale_price": number;
             "collection": string[];
             "discount_price"?: number;
+            rebate?: number;
         }[];
         discount?: number;
+        rebate?: number;
         total: number;
         email: string;
         user_info: any;
@@ -199,5 +214,6 @@ export declare class Shopping {
         total: any;
         result?: undefined;
     }>;
+    postVariantsAndPriceValue(content: any): Promise<void>;
 }
 export {};

@@ -95,32 +95,9 @@ export const array_item = Plugin.createComponent(import.meta.url, (glitter: Glit
                                         }
                                         if (!cfMap[tag]) {
                                             cfMap[tag] = await new Promise((resolve, reject) => {
-                                                function getData() {
-                                                    BaseApi.create({
-                                                        "url": saasConfig.config.url + `/api/v1/template?appName=${saasConfig.config.appName}&tag=${tag}`,
-                                                        "type": "GET",
-                                                        "timeout": 0,
-                                                        "headers": {
-                                                            "Content-Type": "application/json"
-                                                        }
-                                                    }).then((d2) => {
-                                                        try {
-                                                            if (!d2.result) {
-                                                                fal += 1
-                                                                if (fal < 20) {
-                                                                    setTimeout(() => {
-                                                                        getData()
-                                                                    }, 200)
-                                                                }
-                                                            } else {
-                                                                resolve(d2.response.result[0])
-                                                            }
-                                                        } catch (e) {
-                                                        }
-                                                    })
-                                                }
-
-                                                getData()
+                                                ((window as any).glitterInitialHelper).getPageData(tag,(d2:any)=>{
+                                                    resolve(d2.response.result[0])
+                                                })
                                             })
                                         }
                                         const config = JSON.parse(JSON.stringify(cfMap[tag].config))

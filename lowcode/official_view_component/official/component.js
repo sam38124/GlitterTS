@@ -91,42 +91,26 @@ export const component = Plugin.createComponent(import.meta.url, (glitter, editM
                                         }
                                         catch (e) {
                                         }
-                                        BaseApi.create({
-                                            "url": saasConfig.config.url + `/api/v1/template?appName=${saasConfig.config.appName}&tag=${encodeURIComponent(tag)}`,
-                                            "type": "GET",
-                                            "timeout": 0,
-                                            "headers": {
-                                                "Content-Type": "application/json"
-                                            }
-                                        }).then((d2) => {
-                                            var _a, _b;
-                                            try {
-                                                if (!d2.result) {
-                                                    fal += 1;
-                                                    if (fal < 20) {
-                                                        setTimeout(() => {
-                                                            getData();
-                                                        }, 200);
-                                                    }
-                                                }
-                                                else {
-                                                    data = d2.response.result[0];
-                                                    data.config.map((dd) => {
-                                                        glitter.htmlGenerate.renameWidgetID(dd);
-                                                    });
-                                                    let createOption = (_a = (htmlGenerate !== null && htmlGenerate !== void 0 ? htmlGenerate : {}).createOption) !== null && _a !== void 0 ? _a : {};
-                                                    createOption.option = (_b = createOption.option) !== null && _b !== void 0 ? _b : [];
-                                                    createOption.childContainer = true;
-                                                    data.config.formData = data.page_config.formData;
-                                                    target.outerHTML = `
+                                        if (!tag) {
+                                            target.outerHTML = '';
+                                        }
+                                        else {
+                                            (window.glitterInitialHelper).getPageData(tag, (d2) => {
+                                                var _a, _b;
+                                                data = d2.response.result[0];
+                                                data.config.map((dd) => {
+                                                    glitter.htmlGenerate.renameWidgetID(dd);
+                                                });
+                                                let createOption = (_a = (htmlGenerate !== null && htmlGenerate !== void 0 ? htmlGenerate : {}).createOption) !== null && _a !== void 0 ? _a : {};
+                                                createOption.option = (_b = createOption.option) !== null && _b !== void 0 ? _b : [];
+                                                createOption.childContainer = true;
+                                                data.config.formData = data.page_config.formData;
+                                                target.outerHTML = `
                                                 <!-- tag=${tag} -->
                                                 ${new glitter.htmlGenerate(data.config, [], sub).render(gvc, undefined, createOption !== null && createOption !== void 0 ? createOption : {})}
                                                 `;
-                                                }
-                                            }
-                                            catch (e) {
-                                            }
-                                        });
+                                            });
+                                        }
                                     });
                                 }
                                 getData();
@@ -296,7 +280,6 @@ export const component = Plugin.createComponent(import.meta.url, (glitter, editM
                                                                                                 callback: (text) => {
                                                                                                     dd.codeVersion = 'v2';
                                                                                                     dd.code = text;
-                                                                                                    gvc.recreateView();
                                                                                                 },
                                                                                                 height: 400
                                                                                             });
@@ -347,7 +330,7 @@ export const component = Plugin.createComponent(import.meta.url, (glitter, editM
                                         }),
                                         html `
                                             <div class="mx-n2">
-${gvc.bindView(() => {
+                                                ${gvc.bindView(() => {
                                             const id = glitter.getUUID();
                                             return {
                                                 bind: id,
@@ -373,7 +356,7 @@ ${gvc.bindView(() => {
                                                             def && map.push(`<div class="btn " style="background:white;width:calc(100% - 20px);border-radius:8px;
                     min-height:45px;border:1px solid black;color:#151515;margin-left:10px;" onclick="${gvc.event(() => {
                                                                 glitter.setUrlParameter('page', def.tag);
-                                                                location.reload();
+                                                                glitter.share.reloadEditor();
                                                             })}">${def.name}</div>`);
                                                             widget.data.list.map((d2) => {
                                                                 const def = data.dataList.find((dd) => {

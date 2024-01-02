@@ -3,6 +3,71 @@ import { BaseApi } from "../../glitterBundle/api/base.js";
 export class ApiShop {
     constructor() {
     }
+    static getRebate(query) {
+        return BaseApi.create({
+            "url": getBaseUrl() + `/api-public/v1/ec/rebate/sum?${(() => {
+                let par = [];
+                query.userID && par.push(`userID=${query.userID}`);
+                return par.join('&');
+            })()}`,
+            "type": "GET",
+            "headers": {
+                "Content-Type": "application/json",
+                "g-app": getConfig().config.appName,
+                "Authorization": (!query.userID) ? GlobalUser.token : getConfig().config.token
+            }
+        });
+    }
+    static postWishList(wishList) {
+        return BaseApi.create({
+            "url": getBaseUrl() + `/api-public/v1/ec/wishlist`,
+            "type": "POST",
+            "headers": {
+                "Content-Type": "application/json",
+                "g-app": getConfig().config.appName,
+                "Authorization": GlobalUser.token
+            },
+            data: JSON.stringify({
+                product_id: wishList
+            })
+        });
+    }
+    static deleteWishList(wishList) {
+        return BaseApi.create({
+            "url": getBaseUrl() + `/api-public/v1/ec/wishlist`,
+            "type": "delete",
+            "headers": {
+                "Content-Type": "application/json",
+                "g-app": getConfig().config.appName,
+                "Authorization": GlobalUser.token
+            },
+            data: JSON.stringify({
+                product_id: wishList
+            })
+        });
+    }
+    static getWishList() {
+        return BaseApi.create({
+            "url": getBaseUrl() + `/api-public/v1/ec/wishlist?page=0&limit=200`,
+            "type": "get",
+            "headers": {
+                "Content-Type": "application/json",
+                "g-app": getConfig().config.appName,
+                "Authorization": GlobalUser.token
+            }
+        });
+    }
+    static checkWishList(product_id) {
+        return BaseApi.create({
+            "url": getBaseUrl() + `/api-public/v1/ec/checkWishList?product_id=${product_id}`,
+            "type": "get",
+            "headers": {
+                "Content-Type": "application/json",
+                "g-app": getConfig().config.appName,
+                "Authorization": GlobalUser.token
+            }
+        });
+    }
     static getProduct(json) {
         return BaseApi.create({
             "url": getBaseUrl() + `/api-public/v1/ec/product?${(() => {
@@ -16,6 +81,7 @@ export class ApiShop {
                 json.maxPrice && par.push(`max_price=${json.maxPrice}`);
                 json.minPrice && par.push(`min_price=${json.minPrice}`);
                 json.status && par.push(`status=${json.status}`);
+                json.orderBy && par.push(`order_by=${json.orderBy}`);
                 return par.join('&');
             })()}`,
             "type": "GET",
@@ -171,12 +237,37 @@ export class ApiShop {
         window.glitter.setPro(ApiShop.voucherID, code, () => {
         });
     }
+    static setRebateValue(value) {
+        window.glitter.setPro(ApiShop.rebateID, value, () => {
+        });
+    }
+    static getRebateValue() {
+        const glitter = window.glitter;
+        return new Promise((resolve, reject) => {
+            window.glitter.getPro(ApiShop.rebateID, (response) => {
+                resolve(response.data);
+            });
+        });
+    }
     static addToCart(id, count) {
         window.glitter.getPro(ApiShop.cartID, (response) => {
             var _a;
             const cartData = (response.data) ? JSON.parse(response.data) : {};
             cartData[id] = (_a = cartData[id]) !== null && _a !== void 0 ? _a : 0;
             cartData[id] += parseInt(count, 10);
+            window.glitter.setPro(ApiShop.cartID, JSON.stringify(cartData), () => {
+            });
+        });
+    }
+    static setToCart(id, count) {
+        window.glitter.getPro(ApiShop.cartID, (response) => {
+            const cartData = (response.data) ? JSON.parse(response.data) : {};
+            if (parseInt(count, 10) === 0) {
+                cartData[id] = undefined;
+            }
+            else {
+                cartData[id] = parseInt(count, 10);
+            }
             window.glitter.setPro(ApiShop.cartID, JSON.stringify(cartData), () => {
             });
         });
@@ -194,6 +285,7 @@ export class ApiShop {
         });
     }
 }
+ApiShop.rebateID = 'asko323';
 ApiShop.voucherID = "voucxasw";
 ApiShop.cartID = "lemnoas";
 function getConfig() {
