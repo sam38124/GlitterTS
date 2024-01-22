@@ -22,7 +22,8 @@ exports.SaasScheme = {
   \`group\` varchar(45) DEFAULT NULL,
   \`name\` varchar(45) NOT NULL,
   \`config\` json NOT NULL,
-  \`page_config\` json DEFAULT NULL,
+  \`page_config\` json,
+ \`created_time\` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (\`id\`),
   UNIQUE KEY \`page_index\` (\`appName\`,\`tag\`),
   KEY \`app_index\` (\`userID\`,\`appName\`)
@@ -31,7 +32,7 @@ exports.SaasScheme = {
             {
                 scheme: config_1.saasConfig.SAAS_NAME,
                 table: 'app_config',
-                sql: `(
+                sql: ` (
   \`id\` int NOT NULL AUTO_INCREMENT,
   \`domain\` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   \`user\` varchar(45) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
@@ -39,10 +40,11 @@ exports.SaasScheme = {
   \`created_time\` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   \`dead_line\` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   \`config\` json DEFAULT NULL,
+  \`brand\` varchar(45) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'glitter',
   PRIMARY KEY (\`id\`),
   UNIQUE KEY \`user_app\` (\`user\`,\`appName\`),
   KEY \`find_user\` (\`user\`)
-) ENGINE=InnoDB AUTO_INCREMENT=117 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`
             },
             {
                 scheme: config_1.saasConfig.SAAS_NAME,

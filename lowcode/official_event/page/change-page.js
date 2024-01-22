@@ -10,6 +10,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 import { TriggerEvent } from '../../glitterBundle/plugins/trigger-event.js';
 import { EditorElem } from "../../glitterBundle/plugins/editor-elem.js";
 import { GlobalData } from "../event.js";
+const html = String.raw;
 TriggerEvent.createSingleEvent(import.meta.url, () => {
     return {
         fun: (gvc, widget, object, subData) => {
@@ -65,11 +66,14 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                     .join('')}
                                     </select>
                                     ${(() => {
-                                    var _a, _b;
+                                    var _a, _b, _c, _d, _e;
                                     if (object.link_change_type === 'inlink') {
                                         object.stackControl = (_a = object.stackControl) !== null && _a !== void 0 ? _a : "home";
-                                        return `
-${EditorElem.select({
+                                        object.switchType = (_b = object.switchType) !== null && _b !== void 0 ? _b : 'template';
+                                        object.linkFrom = (_c = object.linkFrom) !== null && _c !== void 0 ? _c : 'manual';
+                                        object.linkFromEvent = (_d = object.linkFromEvent) !== null && _d !== void 0 ? _d : {};
+                                        return html `
+                                            ${EditorElem.select({
                                             title: '堆棧控制',
                                             gvc: gvc,
                                             def: object.stackControl,
@@ -82,22 +86,61 @@ ${EditorElem.select({
                                                     value: "page"
                                                 }],
                                         })}
-${EditorElem.h3("選擇頁面")}
-<select
-                                            class="form-select form-control mt-2"
-                                            onchange="${gvc.event((e) => {
-                                            console.log(window.$(e).val());
-                                            object.link = window.$(e).val();
-                                        })}"
-                                        >
-                                            ${GlobalData.data.pageList.map((dd) => {
-                                            var _a;
-                                            object.link = (_a = object.link) !== null && _a !== void 0 ? _a : dd.tag;
-                                            return `<option value="${dd.tag}" ${object.link === dd.tag ? `selected` : ``}>
-                                                    ${dd.group}-${dd.name}
+                                            ${[
+                                            EditorElem.select({
+                                                title: '連結來源',
+                                                gvc: gvc,
+                                                def: object.linkFrom,
+                                                array: [
+                                                    { title: '手動設定', value: 'manual' },
+                                                    { title: '觸發事件', value: 'code' }
+                                                ],
+                                                callback: (text) => {
+                                                    object.linkFrom = text;
+                                                    gvc.notifyDataChange(id);
+                                                }
+                                            }),
+                                            (object.linkFrom === 'manual') ? [
+                                                EditorElem.select({
+                                                    title: '跳轉類型',
+                                                    gvc: gvc,
+                                                    def: object.switchType,
+                                                    array: [
+                                                        { title: '設計頁面', value: 'template' },
+                                                        { title: 'Blog / 網誌', value: 'article' }
+                                                    ],
+                                                    callback: (text) => {
+                                                        object.switchType = text;
+                                                        gvc.notifyDataChange(id);
+                                                    }
+                                                }),
+                                                `<select
+                                                    class="form-select form-control mt-2"
+                                                    onchange="${gvc.event((e) => {
+                                                    object.link = window.$(e).val();
+                                                })}"
+                                            >
+                                                ${GlobalData.data.pageList.filter((dd) => {
+                                                    if (object.switchType === 'template') {
+                                                        return dd.group !== 'glitter-article';
+                                                    }
+                                                    else {
+                                                        return dd.group === 'glitter-article';
+                                                    }
+                                                }).map((dd) => {
+                                                    object.link = object.link || dd.tag;
+                                                    return `<option value="${dd.tag}" ${object.link === dd.tag ? `selected` : ``}>
+                                                    ${(`${dd.group}-${dd.name}`).replace('glitter-article', '')}
                                                 </option>`;
-                                        })}
-                                        </select>`;
+                                                })}
+                                            </select>`
+                                            ].join('<div class="my-2"></div>') : [
+                                                TriggerEvent.editer(gvc, widget, object.linkFromEvent, {
+                                                    title: '獲取連結來源'
+                                                })
+                                            ].join('')
+                                        ].join(`<div class="my-2"></div>`)}
+                                        `;
                                     }
                                     else if (object.link_change_type === 'outlink') {
                                         return gvc.glitter.htmlGenerate.editeInput({
@@ -112,7 +155,7 @@ ${EditorElem.h3("選擇頁面")}
                                         }) + EditorElem.select({
                                             gvc: gvc,
                                             title: '跳轉方式',
-                                            def: (_b = object.changeType) !== null && _b !== void 0 ? _b : "location",
+                                            def: (_e = object.changeType) !== null && _e !== void 0 ? _e : "location",
                                             array: [
                                                 { title: "本地跳轉", value: "location" },
                                                 { title: "打開新頁面", value: "newTab" }
@@ -147,10 +190,13 @@ ${EditorElem.h3("選擇頁面")}
                     object.link_change_type = (_a = object.link_change_type) !== null && _a !== void 0 ? _a : object.type;
                     if (object.link_change_type === 'inlink') {
                         return new Promise((resolve, reject) => __awaiter(void 0, void 0, void 0, function* () {
+                            const link = (object.linkFrom === 'code') ? (yield TriggerEvent.trigger({
+                                gvc: gvc, widget: widget, clickEvent: object.linkFromEvent, subData: subData
+                            })) : (object.link);
                             const url = new URL('./', location.href);
-                            url.searchParams.set('page', object.link);
+                            url.searchParams.set('page', link);
                             const saasConfig = window.saasConfig;
-                            saasConfig.api.getPage(saasConfig.config.appName, object.link).then((data) => {
+                            window.glitterInitialHelper.getPageData(link, (data) => {
                                 if (data.response.result.length === 0) {
                                     const url = new URL("./", location.href);
                                     url.searchParams.set('page', data.response.redirect);
@@ -163,7 +209,7 @@ ${EditorElem.h3("選擇頁面")}
                                         page_config: data.response.result[0].page_config,
                                         config: data.response.result[0].config,
                                         data: subData !== null && subData !== void 0 ? subData : {},
-                                        tag: object.link
+                                        tag: link
                                     });
                                     resolve(true);
                                 }
@@ -173,7 +219,7 @@ ${EditorElem.h3("選擇頁面")}
                                         page_config: data.response.result[0].page_config,
                                         config: data.response.result[0].config,
                                         data: subData !== null && subData !== void 0 ? subData : {},
-                                        tag: object.link,
+                                        tag: link,
                                         goBack: true
                                     });
                                     resolve(true);

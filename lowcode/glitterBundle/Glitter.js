@@ -65,6 +65,7 @@ export class Glitter {
         this.addChangePageListener = PageManager.addChangePageListener;
         this.ut = {
             glitter: this,
+            queue: {},
             clock() {
                 return {
                     start: new Date(),
@@ -75,6 +76,45 @@ export class Glitter {
                         this.start = new Date();
                     }
                 };
+            },
+            setQueue: (tag, fun, callback) => {
+                var _a;
+                const queue = Glitter.glitter.ut.queue;
+                queue[tag] = (_a = queue[tag]) !== null && _a !== void 0 ? _a : {
+                    callback: [],
+                    data: undefined,
+                    isRunning: false
+                };
+                if (queue[tag].data) {
+                    callback && callback((() => {
+                        try {
+                            return JSON.parse(JSON.stringify(queue[tag].data));
+                        }
+                        catch (e) {
+                            console.log(`parseError`, queue[tag].data);
+                        }
+                    })());
+                }
+                else {
+                    queue[tag].callback.push(callback);
+                    if (!queue[tag].isRunning) {
+                        queue[tag].isRunning = true;
+                        fun((response) => {
+                            queue[tag].callback.map((callback) => {
+                                callback && callback((() => {
+                                    try {
+                                        return JSON.parse(JSON.stringify(response));
+                                    }
+                                    catch (e) {
+                                        console.log(`parseError`, queue[tag].data);
+                                    }
+                                })());
+                            });
+                            queue[tag].data = response;
+                            queue[tag].callback = [];
+                        });
+                    }
+                }
             },
             dateFormat(date, fmt) {
                 const o = {
@@ -398,6 +438,7 @@ export class Glitter {
             replacePromiseValue: function (inputString) {
                 const glitter = Glitter.glitter;
                 return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
+                    console.log(`replacePromiseValue-1->`, inputString);
                     const pattern = /@PROMISE{{(.*?)}}/g;
                     let match;
                     let convert = inputString;
@@ -406,6 +447,7 @@ export class Glitter {
                         const value = match[1];
                         inputString = inputString.replace(placeholder, yield glitter.promiseValueMap[value]);
                     }
+                    console.log(`replacePromiseValue-2->`, inputString);
                     resolve(inputString);
                 }));
             },

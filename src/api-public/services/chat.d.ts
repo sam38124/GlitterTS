@@ -27,6 +27,7 @@ export declare class Chat {
         result?: undefined;
     }>;
     addMessage(room: ChatMessage): Promise<void>;
+    templateWithCustomerMessage(subject: string, title: string, message: string): string;
     getMessage(qu: any): Promise<{
         data: any;
         result: boolean;

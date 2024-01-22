@@ -467,7 +467,7 @@ export class PageEditor {
         selectEvent?: (dd: any) => void,
         selectEv?: (dd: any) => boolean,
         justFolder?: boolean,
-        refreshEvent?:()=>void
+        refreshEvent?: () => void
     } = {}) {
         const gvc = this.gvc
         const glitter = gvc.glitter
@@ -485,11 +485,10 @@ export class PageEditor {
                 bind: parId,
                 view: () => {
                     return array.map((dd: any, index: number) => {
-                        dd.selectEditEvent = (() => {
+                        dd.selectEditEvent = ((e: any) => {
                             if (!glitter.share.inspect) {
                                 return false
                             }
-
                             viewModel.selectContainer = original
                             viewModel.selectItem = dd
                             glitter.setCookie('lastSelect', dd.id);
@@ -551,10 +550,15 @@ export class PageEditor {
                                          } else {
                                              viewModel.selectContainer = original
                                              viewModel.selectItem = dd
-
                                              glitter.setCookie('lastSelect', dd.id);
                                              localStorage.setItem('rightSelect', 'module')
-                                             gvc.notifyDataChange(['htmlGenerate', 'right_NAV', 'showView', vid, this.editorID]);
+                                             if (dd.editorEvent) {
+                                                 dd.editorEvent()
+                                             } else {
+                                                 gvc.notifyDataChange(['htmlGenerate', 'right_NAV', 'showView', vid, this.editorID]);
+                                             }
+
+                                             // gvc.notifyDataChange(['htmlGenerate', 'right_NAV', 'showView', vid, this.editorID]);
                                          }
 
                                      })}">
@@ -627,7 +631,7 @@ export class PageEditor {
                                             dd.toggle = false
                                             resetID(copy)
                                             option.refreshEvent && option.refreshEvent()
-                                            gvc.notifyDataChange([parId, vid])
+                                            gvc.notifyDataChange([parId, vid, 'showView'])
                                         }
 
                                         let interval: any = undefined
@@ -729,25 +733,27 @@ export class PageEditor {
                 divCreate: {
                     class: `d-flex flex-column ${(child) ? `` : ``} position-relative border-bottom position-relative ps-0 m-0`,
                     elem: 'ul',
-                    style:'overflow-x: hidden;',
+                    style: 'overflow-x: hidden;',
                     option: [
                         {key: 'id', value: parId}
                     ]
                 },
                 onCreate: () => {
-                    if(this.vid==='MainEditorLeft'){
+                    if (this.vid === 'MainEditorLeft') {
                         const leftItem = document.querySelectorAll('.selectLeftItem')
                         leftItem[leftItem.length - 1].scrollIntoView({
                             behavior: 'auto', // 使用平滑滾動效果
                             block: 'center', // 將元素置中
                         })
                         const interval = setInterval(() => {
+
                             if ((window as any).Sortable) {
                                 try {
                                     gvc.addStyle(`ul {
   list-style: none;
   padding: 0;
 }`)
+
                                     function swapArr(arr: any, index1: number, index2: number) {
                                         const data = arr[index1];
                                         arr.splice(index1, 1);
@@ -2261,6 +2267,13 @@ ${EditorElem.arrayItem({
                                 })
                                 dataList.push({
                                     type: 'container',
+                                    label: 'Blog / 網誌',
+                                    dataList: official.filter((dd) => {
+                                        return dd.label.split('/')[0].includes('Blog');
+                                    })
+                                });
+                                dataList.push({
+                                    type: 'container',
                                     label: '電子商務',
                                     dataList: official.filter((dd: any) => {
                                         return dd.label.split('/')[0].includes('電子商務')
@@ -2301,6 +2314,17 @@ ${EditorElem.arrayItem({
                                         return dd.label.split('/')[0].includes('手機裝置')
                                     })
                                 })
+                                if ((window as any).glitterAuth.memberType === 'noLimit') {
+                                    dataList.push({
+                                        type: 'container',
+                                        label: 'GLITTER',
+                                        dataList: official.filter((dd: any) => {
+                                            return dd.label.split('/')[0].includes('GLITTER')
+                                        })
+                                    })
+                                }
+
+                                // subData.link
                             }
                         } else {
                             if (!isOfficial) {
@@ -2521,7 +2545,12 @@ ${EditorElem.arrayItem({
         gvc: GVC,
         id: string,
         vid: string,
-        viewModel: any
+        viewModel: any,
+        style?:{
+            style?:string,
+            class?:string
+        },
+        hiddenDelete?:boolean
     }) {
         const gvc = obj.gvc;
         const viewModel = obj.viewModel;
@@ -2542,14 +2571,14 @@ ${EditorElem.arrayItem({
                                 ${[EditorElem.select({
                                     title: "設為首頁",
                                     gvc: gvc,
-                                    def: (viewModel.homePage === editData.tag) ? `true` : `false`,
+                                    def: (glitter.share.editorViewModel.homePage === editData.tag) ? `true` : `false`,
                                     array: [{title: "是", value: 'true'}, {title: "否", value: 'false'}],
                                     callback: (text) => {
                                         if (text === 'true') {
-                                            viewModel.homePage = editData.tag
                                             editData.page_config.seo.type = 'custom'
+                                            glitter.share.editorViewModel.homePage=editData.tag
                                         } else {
-                                            viewModel.homePage = undefined
+                                            glitter.share.editorViewModel.homePage = undefined
                                         }
                                         gvc.notifyDataChange(docID)
                                     }
@@ -2684,15 +2713,15 @@ ${EditorElem.arrayItem({
                 },
                 divCreate: () => {
                     return {
-                        class: `p-2 d-flex flex-column position-relative`,
-                        style: `width:400px;max-height:80vh;overflow-y:auto;overflow-x:hidden;max-width:100%;`
+                        class: `p-2 d-flex flex-column position-relative ${obj.style?.class ?? ""}`,
+                        style: `width:400px;max-height:80vh;overflow-y:auto;overflow-x:hidden;max-width:100%;${obj.style?.style ?? ""}`
                     }
                 },
                 onCreate: () => {
                 }
             }
         }) + `
-        <div class="w-100 position-absolute bottom-0 border-top d-flex align-items-center ps-3" style="height:50px;background:#f6f6f6;font-size:14px;" 
+        <div class="w-100 position-absolute bottom-0 border-top d-flex align-items-center ps-3 ${obj.hiddenDelete ? 'd-none':''}" style="height:50px;background:#f6f6f6;font-size:14px;" 
         onclick="${gvc.event(() => {
             const dialog = new ShareDialog(glitter)
             dialog.checkYesOrNot({
@@ -2754,7 +2783,7 @@ ${EditorElem.arrayItem({
                                             })
                                         }, () => {
                                             gvc.notifyDataChange(docID)
-                                        },400)
+                                        }, 400)
                                     })}">表單設置
                             </button>
                         </div>
@@ -2763,9 +2792,9 @@ ${EditorElem.arrayItem({
                                 gvc: gvc,
                                 array: formFormat,
                                 refresh: () => {
-                                    setTimeout(()=>{
-                                        gvc.notifyDataChange([docID,'showView'])
-                                    },100)
+                                    setTimeout(() => {
+                                        gvc.notifyDataChange([docID, 'showView'])
+                                    }, 100)
                                 },
                                 formData: obj.viewModel.page_config.formData
                             })}
@@ -2779,7 +2808,9 @@ ${EditorElem.arrayItem({
     }
 
     //頁面選擇器
-    public static pageSelecter(gvc: GVC, callBack: (page: any) => void) {
+    public static pageSelctor(gvc: GVC, callBack: (page: any) => void, option?:{
+        checkSelect:(data:any)=>boolean;
+    }) {
         const html = String.raw
         const glitter = gvc.glitter
         const viewModel = gvc.glitter.share.editorViewModel
@@ -2808,26 +2839,28 @@ ${EditorElem.arrayItem({
                                     viewModel.selectItem = viewModel.data
                                 }
                                 data.group = data.group || '未分類'
-                                const folder = data.group.split('/')
-                                let nowFolder: any = mapData
-                                folder.map((d2: any) => {
-                                    const selectFD = nowFolder.find((dd: any) => {
-                                        return dd.label === d2
-                                    })
-                                    if (!selectFD) {
-                                        const fd = {
-                                            type: 'container',
-                                            label: d2,
-                                            data: {setting: []}
+                                if (data.group !== 'glitter-article') {
+                                    const folder = data.group.split('/')
+                                    let nowFolder: any = mapData
+                                    folder.map((d2: any) => {
+                                        const selectFD = nowFolder.find((dd: any) => {
+                                            return dd.label === d2
+                                        })
+                                        if (!selectFD) {
+                                            const fd = {
+                                                type: 'container',
+                                                label: d2,
+                                                data: {setting: []}
+                                            }
+                                            nowFolder.push(fd)
+                                            nowFolder = fd.data.setting
+                                        } else {
+                                            nowFolder = selectFD.data.setting
                                         }
-                                        nowFolder.push(fd)
-                                        nowFolder = fd.data.setting
-                                    } else {
-                                        nowFolder = selectFD.data.setting
-                                    }
-                                })
-                                data.label = data.name
-                                nowFolder.push(data)
+                                    })
+                                    data.label = data.name
+                                    nowFolder.push(data)
+                                }
                             })
 
                             return new PageEditor(gvc, vid, docID).renderLineItem(mapData, false, mapData, {
@@ -2836,7 +2869,8 @@ ${EditorElem.arrayItem({
                                 selectEvent: (dd) => {
                                     callBack(dd)
                                 },
-                                justFolder: true
+                                justFolder: true,
+                                selectEv:option && option!.checkSelect
                             })
                         },
                         divCreate: {}
@@ -2869,6 +2903,7 @@ ${EditorElem.arrayItem({
                                                 } else {
                                                     viewModel.homePage = undefined
                                                 }
+                                                alert(glitter.share.editorViewModel.homePage)
                                                 gvc.notifyDataChange(docID)
                                             }
                                         }),
@@ -3068,7 +3103,7 @@ ${EditorElem.arrayItem({
                                 },
                                 {
                                     title: '步驟二：更改DNS', content: `
-                             前往DNS設定，並將A標籤設置為3.36.55.11。
+                             前往DNS設定，並將A標籤設置為13.209.195.65。
                              `
                                 },
                                 {
@@ -3120,7 +3155,7 @@ onclick="${gvc.event(() => {
                                 },
                                 {
                                     title: '步驟二', content: `
-                             前往DNS設定，並將A標籤設置為3.36.55.11。
+                             前往DNS設定，並將A標籤設置為13.209.195.65。
                              `
                                 },
                                 {

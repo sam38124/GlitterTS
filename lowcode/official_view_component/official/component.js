@@ -107,7 +107,7 @@ export const component = Plugin.createComponent(import.meta.url, (glitter, editM
                                                 data.config.formData = data.page_config.formData;
                                                 target.outerHTML = `
                                                 <!-- tag=${tag} -->
-                                                ${new glitter.htmlGenerate(data.config, [], sub).render(gvc, undefined, createOption !== null && createOption !== void 0 ? createOption : {})}
+                                              ${new glitter.htmlGenerate(data.config, [], sub).render(gvc, undefined, createOption !== null && createOption !== void 0 ? createOption : {})}
                                                 `;
                                             });
                                         }
@@ -135,7 +135,9 @@ export const component = Plugin.createComponent(import.meta.url, (glitter, editM
                                 "Content-Type": "application/json"
                             }
                         }).then((d2) => {
-                            data.dataList = d2.response.result;
+                            data.dataList = d2.response.result.filter((dd) => {
+                                return dd.group !== 'glitter-article';
+                            });
                             gvc.notifyDataChange(id);
                         });
                     }

@@ -27,7 +27,7 @@ class App {
         });
     }
     async createApp(config) {
-        var _a, _b;
+        var _a, _b, _c;
         try {
             config.copyWith = (_a = config.copyWith) !== null && _a !== void 0 ? _a : [];
             const count = await database_1.default.execute(`
@@ -55,9 +55,8 @@ class App {
             }
             await public_table_check_js_1.ApiPublic.createScheme(config.appName);
             const trans = await database_1.default.Transaction.build();
-            await trans.execute(`insert into \`${config_1.saasConfig.SAAS_NAME}\`.app_config (user, appName, dead_line, \`config\`)
-                                 values (?, ?, ?,
-                                         ${database_1.default.escape(JSON.stringify((copyAppData && copyAppData.config) || {}))})`, [
+            await trans.execute(`insert into \`${config_1.saasConfig.SAAS_NAME}\`.app_config (user, appName, dead_line, \`config\`, brand)
+                                 values (?, ?, ?, ${database_1.default.escape(JSON.stringify((copyAppData && copyAppData.config) || {}))} , ${database_1.default.escape((_b = config.brand) !== null && _b !== void 0 ? _b : config_1.saasConfig.SAAS_NAME)})`, [
                 this.token.userID,
                 config.appName,
                 addDays(new Date(), config_1.saasConfig.DEF_DEADLINE)
@@ -122,6 +121,16 @@ class App {
                         dd
                     ]);
                 }
+                for (const dd of (await database_1.default.query(`SELECT *
+                                                  FROM \`${config.copyApp}\`.t_user_public_config`, []))) {
+                    dd.value = dd.value && JSON.stringify(dd.value);
+                    await trans.execute(`
+                        insert into \`${config.appName}\`.t_user_public_config
+                        SET ?;
+                    `, [
+                        dd
+                    ]);
+                }
             }
             if (privateConfig) {
                 for (const dd of privateConfig) {
@@ -171,12 +180,23 @@ class App {
         }
         catch (e) {
             console.log(JSON.stringify(e));
-            throw exception_1.default.BadRequestError((_b = e.code) !== null && _b !== void 0 ? _b : 'BAD_REQUEST', e, null);
+            throw exception_1.default.BadRequestError((_c = e.code) !== null && _c !== void 0 ? _c : 'BAD_REQUEST', e, null);
         }
     }
     async getAPP(query) {
         var _a;
         try {
+            console.log(`
+                SELECT *
+                FROM \`${config_1.saasConfig.SAAS_NAME}\`.app_config
+                where ${(() => {
+                const sql = [`user = '${this.token.userID}'`];
+                if (query.app_name) {
+                    sql.push(` appName='${query.app_name}' `);
+                }
+                return sql.join(' and ');
+            })()};
+            `);
             return (await database_1.default.execute(`
                 SELECT *
                 FROM \`${config_1.saasConfig.SAAS_NAME}\`.app_config
@@ -222,18 +242,21 @@ class App {
         }
     }
     static async checkOverDue(app) {
+        let brand = (await database_1.default.query(`SELECT brand FROM glitter.app_config where appName = ? `, [app]))[0]['brand'];
         const userID = (await database_1.default.query(`SELECT user
                                         FROM \`${config_1.saasConfig.SAAS_NAME}\`.app_config
                                         where appName = ?`, [app]))[0]['user'];
         const userData = (await database_1.default.query(`SELECT userData
-                                          FROM \`${config_1.saasConfig.SAAS_NAME}\`.t_user
+                                          FROM \`${brand}\`.t_user
                                           where userID = ? `, [userID]))[0];
         let appCount = (await database_1.default.query(`SELECT count(1)
-                                                          FROM \`${config_1.saasConfig.SAAS_NAME}\`.app_config where user=?`, [userID]))[0]['count(1)'];
+                                        FROM \`${config_1.saasConfig.SAAS_NAME}\`.app_config
+                                        where user = ?`, [userID]))[0]['count(1)'];
         return {
             overdue: !(userData.userData.expireDate && new Date(userData.userData.expireDate).getTime() > new Date().getTime()),
             memberType: userData.userData.menber_type,
-            appCount: appCount
+            appCount: appCount,
+            brand: brand
         };
     }
     async setAppConfig(config) {

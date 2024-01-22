@@ -6,9 +6,10 @@ import {Editor} from "./editor.js";
 import {EditorElem} from "../plugins/editor-elem.js";
 //@ts-ignore
 import autosize from "../plugins/autosize.js";
+import {ShareDialog} from "../dialog/ShareDialog.js";
 
 export const widgetComponent = {
-    render: (gvc: GVC, widget: HtmlJson, setting: any, hoverID: string[], subData: any, htmlGenerate: any,) => {
+    render: (gvc: GVC, widget: HtmlJson, setting: any, hoverID: string[], subData: any, htmlGenerate: any) => {
         const glitter = gvc.glitter
         widget.data.elem = widget.data.elem ?? "div"
         widget.data.inner = widget.data.inner ?? ""
@@ -50,7 +51,7 @@ export const widgetComponent = {
                                         clickEvent: dd,
                                         subData: subData
                                     }).then((data) => {
-                                        if(data){
+                                        if (data) {
                                             resolve(dd.attr)
                                         }
                                     })
@@ -96,14 +97,16 @@ export const widgetComponent = {
                     const htmlGenerate = new glitter.htmlGenerate(widget.data.setting, hoverID, subData);
                     innerText = ''
                     return htmlGenerate.render(gvc, {
-                        containerID: gvc.glitter.getUUID(), onCreate: () => {
+                        containerID: id, onCreate: () => {
                             TriggerEvent.trigger({
                                 gvc: gvc,
                                 widget: widget,
                                 clickEvent: widget.data.onCreateEvent,
                                 subData: subData
                             })
-                        }
+                        },
+                        app_config: widget.global.appConfig,
+                        page_config: widget.global.pageConfig
                     }, getCreateOption())
                 }
                 if ((widget.data.dataFrom === "code")) {
@@ -217,7 +220,7 @@ export const widgetComponent = {
                                 subData: subData
                             })
                             glitter.elementCallback[gvc.id(id)].updateAttribute()
-                            if(widget.data.elem.toLowerCase()==='textarea'){
+                            if (widget.data.elem.toLowerCase() === 'textarea') {
                                 autosize(gvc.getBindViewElem(id))
                             }
                         },
@@ -261,7 +264,7 @@ export const widgetComponent = {
                                                 return ``
                                             } else {
                                                 return EditorElem.select({
-                                                    title: '插件類型',
+                                                    title: '元素類型',
                                                     gvc: gvc,
                                                     def: widget.type,
                                                     array: [{
@@ -271,12 +274,33 @@ export const widgetComponent = {
                                                     }],
                                                     callback: (text) => {
                                                         widget.type = text
+                                                        if (widget.type === 'container') {
+                                                            widget.data.setting = widget.data.setting ?? []
+                                                        }
                                                         gvc.notifyDataChange('HtmlEditorContainer')
                                                         widget.refreshComponent()
                                                     }
                                                 })
                                             }
                                         })(),
+                                        (widget.type === 'container') ? `<div class="d-flex justify-content-end">
+<button class="btn btn-secondary mt-2 w-100" onclick="${gvc.event(() => {
+                                            const dialog = new ShareDialog(gvc.glitter)
+                                            dialog.checkYesOrNot({
+                                                text: '是否確認清空容器內容?',
+                                                callback: (b) => {
+                                                    if (b) {
+                                                        widget.data.setting = []
+                                                    }
+                                                    gvc.notifyDataChange('HtmlEditorContainer')
+                                                    widget.refreshComponent()
+                                                }
+                                            })
+                                        })}">
+<i class="fa-solid fa-trash-can me-2" aria-hidden="true"></i>
+清空容器內容
+</button>
+</div>` : ``,
                                         (() => {
                                             const array: any = []
                                             if ((['link', 'style', 'script'].indexOf(widget.data.elem) === -1)) {
@@ -652,6 +676,7 @@ export const widgetComponent = {
                                                                             def: dd.value ?? '',
                                                                             callback: (text) => {
                                                                                 dd.value = text
+                                                                                gvc.recreateView()
                                                                                 widget.refreshComponent()
                                                                             }
                                                                         })

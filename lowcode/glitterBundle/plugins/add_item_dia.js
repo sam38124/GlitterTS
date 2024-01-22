@@ -1413,7 +1413,7 @@ function saveHTML(json, relativePath, gvc, elem) {
                         "class": (_d = obj.attributes.class) !== null && _d !== void 0 ? _d : "",
                         "style": ((_e = obj.attributes.style) !== null && _e !== void 0 ? _e : ""),
                         "attr": Object.keys(obj.attributes).filter((key) => {
-                            return key !== 'class' && key !== 'style';
+                            return key !== 'class' && key !== 'style' && key !== 'gvc-id' && key !== 'glem';
                         }).map((dd) => {
                             const of = obj.attributes[dd];
                             return {

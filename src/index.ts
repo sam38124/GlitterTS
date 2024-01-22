@@ -24,7 +24,9 @@ import fs from "fs";
 import {App} from "./services/app.js";
 import {Firebase} from "./modules/firebase.js";
 import {GlitterUtil} from "./helper/glitter-util.js";
-
+import Tool from "./api-public/services/ezpay/tool.js";
+import crypto, { Encoding } from 'crypto';
+import bcrypt from 'bcrypt';
 //Glitter FrontEnd Rout
 export const app = express();
 const logger = new Logger();
@@ -58,12 +60,9 @@ export async function initial(serverPort: number) {
         await app.listen(serverPort);
         fs.mkdirSync(path.resolve(__filename, '../app-project/work-space'), {recursive: true});
         Release.removeAllFilesInFolder(path.resolve(__filename, '../app-project/work-space'))
-        if(process.env.firebase){
+        if (process.env.firebase) {
             await Firebase.initial();
         }
-        // await createDomain('glitter-base.com');
-        // await setDNS('glitter-base.com')
-        // console.log(`domain`,config.domain)
         logger.info('[Init]', `Server is listening on port: ${serverPort}`);
         console.log('Starting up the server now.');
     })();
@@ -182,20 +181,20 @@ export async function createAPP(dd: any) {
             rout: '/' + encodeURI(dd.appName),
             path: path.resolve(__dirname, '../lowcode'),
             seoManager: async (req, resp) => {
-                let appName = dd.appName
-                if (req.query.appName) {
-                    appName = req.query.appName
-                }
-                let overDue = await App.checkOverDue(appName)
-                let vm = {
-                    glitterInfo: `<script>
+                try {
+                    let appName = dd.appName
+                    if (req.query.appName) {
+                        appName = req.query.appName
+                    }
+                    let overDue = await App.checkOverDue(appName)
+                    let vm = {
+                        glitterInfo: `<script>
 window.appName='${appName}';
-window.glitterBase='${process.env.GLITTER_DB}'
+window.glitterBase='${overDue.brand}'
 window.glitterBackend='${config.domain}';
 window.glitterAuth = ${JSON.stringify(overDue)}
 </script>`
-                }
-                try {
+                    }
                     let data = (await db.execute(`SELECT page_config, \`${saasConfig.SAAS_NAME}\`.app_config.\`config\`, tag
                                                   FROM \`${saasConfig.SAAS_NAME}\`.page_config,
                                                        \`${saasConfig.SAAS_NAME}\`.app_config
@@ -294,8 +293,9 @@ window.location.href='?page=${redirect}';
 </script>`
                         }
                     })()}${vm.glitterInfo}`
-                } catch (e) {
-                    return vm.glitterInfo
+                } catch (e:any) {
+                    console.log(e.message)
+                    return e.message
                 }
 
             }

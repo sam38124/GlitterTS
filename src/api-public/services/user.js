@@ -41,7 +41,7 @@ class User {
         this.token = token;
     }
     async createUser(account, pwd, userData, req) {
-        var _a;
+        var _a, _b, _c;
         try {
             const userID = generateUserID();
             let data = await database_1.default.query(`select \`value\`
@@ -83,6 +83,9 @@ class User {
                         verify: data.verify
                     };
                 }
+            }
+            if (data.will_come_title && data.will_come_content) {
+                (0, ses_js_1.sendmail)(`${data.name} <${process_1.default.env.smtp}>`, account, (_b = data.will_come_title) !== null && _b !== void 0 ? _b : '嗨！歡迎加入 Glitter.AI。', (_c = data.will_come_content) !== null && _c !== void 0 ? _c : '');
             }
             await database_1.default.execute(`INSERT INTO \`${this.app}\`.\`t_user\` (\`userID\`, \`account\`, \`pwd\`, \`userData\`, \`status\`)
                               VALUES (?, ?, ?, ?, ?);`, [

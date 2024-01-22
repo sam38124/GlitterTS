@@ -6,6 +6,7 @@ TriggerEvent.createSingleEvent(import.meta.url, (glitter) => {
         fun: (gvc, widget, object, subData, element) => {
             object.type = object.type ?? {}
             object.participant = object.participant ?? {}
+
             return {
                 editor: () => {
                     return [

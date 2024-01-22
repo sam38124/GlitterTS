@@ -58,7 +58,8 @@ export class FormWidget {
                                         {title: '密碼', value: 'password'},
                                         {title: '多項列表元件', value: 'array'},
                                         {title: '檔案上傳', value: 'file'},
-                                        {title: '選擇器', value: 'select'}
+                                        {title: '選擇器', value: 'select'},
+
                                     ],
                                     callback: (text) => {
                                         dd.type = text

@@ -149,6 +149,8 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                                                                                                                       onclick="${gvc.event(() => {
                                                                                                                           if ((styleData as any).tag) {
                                                                                                                               glitter.share.selectStyleCallback((styleData as any).tag)
+                                                                                                                          }else{
+                                                                                                                              gvc.closeDialog()
                                                                                                                           }
                                                                                                                       })}"
                                                                                                                  >

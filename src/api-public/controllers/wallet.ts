@@ -4,7 +4,7 @@ import exception from "../../modules/exception";
 import {UtPermission} from "../utils/ut-permission.js";
 import {Firebase} from "../../modules/firebase";
 import {Private_config} from "../../services/private_config.js";
-import Newebpay from "../services/newebpay.js";
+import FinancialService, {EzPay} from "../services/financial-service.js";
 import {Wallet} from "../services/wallet.js";
 import multer from "multer";
 import db from "../../modules/database.js";
@@ -190,13 +190,14 @@ router.post('/notify', upload.single('file'), async (req: express.Request, resp:
             appName: appName, key: 'glitter_finance'
         }))[0].value
         const url = new URL(`https://covert?${req.body.toString()}`)
-        const decodeData: any = JSON.parse(await new Newebpay(appName, {
+        const decodeData: any = JSON.parse(await new EzPay(appName, {
             "HASH_IV": keyData.HASH_IV,
             "HASH_KEY": keyData.HASH_KEY,
             "ActionURL": keyData.ActionURL,
             "NotifyURL": ``,
             "ReturnURL": ``,
             "MERCHANT_ID": keyData.MERCHANT_ID,
+            TYPE:keyData.TYPE
         }).decode(url.searchParams.get('TradeInfo') as string));
         if (decodeData['Status'] === 'SUCCESS') {
             await db.execute(`update \`${appName}\`.t_wallet

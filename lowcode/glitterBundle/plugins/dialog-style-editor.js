@@ -138,6 +138,9 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                                                             if (styleData.tag) {
                                                                 glitter.share.selectStyleCallback(styleData.tag);
                                                             }
+                                                            else {
+                                                                gvc.closeDialog();
+                                                            }
                                                         })}"
                                                                                                                  >
                                                                                                                      <i class="fa-sharp fa-regular fa-circle-xmark"></i>

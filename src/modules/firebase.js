@@ -14,6 +14,7 @@ class Firebase {
         this.app = app;
     }
     static async initial() {
+        console.log(`fireBaseInitial:${firebase_admin_1.default.credential.cert(path_1.default.resolve(config_1.ConfigSetting.config_path, `../${process.env.firebase}`))}`);
         firebase_admin_1.default.initializeApp({
             credential: firebase_admin_1.default.credential.cert(path_1.default.resolve(config_1.ConfigSetting.config_path, `../${process.env.firebase}`))
         }, 'glitter');

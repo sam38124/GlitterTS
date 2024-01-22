@@ -48,6 +48,7 @@ export declare class Shopping {
         max_price?: string;
         status?: string;
         order_by?: string;
+        id_list?: string;
     }): Promise<{
         data: any;
         result: boolean;
@@ -205,6 +206,7 @@ export declare class Shopping {
         id?: string;
         search?: string;
         email?: string;
+        status?: string;
     }): Promise<{
         data: any;
         result: boolean;

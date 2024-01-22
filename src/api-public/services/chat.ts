@@ -5,6 +5,7 @@ import UserUtil from "../../utils/UserUtil";
 import {IToken} from "../models/Auth.js";
 import {UtDatabase} from "../utils/ut-database.js";
 import {User} from "./user.js";
+import {sendmail} from "../../services/ses.js";
 
 export interface ChatRoom {
     chat_id: string,
@@ -101,12 +102,18 @@ export class Chat {
 
     public async addMessage(room: ChatMessage) {
         try {
+            //聊天室
             const chatRoom = ((await db.query(`select *
                                                from \`${this.app}\`.t_chat_list
                                                where chat_id = ?`, [room.chat_id])))[0]
             if (!chatRoom) {
                 throw exception.BadRequestError('NO_CHATROOM', 'THIS CHATROOM DOES NOT EXISTS.', null);
             }
+            //傳送者
+            const user = (await db.query(`SELECT userData
+                                          FROM \`${this.app}\`.t_user
+                                          where userID = ?`, [room.user_id]))[0]
+            //參加者
             const particpant = await db.query(`SELECT *
                                                FROM \`${this.app}\`.t_chat_participants
                                                where chat_id = ?`, [room.chat_id]);
@@ -122,7 +129,7 @@ export class Chat {
             ])
 
             for (const b of particpant) {
-                //機器人問答
+                //發送通知
                 if (b.user_id !== room.user_id) {
                     const post = new User(this.app, this.token);
                     const robot = ((await post.getConfig({
@@ -140,7 +147,7 @@ export class Chat {
                                         chat_id: room.chat_id,
                                         user_id: b.user_id,
                                         message: JSON.stringify({
-                                            text:d.response
+                                            text: d.response
                                         })
                                     }
                                 ])
@@ -148,6 +155,73 @@ export class Chat {
                             }
                         }
                     }
+
+                }
+            }
+            //要傳送通知的對象
+            const notifyUser = particpant.filter((dd: any) => {
+                return dd.user_id && (!isNaN(dd.user_id) && !isNaN(parseFloat(dd.user_id))) && (`${dd.user_id}` !== `${room.user_id}`)
+            }).map((dd: any) => {
+                return dd.user_id
+            });
+            //傳送信件通知
+            const userData = await db.query(`SELECT userData
+                                             FROM \`${this.app}\`.t_user
+                                             where userID in (${(() => {
+                                                 const id = ['0'].concat(notifyUser)
+                                                 return id.join(',')
+                                             })()});`, [])
+
+            for (const dd of userData) {
+                if (dd.userData.email) {
+                    if (chatRoom.type === 'user') {
+                        if (room.message.text) {
+                            if (user) {
+                                await sendmail(`service@ncdesign.info`, dd.userData.email, `${user.userData.name}:傳送訊息給您`, this.templateWithCustomerMessage(
+                                    `收到訊息`,
+                                    `${user.userData.name}傳送訊息給您:`,
+                                    room.message.text
+                                )
+                            )
+                            } else if (room.user_id === 'manager') {
+                                await sendmail(`service@ncdesign.info`, dd.userData.email, `官方客服訊息`, this.templateWithCustomerMessage(
+                                    '客服訊息',
+                                    `收到客服回覆:`,
+                                    room.message.text
+                                ))
+                            } else {
+                                await sendmail(`service@ncdesign.info`, dd.userData.email, "有人傳送訊息給您", this.templateWithCustomerMessage(
+                                    '收到匿名訊息',
+                                    `有一則匿名訊息:`,
+                                    room.message.text
+                                ))
+                            }
+                        }
+                    }
+                }
+            }
+            //客服訊息區塊
+            if (particpant.find((dd: any) => {
+                return dd.user_id === 'manager'
+            }) && room.user_id !== 'manager') {
+                //取得客服信箱
+                const managerUser = (await db.query(`select userData
+                                                     from ${process.env.GLITTER_DB}.t_user
+                                                     where userID in (select user
+                                                                      from ${process.env.GLITTER_DB}.app_config
+                                                                      where appName = ${db.escape(this.app)})`, []))[0]
+                if (user) {
+                    await sendmail(`service@ncdesign.info`, managerUser['userData'].email, `有一則客服訊息`, this.templateWithCustomerMessage(
+                        '收到客服訊息',
+                        ` ${user.userData.name}傳送一則客服訊息:`,
+                        room.message.text
+                    ))
+                } else {
+                    await sendmail(`service@ncdesign.info`, managerUser['userData'].email, "有一則匿名客服訊息", this.templateWithCustomerMessage(
+                        '收到客服訊息',
+                        `收到一則匿名客服訊息:`,
+                        room.message.text
+                    ))
                 }
             }
         } catch (e: any) {
@@ -155,7 +229,22 @@ export class Chat {
         }
 
     }
-
+    public templateWithCustomerMessage(subject:string,title: string, message: string) {
+        return `<div id=":14y" class="ii gt adO" jslog="20277; u014N:xr6bB; 1:WyIjdGhyZWFkLWY6MTcyNTcxNjU2NTQ4OTk2MTY3OSJd; 4:WyIjbXNnLWY6MTcyNTcxNjY3NDU2Njc0OTY2MyJd"><div id=":14x" class="a3s aiL "><div id="m_-852875620297719051MailSample1"><div class="adM">
+            </div><div style="clear:left;float:left;width:500px;background-color:#999999;border:10px solid #999999;margin-bottom:5px;font-size:1.2em;text-align:center;color:#ffffff">${subject}</div>
+            <div style="clear:left;float:left;width:500px;border:10px solid #999999;padding-bottom:30px">
+                <div style="float:left;margin:10px;font-size:.95em;line-height:25px">
+                     ${title}
+                     <br>
+                     ${message}
+                    </div></div><div class="adL">
+            </div></div><div class="HOEnZb adL"><div class="adm"><div id="q_0" class="ajR h4"><div class="ajT"></div></div></div><div class="h5">
+            <div style="clear:both;float:right;font-size:.85em;margin-top:5px;color:red;width:100%;text-align:right;margin-right:10px">
+                Note: This letter is automatically sent by the system. Please don't reply directly
+            </div>
+        
+</div></div></div></div>`
+    }
     public async getMessage(qu: any) {
         try {
             let query: string[] = [

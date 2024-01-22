@@ -36,10 +36,10 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                 event: () => {
                     return new Promise(async (resolve, reject) => {
                         const data = await TriggerEvent.trigger({
-                            gvc: gvc, widget: widget, clickEvent: object.email
+                            gvc: gvc, widget: widget, clickEvent: object.email,element:element
                         })
                         const tag = await TriggerEvent.trigger({
-                            gvc: gvc, widget: widget, clickEvent: object.tag
+                            gvc: gvc, widget: widget, clickEvent: object.tag,element:element
                         })
                         ApiUser.subScribe(data as string,tag as string)?.then(async (r) => {
                             if (!r.result || !r.response.result) {

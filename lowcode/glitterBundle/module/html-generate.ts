@@ -7,6 +7,7 @@ import {codeComponent} from "../html-component/code.js";
 import {response} from "express";
 import {TriggerEvent} from "../plugins/trigger-event.js";
 import {BaseApi} from "../api/base.js";
+import {EditorElem} from "../plugins/editor-elem.js";
 
 export interface HtmlJson {
     route: string;
@@ -37,7 +38,12 @@ export interface HtmlJson {
     selectStyle: string;
     formData: any;
     gCount: 'multiple' | 'single';
-    arrayData: any
+    arrayData: any,
+    editorEvent: any;
+    pageConfig: any;
+    appConfig: any;
+    global: any;
+    share: any;
 }
 
 export class HtmlGenerate {
@@ -55,8 +61,8 @@ export class HtmlGenerate {
     }
 
     public render: (gvc: GVC, option?: {
-        class: string; style: string; divCreate?: boolean, jsFinish?: () => void, containerID?: string, onCreate?: () => void, attribute?: { key: string, value: string }[],
-        childContainer?: boolean
+        class: string; style: string, jsFinish?: () => void, containerID?: string, onCreate?: () => void,
+        attribute?: { key: string, value: string }[], childContainer?: boolean, page_config?: any, app_config?: any
     }, createOption?: any) => string;
     public exportJson: (setting: HtmlJson[]) => any;
     public editor: (gvc: GVC, option?: { return_: boolean; refreshAll: () => void; setting?: any[]; deleteEvent?: () => void, hideInfo?: boolean }) => string;
@@ -73,7 +79,7 @@ export class HtmlGenerate {
         return url
     }
 
-    public static loadScript = (glitter: Glitter, js: { src: string, callback?: (widget: any) => void }[],where:string='htmlExtension') => {
+    public static loadScript = (glitter: Glitter, js: { src: string, callback?: (widget: any) => void }[], where: string = 'htmlExtension') => {
         glitter.share[where] = glitter.share[where] ?? {}
         js.map((dd) => {
             dd.src = HtmlGenerate.reDefineJsResource(dd.src)
@@ -89,6 +95,7 @@ export class HtmlGenerate {
                 }
                 return result
             }
+
             if (!checkStore()) {
                 glitter.share.htmlExtensionResourceCallback = glitter.share.htmlExtensionResourceCallback ?? {}
                 glitter.share.htmlExtensionResourceCallback[key] = glitter.share.htmlExtensionResourceCallback[key] ?? []
@@ -141,6 +148,7 @@ export class HtmlGenerate {
             .replace('http://127.0.0.1:4000/Glitter/official_view_component/official.js', new URL('official_view_component/official.js', new URL('../../', import.meta.url).href).href)
 
     }
+
     public static loadEvent = (glitter: Glitter, js: { src: string, callback?: (widget: any) => void }[]) => {
         glitter.share.componentData = glitter.share.componentData ?? {}
         js.map((dd) => {
@@ -481,6 +489,7 @@ ${obj.gvc.bindView({
 
     constructor(setting: HtmlJson[], hover: string[] = [], subdata?: any, root?: boolean) {
         const formData = (setting as any).formData;
+        const share = {}
         this.setting = setting;
         subdata = subdata ?? {}
         HtmlGenerate.share.false = HtmlGenerate.share.false ?? {}
@@ -516,11 +525,19 @@ ${obj.gvc.bindView({
             };
             return dd;
         });
-
+        function loop(array: any) {
+            array.map((dd: any) => {
+                if (dd.type === 'container') {
+                    loop(dd.data.setting ?? [])
+                }
+                dd.share = dd.share ?? share
+            })
+        }
+        loop(setting)
 
         this.render = (gvc: GVC, option: {
             class: string; style: string, jsFinish?: () => void, containerID?: string, onCreate?: () => void,
-            attribute?: { key: string, value: string }[], childContainer?: boolean
+            attribute?: { key: string, value: string }[], childContainer?: boolean, page_config?: any, app_config?: any
         } = {
             class: ``,
             style: ``,
@@ -597,18 +614,24 @@ ${obj.gvc.bindView({
                                             const hidden = await TriggerEvent.trigger({
                                                 gvc,
                                                 widget: b as any,
-                                                clickEvent: (b as any).hiddenEvent
+                                                clickEvent: (b as any).hiddenEvent,
+                                                subData:subdata
                                             })
                                             if (hidden) {
+                                                const formData=(setting as any).formData;
                                                 setting = setting.filter((dd) => {
                                                     return dd !== b
-                                                })
+                                                });
+                                                (setting as any).formData=formData
                                             }
                                         }
                                     }
                                     //Set htmlGenerate content.
                                     const html = setting.map((dd) => {
                                         dd.formData = (setting as any).formData;
+                                        dd.global = dd.global ?? []
+                                        dd.global.pageConfig = option.page_config
+                                        dd.global.appConfig = option.app_config
                                         dd.refreshAllParameter!.view1 = () => {
                                             gvc.notifyDataChange(container)
                                         };
@@ -646,6 +669,7 @@ ${obj.gvc.bindView({
                                             }
                                             if (['code'].indexOf(dd.type) === -1) {
                                                 if ((dd.type === 'widget') || (dd.type === 'container')) {
+
                                                     return gvc.bindView(() => {
                                                         const tempView = gvc.glitter.getUUID()
                                                         return {
@@ -660,26 +684,39 @@ ${obj.gvc.bindView({
                                                                 dd.refreshComponentParameter!.view1 = () => {
                                                                     gvc.notifyDataChange(container)
                                                                 };
-                                                                const option: any = []
-                                                                if (isEditMode() && !childContainer) {
-                                                                    option.push({
-                                                                        key: "onclick", value: (() => {
-                                                                            return gvc.editorEvent((e, event) => {
-                                                                                try {
-                                                                                    if ((dd as any).selectEditEvent()) {
-                                                                                        hover = [dd.id];
+
+                                                                function addCreateOption(option: any, widgetComponentID: string) {
+
+                                                                    if (isEditMode() && !childContainer) {
+                                                                        option.push({
+                                                                            key: "onclick", value: (() => {
+
+                                                                                function selectEvent(event: any) {
+                                                                                    console.log(`addCreateOption-->`, widgetComponentID)
+                                                                                    try {
                                                                                         gvc.glitter.$('.selectComponentHover').removeClass('selectComponentHover');
-                                                                                        gvc.glitter.$(e).addClass('selectComponentHover');
+                                                                                        gvc.glitter.$(`[gvc-id="${gvc.id(widgetComponentID)}"]`).addClass('selectComponentHover');
+                                                                                        if ((dd as any).selectEditEvent()) {
+                                                                                            hover = [dd.id];
+                                                                                        }
+                                                                                        scrollToHover()
+                                                                                        event && event.stopPropagation()
+                                                                                    } catch (e) {
+                                                                                        console.log(e)
                                                                                     }
-                                                                                    scrollToHover()
-                                                                                    event.stopPropagation()
-                                                                                } catch {
                                                                                 }
 
-                                                                            })
-                                                                        })()
-                                                                    })
+                                                                                dd.editorEvent = () => {
+                                                                                    selectEvent(document.querySelector(`[gvc-id="${gvc.id(widgetComponentID)}"]`));
+                                                                                }
+                                                                                return gvc.editorEvent((e, event) => {
+                                                                                    selectEvent(event)
+                                                                                })
+                                                                            })()
+                                                                        })
+                                                                    }
                                                                 }
+
                                                                 const target = gvc.glitter.document.querySelector(`[gvc-id="${gvc.id(tempView)}"]`)
                                                                 if (dd.gCount === 'multiple') {
                                                                     new Promise(async (resolve, reject) => {
@@ -690,18 +727,24 @@ ${obj.gvc.bindView({
                                                                             subData: subdata
                                                                         }))
                                                                         target!.outerHTML = data.map((subData: any) => {
+                                                                            let option: any = []
                                                                             dd.formData = formData;
+                                                                            const widgetComponentID = gvc.glitter.getUUID()
+                                                                            addCreateOption(option, widgetComponentID)
                                                                             return (widgetComponent.render(gvc, dd as any, setting as any, hover, subData, {
                                                                                 option: option,
-                                                                                widgetComponentID: gvc.glitter.getUUID()
+                                                                                widgetComponentID: widgetComponentID
                                                                             })
                                                                                 .view() as string)
                                                                         }).join('')
                                                                     })
                                                                 } else {
+                                                                    let option: any = []
+                                                                    const widgetComponentID = gvc.glitter.getUUID()
+                                                                    addCreateOption(option, widgetComponentID)
                                                                     target!.outerHTML = (widgetComponent.render(gvc, dd as any, setting as any, hover, subdata, {
                                                                         option: option,
-                                                                        widgetComponentID: gvc.glitter.getUUID()
+                                                                        widgetComponentID: widgetComponentID
                                                                     })
                                                                         .view() as string)
                                                                 }
@@ -729,18 +772,26 @@ ${obj.gvc.bindView({
                                                                 if (isEditMode() && !childContainer) {
                                                                     option.push({
                                                                         key: "onclick", value: (() => {
-                                                                            return gvc.editorEvent((e, event) => {
+
+                                                                            function selectEvent(event: any) {
                                                                                 try {
+                                                                                    gvc.glitter.$('.selectComponentHover').removeClass('selectComponentHover');
+                                                                                    gvc.glitter.$(`[gvc-id="${gvc.id(dd.id)}"]`).addClass('selectComponentHover');
                                                                                     if ((dd as any).selectEditEvent()) {
                                                                                         hover = [dd.id];
-                                                                                        gvc.glitter.$('.selectComponentHover').removeClass('selectComponentHover');
-                                                                                        gvc.glitter.$(e).addClass('selectComponentHover');
                                                                                     }
                                                                                     scrollToHover()
-                                                                                    event.stopPropagation()
-                                                                                } catch {
+                                                                                    event && event.stopPropagation()
+                                                                                } catch (e) {
+                                                                                    console.log(e)
                                                                                 }
+                                                                            }
 
+                                                                            dd.editorEvent = () => {
+                                                                                selectEvent(document.querySelector(`[gvc-id="${gvc.id(dd.id)}"]`));
+                                                                            }
+                                                                            return gvc.editorEvent((e, event) => {
+                                                                                selectEvent(event)
                                                                             })
                                                                         })()
                                                                     })
@@ -757,19 +808,25 @@ ${obj.gvc.bindView({
                                                                         if (isEditMode() && !childContainer) {
                                                                             option.push({
                                                                                 key: "onclick", value: (() => {
-                                                                                    return gvc.editorEvent((e, event) => {
+                                                                                    function selectEvent(event: any) {
                                                                                         try {
+                                                                                            gvc.glitter.$('.selectComponentHover').removeClass('selectComponentHover');
+                                                                                            gvc.glitter.$(`[gvc-id="${gvc.id(component)}"]`).addClass('selectComponentHover');
                                                                                             if ((dd as any).selectEditEvent()) {
                                                                                                 hover = [dd.id];
-                                                                                                gvc.glitter.$('.selectComponentHover').removeClass('selectComponentHover');
-                                                                                                gvc.glitter.$(e).addClass('selectComponentHover');
                                                                                             }
                                                                                             scrollToHover()
-                                                                                            event.stopPropagation()
+                                                                                            event && event.stopPropagation()
                                                                                         } catch (e) {
                                                                                             console.log(e)
                                                                                         }
+                                                                                    }
 
+                                                                                    dd.editorEvent = () => {
+                                                                                        selectEvent(document.querySelector(`[gvc-id="${gvc.id(component)}"]`));
+                                                                                    }
+                                                                                    return gvc.editorEvent((e, event) => {
+                                                                                        selectEvent(event)
                                                                                     })
                                                                                 })()
                                                                             })
@@ -977,128 +1034,139 @@ ${obj.gvc.bindView({
                     if (loading) {
                         return ``;
                     } else {
-                        return gvc.map(
-                            (option.setting ?? setting).map((dd, index) => {
-                                try {
-                                    dd.formData = (setting as any).formData;
-                                    const component = gvc.glitter.getUUID();
-                                    dd.refreshAllParameter = dd.refreshAllParameter ?? {
-                                        view1: () => {
-                                        },
-                                        view2: () => {
-                                        },
-                                    };
-                                    dd.refreshComponent = () => {
-                                        try {
-                                            dd.refreshComponentParameter!.view2();
-                                            dd.refreshComponentParameter!.view1();
-                                        } catch (e: any) {
-                                            (window as any).glitter.deBugMessage(`${e.message}<br>${e.stack}<br>${e.line}`);
-                                        }
-                                    };
-                                    dd.refreshComponentParameter = dd.refreshComponentParameter ?? {
-                                        view1: () => {
-                                        },
-                                        view2: () => {
-                                        },
-                                    };
-                                    dd.refreshAllParameter!.view2 = () => {
-                                        gvc.notifyDataChange(editContainer);
-                                    };
-                                    dd.refreshAll = () => {
-                                        dd.refreshAllParameter!.view1();
-                                        dd.refreshAllParameter!.view2();
-                                        option.refreshAll();
-                                    };
-                                    const toggleView = gvc.glitter.getUUID();
-                                    const toggleEvent = gvc.event(() => {
-                                        dd.expand = !dd.expand;
-                                        gvc.notifyDataChange([toggleView, component]);
-                                    });
 
-                                    return `<div style=" ${
-                                        option.return_
-                                            ? `padding: 10px;`
-                                            : `padding-bottom: 10px;margin-bottom: 10px;border-bottom: 1px solid lightgrey;`
-                                    }" class="
+                        return (option.setting ?? setting).map((dd, index) => {
+                            try {
+                                dd.formData = (setting as any).formData;
+                                const component = gvc.glitter.getUUID();
+                                dd.refreshAllParameter = dd.refreshAllParameter ?? {
+                                    view1: () => {
+                                    },
+                                    view2: () => {
+                                    },
+                                };
+                                dd.refreshComponent = () => {
+                                    try {
+                                        dd.refreshComponentParameter!.view2();
+                                        dd.refreshComponentParameter!.view1();
+                                    } catch (e: any) {
+                                        (window as any).glitter.deBugMessage(`${e.message}<br>${e.stack}<br>${e.line}`);
+                                    }
+                                };
+                                dd.refreshComponentParameter = dd.refreshComponentParameter ?? {
+                                    view1: () => {
+                                    },
+                                    view2: () => {
+                                    },
+                                };
+                                dd.refreshAllParameter!.view2 = () => {
+                                    gvc.notifyDataChange(editContainer);
+                                };
+                                dd.refreshAll = () => {
+                                    dd.refreshAllParameter!.view1();
+                                    dd.refreshAllParameter!.view2();
+                                    option.refreshAll();
+                                };
+                                const toggleView = gvc.glitter.getUUID();
+                                const toggleEvent = gvc.event(() => {
+                                    dd.expand = !dd.expand;
+                                    gvc.notifyDataChange([toggleView, component]);
+                                });
+                                return `<div style=" ${
+                                    option.return_
+                                        ? `padding: 10px;`
+                                        : `padding-bottom: 10px;margin-bottom: 10px;border-bottom: 1px solid lightgrey;`
+                                }" class="
 ${option.return_ ? `w-100 border rounded bg-dark mt-2` : ``} " >
+${EditorElem.editeInput({
+                                    gvc: gvc,
+                                    title: '區段名稱',
+                                    default: dd.label,
+                                    placeHolder: '請輸入自定義模塊名稱',
+                                    callback: (text) => {
+                                        dd.label = text;
+                                        gvc.notifyDataChange(['HtmlEditorContainer'])
+                                    },
+                                })}
 ${gvc.bindView(() => {
-                                        let loading = true
-                                        let data: string | Promise<string> = ''
+                                    let loading = true
+                                    let data: string | Promise<string> = ''
 
-                                        function getData() {
-                                            if (dd.type === 'code') {
-                                                data = codeComponent.render(gvc, dd, setting as any, hover, subdata, {
-                                                    widgetComponentID: gvc.glitter.getUUID()
-                                                })
-                                                    .editor()
-                                                loading = false
-                                                gvc.notifyDataChange(component)
-                                            } else if ((dd.type === 'widget') || (dd.type === 'container')) {
-                                                data = widgetComponent.render(gvc, dd, setting as any, hover, subdata, {
-                                                    widgetComponentID: gvc.glitter.getUUID()
-                                                })
-                                                    .editor()
-                                                loading = false
-                                                gvc.notifyDataChange(component)
-                                            } else {
-                                                loading = true
-                                                gvc.glitter.htmlGenerate.loadScript(gvc.glitter, [{
-                                                    src: gvc.glitter.htmlGenerate.resourceHook(dd.js),
-                                                    callback: (data2: any) => {
-                                                        if (data2[dd.type].render.version === 'v2') {
-                                                            data = data2[dd.type].render({
-                                                                gvc: gvc,
-                                                                widget: dd,
-                                                                widgetList: setting,
-                                                                hoverID: hover,
-                                                                subData: subdata,
-                                                                formData: (setting as any).formData
-                                                            })
-                                                                .editor()
-                                                        } else {
-                                                            data = data2[dd.type].render(gvc, dd, setting, hover, subdata)
-                                                                .editor()
-                                                        }
-                                                        if (typeof data === 'string') {
+                                    function getData() {
+                                        if (dd.type === 'code') {
+                                            data = codeComponent.render(gvc, dd, setting as any, hover, subdata, {
+                                                widgetComponentID: gvc.glitter.getUUID()
+                                            })
+                                                .editor()
+                                            loading = false
+                                            gvc.notifyDataChange(component)
+                                        } else if ((dd.type === 'widget') || (dd.type === 'container')) {
+                                            data = widgetComponent.render(gvc, dd, setting as any, hover, subdata, {
+                                                widgetComponentID: gvc.glitter.getUUID()
+                                            })
+                                                .editor()
+                                            loading = false
+                                            gvc.notifyDataChange(component)
+                                        } else {
+                                            loading = true
+                                            gvc.glitter.htmlGenerate.loadScript(gvc.glitter, [{
+                                                src: gvc.glitter.htmlGenerate.resourceHook(dd.js),
+                                                callback: (data2: any) => {
+                                                    if (data2[dd.type].render.version === 'v2') {
+                                                        data = data2[dd.type].render({
+                                                            gvc: gvc,
+                                                            widget: dd,
+                                                            widgetList: setting,
+                                                            hoverID: hover,
+                                                            subData: subdata,
+                                                            formData: (setting as any).formData
+                                                        })
+                                                            .editor()
+                                                    } else {
+                                                        data = data2[dd.type].render(gvc, dd, setting, hover, subdata)
+                                                            .editor()
+                                                    }
+                                                    if (typeof data === 'string') {
+                                                        loading = false
+                                                        gvc.notifyDataChange(component)
+                                                    } else {
+                                                        data2.then((dd: any) => {
+                                                            data = dd
                                                             loading = false
                                                             gvc.notifyDataChange(component)
-                                                        } else {
-                                                            data2.then((dd: any) => {
-                                                                data = dd
-                                                                loading = false
-                                                                gvc.notifyDataChange(component)
-                                                            })
-                                                        }
+                                                        })
                                                     }
-                                                }])
-                                            }
-                                        }
-
-                                        dd.refreshComponentParameter!.view2 = () => {
-                                            getData();
-                                        };
-                                        getData()
-                                        return {
-                                            bind: component!,
-                                            view: () => {
-                                                if (option.return_ && !dd.expand) {
-                                                    return ``;
                                                 }
-                                                try {
+                                            }])
+                                        }
+                                    }
 
-                                                    return gvc.map([
-                                                        (() => {
-                                                            if (loading) {
-                                                                return ``
-                                                            } else {
-                                                                return [
-                                                                    gvc.bindView(() => {
-                                                                        const uid = gvc.glitter.getUUID();
-                                                                        return {
-                                                                            bind: uid,
-                                                                            view: () => {
-                                                                                dd.preloadEvenet = dd.preloadEvenet ?? {};
+                                    dd.refreshComponentParameter!.view2 = () => {
+                                        getData();
+                                    };
+                                    getData()
+                                    return {
+                                        bind: component!,
+                                        view: () => {
+                                            if (option.return_ && !dd.expand) {
+                                                return ``;
+                                            }
+                                            try {
+
+                                                return gvc.map([
+                                                    (() => {
+                                                        if (loading) {
+                                                            return ``
+                                                        } else {
+                                                            return [
+                                                                gvc.bindView(() => {
+                                                                    const uid = gvc.glitter.getUUID();
+                                                                    return {
+                                                                        bind: uid,
+                                                                        view: () => {
+                                                                            dd.preloadEvenet = dd.preloadEvenet ?? {};
+
+                                                                            if (dd.type !== 'container' && dd.type !== 'widget') {
                                                                                 return [gvc.glitter.htmlGenerate.styleEditor(dd, gvc, dd, {}).editor(
                                                                                     gvc,
                                                                                     () => {
@@ -1106,19 +1174,23 @@ ${gvc.bindView(() => {
                                                                                     },
                                                                                     '模塊容器樣式'
                                                                                 )].join(`<div class="my-2"></div>`);
-                                                                            },
-                                                                            divCreate: {
-                                                                                class: 'mt-2 mb-2 '
-                                                                            },
-                                                                        };
-                                                                    }),
-                                                                    data as string
-                                                                ].join(`<div class="my-1"></div>`)
-                                                            }
-                                                        })()
-                                                    ]);
-                                                } catch (e: any) {
-                                                    return `<div class="alert alert-danger mt-2" role="alert" style="word-break: break-word;white-space: normal;">
+                                                                            } else {
+                                                                                return ``
+                                                                            }
+
+                                                                        },
+                                                                        divCreate: {
+                                                                            class: 'mt-2 mb-2 '
+                                                                        },
+                                                                    };
+                                                                }),
+                                                                data as string
+                                                            ].join(`<div class="my-1"></div>`)
+                                                        }
+                                                    })()
+                                                ]);
+                                            } catch (e: any) {
+                                                return `<div class="alert alert-danger mt-2" role="alert" style="word-break: break-word;white-space: normal;">
   <i class="fa-duotone fa-triangle-exclamation"></i>
   <br>
 解析錯誤:${e.message}
@@ -1127,21 +1199,21 @@ ${e.stack}
 <br>
 ${e.line}
 </div>`;
-                                                }
-                                            },
-                                            divCreate: {},
-                                        }
-                                    })}</div>`;
-                                } catch (e: any) {
-
-                                    HtmlGenerate.share.false[dd.js] = (HtmlGenerate.share.false[dd.js] ?? 0) + 1
-                                    gvc.glitter.deBugMessage(`解析錯誤:${e.message}<br>${e.stack}<br>${e.line}`)
-                                    if (HtmlGenerate.share.false[dd.js] < 80) {
-                                        setTimeout(() => {
-                                            getData()
-                                        }, 100)
+                                            }
+                                        },
+                                        divCreate: {},
                                     }
-                                    return `
+                                })}</div>`;
+                            } catch (e: any) {
+
+                                HtmlGenerate.share.false[dd.js] = (HtmlGenerate.share.false[dd.js] ?? 0) + 1
+                                gvc.glitter.deBugMessage(`解析錯誤:${e.message}<br>${e.stack}<br>${e.line}`)
+                                if (HtmlGenerate.share.false[dd.js] < 80) {
+                                    setTimeout(() => {
+                                        getData()
+                                    }, 100)
+                                }
+                                return `
 <div class="alert alert-danger" role="alert" style="word-break: break-word;white-space: normal;">
   <i class="fa-duotone fa-triangle-exclamation"></i>
 <br>
@@ -1151,9 +1223,8 @@ ${e.stack}
 <br>
 ${e.line}
 </div>`;
-                                }
-                            })
-                        );
+                            }
+                        }).join('')
                     }
                 },
                 divCreate: {},
@@ -1188,6 +1259,9 @@ function scrollToHover() {
         }
     }
 
-    scrollToItem(document.querySelector('.selectComponentHover'))
+    setTimeout(() => {
+        scrollToItem(document.querySelector('.selectComponentHover'))
+    }, 100)
+
 
 }

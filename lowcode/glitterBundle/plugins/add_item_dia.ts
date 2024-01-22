@@ -1475,7 +1475,7 @@ async function saveHTML(json: any, relativePath: string, gvc: GVC, elem?: {
                 "class": obj.attributes.class ?? "",
                 "style": (obj.attributes.style ?? ""),
                 "attr": Object.keys(obj.attributes).filter((key) => {
-                    return key !== 'class' && key !== 'style'
+                    return key !== 'class' && key !== 'style' && key !=='gvc-id' && key !== 'glem'
                 }).map((dd) => {
                     const of = obj.attributes[dd]
                     return {

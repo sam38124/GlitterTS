@@ -201,6 +201,31 @@ export class ApiShop {
             }
         });
     }
+    static setShowList(json) {
+        return BaseApi.create({
+            "url": getBaseUrl() + `/api-public/v1/manager/config`,
+            "type": "PUT",
+            "headers": {
+                "Content-Type": "application/json",
+                "g-app": getConfig().config.appName,
+                "Authorization": getConfig().config.token
+            },
+            data: JSON.stringify({
+                "key": "product_show_list",
+                "value": json
+            })
+        });
+    }
+    static getShowList() {
+        return BaseApi.create({
+            "url": getBaseUrl() + `/api-public/v1/manager/config?key=product_show_list`,
+            "type": "GET",
+            "headers": {
+                "Content-Type": "application/json",
+                "g-app": getConfig().config.appName
+            }
+        });
+    }
     static toCheckout(json) {
         return BaseApi.create({
             "url": getBaseUrl() + `/api-public/v1/ec/checkout`,

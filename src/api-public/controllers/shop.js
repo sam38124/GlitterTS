@@ -9,7 +9,7 @@ const exception_1 = __importDefault(require("../../modules/exception"));
 const shopping_1 = require("../services/shopping");
 const ut_permission_1 = require("../utils/ut-permission");
 const path_1 = __importDefault(require("path"));
-const newebpay_1 = __importDefault(require("../services/newebpay"));
+const financial_service_js_1 = require("../services/financial-service.js");
 const private_config_js_1 = require("../../services/private_config.js");
 const database_js_1 = __importDefault(require("../../modules/database.js"));
 const invoice_js_1 = require("../services/invoice.js");
@@ -17,6 +17,7 @@ const user_js_1 = require("../services/user.js");
 const custom_code_js_1 = require("../services/custom-code.js");
 const ut_database_js_1 = require("../utils/ut-database.js");
 const post_js_1 = require("../services/post.js");
+const crypto_1 = __importDefault(require("crypto"));
 const router = express_1.default.Router();
 router.get('/rebate/sum', async (req, resp) => {
     try {
@@ -65,6 +66,7 @@ router.get("/product", async (req, resp) => {
             min_price: req.query.min_price,
             max_price: req.query.max_price,
             status: req.query.status,
+            id_list: req.query.id_list,
             order_by: (() => {
                 switch (req.query.order_by) {
                     case 'max_price':
@@ -229,7 +231,8 @@ router.get("/order", async (req, resp) => {
                 limit: ((_d = req.query.limit) !== null && _d !== void 0 ? _d : 50),
                 search: req.query.search,
                 id: req.query.id,
-                email: req.body.token.account
+                email: req.body.token.account,
+                status: '1'
             })));
         }
         else {
@@ -322,14 +325,42 @@ router.post('/notify', upload.single('file'), async (req, resp) => {
             appName: appName, key: 'glitter_finance'
         }))[0].value;
         const url = new URL(`https://covert?${req.body.toString()}`);
-        const decodeData = JSON.parse(await new newebpay_1.default(appName, {
-            "HASH_IV": keyData.HASH_IV,
-            "HASH_KEY": keyData.HASH_KEY,
-            "ActionURL": keyData.ActionURL,
-            "NotifyURL": ``,
-            "ReturnURL": ``,
-            "MERCHANT_ID": keyData.MERCHANT_ID,
-        }).decode(url.searchParams.get('TradeInfo')));
+        console.log(req.body.toString());
+        let decodeData = undefined;
+        if (keyData.TYPE === 'ecPay') {
+            let params = {};
+            for (const b of url.searchParams.keys()) {
+                params[b] = url.searchParams.get(b);
+            }
+            let od = (Object.keys(params).sort(function (a, b) {
+                return a.toLowerCase().localeCompare(b.toLowerCase());
+            })).filter((dd) => {
+                return dd !== 'CheckMacValue';
+            }).map((dd) => {
+                return `${dd.toLowerCase()}=${params[dd]}`;
+            });
+            let raw = od.join('&');
+            raw = financial_service_js_1.EcPay.urlEncode_dot_net(`HashKey=${keyData.HASH_KEY}&${raw.toLowerCase()}&HashIV=${keyData.HASH_IV}`);
+            const chkSum = crypto_1.default.createHash('sha256').update(raw.toLowerCase()).digest('hex');
+            decodeData = {
+                Status: (url.searchParams.get('RtnCode') === '1' && url.searchParams.get('CheckMacValue').toLowerCase() === chkSum) ? `SUCCESS` : `ERROR`,
+                Result: {
+                    MerchantOrderNo: url.searchParams.get('MerchantTradeNo'),
+                    CheckMacValue: url.searchParams.get('CheckMacValue')
+                }
+            };
+        }
+        else {
+            decodeData = JSON.parse(await new financial_service_js_1.EzPay(appName, {
+                "HASH_IV": keyData.HASH_IV,
+                "HASH_KEY": keyData.HASH_KEY,
+                "ActionURL": keyData.ActionURL,
+                "NotifyURL": ``,
+                "ReturnURL": ``,
+                "MERCHANT_ID": keyData.MERCHANT_ID,
+                TYPE: keyData.TYPE
+            }).decode(url.searchParams.get('TradeInfo')));
+        }
         if (decodeData['Status'] === 'SUCCESS') {
             const notProgress = (await database_js_1.default.query(`SELECT count(1)
                                                  FROM \`${appName}\`.t_checkout

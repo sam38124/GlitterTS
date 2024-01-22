@@ -24,6 +24,7 @@ const app_release = require("./app-release");
 const smtp = require("./smtp");
 const fcm = require("./fcm");
 const wallet = require("./wallet");
+const article = require("./article");
 const live_source_js_1 = require("../../live_source.js");
 const public_table_check_js_1 = require("../services/public-table-check.js");
 router.use('/api-public/*', doAuthAction);
@@ -39,6 +40,7 @@ router.use(config_1.config.getRoute(config_1.config.public_route.app, 'public'),
 router.use(config_1.config.getRoute(config_1.config.public_route.smtp, 'public'), smtp);
 router.use(config_1.config.getRoute(config_1.config.public_route.fcm, 'public'), fcm);
 router.use(config_1.config.getRoute(config_1.config.public_route.wallet, 'public'), wallet);
+router.use(config_1.config.getRoute(config_1.config.public_route.article, 'public'), article);
 const whiteList = [
     { url: config_1.config.getRoute(config_1.config.public_route.chat, 'public'), method: 'POST' },
     { url: config_1.config.getRoute(config_1.config.public_route.chat + '/message', 'public'), method: 'POST' },
@@ -70,6 +72,7 @@ const whiteList = [
     { url: config_1.config.getRoute(config_1.config.public_route.ec + "/notify", 'public'), method: 'POST' },
     { url: config_1.config.getRoute(config_1.config.public_route.wallet + "/notify", 'public'), method: 'POST' },
     { url: config_1.config.getRoute(config_1.config.public_route.manager + "/config", 'public'), method: 'GET' },
+    { url: config_1.config.getRoute(config_1.config.public_route.article, 'public'), method: 'GET' },
 ];
 async function doAuthAction(req, resp, next) {
     var _a, _b, _c;

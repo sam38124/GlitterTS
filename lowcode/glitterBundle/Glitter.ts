@@ -11,6 +11,7 @@ export class Glitter {
     public gvcType = GVCType
     public deviceTypeEnum = AppearType;
     public animation = Animation;
+
     /*DefaultSetting*/
     public defaultSetting = new DefaultSetting({
         pageBgColor: "white",
@@ -447,6 +448,7 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
     }
 
     public getUrlParameter(sParam: string): any {
+
         let sPageURL = window.location.search.substring(1),
             sURLVariables = sPageURL.split('&'),
             sParameterName,
@@ -561,6 +563,7 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
     /*util*/
     public ut = {
         glitter: this,
+        queue:{},
         clock() {
             return {
                 start: new Date(),
@@ -571,6 +574,43 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
                     this.start = new Date()
                 }
             }
+        },
+        setQueue:(tag:string, fun:any, callback:any) => {
+            const queue:any=Glitter.glitter.ut.queue;
+            queue[tag] = queue[tag] ?? {
+                callback: [],
+                data: undefined,
+                isRunning: false
+            }
+            if (queue[tag].data) {
+                callback && callback((()=>{
+                    try {
+                        return JSON.parse(JSON.stringify(queue[tag].data))
+                    }catch (e) {
+                        console.log(`parseError`,queue[tag].data)
+                    }
+                })())
+            } else {
+                queue[tag].callback.push(callback)
+
+                if (!queue[tag].isRunning) {
+                    queue[tag].isRunning = true
+                    fun((response:any) => {
+                        queue[tag].callback.map((callback:any) => {
+                            callback && callback((()=>{
+                                try {
+                                    return JSON.parse(JSON.stringify(response))
+                                }catch (e) {
+                                    console.log(`parseError`,queue[tag].data)
+                                }
+                            })())
+                        })
+                        queue[tag].data = response
+                        queue[tag].callback = []
+                    })
+                }
+            }
+
         },
         dateFormat(date: Date, fmt: string): string {
             const o: any = {

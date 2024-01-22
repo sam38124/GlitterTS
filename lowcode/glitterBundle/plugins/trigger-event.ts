@@ -195,10 +195,12 @@ export class TriggerEvent {
     }
 
     public static editer(gvc: GVC, widget: HtmlJson, obj: any, option: {
-        hover: boolean,
-        option: string[],
+        hover?: boolean,
+        option?: string[],
         title?: string
     } = {hover: false, option: []}) {
+        option.hover=option.hover ?? false
+        option.option=option.option ?? []
         const glitter = (window as any).glitter
         if (TriggerEvent.isEditMode()) {
             return glitter.share.editorBridge['TriggerEventBridge'].editer(gvc, widget, obj, option)

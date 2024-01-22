@@ -6,6 +6,7 @@ export declare class App {
         appName: string;
         copyApp: string;
         copyWith: string[];
+        brand: string;
     }): Promise<boolean>;
     getAPP(query: {
         app_name?: string;
@@ -18,6 +19,7 @@ export declare class App {
         overdue: boolean;
         memberType: any;
         appCount: any;
+        brand: any;
     }>;
     setAppConfig(config: {
         appName: string;

@@ -184,20 +184,20 @@ async function createAPP(dd) {
             path: path_1.default.resolve(__dirname, '../lowcode'),
             seoManager: async (req, resp) => {
                 var _a;
-                let appName = dd.appName;
-                if (req.query.appName) {
-                    appName = req.query.appName;
-                }
-                let overDue = await app_js_1.App.checkOverDue(appName);
-                let vm = {
-                    glitterInfo: `<script>
+                try {
+                    let appName = dd.appName;
+                    if (req.query.appName) {
+                        appName = req.query.appName;
+                    }
+                    let overDue = await app_js_1.App.checkOverDue(appName);
+                    let vm = {
+                        glitterInfo: `<script>
 window.appName='${appName}';
-window.glitterBase='${process.env.GLITTER_DB}'
+window.glitterBase='${overDue.brand}'
 window.glitterBackend='${config_1.config.domain}';
 window.glitterAuth = ${JSON.stringify(overDue)}
 </script>`
-                };
-                try {
+                    };
                     let data = (await database_2.default.execute(`SELECT page_config, \`${config_1.saasConfig.SAAS_NAME}\`.app_config.\`config\`, tag
                                                   FROM \`${config_1.saasConfig.SAAS_NAME}\`.page_config,
                                                        \`${config_1.saasConfig.SAAS_NAME}\`.app_config
@@ -306,7 +306,8 @@ window.location.href='?page=${redirect}';
                     })()}${vm.glitterInfo}`;
                 }
                 catch (e) {
-                    return vm.glitterInfo;
+                    console.log(e.message);
+                    return e.message;
                 }
             }
         },

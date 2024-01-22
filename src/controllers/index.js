@@ -24,7 +24,6 @@ router.use(config_1.config.getRoute(config_1.config.route.template), template);
 router.use(config_1.config.getRoute(config_1.config.route.app), app);
 router.use(config_1.config.getRoute(config_1.config.route.fileManager), filemanager);
 router.use(config_1.config.getRoute(config_1.config.route.private), privateConfig);
-router.use(config_1.config.getRoute(config_1.config.route.private), privateConfig);
 router.use(config_1.config.getRoute(config_1.config.route.ai), ai);
 const whiteList = [
     { url: config_1.config.getRoute(config_1.config.route.user) + "/login", method: 'POST' },

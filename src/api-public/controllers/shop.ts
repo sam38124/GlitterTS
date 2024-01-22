@@ -5,7 +5,7 @@ import exception from "../../modules/exception";
 import {Shopping} from "../services/shopping";
 import {UtPermission} from "../utils/ut-permission";
 import path from "path";
-import Newebpay from "../services/newebpay";
+import FinancialService, {EcPay, EzPay} from "../services/financial-service.js";
 import {Private_config} from "../../services/private_config.js";
 import db from "../../modules/database.js";
 import {IToken} from "../models/Auth.js";
@@ -20,6 +20,7 @@ import {UtDatabase} from "../utils/ut-database.js";
 import {Wallet} from "../services/wallet.js";
 import {Post} from "../services/post.js";
 import {saasConfig} from "../../config.js";
+import crypto from "crypto";
 
 const router: express.Router = express.Router();
 
@@ -74,8 +75,9 @@ router.get("/product", async (req: express.Request, resp: express.Response) => {
             min_price: req.query.min_price as string,
             max_price: req.query.max_price as string,
             status: req.query.status as string,
+            id_list:req.query.id_list as string,
             order_by: (() => {
-                switch (req.query.order_by){
+                switch (req.query.order_by) {
                     case 'max_price':
                         return `order by (CAST(JSON_UNQUOTE(JSON_EXTRACT(content, '$.max_price')) AS SIGNED))  desc`
                     case 'min_price':
@@ -225,7 +227,8 @@ router.get("/order", async (req: express.Request, resp: express.Response) => {
                 limit: (req.query.limit ?? 50) as number,
                 search: req.query.search as string,
                 id: req.query.id as string,
-                email: (req.body.token as IToken).account
+                email: (req.body.token as IToken).account,
+                status: '1'
             })));
         } else {
             throw exception.BadRequestError('BAD_REQUEST', 'No permission.', null);
@@ -314,14 +317,43 @@ router.post('/notify', upload.single('file'), async (req: express.Request, resp:
             appName: appName, key: 'glitter_finance'
         }))[0].value
         const url = new URL(`https://covert?${req.body.toString()}`)
-        const decodeData: any = JSON.parse(await new Newebpay(appName, {
-            "HASH_IV": keyData.HASH_IV,
-            "HASH_KEY": keyData.HASH_KEY,
-            "ActionURL": keyData.ActionURL,
-            "NotifyURL": ``,
-            "ReturnURL": ``,
-            "MERCHANT_ID": keyData.MERCHANT_ID,
-        }).decode(url.searchParams.get('TradeInfo') as string));
+        console.log(req.body.toString())
+        let decodeData: any=undefined
+        if(keyData.TYPE==='ecPay'){
+            let params:any={}
+            for (const b of  url.searchParams.keys()){
+                params[b]=url.searchParams.get(b)
+            }
+            let od: any = (Object.keys(params).sort(function (a, b) {
+                return a.toLowerCase().localeCompare(b.toLowerCase());
+            })).filter((dd)=>{
+                return dd!=='CheckMacValue'
+            }).map((dd)=>{
+                return `${dd.toLowerCase()}=${(params as any)[dd]}`
+            });
+            let raw: any = od.join('&');
+            raw = EcPay.urlEncode_dot_net(`HashKey=${keyData.HASH_KEY}&${raw.toLowerCase()}&HashIV=${keyData.HASH_IV}`);
+            const chkSum = crypto.createHash('sha256').update(raw.toLowerCase()).digest('hex');
+            decodeData={
+                Status:(url.searchParams.get('RtnCode')==='1' && url.searchParams.get('CheckMacValue')!.toLowerCase()===chkSum
+                ) ? `SUCCESS`:`ERROR`,
+                Result:{
+                    MerchantOrderNo:url.searchParams.get('MerchantTradeNo'),
+                    CheckMacValue:url.searchParams.get('CheckMacValue')
+                }
+            }
+        }else{
+            decodeData=JSON.parse(await new EzPay(appName, {
+                "HASH_IV": keyData.HASH_IV,
+                "HASH_KEY": keyData.HASH_KEY,
+                "ActionURL": keyData.ActionURL,
+                "NotifyURL": ``,
+                "ReturnURL": ``,
+                "MERCHANT_ID": keyData.MERCHANT_ID,
+                TYPE: keyData.TYPE
+            }).decode(url.searchParams.get('TradeInfo') as string))
+        }
+
         if (decodeData['Status'] === 'SUCCESS') {
             const notProgress = (await db.query(`SELECT count(1)
                                                  FROM \`${appName}\`.t_checkout

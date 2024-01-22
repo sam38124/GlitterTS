@@ -28,9 +28,12 @@ export class ApiPageConfig {
             })
         });
     }
-    static getPage(appName, tag) {
+    static getPage(appName, tag, group, type) {
         return BaseApi.create({
-            "url": config.url + `/api/v1/template?appName=${appName}` + (tag ? `&tag=${tag}` : ""),
+            "url": config.url + `/api/v1/template?appName=${appName}` +
+                (tag ? `&tag=${tag}` : "") +
+                (group ? `&group=${group}` : "") +
+                (type ? `&type=${type}` : ""),
             "type": "GET",
             "timeout": 0,
             "headers": {

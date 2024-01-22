@@ -140,7 +140,7 @@ ${
                 bind: id,
                 view: () => {
                     if (data.length === 0) {
-                        return `<div class="w-100 d-flex align-items-center justify-content-center fw-bold fs-5">
+                        return `<div class="w-100 d-flex align-items-center justify-content-center fw-bold fs-6 alert bgf6">
 尚未新增任何檔案...
 </div>`
                     }
@@ -323,6 +323,22 @@ ${addNewlineAfterSemicolon(obj.initial)}
         ` + getComponent(obj.gvc, obj.height)
     }
 
+    public static pageEditor(cf: {
+        page: string,
+        width: number,
+        height: number,
+        par: { key: string, value: string }[]
+    }){
+        const href = new URL(location.href)
+        href.searchParams.set('page', cf.page)
+        href.searchParams.set('type', 'editor')
+        href.searchParams.set('editorPosition','0')
+        href.searchParams.set('blogEditor',"true")
+        cf.par.map((dd) => {
+            href.searchParams.set(dd.key, dd.value)
+        })
+        return `<iframe class="rounded-3" src="${href.href}" style="border: none;width:${cf.width}px;height:${cf.height}px;"></iframe>`
+    }
     public static iframeComponent(cf: {
         page: string,
         width: number,
@@ -561,7 +577,7 @@ ${(obj.structEnd) ? obj.structEnd : "})()"}`,
         })
     }
 
-    public static pageSelect(gvc: GVC, title: string, def: any, callback: (tag: string) => void) {
+    public static pageSelect(gvc: GVC, title: string, def: any, callback: (tag: string) => void,filter?:(data:any)=>boolean) {
         const glitter = gvc.glitter
         const id = glitter.getUUID()
         const data: any = {
@@ -578,7 +594,10 @@ ${(obj.structEnd) ? obj.structEnd : "})()"}`,
                     "Content-Type": "application/json"
                 }
             }).then((d2: any) => {
-                data.dataList = d2.response.result
+                data.dataList = d2.response.result.filter((dd:any)=>{
+                    return (!filter) || filter!(dd)
+                })
+
                 gvc.notifyDataChange(id)
             })
         }

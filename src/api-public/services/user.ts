@@ -63,8 +63,14 @@ export class User {
                     }
                 }
             }
-
-
+            if(data.will_come_title && data.will_come_content){
+                sendmail(
+                    `${data.name} <${process.env.smtp}>`,
+                    account,
+                    data.will_come_title ?? '嗨！歡迎加入 Glitter.AI。',
+                    data.will_come_content ?? ''
+                );
+            }
             await db.execute(`INSERT INTO \`${this.app}\`.\`t_user\` (\`userID\`, \`account\`, \`pwd\`, \`userData\`, \`status\`)
                               VALUES (?, ?, ?, ?, ?);`, [
                 userID,

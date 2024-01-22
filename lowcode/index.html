@@ -145,6 +145,38 @@
     }
 </style>
 <script>
+    function preload(data){
+        let joinArray=['__']
+        function loop(array) {
+            array.map((dd) => {
+                if (dd.type === 'container') {
+                    loop(dd.data.setting)
+                } else if (dd.type === 'component') {
+                    joinArray.push(dd.data.tag)
+                }
+            })
+        }
+        data.response.result.map((d2) => {
+            loop(d2.config)
+        })
+        joinArray=joinArray.filter((value, index, self)=>{
+            return value
+        })
+        joinArray.map((tag)=>{
+            window.glitterInitialHelper.setQueue(`getPageData-${tag}`, (callback) => {
+                glitterInitialHelper.getPageData(joinArray.join(','),(dd)=>{
+                    const data=JSON.parse(JSON.stringify(dd))
+                    data.response.result=data.response.result.filter((d2)=>{
+                        return d2.tag===tag
+                    })
+                    callback({
+                        response: data.response, result: true
+                    })
+                    preload(data)
+                })
+            })
+        })
+    }
     window.glitterInitialHelper = {
         share: {},
         setQueue: (tag, fun, callback) => {
@@ -154,28 +186,41 @@
                 isRunning: false
             }
             if (window.glitterInitialHelper.share[tag].data) {
-                callback(window.glitterInitialHelper.share[tag].data)
+                callback && callback((()=>{
+                    try {
+                        return JSON.parse(JSON.stringify(window.glitterInitialHelper.share[tag].data))
+                    }catch (e) {
+                        console.log(`parseError`,window.glitterInitialHelper.share[tag].data)
+                    }
+                })())
             } else {
                 window.glitterInitialHelper.share[tag].callback.push(callback)
+
                 if (!window.glitterInitialHelper.share[tag].isRunning) {
                     window.glitterInitialHelper.share[tag].isRunning = true
                     fun((response) => {
                         window.glitterInitialHelper.share[tag].callback.map((callback) => {
-                            callback && callback(response)
+                            callback && callback((()=>{
+                                try {
+                                    return JSON.parse(JSON.stringify(response))
+                                }catch (e) {
+                                    console.log(`parseError`,window.glitterInitialHelper.share[tag].data)
+                                }
+                            })())
                         })
                         window.glitterInitialHelper.share[tag].data = response
                         window.glitterInitialHelper.share[tag].callback = []
                     })
                 }
             }
+
         },
         getPlugin: (callback) => {
             window.glitterInitialHelper.setQueue('getPlugin', (callback) => {
                 const myHeaders = new Headers();
                 const requestOptions = {
                     method: 'GET',
-                    headers: myHeaders,
-                    redirect: 'follow'
+                    headers: myHeaders
                 };
 
                 function execute() {
@@ -201,18 +246,23 @@
             data: {}
         },
         getPageData: (tag, callback) => {
+
             window.glitterInitialHelper.setQueue(`getPageData-${tag}`, (callback) => {
                 const myHeaders = new Headers();
                 const requestOptions = {
                     method: 'GET',
-                    headers: myHeaders,
-                    redirect: 'follow'
+                    headers: myHeaders
                 };
 
                 function execute() {
                     fetch(window.glitterBackend + `/api/v1/template?appName=${window.appName}&tag=${encodeURIComponent(tag)}`, requestOptions)
                         .then(response => response.json())
                         .then(response => {
+                            for(const b of response.result){
+                                if(b.group==='glitter-article'){
+                                    glitterInitialHelper.getPageData(b.page_config.template, (data) => { preload(data) })
+                                }
+                            }
                             callback({
                                 response: response, result: true
                             })
@@ -246,39 +296,7 @@
     }
     glitterInitialHelper.getPlugin()
     const url = new URL(location.href)
-    glitterInitialHelper.getPageData(url.searchParams.get('page'), (data) => {
-        function preload(data){
-            let joinArray=[]
-            function loop(array) {
-                array.map((dd) => {
-                    if (dd.type === 'container') {
-                        loop(dd.data.setting)
-                    } else if (dd.type === 'component') {
-                        joinArray.push(dd.data.tag)
-                    }
-                })
-            }
-            data.response.result.map((d2) => {
-                loop(d2.config)
-            })
-            joinArray=joinArray.filter((value, index, self)=>{
-                return value
-            })
-            joinArray.map((tag)=>{
-                window.glitterInitialHelper.setQueue(`getPageData-${tag}`, (callback) => {
-                    glitterInitialHelper.getPageData(joinArray.join(','),(dd)=>{
-                        const data=JSON.parse(JSON.stringify(dd))
-                        data.response.result=data.response.result.filter((d2)=>{
-                            return d2.tag===tag
-                        })
-                        callback(data)
-                        preload(data)
-                    })
-                })
-            })
-        }
-        preload(data)
-    })
+    glitterInitialHelper.getPageData(url.searchParams.get('page'), (data) => { preload(data) })
 </script>
 
 <script src="glitterBundle/jquery.js"></script>

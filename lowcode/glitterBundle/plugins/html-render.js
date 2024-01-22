@@ -104,11 +104,76 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                     if (vm.loading) {
                         return ``;
                     }
-                    console.log(`Render-time:`, window.renderClock.stop());
-                    (gBundle.config.formData = gBundle.page_config.formData);
-                    return new glitter.htmlGenerate(gBundle.app_config.globalStyle, [], undefined, true).render(gvc) + ((gBundle.editMode && gBundle.editMode.render(gvc))
-                        ||
-                            new glitter.htmlGenerate(gBundle.config, [], undefined, true).render(gvc));
+                    return new Promise((resolve, reject) => __awaiter(void 0, void 0, void 0, function* () {
+                        console.log(`Render-time:`, window.renderClock.stop());
+                        console.log(`gBundle.page_config.template-->`, gBundle.config);
+                        if (gBundle.page_config.template) {
+                            window.glitterInitialHelper.getPageData(gBundle.page_config.template, (data) => {
+                                const template_config = JSON.parse(JSON.stringify(data.response.result[0].config));
+                                function findContainer(set) {
+                                    set.map((dd, index) => {
+                                        var _a;
+                                        if (dd.type === 'glitter_article') {
+                                            console.log(`set[index]-->`, set[index]);
+                                            set[index].type = 'container';
+                                            set[index].data = {
+                                                "setting": gBundle.config,
+                                                "elem": "div",
+                                                "style_from": set[index].style_from,
+                                                "class": set[index].class,
+                                                "style": set[index].style,
+                                                "classDataType": set[index].classDataType,
+                                                "dataType": set[index].dataType
+                                            };
+                                        }
+                                        else if (dd.type === 'container') {
+                                            dd.data.setting = (_a = dd.data.setting) !== null && _a !== void 0 ? _a : [];
+                                            findContainer(dd.data.setting);
+                                        }
+                                    });
+                                }
+                                findContainer(template_config);
+                                template_config.formData = data.response.result[0].page_config.formData;
+                                resolve(new glitter.htmlGenerate(gBundle.app_config.globalStyle, [], undefined, true).render(gvc, {
+                                    class: ``,
+                                    style: ``,
+                                    app_config: gBundle.app_config,
+                                    page_config: gBundle.page_config
+                                }) + ((gBundle.editMode && gBundle.editMode.render(gvc, {
+                                    class: ``,
+                                    style: ``,
+                                    app_config: gBundle.app_config,
+                                    page_config: gBundle.page_config
+                                })) || new glitter.htmlGenerate(template_config, [], undefined, true).render(gvc, {
+                                    class: ``,
+                                    style: ``,
+                                    app_config: gBundle.app_config,
+                                    page_config: gBundle.page_config
+                                })));
+                            });
+                        }
+                        else {
+                            (gBundle.config.formData = gBundle.page_config.formData);
+                            resolve(new glitter.htmlGenerate(gBundle.app_config.globalStyle, [], undefined, true).render(gvc, {
+                                class: ``,
+                                style: ``,
+                                app_config: gBundle.app_config,
+                                page_config: gBundle.page_config
+                            }) + ((gBundle.editMode && gBundle.editMode.render(gvc, {
+                                class: ``,
+                                style: ``,
+                                app_config: gBundle.app_config,
+                                page_config: gBundle.page_config
+                            }))
+                                ||
+                                    new glitter.htmlGenerate(gBundle.config, [], undefined, true).render(gvc, {
+                                        class: ``,
+                                        style: ``,
+                                        app_config: gBundle.app_config,
+                                        page_config: gBundle.page_config
+                                    })));
+                        }
+                    }));
                 },
                 divCreate: {
                     class: glitter.htmlGenerate.styleEditor(gBundle.page_config).class(),

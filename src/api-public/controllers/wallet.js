@@ -7,7 +7,7 @@ const response_1 = __importDefault(require("../../modules/response"));
 const exception_1 = __importDefault(require("../../modules/exception"));
 const ut_permission_js_1 = require("../utils/ut-permission.js");
 const private_config_js_1 = require("../../services/private_config.js");
-const newebpay_js_1 = __importDefault(require("../services/newebpay.js"));
+const financial_service_js_1 = require("../services/financial-service.js");
 const wallet_js_1 = require("../services/wallet.js");
 const multer_1 = __importDefault(require("multer"));
 const database_js_1 = __importDefault(require("../../modules/database.js"));
@@ -191,13 +191,14 @@ router.post('/notify', upload.single('file'), async (req, resp) => {
             appName: appName, key: 'glitter_finance'
         }))[0].value;
         const url = new URL(`https://covert?${req.body.toString()}`);
-        const decodeData = JSON.parse(await new newebpay_js_1.default(appName, {
+        const decodeData = JSON.parse(await new financial_service_js_1.EzPay(appName, {
             "HASH_IV": keyData.HASH_IV,
             "HASH_KEY": keyData.HASH_KEY,
             "ActionURL": keyData.ActionURL,
             "NotifyURL": ``,
             "ReturnURL": ``,
             "MERCHANT_ID": keyData.MERCHANT_ID,
+            TYPE: keyData.TYPE
         }).decode(url.searchParams.get('TradeInfo')));
         if (decodeData['Status'] === 'SUCCESS') {
             await database_js_1.default.execute(`update \`${appName}\`.t_wallet

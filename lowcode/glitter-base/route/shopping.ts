@@ -1,5 +1,6 @@
 import {GlobalUser} from "../global/global-user.js";
 import {BaseApi} from "../../glitterBundle/api/base.js";
+import {Glitter} from "../../glitterBundle/Glitter.js";
 
 
 export class ApiShop {
@@ -90,7 +91,6 @@ export class ApiShop {
         status?:string,
         orderBy?:String
     }) {
-
         return BaseApi.create({
             "url": getBaseUrl() + `/api-public/v1/ec/product?${
                 (() => {
@@ -261,6 +261,34 @@ export class ApiShop {
             }
         })
     }
+    public static setShowList(json: any) {
+        return BaseApi.create({
+            "url": getBaseUrl() + `/api-public/v1/manager/config`,
+            "type": "PUT",
+            "headers": {
+                "Content-Type": "application/json",
+                "g-app": getConfig().config.appName,
+                "Authorization": getConfig().config.token
+            },
+            data: JSON.stringify({
+                "key": "product_show_list",
+                "value": json
+            })
+        })
+    }
+
+    public static getShowList() {
+        return BaseApi.create({
+            "url": getBaseUrl() + `/api-public/v1/manager/config?key=product_show_list`,
+            "type": "GET",
+            "headers": {
+                "Content-Type": "application/json",
+                "g-app": getConfig().config.appName
+            }
+        })
+    }
+
+
 
     public static toCheckout(json: {
         line_items: {

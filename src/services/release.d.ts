@@ -13,6 +13,13 @@ export declare class Release {
         project_router: string;
         glitter_domain: string;
     }): Promise<void>;
+    static getHtml(cf: {
+        appName: string;
+        bundleID: string;
+        appDomain: string;
+        project_router: string;
+        glitter_domain: string;
+    }): string;
     static copyFolderSync(source: string, target: string): void;
     static removeAllFilesInFolder(folderPath: string): void;
     static compressFiles(inputFolder: string, outputZip: string): Promise<unknown>;

@@ -126,7 +126,7 @@ ${obj.gvc.bindView(() => {
                 bind: id,
                 view: () => {
                     if (data.length === 0) {
-                        return `<div class="w-100 d-flex align-items-center justify-content-center fw-bold fs-5">
+                        return `<div class="w-100 d-flex align-items-center justify-content-center fw-bold fs-6 alert bgf6">
 尚未新增任何檔案...
 </div>`;
                     }
@@ -290,6 +290,17 @@ ${addNewlineAfterSemicolon(obj.initial)}
         })}"><i class="fa-solid fa-expand"></i></div>
 </div>
         ` + getComponent(obj.gvc, obj.height);
+    }
+    static pageEditor(cf) {
+        const href = new URL(location.href);
+        href.searchParams.set('page', cf.page);
+        href.searchParams.set('type', 'editor');
+        href.searchParams.set('editorPosition', '0');
+        href.searchParams.set('blogEditor', "true");
+        cf.par.map((dd) => {
+            href.searchParams.set(dd.key, dd.value);
+        });
+        return `<iframe class="rounded-3" src="${href.href}" style="border: none;width:${cf.width}px;height:${cf.height}px;"></iframe>`;
     }
     static iframeComponent(cf) {
         const href = new URL(location.href);
@@ -469,7 +480,7 @@ ${(obj.structEnd) ? obj.structEnd : "})()"}`,
             };
         });
     }
-    static pageSelect(gvc, title, def, callback) {
+    static pageSelect(gvc, title, def, callback, filter) {
         const glitter = gvc.glitter;
         const id = glitter.getUUID();
         const data = {
@@ -485,7 +496,9 @@ ${(obj.structEnd) ? obj.structEnd : "})()"}`,
                     "Content-Type": "application/json"
                 }
             }).then((d2) => {
-                data.dataList = d2.response.result;
+                data.dataList = d2.response.result.filter((dd) => {
+                    return (!filter) || filter(dd);
+                });
                 gvc.notifyDataChange(id);
             });
         }

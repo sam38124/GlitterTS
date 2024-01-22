@@ -2,6 +2,7 @@ import {TriggerEvent} from '../../glitterBundle/plugins/trigger-event.js';
 import {EditorElem} from "../../glitterBundle/plugins/editor-elem.js";
 import {GlobalData} from "../event.js";
 
+const html = String.raw
 TriggerEvent.createSingleEvent(import.meta.url, () => {
     return {
         fun: (gvc, widget, object, subData) => {
@@ -60,35 +61,77 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                     ${(() => {
                                     if (object.link_change_type === 'inlink') {
                                         object.stackControl = object.stackControl ?? "home"
-                                        return /*html*/ `
-${EditorElem.select({
-                                            title: '堆棧控制',
-                                            gvc: gvc,
-                                            def: object.stackControl,
-                                            callback: (text: string) => {
-                                                object.stackControl = text
-                                                widget.refreshComponent();
-                                            },
-                                            array: [{title: '設為首頁', value: "home"}, {
-                                                title: '頁面跳轉',
-                                                value: "page"
-                                            }],
-                                        })}
-${EditorElem.h3("選擇頁面")}
-<select
-                                            class="form-select form-control mt-2"
-                                            onchange="${gvc.event((e) => {
-                                            console.log((window as any).$(e).val())
-                                            object.link = (window as any).$(e).val();
-                                        })}"
-                                        >
-                                            ${GlobalData.data.pageList.map((dd: any) => {
-                                            object.link = object.link ?? dd.tag;
-                                            return /*html*/ `<option value="${dd.tag}" ${object.link === dd.tag ? `selected` : ``}>
-                                                    ${dd.group}-${dd.name}
+                                        object.switchType = object.switchType ?? 'template'
+                                        object.linkFrom = object.linkFrom ?? 'manual'
+                                        object.linkFromEvent=object.linkFromEvent??{}
+                                        return html`
+                                            ${EditorElem.select({
+                                                title: '堆棧控制',
+                                                gvc: gvc,
+                                                def: object.stackControl,
+                                                callback: (text: string) => {
+                                                    object.stackControl = text
+                                                    widget.refreshComponent();
+                                                },
+                                                array: [{title: '設為首頁', value: "home"}, {
+                                                    title: '頁面跳轉',
+                                                    value: "page"
+                                                }],
+                                            })}
+                                            ${[
+                                                EditorElem.select({
+                                                    title: '連結來源',
+                                                    gvc: gvc,
+                                                    def: object.linkFrom,
+                                                    array: [
+                                                        {title: '手動設定', value: 'manual'},
+                                                        {title: '觸發事件', value: 'code'}
+                                                    ],
+                                                    callback: (text) => {
+                                                        object.linkFrom = text
+                                                        gvc.notifyDataChange(id)
+                                                    }
+                                                })  ,
+                                                (object.linkFrom === 'manual') ? [
+                                                    EditorElem.select({
+                                                        title: '跳轉類型',
+                                                        gvc: gvc,
+                                                        def: object.switchType,
+                                                        array: [
+                                                            {title: '設計頁面', value: 'template'},
+                                                            {title: 'Blog / 網誌', value: 'article'}
+                                                        ],
+                                                        callback: (text) => {
+                                                            object.switchType = text
+                                                            gvc.notifyDataChange(id)
+                                                        }
+                                                    }),
+                                                    `<select
+                                                    class="form-select form-control mt-2"
+                                                    onchange="${gvc.event((e) => {
+                                                        object.link = (window as any).$(e).val();
+                                                    })}"
+                                            >
+                                                ${GlobalData.data.pageList.filter((dd: any) => {
+                                                        if (object.switchType === 'template') {
+                                                            return dd.group !== 'glitter-article'
+                                                        } else {
+                                                            return dd.group === 'glitter-article'
+                                                        }
+                                                    }).map((dd: any) => {
+                                                        object.link = object.link || dd.tag;
+                                                        return /*html*/ `<option value="${dd.tag}" ${object.link === dd.tag ? `selected` : ``}>
+                                                    ${(`${dd.group}-${dd.name}`).replace('glitter-article', '')}
                                                 </option>`;
-                                        })}
-                                        </select>`;
+                                                    })}
+                                            </select>`
+                                                ].join('<div class="my-2"></div>') : [
+                                                    TriggerEvent.editer(gvc,widget,object.linkFromEvent,{
+                                                        title:'獲取連結來源'
+                                                    })
+                                                ].join('')
+                                            ].join(`<div class="my-2"></div>`)}
+                                        `;
                                     } else if (object.link_change_type === 'outlink') {
                                         return gvc.glitter.htmlGenerate.editeInput({
                                             gvc: gvc,
@@ -138,14 +181,17 @@ ${EditorElem.h3("選擇頁面")}
                      * */
                     if (object.link_change_type === 'inlink') {
                         return new Promise(async (resolve, reject) => {
+                            const link:string=(object.linkFrom==='code') ? (await TriggerEvent.trigger({
+                                gvc: gvc, widget: widget, clickEvent: object.linkFromEvent,subData:subData
+                            })):(object.link);
                             const url = new URL('./', location.href);
-                            url.searchParams.set('page', object.link);
+                            url.searchParams.set('page', link);
                             const saasConfig: {
                                 config: any;
                                 api: any;
                                 appConfig: any
                             } = (window as any).saasConfig;
-                            saasConfig.api.getPage(saasConfig.config.appName, object.link).then((data: any) => {
+                            (window as any).glitterInitialHelper.getPageData(link, (data:any) => {
                                 if (data.response.result.length === 0) {
                                     const url = new URL("./", location.href)
                                     url.searchParams.set('page', data.response.redirect)
@@ -159,7 +205,7 @@ ${EditorElem.h3("選擇頁面")}
                                             page_config: data.response.result[0].page_config,
                                             config: data.response.result[0].config,
                                             data: subData ?? {},
-                                            tag: object.link
+                                            tag: link
                                         }
                                     );
                                     resolve(true)
@@ -170,7 +216,7 @@ ${EditorElem.h3("選擇頁面")}
                                             page_config: data.response.result[0].page_config,
                                             config: data.response.result[0].config,
                                             data: subData ?? {},
-                                            tag: object.link,
+                                            tag: link,
                                             goBack: true
                                         }
                                     );

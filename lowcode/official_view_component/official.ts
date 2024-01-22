@@ -71,6 +71,11 @@ class="my-1 mx-2" style="border-radius: 10px;">
             title: "FORM表單",
             subContent: "設定FORM表單與提交內容。",
             render: Plugin.setComponent(import.meta.url, new URL('./official/form.js', import.meta.url)),
+        },
+        glitter_article:{
+            title: "文章顯示區塊",
+            subContent: "文章顯示區塊。",
+            render: Plugin.setComponent(import.meta.url, new URL('./official/article.js', import.meta.url)),
         }
     }
 })

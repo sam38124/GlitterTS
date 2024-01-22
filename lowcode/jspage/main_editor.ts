@@ -260,18 +260,6 @@ export class Main_editor {
 <h3 class="text-dark  m-1 mt-2" style="font-size: 16px;">函式路徑</h3>
 <h3 class="text-primary  alert-primary m-1 fw-500 rounded p-2" style="font-size: 14px;">${viewModel.selectItem.type}</h3>
 </div>
-${
-                                        EditorElem.editeInput({
-                                            gvc: gvc,
-                                            title: '區段名稱',
-                                            default: viewModel.selectItem.label,
-                                            placeHolder: '請輸入自定義模塊名稱',
-                                            callback: (text) => {
-                                                viewModel.selectItem.label = text;
-                                                gvc.notifyDataChange(['MainEditorLef', 'showView'])
-                                            },
-                                        })
-                                }
 ${(() => {
                                     const array: any = []
                                     array.push(
@@ -549,7 +537,16 @@ ${
                                                                 {title: '樣式設計', value: 'style'},
                                                                 {title: '觸發事件', value: 'script'},
                                                                 {title: '原始碼', value: 'code'}
-                                                            ],
+                                                            ].filter((dd)=>{
+                                                                if(glitter.share.blogEditor){
+                                                                    if(vm.select==='basic'){
+                                                                        vm.select='layout'
+                                                                    }
+                                                                    return dd.value!=='basic'
+                                                                }else{
+                                                                    return  true
+                                                                }
+                                                            }),
                                                             callback: (text) => {
                                                                 vm.select = text
                                                                 gvc.notifyDataChange(vm.pageID)

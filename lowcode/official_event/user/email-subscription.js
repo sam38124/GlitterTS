@@ -46,10 +46,10 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                     return new Promise((resolve, reject) => __awaiter(void 0, void 0, void 0, function* () {
                         var _a;
                         const data = yield TriggerEvent.trigger({
-                            gvc: gvc, widget: widget, clickEvent: object.email
+                            gvc: gvc, widget: widget, clickEvent: object.email, element: element
                         });
                         const tag = yield TriggerEvent.trigger({
-                            gvc: gvc, widget: widget, clickEvent: object.tag
+                            gvc: gvc, widget: widget, clickEvent: object.tag, element: element
                         });
                         (_a = ApiUser.subScribe(data, tag)) === null || _a === void 0 ? void 0 : _a.then((r) => __awaiter(void 0, void 0, void 0, function* () {
                             if (!r.result || !r.response.result) {

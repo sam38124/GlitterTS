@@ -1,4 +1,4 @@
-import Newebpay from "./newebpay.js";
+import FinancialService from "./financial-service.js";
 import {Private_config} from "../../services/private_config.js";
 import {IToken} from "../models/Auth.js";
 import exception from "../../modules/exception.js";
@@ -22,13 +22,14 @@ export class Wallet {
         const keyData = (await Private_config.getConfig({
             appName: this.app, key: 'glitter_finance'
         }))[0].value;
-        const subMitData = await (new Newebpay(this.app, {
+        const subMitData = await (new FinancialService(this.app, {
             "HASH_IV": keyData.HASH_IV,
             "HASH_KEY": keyData.HASH_KEY,
             "ActionURL": keyData.ActionURL,
             "NotifyURL": `${process.env.DOMAIN}/api-public/v1/wallet/notify?g-app=${this.app}`,
             "ReturnURL": `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&return=${cf.return_url}`,
             "MERCHANT_ID": keyData.MERCHANT_ID,
+            TYPE:keyData.TYPE
         }).saveMoney({
             total: cf.total,
             userID: this.token.userID!,

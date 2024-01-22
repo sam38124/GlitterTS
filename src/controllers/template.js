@@ -37,25 +37,28 @@ router.get('/', async (req, resp) => {
     try {
         const result = (await (new template_1.Template(req.body.token).getPage({
             appName: req.query.appName,
-            tag: ((_a = req.query.tag) !== null && _a !== void 0 ? _a : undefined)
+            tag: ((_a = req.query.tag) !== null && _a !== void 0 ? _a : undefined),
+            group: req.query.group,
+            type: req.query.type
         })));
         let redirect = '';
         if (result.length === 0) {
             const config = (await database_1.default.execute(`SELECT \`${config_1.saasConfig.SAAS_NAME}\`.app_config.\`config\`
                                               FROM \`${config_1.saasConfig.SAAS_NAME}\`.app_config
                                               where \`${config_1.saasConfig.SAAS_NAME}\`.app_config.appName = ${database_1.default.escape(req.query.appName)}
-`, []))[0]['config'];
+            `, []))[0]['config'];
             if (config && ((await database_1.default.execute(`SELECT count(1)
                                               FROM \`${config_1.saasConfig.SAAS_NAME}\`.page_config
-                                              where \`${config_1.saasConfig.SAAS_NAME}\`.page_config.appName = ${database_1.default.escape(req.query.appName)} and tag=${database_1.default.escape(config['homePage'])}
-`, []))[0]["count(1)"] === 1)) {
+                                              where \`${config_1.saasConfig.SAAS_NAME}\`.page_config.appName = ${database_1.default.escape(req.query.appName)}
+                                                and tag = ${database_1.default.escape(config['homePage'])}
+            `, []))[0]["count(1)"] === 1)) {
                 redirect = config['homePage'];
             }
             else {
                 redirect = (await database_1.default.execute(`SELECT tag
                                               FROM \`${config_1.saasConfig.SAAS_NAME}\`.page_config
                                               where \`${config_1.saasConfig.SAAS_NAME}\`.page_config.appName = ${database_1.default.escape(req.query.appName)} limit 0,1
-`, []))[0]['tag'];
+                `, []))[0]['tag'];
             }
         }
         return response_1.default.succ(resp, {

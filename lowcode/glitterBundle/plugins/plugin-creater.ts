@@ -19,6 +19,9 @@ export interface HtmlJson {
     refreshView?: () => void,
     refreshEditor?: () => void
     formData?:any
+    pageConfig:any;
+    appConfig:any,
+    global:any
 }
 
 export class Plugin {

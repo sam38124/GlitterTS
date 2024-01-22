@@ -19,14 +19,9 @@ import * as triggerBridge from "../editor-bridge/trigger-event.js";
 import { TriggerEvent } from "../glitterBundle/plugins/trigger-event.js";
 import { StoreHelper } from "../helper/store-helper.js";
 const html = String.raw;
+const editorContainerID = `HtmlEditorContainer`;
 init(import.meta.url, (gvc, glitter, gBundle) => {
-    var _a;
-    triggerBridge.initial();
-    gvc.addStyle(`
-    .swal2-title {
-    color:black!important;
-    }
-    `);
+    const swal = new Swal(gvc);
     const viewModel = {
         appName: gBundle.appName,
         appConfig: undefined,
@@ -54,16 +49,12 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
         domain: '',
         originalDomain: ''
     };
-    const swal = new Swal(gvc);
-    const doc = new Editor(gvc, viewModel);
-    const createID = `HtmlEditorContainer`;
-    glitter.share.refreshAllContainer = () => {
-        gvc.notifyDataChange(createID);
+    initialEditor(gvc, viewModel);
+    window.parent.glitter.share.refreshMainLeftEditor = () => {
+        gvc.notifyDataChange('MainEditorLeft');
     };
-    glitter.share.addComponent = (data) => {
-        viewModel.selectContainer.push(data);
-        glitter.setCookie('lastSelect', data.id);
-        gvc.notifyDataChange(createID);
+    window.parent.glitter.share.refreshMainRightEditor = () => {
+        gvc.notifyDataChange('MainEditorRight');
     };
     function lod() {
         return __awaiter(this, void 0, void 0, function* () {
@@ -73,6 +64,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                     return yield new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
                         const clock = gvc.glitter.ut.clock();
                         ApiPageConfig.getAppConfig().then((res) => {
+                            console.log(res);
                             viewModel.domain = res.response.result[0].domain;
                             viewModel.originalDomain = viewModel.domain;
                             resolve(true);
@@ -82,7 +74,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                 (() => __awaiter(this, void 0, void 0, function* () {
                     return yield new Promise((resolve) => __awaiter(this, void 0, void 0, function* () {
                         const clock = gvc.glitter.ut.clock();
-                        const data = yield ApiPageConfig.getPage(gBundle.appName);
+                        const data = yield ApiPageConfig.getPage(gBundle.appName, undefined, undefined, 'template');
                         viewModel.data = (yield ApiPageConfig.getPage(gBundle.appName, glitter.getUrlParameter('page'))).response.result[0];
                         if (data.result) {
                             data.response.result.map((dd) => {
@@ -179,120 +171,92 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
             }
             swal.close();
             viewModel.loading = false;
-            gvc.notifyDataChange(createID);
+            gvc.notifyDataChange(editorContainerID);
         });
     }
-    glitter.htmlGenerate.saveEvent = (refresh = true) => {
-        glitter.closeDiaLog();
-        glitter.setCookie("jumpToNavScroll", $(`#jumpToNav`).scrollTop());
-        swal.loading('更新中...');
-        function saveEvent() {
-            return __awaiter(this, void 0, void 0, function* () {
-                const waitSave = [
-                    (() => __awaiter(this, void 0, void 0, function* () {
-                        let haveID = [];
-                        function getID(set) {
-                            set.map((dd) => {
-                                var _a;
-                                dd.js = (dd.js).replace(`${location.origin}/${window.appName}/`, './');
-                                dd.formData = undefined;
-                                if (haveID.indexOf(dd.id) !== -1) {
-                                    dd.id = glitter.getUUID();
-                                }
-                                haveID.push(dd.id);
-                                if (dd.type === 'container') {
-                                    dd.data.setting = (_a = dd.data.setting) !== null && _a !== void 0 ? _a : [];
-                                    getID(dd.data.setting);
-                                }
-                            });
+    lod().then(() => {
+        glitter.htmlGenerate.saveEvent = (refresh = true) => {
+            glitter.closeDiaLog();
+            glitter.setCookie("jumpToNavScroll", $(`#jumpToNav`).scrollTop());
+            swal.loading('更新中...');
+            function saveEvent() {
+                return __awaiter(this, void 0, void 0, function* () {
+                    const waitSave = [
+                        (() => __awaiter(this, void 0, void 0, function* () {
+                            let haveID = [];
+                            function getID(set) {
+                                set.map((dd) => {
+                                    var _a;
+                                    dd.js = (dd.js).replace(`${location.origin}/${window.appName}/`, './');
+                                    dd.formData = undefined;
+                                    dd.pageConfig = undefined;
+                                    dd.appConfig = undefined;
+                                    dd.editorEvent = undefined;
+                                    dd.share = undefined;
+                                    if (haveID.indexOf(dd.id) !== -1) {
+                                        dd.id = glitter.getUUID();
+                                    }
+                                    haveID.push(dd.id);
+                                    if (dd.type === 'container') {
+                                        dd.data.setting = (_a = dd.data.setting) !== null && _a !== void 0 ? _a : [];
+                                        getID(dd.data.setting);
+                                    }
+                                });
+                            }
+                            getID(viewModel.data.config);
+                            return new Promise((resolve) => __awaiter(this, void 0, void 0, function* () {
+                                let result = true;
+                                ApiPageConfig.setPage({
+                                    id: viewModel.data.id,
+                                    appName: gBundle.appName,
+                                    tag: viewModel.data.tag,
+                                    name: viewModel.data.name,
+                                    config: viewModel.data.config,
+                                    group: viewModel.data.group,
+                                    page_config: viewModel.data.page_config
+                                }).then((api) => {
+                                    resolve(result && api.result);
+                                });
+                            }));
+                        })),
+                        (() => __awaiter(this, void 0, void 0, function* () {
+                            return new Promise((resolve) => __awaiter(this, void 0, void 0, function* () {
+                                viewModel.appConfig.homePage = viewModel.homePage;
+                                viewModel.appConfig.globalStyle = viewModel.globalStyle;
+                                viewModel.appConfig.globalScript = viewModel.globalScript;
+                                viewModel.appConfig.globalValue = viewModel.globalValue;
+                                viewModel.appConfig.globalStyleTag = viewModel.globalStyleTag;
+                                resolve(yield StoreHelper.setPlugin(viewModel.originalConfig, viewModel.appConfig));
+                            }));
+                        }))
+                    ];
+                    for (const a of waitSave) {
+                        if (!(yield a())) {
+                            swal.nextStep(`伺服器錯誤`, () => {
+                            }, 'error');
+                            return;
                         }
-                        getID(viewModel.data.config);
-                        return new Promise((resolve) => __awaiter(this, void 0, void 0, function* () {
-                            let result = true;
-                            ApiPageConfig.setPage({
-                                id: viewModel.data.id,
-                                appName: gBundle.appName,
-                                tag: viewModel.data.tag,
-                                name: viewModel.data.name,
-                                config: viewModel.data.config,
-                                group: viewModel.data.group,
-                                page_config: viewModel.data.page_config
-                            }).then((api) => {
-                                resolve(result && api.result);
-                            });
-                        }));
-                    })),
-                    (() => __awaiter(this, void 0, void 0, function* () {
-                        return new Promise((resolve) => __awaiter(this, void 0, void 0, function* () {
-                            viewModel.appConfig.homePage = viewModel.homePage;
-                            viewModel.appConfig.globalStyle = viewModel.globalStyle;
-                            viewModel.appConfig.globalScript = viewModel.globalScript;
-                            viewModel.appConfig.globalValue = viewModel.globalValue;
-                            viewModel.appConfig.globalStyleTag = viewModel.globalStyleTag;
-                            resolve(yield StoreHelper.setPlugin(viewModel.originalConfig, viewModel.appConfig));
-                        }));
-                    }))
-                ];
-                for (const a of waitSave) {
-                    if (!(yield a())) {
-                        swal.nextStep(`伺服器錯誤`, () => {
-                        }, 'error');
-                        return;
                     }
-                }
-                swal.close();
-                viewModel.originalConfig = JSON.parse(JSON.stringify(viewModel.appConfig));
-                if (refresh) {
-                    lod();
-                }
-            });
-        }
-        saveEvent().then(r => {
-        });
-    };
-    lod();
-    glitter.share.reloadEditor = () => {
-        viewModel.selectItem = undefined;
-        viewModel.selectContainer = undefined;
-        lod();
-    };
-    window.parent.glitter.share.refreshMainLeftEditor = () => {
-        gvc.notifyDataChange('MainEditorLeft');
-    };
-    window.parent.glitter.share.refreshMainRightEditor = () => {
-        gvc.notifyDataChange('MainEditorRight');
-    };
-    glitter.share.clearSelectItem = () => {
-        viewModel.selectItem = undefined;
-    };
-    glitter.share.copycomponent = undefined;
-    glitter.share.pastEvent = () => {
-        if (!glitter.share.copycomponent) {
-            swal.nextStep(`請先複製元件`, () => {
-            }, 'error');
-            return;
-        }
-        var copy = JSON.parse(glitter.share.copycomponent);
-        function checkId(dd) {
-            dd.id = glitter.getUUID();
-            if (dd.type === 'container') {
-                dd.data.setting.map((d2) => {
-                    checkId(d2);
+                    swal.close();
+                    viewModel.originalConfig = JSON.parse(JSON.stringify(viewModel.appConfig));
+                    if (refresh) {
+                        lod();
+                    }
                 });
             }
-        }
-        checkId(copy);
-        glitter.setCookie('lastSelect', copy.id);
-        viewModel.selectContainer.splice(0, 0, copy);
-        viewModel.selectItem = undefined;
-        gvc.notifyDataChange(createID);
-    };
-    glitter.share.inspect = (_a = glitter.share.inspect) !== null && _a !== void 0 ? _a : true;
-    glitter.share.editorViewModel = viewModel;
+            saveEvent().then(r => {
+            });
+        };
+        glitter.share.reloadEditor = () => {
+            viewModel.selectItem = undefined;
+            viewModel.selectContainer = undefined;
+            lod();
+        };
+    });
     return {
         onCreateView: () => {
             return gvc.bindView({
-                bind: createID,
+                bind: editorContainerID,
                 view: () => {
                     var _a;
                     let selectPosition = (_a = glitter.getUrlParameter('editorPosition')) !== null && _a !== void 0 ? _a : "0";
@@ -301,6 +265,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                     }
                     else {
                         try {
+                            const doc = new Editor(gvc, viewModel);
                             return doc.create(html `
                                         <div class="d-flex overflow-hidden" style="height:100vh;background:white;">
                                             <div style="width:60px;gap:20px;padding-top: 15px;"
@@ -308,13 +273,15 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                                                 ${[
                                 { src: `fa-table-layout`, index: Main_editor.index },
                                 { src: `fa-solid fa-list-check`, index: Setting_editor.index },
-                            ].map((da) => {
+                            ].filter((dd) => {
+                                return !(dd.index === Setting_editor.index && glitter.getUrlParameter('blogEditor') === 'true');
+                            }).map((da) => {
                                 return `<i class="fa-regular ${da.src} fs-5 fw-bold ${(selectPosition === `${da.index}`) ? `text-primary` : ``}  p-2 rounded" style="cursor:pointer;${(selectPosition === `${da.index}`) ? `background-color: rgba(10,83,190,0.1);` : ``}"
 onclick="${gvc.event(() => {
                                     viewModel.waitCopy = undefined;
                                     viewModel.selectItem = undefined;
                                     glitter.setUrlParameter(`editorPosition`, `${da.index}`);
-                                    gvc.notifyDataChange(createID);
+                                    gvc.notifyDataChange(editorContainerID);
                                 })}"></i>`;
                             }).join('')}
                                             </div>
@@ -336,13 +303,13 @@ onclick="${gvc.event(() => {
                                     view: () => {
                                         switch (selectPosition) {
                                             case Setting_editor.index:
-                                                return Setting_editor.left(gvc, viewModel, createID, gBundle);
+                                                return Setting_editor.left(gvc, viewModel, editorContainerID, gBundle);
                                             case Page_editor.index:
-                                                return Page_editor.left(gvc, viewModel, createID, gBundle);
+                                                return Page_editor.left(gvc, viewModel, editorContainerID, gBundle);
                                             case Plugin_editor.index:
-                                                return Plugin_editor.left(gvc, viewModel, createID, gBundle);
+                                                return Plugin_editor.left(gvc, viewModel, editorContainerID, gBundle);
                                             default:
-                                                return Main_editor.left(gvc, viewModel, createID, gBundle);
+                                                return Main_editor.left(gvc, viewModel, editorContainerID, gBundle);
                                         }
                                     },
                                     divCreate: {
@@ -396,3 +363,47 @@ onclick="${gvc.event(() => {
         },
     };
 });
+function initialEditor(gvc, viewModel) {
+    var _a;
+    const glitter = gvc.glitter;
+    glitter.share.editorViewModel = viewModel;
+    const swal = new Swal(gvc);
+    glitter.share.pastEvent = () => {
+        if (!glitter.share.copycomponent) {
+            swal.nextStep(`請先複製元件`, () => {
+            }, 'error');
+            return;
+        }
+        var copy = JSON.parse(glitter.share.copycomponent);
+        function checkId(dd) {
+            dd.id = glitter.getUUID();
+            if (dd.type === 'container') {
+                dd.data.setting.map((d2) => {
+                    checkId(d2);
+                });
+            }
+        }
+        checkId(copy);
+        glitter.setCookie('lastSelect', copy.id);
+        viewModel.selectContainer.splice(0, 0, copy);
+        viewModel.selectItem = undefined;
+        gvc.notifyDataChange(editorContainerID);
+    };
+    glitter.share.clearSelectItem = () => {
+        viewModel.selectItem = undefined;
+    };
+    glitter.share.inspect = (_a = glitter.share.inspect) !== null && _a !== void 0 ? _a : true;
+    triggerBridge.initial();
+    glitter.share.refreshAllContainer = () => {
+        gvc.notifyDataChange(editorContainerID);
+    };
+    glitter.share.addComponent = (data) => {
+        viewModel.selectContainer.push(data);
+        glitter.setCookie('lastSelect', data.id);
+        gvc.notifyDataChange(editorContainerID);
+    };
+    if (glitter.getUrlParameter('blogEditor') === 'true') {
+        glitter.share.blogEditor = true;
+        glitter.share.blogPage = glitter.getUrlParameter('page');
+    }
+}

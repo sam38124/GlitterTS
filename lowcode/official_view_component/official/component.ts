@@ -97,7 +97,7 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
                                             // data.config
                                             target!.outerHTML = `
                                                 <!-- tag=${tag} -->
-                                                ${new glitter.htmlGenerate(data.config, [], sub).render(gvc, undefined, createOption ?? {})}
+                                              ${new glitter.htmlGenerate(data.config, [], sub).render(gvc, undefined, createOption ?? {})}
                                                 `;
                                         })
                                     }
@@ -127,7 +127,9 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
                                 "Content-Type": "application/json"
                             }
                         }).then((d2) => {
-                            data.dataList = d2.response.result
+                            data.dataList = d2.response.result.filter((dd:any)=>{
+                                return dd.group !== 'glitter-article'
+                            })
                             gvc.notifyDataChange(id)
                         })
                     }

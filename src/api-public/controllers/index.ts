@@ -22,6 +22,7 @@ import app_release =require('./app-release')
 import smtp =require('./smtp')
 import fcm =require('./fcm')
 import wallet =require('./wallet')
+import article=require('./article')
 import {Live_source} from "../../live_source.js";
 import {IToken} from "../models/Auth.js";
 import {ApiPublic} from "../services/public-table-check.js";
@@ -39,6 +40,7 @@ router.use(config.getRoute(config.public_route.app, 'public'), app_release);
 router.use(config.getRoute(config.public_route.smtp, 'public'), smtp);
 router.use(config.getRoute(config.public_route.fcm, 'public'), fcm);
 router.use(config.getRoute(config.public_route.wallet, 'public'), wallet);
+router.use(config.getRoute(config.public_route.article, 'public'), article);
 /******************************/
 const whiteList: {}[] = [
     {url: config.getRoute(config.public_route.chat, 'public'), method: 'POST'},
@@ -71,6 +73,7 @@ const whiteList: {}[] = [
     {url: config.getRoute(config.public_route.ec+"/notify", 'public'), method: 'POST'},
     {url: config.getRoute(config.public_route.wallet+"/notify", 'public'), method: 'POST'},
     {url: config.getRoute(config.public_route.manager+"/config", 'public'), method: 'GET'},
+    {url: config.getRoute(config.public_route.article, 'public'), method: 'GET'},
 ];
 
 async function doAuthAction(req: express.Request, resp: express.Response, next: express.NextFunction) {

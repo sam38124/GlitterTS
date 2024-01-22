@@ -55,171 +55,7 @@ export class Release {
 
 
             fs.writeFileSync(path.resolve(cf.project_router, '../../proshake/GlitterUI/index.html'), (() => {
-                let html = `<!DOCTYPE html>
-<meta name="viewport" content="width=device-width,height=device-height, initial-scale=1, minimum-scale=1, maximum-scale=1,user-scalable=no,initial-scale=1.0001,maximum-scale=1.0001,viewport-fit=cover">
-<html lang="en">
-<head>
-</head>
-
-<style>
-    .selectComponentHover{
-        border: 4px solid dodgerblue !important;
-        border-radius: 5px !important;
-        box-sizing: border-box !important;
-    }
-  #toast {
-    position: absolute;
-    z-index: 2147483646;
-    background-color: black;
-    opacity: .8;
-    color: white;
-    bottom: 100px;
-    max-width: calc(100% - 20px);
-    transform: translateX(-50%);
-    left: 50%;
-    font-size: 14px;
-    border-radius: 10px;
-    padding: 10px;
-    display: none;
-  }
-
-  body{
-    margin: 0;
-    padding: 0;
-    overflow-x: hidden;
-    white-space: normal;
-      overflow-y:auto !important;
-  }
-  iframe{
-    width: 100%;
-    height: 100%;
-    border-width: 0;
-    padding: 0;
-    margin: 0;
-    white-space: normal;
-    position: relative;
-  }
-  html{
-    white-space: normal;
-    margin: 0;
-    padding: 0;
-  }
-  .toggleInner h3{
-      color:white !important;
-  }
-  .alert-success h3{
-      color: #d0b9b9 !important;
-  }
-  .page-loading {
-    position: fixed;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    -webkit-transition: all .4s .2s ease-in-out;
-    transition: all .4s .2s ease-in-out;
-    background-color: #fff;
-    opacity: 0;
-    visibility: hidden;
-    z-index: 99;
-  }
-
-  .dark-mode .page-loading {
-    background-color: #131022;
-  }
-
-  .page-loading.active {
-    opacity: 1;
-    visibility: visible;
-  }
-
-  .page-loading-inner {
-    position: absolute;
-    top: 50%;
-    left: 0;
-    width: 100%;
-    text-align: center;
-    -webkit-transform: translateY(-50%);
-    transform: translateY(-50%);
-    -webkit-transition: opacity .2s ease-in-out;
-    transition: opacity .2s ease-in-out;
-    opacity: 0;
-  }
-
-  .page-loading.active > .page-loading-inner {
-    opacity: 1;
-  }
-
-  .page-loading-inner > span {
-    display: block;
-    font-size: 1rem;
-    font-weight: normal;
-    color: #9397ad;
-  }
-
-  .dark-mode .page-loading-inner > span {
-    color: #fff;
-    opacity: .6;
-  }
-
-  .page-spinner {
-    display: inline-block;
-    width: 2.75rem;
-    height: 2.75rem;
-    margin-bottom: .75rem;
-    vertical-align: text-bottom;
-    border: .15em solid #b4b7c9;
-    border-right-color: transparent;
-    border-radius: 50%;
-    -webkit-animation: spinner .75s linear infinite;
-    animation: spinner .75s linear infinite;
-  }
-
-  .dark-mode .page-spinner {
-    border-color: rgba(255, 255, 255, .4);
-    border-right-color: transparent;
-  }
-
-  @-webkit-keyframes spinner {
-    100% {
-      -webkit-transform: rotate(360deg);
-      transform: rotate(360deg);
-    }
-  }
-
-  @keyframes spinner {
-    100% {
-      -webkit-transform: rotate(360deg);
-      transform: rotate(360deg);
-    }
-  }
-</style>
-<script>
-    (window).appName=\`${cf.appDomain}\`;
-    (window).glitterBackend=\`${cf.glitter_domain}\`;
-</script>
-
-<script src="${cf.glitter_domain}/${cf.appDomain}/glitterBundle/jquery.js"></script>
-<script src="${cf.glitter_domain}/${cf.appDomain}/glitterBundle/GlitterInitial.js" type="module"></script>
-<link href="${cf.glitter_domain}/${cf.appDomain}/glitterBundle/Glitter.css" rel="stylesheet">
-
-<body>
- <div id="glitterPage" class="flex-fill h-100">
-   <div class="page-loading active">
-    <div class="page-loading-inner">
-      <div class="page-spinner"></div>
-    </div>
-  </div>
- </div>
- <aside id="drawerEl" style="z-index:99999;">
-     <div id='Navigation' style="width: 100%;height: 100%;z-index:99999;"></div>
- </aside>
-</body>
-
-</html>`
-                return html
+                return this.getHtml(cf)
             })());
         } catch (e) {
             console.log(e)
@@ -237,7 +73,18 @@ export class Release {
                 type: 'android'
             })
             fs.writeFileSync(path.resolve(cf.project_router, './app/src/main/assets/src/home.html'), (() => {
-                let html = `<!DOCTYPE html>
+                return this.getHtml(cf)
+            })());
+        } catch (e) {
+            console.log(e)
+        }
+
+    }
+
+    public static getHtml(cf: {
+        appName: string, bundleID: string, appDomain: string, project_router: string, glitter_domain: string
+    }){
+        let html = `<!DOCTYPE html>
 <meta name="viewport" content="width=device-width,height=device-height, initial-scale=1, minimum-scale=1, maximum-scale=1,user-scalable=no,initial-scale=1.0001,maximum-scale=1.0001,viewport-fit=cover">
 <html lang="en">
 <head>
@@ -382,6 +229,161 @@ export class Release {
     (window).appName=\`${cf.appDomain}\`;
     (window).glitterBackend=\`${cf.glitter_domain}\`;
 </script>
+${"<script>\n" +
+        "    function preload(data){\n" +
+        "        let joinArray=['__']\n" +
+        "        function loop(array) {\n" +
+        "            array.map((dd) => {\n" +
+        "                if (dd.type === 'container') {\n" +
+        "                    loop(dd.data.setting)\n" +
+        "                } else if (dd.type === 'component') {\n" +
+        "                    joinArray.push(dd.data.tag)\n" +
+        "                }\n" +
+        "            })\n" +
+        "        }\n" +
+        "        data.response.result.map((d2) => {\n" +
+        "            loop(d2.config)\n" +
+        "        })\n" +
+        "        joinArray=joinArray.filter((value, index, self)=>{\n" +
+        "            return value\n" +
+        "        })\n" +
+        "        joinArray.map((tag)=>{\n" +
+        "            window.glitterInitialHelper.setQueue(`getPageData-${tag}`, (callback) => {\n" +
+        "                glitterInitialHelper.getPageData(joinArray.join(','),(dd)=>{\n" +
+        "                    const data=JSON.parse(JSON.stringify(dd))\n" +
+        "                    data.response.result=data.response.result.filter((d2)=>{\n" +
+        "                        return d2.tag===tag\n" +
+        "                    })\n" +
+        "                    callback({\n" +
+        "                        response: data.response, result: true\n" +
+        "                    })\n" +
+        "                    preload(data)\n" +
+        "                })\n" +
+        "            })\n" +
+        "        })\n" +
+        "    }\n" +
+        "    window.glitterInitialHelper = {\n" +
+        "        share: {},\n" +
+        "        setQueue: (tag, fun, callback) => {\n" +
+        "\n" +
+        "            window.glitterInitialHelper.share[tag] = window.glitterInitialHelper.share[tag] ?? {\n" +
+        "                callback: [],\n" +
+        "                data: undefined,\n" +
+        "                isRunning: false\n" +
+        "            }\n" +
+        "            if (window.glitterInitialHelper.share[tag].data) {\n" +
+        "                callback && callback((()=>{\n" +
+        "                    try {\n" +
+        "                        return JSON.parse(JSON.stringify(window.glitterInitialHelper.share[tag].data))\n" +
+        "                    }catch (e) {\n" +
+        "                        console.log(`parseError`,window.glitterInitialHelper.share[tag].data)\n" +
+        "                    }\n" +
+        "                })())\n" +
+        "            } else {\n" +
+        "                window.glitterInitialHelper.share[tag].callback.push(callback)\n" +
+        "\n" +
+        "                if (!window.glitterInitialHelper.share[tag].isRunning) {\n" +
+        "                    window.glitterInitialHelper.share[tag].isRunning = true\n" +
+        "                    fun((response) => {\n" +
+        "                        window.glitterInitialHelper.share[tag].callback.map((callback) => {\n" +
+        "                            callback && callback((()=>{\n" +
+        "                                try {\n" +
+        "                                    return JSON.parse(JSON.stringify(response))\n" +
+        "                                }catch (e) {\n" +
+        "                                    console.log(`parseError`,window.glitterInitialHelper.share[tag].data)\n" +
+        "                                }\n" +
+        "                            })())\n" +
+        "                        })\n" +
+        "                        window.glitterInitialHelper.share[tag].data = response\n" +
+        "                        window.glitterInitialHelper.share[tag].callback = []\n" +
+        "                    })\n" +
+        "                }\n" +
+        "            }\n" +
+        "\n" +
+        "        },\n" +
+        "        getPlugin: (callback) => {\n" +
+        "            window.glitterInitialHelper.setQueue('getPlugin', (callback) => {\n" +
+        "                const myHeaders = new Headers();\n" +
+        "                const requestOptions = {\n" +
+        "                    method: 'GET',\n" +
+        "                    headers: myHeaders\n" +
+        "                };\n" +
+        "\n" +
+        "                function execute() {\n" +
+        "                    fetch(`${window.glitterBackend}/api/v1/app/plugin?appName=${window.appName}`, requestOptions)\n" +
+        "                        .then(response => response.json())\n" +
+        "                        .then(result => {\n" +
+        "                            callback({\n" +
+        "                                response: result, result: true\n" +
+        "                            })\n" +
+        "                        })\n" +
+        "                        .catch(error => {\n" +
+        "                            console.log(error)\n" +
+        "                            setTimeout(() => {\n" +
+        "                                execute()\n" +
+        "                            }, 100)\n" +
+        "                        });\n" +
+        "                }\n" +
+        "\n" +
+        "                execute()\n" +
+        "            }, callback)\n" +
+        "        },\n" +
+        "        preloadComponent: {\n" +
+        "            data: {}\n" +
+        "        },\n" +
+        "        getPageData: (tag, callback) => {\n" +
+        "\n" +
+        "            window.glitterInitialHelper.setQueue(`getPageData-${tag}`, (callback) => {\n" +
+        "                const myHeaders = new Headers();\n" +
+        "                const requestOptions = {\n" +
+        "                    method: 'GET',\n" +
+        "                    headers: myHeaders\n" +
+        "                };\n" +
+        "\n" +
+        "                function execute() {\n" +
+        "                    fetch(window.glitterBackend + `/api/v1/template?appName=${window.appName}&tag=${encodeURIComponent(tag)}`, requestOptions)\n" +
+        "                        .then(response => response.json())\n" +
+        "                        .then(response => {\n" +
+        "                            for(const b of response.result){\n" +
+        "                                if(b.group==='glitter-article'){\n" +
+        "                                    glitterInitialHelper.getPageData(b.page_config.template, (data) => { preload(data) })\n" +
+        "                                }\n" +
+        "                            }\n" +
+        "                            callback({\n" +
+        "                                response: response, result: true\n" +
+        "                            })\n" +
+        "                        }).catch(error => {\n" +
+        "                        console.log(error)\n" +
+        "                        setTimeout(() => {\n" +
+        "                            execute()\n" +
+        "                        }, 100)\n" +
+        "                    });\n" +
+        "                }\n" +
+        "\n" +
+        "                execute()\n" +
+        "            }, callback)\n" +
+        "        }\n" +
+        "    }\n" +
+        "    let clockF = () => {\n" +
+        "        return {\n" +
+        "            start: new Date(),\n" +
+        "            stop: function () {\n" +
+        "                return ((new Date()).getTime() - (this.start).getTime())\n" +
+        "            },\n" +
+        "            zeroing: function () {\n" +
+        "                this.start = new Date()\n" +
+        "            }\n" +
+        "        }\n" +
+        "    }\n" +
+        "    let renderClock = clockF();\n" +
+        "    (window.renderClock) = renderClock;\n" +
+        "    if (location.pathname.slice(-1) !== '/' && !location.pathname.endsWith(\"html\")) {\n" +
+        "        location.pathname = location.pathname + \"/\"\n" +
+        "    }\n" +
+        "    glitterInitialHelper.getPlugin()\n" +
+        "    const url = new URL(location.href)\n" +
+        "    glitterInitialHelper.getPageData(url.searchParams.get('page'), (data) => { preload(data) })\n" +
+        "</script>"}
 <script src="${cf.glitter_domain}/${cf.appDomain}/glitterBundle/jquery.js"></script>
 <script src="${cf.glitter_domain}/${cf.appDomain}/glitterBundle/GlitterInitial.js" type="module"></script>
 <link href="${cf.glitter_domain}/${cf.appDomain}/glitterBundle/Glitter.css" rel="stylesheet">
@@ -398,12 +400,7 @@ export class Release {
  </aside>
 </body>
 </html>`
-                return html
-            })());
-        } catch (e) {
-            console.log(e)
-        }
-
+        return html
     }
 
     public static copyFolderSync(source: string, target: string) {
@@ -434,11 +431,9 @@ export class Release {
     public static removeAllFilesInFolder(folderPath: string) {
         // 读取目标文件夹内所有文件和子文件夹
         const files = fs.readdirSync(folderPath);
-
         // 遍历所有文件和子文件夹
         files.forEach((file) => {
             const filePath = path.join(folderPath, file);
-
             // 检查是否为文件
             if (fs.statSync(filePath).isFile()) {
                 // 如果是文件，删除文件
@@ -446,7 +441,6 @@ export class Release {
             } else {
                 // 如果是子文件夹，递归地删除子文件夹内所有文件
                 this.removeAllFilesInFolder(filePath);
-
                 // 删除空的子文件夹
                 fs.rmdirSync(filePath);
             }

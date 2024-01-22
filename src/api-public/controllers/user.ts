@@ -17,7 +17,6 @@ export = router;
 router.post('/register', async (req: express.Request, resp: express.Response) => {
     try {
         const user = new User(req.get('g-app') as string);
-        console.log(`checkAccount--->>`, req.body.account)
         if ((await user.checkUserExists(req.body.account))) {
             throw exception.BadRequestError('BAD_REQUEST', 'user is already exists.', null);
         } else {

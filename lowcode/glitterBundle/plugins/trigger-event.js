@@ -177,6 +177,9 @@ export class TriggerEvent {
         }));
     }
     static editer(gvc, widget, obj, option = { hover: false, option: [] }) {
+        var _a, _b;
+        option.hover = (_a = option.hover) !== null && _a !== void 0 ? _a : false;
+        option.option = (_b = option.option) !== null && _b !== void 0 ? _b : [];
         const glitter = window.glitter;
         if (TriggerEvent.isEditMode()) {
             return glitter.share.editorBridge['TriggerEventBridge'].editer(gvc, widget, obj, option);

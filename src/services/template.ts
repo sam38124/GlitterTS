@@ -101,7 +101,7 @@ export class Template {
     }
 
     public async getPage(config: {
-        appName: string, tag?: string
+        appName: string, tag?: string,group?:string,type?:string
     }) {
         try {
             let sql = `select  ${(config.tag) ? `*`:`id,userID,tag,\`group\`,name`}
@@ -112,6 +112,19 @@ export class Template {
                 sql+=` and tag in (${config.tag.split(',').map((dd)=>{
                     return db.escape(dd)
                 }).join(',')})`
+            }
+            if(config.group){
+                sql+=` and \`group\` in (${config.group.split(',').map((dd)=>{
+                    return db.escape(dd)
+                }).join(',')})`
+            }
+            if(config.type){
+                if(config.type==='template'){
+                    sql+=` and \`group\` != ${db.escape('glitter-article')}`
+                }else if(config.type==='article') {
+                    sql+=` and \`group\` = 'glitter-article' `
+                }
+
             }
             return await db.query(sql, [])
         } catch (e: any) {

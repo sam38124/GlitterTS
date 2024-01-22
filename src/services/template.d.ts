@@ -27,6 +27,8 @@ export declare class Template {
     getPage(config: {
         appName: string;
         tag?: string;
+        group?: string;
+        type?: string;
     }): Promise<any>;
     constructor(token: IToken);
 }

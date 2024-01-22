@@ -49,6 +49,11 @@ export class Editor {
             "type": glitter.getCookieByName("ViewType") ?? ViewType.desktop
         }
         this.create = (left: string, right: string) => {
+            function getEditorTitle() {
+                return (glitter.share.blogEditor) ? `編輯Blog文章` :
+                    `GLITTER.EDITOR<span class="ms-1" style="font-size: 11px;">${glitter.share.editerVersion}</span>`
+            }
+
             return html`
                 <div class="position-relative vh-100 vw-100 overflow-auto"
                      style="word-break: break-word;white-space: nowrap;background:whitesmoke;">
@@ -62,63 +67,92 @@ export class Editor {
                                 <div class="d-flex align-items-center justify-content-center border-end "
                                      style="width:50px;height: 56px;">
                                     <i class="fa-regular fa-arrow-left-from-arc hoverBtn" style="cursor:pointer;"
-                                       onclick="location.href='index.html'">
+                                       onclick="${gvc.event(() => {
+                                           if (window.parent && (window.parent as any).glitter) {
+                                               (window.parent as any).glitter.closeDiaLog()
+                                           } else {
+                                               location.href = 'index.html'
+                                           }
+                                       })}">
 
                                     </i>
                                 </div>
-                                <span class="ms-3 fw-500" style="  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                                ${
+                                        (glitter.share.blogEditor) ? `
+                                        <span class="ms-3 fw-500" style="  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
    background: -webkit-linear-gradient(135deg, #667eea 0%, #764ba2 100%);
    background-clip: text;
    -webkit-background-clip: text;
-   color: transparent;">GLITTER.EDITOR<span class="ms-1" style="font-size: 11px;">${glitter.share.editerVersion}</span></span>
-
+   color: transparent;">${getEditorTitle()}</span>
+                                        ` : `<span class="ms-3 fw-500" style="  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+   background: -webkit-linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+   background-clip: text;
+   -webkit-background-clip: text;
+   color: transparent;">${getEditorTitle()}</span>
+                                        `
+                                }
                             </div>
-                            <div style="width:30px;"></div>
-                            <div class="d-flex align-items-center flex-fill" style="">
-                                ${[
-                                    `<div class="fw-bold fs-6 me-2 " style="color:black">應用配置</div>`,
-                                    `<div class="hoverBtn ms-auto d-flex align-items-center justify-content-center    border"
+                            <div style="width:${(glitter.getUrlParameter('blogEditor')) ? `100px`:`30px`};"></div>
+                            <div class="d-flex align-items-center flex-fill " style="">
+                                ${(() => {
+                                    if (glitter.share.blogEditor) {
+                                        if(glitter.share.blogPage!==glitter.getUrlParameter('page')){
+                                            return  `<button class="btn btn-secondary" style="height: 40px;" onclick="${
+                                                gvc.event(()=>{
+                                                    glitter.setUrlParameter('page', glitter.share.blogPage)
+                                                    glitter.share.reloadEditor()
+                                                })
+                                            }">返回編輯文章內容</button>`
+                                        }
+                                        return ``
+                                    } else {
+                                        return [
+                                            `<div class="fw-bold fs-6 me-2 " style="color:black">應用配置</div>`,
+                                            `<div class="hoverBtn ms-auto d-flex align-items-center justify-content-center    border"
                                      style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;"
                                      onclick="${gvc.event(() => {
-                                        PageEditor.openDialog.seo_with_domain(gvc)
-                                    })}">
+                                                PageEditor.openDialog.seo_with_domain(gvc)
+                                            })}">
                                     <i class="fa-sharp fa-regular fa-globe-pointer"></i>
                                 </div>`,
-                                    ` <div class="hoverBtn d-flex align-items-center justify-content-center   border " style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;"
+                                            ` <div class="hoverBtn d-flex align-items-center justify-content-center   border " style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;"
   onclick="${gvc.event(() => {
-                                        PageEditor.openDialog.plugin_setting(gvc)
-                                    })}">
+                                                PageEditor.openDialog.plugin_setting(gvc)
+                                            })}">
                                     <i class="fa-solid fa-puzzle-piece-simple"></i>
 
                                 </div>`,
-                                    ` <div class="d-flex align-items-center justify-content-center hoverBtn me-2 border"
+                                            ` <div class="d-flex align-items-center justify-content-center hoverBtn me-2 border"
                                      style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;"
                                      onclick="${gvc.event(() => {
-                                        EditorElem.openEditorDialog(gvc, (gvc: GVC) => {
-                                            return gvc.bindView(() => {
-                                                return {
-                                                    bind: gvc.glitter.getUUID(),
-                                                    view: () => {
-                                                        return new Promise(async (resolve, reject) => {
-                                                            const data = await PageEditor.valueRender(gvc)
-                                                            resolve(`
+                                                EditorElem.openEditorDialog(gvc, (gvc: GVC) => {
+                                                    return gvc.bindView(() => {
+                                                        return {
+                                                            bind: gvc.glitter.getUUID(),
+                                                            view: () => {
+                                                                return new Promise(async (resolve, reject) => {
+                                                                    const data = await PageEditor.valueRender(gvc)
+                                                                    resolve(`
                                                                 <div class="d-flex">
                           <div class="border-end" style="width:300px;overflow:hidden;"> ${data.left}</div>
                                                                 ${data.right}                                       
 </div>
                                                               
                                                                 `)
-                                                        })
-                                                    }
-                                                }
-                                            })
-                                        }, () => {
+                                                                })
+                                                            }
+                                                        }
+                                                    })
+                                                }, () => {
 
-                                        }, 700, '共用資源管理')
-                                    })}">
+                                                }, 700, '共用資源管理')
+                                            })}">
                                     <i class="fa-regular fa-folder"></i>
                                 </div>`
-                                ].join(`<div class="me-1"></div>`)}
+                                        ].join(`<div class="me-1"></div>`)
+                                    }
+                                })()}
+
                                 <div class="flex-fill"></div>
                                 <div class="btn-group " style=width:350px;">
 
@@ -152,7 +186,7 @@ export class Editor {
                                                         bind: id,
                                                         view: () => {
                                                             return new Promise(async (resolve, reject) => {
-                                                                PageEditor.pageSelecter(gvc, (d3: any) => {
+                                                                PageEditor.pageSelctor(gvc, (d3: any) => {
                                                                     console.log(d3)
                                                                     glitter.share.clearSelectItem()
                                                                     data.data = d3
@@ -198,6 +232,7 @@ export class Editor {
                                 ${gvc.bindView({
                                     bind: `showViewIcon`,
                                     view: () => {
+                                        
                                         glitter.setCookie("ViewType", viewModel.type)
                                         return html`
                                             <div style="background:#f1f1f1;border-radius:10px;"
@@ -209,8 +244,7 @@ export class Editor {
                                                     {icon: 'fa-solid fa-expand', type: ViewType.fullScreen}
                                                 ].map((dd) => {
                                                     if (dd.type === viewModel.type) {
-                                                        return html`
-                                                            <div class="d-flex align-items-center justify-content-center bg-white"
+                                                        return html`<div class="d-flex align-items-center justify-content-center bg-white"
                                                                  style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;">
                                                                 <i class="${dd.icon}"></i>
                                                             </div>`
@@ -220,6 +254,7 @@ export class Editor {
                                                                  style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;"
                                                                  onclick="${gvc.event(() => {
                                                                      viewModel.type = dd.type
+                                                                     glitter.setCookie("ViewType", viewModel.type)
                                                                      gvc.notifyDataChange('HtmlEditorContainer')
                                                                  })}">
                                                                 <i class="${dd.icon}"></i>
@@ -252,7 +287,13 @@ export class Editor {
                                 <div class="d-flex align-items-center justify-content-center border-end "
                                      style="width:50px;height: 56px;">
                                     <i class="fa-regular fa-arrow-left-from-arc hoverBtn" style="cursor:pointer;"
-                                       onclick="location.href='index.html'">
+                                       onclick="${gvc.event(() => {
+                                           if (window.parent && (window.parent as any).glitter) {
+                                               (window.parent as any).glitter.closeDiaLog()
+                                           } else {
+                                               location.href = 'index.html'
+                                           }
+                                       })}">
 
                                     </i>
                                 </div>
@@ -260,7 +301,7 @@ export class Editor {
    background: -webkit-linear-gradient(135deg, #667eea 0%, #764ba2 100%);
    background-clip: text;
    -webkit-background-clip: text;
-   color: transparent;">GLITTER.EDITOR<span class="ms-1" style="font-size: 11px;">${glitter.share.editerVersion}</span></span>
+   color: transparent;">${getEditorTitle()}</span>
 
                             </div>
                         </div>

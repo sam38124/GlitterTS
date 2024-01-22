@@ -6,7 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.Shopping = void 0;
 const exception_js_1 = __importDefault(require("../../modules/exception.js"));
 const database_js_1 = __importDefault(require("../../modules/database.js"));
-const newebpay_js_1 = __importDefault(require("./newebpay.js"));
+const financial_service_js_1 = __importDefault(require("./financial-service.js"));
 const private_config_js_1 = require("../../services/private_config.js");
 const user_js_1 = require("./user.js");
 class Shopping {
@@ -26,18 +26,31 @@ class Shopping {
     }
     async getProduct(query) {
         try {
+            console.log(this.token);
             let querySql = [
                 `(content->>'$.type'='product')`
             ];
             query.search && querySql.push(`(UPPER(JSON_UNQUOTE(JSON_EXTRACT(content, '$.title'))) LIKE UPPER('%${query.search}%'))`);
-            query.id && querySql.push(`(content->>'$.id'=${query.id})`);
+            query.id && querySql.push(`(content->>'$.id' = ${query.id})`);
             query.collection && querySql.push(`(${query.collection.split(',').map((dd) => {
                 return `(JSON_EXTRACT(content, '$.collection') LIKE '%${dd}%')`;
             }).join(' or ')})`);
+            query.id_list && querySql.push(`(content->>'$.id' in (${query.id_list}))`);
             query.status && querySql.push(`(JSON_EXTRACT(content, '$.status') = '${query.status}')`);
             query.min_price && querySql.push(`(CAST(JSON_UNQUOTE(JSON_EXTRACT(content, '$.variants[0].sale_price')) AS SIGNED)>=${query.min_price}) `);
             query.max_price && querySql.push(`(CAST(JSON_UNQUOTE(JSON_EXTRACT(content, '$.variants[0].sale_price')) AS SIGNED)<=${query.max_price}) `);
-            return await this.querySql(querySql, query);
+            const data = await this.querySql(querySql, query);
+            if (this.token && this.token.userID) {
+                for (const b of (Array.isArray(data.data) ? data.data : [data.data])) {
+                    b.content.in_wish_list = ((await database_js_1.default.query(`select count(1)
+                                                     FROM \`${this.app}\`.t_post
+                                                     where (content ->>'$.type'='wishlist')
+                                                       and userID = ${this.token.userID}
+                                                       and (content ->>'$.product_id'=${b.id})
+                    `, [])))[0]['count(1)'] == '1';
+                }
+            }
+            return data;
         }
         catch (e) {
             throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'GetProduct Error:' + e, null);
@@ -46,9 +59,8 @@ class Shopping {
     async querySql(querySql, query) {
         let sql = `SELECT *
                    FROM \`${this.app}\`.t_manager_post
-                   where ${querySql.join(' & ')}
-                   ${query.order_by || `order by id desc`}
-                   `;
+                   where ${querySql.join(' & ')} ${query.order_by || `order by id desc`}
+        `;
         if (query.id) {
             const data = (await database_js_1.default.query(`SELECT *
                                           FROM (${sql}) as subqyery limit ${query.page * query.limit}, ${query.limit}`, []))[0];
@@ -107,9 +119,9 @@ class Shopping {
                 const userData = await (new user_js_1.User(this.app).getUserData(data.email || data.user_info.email, 'account'));
                 if (userData) {
                     const sum = (await database_js_1.default.query(`SELECT sum(money)
-                                  FROM \`${this.app}\`.t_rebate
-                                  where status in (1, 2)
-                                    and userID = ?`, [userData.userID]))[0]['sum(money)'] || 0;
+                                                 FROM \`${this.app}\`.t_rebate
+                                                 where status in (1, 2)
+                                                   and userID = ?`, [userData.userID]))[0]['sum(money)'] || 0;
                     if (sum < data.use_rebate) {
                         data.use_rebate = 0;
                     }
@@ -162,7 +174,7 @@ class Shopping {
             if (carData.use_rebate) {
                 const userData = await (new user_js_1.User(this.app).getUserData(data.email || data.user_info.email, 'account'));
                 await database_js_1.default.query(`insert into \`${this.app}\`.t_rebate (orderID, userID, money, status, note)
-                                    values (?, ?, ?, ?, ?);`, [
+                                values (?, ?, ?, ?, ?);`, [
                     carData.orderID,
                     userData.userID,
                     carData.use_rebate * -1,
@@ -175,28 +187,17 @@ class Shopping {
             const keyData = (await private_config_js_1.Private_config.getConfig({
                 appName: this.app, key: 'glitter_finance'
             }))[0].value;
-            const subMitData = await (new newebpay_js_1.default(this.app, {
+            const subMitData = await (new financial_service_js_1.default(this.app, {
                 "HASH_IV": keyData.HASH_IV,
                 "HASH_KEY": keyData.HASH_KEY,
                 "ActionURL": keyData.ActionURL,
                 "NotifyURL": `${process.env.DOMAIN}/api-public/v1/ec/notify?g-app=${this.app}`,
                 "ReturnURL": `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&return=${data.return_url}`,
                 "MERCHANT_ID": keyData.MERCHANT_ID,
-            }).createNewebPage(carData));
+                TYPE: keyData.TYPE
+            }).createOrderPage(carData));
             return {
-                form: `<form name="Newebpay" action="${subMitData.actionURL}" method="POST" class="payment">
-                            <input type="hidden" name="MerchantID" value="${subMitData.MerchantID}" />
-                            <input type="hidden" name="TradeInfo" value="${subMitData.TradeInfo}" />
-                            <input type="hidden" name="TradeSha" value="${subMitData.TradeSha}" />
-                            <input type="hidden" name="Version" value="${subMitData.Version}" />
-                            <input type="hidden" name="MerchantOrderNo" value="${subMitData.MerchantOrderNo}" />
-                            <button
-                                type="submit"
-                                class="btn btn-secondary custom-btn beside-btn"
-                                id="submit"
-                                hidden
-                            ></button>
-                        </form>`
+                form: subMitData
             };
         }
         catch (e) {
@@ -347,6 +348,7 @@ class Shopping {
                 `(UPPER(JSON_UNQUOTE(orderData->>'$.email')) LIKE UPPER('%${query.search}%')))`,
                 `(UPPER(JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.user_info.name')) LIKE UPPER('%${query.search}%')))`
             ].join('||'));
+            query.status && querySql.push(`status=${query.status}`);
             query.id && querySql.push(`(content->>'$.id'=${query.id})`);
             let sql = `SELECT *
                        FROM \`${this.app}\`.t_checkout
@@ -376,7 +378,9 @@ class Shopping {
     async postVariantsAndPriceValue(content) {
         var _a, _b, _c;
         content.variants = (_a = content.variants) !== null && _a !== void 0 ? _a : [];
-        await database_js_1.default.query(`delete from \`${this.app}\`.t_manager_post  where (content->>'$.product_id'=${content.id})`, []);
+        await database_js_1.default.query(`delete
+                        from \`${this.app}\`.t_manager_post
+                        where (content ->>'$.product_id'=${content.id})`, []);
         for (const a of content.variants) {
             content.min_price = (_b = content.min_price) !== null && _b !== void 0 ? _b : (a.sale_price);
             content.max_price = (_c = content.max_price) !== null && _c !== void 0 ? _c : (a.sale_price);
@@ -389,7 +393,8 @@ class Shopping {
             a.type = 'variants';
             a.product_id = content.id;
             console.log(a);
-            await database_js_1.default.query(`insert into \`${this.app}\`.t_manager_post  SET ?`, [
+            await database_js_1.default.query(`insert into \`${this.app}\`.t_manager_post
+                            SET ?`, [
                 {
                     content: JSON.stringify(a),
                     userID: this.token.userID

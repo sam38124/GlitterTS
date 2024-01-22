@@ -26,7 +26,6 @@ router.use(config.getRoute(config.route.template), template);
 router.use(config.getRoute(config.route.app), app);
 router.use(config.getRoute(config.route.fileManager),filemanager)
 router.use(config.getRoute(config.route.private),privateConfig)
-router.use(config.getRoute(config.route.private),privateConfig)
 router.use(config.getRoute(config.route.ai),ai)
 /******************************/
 

@@ -46,6 +46,10 @@ TriggerEvent.create(import.meta.url, {
         title: '官方事件 / 輸入 / TextArea',
         fun: TriggerEvent.setEventRouter(import.meta.url, './input/textArea.js'),
     },
+    fileUpload: {
+        title: '官方事件 / 輸入 / 檔案上傳',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './input/fileUpload.js'),
+    },
     link: {
         title: '官方事件 / 畫面 / 頁面跳轉',
         subContent: questionText([
@@ -760,6 +764,10 @@ TriggerEvent.create(import.meta.url, {
     getBottomInset: {
         title: '手機裝置 / 取得下方導覽列高度',
         fun: TriggerEvent.setEventRouter(import.meta.url, './mobile/get-bottom-inset.js')
+    },
+    getBlogList: {
+        title: 'Blog / 取得網誌列表',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './blog/get-blog.js')
     }
 });
 function questionText(data) {

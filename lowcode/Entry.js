@@ -27,7 +27,7 @@ export class Entry {
 }`);
         window.renderClock = (_a = window.renderClock) !== null && _a !== void 0 ? _a : clockF();
         console.log(`Entry-time:`, window.renderClock.stop());
-        glitter.share.editerVersion = "V_4.4.2";
+        glitter.share.editerVersion = "V_4.5.5";
         glitter.share.start = new Date();
         glitter.debugMode = false;
         const vm = {
@@ -258,19 +258,19 @@ export class Entry {
                         const glitterAuth = window.glitterAuth;
                         if ((window.appName !== window.glitterBase) && (glitterAuth)) {
                             if (glitterAuth.overdue) {
-                                authError('APP使用權限已過期，請前往GLITTER網站續費。');
+                                authError('使用權限已過期，請前往後台執行續費。');
                             }
                             else {
                                 glitterAuth.memberType = glitterAuth.memberType || 'free';
                                 const memberCheck = {
-                                    vip: 40,
+                                    vip: 10,
                                     basic: 2,
-                                    company: 10,
+                                    company: 4,
                                     free: 1,
                                     noLimit: Infinity
                                 };
                                 if (memberCheck[glitterAuth.memberType] < glitterAuth.appCount) {
-                                    authError(`當前可建立應用數量為${memberCheck[glitterAuth.memberType]}個，請前往Glitter後台升級方案，或者刪除不要使用的應用。`);
+                                    authError(`當前可建立應用數量為${memberCheck[glitterAuth.memberType]}個，請前往後台升級方案，或者刪除不要使用的應用。`);
                                 }
                                 else {
                                     authPass();

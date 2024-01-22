@@ -91,7 +91,8 @@ exports.config = {
         ec: '/ec',
         manager: '/manager',
         app: '/app',
-        wallet: '/wallet'
+        wallet: '/wallet',
+        article: '/article'
     },
     route: {
         user: "/user",
@@ -99,7 +100,7 @@ exports.config = {
         app: "/app",
         fileManager: "/fileManager",
         private: "/private",
-        ai: "/ai"
+        ai: "/ai",
     }
 };
 exports.default = exports.config;

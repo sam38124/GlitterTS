@@ -111,6 +111,19 @@ class Template {
                     return database_1.default.escape(dd);
                 }).join(',')})`;
             }
+            if (config.group) {
+                sql += ` and \`group\` in (${config.group.split(',').map((dd) => {
+                    return database_1.default.escape(dd);
+                }).join(',')})`;
+            }
+            if (config.type) {
+                if (config.type === 'template') {
+                    sql += ` and \`group\` != ${database_1.default.escape('glitter-article')}`;
+                }
+                else if (config.type === 'article') {
+                    sql += ` and \`group\` = 'glitter-article' `;
+                }
+            }
             return await database_1.default.query(sql, []);
         }
         catch (e) {

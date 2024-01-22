@@ -43,6 +43,7 @@ export declare const config: {
         manager: string;
         app: string;
         wallet: string;
+        article: string;
     };
     route: {
         user: string;

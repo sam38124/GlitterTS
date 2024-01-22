@@ -27,7 +27,7 @@ export class App {
         })
     }
 
-    public async createApp(config: { appName: string, copyApp: string, copyWith: string[] }) {
+    public async createApp(config: { appName: string, copyApp: string, copyWith: string[], brand: string }) {
         try {
             config.copyWith = config.copyWith ?? []
             const count = await db.execute(`
@@ -56,9 +56,8 @@ export class App {
 
             await ApiPublic.createScheme(config.appName)
             const trans = await db.Transaction.build();
-            await trans.execute(`insert into \`${saasConfig.SAAS_NAME}\`.app_config (user, appName, dead_line, \`config\`)
-                                 values (?, ?, ?,
-                                         ${db.escape(JSON.stringify((copyAppData && copyAppData.config) || {}))})`, [
+            await trans.execute(`insert into \`${saasConfig.SAAS_NAME}\`.app_config (user, appName, dead_line, \`config\`, brand)
+                                 values (?, ?, ?, ${db.escape(JSON.stringify((copyAppData && copyAppData.config) || {}))} , ${db.escape(config.brand ?? saasConfig.SAAS_NAME)})`, [
                 this.token.userID,
                 config.appName,
                 addDays(new Date(), saasConfig.DEF_DEADLINE)
@@ -123,6 +122,16 @@ export class App {
                         dd
                     ]);
                 }
+                for (const dd of (await db.query(`SELECT *
+                                                  FROM \`${config.copyApp}\`.t_user_public_config`, []))) {
+                    dd.value = dd.value && JSON.stringify(dd.value)
+                    await trans.execute(`
+                        insert into \`${config.appName}\`.t_user_public_config
+                        SET ?;
+                    `, [
+                        dd
+                    ]);
+                }
             }
             if (privateConfig) {
                 for (const dd of privateConfig) {
@@ -179,6 +188,17 @@ export class App {
         app_name?: string
     }) {
         try {
+            console.log(`
+                SELECT *
+                FROM \`${saasConfig.SAAS_NAME}\`.app_config
+                where ${(() => {
+                const sql = [`user = '${this.token.userID}'`]
+                if (query.app_name) {
+                    sql.push(` appName='${query.app_name}' `)
+                }
+                return sql.join(' and ')
+            })()};
+            `)
             return (await db.execute(`
                 SELECT *
                 FROM \`${saasConfig.SAAS_NAME}\`.app_config
@@ -222,20 +242,22 @@ export class App {
     }
 
     public static async checkOverDue(app: string) {
+        let brand=(await db.query(`SELECT brand FROM glitter.app_config where appName = ? `,[app]))[0]['brand']
         const userID = (await db.query(`SELECT user
                                         FROM \`${saasConfig.SAAS_NAME}\`.app_config
                                         where appName = ?`, [app]))[0]['user'];
         const userData = (await db.query(`SELECT userData
-                                          FROM \`${saasConfig.SAAS_NAME}\`.t_user
+                                          FROM \`${brand}\`.t_user
                                           where userID = ? `, [userID]))[0];
-        let appCount=(await db.query(`SELECT count(1)
-                                                          FROM \`${saasConfig.SAAS_NAME}\`.app_config where user=?`,[userID]))[0]['count(1)']
+        let appCount = (await db.query(`SELECT count(1)
+                                        FROM \`${saasConfig.SAAS_NAME}\`.app_config
+                                        where user = ?`, [userID]))[0]['count(1)']
         return {
-            overdue:!(userData.userData.expireDate && new Date(userData.userData.expireDate).getTime() > new Date().getTime()),
-            memberType:userData.userData.menber_type,
-            appCount:appCount
+            overdue: !(userData.userData.expireDate && new Date(userData.userData.expireDate).getTime() > new Date().getTime()),
+            memberType: userData.userData.menber_type,
+            appCount: appCount,
+            brand:brand
         };
-
     }
 
     public async setAppConfig(config: { appName: string, data: any }) {

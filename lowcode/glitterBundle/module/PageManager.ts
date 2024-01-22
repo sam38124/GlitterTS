@@ -322,7 +322,6 @@ export class PageManager {
             this.hidePageView(pg.id, true);
         }
     };
-
     public static innerDialog = (html: (gvc: GVC) => string | Promise<string>, tag: string, option: { animation?: AnimationConfig, backGroundColor?: string, dismiss?: () => void } = {}) => {
         const glitter = Glitter.glitter;
         glitter.openDiaLog(new URL('../dialog/dialog_inner.js', import.meta.url).href, tag, {

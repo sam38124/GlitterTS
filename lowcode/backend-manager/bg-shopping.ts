@@ -220,7 +220,7 @@ export class BgShopping {
                                 discount: number,
                                 expectDate: string,
                                 shipment_fee: number,
-                                use_rebate:number,
+                                use_rebate: number,
                                 "lineItems": {
                                     "id": number,
                                     "spec": string[],
@@ -481,14 +481,14 @@ ${[
                                         description: '',
                                         total: `$${orderData.orderData.shipment_fee.toLocaleString()}`
                                     },
-                                ...(()=>{
-                                        if(orderData.orderData.use_rebate){
-                                            return [ {
+                                    ...(() => {
+                                        if (orderData.orderData.use_rebate) {
+                                            return [{
                                                 title: "回饋金",
                                                 description: ``,
                                                 total: `- $${(orderData.orderData.use_rebate).toLocaleString()}`
                                             }]
-                                        }else{
+                                        } else {
                                             return []
                                         }
                                     })()
@@ -902,7 +902,7 @@ ${[
             overlay: false,
             start_ISO_Date: '',
             end_ISO_Date: '',
-            reBackType:'discount'
+            reBackType: 'discount'
         }
         gvc.addStyle(`
                         .bg-warning{
@@ -1026,7 +1026,7 @@ ${[
                                                                 {title: '回饋金', value: 'rebate'}
                                                             ],
                                                             callback: (text) => {
-                                                                voucherData.reBackType =  text as any
+                                                                voucherData.reBackType = text as any
                                                             }
                                                         })
                                                 }
@@ -1817,6 +1817,130 @@ ${EditorElem.editeInput({
             }), 800)}`
     }
 
+    public static showListManager(obj: {
+        gvc: GVC
+    }) {
+        let array: any = [];
+        const glitter = obj.gvc.glitter
+
+        return html`
+            ${BgWidget.container(obj.gvc.bindView(() => {
+                const dialog = new ShareDialog(glitter)
+                const id = glitter.getUUID()
+                dialog.dataLoading({text: '', visible: true})
+                ApiShop.getShowList().then((res) => {
+                    array = res.response.value || []
+                    setTimeout(() => {
+                        dialog.dataLoading({visible: false})
+                    }, 500)
+                    obj.gvc.notifyDataChange(id)
+                })
+                return {
+                    bind: id,
+                    view: () => {
+                        return ` <div class="d-flex w-100 align-items-center mb-3 ">
+                    ${BgWidget.title('商品顯示區塊')}
+                    <div class="flex-fill"></div>
+                    <button class="btn btn-primary-c" style="height:38px;font-size: 14px;" onclick="${obj.gvc.event(() => {
+                            dialog.dataLoading({text: '商品上傳中...', visible: true})
+                            ApiShop.setShowList(array).then((response) => {
+                                dialog.dataLoading({text: '上傳中...', visible: false})
+                                if (response.result) {
+                                    dialog.successMessage({text: "上傳成功..."})
+                                } else {
+                                    dialog.errorMessage({text: "上傳失敗..."})
+                                }
+                            })
+                        })}">儲存</button>
+                </div>
+                ${BgWidget.card((() => {
+                            function renderArray(title: string, array: any, notify: () => void) {
+                                return EditorElem.arrayItem({
+                                    gvc: obj.gvc,
+                                    title: title,
+                                    array: () => {
+                                        return array.map((dd: any) => {
+                                            return {
+                                                title: dd.title || "區塊名稱",
+                                                innerHtml: (gvc: GVC) => {
+                                                    dd.array = dd.array ?? []
+                                                    return gvc.bindView(() => {
+                                                        const id2 = glitter.getUUID()
+                                                        return {
+                                                            bind: id2,
+                                                            view: () => {
+                                                                return EditorElem.container([
+                                                                    EditorElem.editeInput({
+                                                                        gvc: gvc,
+                                                                        title: '區塊標題',
+                                                                        default: dd.title ?? '',
+                                                                        placeHolder: '商品系列標題',
+                                                                        callback: (text) => {
+                                                                            dd.title = text
+                                                                            obj.gvc.notifyDataChange(id)
+                                                                        }
+                                                                    }),
+                                                                    EditorElem.uploadImage({
+                                                                        title: "區塊圖片",
+                                                                        gvc: gvc,
+                                                                        def: dd.img ?? '',
+                                                                        callback: (text) => {
+                                                                            dd.img = text
+                                                                            obj.gvc.notifyDataChange(id)
+                                                                        }
+                                                                    }),
+                                                                    `<div class="mx-n2">${EditorElem.arrayItem({
+                                                                        gvc: gvc,
+                                                                        title: "商品項目",
+                                                                        array: () => {
+                                                                            return []
+                                                                        },
+                                                                        originalArray: dd.array,
+                                                                        expand: {},
+                                                                        plus: {
+                                                                            title: "新增商品",
+                                                                            event: gvc.event(() => {
+                                                                                dd.array.push({})
+                                                                            })
+                                                                        },
+                                                                        refreshComponent: () => {
+                                                                            gvc.recreateView()
+                                                                        }
+                                                                    })}</div>`
+                                                                ])
+                                                            }
+                                                        }
+                                                    })
+                                                },
+                                            }
+                                        })
+                                    },
+                                    originalArray: array,
+                                    expand: true,
+                                    refreshComponent: () => {
+                                        notify()
+                                    },
+                                    plus: {
+                                        title: '新增顯示區塊',
+                                        event: obj.gvc.event(() => {
+                                                    array.push({title: ''})
+                                                    notify()
+                                                }
+                                        )
+                                    }
+                                })
+                            }
+
+                            return renderArray('區塊設定', array, () => {
+                                obj.gvc.notifyDataChange(id)
+                            })
+                        })(), `py-0 px-0 bg-white rounded-3 shadow border w-100`)}`
+                    },
+                    divCreate: {}
+                }
+            }), 800)}`
+    }
+
     public static editProduct(obj: {
         vm: any,
         gvc: GVC,
@@ -1849,7 +1973,7 @@ ${EditorElem.editeInput({
         return html`
             <div class="d-flex">
                 ${BgWidget.container(`<div class="d-flex w-100 align-items-center mb-3 ">
-         ${BgWidget.goBack(obj.gvc.event(() => {
+                ${BgWidget.goBack(obj.gvc.event(() => {
                     obj.vm.status = 'list'
                 }))} ${BgWidget.title((obj.type === 'replace') ? `編輯商品` : `新增商品`)}
         <div class="flex-fill"></div>
@@ -2393,12 +2517,91 @@ ${BgWidget.card(EditorElem.select({
                         obj.gvc.notifyDataChange(id)
                     }
 
+                    function selectCollection(callback: (cb: {
+                        select: string,
+                        gvc: GVC
+                    }) => void) {
+                        ApiShop.getCollection().then((res) => {
+                            EditorElem.openEditorDialog(obj.gvc, (gvc: GVC) => {
+                                function convertF(x: any, ind: string) {
+                                    return x.map((dd: any) => {
+                                        const indt = (ind) ? `${ind} / ${dd.title}` : dd.title
+                                        if (dd.array && dd.array.length > 0) {
+                                            return html`
+                                                <li class="btn-group d-flex flex-column"
+                                                    style="margin-top:1px;margin-bottom:1px;">
+                                                    <div class="editor_item d-flex   pe-2 my-0 hi me-n1 "
+                                                         style="" onclick="${gvc.event(() => {
+                                                        dd.toogle = !dd.toogle
+                                                        gvc.recreateView()
+                                                    })}">
+                                                        <div class="subBt ps-0 ms-n2">
+                                                            ${dd.toogle ? `<i class="fa-sharp fa-regular fa-chevron-down"></i>` : `  <i class="fa-regular fa-angle-right hoverBtn "></i>`}
+                                                        </div>
+                                                        ${dd.title}
+                                                        <div class="flex-fill"></div>
+                                                    </div>
+                                                    <ul class="ps-2 ${dd.toogle ? `` : `d-none`}">
+                                                        ${convertF(dd.array, indt)}
+                                                    </ul>
+                                                </li>`
+                                        } else {
+                                            return html`
+                                                <li class="btn-group d-flex flex-column"
+                                                    style="margin-top:1px;margin-bottom:1px;">
+                                                    <div class="editor_item d-flex   pe-2 my-0 hi  "
+                                                         style="" onclick="${
+                                                            gvc.event(() => {
+                                                                if (postMD.collection.find((dd) => {
+                                                                    return dd === indt
+                                                                })) {
+                                                                    alert('已有此標籤。')
+                                                                    return
+                                                                }
+                                                                callback({
+                                                                    select: indt,
+                                                                    gvc: gvc
+                                                                })
+                                                            })
+                                                    }">
+
+                                                        ${dd.title}
+                                                        <div class="flex-fill"></div>
+
+                                                        <div class="subBt ">
+                                                            <i class="fa-duotone fa-check d-flex align-items-center justify-content-center subBt "
+                                                               style="width:15px;height:15px;"></i>
+                                                        </div>
+                                                    </div>
+
+                                                </li>`
+                                        }
+                                    }).join('')
+                                }
+
+                                return gvc.bindView(() => {
+                                    const id = gvc.glitter.getUUID()
+                                    return {
+                                        bind: id,
+                                        view: () => {
+                                            return convertF(res.response.value, '')
+                                        },
+                                        divCreate: {
+                                            class: `ms-n3 me-1`
+                                        }
+                                    }
+                                })
+                            }, () => {
+                            }, 400)
+                        })
+                    }
+
                     return {
                         bind: id,
                         view: () => {
                             return [
                                 EditorElem.h3('商品系列'),
-                                EditorElem.arrayItem({
+                                `<div class="mx-n3">${EditorElem.arrayItem({
                                     gvc: obj.gvc,
                                     title: '',
                                     array: () => {
@@ -2406,21 +2609,14 @@ ${BgWidget.card(EditorElem.select({
                                             return {
                                                 title: dd || "尚未設定分類名稱",
                                                 innerHtml: (gvc: GVC) => {
-                                                    refresh()
-                                                    return [
-                                                        EditorElem.editeInput({
-                                                            gvc: gvc,
-                                                            title: "分類標題",
-                                                            default: dd ?? "",
-                                                            placeHolder: ``,
-                                                            callback: (text: string) => {
-                                                                postMD.collection[index] = text
-                                                                refresh()
-                                                            }
-                                                        })
-                                                    ].join('')
+                                                    selectCollection((cf) => {
+                                                        postMD.collection[index] = cf.select
+                                                        refresh()
+                                                        cf.gvc.closeDialog()
+                                                    })
+                                                    return ``
                                                 },
-                                                editTitle: `編輯規格`
+                                                editTitle: `編輯分類`
                                             }
                                         })
                                     },
@@ -2428,92 +2624,21 @@ ${BgWidget.card(EditorElem.select({
                                     originalArray: postMD.collection,
                                     expand: true,
                                     copyable: false,
+                                    customEditor: true,
                                     plus: {
-                                        title: '添加分類',
+                                        title: '添加商品分類',
                                         event: obj.gvc.event(() => {
-                                            ApiShop.getCollection().then((res) => {
-                                                EditorElem.openEditorDialog(obj.gvc, (gvc: GVC) => {
-                                                    function convertF(x: any, ind: string) {
-
-                                                        return x.map((dd: any) => {
-                                                            const indt = (ind) ? `${ind} / ${dd.title}` : dd.title
-                                                            if (dd.array && dd.array.length > 0) {
-                                                                return html`
-                                                                    <li class="btn-group d-flex flex-column"
-                                                                        style="margin-top:1px;margin-bottom:1px;">
-                                                                        <div class="editor_item d-flex   pe-2 my-0 hi me-n1 "
-                                                                             style="" onclick="${gvc.event(() => {
-                                                                            dd.toogle = !dd.toogle
-                                                                            gvc.recreateView()
-                                                                        })}">
-                                                                            <div class="subBt ps-0 ms-n2">
-                                                                                <i class="fa-regular fa-angle-right hoverBtn "></i>
-                                                                            </div>
-                                                                            ${dd.title}
-                                                                            <div class="flex-fill"></div>
-                                                                        </div>
-                                                                        <ul class="ps-2 ${dd.toogle ? `` : `d-none`}">
-                                                                            ${convertF(dd.array, indt)}
-                                                                        </ul>
-                                                                    </li>`
-                                                            } else {
-                                                                return html`
-                                                                    <li class="btn-group d-flex flex-column"
-                                                                        style="margin-top:1px;margin-bottom:1px;">
-                                                                        <div class="editor_item d-flex   pe-2 my-0 hi  "
-                                                                             style="" onclick="${
-                                                                                gvc.event(() => {
-                                                                                    if (postMD.collection.find((dd) => {
-                                                                                        return dd === indt
-                                                                                    })) {
-                                                                                        alert('已有此標籤。')
-                                                                                        return
-                                                                                    }
-                                                                                    postMD.collection.push(indt)
-                                                                                    obj.gvc.notifyDataChange(id)
-                                                                                    gvc.closeDialog()
-                                                                                })
-                                                                        }">
-
-                                                                            ${dd.title}
-                                                                            <div class="flex-fill"></div>
-
-                                                                            <div class="subBt ">
-                                                                                <i class="fa-duotone fa-check d-flex align-items-center justify-content-center subBt "
-                                                                                   style="width:15px;height:15px;"></i>
-                                                                            </div>
-                                                                        </div>
-
-                                                                    </li>`
-                                                            }
-                                                        }).join('')
-                                                    }
-
-                                                    return gvc.bindView(() => {
-                                                        const id = gvc.glitter.getUUID()
-                                                        return {
-                                                            bind: id,
-                                                            view: () => {
-                                                                return convertF(res.response.value, '')
-                                                            },
-                                                            divCreate: {
-                                                                class: `ms-n3 me-1`
-                                                            }
-                                                        }
-                                                    })
-                                                }, () => {
-
-                                                }, 400)
+                                            selectCollection((cb) => {
+                                                postMD.collection.push(cb.select)
+                                                obj.gvc.notifyDataChange(id)
+                                                cb.gvc.closeDialog()
                                             })
-
-                                            // postMD.collection.push('')
-                                            // obj.gvc.notifyDataChange(id)
                                         })
                                     },
                                     refreshComponent: () => {
                                         obj.gvc.notifyDataChange(id)
                                     }
-                                }),
+                                })}</div>`,
                             ].join('')
                         },
                         divCreate: {}
@@ -2601,7 +2726,7 @@ ${BgWidget.card(EditorElem.select({
             HASH_KEY: string;
             HASH_IV: string;
             ActionURL: string;
-            TYPE: 'newWebPay'
+            TYPE?: 'newWebPay' | 'ecPay'
         } = {
             MERCHANT_ID: 'MS350015371',
             HASH_KEY: 'yP9K0sXy1P2WcWfcbhcZDfHASdREcCz1',
@@ -2646,55 +2771,94 @@ ${BgWidget.card(EditorElem.select({
                             if (data.response.result[0]) {
                                 keyData = data.response.result[0].value
                             }
-                            resolve(` <div style="width:900px;max-width:100%;"> ${BgWidget.card([
-                                EditorElem.select({
-                                    title: '金流選擇',
-                                    gvc: gvc,
-                                    def: '藍新金流',
-                                    array: [{title: '藍新金流', value: 'newWebPay'}],
-                                    callback: (text: any) => {
-                                        keyData.TYPE = text
+                            keyData.TYPE = keyData.TYPE || 'newWebPay'
+                            resolve(gvc.bindView(() => {
+                                const id = gvc.glitter.getUUID()
+                                return {
+                                    bind: id,
+                                    view: () => {
+                                        return BgWidget.card([
+                                            EditorElem.select({
+                                                title: '金流選擇',
+                                                gvc: gvc,
+                                                def: keyData.TYPE as string,
+                                                array: [{title: '藍新金流', value: 'newWebPay'}, {
+                                                    title: '綠界金流',
+                                                    value: 'ecPay'
+                                                }],
+                                                callback: (text: any) => {
+                                                    keyData.TYPE = text
+                                                    if (keyData.TYPE === 'newWebPay') {
+                                                        keyData.ActionURL = 'https://ccore.newebpay.com/MPG/mpg_gateway'
+                                                    } else {
+                                                        keyData.ActionURL = 'https://payment-stage.ecpay.com.tw/Cashier/AioCheckOut/V5'
+                                                    }
+                                                    gvc.notifyDataChange(id)
+                                                }
+                                            }),
+                                            EditorElem.select({
+                                                title: '金流站點',
+                                                gvc: gvc,
+                                                def: keyData.ActionURL,
+                                                array: (() => {
+                                                    if (keyData.TYPE === 'newWebPay') {
+                                                        return [{
+                                                            title: '正式站',
+                                                            value: "https://core.newebpay.com/MPG/mpg_gateway"
+                                                        },
+                                                            {
+                                                                title: '測試站',
+                                                                value: "https://ccore.newebpay.com/MPG/mpg_gateway"
+                                                            }]
+                                                    } else {
+                                                        return [{
+                                                            title: '正式站',
+                                                            value: "https://payment.ecpay.com.tw/Cashier/AioCheckOut/V5"
+                                                        },
+                                                            {
+                                                                title: '測試站',
+                                                                value: "https://payment-stage.ecpay.com.tw/Cashier/AioCheckOut/V5"
+                                                            }]
+                                                    }
+                                                })(),
+                                                callback: (text: any) => {
+                                                    keyData.ActionURL = text
+                                                }
+                                            }),
+                                            EditorElem.editeInput({
+                                                gvc: gvc,
+                                                title: '特店編號',
+                                                default: keyData.MERCHANT_ID,
+                                                callback: (text) => {
+                                                    keyData.MERCHANT_ID = text
+                                                },
+                                                placeHolder: '請輸入特店編號'
+                                            }),
+                                            EditorElem.editeInput({
+                                                gvc: gvc,
+                                                title: 'HASH_KEY',
+                                                default: keyData.HASH_KEY,
+                                                callback: (text) => {
+                                                    keyData.HASH_KEY = text
+                                                },
+                                                placeHolder: '請輸入HASH_KEY'
+                                            }),
+                                            EditorElem.editeInput({
+                                                gvc: gvc,
+                                                title: 'HASH_IV',
+                                                default: keyData.HASH_IV,
+                                                callback: (text) => {
+                                                    keyData.HASH_IV = text
+                                                },
+                                                placeHolder: '請輸入HASH_IV'
+                                            })
+                                        ].join('<div class="my-2"></div>'))
+                                    },
+                                    divCreate: {
+                                        style: `width:900px;max-width:100%;`
                                     }
-                                }),
-                                EditorElem.select({
-                                    title: '金流站點',
-                                    gvc: gvc,
-                                    def: keyData.ActionURL,
-                                    array: [{title: '正式站', value: "https://core.newebpay.com/MPG/mpg_gateway"},
-                                        {title: '測試站', value: "https://ccore.newebpay.com/MPG/mpg_gateway"}],
-                                    callback: (text: any) => {
-                                        keyData.ActionURL = text
-                                    }
-                                }),
-                                EditorElem.editeInput({
-                                    gvc: gvc,
-                                    title: '特店編號',
-                                    default: keyData.MERCHANT_ID,
-                                    callback: (text) => {
-                                        keyData.MERCHANT_ID = text
-                                    },
-                                    placeHolder: '請輸入特店編號'
-                                }),
-                                EditorElem.editeInput({
-                                    gvc: gvc,
-                                    title: 'HASH_KEY',
-                                    default: keyData.HASH_KEY,
-                                    callback: (text) => {
-                                        keyData.HASH_KEY = text
-                                    },
-                                    placeHolder: '請輸入HASH_KEY'
-                                }),
-                                EditorElem.editeInput({
-                                    gvc: gvc,
-                                    title: 'HASH_IV',
-                                    default: keyData.HASH_IV,
-                                    callback: (text) => {
-                                        keyData.HASH_IV = text
-                                    },
-                                    placeHolder: '請輸入HASH_IV'
-                                })
-                            ].join('<div class="my-2"></div>'))}
-                </div>`)
+                                }
+                            }))
                         })
                     },
                     divCreate: {class: `d-flex flex-column flex-column-reverse  flex-md-row`, style: `gap:10px;`}
@@ -2765,7 +2929,8 @@ ${BgWidget.card(EditorElem.select({
                                     gvc: gvc,
                                     def: vm.data.fincial,
                                     array: [
-                                        {title: "藍新", value: "ezpay"},
+                                        {title: "藍新發票", value: "ezpay"},
+                                        {title: "綠界發票", value: "ecpay"},
                                         {title: "不開立電子發票", value: "nouse"}
                                     ],
                                     callback: (text) => {

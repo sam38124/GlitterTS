@@ -8,6 +8,7 @@ export class Firebase {
         this.app=app;
     }
     public static async initial() {
+        console.log(`fireBaseInitial:${admin.credential.cert(path.resolve(ConfigSetting.config_path, `../${process.env.firebase}`))}`)
         admin.initializeApp({
             credential: admin.credential.cert(path.resolve(ConfigSetting.config_path, `../${process.env.firebase}`))
         }, 'glitter');
