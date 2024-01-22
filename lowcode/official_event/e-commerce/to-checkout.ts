@@ -9,6 +9,7 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
             object.userInfo=object.userInfo??{}
             object.idData=object.idData ?? {}
             object.cartCount=object.cartCount ??{}
+            object.payType=object.payType??'online'
             return {
                 editor: () => {
                     return gvc.bindView(()=>{
@@ -17,6 +18,16 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                             bind:id,
                             view:()=>{
                                 let map:any=[
+                                    EditorElem.select({
+                                        gvc:gvc,
+                                        title:"付款方式",
+                                        def:object.payType,
+                                        array:[{title:"線上金流付款",value:"online"},{title:"線下付款",value:"offline"}],
+                                        callback:(text)=>{
+                                            object.payType=text
+                                            gvc.notifyDataChange(id)
+                                        }
+                                    }),
                                     EditorElem.select({
                                         gvc:gvc,
                                         title:"資料來源",
@@ -51,7 +62,6 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                     })
                 },
                 event: () => {
-
                     return new Promise(async (resolve, reject)=>{
                         const userInfo=await TriggerEvent.trigger({gvc:gvc,widget:widget,clickEvent:object.userInfo})
                         const cartData:{
@@ -89,11 +99,18 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                 code:voucher as string,
                                 use_rebate:parseInt(rebate as string,10)
                             }).then((res)=>{
-                                $('body').html(res.response.form)
-                                setTimeout(()=>{
-                                    console.log( (document.querySelector('#submit') as any).click())
-                                },1000)
-                                ApiShop.clearCart()
+                                if(object.payType==='offline'){
+                                    ApiShop.clearCart()
+                                    resolve(true)
+
+                                }else{
+                                    $('body').html(res.response.form)
+                                    setTimeout(()=>{
+                                        console.log( (document.querySelector('#submit') as any).click())
+                                    },1000)
+                                    ApiShop.clearCart()
+                                }
+
                             })
                         }
                         if(object.dataFrom==='addNow'){

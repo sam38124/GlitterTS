@@ -24,7 +24,6 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                             data_from: "user"
                         }).then((res) => {
                             if (res.result) {
-                                console.log(`orderData->>`, res.response.data);
                                 resolve(res.response.data.map((dd, index) => {
                                     dd.index = index;
                                     return dd;

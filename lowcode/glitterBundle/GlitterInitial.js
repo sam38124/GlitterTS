@@ -4,16 +4,6 @@ import { Glitter } from './Glitter.js';
 const glitter = new Glitter(window);
 window.glitter = glitter;
 window.rootGlitter = glitter;
-console.log(`GlitterInitial-time:`, window.renderClock.stop());
-window.addEventListener('resize', function () {
-    for (var a = 0; a < glitter.windowUtil.windowHeightChangeListener.length; a++) {
-        try {
-            glitter.windowUtil.windowHeightChangeListener[a](window.innerHeight);
-        }
-        catch (e) {
-        }
-    }
-});
 function listenElementChange(query) {
     const targetElement = document.querySelector(query);
     const observer = new MutationObserver(function (mutationsList) {

@@ -5,16 +5,6 @@ import {Glitter} from './Glitter.js';
 const glitter = new Glitter(window); //glitter變數
 (window as any).glitter = glitter;
 (window as any).rootGlitter = glitter;
-console.log(`GlitterInitial-time:`, (window as any).renderClock.stop());
-window.addEventListener('resize', function () {
-    for (var a = 0; a < glitter.windowUtil.windowHeightChangeListener.length; a++) {
-        try {
-            (glitter.windowUtil.windowHeightChangeListener[a] as any)(window.innerHeight);
-        } catch (e) {
-        }
-    }
-});
-
 function listenElementChange(query: string) {
 
     const targetElement: any = document.querySelector(query);

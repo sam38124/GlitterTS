@@ -800,7 +800,7 @@ ${obj.gvc.bindView({
 
                                                                 function render(subdata: any) {
                                                                     return gvc.bindView(() => {
-                                                                        const component = dd.id
+                                                                        const component = gvc.glitter.getUUID()
                                                                         dd.refreshComponentParameter!.view1 = () => {
                                                                             gvc.notifyDataChange(component)
                                                                         };
@@ -884,7 +884,7 @@ ${obj.gvc.bindView({
                                                                             subData: subdata
                                                                         }))
                                                                         target!.outerHTML = data.map((subData: any) => {
-                                                                            return render(subdata)
+                                                                            return render(subData)
                                                                         }).join('')
                                                                     })
                                                                 } else {

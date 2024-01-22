@@ -82,6 +82,7 @@ export class ApiShop {
                 json.minPrice && par.push(`min_price=${json.minPrice}`);
                 json.status && par.push(`status=${json.status}`);
                 json.orderBy && par.push(`order_by=${json.orderBy}`);
+                json.id_list && par.push(`id_list=${json.id_list}`);
                 return par.join('&');
             })()}`,
             "type": "GET",

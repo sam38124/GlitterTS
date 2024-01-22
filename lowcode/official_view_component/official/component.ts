@@ -8,6 +8,7 @@ import {EditorElem} from "../../glitterBundle/plugins/editor-elem.js";
 export const component = Plugin.createComponent(import.meta.url, (glitter: Glitter, editMode: boolean) => {
     return {
         render: (gvc: GVC, widget: HtmlJson, setting: HtmlJson[], hoverID: string[], subData, htmlGenerate) => {
+            console.log(`subData--->`,subData)
             widget.data.list = widget.data.list ?? []
             return {
                 view: () => {

@@ -227,8 +227,7 @@ router.get("/order", async (req: express.Request, resp: express.Response) => {
                 limit: (req.query.limit ?? 50) as number,
                 search: req.query.search as string,
                 id: req.query.id as string,
-                email: (req.body.token as IToken).account,
-                status: '1'
+                email: (req.body.token as IToken).account
             })));
         } else {
             throw exception.BadRequestError('BAD_REQUEST', 'No permission.', null);

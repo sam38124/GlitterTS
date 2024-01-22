@@ -313,7 +313,7 @@ export class HtmlGenerate {
                                                                 function render(subdata) {
                                                                     return gvc.bindView(() => {
                                                                         var _a;
-                                                                        const component = dd.id;
+                                                                        const component = gvc.glitter.getUUID();
                                                                         dd.refreshComponentParameter.view1 = () => {
                                                                             gvc.notifyDataChange(component);
                                                                         };
@@ -398,7 +398,7 @@ export class HtmlGenerate {
                                                                             subData: subdata
                                                                         }));
                                                                         target.outerHTML = data.map((subData) => {
-                                                                            return render(subdata);
+                                                                            return render(subData);
                                                                         }).join('');
                                                                     }));
                                                                 }

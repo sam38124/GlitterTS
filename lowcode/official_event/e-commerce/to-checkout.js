@@ -13,10 +13,11 @@ import { EditorElem } from "../../glitterBundle/plugins/editor-elem.js";
 TriggerEvent.createSingleEvent(import.meta.url, () => {
     return {
         fun: (gvc, widget, object, subData) => {
-            var _a, _b, _c;
+            var _a, _b, _c, _d;
             object.userInfo = (_a = object.userInfo) !== null && _a !== void 0 ? _a : {};
             object.idData = (_b = object.idData) !== null && _b !== void 0 ? _b : {};
             object.cartCount = (_c = object.cartCount) !== null && _c !== void 0 ? _c : {};
+            object.payType = (_d = object.payType) !== null && _d !== void 0 ? _d : 'online';
             return {
                 editor: () => {
                     return gvc.bindView(() => {
@@ -26,6 +27,16 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                             view: () => {
                                 var _a;
                                 let map = [
+                                    EditorElem.select({
+                                        gvc: gvc,
+                                        title: "付款方式",
+                                        def: object.payType,
+                                        array: [{ title: "線上金流付款", value: "online" }, { title: "線下付款", value: "offline" }],
+                                        callback: (text) => {
+                                            object.payType = text;
+                                            gvc.notifyDataChange(id);
+                                        }
+                                    }),
                                     EditorElem.select({
                                         gvc: gvc,
                                         title: "資料來源",
@@ -84,11 +95,17 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                 code: voucher,
                                 use_rebate: parseInt(rebate, 10)
                             }).then((res) => {
-                                $('body').html(res.response.form);
-                                setTimeout(() => {
-                                    console.log(document.querySelector('#submit').click());
-                                }, 1000);
-                                ApiShop.clearCart();
+                                if (object.payType === 'offline') {
+                                    ApiShop.clearCart();
+                                    resolve(true);
+                                }
+                                else {
+                                    $('body').html(res.response.form);
+                                    setTimeout(() => {
+                                        console.log(document.querySelector('#submit').click());
+                                    }, 1000);
+                                    ApiShop.clearCart();
+                                }
                             });
                         }
                         if (object.dataFrom === 'addNow') {

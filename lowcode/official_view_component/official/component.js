@@ -15,6 +15,7 @@ export const component = Plugin.createComponent(import.meta.url, (glitter, editM
     return {
         render: (gvc, widget, setting, hoverID, subData, htmlGenerate) => {
             var _a;
+            console.log(`subData--->`, subData);
             widget.data.list = (_a = widget.data.list) !== null && _a !== void 0 ? _a : [];
             return {
                 view: () => {

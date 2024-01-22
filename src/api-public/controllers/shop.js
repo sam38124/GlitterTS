@@ -231,8 +231,7 @@ router.get("/order", async (req, resp) => {
                 limit: ((_d = req.query.limit) !== null && _d !== void 0 ? _d : 50),
                 search: req.query.search,
                 id: req.query.id,
-                email: req.body.token.account,
-                status: '1'
+                email: req.body.token.account
             })));
         }
         else {

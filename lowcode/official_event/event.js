@@ -617,6 +617,10 @@ TriggerEvent.create(import.meta.url, {
         title: '電子商務 / 取得商品系列',
         fun: TriggerEvent.setEventRouter(import.meta.url, './e-commerce/all-collection.js'),
     },
+    productShowList: {
+        title: '電子商務 / 取得商品顯示列表',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './e-commerce/product-show-list.js'),
+    },
     addToCart: {
         title: '電子商務 / 加入購物車',
         fun: TriggerEvent.setEventRouter(import.meta.url, './e-commerce/add-to-cart.js'),

@@ -5,6 +5,7 @@ import {ApiPost} from "../glitter-base/route/post.js";
 import {ApiShop} from "../glitter-base/route/shopping.js";
 import {BgWidget} from "./bg-widget.js";
 import {GlobalUser} from "../glitter-base/global/global-user.js";
+import {TriggerEvent} from "../glitterBundle/plugins/trigger-event.js";
 
 const html = String.raw
 
@@ -1866,15 +1867,28 @@ ${EditorElem.editeInput({
                                                     dd.array = dd.array ?? []
                                                     return gvc.bindView(() => {
                                                         const id2 = glitter.getUUID()
+                                                        function refreshIDView(){
+                                                            gvc.notifyDataChange(id2)
+                                                        }
                                                         return {
                                                             bind: id2,
                                                             view: () => {
                                                                 return EditorElem.container([
                                                                     EditorElem.editeInput({
                                                                         gvc: gvc,
+                                                                        title: '區塊標籤',
+                                                                        default: dd.tag ?? '',
+                                                                        placeHolder: '商品區塊標籤',
+                                                                        callback: (text) => {
+                                                                            dd.tag = text
+                                                                            obj.gvc.notifyDataChange(id)
+                                                                        }
+                                                                    }),
+                                                                    EditorElem.editeInput({
+                                                                        gvc: gvc,
                                                                         title: '區塊標題',
                                                                         default: dd.title ?? '',
-                                                                        placeHolder: '商品系列標題',
+                                                                        placeHolder: '商品區塊標題',
                                                                         callback: (text) => {
                                                                             dd.title = text
                                                                             obj.gvc.notifyDataChange(id)
@@ -1893,7 +1907,65 @@ ${EditorElem.editeInput({
                                                                         gvc: gvc,
                                                                         title: "商品項目",
                                                                         array: () => {
-                                                                            return []
+                                                                            return dd.array.map((dd:any,index:number)=>{
+                                                                                return {
+                                                                                    title:dd.title ?? `商品:${index+1}`,
+                                                                                    innerHtml:(gvc:GVC)=>{
+                                                                                        return gvc.bindView(() => {
+                                                                                            let interval: any = 0
+                                                                                            return {
+                                                                                                bind: id,
+                                                                                                view: () => {
+                                                                                                    return new Promise(async (resolve, reject) => {
+                                                                                                        const title=await new Promise((resolve, reject)=>{
+                                                                                                            ApiShop.getProduct({page: 0, limit: 50, id: dd.id}).then((data) => {
+                                                                                                                if(data.result && data.response.result){
+                                                                                                                    resolve(data.response.data.content.title)
+                                                                                                                }else{
+                                                                                                                    resolve('')
+                                                                                                                }
+                                                                                                            })
+                                                                                                        })
+                                                                                                        resolve(EditorElem.searchInputDynamic({
+                                                                                                            title: '搜尋商品',
+                                                                                                            gvc: gvc,
+                                                                                                            def: title as string,
+                                                                                                            search: (text, callback) => {
+                                                                                                                clearInterval(interval)
+                                                                                                                interval = setTimeout(() => {
+                                                                                                                    ApiShop.getProduct({page: 0, limit: 50, search: ''}).then((data) => {
+                                                                                                                        callback(data.response.data.map((dd: any) => {
+                                                                                                                            return dd.content.title
+                                                                                                                        }))
+                                                                                                                    })
+                                                                                                                }, 100)
+                                                                                                            },
+                                                                                                            callback: (text) => {
+                                                                                                                ApiShop.getProduct({page: 0, limit: 50, search: text}).then((data) => {
+                                                                                                                    dd.id=data.response.data.find((dd: any) => {
+                                                                                                                        return dd.content.title===text
+                                                                                                                    }).id
+                                                                                                                    dd.title=text
+                                                                                                                    refreshIDView()
+                                                                                                                })
+                                                                                                            },
+                                                                                                            placeHolder: '請輸入商品名稱'
+                                                                                                        }))
+                                                                                                    })
+                                                                                                },
+                                                                                                divCreate: {
+                                                                                                    style: `min-height:400px;pt-2`
+                                                                                                }
+                                                                                            }
+                                                                                        })
+                                                                                    },
+                                                                                    expand:{},
+                                                                                    minus:gvc.event(()=>{
+                                                                                        dd.array.splice(index,1)
+                                                                                        gvc.recreateView()
+                                                                                    })
+                                                                                }
+                                                                            })
                                                                         },
                                                                         originalArray: dd.array,
                                                                         expand: {},
@@ -1901,6 +1973,7 @@ ${EditorElem.editeInput({
                                                                             title: "新增商品",
                                                                             event: gvc.event(() => {
                                                                                 dd.array.push({})
+                                                                                gvc.recreateView()
                                                                             })
                                                                         },
                                                                         refreshComponent: () => {
@@ -2261,7 +2334,7 @@ ${EditorElem.editeInput({
                                                 const wi = `calc(100% / 6 + 47px);`
                                                 return {
                                                     title: `<div class="d-flex align-items-center p-0 px-2" style="gap:10px;">${[
-                                                        `<img class="rounded border" alt="" src="${dd.preview_image}" style="width:40px;height:40px;">`,
+                                                        dd.preview_image ? `<img class="rounded border" alt="" src="${dd.preview_image}" style="width:40px;height:40px;">`:'',
                                                         `<div style="width:calc(100% / 6.5);white-space:normal;">${dd.spec.join('-') || postMD.title}</div>`,
                                                         EditorElem.editeInput({
                                                             gvc: obj.gvc,

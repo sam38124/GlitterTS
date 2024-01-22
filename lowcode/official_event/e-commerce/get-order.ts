@@ -14,14 +14,12 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                 },
                 event: () => {
                     return new Promise(async (resolve, reject)=>{
-
                         ApiShop.getOrder({
                             limit:50,
                             page:0,
                             data_from:"user"
                         }).then((res:any)=>{
                             if(res.result){
-                                console.log(`orderData->>`,res.response.data)
                                 resolve(res.response.data.map((dd:any,index:number)=>{
                                     dd.index=index
                                     return dd
