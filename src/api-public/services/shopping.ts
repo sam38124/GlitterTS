@@ -244,15 +244,18 @@ export class Shopping {
                 const variant = pd.variants.find((dd: any) => {
                     return dd.spec.join('-') === b.spec.join('-')
                 })
-                b.preview_image = variant.preview_image || pd.preview_image[0]
-                b.title = pd.title
-                b.sale_price = variant.sale_price
-                b.collection = pd['collection']
-                b.sku = variant.sku
-                variant.shipment_weight = parseInt(variant.shipment_weight || 0)
-                carData.shipment_fee! += (variant.shipment_weight * shipment.weight) * b.count
-                carData.lineItems.push(b as any)
-                carData.total += variant.sale_price * b.count
+                if(variant){
+                    b.preview_image = variant.preview_image || pd.preview_image[0]
+                    b.title = pd.title
+                    b.sale_price = variant.sale_price
+                    b.collection = pd['collection']
+                    b.sku = variant.sku
+                    variant.shipment_weight = parseInt(variant.shipment_weight || 0)
+                    carData.shipment_fee! += (variant.shipment_weight * shipment.weight) * b.count
+                    carData.lineItems.push(b as any)
+                    carData.total += variant.sale_price * b.count
+                }
+
             }
             carData.total += carData.shipment_fee!
             carData.total -= carData.use_rebate
@@ -295,6 +298,7 @@ export class Shopping {
                 form: subMitData
             }
         } catch (e) {
+            console.log(e);
             throw exception.BadRequestError('BAD_REQUEST', 'ToCheckout Error:' + e, null);
         }
     }
