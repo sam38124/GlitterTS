@@ -15,12 +15,14 @@ init(import.meta.url,(gvc, glitter, gBundle) => {
                 "config"?: [],
                 "page_config"?: any,
                 "copy"?: string,
+                "page_type"?:string
             } = {
                 "appName": config.appName,
                 "tag": "",
                 "group": "",
                 "name": "",
-                "config": []
+                "config": [],
+                "page_type":'page'
             }
             let addType = 'manual'
             return `
@@ -40,6 +42,33 @@ ${gvc.bindView(() => {
                     bind: id,
                     view: () => {
                         return gvc.map([
+                            EditorElem.select({
+                                gvc: gvc,
+                                title: '類型',
+                                def: tdata.page_type ?? 'page',
+                                array: [
+                                    {
+                                        title: "網頁",
+                                        value: 'page'
+                                    },
+                                    {
+                                        title: "頁面模塊",
+                                        value: 'module'
+                                    },
+                                    {
+                                        title: "網誌模板",
+                                        value: 'article'
+                                    },
+                                    {
+                                        title: "Blog網誌",
+                                        value: 'blog'
+                                    }
+                                ],
+                                callback: (text) => {
+                                    tdata.page_type = text
+                                    gvc.notifyDataChange(id)
+                                }
+                            }),
                             glitter.htmlGenerate.editeInput({
                                 gvc: gvc,
                                 title: '頁面標籤',
@@ -68,7 +97,7 @@ ${gvc.bindView(() => {
                                 array: (() => {
                                     let group: string[] = []
                                     gBundle.vm.dataList.map((dd: any) => {
-                                        if (group.indexOf(dd.group) === -1) {
+                                        if (group.indexOf(dd.group) === -1 && (dd.page_type===tdata.page_type)) {
                                             group.push(dd.group)
                                         }
                                     });
@@ -97,7 +126,9 @@ ${gvc.bindView(() => {
 
                                     // names must be equal
                                     return 0;
-                                })).map((dd: any) => {
+                                })).filter((d2:any)=>{
+                                    return d2.page_type===tdata.page_type;
+                                }).map((dd: any) => {
                                     return {
                                         title: `${dd.group}-${dd.name}`, value: dd.tag
                                     }

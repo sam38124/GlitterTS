@@ -4,22 +4,15 @@ import multer from "multer";
 import exception from "../../modules/exception";
 import {Shopping} from "../services/shopping";
 import {UtPermission} from "../utils/ut-permission";
-import path from "path";
-import FinancialService, {EcPay, EzPay} from "../services/financial-service.js";
+import {EcPay, EzPay} from "../services/financial-service.js";
 import {Private_config} from "../../services/private_config.js";
 import db from "../../modules/database.js";
 import {IToken} from "../models/Auth.js";
-import app from "../../app.js";
-import {EzInvoice} from "../services/ezpay/invoice.js";
 import {Invoice} from "../services/invoice.js";
-import {App} from "../../services/app.js";
-import {sendMessage} from "../../firebase/message.js";
 import {User} from "../services/user.js";
 import {CustomCode} from "../services/custom-code.js";
 import {UtDatabase} from "../utils/ut-database.js";
-import {Wallet} from "../services/wallet.js";
 import {Post} from "../services/post.js";
-import {saasConfig} from "../../config.js";
 import crypto from "crypto";
 
 const router: express.Router = express.Router();
@@ -302,7 +295,31 @@ router.delete('/voucher', async (req: express.Request, resp: express.Response) =
 });
 router.post('/redirect', async (req: express.Request, resp: express.Response) => {
     try {
-        return resp.sendFile(path.resolve(__dirname, '../../../lowcode/redirect.html'));
+        let return_url=new URL((req.query.return as string).replace(/\*R\*/g,'&'))
+
+        return resp.send(`<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+
+<body>
+    <script>
+        try {
+            window.webkit.messageHandlers.addJsInterFace.postMessage(JSON.stringify({
+                functionName: 'closeWebView',
+                callBackId: 0,
+                data: {}
+            }));
+
+        } catch (e) { }
+        location.href = '${return_url.href}';
+    </script>
+</body>
+
+</html>
+`);
     } catch (err) {
         return response.fail(resp, err);
     }

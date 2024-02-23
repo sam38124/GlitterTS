@@ -1,6 +1,6 @@
 "use strict";
 import {Glitter} from './Glitter.js';
-import {PageConfig, GVCType} from "./module/PageManager.js";
+import {PageConfig, GVCType, PageManager} from "./module/PageManager.js";
 
 const $: any = (window as any).$;
 
@@ -64,7 +64,7 @@ export class GVC {
         return this.parameter.pageConfig?.obj
     }
 
-    public share = {}
+    public share:any = {}
 
     public notifyDataChange(id: any) {
         const gvc = this
@@ -347,56 +347,12 @@ export class GVC {
     }
 
     public addStyle(style: string) {
-        const gvc = this;
-        let sl = {
-            id: gvc.glitter.getUUID(),
-            style: style
-        }
-        if (!gvc.parameter.styleList.find((dd) => {
-            return dd.style === style
-        })) {
-            var css = document.createElement('style');
-            css.type = 'text/css';
-            css.id = sl.id
-            if ((css as any).styleSheet)
-                (css as any).styleSheet.cssText = style;
-            else
-                css.appendChild(document.createTextNode(style));
-            /* Append style to the tag name */
-            document.getElementsByTagName("head")[0].appendChild(css);
-            gvc.parameter.styleList.push(sl)
-        }
+        this.glitter.addStyle(style)
     }
 
     public async addStyleLink(fs: string | string[]) {
         const gvc = this;
-
-        function add(filePath: string) {
-            var head = document.head;
-            const id = gvc.glitter.getUUID()
-            var link = document.createElement("link");
-            link.type = "text/css";
-            link.rel = "stylesheet";
-            link.href = filePath;
-            link.id = id;
-            if (!gvc.parameter.styleLinks.find((dd) => {
-                return dd.src === filePath
-            })) {
-                gvc.parameter.styleLinks.push({
-                    id: id,
-                    src: filePath
-                })
-                head.appendChild(link);
-            }
-        }
-
-        if (typeof fs === 'string') {
-            add(fs)
-        } else {
-            fs.map((dd) => {
-                add(dd)
-            })
-        }
+       gvc.glitter.addStyleLink(fs);
 
     }
 
@@ -536,5 +492,6 @@ ${lifeCycle.onCreateView()}
         gvc.glitter.setAnimation(cf.pageConfig)
         lifeCycle.onCreate()
         gvc.glitter.defaultSetting.pageLoadingFinish()
+        PageManager.setHistory(GVC.glitter.getUrlParameter('page'))
     }
 }

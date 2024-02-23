@@ -4,7 +4,7 @@ export declare class ConfigSetting {
 }
 export declare let saasConfig: {
     readonly SAAS_NAME: string | undefined;
-    DEF_DEADLINE: number;
+    readonly DEF_DEADLINE: number;
 };
 export declare const config: {
     readonly domain: string | undefined;
@@ -44,6 +44,7 @@ export declare const config: {
         app: string;
         wallet: string;
         article: string;
+        delivery: string;
     };
     route: {
         user: string;
@@ -52,6 +53,7 @@ export declare const config: {
         fileManager: string;
         private: string;
         ai: string;
+        globalEvent: string;
     };
 };
 export default config;

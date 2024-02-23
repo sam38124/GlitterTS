@@ -13,7 +13,7 @@ import { EditorElem } from "../plugins/editor-elem.js";
 import autosize from "../plugins/autosize.js";
 import { ShareDialog } from "../dialog/ShareDialog.js";
 export const widgetComponent = {
-    render: (gvc, widget, setting, hoverID, subData, htmlGenerate) => {
+    render: (gvc, widget, setting, hoverID, sub, htmlGenerate) => {
         var _a, _b, _c, _d;
         const glitter = gvc.glitter;
         widget.data.elem = (_a = widget.data.elem) !== null && _a !== void 0 ? _a : "div";
@@ -21,7 +21,7 @@ export const widgetComponent = {
         widget.data.attr = (_c = widget.data.attr) !== null && _c !== void 0 ? _c : [];
         widget.data.onCreateEvent = (_d = widget.data.onCreateEvent) !== null && _d !== void 0 ? _d : {};
         const id = htmlGenerate.widgetComponentID;
-        subData = subData !== null && subData !== void 0 ? subData : {};
+        const subData = sub !== null && sub !== void 0 ? sub : {};
         let formData = subData;
         return {
             view: () => {
@@ -74,8 +74,7 @@ export const widgetComponent = {
                                         clickEvent: dd,
                                         element: { e, event },
                                         subData: subData
-                                    }).then((data) => {
-                                    });
+                                    }).then((data) => { });
                                 })
                             };
                         }
@@ -109,7 +108,11 @@ export const widgetComponent = {
                                 gvc: gvc,
                                 widget: widget,
                                 clickEvent: widget.data.onCreateEvent,
-                                subData: subData
+                                subData: subData,
+                                element: {
+                                    e: gvc.getBindViewElem(id).get(0),
+                                    event: {}
+                                }
                             });
                         },
                         app_config: widget.global.appConfig,
@@ -225,7 +228,11 @@ export const widgetComponent = {
                                 gvc: gvc,
                                 widget: widget,
                                 clickEvent: widget.data.onCreateEvent,
-                                subData: subData
+                                subData: subData,
+                                element: {
+                                    e: gvc.getBindViewElem(id).get(0),
+                                    event: {}
+                                }
                             });
                             glitter.elementCallback[gvc.id(id)].updateAttribute();
                             if (widget.data.elem.toLowerCase() === 'textarea') {
@@ -675,7 +682,7 @@ export const widgetComponent = {
                                                                     title: '特徵標籤',
                                                                     gvc: gvc,
                                                                     def: dd.attr,
-                                                                    array: ['onclick', 'oninput', 'onchange', 'ondrag'],
+                                                                    array: ['onclick', 'oninput', 'onchange', 'ondrag', 'onmouseover', 'onmouseout'],
                                                                     callback: (text) => {
                                                                         dd.attr = text;
                                                                         widget.refreshComponent();

@@ -36,6 +36,7 @@ class User {
             const data = (await database_1.default.execute(`select * from \`${config_1.saasConfig.SAAS_NAME}\`.t_user where account=?`, [account]))[0];
             data['token'] = undefined;
             if (await tool_1.default.compareHash(pwd, data.pwd)) {
+                data.pwd = undefined;
                 return {
                     account: account,
                     token: await UserUtil_1.default.generateToken({

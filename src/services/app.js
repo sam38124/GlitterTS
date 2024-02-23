@@ -110,6 +110,16 @@ class App {
                     ]);
                 }
             }
+            for (const dd of (await database_1.default.query(`SELECT *
+                                                  FROM \`${config.copyApp}\`.t_global_event`, []))) {
+                dd.json = dd.json && JSON.stringify(dd.json);
+                await trans.execute(`
+                        insert into \`${config.appName}\`.t_global_event
+                        SET ?;
+                    `, [
+                    dd
+                ]);
+            }
             if (config.copyWith.indexOf('public_config') !== -1) {
                 for (const dd of (await database_1.default.query(`SELECT *
                                                   FROM \`${config.copyApp}\`.public_config`, []))) {
@@ -149,7 +159,7 @@ class App {
                 for (const dd of copyPageData) {
                     await trans.execute(`
                         insert into \`${config_1.saasConfig.SAAS_NAME}\`.page_config (userID, appName, tag, \`group\`, \`name\`,
-                                                                             \`config\`, \`page_config\`)
+                                                                             \`config\`, \`page_config\`,page_type)
                         values (?, ?, ?, ?, ?, ${database_1.default.escape(JSON.stringify(dd.config))},
                                 ${database_1.default.escape(JSON.stringify(dd.page_config))});
                     `, [
@@ -157,7 +167,8 @@ class App {
                         config.appName,
                         dd.tag,
                         dd.group || '未分類',
-                        dd.name
+                        dd.name,
+                        dd.page_type
                     ]);
                 }
             }
@@ -216,11 +227,13 @@ class App {
     async getAppConfig(config) {
         var _a, _b, _c, _d;
         try {
-            const pluginList = (_a = ((await database_1.default.execute(`
-                SELECT config
+            const data = (await database_1.default.execute(`
+                SELECT config,\`dead_line\`
                 FROM \`${config_1.saasConfig.SAAS_NAME}\`.app_config
-                where appName = '${config.appName}';
-            `, []))[0]['config'])) !== null && _a !== void 0 ? _a : {};
+                where appName = ${database_1.default.escape(config.appName)};
+            `, []))[0];
+            const pluginList = (_a = data['config']) !== null && _a !== void 0 ? _a : {};
+            pluginList.dead_line = data.dead_line;
             pluginList.pagePlugin = (_b = pluginList.pagePlugin) !== null && _b !== void 0 ? _b : [];
             pluginList.eventPlugin = (_c = pluginList.eventPlugin) !== null && _c !== void 0 ? _c : [];
             return pluginList;
@@ -241,21 +254,17 @@ class App {
             throw exception_1.default.BadRequestError((_a = e.code) !== null && _a !== void 0 ? _a : 'BAD_REQUEST', e, null);
         }
     }
-    static async checkOverDue(app) {
-        let brand = (await database_1.default.query(`SELECT brand FROM glitter.app_config where appName = ? `, [app]))[0]['brand'];
+    static async checkBrandAndMemberType(app) {
+        let brand = (await database_1.default.query(`SELECT brand FROM \`${config_1.saasConfig.SAAS_NAME}\`.app_config where appName = ? `, [app]))[0]['brand'];
+        console.log(`brand-->`, brand);
         const userID = (await database_1.default.query(`SELECT user
                                         FROM \`${config_1.saasConfig.SAAS_NAME}\`.app_config
                                         where appName = ?`, [app]))[0]['user'];
         const userData = (await database_1.default.query(`SELECT userData
                                           FROM \`${brand}\`.t_user
                                           where userID = ? `, [userID]))[0];
-        let appCount = (await database_1.default.query(`SELECT count(1)
-                                        FROM \`${config_1.saasConfig.SAAS_NAME}\`.app_config
-                                        where user = ?`, [userID]))[0]['count(1)'];
         return {
-            overdue: !(userData.userData.expireDate && new Date(userData.userData.expireDate).getTime() > new Date().getTime()),
             memberType: userData.userData.menber_type,
-            appCount: appCount,
             brand: brand
         };
     }
@@ -263,9 +272,8 @@ class App {
         var _a, _b;
         try {
             const official = (await database_1.default.query(`SELECT count(1)
-                                              FROM \`${config_1.saasConfig.SAAS_NAME}\`.user
-                                              where userID = ?
-                                                and company = ?`, [this.token.userID, 'LION']))[0]['count(1)'] == 1;
+                                              FROM \`${config_1.saasConfig.SAAS_NAME}\`.t_user
+                                              where userID = ?`, [this.token.userID, 'LION']))[0]['count(1)'] == 1;
             if (official) {
                 const trans = await database_1.default.Transaction.build();
                 await trans.execute(`delete

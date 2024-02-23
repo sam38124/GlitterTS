@@ -1,3 +1,12 @@
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 import { ShareDialog } from '../dialog/ShareDialog.js';
 import { Swal } from "../module/sweetAlert.js";
 import autosize from "./autosize.js";
@@ -313,7 +322,7 @@ ${addNewlineAfterSemicolon(obj.initial)}
         return `<iframe class="rounded-3" src="${href.href}" style="border: none;width:${cf.width}px;height:${cf.height}px;"></iframe>`;
     }
     static codeEditor(obj) {
-        let idlist = [];
+        const codeID = obj.gvc.glitter.getUUID();
         function getComponent(gvc, height) {
             return gvc.bindView(() => {
                 const id = obj.gvc.glitter.getUUID();
@@ -360,19 +369,25 @@ ${(obj.structEnd) ? obj.structEnd : "})()"}`,
             });
         }
         const html = String.raw;
-        return obj.gvc.glitter.html `
-        <div class="d-flex">
-        ${(obj.title ? EditorElem.h3(obj.title) : '')}
-        <div class="d-flex align-items-center justify-content-center" style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;"
-        onclick="${obj.gvc.event(() => {
-            EditorElem.openEditorDialog(obj.gvc, (gvc) => {
-                return getComponent(gvc, window.innerHeight - 100);
-            }, () => {
-                obj.gvc.notifyDataChange(idlist);
-            });
-        })}"><i class="fa-solid fa-expand"></i></div>
-</div>
-        ` + getComponent(obj.gvc, obj.height);
+        return obj.gvc.bindView(() => {
+            return {
+                bind: codeID,
+                view: () => {
+                    return html `<div class="d-flex">
+                            ${(obj.title ? EditorElem.h3(obj.title) : '')}
+                            <div class="d-flex align-items-center justify-content-center"
+                                 style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;"
+                                 onclick="${obj.gvc.event(() => {
+                        EditorElem.openEditorDialog(obj.gvc, (gvc) => {
+                            return getComponent(gvc, window.innerHeight - 100);
+                        }, () => {
+                            obj.gvc.notifyDataChange(codeID);
+                        });
+                    })}"><i class="fa-solid fa-expand"></i></div>
+                        </div>` + getComponent(obj.gvc, obj.height);
+                }
+            };
+        });
     }
     static customCodeEditor(obj) {
         let idlist = [];
@@ -873,6 +888,7 @@ ${obj.gvc.bindView(() => {
         </div>`;
     }
     static searchInput(obj) {
+        obj.def = obj.def || '';
         const glitter = window.glitter;
         const gvc = obj.gvc;
         const $ = glitter.$;
@@ -940,7 +956,7 @@ ${obj.gvc.bindView(() => {
                     },
                     divCreate: {
                         class: `dropdown-menu`,
-                        style: `transform: translateY(40px);max-height:300px;overflow-y:scroll;`,
+                        style: `transform: translateY(40px);max-height:200px;overflow-y:scroll;position:fixed;`,
                     },
                 };
             })}
@@ -1084,6 +1100,8 @@ ${obj.gvc.bindView(() => {
         `;
     }
     static checkBox(obj) {
+        var _a;
+        obj.type = (_a = obj.type) !== null && _a !== void 0 ? _a : 'single';
         const gvc = obj.gvc;
         return `
             ${(obj.title) ? EditorElem.h3(obj.title) : ``}
@@ -1093,12 +1111,37 @@ ${obj.gvc.bindView(() => {
                 bind: id,
                 view: () => {
                     return obj.array.map((dd) => {
+                        function isSelect() {
+                            if (obj.type === 'multiple') {
+                                return obj.def.find((d2) => {
+                                    return d2 === dd.value;
+                                });
+                            }
+                            else {
+                                return obj.def === dd.value;
+                            }
+                        }
                         return `<div class="d-flex align-items-center" onclick="${obj.gvc.event(() => {
-                            obj.def = dd.value;
-                            obj.callback(dd.value);
+                            if (obj.type === 'multiple') {
+                                if (obj.def.find((d2) => {
+                                    return d2 === dd.value;
+                                })) {
+                                    obj.def = obj.def.filter((d2) => {
+                                        return d2 !== dd.value;
+                                    });
+                                }
+                                else {
+                                    obj.def.push(dd.value);
+                                }
+                                obj.callback(obj.def);
+                            }
+                            else {
+                                obj.def = dd.value;
+                                obj.callback(dd.value);
+                            }
                             gvc.notifyDataChange(id);
                         })}">
-<i class="${(obj.def === dd.value) ? `fa-solid fa-square-check` : `fa-regular fa-square`} me-2" style="${(obj.def === dd.value) ? `color:#295ed1;` : `color:black;`}"></i>
+<i class="${(isSelect()) ? `fa-solid fa-square-check` : `fa-regular fa-square`} me-2" style="${(isSelect()) ? `color:#295ed1;` : `color:black;`}"></i>
 <span style="font-size:0.85rem;">${dd.title}</span>
 </div>
 ${(obj.def === dd.value && dd.innerHtml) ? `<div class="mt-1">${dd.innerHtml}</div>` : ``}
@@ -1508,52 +1551,40 @@ ${(obj.def === dd.value && dd.innerHtml) ? `<div class="mt-1">${dd.innerHtml}</d
                     return ``;
                 }
                 let interval = undefined;
-                return `<div class="btn-group dropend subBt my-auto ms-1">
-
-                                                <div type="button" class="bt" style="background:none;"
+                return ` <div type="button" class="bt ms-1" style="background:none;"
                                                      data-bs-toggle="dropdown" aria-haspopup="true"
                                                      data-placement="right"
-                                                     aria-expanded="false">
+                                                     aria-expanded="false" onclick="${gvc.event(() => {
+                    function readClipboardContent() {
+                        return __awaiter(this, void 0, void 0, function* () {
+                            try {
+                                const clipboardText = yield navigator.clipboard.readText();
+                                try {
+                                    const data = JSON.parse(clipboardText);
+                                    if (Array.isArray(data)) {
+                                        data.map((dd) => {
+                                            obj.originalArray.push(dd);
+                                        });
+                                    }
+                                    else {
+                                        obj.originalArray.push(data);
+                                    }
+                                    gvc.notifyDataChange(viewId);
+                                    obj.refreshComponent();
+                                }
+                                catch (e) {
+                                    alert('請貼上JSON格式');
+                                }
+                            }
+                            catch (error) {
+                                console.error('無法取得剪貼簿內容:', error);
+                            }
+                        });
+                    }
+                    readClipboardContent();
+                })}">
                                                     <i class="fa-regular fa-paste"></i>
-                                                </div>
-                                                <div class="dropdown-menu mx-1 shadow-lg bgf6" data-placement="right"
-                                                    style="min-height: 150px;border:1px solid black;">
-                                                     <div class="px-2 position-relative" style="width:250px;z-index:2;">
-                                                       <i class="fa-sharp fa-regular fa-circle-xmark fs-5 position-absolute" style="right:10px;top:-5px;color:black;cursor:pointer;"></i>
-                                                     ${(() => {
-                    let json = '';
-                    return ` ${EditorElem.editeInput({
-                        gvc: gvc,
-                        title: "剪貼簿內容",
-                        default: '',
-                        placeHolder: '請貼上JSON資料格式',
-                        callback: (text) => {
-                            json = text;
-                        }
-                    })}
-                                                       <button class="btn btn-primary-c  w-100 mt-2" onclick="${gvc.event(() => {
-                        try {
-                            const data = JSON.parse(json);
-                            if (Array.isArray(data)) {
-                                data.map((dd) => {
-                                    obj.originalArray.push(dd);
-                                });
-                            }
-                            else {
-                                obj.originalArray.push(data);
-                            }
-                            gvc.notifyDataChange(viewId);
-                            obj.refreshComponent();
-                        }
-                        catch (e) {
-                            alert('請貼上JSON格式');
-                        }
-                    })}">確認新增</button>`;
-                })()}
-</div>
-                                                  
-                                                </div>
-                                            </div>`;
+                                                </div>`;
             })()}
                 </l1>` : ``);
         }
@@ -1583,7 +1614,14 @@ ${(obj.def === dd.value && dd.innerHtml) ? `<div class="mt-1">${dd.innerHtml}</d
             };
         });
     }
-    static openEditorDialog(gvc, inner, close, width, title) {
+    static buttonPrimary(title, event) {
+        return `<button type="button" class="btn btn-primary-c  w-100" onclick="${event}">${title}</button>`;
+    }
+    static buttonNormal(title, event) {
+        return `<button type="button" class="btn w-100" style="background:white;width:calc(100%);border-radius:8px;
+                    min-height:45px;border:1px solid black;color:#151515;" onclick="${event}">${title}</button>`;
+    }
+    static openEditorDialog(gvc, inner, close, width, title, tag) {
         return gvc.glitter.innerDialog((gvc) => {
             return gvc.glitter.html `
             <div class="dropdown-menu mx-0 position-fixed pb-0 border p-0 show "
@@ -1616,7 +1654,7 @@ ${(obj.def === dd.value && dd.innerHtml) ? `<div class="mt-1">${dd.innerHtml}</d
                     ${inner(gvc)}
                 </div>
             </div>`;
-        }, gvc.glitter.getUUID());
+        }, tag !== null && tag !== void 0 ? tag : gvc.glitter.getUUID());
     }
     static btnGroup(obj) {
         var _a, _b;

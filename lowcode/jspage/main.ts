@@ -11,11 +11,16 @@ import {TriggerEvent} from "../glitterBundle/plugins/trigger-event.js";
 import {EditorElem} from "../glitterBundle/plugins/editor-elem.js";
 import {StoreHelper} from "../helper/store-helper.js";
 import {GlobalUser} from "../glitter-base/global/global-user.js";
+import {DialogInterface} from "../dialog/dialog-interface.js";
+import {Storage} from "../helper/storage.js";
 
 const html = String.raw
 //
-const  editorContainerID = `HtmlEditorContainer`;
+const editorContainerID = `HtmlEditorContainer`;
 init(import.meta.url, (gvc, glitter, gBundle) => {
+    gvc.addStyle(`.tooltip{
+    z-index:99999 !important;
+    }`)
     const swal = new Swal(gvc);
     const viewModel: {
         dataList: any
@@ -70,13 +75,14 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
         domain: '',
         originalDomain: ''
     };
-    initialEditor(gvc,viewModel);
+    initialEditor(gvc, viewModel);
     (window.parent as any).glitter.share.refreshMainLeftEditor = () => {
         gvc.notifyDataChange('MainEditorLeft')
     };
     (window.parent as any).glitter.share.refreshMainRightEditor = () => {
         gvc.notifyDataChange('MainEditorRight')
     };
+
     //加載頁面資料
     async function lod() {
         swal.loading('加載中...');
@@ -95,8 +101,15 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
             (async () => {
                 return await new Promise(async (resolve) => {
                     const clock = gvc.glitter.ut.clock()
-                    const data = await ApiPageConfig.getPage(gBundle.appName,undefined,undefined,'template')
-                    viewModel.data = (await ApiPageConfig.getPage(gBundle.appName, glitter.getUrlParameter('page'))).response.result[0];
+                    const data = await ApiPageConfig.getPage({
+                        appName:gBundle.appName,
+                        type:'template'
+                    })
+                    viewModel.data = (await ApiPageConfig.getPage({
+                        appName:gBundle.appName,
+                        tag:glitter.getUrlParameter('page')
+                    })).response.result[0];
+                    Storage.select_page_type=viewModel.data.page_type
                     if (data.result) {
                         data.response.result.map((dd: any) => {
                             dd.page_config = dd.page_config ?? {}
@@ -189,7 +202,8 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
         viewModel.loading = false;
         gvc.notifyDataChange(editorContainerID);
     }
-    lod().then(()=>{
+
+    lod().then(() => {
         //設定儲存事件
         glitter.htmlGenerate.saveEvent = (refresh: boolean = true) => {
             glitter.closeDiaLog()
@@ -205,10 +219,11 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                             set.map((dd: any) => {
                                 dd.js = (dd.js).replace(`${location.origin}/${(window as any).appName}/`, './')
                                 dd.formData = undefined;
-                                dd.pageConfig=undefined
-                                dd.appConfig=undefined
+                                dd.pageConfig = undefined;
+                                dd.subData = undefined;
+                                dd.appConfig = undefined
                                 dd.editorEvent = undefined;
-                                dd.share=undefined;
+                                dd.share = undefined;
                                 if (haveID.indexOf(dd.id) !== -1) {
                                     dd.id = glitter.getUUID();
                                 }
@@ -230,7 +245,10 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                                 name: (viewModel.data! as any).name,
                                 config: (viewModel.data! as any).config,
                                 group: (viewModel.data! as any).group,
-                                page_config: (viewModel.data! as any).page_config
+                                page_config: (viewModel.data! as any).page_config,
+                                page_type: (viewModel.data! as any).page_type,
+                                preview_image: (viewModel.data! as any).preview_image,
+                                favorite: (viewModel.data! as any).favorite,
                             }).then((api) => {
                                 resolve(result && api.result)
                             })
@@ -397,9 +415,11 @@ onclick="${gvc.event(() => {
 });
 
 
-function initialEditor(gvc:GVC,viewModel:any){
-    const glitter=gvc.glitter
+function initialEditor(gvc: GVC, viewModel: any) {
+    const glitter = gvc.glitter
     glitter.share.editorViewModel = viewModel
+    //預設為用戶編輯模式
+    localStorage.setItem('editor_mode', localStorage.getItem('editor_mode') || 'user')
     //Swal加載動畫
     const swal = new Swal(gvc);
     //貼上事件
@@ -419,6 +439,7 @@ function initialEditor(gvc:GVC,viewModel:any){
                 })
             }
         }
+
         checkId(copy)
         glitter.setCookie('lastSelect', copy.id);
         viewModel.selectContainer.splice(0, 0, copy)
@@ -439,16 +460,32 @@ function initialEditor(gvc:GVC,viewModel:any){
     }
     //添加Component至當前頁面
     glitter.share.addComponent = (data: any) => {
+        const url=new URL(location.href)
+        url.search=''
+        data.js=data.js.replace(url.href,'./')
         viewModel.selectContainer.push(data);
         glitter.setCookie('lastSelect', data.id);
         gvc.notifyDataChange(editorContainerID)
     }
     //部落格編輯模式
     if (glitter.getUrlParameter('blogEditor') === 'true') {
-        glitter.share.blogEditor=true
-        glitter.share.blogPage=glitter.getUrlParameter('page')
+        glitter.share.blogEditor = true
+        glitter.share.blogPage = glitter.getUrlParameter('page')
     }
+    //快捷鍵設定
+    shortCutKey(gvc)
+}
 
+function shortCutKey(gvc: GVC) {
+    // 添加全局鍵盤事件監聽器
+    document.addEventListener('keydown', function (event) {
+        // 檢查按下的按鍵碼
+        let keyCode = event.keyCode || event.which;
+        // Ctrl + G
+        if ((event.ctrlKey) && keyCode === 71) {
+            DialogInterface.globalResource(gvc)
+        }
+    });
 }
 
 

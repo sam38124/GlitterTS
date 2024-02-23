@@ -60,6 +60,7 @@ function traverseHTML(element: any) {
 
     if ($(element).attr('glem') === 'bindView') {
         function renderBindView() {
+            console.log(`renderBindView`)
             function notifyLifeCycle() {
                 try {
                     glitter.elementCallback[$(element).attr('gvc-id') as string].updateAttribute()
@@ -79,9 +80,10 @@ function traverseHTML(element: any) {
             }
             try {
                 const id = $(element).attr('gvc-id') as string
-                let view = glitter.elementCallback[id].getView()
+
                 glitter.elementCallback[$(element).attr('gvc-id') as string].rendered = true
                 if(!(document.querySelector(`[gvc-id="${id}"]`) as any).wasRender){
+                    let view = glitter.elementCallback[id].getView()
                     if (typeof view === 'string') {
                         $(`[gvc-id="${id}"]`).html(glitter.renderView.replaceGlobalValue(view))
                         notifyLifeCycle()
@@ -139,18 +141,7 @@ function glitterInitial() {
             glitter.goBack();
         });
     }
-
-    if (navigator.userAgent.match(/iPhone/i) || navigator.userAgent.match(/iPad/i)) {
-        /* iOS hides Safari address bar */
-        window.addEventListener('load', function () {
-            setTimeout(function () {
-                window.scrollTo(0, 1);
-            }, 1000);
-        });
-    }
-
     glitter.getBoundingClientRect = glitter.$('html').get(0).getBoundingClientRect();
-
     if (glitter.deviceType !== glitter.deviceTypeEnum.Web) {
         var css = document.createElement('style');
         css.type = 'text/css';

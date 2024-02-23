@@ -186,6 +186,11 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                 },
                 event: () => {
                     var _a;
+                    try {
+                        window.resetClock();
+                    }
+                    catch (e) {
+                    }
                     console.log(`changePage-Plugin-Time:`, window.renderClock.stop());
                     object.link_change_type = (_a = object.link_change_type) !== null && _a !== void 0 ? _a : object.type;
                     if (object.link_change_type === 'inlink') {
@@ -193,38 +198,40 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                             const link = (object.linkFrom === 'code') ? (yield TriggerEvent.trigger({
                                 gvc: gvc, widget: widget, clickEvent: object.linkFromEvent, subData: subData
                             })) : (object.link);
-                            const url = new URL('./', location.href);
-                            url.searchParams.set('page', link);
-                            const saasConfig = window.saasConfig;
-                            window.glitterInitialHelper.getPageData(link, (data) => {
-                                if (data.response.result.length === 0) {
-                                    const url = new URL("./", location.href);
-                                    url.searchParams.set('page', data.response.redirect);
-                                    location.href = url.href;
-                                    return;
-                                }
-                                if (object.stackControl === 'home') {
-                                    gvc.glitter.htmlGenerate.setHome({
-                                        app_config: saasConfig.appConfig,
-                                        page_config: data.response.result[0].page_config,
-                                        config: data.response.result[0].config,
-                                        data: subData !== null && subData !== void 0 ? subData : {},
-                                        tag: link
-                                    });
-                                    resolve(true);
-                                }
-                                else {
-                                    gvc.glitter.htmlGenerate.changePage({
-                                        app_config: saasConfig.appConfig,
-                                        page_config: data.response.result[0].page_config,
-                                        config: data.response.result[0].config,
-                                        data: subData !== null && subData !== void 0 ? subData : {},
-                                        tag: link,
-                                        goBack: true
-                                    });
-                                    resolve(true);
-                                }
-                            });
+                            if (link) {
+                                const url = new URL('./', location.href);
+                                url.searchParams.set('page', link);
+                                const saasConfig = window.saasConfig;
+                                window.glitterInitialHelper.getPageData(link, (data) => {
+                                    if (data.response.result.length === 0) {
+                                        const url = new URL("./", location.href);
+                                        url.searchParams.set('page', data.response.redirect);
+                                        location.href = url.href;
+                                        return;
+                                    }
+                                    if (object.stackControl === 'home') {
+                                        gvc.glitter.htmlGenerate.setHome({
+                                            app_config: saasConfig.appConfig,
+                                            page_config: data.response.result[0].page_config,
+                                            config: data.response.result[0].config,
+                                            data: subData !== null && subData !== void 0 ? subData : {},
+                                            tag: link
+                                        });
+                                        resolve(true);
+                                    }
+                                    else {
+                                        gvc.glitter.htmlGenerate.changePage({
+                                            app_config: saasConfig.appConfig,
+                                            page_config: data.response.result[0].page_config,
+                                            config: data.response.result[0].config,
+                                            data: subData !== null && subData !== void 0 ? subData : {},
+                                            tag: link,
+                                            goBack: true
+                                        });
+                                        resolve(true);
+                                    }
+                                });
+                            }
                         }));
                     }
                     else if (object.link_change_type === 'hashTag') {

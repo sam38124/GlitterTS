@@ -20,7 +20,9 @@ exports.saasConfig = {
     get SAAS_NAME() {
         return process.env.GLITTER_DB;
     },
-    DEF_DEADLINE: 365
+    get DEF_DEADLINE() {
+        return parseInt(process.env.DEF_DEADLINE, 10);
+    }
 };
 exports.config = {
     get domain() {
@@ -92,7 +94,8 @@ exports.config = {
         manager: '/manager',
         app: '/app',
         wallet: '/wallet',
-        article: '/article'
+        article: '/article',
+        delivery: '/delivery'
     },
     route: {
         user: "/user",
@@ -101,6 +104,7 @@ exports.config = {
         fileManager: "/fileManager",
         private: "/private",
         ai: "/ai",
+        globalEvent: '/global-event'
     }
 };
 exports.default = exports.config;

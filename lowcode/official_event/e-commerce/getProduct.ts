@@ -78,7 +78,6 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                 event: () => {
                     return new Promise(async (resolve, reject)=>{
                       const data=  await new Promise(async (resolve, reject)=>{
-                          console.log(`GlobalUser.token`,GlobalUser.token)
                           if(object.getType=='code'){
                               const id:any=await TriggerEvent.trigger({
                                   gvc:gvc,

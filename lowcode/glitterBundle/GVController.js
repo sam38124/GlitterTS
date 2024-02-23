@@ -8,7 +8,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import { GVCType } from "./module/PageManager.js";
+import { GVCType, PageManager } from "./module/PageManager.js";
 const $ = window.$;
 class LifeCycle {
     constructor() {
@@ -323,54 +323,12 @@ export class GVC {
         }
     }
     addStyle(style) {
-        const gvc = this;
-        let sl = {
-            id: gvc.glitter.getUUID(),
-            style: style
-        };
-        if (!gvc.parameter.styleList.find((dd) => {
-            return dd.style === style;
-        })) {
-            var css = document.createElement('style');
-            css.type = 'text/css';
-            css.id = sl.id;
-            if (css.styleSheet)
-                css.styleSheet.cssText = style;
-            else
-                css.appendChild(document.createTextNode(style));
-            document.getElementsByTagName("head")[0].appendChild(css);
-            gvc.parameter.styleList.push(sl);
-        }
+        this.glitter.addStyle(style);
     }
     addStyleLink(fs) {
         return __awaiter(this, void 0, void 0, function* () {
             const gvc = this;
-            function add(filePath) {
-                var head = document.head;
-                const id = gvc.glitter.getUUID();
-                var link = document.createElement("link");
-                link.type = "text/css";
-                link.rel = "stylesheet";
-                link.href = filePath;
-                link.id = id;
-                if (!gvc.parameter.styleLinks.find((dd) => {
-                    return dd.src === filePath;
-                })) {
-                    gvc.parameter.styleLinks.push({
-                        id: id,
-                        src: filePath
-                    });
-                    head.appendChild(link);
-                }
-            }
-            if (typeof fs === 'string') {
-                add(fs);
-            }
-            else {
-                fs.map((dd) => {
-                    add(dd);
-                });
-            }
+            gvc.glitter.addStyleLink(fs);
         });
     }
     addMtScript(urlArray, success, error) {
@@ -504,5 +462,6 @@ ${lifeCycle.onCreateView()}
         gvc.glitter.setAnimation(cf.pageConfig);
         lifeCycle.onCreate();
         gvc.glitter.defaultSetting.pageLoadingFinish();
+        PageManager.setHistory(GVC.glitter.getUrlParameter('page'));
     };
 }

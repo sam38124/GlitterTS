@@ -588,8 +588,42 @@ ${[
                             `<div class="fw-normal fs-6">Email:${orderData.orderData.user_info.email}</div>`,
                             `<div class="fw-normal fs-6">Phone:${orderData.orderData.user_info.phone}</div>`,
                             `<div class="my-2 bgf6" style="height: 1px;"></div>`,
-                            `<div class="fw-bold fs-6">運送地址</div>`,
-                            `<div class="fw-normal fs-6">${orderData.orderData.user_info.address}</div>`,
+                            `<div class="fw-bold fs-6">配送方式</div>`,
+                            `<div class="fw-normal fs-6">${(() => {
+                                switch (orderData.orderData.user_info.shipment) {
+                                    case "FAMIC2C":
+                                        return "全家店到店";
+                                    case "HILIFEC2C":
+                                        return "萊爾富店到店";
+                                    case "normal":
+                                        return "宅配到府";
+                                    case "OKMARTC2C":
+                                        return "OK超商店到店";
+                                    case "UNIMARTC2C":
+                                        return "7-ELEVEN超商交貨便";
+                                    default:
+                                        return '宅配到府';
+                                }
+                            })()}</div>`,
+                            `<div class="my-2 bgf6" style="height: 1px;"></div>`,
+                            (() => {
+                                switch (orderData.orderData.user_info.shipment) {
+                                    case "FAMIC2C":
+                                    case "HILIFEC2C":
+                                    case "OKMARTC2C":
+                                    case "UNIMARTC2C":
+                                        return [`<div class="fw-bold fs-6">配送門市</div>`,
+                                            `<div class="fw-normal fs-6">名稱:${orderData.orderData.user_info.CVSStoreName}</div>`,
+                                            `<div class="fw-normal fs-6">代號:${orderData.orderData.user_info.CVSStoreID}</div>`,
+                                            `<div class="fw-normal fs-6">地址:${orderData.orderData.user_info.CVSAddress}</div>`,
+                                            `<div class="my-2 bgf6" style="height: 1px;"></div>`,].join('');
+                                    case "normal":
+                                    default:
+                                        return [`<div class="fw-bold fs-6">配送地址</div>`,
+                                            `<div class="fw-normal fs-6">${orderData.orderData.user_info.address}</div>`,
+                                            `<div class="my-2 bgf6" style="height: 1px;"></div>`].join('');
+                                }
+                            })()
                         ].join('')}
 </div>
 </div>
@@ -922,7 +956,10 @@ ${[
                 const id = glitter.getUUID();
                 return {
                     bind: id,
-                    dataList: [{ obj: voucherData, key: 'method' }],
+                    dataList: [{ obj: voucherData, key: 'method' }, {
+                            obj: voucherData,
+                            key: 'reBackType'
+                        }],
                     view: () => {
                         return html `
                                                 <h6 class="fs-7 mb-2">折抵方式</h6>
@@ -932,51 +969,61 @@ ${[
                             def: voucherData.reBackType,
                             array: [
                                 { title: '訂單現折', value: 'discount' },
-                                { title: '回饋金', value: 'rebate' }
+                                { title: '回饋金', value: 'rebate' },
+                                { title: '滿額免運', value: 'shipment_free' }
                             ],
                             callback: (text) => {
                                 voucherData.reBackType = text;
                             }
                         })}
-                                                <h6 class="fs-7 mb-2 mt-2">折扣金額</h6>
-                                                ${[EditorElem.checkBox({
-                                gvc: gvc,
-                                title: '',
-                                def: voucherData.method,
-                                array: [
-                                    { title: '固定金額', value: 'fixed' },
-                                    { title: '百分比', value: 'percent' }
-                                ],
-                                callback: (text) => {
-                                    voucherData.value = '';
-                                    voucherData.method = text;
+
+                                                ${[
+                            (() => {
+                                if (voucherData.reBackType === 'shipment_free') {
+                                    return ``;
                                 }
-                            }),
-                            html `
-                                                        <h3 class="fs-7 mb-2">值</h3>
-                                                        <div class="d-flex align-items-center">
-                                                            ${EditorElem.editeInput({
-                                gvc: gvc,
-                                type: 'number',
-                                style: `width:125px;`,
-                                title: '',
-                                default: voucherData.value,
-                                placeHolder: '',
-                                callback: (text) => {
-                                    if (voucherData.method === 'percent' && parseInt(text, 10) >= 100) {
-                                        alert('數值不得大於100%');
-                                        gvc.notifyDataChange(id);
-                                    }
-                                    else {
-                                        voucherData.value = text;
-                                    }
+                                else {
+                                    return [`<h6 class="fs-7 mb-2 mt-2">折扣金額</h6>`,
+                                        EditorElem.checkBox({
+                                            gvc: gvc,
+                                            title: '',
+                                            def: voucherData.method,
+                                            array: [
+                                                { title: '固定金額', value: 'fixed' },
+                                                { title: '百分比', value: 'percent' }
+                                            ],
+                                            callback: (text) => {
+                                                voucherData.value = '';
+                                                voucherData.method = text;
+                                            }
+                                        }),
+                                        html `
+                                                                    <h3 class="fs-7 mb-2">值</h3>
+                                                                    <div class="d-flex align-items-center">
+                                                                        ${EditorElem.editeInput({
+                                            gvc: gvc,
+                                            type: 'number',
+                                            style: `width:125px;`,
+                                            title: '',
+                                            default: voucherData.value,
+                                            placeHolder: '',
+                                            callback: (text) => {
+                                                if (voucherData.method === 'percent' && parseInt(text, 10) >= 100) {
+                                                    alert('數值不得大於100%');
+                                                    gvc.notifyDataChange(id);
+                                                }
+                                                else {
+                                                    voucherData.value = text;
+                                                }
+                                            }
+                                        })}
+                                                                        <div style="width:40px;"
+                                                                             class="d-flex align-items-center justify-content-center">
+                                                                            ${(voucherData.method === 'fixed') ? `$` : `%`}
+                                                                        </div>
+                                                                    </div>`].join('');
                                 }
-                            })}
-                                                            <div style="width:40px;"
-                                                                 class="d-flex align-items-center justify-content-center">
-                                                                ${(voucherData.method === 'fixed') ? `$` : `%`}
-                                                            </div>
-                                                        </div>`,
+                            })(),
                             html `
                                                         <h3 class="fs-7 mb-2">套用至</h3>
                                                         ${EditorElem.checkBox({
@@ -1079,96 +1126,101 @@ ${[
                                     bind: id2,
                                     view: () => {
                                         return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
-                                            resolve(EditorElem.arrayItem({
-                                                gvc: gvc,
-                                                title: '',
-                                                height: 45,
-                                                copyable: false,
-                                                array: () => {
-                                                    return voucherData.forKey.map((dd, index) => {
-                                                        return {
-                                                            title: gvc.bindView(() => {
-                                                                const id = glitter.getUUID();
-                                                                return {
-                                                                    bind: id,
-                                                                    view: () => {
-                                                                        return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
-                                                                            const title = yield new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
-                                                                                if (mapPdName[dd]) {
-                                                                                    resolve(mapPdName[dd]);
-                                                                                    return;
-                                                                                }
-                                                                                else if (!dd) {
-                                                                                    resolve('');
-                                                                                    return;
-                                                                                }
-                                                                                ApiShop.getProduct({
-                                                                                    page: 0,
-                                                                                    limit: 50,
-                                                                                    id: dd
-                                                                                }).then((data) => {
-                                                                                    if (data.result && data.response.result) {
-                                                                                        mapPdName[dd] = data.response.data.content.title;
-                                                                                        resolve(data.response.data.content.title);
+                                            if (voucherData.for === 'all') {
+                                                resolve('');
+                                            }
+                                            else {
+                                                resolve(EditorElem.arrayItem({
+                                                    gvc: gvc,
+                                                    title: '',
+                                                    height: 45,
+                                                    copyable: false,
+                                                    array: () => {
+                                                        return voucherData.forKey.map((dd, index) => {
+                                                            return {
+                                                                title: gvc.bindView(() => {
+                                                                    const id = glitter.getUUID();
+                                                                    return {
+                                                                        bind: id,
+                                                                        view: () => {
+                                                                            return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
+                                                                                const title = yield new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
+                                                                                    if (mapPdName[dd]) {
+                                                                                        resolve(mapPdName[dd]);
+                                                                                        return;
                                                                                     }
-                                                                                    else {
-                                                                                        mapPdName[dd] = '';
+                                                                                    else if (!dd) {
                                                                                         resolve('');
+                                                                                        return;
                                                                                     }
-                                                                                });
-                                                                            }));
-                                                                            resolve(EditorElem.searchInputDynamic({
-                                                                                title: '',
-                                                                                gvc: gvc,
-                                                                                def: title,
-                                                                                search: (text, callback) => {
-                                                                                    clearInterval(interval);
-                                                                                    interval = setTimeout(() => {
-                                                                                        ApiShop.getProduct({
-                                                                                            page: 0,
-                                                                                            limit: 50,
-                                                                                            search: ''
-                                                                                        }).then((data) => {
-                                                                                            callback(data.response.data.map((dd) => {
-                                                                                                return dd.content.title;
-                                                                                            }));
-                                                                                        });
-                                                                                    }, 100);
-                                                                                },
-                                                                                callback: (text) => {
                                                                                     ApiShop.getProduct({
                                                                                         page: 0,
                                                                                         limit: 50,
-                                                                                        search: text
+                                                                                        id: dd
                                                                                     }).then((data) => {
-                                                                                        voucherData.forKey[index] = data.response.data.find((dd) => {
-                                                                                            return dd.content.title === text;
-                                                                                        }).id;
-                                                                                        mapPdName[voucherData.forKey[index]] = text;
+                                                                                        if (data.result && data.response.result) {
+                                                                                            mapPdName[dd] = data.response.data.content.title;
+                                                                                            resolve(data.response.data.content.title);
+                                                                                        }
+                                                                                        else {
+                                                                                            mapPdName[dd] = '';
+                                                                                            resolve('');
+                                                                                        }
                                                                                     });
-                                                                                },
-                                                                                placeHolder: '請輸入商品名稱'
+                                                                                }));
+                                                                                resolve(EditorElem.searchInputDynamic({
+                                                                                    title: '',
+                                                                                    gvc: gvc,
+                                                                                    def: title,
+                                                                                    search: (text, callback) => {
+                                                                                        clearInterval(interval);
+                                                                                        interval = setTimeout(() => {
+                                                                                            ApiShop.getProduct({
+                                                                                                page: 0,
+                                                                                                limit: 50,
+                                                                                                search: ''
+                                                                                            }).then((data) => {
+                                                                                                callback(data.response.data.map((dd) => {
+                                                                                                    return dd.content.title;
+                                                                                                }));
+                                                                                            });
+                                                                                        }, 100);
+                                                                                    },
+                                                                                    callback: (text) => {
+                                                                                        ApiShop.getProduct({
+                                                                                            page: 0,
+                                                                                            limit: 50,
+                                                                                            search: text
+                                                                                        }).then((data) => {
+                                                                                            voucherData.forKey[index] = data.response.data.find((dd) => {
+                                                                                                return dd.content.title === text;
+                                                                                            }).id;
+                                                                                            mapPdName[voucherData.forKey[index]] = text;
+                                                                                        });
+                                                                                    },
+                                                                                    placeHolder: '請輸入商品名稱'
+                                                                                }));
                                                                             }));
-                                                                        }));
-                                                                    }
-                                                                };
-                                                            })
-                                                        };
-                                                    });
-                                                },
-                                                originalArray: voucherData.forKey,
-                                                expand: {},
-                                                refreshComponent: () => {
-                                                    gvc.notifyDataChange(id2);
-                                                },
-                                                plus: {
-                                                    title: '新增商品',
-                                                    event: gvc.event(() => {
-                                                        voucherData.forKey.push('');
+                                                                        }
+                                                                    };
+                                                                })
+                                                            };
+                                                        });
+                                                    },
+                                                    originalArray: voucherData.forKey,
+                                                    expand: {},
+                                                    refreshComponent: () => {
                                                         gvc.notifyDataChange(id2);
-                                                    })
-                                                }
-                                            }));
+                                                    },
+                                                    plus: {
+                                                        title: '新增商品',
+                                                        event: gvc.event(() => {
+                                                            voucherData.forKey.push('');
+                                                            gvc.notifyDataChange(id2);
+                                                        })
+                                                    }
+                                                }));
+                                            }
                                         }));
                                     },
                                     divCreate: {
@@ -1801,7 +1853,11 @@ ${EditorElem.editeInput({
                                                                                             view: () => {
                                                                                                 return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
                                                                                                     const title = yield new Promise((resolve, reject) => {
-                                                                                                        ApiShop.getProduct({ page: 0, limit: 50, id: dd.id }).then((data) => {
+                                                                                                        ApiShop.getProduct({
+                                                                                                            page: 0,
+                                                                                                            limit: 50,
+                                                                                                            id: dd.id
+                                                                                                        }).then((data) => {
                                                                                                             if (data.result && data.response.result) {
                                                                                                                 resolve(data.response.data.content.title);
                                                                                                             }
@@ -1817,7 +1873,11 @@ ${EditorElem.editeInput({
                                                                                                         search: (text, callback) => {
                                                                                                             clearInterval(interval);
                                                                                                             interval = setTimeout(() => {
-                                                                                                                ApiShop.getProduct({ page: 0, limit: 50, search: '' }).then((data) => {
+                                                                                                                ApiShop.getProduct({
+                                                                                                                    page: 0,
+                                                                                                                    limit: 50,
+                                                                                                                    search: ''
+                                                                                                                }).then((data) => {
                                                                                                                     callback(data.response.data.map((dd) => {
                                                                                                                         return dd.content.title;
                                                                                                                     }));
@@ -1825,7 +1885,11 @@ ${EditorElem.editeInput({
                                                                                                             }, 100);
                                                                                                         },
                                                                                                         callback: (text) => {
-                                                                                                            ApiShop.getProduct({ page: 0, limit: 50, search: text }).then((data) => {
+                                                                                                            ApiShop.getProduct({
+                                                                                                                page: 0,
+                                                                                                                limit: 50,
+                                                                                                                search: text
+                                                                                                            }).then((data) => {
                                                                                                                 dd.id = data.response.data.find((dd) => {
                                                                                                                     return dd.content.title === text;
                                                                                                                 }).id;
@@ -2680,10 +2744,11 @@ ${BgWidget.card(EditorElem.select({
                                             title: '金流選擇',
                                             gvc: gvc,
                                             def: keyData.TYPE,
-                                            array: [{ title: '藍新金流', value: 'newWebPay' }, {
-                                                    title: '綠界金流',
-                                                    value: 'ecPay'
-                                                }],
+                                            array: [
+                                                { title: '藍新金流', value: 'newWebPay' },
+                                                { title: '綠界金流', value: 'ecPay' },
+                                                { title: '線下付款', value: 'off_line' }
+                                            ],
                                             callback: (text) => {
                                                 keyData.TYPE = text;
                                                 if (keyData.TYPE === 'newWebPay') {
@@ -2695,63 +2760,72 @@ ${BgWidget.card(EditorElem.select({
                                                 gvc.notifyDataChange(id);
                                             }
                                         }),
-                                        EditorElem.select({
-                                            title: '金流站點',
-                                            gvc: gvc,
-                                            def: keyData.ActionURL,
-                                            array: (() => {
-                                                if (keyData.TYPE === 'newWebPay') {
-                                                    return [{
-                                                            title: '正式站',
-                                                            value: "https://core.newebpay.com/MPG/mpg_gateway"
-                                                        },
-                                                        {
-                                                            title: '測試站',
-                                                            value: "https://ccore.newebpay.com/MPG/mpg_gateway"
-                                                        }];
-                                                }
-                                                else {
-                                                    return [{
-                                                            title: '正式站',
-                                                            value: "https://payment.ecpay.com.tw/Cashier/AioCheckOut/V5"
-                                                        },
-                                                        {
-                                                            title: '測試站',
-                                                            value: "https://payment-stage.ecpay.com.tw/Cashier/AioCheckOut/V5"
-                                                        }];
-                                                }
-                                            })(),
-                                            callback: (text) => {
-                                                keyData.ActionURL = text;
+                                        (() => {
+                                            if (keyData.TYPE === 'off_line') {
+                                                return [].join('');
                                             }
-                                        }),
-                                        EditorElem.editeInput({
-                                            gvc: gvc,
-                                            title: '特店編號',
-                                            default: keyData.MERCHANT_ID,
-                                            callback: (text) => {
-                                                keyData.MERCHANT_ID = text;
-                                            },
-                                            placeHolder: '請輸入特店編號'
-                                        }),
-                                        EditorElem.editeInput({
-                                            gvc: gvc,
-                                            title: 'HASH_KEY',
-                                            default: keyData.HASH_KEY,
-                                            callback: (text) => {
-                                                keyData.HASH_KEY = text;
-                                            },
-                                            placeHolder: '請輸入HASH_KEY'
-                                        }),
-                                        EditorElem.editeInput({
-                                            gvc: gvc,
-                                            title: 'HASH_IV',
-                                            default: keyData.HASH_IV,
-                                            callback: (text) => {
-                                                keyData.HASH_IV = text;
-                                            },
-                                            placeHolder: '請輸入HASH_IV'
-                                        })
+                                            else {
+                                                return [
+                                                    EditorElem.select({
+                                                        title: '金流站點',
+                                                        gvc: gvc,
+                                                        def: keyData.ActionURL,
+                                                        array: (() => {
+                                                            if (keyData.TYPE === 'newWebPay') {
+                                                                return [{
+                                                                        title: '正式站',
+                                                                        value: "https://core.newebpay.com/MPG/mpg_gateway"
+                                                                    },
+                                                                    {
+                                                                        title: '測試站',
+                                                                        value: "https://ccore.newebpay.com/MPG/mpg_gateway"
+                                                                    }];
+                                                            }
+                                                            else {
+                                                                return [{
+                                                                        title: '正式站',
+                                                                        value: "https://payment.ecpay.com.tw/Cashier/AioCheckOut/V5"
+                                                                    },
+                                                                    {
+                                                                        title: '測試站',
+                                                                        value: "https://payment-stage.ecpay.com.tw/Cashier/AioCheckOut/V5"
+                                                                    }];
+                                                            }
+                                                        })(),
+                                                        callback: (text) => {
+                                                            keyData.ActionURL = text;
+                                                        }
+                                                    }),
+                                                    EditorElem.editeInput({
+                                                        gvc: gvc,
+                                                        title: '特店編號',
+                                                        default: keyData.MERCHANT_ID,
+                                                        callback: (text) => {
+                                                            keyData.MERCHANT_ID = text;
+                                                        },
+                                                        placeHolder: '請輸入特店編號'
+                                                    }),
+                                                    EditorElem.editeInput({
+                                                        gvc: gvc,
+                                                        title: 'HASH_KEY',
+                                                        default: keyData.HASH_KEY,
+                                                        callback: (text) => {
+                                                            keyData.HASH_KEY = text;
+                                                        },
+                                                        placeHolder: '請輸入HASH_KEY'
+                                                    }),
+                                                    EditorElem.editeInput({
+                                                        gvc: gvc,
+                                                        title: 'HASH_IV',
+                                                        default: keyData.HASH_IV,
+                                                        callback: (text) => {
+                                                            keyData.HASH_IV = text;
+                                                        },
+                                                        placeHolder: '請輸入HASH_IV'
+                                                    })
+                                                ].join('');
+                                            }
+                                        })()
                                     ].join('<div class="my-2"></div>'));
                                 },
                                 divCreate: {
@@ -2907,6 +2981,98 @@ ${BgWidget.card(EditorElem.select({
                                 ].join('');
                             })()
                         ]);
+                    })()}`)}
+                    `, 900);
+                },
+                divCreate: {
+                    class: `d-flex justify-content-center w-100 flex-column align-items-center `
+                }
+            };
+        });
+    }
+    static logistics_setting(gvc) {
+        const saasConfig = window.saasConfig;
+        const id = gvc.glitter.getUUID();
+        const vm = {
+            loading: true,
+            data: {}
+        };
+        saasConfig.api.getPrivateConfig(saasConfig.config.appName, "logistics_setting").then((r) => {
+            if (r.response.result[0]) {
+                vm.data = r.response.result[0].value;
+            }
+            vm.loading = false;
+            gvc.notifyDataChange(id);
+        });
+        const html = String.raw;
+        const dialog = new ShareDialog(gvc.glitter);
+        return gvc.bindView(() => {
+            return {
+                bind: id,
+                view: () => {
+                    if (vm.loading) {
+                        return html `
+                            <div class="w-100 d-flex align-items-center justify-content-center">
+                                <div class="spinner-border"></div>
+                            </div>`;
+                    }
+                    return BgWidget.container(html `
+                        <div class="d-flex w-100 align-items-center mb-3 ">
+                            ${BgWidget.title(`物流設定`)}
+                            <div class="flex-fill"></div>
+                            <button class="btn btn-primary-c" style="height:38px;font-size: 14px;"
+                                    onclick="${gvc.event(() => {
+                        dialog.dataLoading({ text: '設定中', visible: true });
+                        saasConfig.api.setPrivateConfig(saasConfig.config.appName, "logistics_setting", vm.data).then((r) => {
+                            setTimeout(() => {
+                                dialog.dataLoading({ visible: false });
+                                if (r.response) {
+                                    dialog.successMessage({ text: "設定成功" });
+                                }
+                                else {
+                                    dialog.errorMessage({ text: "設定失敗" });
+                                }
+                            }, 1000);
+                        });
+                    })}">儲存物流設定
+                            </button>
+                        </div>
+                        ${BgWidget.card(`
+            ${(() => {
+                        return gvc.bindView(() => {
+                            const id = gvc.glitter.getUUID();
+                            return {
+                                bind: id,
+                                view: () => {
+                                    var _a;
+                                    return EditorElem.checkBox({
+                                        title: '選擇支援配送方式',
+                                        gvc: gvc,
+                                        def: (_a = vm.data.support) !== null && _a !== void 0 ? _a : [],
+                                        array: [
+                                            {
+                                                title: '一般宅配', value: 'normal'
+                                            },
+                                            {
+                                                title: '全家店到店', value: 'FAMIC2C'
+                                            },
+                                            {
+                                                title: '萊爾富店到店', value: 'HILIFEC2C'
+                                            }, {
+                                                title: 'OK超商店到店', value: 'OKMARTC2C'
+                                            }, {
+                                                title: '7-ELEVEN超商交貨便', value: 'UNIMARTC2C'
+                                            }
+                                        ],
+                                        callback: (text) => {
+                                            vm.data.support = text;
+                                        },
+                                        type: 'multiple'
+                                    });
+                                },
+                                divCreate: {}
+                            };
+                        });
                     })()}`)}
                     `, 900);
                 },

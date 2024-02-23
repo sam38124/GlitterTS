@@ -23,6 +23,7 @@ import smtp =require('./smtp')
 import fcm =require('./fcm')
 import wallet =require('./wallet')
 import article=require('./article')
+import delivery=require('./delivery')
 import {Live_source} from "../../live_source.js";
 import {IToken} from "../models/Auth.js";
 import {ApiPublic} from "../services/public-table-check.js";
@@ -41,6 +42,7 @@ router.use(config.getRoute(config.public_route.smtp, 'public'), smtp);
 router.use(config.getRoute(config.public_route.fcm, 'public'), fcm);
 router.use(config.getRoute(config.public_route.wallet, 'public'), wallet);
 router.use(config.getRoute(config.public_route.article, 'public'), article);
+router.use(config.getRoute(config.public_route.delivery, 'public'), delivery);
 /******************************/
 const whiteList: {}[] = [
     {url: config.getRoute(config.public_route.chat, 'public'), method: 'POST'},
@@ -74,6 +76,8 @@ const whiteList: {}[] = [
     {url: config.getRoute(config.public_route.wallet+"/notify", 'public'), method: 'POST'},
     {url: config.getRoute(config.public_route.manager+"/config", 'public'), method: 'GET'},
     {url: config.getRoute(config.public_route.article, 'public'), method: 'GET'},
+    {url: config.getRoute(config.public_route.delivery+'/c2cMap', 'public'), method: 'POST'},
+    {url: config.getRoute(config.public_route.delivery+'/c2cRedirect', 'public'), method: 'POST'}
 ];
 
 async function doAuthAction(req: express.Request, resp: express.Response, next: express.NextFunction) {
@@ -85,6 +89,7 @@ async function doAuthAction(req: express.Request, resp: express.Response, next: 
     const logger = new Logger();
     const TAG = '[DoAuthAction]';
     const url = req.baseUrl;
+    console.log(`url-->`,url)
     const matches = _.where(whiteList, {url: url, method: req.method});
     const token = req.get('Authorization')?.replace('Bearer ', '') as string;
     if (

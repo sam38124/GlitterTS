@@ -10,7 +10,6 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                 editor: () => {
                     return gvc.bindView(() => {
                         const id = gvc.glitter.getUUID();
-
                         function recursive() {
                             if (GlobalData.data.pageList.length === 0) {
                                 GlobalData.data.run();
@@ -174,6 +173,11 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                     });
                 },
                 event: () => {
+                   try {
+                       (window as any).resetClock()
+                   }catch (e) {
+
+                   }
                     console.log(`changePage-Plugin-Time:`, (window as any).renderClock.stop());
                     object.link_change_type = object.link_change_type ?? object.type
                     /**
@@ -184,48 +188,49 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                             const link:string=(object.linkFrom==='code') ? (await TriggerEvent.trigger({
                                 gvc: gvc, widget: widget, clickEvent: object.linkFromEvent,subData:subData
                             })):(object.link);
-                            const url = new URL('./', location.href);
-                            url.searchParams.set('page', link);
-                            const saasConfig: {
-                                config: any;
-                                api: any;
-                                appConfig: any
-                            } = (window as any).saasConfig;
-                            (window as any).glitterInitialHelper.getPageData(link, (data:any) => {
-                                if (data.response.result.length === 0) {
-                                    const url = new URL("./", location.href)
-                                    url.searchParams.set('page', data.response.redirect)
-                                    location.href = url.href;
-                                    return
-                                }
-                                if (object.stackControl === 'home') {
-                                    gvc.glitter.htmlGenerate.setHome(
-                                        {
-                                            app_config: saasConfig.appConfig,
-                                            page_config: data.response.result[0].page_config,
-                                            config: data.response.result[0].config,
-                                            data: subData ?? {},
-                                            tag: link
-                                        }
-                                    );
-                                    resolve(true)
-                                } else {
-                                    gvc.glitter.htmlGenerate.changePage(
-                                        {
-                                            app_config: saasConfig.appConfig,
-                                            page_config: data.response.result[0].page_config,
-                                            config: data.response.result[0].config,
-                                            data: subData ?? {},
-                                            tag: link,
-                                            goBack: true
-                                        }
-                                    );
-                                    resolve(true)
-                                }
-                            })
+                            if(link){
+                                const url = new URL('./', location.href);
+                                url.searchParams.set('page', link);
+                                const saasConfig: {
+                                    config: any;
+                                    api: any;
+                                    appConfig: any
+                                } = (window as any).saasConfig;
+                                (window as any).glitterInitialHelper.getPageData(link, (data:any) => {
+                                    if (data.response.result.length === 0) {
+                                        const url = new URL("./", location.href)
+                                        url.searchParams.set('page', data.response.redirect)
+                                        location.href = url.href;
+                                        return
+                                    }
+                                    if (object.stackControl === 'home') {
+                                        gvc.glitter.htmlGenerate.setHome(
+                                            {
+                                                app_config: saasConfig.appConfig,
+                                                page_config: data.response.result[0].page_config,
+                                                config: data.response.result[0].config,
+                                                data: subData ?? {},
+                                                tag: link
+                                            }
+                                        );
+                                        resolve(true)
+                                    } else {
+                                        gvc.glitter.htmlGenerate.changePage(
+                                            {
+                                                app_config: saasConfig.appConfig,
+                                                page_config: data.response.result[0].page_config,
+                                                config: data.response.result[0].config,
+                                                data: subData ?? {},
+                                                tag: link,
+                                                goBack: true
+                                            }
+                                        );
+                                        resolve(true)
+                                    }
+                                })
+                            }
                         })
                     } else if (object.link_change_type === 'hashTag') {
-
                         const yOffset = $("header").length > 0 ? -($("header") as any).height() : 0;
                         const element: any = document.getElementsByClassName(`glitterTag${object.link}`)[0];
                         const y = element.getBoundingClientRect().top + window.pageYOffset + yOffset;
@@ -237,7 +242,6 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                         } else {
                             gvc.glitter.location.href = object.link
                         }
-
                         return true
                     }
                 },

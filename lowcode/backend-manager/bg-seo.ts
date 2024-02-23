@@ -10,10 +10,10 @@ const html = String.raw
 
 export class BgSeo {
     public static mainPage(gvc: GVC) {
-        let selectTag=gvc.glitter.getUrlParameter('page')
+        let selectTag = gvc.glitter.getUrlParameter('page')
         const leftID = gvc.glitter.getUUID()
         const rightID = gvc.glitter.getUUID()
-        let saveEvent=()=>{
+        let saveEvent = () => {
 
         }
         return BgWidget.container(html`
@@ -21,7 +21,7 @@ export class BgSeo {
                 ${BgWidget.title(`SEO管理`)}
                 <div class="flex-fill"></div>
                 <button class="btn btn-primary-c" style="height:38px;font-size: 14px;" onclick="${gvc.event(() => {
-saveEvent()
+                    saveEvent()
                 })}">儲存SEO設定
                 </button>
             </div>
@@ -33,11 +33,11 @@ saveEvent()
                             view: () => {
                                 return new Promise((resolve, reject) => {
                                     PageEditor.pageSelctor(gvc, (d3: any) => {
-                                        selectTag=d3.tag;
-                                        gvc.notifyDataChange([leftID,rightID])
-                                    },{
-                                        checkSelect:(data:any)=>{
-                                            return data.tag===selectTag
+                                        selectTag = d3.tag;
+                                        gvc.notifyDataChange([leftID, rightID])
+                                    }, {
+                                        checkSelect: (data: any) => {
+                                            return data.tag === selectTag
                                         }
                                     }).then((data) => {
                                         resolve(data.left)
@@ -45,7 +45,7 @@ saveEvent()
                                 })
                             },
                             divCreate: {
-                                class: `mx-n3 my-n2`,style:`max-height:calc(100vh - 200px);overflow-y:auto;`
+                                class: `mx-n3 my-n2`, style: `max-height:calc(100vh - 200px);overflow-y:auto;`
                             }
                         }
                     }))}
@@ -56,35 +56,38 @@ saveEvent()
                             bind: rightID,
                             view: () => {
                                 return new Promise(async (resolve, reject) => {
-                                    const dialog=new ShareDialog(gvc.glitter)
-                                    dialog.dataLoading({visible:true})
-                                    const selectItem=(await ApiPageConfig.getPage((window as any).appName, selectTag)).response.result[0]
-                                    dialog.dataLoading({visible:false})
-                                    saveEvent=async ()=>{
-                                        dialog.dataLoading({visible:true})
-                                        const savePage=await ApiPageConfig.setPage({
+                                    const dialog = new ShareDialog(gvc.glitter)
+                                    dialog.dataLoading({visible: true})
+                                    const selectItem = (await ApiPageConfig.getPage({
+                                        appName:(window as any).appName,
+                                        tag:selectTag
+                                    } )).response.result[0]
+                                    dialog.dataLoading({visible: false})
+                                    saveEvent = async () => {
+                                        dialog.dataLoading({visible: true})
+                                        const savePage = await ApiPageConfig.setPage({
                                             id: selectItem.id,
                                             appName: (window as any).appName,
-                                            tag:selectItem.tag,
+                                            tag: selectItem.tag,
                                             name: selectItem.name,
                                             config: selectItem.config,
                                             group: selectItem.group,
-                                            page_config:selectItem.page_config
+                                            page_config: selectItem.page_config
                                         })
-                                        const viewModel=gvc.glitter.share.editorViewModel
+                                        const viewModel = gvc.glitter.share.editorViewModel
                                         viewModel.appConfig.homePage = viewModel.homePage
                                         viewModel.appConfig.globalStyle = viewModel.globalStyle
                                         viewModel.appConfig.globalScript = viewModel.globalScript
                                         viewModel.appConfig.globalValue = viewModel.globalValue
                                         viewModel.appConfig.globalStyleTag = viewModel.globalStyleTag
-                                        const savePlugin=await StoreHelper.setPlugin(viewModel.originalConfig, viewModel.appConfig)
-                                        dialog.dataLoading({visible:false})
-                                        if(savePage.result && savePlugin) {
-                                            dialog.successMessage({text:'儲存成功'})
-                                        }else{
-                                            dialog.errorMessage({text:'發生異常'})
+                                        const savePlugin = await StoreHelper.setPlugin(viewModel.originalConfig, viewModel.appConfig)
+                                        dialog.dataLoading({visible: false})
+                                        if (savePage.result && savePlugin) {
+                                            dialog.successMessage({text: '儲存成功'})
+                                        } else {
+                                            dialog.errorMessage({text: '發生異常'})
                                         }
-                                        if(gvc.glitter.getUrlParameter('page')===selectTag){
+                                        if (gvc.glitter.getUrlParameter('page') === selectTag) {
                                             gvc.glitter.share.reloadEditor()
                                         }
                                     }
@@ -100,19 +103,19 @@ saveEvent()
                                                 return gvc.glitter.share.editorViewModel.dataList
                                             }
                                         },
-                                        style:{
-                                            style:`width:100%;`,
-                                            class:``
+                                        style: {
+                                            style: `width:100%;`,
+                                            class: ``
                                         },
-                                        hiddenDelete:true
+                                        hiddenDelete: true
                                     }))
                                 })
                             },
-                            divCreate:{
-                                style:`max-height:calc(100vh - 200px);overflow-y:auto;`
+                            divCreate: {
+                                style: `max-height:calc(100vh - 200px);overflow-y:auto;`
                             }
                         }
-                    }),'p-0 bg-white border rounded-3 shadow')}
+                    }), 'p-0 bg-white border rounded-3 shadow')}
                 </div>
             </div>
         `, 1000)

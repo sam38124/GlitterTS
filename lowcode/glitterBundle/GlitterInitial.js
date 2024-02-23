@@ -43,6 +43,7 @@ function traverseHTML(element) {
     }
     if ($(element).attr('glem') === 'bindView') {
         function renderBindView() {
+            console.log(`renderBindView`);
             function notifyLifeCycle() {
                 try {
                     glitter.elementCallback[$(element).attr('gvc-id')].updateAttribute();
@@ -65,9 +66,9 @@ function traverseHTML(element) {
             }
             try {
                 const id = $(element).attr('gvc-id');
-                let view = glitter.elementCallback[id].getView();
                 glitter.elementCallback[$(element).attr('gvc-id')].rendered = true;
                 if (!document.querySelector(`[gvc-id="${id}"]`).wasRender) {
+                    let view = glitter.elementCallback[id].getView();
                     if (typeof view === 'string') {
                         $(`[gvc-id="${id}"]`).html(glitter.renderView.replaceGlobalValue(view));
                         notifyLifeCycle();
@@ -125,13 +126,6 @@ function glitterInitial() {
     if (glitter.deviceType !== glitter.deviceTypeEnum.Android) {
         window.addEventListener('popstate', function (e) {
             glitter.goBack();
-        });
-    }
-    if (navigator.userAgent.match(/iPhone/i) || navigator.userAgent.match(/iPad/i)) {
-        window.addEventListener('load', function () {
-            setTimeout(function () {
-                window.scrollTo(0, 1);
-            }, 1000);
         });
     }
     glitter.getBoundingClientRect = glitter.$('html').get(0).getBoundingClientRect();

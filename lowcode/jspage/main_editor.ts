@@ -9,6 +9,8 @@ import {allKeys} from "underscore";
 import {Setting_editor} from "./setting_editor.js";
 import {HtmlGenerate} from "../glitterBundle/module/html-generate.js";
 import {TriggerEvent} from "../glitterBundle/plugins/trigger-event.js";
+import {ApiPageConfig} from "../api/pageConfig.js";
+import {Storage} from "../helper/storage.js";
 
 
 enum ViewType {
@@ -102,32 +104,38 @@ export class Main_editor {
                                                 </div>
                                             </l1>
                                         </div>`,
-                                    (()=>{
+                                    (() => {
                                         let pageConfig = ((viewModel.data! as any).config.filter((dd: any, index: number) => {
                                             return (dd.type !== 'code') && (dd.type !== 'widget' || (dd.data.elem !== 'style' && dd.data.elem !== 'link' && dd.data.elem !== 'script'))
                                         }))
+
                                         function setPageConfig() {
                                             (viewModel.data! as any).config = pageConfig.concat(((viewModel.data! as any).config.filter((dd: any, index: number) => {
-                                                                return !((dd.type !== 'code') && (dd.type !== 'widget' || (dd.data.elem !== 'style' && dd.data.elem !== 'link' && dd.data.elem !== 'script')))
-                                                            })
-                                                    ));
-                                            viewModel.dataList.find((dd:any)=>{
-                                                return dd.tag===viewModel.data.tag
-                                            }).config = (viewModel.data! as any).config;
-                                            pageConfig= (viewModel.data! as any).config
+                                                        return !((dd.type !== 'code') && (dd.type !== 'widget' || (dd.data.elem !== 'style' && dd.data.elem !== 'link' && dd.data.elem !== 'script')))
+                                                    })
+                                            ));
+                                            try {
+                                                viewModel.dataList.find((dd: any) => {
+                                                    return dd.tag === viewModel.data.tag
+                                                }).config = (viewModel.data! as any).config;
+                                                pageConfig = (viewModel.data! as any).config
+                                            } catch (e) {
+
+                                            }
+
                                             gvc.notifyDataChange(vid)
                                         }
-                                        
-                                        return  new PageEditor(gvc, 'MainEditorLeft', 'MainEditorRight').renderLineItem(pageConfig, false, pageConfig, {
+
+                                        return new PageEditor(gvc, 'MainEditorLeft', 'MainEditorRight').renderLineItem(pageConfig, false, pageConfig, {
                                             selectEv: (dd) => {
                                                 return dd.id === glitter.getCookieByName('lastSelect')
                                             },
-                                            refreshEvent:()=>{
+                                            refreshEvent: () => {
                                                 setPageConfig()
                                             }
                                         })
                                     })()
-                                  
+
                                 ])
                             })()}
                         `
@@ -206,8 +214,7 @@ export class Main_editor {
 
     public static editorContent(option: {
         gvc: GVC,
-        viewModel: any,
-        type: "editor" | 'info'
+        viewModel: any
     }) {
         const glitter = option.gvc.glitter
         const viewModel = option.viewModel
@@ -253,113 +260,23 @@ export class Main_editor {
                                 dd.refreshAllParameter = undefined;
                                 dd.refreshComponentParameter = undefined;
                             });
-                            if (option.type === 'info') {
-                                return `<div class="alert-warning alert m-n2 mb-3 p-2" style="border-radius:0px;border:none;">
-<h3 class="text-dark  m-1" style="font-size: 16px;">模塊路徑</h3>
-<h3 class="text-primary  alert-primary m-1 fw-500 rounded p-2" style="font-size: 14px;color:black;">${HtmlGenerate.reDefineJsResource(viewModel.selectItem.js)}</h3>
-<h3 class="text-dark  m-1 mt-2" style="font-size: 16px;">函式路徑</h3>
-<h3 class="text-primary  alert-primary m-1 fw-500 rounded p-2" style="font-size: 14px;">${viewModel.selectItem.type}</h3>
-</div>
-${(() => {
-                                    const array: any = []
-                                    array.push(
-                                            EditorElem.select({
-                                                title: '生成數量',
-                                                gvc: gvc,
-                                                def: viewModel.selectItem.gCount ?? 'single',
-                                                array: [{
-                                                    title: '單一', value: 'single'
-                                                }, {
-                                                    title: '多個', value: 'multiple'
-                                                }],
-                                                callback: (text) => {
-                                                    viewModel.selectItem.gCount = text
-                                                    gvc.notifyDataChange('HtmlEditorContainer')
-                                                }
-                                            })
-                                    )
-                                    if (viewModel.selectItem.gCount === 'multiple') {
-                                        viewModel.selectItem.arrayData=viewModel.selectItem.arrayData??{}
-                                        array.push(
-                                                TriggerEvent.editer(gvc, viewModel.selectItem, viewModel.selectItem.arrayData, {
-                                                    hover: false,
-                                                    option: [],
-                                                    title: "設定資料來源"
-                                                })
-                                        )
-                                    }else{
-                                        viewModel.selectItem.arrayData=undefined
+                            return htmlGenerate.editor(gvc, {
+                                return_: false,
+                                refreshAll: () => {
+                                    if (viewModel.selectItem) {
+                                        gvc.notifyDataChange(['showView']);
                                     }
-                                    return array.join(`<div class="my-2"></div>`)
-                                })()}
-${
-                                        gvc.bindView(() => {
-                                            const dd = viewModel.selectItem;
-                                            const uid = gvc.glitter.getUUID();
-                                            return {
-                                                bind: uid,
-                                                view: () => {
-                                                    dd.preloadEvenet = dd.preloadEvenet ?? {};
-                                                    dd.hiddenEvent = dd.hiddenEvent ?? {}
-                                                    if ((dd.type === 'widget') || (dd.type === 'container')) {
-                                                        return [
-                                                            TriggerEvent.editer(gvc, dd, dd.preloadEvenet, {
-                                                                title: "模塊預載事件",
-                                                                option: [],
-                                                                hover: false
-                                                            }),
-                                                            TriggerEvent.editer(gvc, dd, dd.hiddenEvent, {
-                                                                title: "模塊隱藏事件",
-                                                                option: [],
-                                                                hover: false
-                                                            })
-                                                        ].join(`<div class="my-2"></div>`);
-                                                    }
-                                                    return [gvc.glitter.htmlGenerate.styleEditor(dd, gvc, dd, {}).editor(
-                                                            gvc,
-                                                            () => {
-                                                                gvc.notifyDataChange('showView')
-                                                            },
-                                                            '模塊容器樣式'
-                                                    ), TriggerEvent.editer(gvc, dd, dd.preloadEvenet, {
-                                                        title: "模塊預載事件",
-                                                        option: [],
-                                                        hover: false
-                                                    }),
-                                                        TriggerEvent.editer(gvc, dd, dd.visibleEvent, {
-                                                            title: "模塊可見條件",
-                                                            option: [],
-                                                            hover: false
-                                                        })
-                                                    
-                                                    ].join(`<div class="my-2"></div>`);
-                                                },
-                                                divCreate: {
-                                                    class: 'mt-2 mb-2 '
-                                                },
-                                            };
-                                        })
+                                },
+                                setting: (() => {
+                                    if (viewModel.selectItem) {
+                                        return [viewModel.selectItem];
+                                    } else {
+                                        return undefined;
+                                    }
+                                })(),
+                                deleteEvent: () => {
                                 }
-`
-                            } else {
-                                return htmlGenerate.editor(gvc, {
-                                    return_: false,
-                                    refreshAll: () => {
-                                        if (viewModel.selectItem) {
-                                            gvc.notifyDataChange(['showView']);
-                                        }
-                                    },
-                                    setting: (() => {
-                                        if (viewModel.selectItem) {
-                                            return [viewModel.selectItem];
-                                        } else {
-                                            return undefined;
-                                        }
-                                    })(),
-                                    deleteEvent: () => {
-                                    }
-                                })
-                            }
+                            })
                         },
                         divCreate: {
                             class: `p-2`
@@ -387,13 +304,59 @@ ${
                      style="height:50px;background:#f6f6f6;font-size:14px;">
                     <div class="hoverBtn fw-bold" style="color:#8e1f0b;cursor:pointer;"
                          onclick="${gvc.event(() => {
-                            for (let a = 0; a < viewModel.selectContainer.length; a++) {
-                                if (viewModel.selectContainer[a] == viewModel.selectItem) {
-                                    viewModel.selectContainer.splice(a, 1)
+                            checkSelect((viewModel.data! as any).config)
+                            try {
+                                const dialog = new ShareDialog(gvc.glitter)
+
+                                function deleteBlock() {
+                                    for (let a = 0; a < viewModel.selectContainer.length; a++) {
+                                        if (viewModel.selectContainer[a] == viewModel.selectItem) {
+                                            viewModel.selectContainer.splice(a, 1)
+                                        }
+                                    }
+                                    viewModel.selectItem = undefined
+                                    gvc.notifyDataChange(['HtmlEditorContainer']);
                                 }
+
+                                if (viewModel.selectItem.type === 'component') {
+                                    dialog.checkYesOrNot({
+                                        text: '是否連同模塊一同刪除?',
+                                        callback: (response) => {
+                                            if (response) {
+                                                new Promise(async (resolve, reject) => {
+                                                    dialog.dataLoading({visible: true})
+                                                    let deleteArray: string[] = [viewModel.selectItem.tag]
+                                                    viewModel.selectItem.list && viewModel.selectItem.list.map((dd: any) => {
+                                                        deleteArray.push(dd.tag)
+                                                    })
+                                                    for (const b of deleteArray) {
+                                                        await new Promise((resolve, reject) => {
+                                                            ApiPageConfig.deletePage({
+                                                                "appName": (window as any).appName,
+                                                                tag: b
+                                                            }).then((data) => {
+                                                                resolve(true)
+                                                            })
+                                                        })
+                                                    }
+                                                    deleteBlock()
+                                                    dialog.dataLoading({visible: false})
+                                                    glitter.htmlGenerate.saveEvent(true)
+                                                })
+
+                                            } else {
+                                                deleteBlock()
+                                            }
+                                        }
+                                    })
+                                } else {
+                                    deleteBlock()
+                                }
+                            } catch (e) {
+                                alert(e)
                             }
-                            viewModel.selectItem = undefined
-                            gvc.notifyDataChange(['HtmlEditorContainer']);
+
+
                         })}">
                         <i class="fa-solid fa-trash-can me-2"></i>移除區塊
                     </div>
@@ -425,367 +388,273 @@ ${
         const glitter = gvc.glitter;
         return gvc.bindView(() => {
             const id = 'right_NAV'
-            const vm = {
-                option: [
-                    {
-                        title: '頁面編輯',
-                        key: 'page'
-                    },
-                    {
-                        title: '區段編輯',
-                        key: 'module'
-                    }
-                ],
-                select: () => {
-                    return localStorage.getItem('rightSelect') || (() => {
-                        localStorage.setItem('rightSelect', 'page')
-                        return 'page'
-                    })()
-                }
-            }
             return {
                 bind: id,
                 view: () => {
-
-                    return [
-                        html`
-                            <div class="d-flex border-bottom mt-n1">
-                                ${vm.option.map((dd) => {
-                                    return ` <div class="add_item_button ${(vm.select() === dd.key) ? `add_item_button_active` : ``}"
- onclick="${gvc.event(() => {
-                                        if (dd.key === vm.select()) {
-                                            return
-                                        }
-                                        localStorage.setItem('rightSelect', dd.key)
-                                        gvc.notifyDataChange(id)
-                                    })}">${dd.title}</div>`
-                                }).join('')}
-                            </div>`,
-                        ...(() => {
-                            let array: any = [];
-                            (vm.select() === 'module') && array.push(gvc.bindView(() => {
-                                const vm = {
-                                    pageID: gvc.glitter.getUUID(),
-                                    get select() {
-                                        return localStorage.getItem('uweopasi') || 'editor'
-                                    },
-                                    set select(v) {
-                                        localStorage.setItem('uweopasi', v)
-                                    },
-                                    selectItem: undefined
+                    return gvc.bindView(() => {
+                        const vm = {
+                            pageID: gvc.glitter.getUUID(),
+                            get select() {
+                                return localStorage.getItem('uasi') || 'layout'
+                            },
+                            set select(v) {
+                                localStorage.setItem('uasi', v)
+                            },
+                            selectItem: undefined
+                        }
+                        return {
+                            bind: vm.pageID,
+                            view: () => {
+                                if (localStorage.getItem('rightSelect') === 'module') {
+                                    localStorage.setItem('rightSelect', 'page')
+                                    vm.select = 'codeBlock'
+                                    gvc.notifyDataChange(vm.pageID)
                                 }
-
-                                return {
-                                    bind: vm.pageID,
-                                    view: () => {
-                                        let array = [];
-                                        array.push(html`
-                                            <div class="d-flex bg-secondary p-2">${
-                                                    EditorElem.select({
-                                                        title: '',
-                                                        gvc: gvc,
-                                                        def: vm.select,
-                                                        array: [
-                                                            {title: '區段編輯', value: 'editor'},
-                                                            {title: '進階設定', value: 'info'}
-                                                        ],
-                                                        callback: (text) => {
-                                                            vm.select = text
-                                                            gvc.notifyDataChange(vm.pageID)
-                                                        },
-                                                        style: `max-height:100%;color:black;`,
-                                                        class: `form-select fw-bold text-black`
-                                                    })
-                                            }
-
-                                            </div>`);
-                                        (array.push(Main_editor.editorContent({
-                                            gvc: gvc,
-                                            type: vm.select as any,
-                                            viewModel: data
-                                        })));
-                                        return array.join('')
-                                    },
-                                    divCreate: {}
-                                }
-                            }));
-                            (vm.select() === 'page') && array.push(gvc.bindView(() => {
-                                const vm = {
-                                    pageID: gvc.glitter.getUUID(),
-                                    get select() {
-                                        return localStorage.getItem('uasi') || 'layout'
-                                    },
-                                    set select(v) {
-                                        localStorage.setItem('uasi', v)
-                                    },
-                                    selectItem: undefined
-                                }
-                                return {
-                                    bind: vm.pageID,
-                                    view: () => {
-                                        let array = [];
-                                        if (!vm.selectItem) {
-                                            array.push(html`
-                                                <div class="d-flex bg-secondary p-2">${
-                                                        EditorElem.select({
-                                                            title: '',
-                                                            gvc: gvc,
-                                                            def: vm.select,
-                                                            array: [
-                                                                {title: '頁面內容', value: 'layout'},
-                                                                {title: '標頭 / SEO配置', value: 'basic'},
-                                                                {title: '樣式設計', value: 'style'},
-                                                                {title: '觸發事件', value: 'script'},
-                                                                {title: '原始碼', value: 'code'}
-                                                            ].filter((dd)=>{
-                                                                if(glitter.share.blogEditor){
-                                                                    if(vm.select==='basic'){
-                                                                        vm.select='layout'
-                                                                    }
-                                                                    return dd.value!=='basic'
-                                                                }else{
-                                                                    return  true
-                                                                }
-                                                            }),
-                                                            callback: (text) => {
-                                                                vm.select = text
-                                                                gvc.notifyDataChange(vm.pageID)
-                                                            },
-                                                            style: `max-height:100%;color:black;`,
-                                                            class: `form-select fw-bold text-black`
-                                                        })
-                                                }
+                                let array = [];
+                                if (!vm.selectItem) {
+                                    array.push(html`
+                                        <div class="d-flex bg-white w-100 border-bottom">
+                                            <div class="w-100" style="">
+                                                <div style=""
+                                                     class="d-flex align-items-center justify-content-around  w-100 p-2">
                                                     ${(() => {
-                                                        if (vm.select === 'style') {
-                                                            return EditorElem.btnGroup({
-                                                                gvc: gvc,
-                                                                inner: `<div class="d-flex flex-column w-100 align-items-center justify-content-center position-relative"
-                                                                 style="height:300px;">
-                                                                 <i class="fa-sharp fa-regular fa-circle-xmark fs-5 position-absolute" style="right:0px;top:0px;color:black;cursor:pointer;"></i>
-                                                                <lottie-player src="lottie/animation_uiux.json"
-                                                                               class="mx-auto my-n4" speed="1"
-                                                                               style="max-width: 100%;width: 150px;height:200px;"
-                                                                               loop
-                                                                               autoplay></lottie-player>
-                                                                <h3 class="text-center px-4" style="font-size:14px;">
-                                                                    透過設定CSS標籤和連結，來決定頁面的統一樣式。
-                                                                    <div class="alert alert-info mt-3 mx-n3 p-2 text-start"
-                                                                         style="white-space: normal;font-size: 14px;font-weight: 500;">
-                                                                        <p class="m-0">-全域資源在所有頁面皆會加載。</p>
-                                                                        <p class="pt-1 m-0">
-                                                                            -頁面資源僅會於本當前頁面中進行加載。</p>
-                                                                    </div>
-                                                                </h3>
-                                                            </div>`,
-                                                                style: `width:30px;height:30px;`,
-                                                                dropDownStyle: `width:300px;height:300px;`,
-                                                                top: 100,
-                                                                fontawesome: '<i class="fa-sharp fa-regular fa-circle-question fs-5" style="color:#295ed1;"></i>'
-                                                            })
-                                                        } else if (vm.select === 'script') {
-                                                            return EditorElem.btnGroup({
-                                                                gvc: gvc,
-                                                                inner: `<div class="d-flex flex-column w-100 align-items-center justify-content-center position-relative"
-                                                                 style="height:300px;">
-                                                                 <i class="fa-sharp fa-regular fa-circle-xmark fs-5 position-absolute" style="right:0px;top:0px;color:black;cursor:pointer;"></i>
-                                                               <lottie-player src="lottie/animation_cp.json" class="mx-auto my-n4" speed="1"
-                                                       style="max-width: 100%;width: 150px;height:200px;" loop
-                                                       autoplay></lottie-player>
-                                        <h3 class=" text-center px-4" style="font-size:14px;">
-                                            設定代碼區塊與資源連結，來決定頁面加載前後所需執行的項目。
-                                            <div class="alert alert-info mt-3 mx-n3 p-2 text-start"
-                                                 style="white-space: normal;font-size: 14px;font-weight: 500;">
-                                                <p class="m-0">．全域資源在所有頁面皆會加載。</p>
-                                                <p class="pt-1 m-0">．頁面資源僅會於本當前頁面中進行加載。</p>
-                                            </div>
-                                        </h3>
-                                                            </div>`,
-                                                                style: `width:30px;height:30px;`,
-                                                                dropDownStyle: `width:300px;height:300px;`,
-                                                                top: 100,
-                                                                fontawesome: '<i class="fa-sharp fa-regular fa-circle-question fs-5" style="color:#295ed1;"></i>'
-                                                            })
-                                                        } else if (vm.select === 'layout') {
-                                                            return EditorElem.btnGroup({
-                                                                gvc: gvc,
-                                                                inner: `<div class="d-flex flex-column w-100 align-items-center justify-content-center position-relative"
-                                                                 style="height:200px;">
-                                                                 <i class="fa-sharp fa-regular fa-circle-xmark fs-5 position-absolute" style="right:0px;top:0px;color:black;cursor:pointer;"></i>
-                                                               <lottie-player src="lottie/animation_uiux.json" class="mx-auto my-n4" speed="1"
-                                                       style="max-width: 100%;width: 150px;height:200px;" loop
-                                                       autoplay></lottie-player>
-                                        <h3 class=" text-center px-4" style="font-size:14px;">
-                                            透過設定表單內容，來呈現頁面項目。
-                                        </h3>
-                                                            </div>`,
-                                                                style: `width:30px;height:30px;`,
-                                                                dropDownStyle: `width:300px;height:220px;`,
-                                                                top: 100,
-                                                                fontawesome: '<i class="fa-sharp fa-regular fa-circle-question fs-5" style="color:#295ed1;"></i>'
-                                                            })
-                                                        } else {
-                                                            return ``
+                                                        const items = [
+                                                            {
+                                                                title: '頁面內容',
+                                                                value: 'layout',
+                                                                icon: 'fa-regular fa-memo'
+                                                            },
+                                                            {
+                                                                title: 'SEO相關配置',
+                                                                value: 'basic',
+                                                                icon: 'fa-regular fa-magnifying-glass'
+                                                            },
+                                                            {
+                                                                title: '樣式設計',
+                                                                value: 'style',
+                                                                icon: 'fa-regular fa-regular fa-pen-swirl'
+                                                            },
+                                                            {
+                                                                title: '觸發事件',
+                                                                value: 'script',
+                                                                icon: 'fa-regular fa-file-code'
+                                                            },
+                                                            {
+                                                                title: '頁面原始碼',
+                                                                value: 'code',
+                                                                icon: 'fa-regular fa-regular fa-code'
+                                                            },
+                                                            {
+                                                                title: '區段編輯',
+                                                                value: 'codeBlock',
+                                                                icon: 'fa-regular fa-brackets-curly'
+                                                            }
+                                                        ].filter((dd) => {
+                                                            if (dd.value === 'basic' && Storage.select_page_type === 'module') {
+                                                                return false
+                                                            }
+                                                            if ((Storage.editor_mode === 'user')) {
+                                                                return ['layout', 'basic', 'codeBlock'].find((d2) => {
+                                                                    return dd.value === d2
+                                                                })
+                                                            } else {
+                                                                return true
+                                                            }
+                                                        })
+                                                        if(!items.find((dd)=>{
+                                                            return dd.value===vm.select
+                                                        })){
+                                                            vm.select=items[0].value
                                                         }
-                                                    })()}
-                                                </div>`);
 
-                                            (vm.select === 'layout') && (array.push(PageEditor.formSetting({
-                                                gvc: gvc,
-                                                id: glitter.getUUID(),
-                                                vid: '',
-                                                viewModel: gvc.glitter.share.editorViewModel.data
-                                            })));
-                                            (vm.select === 'basic') && (array.push(PageEditor.pageEditorView({
-                                                gvc: gvc,
-                                                id: glitter.getUUID(),
-                                                vid: '',
-                                                viewModel: {
-                                                    get selectItem() {
-                                                        return gvc.glitter.share.editorViewModel.data
-                                                    },
-                                                    get dataList() {
-                                                        return gvc.glitter.share.editorViewModel.dataList
-                                                    }
-                                                }
-                                            })));
-                                            (vm.select === 'style') && (array.push(PageEditor.styleRenderSelector({
-                                                gvc: gvc,
-                                                vid: gvc.glitter.getUUID(),
-                                                viewModel: {
-                                                    selectContainer: glitter.share.editorViewModel.data.config,
-                                                    globalStyle: glitter.share.editorViewModel.globalStyle,
-                                                    data: glitter.share.editorViewModel.data
-                                                },
-                                                docID: '',
-                                                selectBack: (dd) => {
-                                                    vm.selectItem = dd
-                                                    gvc.notifyDataChange(vm.pageID)
-                                                }
-                                            })));
-                                            (vm.select === 'script') && (array.push(PageEditor.scriptRenderSelector({
-                                                gvc: gvc,
-                                                vid: gvc.glitter.getUUID(),
-                                                viewModel: {
-                                                    selectContainer: glitter.share.editorViewModel.data.config,
-                                                    globalScript: glitter.share.editorViewModel.globalScript,
-                                                    data: glitter.share.editorViewModel.data
-                                                },
-                                                docID: '',
-                                                selectBack: (dd) => {
-                                                    vm.selectItem = dd
-                                                    gvc.notifyDataChange(vm.pageID)
-                                                }
-                                            })));
-                                            (vm.select === 'code') && (array.push((() => {
-                                                const json = JSON.parse(JSON.stringify(glitter.share.editorViewModel.data.config));
-                                                json.map((dd: any) => {
-                                                    dd.refreshAllParameter = undefined;
-                                                    dd.refreshComponentParameter = undefined;
-                                                });
-                                                let value = JSON.stringify(json, null, '\t')
-                                                return gvc.bindView(() => {
-                                                    const id = glitter.getUUID();
-                                                    return {
-                                                        bind: id,
-                                                        view: () => {
+                                                        return items.map((dd) => {
                                                             return html`
-                                                                <div class="alert alert-danger flex-fill m-0 p-2 "
-                                                                     style="white-space: normal;word-break:break-all;">
-                                                                    此頁面的配置檔包含所有設計模組和觸發事件的代碼配置項目。<br>建議由熟悉程式開發的工程師進行編輯。
-                                                                </div>
-                                                                ${EditorElem.customCodeEditor({
-                                                                    gvc: gvc,
-                                                                    height: window.innerHeight - 400,
-                                                                    initial: value,
-                                                                    title: 'JSON配置參數',
-                                                                    callback: (data) => {
-                                                                        value = data;
-                                                                    },
-                                                                    language: 'json'
-                                                                })}
-                                                                <div class="d-flex w-100 mb-2 mt-2 justify-content-end"
-                                                                     style="gap:10px;">
-                                                                    <button class="btn btn-outline-secondary-c "
-                                                                            style="flex:1;height:40px; width:calc(50% - 10px);"
-                                                                            onclick="${gvc.event(() => {
-                                                                                navigator.clipboard.writeText(JSON.stringify(json, null, '\t'));
-                                                                            })}"><i
-                                                                            class="fa-regular fa-copy me-2"></i>複製到剪貼簿
-                                                                    </button>
-                                                                    <button class="btn btn-primary-c "
-                                                                            style="flex:1; height:40px; width:calc(50% - 10px);"
-                                                                            onclick="${gvc.event(() => {
-                                                                                const dialog = new ShareDialog(gvc.glitter)
-                                                                                try {
-                                                                                    glitter.share.editorViewModel.data.config = JSON.parse(value)
-                                                                                    glitter.closeDiaLog()
-                                                                                    glitter.htmlGenerate.saveEvent()
-                                                                                } catch (e: any) {
-                                                                                    dialog.errorMessage({text: "代碼輸入錯誤"})
-                                                                                    console.log(`${e}${e.stack}${e.line}`)
-                                                                                }
-
-                                                                            })}"><i
-                                                                            class="fa-regular fa-floppy-disk me-2"></i>儲存
-                                                                    </button>
-                                                                </div>
-                                                            `
+                                                                <div class=" d-flex align-items-center justify-content-center ${(dd.value === vm.select) ? `border` : ``} rounded-3"
+                                                                     style="height:36px;width:36px;cursor:pointer;
+${(dd.value === vm.select) ? `background:linear-gradient(135deg, #667eea 0%, #764ba2 100%);background:-webkit-linear-gradient(135deg, #667eea 0%, #764ba2 100%);color:white;` : `color:#151515;`}
+"
+                                                                     onclick="${gvc.event(() => {
+                                                                         vm.select = dd.value
+                                                                         gvc.notifyDataChange(vm.pageID)
+                                                                     })}"
+                                                                     data-bs-toggle="tooltip" data-bs-placement="top"
+                                                                     data-bs-custom-class="custom-tooltip"
+                                                                     data-bs-title="${dd.title}">
+                                                                    <i class="${dd.icon}"
+                                                                       aria-hidden="true"></i>
+                                                                </div>`
+                                                        }).join(``)
+                                                    })()}
+                                                </div>
+                                            </div>
+                                        </div>`);
+                                    (vm.select === 'codeBlock') && array.push(Main_editor.editorContent({
+                                        gvc: gvc,
+                                        viewModel: data
+                                    }));
+                                    (vm.select === 'layout') && (array.push(PageEditor.formSetting({
+                                        gvc: gvc,
+                                        id: glitter.getUUID(),
+                                        vid: '',
+                                        viewModel: gvc.glitter.share.editorViewModel.data
+                                    })));
+                                    (vm.select === 'basic') && (array.push(PageEditor.pageEditorView({
+                                        gvc: gvc,
+                                        id: glitter.getUUID(),
+                                        vid: '',
+                                        viewModel: {
+                                            get selectItem() {
+                                                return gvc.glitter.share.editorViewModel.data
+                                            },
+                                            get dataList() {
+                                                return gvc.glitter.share.editorViewModel.dataList
+                                            }
+                                        }
+                                    })));
+                                    (vm.select === 'style') && (array.push(PageEditor.styleRenderSelector({
+                                        gvc: gvc,
+                                        vid: gvc.glitter.getUUID(),
+                                        viewModel: {
+                                            selectContainer: glitter.share.editorViewModel.data.config,
+                                            globalStyle: glitter.share.editorViewModel.globalStyle,
+                                            data: glitter.share.editorViewModel.data
+                                        },
+                                        docID: '',
+                                        selectBack: (dd) => {
+                                            EditorElem.openEditorDialog(gvc, (gvc: GVC) => {
+                                                return PageEditor.styleRenderEditor({
+                                                    gvc: gvc,
+                                                    vid: gvc.glitter.getUUID(),
+                                                    viewModel: {
+                                                        selectItem: dd,
+                                                        get globalStyle() {
+                                                            return glitter.share.editorViewModel.globalStyle
                                                         },
-                                                        divCreate: {
-                                                            class: `p-2`
-                                                        }
+                                                        set globalStyle(v) {
+                                                            glitter.share.editorViewModel.globalStyle = v
+                                                        },
+                                                        data: glitter.share.editorViewModel.data
+                                                    },
+                                                    docID: '',
+                                                    editFinish: () => {
+                                                        vm.selectItem = undefined
+                                                        gvc.notifyDataChange(vm.pageID)
                                                     }
                                                 })
-                                            })()))
-                                        } else {
-                                            (vm.select === 'style') && (array.push(PageEditor.styleRenderEditor({
-                                                gvc: gvc,
-                                                vid: gvc.glitter.getUUID(),
-                                                viewModel: {
-                                                    selectItem: vm.selectItem,
-                                                    get globalStyle() {
-                                                        return glitter.share.editorViewModel.globalStyle
-                                                    },
-                                                    set globalStyle(v) {
-                                                        glitter.share.editorViewModel.globalStyle = v
-                                                    },
-                                                    data: glitter.share.editorViewModel.data
-                                                },
-                                                docID: '',
-                                                editFinish: () => {
-                                                    vm.selectItem = undefined
-                                                    gvc.notifyDataChange(vm.pageID)
-                                                }
-                                            })));
-                                            (vm.select === 'script') && (array.push(PageEditor.scriptRenderEditor({
-                                                gvc: gvc,
-                                                vid: gvc.glitter.getUUID(),
-                                                viewModel: {
-                                                    selectItem: vm.selectItem,
-                                                    get globalScript() {
-                                                        return glitter.share.editorViewModel.globalScript
-                                                    },
-                                                    set globalScript(v) {
-                                                        glitter.share.editorViewModel.globalScript = v
-                                                    },
-                                                    data: glitter.share.editorViewModel.data
-                                                },
-                                                docID: '',
-                                                editFinish: () => {
-                                                    vm.selectItem = undefined
-                                                    gvc.notifyDataChange(vm.pageID)
-                                                }
-                                            })))
+                                            }, () => {
+                                                gvc.notifyDataChange(vm.pageID)
+                                            }, 450, '編輯STYLE樣式')
                                         }
+                                    })));
+                                    (vm.select === 'script') && (array.push(PageEditor.scriptRenderSelector({
+                                        gvc: gvc,
+                                        vid: gvc.glitter.getUUID(),
+                                        viewModel: {
+                                            selectContainer: glitter.share.editorViewModel.data.config,
+                                            globalScript: glitter.share.editorViewModel.globalScript,
+                                            data: glitter.share.editorViewModel.data
+                                        },
+                                        docID: '',
+                                        selectBack: (dd) => {
+                                            EditorElem.openEditorDialog(gvc, (gvc: GVC) => {
+                                                return PageEditor.scriptRenderEditor({
+                                                    gvc: gvc,
+                                                    vid: gvc.glitter.getUUID(),
+                                                    viewModel: {
+                                                        selectItem: dd,
+                                                        get globalScript() {
+                                                            return glitter.share.editorViewModel.globalScript
+                                                        },
+                                                        set globalScript(v) {
+                                                            glitter.share.editorViewModel.globalScript = v
+                                                        },
+                                                        data: glitter.share.editorViewModel.data
+                                                    },
+                                                    docID: '',
+                                                    editFinish: () => {
+                                                        vm.selectItem = undefined
+                                                        gvc.notifyDataChange(vm.pageID)
+                                                    }
+                                                })
+                                            }, () => {
+                                                gvc.notifyDataChange(vm.pageID)
+                                            }, 450, '編輯SCRIPT與觸發事件')
+                                        }
+                                    })));
+                                    (vm.select === 'code') && (array.push((() => {
+                                        const json = JSON.parse(JSON.stringify(glitter.share.editorViewModel.data.config));
+                                        json.map((dd: any) => {
+                                            dd.refreshAllParameter = undefined;
+                                            dd.refreshComponentParameter = undefined;
+                                        });
+                                        let value = JSON.stringify(json, null, '\t')
+                                        return gvc.bindView(() => {
+                                            const id = glitter.getUUID();
+                                            return {
+                                                bind: id,
+                                                view: () => {
+                                                    return html`
+                                                        <div class="alert alert-danger flex-fill m-0 p-2 "
+                                                             style="white-space: normal;word-break:break-all;">
+                                                            此頁面的配置檔包含所有設計模組和觸發事件的代碼配置項目。<br>建議由熟悉程式開發的工程師進行編輯。
+                                                        </div>
+                                                        ${EditorElem.customCodeEditor({
+                                                            gvc: gvc,
+                                                            height: window.innerHeight - 350,
+                                                            initial: value,
+                                                            title: 'JSON配置參數',
+                                                            callback: (data) => {
+                                                                value = data;
+                                                            },
+                                                            language: 'json'
+                                                        })}
+                                                        <div class="d-flex w-100 mb-2 mt-2 justify-content-end"
+                                                             style="gap:10px;">
+                                                            <button class="btn btn-outline-secondary-c "
+                                                                    style="flex:1;height:40px; width:calc(50% - 10px);"
+                                                                    onclick="${gvc.event(() => {
+                                                                        navigator.clipboard.writeText(JSON.stringify(json, null, '\t'));
+                                                                    })}"><i
+                                                                    class="fa-regular fa-copy me-2"></i>複製到剪貼簿
+                                                            </button>
+                                                            <button class="btn btn-primary-c "
+                                                                    style="flex:1; height:40px; width:calc(50% - 10px);"
+                                                                    onclick="${gvc.event(() => {
+                                                                        const dialog = new ShareDialog(gvc.glitter)
+                                                                        try {
+                                                                            glitter.share.editorViewModel.data.config = JSON.parse(value)
+                                                                            glitter.closeDiaLog()
+                                                                            glitter.htmlGenerate.saveEvent()
+                                                                        } catch (e: any) {
+                                                                            dialog.errorMessage({text: "代碼輸入錯誤"})
+                                                                            console.log(`${e}${e.stack}${e.line}`)
+                                                                        }
 
-                                        return array.join('')
-                                    },
-                                    divCreate: {}
+                                                                    })}"><i
+                                                                    class="fa-regular fa-floppy-disk me-2"></i>儲存
+                                                            </button>
+                                                        </div>
+                                                    `
+                                                },
+                                                divCreate: {
+                                                    class: `p-2`
+                                                }
+                                            }
+                                        })
+                                    })()));
                                 }
-                            }));
-                            return array.join('')
-                        })()
-                    ].join('')
+
+                                return array.join('')
+                            },
+                            divCreate: {
+                                style: `overflow-x:hidden;`
+                            },
+                            onCreate: () => {
+                                $('.tooltip')!.remove();
+                                ($('[data-bs-toggle="tooltip"]') as any).tooltip();
+                            }
+                        }
+                    })
                 },
                 divCreate: option.divCreate || {
                     class: `w-100`,

@@ -19,6 +19,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
         loading: true,
         mainView: ''
     };
+    console.log(`waitCreateView-time:`, window.renderClock.stop());
     function load() {
         var _a;
         return __awaiter(this, void 0, void 0, function* () {
@@ -91,7 +92,6 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                 jsFinish: () => {
                     console.log(`jsFinish-time:`, window.renderClock.stop());
                     load().then(() => {
-                        console.log(`loadFinish-time:`, window.renderClock.stop());
                         if (vm.loading) {
                             vm.loading = false;
                             gvc.notifyDataChange(mainId);
@@ -107,6 +107,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                     return new Promise((resolve, reject) => __awaiter(void 0, void 0, void 0, function* () {
                         console.log(`Render-time:`, window.renderClock.stop());
                         console.log(`gBundle.page_config.template-->`, gBundle.config);
+                        (gBundle.config.formData = gBundle.page_config.formData);
                         if (gBundle.page_config.template) {
                             window.glitterInitialHelper.getPageData(gBundle.page_config.template, (data) => {
                                 const template_config = JSON.parse(JSON.stringify(data.response.result[0].config));
@@ -114,26 +115,38 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                                     set.map((dd, index) => {
                                         var _a;
                                         if (dd.type === 'glitter_article') {
-                                            console.log(`set[index]-->`, set[index]);
-                                            set[index].type = 'container';
-                                            set[index].data = {
-                                                "setting": gBundle.config,
-                                                "elem": "div",
-                                                "style_from": set[index].style_from,
-                                                "class": set[index].class,
-                                                "style": set[index].style,
-                                                "classDataType": set[index].classDataType,
-                                                "dataType": set[index].dataType
-                                            };
+                                            if (gBundle.page_config.meta_article.view_type === "rich_text") {
+                                                set[index].type = 'widget';
+                                                set[index].data.inner = gBundle.page_config.meta_article.content;
+                                            }
+                                            else {
+                                                set[index].type = 'container';
+                                                set[index].data = {
+                                                    "setting": gBundle.config,
+                                                    "elem": "div",
+                                                    "style_from": set[index].style_from,
+                                                    "class": set[index].class,
+                                                    "style": set[index].style,
+                                                    "classDataType": set[index].classDataType,
+                                                    "dataType": set[index].dataType
+                                                };
+                                                function loopFormData(dd) {
+                                                    dd.formData = gBundle.page_config.formData;
+                                                    if (dd.type === 'container') {
+                                                        loopFormData(dd.data.setting);
+                                                    }
+                                                }
+                                                loopFormData(set[index]);
+                                            }
                                         }
                                         else if (dd.type === 'container') {
                                             dd.data.setting = (_a = dd.data.setting) !== null && _a !== void 0 ? _a : [];
+                                            dd.formData = data.response.result[0].page_config.formData;
                                             findContainer(dd.data.setting);
                                         }
                                     });
                                 }
                                 findContainer(template_config);
-                                template_config.formData = data.response.result[0].page_config.formData;
                                 resolve(new glitter.htmlGenerate(gBundle.app_config.globalStyle, [], undefined, true).render(gvc, {
                                     class: ``,
                                     style: ``,
@@ -153,7 +166,6 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                             });
                         }
                         else {
-                            (gBundle.config.formData = gBundle.page_config.formData);
                             resolve(new glitter.htmlGenerate(gBundle.app_config.globalStyle, [], undefined, true).render(gvc, {
                                 class: ``,
                                 style: ``,

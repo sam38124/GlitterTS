@@ -37,8 +37,10 @@ export class User{
             //     await db.execute(`update \`${saasConfig.SAAS_NAME}\`.t_user set editor_token=${db.escape(token)} where account=?`,[account])
             // }
             data['token']=undefined;
+
             // data['editor_token']=undefined;
             if(await tool.compareHash(pwd, data.pwd)){
+                data.pwd = undefined
                 return {
                     account:account,
                     token:await UserUtil.generateToken({

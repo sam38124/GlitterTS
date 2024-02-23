@@ -113,7 +113,7 @@ export class ApiShop {
             "type": "GET",
             "headers": {
                 "Content-Type": "application/json",
-                "g-app": getConfig().config.appName,
+                "g-app": encodeURIComponent(getConfig().config.appName),
                 "Authorization": GlobalUser.token
             }
         })
@@ -290,7 +290,20 @@ export class ApiShop {
         })
     }
 
-
+    public static selectC2cMap(json: {
+        returnURL:string,
+        logistics:string
+    }) {
+        return BaseApi.create({
+            "url": getBaseUrl() + `/api-public/v1/delivery/c2cMap`,
+            "type": "POST",
+            "headers": {
+                "Content-Type": "application/json",
+                "g-app": getConfig().config.appName
+            },
+            data: JSON.stringify(json)
+        })
+    }
 
     public static toCheckout(json: {
         line_items: {

@@ -196,6 +196,9 @@ const getPagination = (sql, page, pageCount) => {
 const escape = (parameter) => {
     return promise_1.default.escape(parameter);
 };
+const checkExists = async (sql) => {
+    return (await query('select count(1) from ' + sql, []))[0]['count(1)'] > 0;
+};
 exports.default = {
     createPool,
     execute,
@@ -204,5 +207,6 @@ exports.default = {
     getPagination,
     escape,
     queryLambada: exports.queryLambada,
+    checkExists
 };
 //# sourceMappingURL=database.js.map

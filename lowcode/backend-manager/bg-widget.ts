@@ -137,8 +137,8 @@ export class BgWidget {
 ${html}
 </div>`
     }
-    public static container(html: string, width?: number) {
-        return `<div class="mx-auto" style="padding:24px;${(width) ? `max-width:100%;width:${width}px;` : ``};color:black;">
+    public static container(html: string, width?: number,style?:string) {
+        return `<div class="mx-auto" style="padding:24px;${(width) ? `max-width:100%;width:${width}px;` : ``};color:black;${style ?? ''}">
 ${html}
 </div>`
     }

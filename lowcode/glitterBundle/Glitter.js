@@ -423,22 +423,24 @@ export class Glitter {
                 if ((glitter.share.EditorMode === true)) {
                     return inputString;
                 }
-                const pattern = /@{{(.*?)}}/g;
-                let match;
                 let convert = inputString;
-                while ((match = pattern.exec(inputString)) !== null) {
-                    const placeholder = match[0];
-                    const value = match[1];
-                    if (glitter.share.globalValue && glitter.share.globalValue[value]) {
-                        convert = (convert.replace(placeholder, glitter.share.globalValue[value]));
+                function replaceString(pattern) {
+                    let match;
+                    while ((match = pattern.exec(convert)) !== null) {
+                        const placeholder = match[0];
+                        const value = match[1];
+                        if (glitter.share.globalValue && glitter.share.globalValue[value]) {
+                            convert = convert.replace(placeholder, glitter.share.globalValue[value]);
+                        }
                     }
                 }
+                replaceString(/\/\**@{{(.*?)}}\*\//g);
+                replaceString(/@{{(.*?)}}/g);
                 return convert;
             },
             replacePromiseValue: function (inputString) {
                 const glitter = Glitter.glitter;
                 return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
-                    console.log(`replacePromiseValue-1->`, inputString);
                     const pattern = /@PROMISE{{(.*?)}}/g;
                     let match;
                     let convert = inputString;
@@ -447,7 +449,6 @@ export class Glitter {
                         const value = match[1];
                         inputString = inputString.replace(placeholder, yield glitter.promiseValueMap[value]);
                     }
-                    console.log(`replacePromiseValue-2->`, inputString);
                     resolve(inputString);
                 }));
             },
@@ -715,7 +716,7 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
         var search = (value !== undefined) ? this.setSearchParam(this.removeSearchParam(window.location.search, tag), tag, value) :
             this.removeSearchParam(window.location.search, tag);
         try {
-            window.history.pushState({}, document.title, search);
+            window.history.replaceState({}, document.title, search);
         }
         catch (e) {
         }
@@ -966,14 +967,20 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
     addStyleLink(data) {
         return __awaiter(this, void 0, void 0, function* () {
             const glitter = this;
-            var head = document.head;
+            const head = document.head;
             function add(filePath) {
                 const id = glitter.getUUID();
-                var haveURL = glitter.parameter.styleLinks.find((dd) => {
-                    return dd.src === filePath;
-                });
-                if (!haveURL) {
-                    var link = document.createElement("link");
+                let allLinks = document.getElementsByTagName("link");
+                let pass = true;
+                for (let i = 0; i < allLinks.length; i++) {
+                    const hrefValue = allLinks[i].getAttribute("href");
+                    if (hrefValue === filePath) {
+                        pass = false;
+                        break;
+                    }
+                }
+                if (pass) {
+                    let link = document.createElement("link");
                     link.type = "text/css";
                     link.rel = "stylesheet";
                     link.href = filePath;
@@ -1004,6 +1011,46 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
         }
         else if (keyList === undefined) {
             localStorage.clear();
+        }
+    }
+    setModule(key, value) {
+        var _a;
+        this.share.glitterModule = (_a = this.share.glitterModule) !== null && _a !== void 0 ? _a : {};
+        this.share.glitterModule[key] = value;
+    }
+    getModule(js, callback) {
+        var _a, _b, _c;
+        const glitter = this;
+        glitter.share.glitterModule = (_a = glitter.share.glitterModule) !== null && _a !== void 0 ? _a : {};
+        glitter.share.glitterModuleCallback = (_b = glitter.share.glitterModuleCallback) !== null && _b !== void 0 ? _b : {};
+        if (glitter.share.glitterModule[js]) {
+            callback(glitter.share.glitterModule[js]);
+        }
+        else {
+            glitter.share.glitterModuleCallback[js] = (_c = glitter.share.glitterModuleCallback[js]) !== null && _c !== void 0 ? _c : [];
+            glitter.share.glitterModuleCallback[js].push(callback);
+            Object.defineProperty(glitter.share.glitterModule, js, {
+                get() {
+                    return glitter.share.glitterModule['init_' + js];
+                },
+                set(newValue) {
+                    glitter.share.glitterModule['init_' + js] = newValue;
+                    glitter.share.glitterModuleCallback[js].map((callback) => {
+                        callback && callback(newValue);
+                    });
+                    glitter.share.glitterModuleCallback[js] = [];
+                },
+                enumerable: true,
+                configurable: true
+            });
+            glitter.addMtScript([{
+                    type: 'module',
+                    src: js
+                }], () => {
+            }, () => {
+            }, [
+                { key: "async", value: "true" }
+            ]);
         }
     }
 }

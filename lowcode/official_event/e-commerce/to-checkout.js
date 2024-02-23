@@ -25,7 +25,7 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                         return {
                             bind: id,
                             view: () => {
-                                var _a;
+                                var _a, _b;
                                 let map = [
                                     EditorElem.select({
                                         gvc: gvc,
@@ -65,6 +65,9 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                         title: '購買數量'
                                     }));
                                 }
+                                map.push(EditorElem.pageSelect(gvc, '跳轉頁面', (_b = object.switchPage) !== null && _b !== void 0 ? _b : '', (tag) => {
+                                    object.switchPage = tag;
+                                }));
                                 return EditorElem.container(map);
                             }
                         };
@@ -81,7 +84,7 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                         const rebate = (yield ApiShop.getRebateValue()) || 0;
                         function checkout() {
                             const href = new URL(location.href);
-                            href.searchParams.set('page', '');
+                            href.searchParams.set('page', object.switchPage || '');
                             ApiShop.toCheckout({
                                 line_items: cartData.line_items.map((dd) => {
                                     return {
@@ -95,15 +98,14 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                 code: voucher,
                                 use_rebate: parseInt(rebate, 10)
                             }).then((res) => {
-                                if (object.payType === 'offline') {
+                                if (object.payType === 'offline' || res.response.off_line) {
                                     ApiShop.clearCart();
                                     resolve(true);
+                                    location.href = href.href;
                                 }
                                 else {
                                     $('body').html(res.response.form);
-                                    setTimeout(() => {
-                                        console.log(document.querySelector('#submit').click());
-                                    }, 1000);
+                                    document.querySelector('#submit').click();
                                     ApiShop.clearCart();
                                 }
                             });
@@ -125,15 +127,19 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                         else {
                             ApiShop.getCart().then((res) => __awaiter(void 0, void 0, void 0, function* () {
                                 for (const b of Object.keys(res)) {
-                                    const pd = (yield ApiShop.getProduct({ limit: 50, page: 0, id: b.split('-')[0] })).response.data.content;
-                                    const vard = pd.variants.find((d2) => {
-                                        return `${pd.id}-${d2.spec.join('-')}` === b;
-                                    });
-                                    vard.id = pd.id;
-                                    vard.count = res[b];
-                                    vard.title = pd.title;
-                                    cartData.line_items.push(vard);
-                                    cartData.total += vard.count * vard.sale_price;
+                                    try {
+                                        const pd = (yield ApiShop.getProduct({ limit: 50, page: 0, id: b.split('-')[0] })).response.data.content;
+                                        const vard = pd.variants.find((d2) => {
+                                            return `${pd.id}-${d2.spec.join('-')}` === b;
+                                        });
+                                        vard.id = pd.id;
+                                        vard.count = res[b];
+                                        vard.title = pd.title;
+                                        cartData.line_items.push(vard);
+                                        cartData.total += vard.count * vard.sale_price;
+                                    }
+                                    catch (e) {
+                                    }
                                 }
                                 checkout();
                             }));

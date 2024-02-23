@@ -25,7 +25,7 @@ export default class FinancialService {
         email: string;
         shipment_fee: number;
         orderID: string;
-    }): Promise<string>;
+    }): Promise<any>;
     saveMoney(orderData: {
         total: number;
         userID: number;

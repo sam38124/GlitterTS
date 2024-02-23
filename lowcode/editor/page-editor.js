@@ -29,99 +29,100 @@ export class PageEditor {
             return {
                 bind: parId,
                 view: () => {
-                    return array.map((dd, index) => {
-                        dd.selectEditEvent = ((e) => {
-                            if (!glitter.share.inspect) {
-                                return false;
-                            }
-                            viewModel.selectContainer = original;
-                            viewModel.selectItem = dd;
-                            glitter.setCookie('lastSelect', dd.id);
-                            localStorage.setItem('rightSelect', 'module');
-                            gvc.notifyDataChange(['right_NAV', parId, this.editorID, vid]);
-                            setTimeout(() => {
-                                const leftItem = document.querySelectorAll('.selectLeftItem');
-                                leftItem[leftItem.length - 1].scrollIntoView({
-                                    behavior: 'auto',
-                                    block: 'center',
-                                });
-                            }, 200);
-                            return true;
-                        });
-                        let toggle = gvc.event((e, event) => {
-                            dd.toggle = !dd.toggle;
-                            if ((() => {
-                                return dd.type === 'container' && checkChildSelect(dd.data.setting);
-                            })() && !dd.toggle) {
-                                glitter.setCookie('lastSelect', '');
-                                viewModel.selectItem = undefined;
-                            }
-                            gvc.notifyDataChange(parId);
-                            event.preventDefault();
-                            event.stopPropagation();
-                        });
-                        const checkChildSelect = (setting) => {
-                            for (const b of setting) {
-                                if (b === viewModel.selectItem || (option.selectEv && option.selectEv(b))) {
-                                    return true;
+                    try {
+                        return array.map((dd, index) => {
+                            dd.selectEditEvent = ((e) => {
+                                if (!glitter.share.inspect) {
+                                    return false;
                                 }
-                                if (b.data && b.data.setting && checkChildSelect(b.data.setting)) {
-                                    return true;
-                                }
-                            }
-                            return false;
-                        };
-                        let selectChild = (() => {
-                            return dd.type === 'container' && checkChildSelect(dd.data.setting);
-                        })();
-                        if (selectChild) {
-                            dd.toggle = true;
-                        }
-                        return html `
-                            <li class="btn-group d-flex flex-column"
-                                style="margin-top:1px;margin-bottom:1px;">
-                                <div class="editor_item d-flex   px-2 my-0 hi me-n1 ${(viewModel.selectItem === dd) ? `selectLeftItem` : ``} ${(viewModel.selectItem === dd || selectChild || (option.selectEv && option.selectEv(dd))) ? `active` : ``}"
-                                     style=""
-                                     onclick="${gvc.event(() => {
-                            if (dd.type === 'container' && option.justFolder) {
-                                eval(toggle);
-                                return;
-                            }
-                            if (option.selectEvent) {
-                                option.selectEvent(dd);
-                            }
-                            else {
                                 viewModel.selectContainer = original;
                                 viewModel.selectItem = dd;
                                 glitter.setCookie('lastSelect', dd.id);
                                 localStorage.setItem('rightSelect', 'module');
-                                if (dd.editorEvent) {
-                                    dd.editorEvent();
+                                gvc.notifyDataChange(['right_NAV', parId, this.editorID, vid]);
+                                setTimeout(() => {
+                                    const leftItem = document.querySelectorAll('.selectLeftItem');
+                                    leftItem[leftItem.length - 1].scrollIntoView({
+                                        behavior: 'auto',
+                                        block: 'center',
+                                    });
+                                }, 200);
+                                return true;
+                            });
+                            let toggle = gvc.event((e, event) => {
+                                dd.toggle = !dd.toggle;
+                                if ((() => {
+                                    return dd.type === 'container' && checkChildSelect(dd.data.setting);
+                                })() && !dd.toggle) {
+                                    glitter.setCookie('lastSelect', '');
+                                    viewModel.selectItem = undefined;
+                                }
+                                gvc.notifyDataChange(parId);
+                                event.preventDefault();
+                                event.stopPropagation();
+                            });
+                            const checkChildSelect = (setting) => {
+                                for (const b of setting) {
+                                    if (b === viewModel.selectItem || (option.selectEv && option.selectEv(b))) {
+                                        return true;
+                                    }
+                                    if (b.data && b.data.setting && (Array.isArray(b.data.setting) && checkChildSelect(b.data.setting))) {
+                                        return true;
+                                    }
+                                }
+                                return false;
+                            };
+                            let selectChild = (() => {
+                                return dd.type === 'container' && checkChildSelect(dd.data.setting);
+                            })();
+                            if (selectChild) {
+                                dd.toggle = true;
+                            }
+                            return html `
+                                <li class="btn-group d-flex flex-column"
+                                    style="margin-top:1px;margin-bottom:1px;">
+                                    <div class="editor_item d-flex   px-2 my-0 hi me-n1 ${(viewModel.selectItem === dd) ? `selectLeftItem` : ``} ${(viewModel.selectItem === dd || selectChild || (option.selectEv && option.selectEv(dd))) ? `active` : ``}"
+                                         style=""
+                                         onclick="${gvc.event(() => {
+                                if (dd.type === 'container' && option.justFolder) {
+                                    eval(toggle);
+                                    return;
+                                }
+                                if (option.selectEvent) {
+                                    option.selectEvent(dd);
                                 }
                                 else {
-                                    gvc.notifyDataChange(['htmlGenerate', 'right_NAV', 'showView', vid, this.editorID]);
+                                    viewModel.selectContainer = original;
+                                    viewModel.selectItem = dd;
+                                    glitter.setCookie('lastSelect', dd.id);
+                                    localStorage.setItem('rightSelect', 'module');
+                                    if (dd.editorEvent) {
+                                        dd.editorEvent();
+                                    }
+                                    else {
+                                        gvc.notifyDataChange(['htmlGenerate', 'right_NAV', 'showView', vid, this.editorID]);
+                                    }
                                 }
-                            }
-                        })}">
-                                    ${(dd.type === 'container') ? html `
-                                        <div class="subBt ps-0 ms-n2" onclick="${toggle}">
-                                            ${((dd.toggle) ? `<i class="fa-regular fa-angle-down hoverBtn " ></i>` : `
+                            })}">
+                                        ${(dd.type === 'container') ? html `
+                                            <div class="subBt ps-0 ms-n2" onclick="${toggle}">
+                                                ${((dd.toggle) ? `<i class="fa-regular fa-angle-down hoverBtn " ></i>` : `
                                                                         <i class="fa-regular fa-angle-right hoverBtn " ></i>
                                                                         `)}
-                                        </div>` : ``}
-                                    ${dd.label}
-                                    <div class="flex-fill"></div>
-                                    ${(dd.type === 'container') ? html `
-                                        <div class="btn-group me-0 subBt"
-                                             style=""
-                                             onclick="${gvc.event((e, event) => {
-                            var _a;
-                            dd.data.setting = (_a = dd.data.setting) !== null && _a !== void 0 ? _a : [];
-                            viewModel.selectContainer = dd.data.setting;
-                            event.stopPropagation();
-                            event.preventDefault();
-                        })}">
-                                            ${(option.addComponentView) ? `
+                                            </div>` : ``}
+                                        ${dd.label}
+                                        <div class="flex-fill"></div>
+                                        ${(dd.type === 'container') ? html `
+                                            <div class="btn-group me-0 subBt"
+                                                 style=""
+                                                 onclick="${gvc.event((e, event) => {
+                                var _a;
+                                dd.data.setting = (_a = dd.data.setting) !== null && _a !== void 0 ? _a : [];
+                                viewModel.selectContainer = dd.data.setting;
+                                event.stopPropagation();
+                                event.preventDefault();
+                            })}">
+                                                ${(option.addComponentView) ? `
                                                                                     <div class="${(option.readonly) ? `d-none` : ``}"
                                      style="cursor:pointer;gap:5px;"
                                      data-bs-toggle="dropdown"
@@ -132,144 +133,146 @@ export class PageEditor {
                                                                                   <div class="dropdown-menu mx-1 position-fixed pb-0 border "
                                      style="z-index:999999;"
                                      onclick="${gvc.event((e, event) => {
-                            event.preventDefault();
-                            event.stopPropagation();
-                        })}">
+                                event.preventDefault();
+                                event.stopPropagation();
+                            })}">
                                     ${option.addComponentView(gvc, (response) => {
-                            dd.data.setting.push(response);
-                            dd.toggle = true;
-                            gvc.notifyDataChange(parId);
-                        })}
+                                dd.data.setting.push(response);
+                                dd.toggle = true;
+                                gvc.notifyDataChange(parId);
+                            })}
                                 </div>
                                                                                 ` : ` <div class="position-relative d-flex align-items-center justify-content-center w-100 h-100 ${(option.readonly) ? `d-none` : ``}" 
                                                                                    onclick="${gvc.event(() => {
-                            glitter.innerDialog((gvc) => {
-                                viewModel.selectContainer = dd.data.setting;
-                                return Add_item_dia.view(gvc);
-                            }, 'Add_item_dia');
-                        })}">
+                                glitter.innerDialog((gvc) => {
+                                    viewModel.selectContainer = dd.data.setting;
+                                    return Add_item_dia.view(gvc);
+                                }, 'Add_item_dia');
+                            })}">
                                                                                     <i class="fa-regular fa-circle-plus d-flex align-items-center justify-content-center subBt "></i>
                                                                                     
                                                                                 </div>`}
 
-                                        </div>` : ``}
-                                    ${(() => {
-                            function resetID(dd) {
-                                dd.id = glitter.getUUID();
-                                if (dd.type === 'container') {
-                                    dd.data.setting.map((d2) => {
-                                        resetID(d2);
-                                    });
+                                            </div>` : ``}
+                                        ${(() => {
+                                function resetID(dd) {
+                                    dd.id = glitter.getUUID();
+                                    if (dd.type === 'container') {
+                                        dd.data.setting.map((d2) => {
+                                            resetID(d2);
+                                        });
+                                    }
                                 }
-                            }
-                            function addIt(ind) {
-                                const copy = JSON.parse(JSON.stringify(dd));
-                                copy.id = glitter.getUUID();
-                                viewModel.selectContainer = array;
-                                viewModel.selectItem = copy;
-                                original.splice(index + ind, 0, copy);
-                                dd.toggle = false;
-                                resetID(copy);
-                                option.refreshEvent && option.refreshEvent();
-                                gvc.notifyDataChange([parId, vid, 'showView']);
-                            }
-                            let interval = undefined;
-                            return html `
-                                            <div class="btn-group dropend subBt ${(option.readonly) ? `d-none` : ``}"
-                                                 onmouseover="${gvc.event((e, event) => {
-                                clearInterval(interval);
-                                const box = $(e).get(0).getBoundingClientRect();
-                                $(e).children('.bt').dropdown('show');
-                                $(e).children('.dropdown-menu').css('top', `${box.top}px`);
-                                $(e).children('.dropdown-menu').css('position', `fixed`);
-                                $(e).children('.dropdown-menu').css('width', `191px`);
-                                $(e).children('.dropdown-menu').css('height', `139px`);
-                                $(e).children('.dropdown-menu').css('left', `${box.left + 50}px`);
-                                $(e).children('.dropdown-menu').css('left', `${0}px`);
-                                $(e).children('.dropdown-menu').css('top', `${0}px`);
-                            })}" onmouseout="${gvc.event((e, event) => {
-                                interval = setTimeout(() => {
-                                    $(e).children('.bt').dropdown('hide');
-                                }, 200);
-                            })}">
-
-                                                <div type="button" class="bt" style="background:none;"
-                                                     data-bs-toggle="dropdown" aria-haspopup="true"
-                                                     data-placement="right"
-                                                     aria-expanded="false">
-                                                    <i class="fa-sharp fa-regular fa-scissors"></i>
-                                                </div>
-                                                <div class="dropdown-menu mx-1" data-placement="right"
+                                function addIt(ind) {
+                                    const copy = JSON.parse(JSON.stringify(dd));
+                                    copy.id = glitter.getUUID();
+                                    viewModel.selectContainer = array;
+                                    viewModel.selectItem = copy;
+                                    original.splice(index + ind, 0, copy);
+                                    dd.toggle = false;
+                                    resetID(copy);
+                                    option.refreshEvent && option.refreshEvent();
+                                    gvc.notifyDataChange([parId, vid, 'showView']);
+                                }
+                                let interval = undefined;
+                                return html `
+                                                <div class="btn-group dropend subBt ${(option.readonly) ? `d-none` : ``}"
                                                      onmouseover="${gvc.event((e, event) => {
-                                clearInterval(interval);
-                            })}" onmouseout="${gvc.event((e, event) => {
-                                $(e).children('.bt').dropdown('hide');
-                            })}">
-                                                    <a class="dropdown-item" onclick="${gvc.event((e, event) => {
-                                addIt(0);
-                            })}">向上複製</a>
-                                                    <hr class="dropdown-divider">
-                                                    <a class="dropdown-item" onclick="${gvc.event((e, event) => {
-                                $(e).parent().parent().children('.bt').dropdown('hide');
-                                viewModel.selectContainer = array;
-                                viewModel.waitCopy = dd;
-                                resetID(viewModel.waitCopy);
-                                glitter.share.copycomponent = JSON.stringify(viewModel.waitCopy);
-                                navigator.clipboard.writeText(JSON.stringify(viewModel.waitCopy));
-                                swal.toast({
-                                    icon: 'success',
-                                    title: "已複製至剪貼簿，選擇新增模塊來添加項目．"
-                                });
-                                event.stopPropagation();
-                            })}">複製到剪貼簿</a>
-                                                    <hr class="dropdown-divider">
-                                                    <a class="dropdown-item" onclick="${gvc.event((e, event) => {
-                                $(e).parent().parent().children('.bt').dropdown('hide');
-                                addIt(1);
-                            })}">向下複製</a>
-                                                </div>
-                                            </div>`;
-                        })()}
-                                    ${(dd.type === 'container') ? html `
-                                        <div class="subBt d-none"
-                                             onclick="${gvc.event((e, event) => {
-                            viewModel.selectContainer = original.find((d2) => {
-                                return d2.id === dd.id;
-                            }).data.setting;
-                            glitter.share.pastEvent();
-                            event.stopPropagation();
-                            event.preventDefault();
-                        })}">
-                                            <i class="fa-duotone fa-paste d-flex align-items-center justify-content-center subBt"
-                                               style="width:15px;height:15px;"
-                                            ></i>
-                                        </div>
-                                    ` : ``}
-                                    <div class="subBt ${(option.readonly) ? `d-none` : ``}">
-                                        <i class="fa-solid fa-grip-dots-vertical d-flex align-items-center justify-content-center  "
-                                           style="width:15px;height:15px;"></i>
-                                    </div>
+                                    clearInterval(interval);
+                                    const box = $(e).get(0).getBoundingClientRect();
+                                    $(e).children('.bt').dropdown('show');
+                                    $(e).children('.dropdown-menu').css('position', `fixed`);
+                                    $(e).children('.dropdown-menu').css('width', `191px`);
+                                    $(e).children('.dropdown-menu').css('height', `139px`);
+                                    $(e).children('.dropdown-menu').css('left', `${box.left + 50}px`);
+                                    $(e).children('.dropdown-menu').css('left', `${0}px`);
+                                })}" onmouseout="${gvc.event((e, event) => {
+                                    interval = setTimeout(() => {
+                                        $(e).children('.bt').dropdown('hide');
+                                    }, 200);
+                                })}">
 
-                                </div>
-                                ${(() => {
-                            if (dd.type === 'container') {
-                                if (dd.data.setting.length === 0) {
-                                    return ``;
+                                                    <div type="button" class="bt" style="background:none;"
+                                                         data-bs-toggle="dropdown" aria-haspopup="true"
+                                                         data-placement="right"
+                                                         aria-expanded="false">
+                                                        <i class="fa-sharp fa-regular fa-scissors"></i>
+                                                    </div>
+                                                    <div class="dropdown-menu mx-1" data-placement="right"
+                                                         onmouseover="${gvc.event((e, event) => {
+                                    clearInterval(interval);
+                                })}" onmouseout="${gvc.event((e, event) => {
+                                    $(e).children('.bt').dropdown('hide');
+                                })}">
+                                                        <a class="dropdown-item" onclick="${gvc.event((e, event) => {
+                                    addIt(0);
+                                })}">向上複製</a>
+                                                        <hr class="dropdown-divider">
+                                                        <a class="dropdown-item" onclick="${gvc.event((e, event) => {
+                                    $(e).parent().parent().children('.bt').dropdown('hide');
+                                    viewModel.selectContainer = array;
+                                    viewModel.waitCopy = dd;
+                                    resetID(viewModel.waitCopy);
+                                    glitter.share.copycomponent = JSON.stringify(viewModel.waitCopy);
+                                    navigator.clipboard.writeText(JSON.stringify(viewModel.waitCopy));
+                                    swal.toast({
+                                        icon: 'success',
+                                        title: "已複製至剪貼簿，選擇新增模塊來添加項目．"
+                                    });
+                                    event.stopPropagation();
+                                })}">複製到剪貼簿</a>
+                                                        <hr class="dropdown-divider">
+                                                        <a class="dropdown-item" onclick="${gvc.event((e, event) => {
+                                    $(e).parent().parent().children('.bt').dropdown('hide');
+                                    addIt(1);
+                                })}">向下複製</a>
+                                                    </div>
+                                                </div>`;
+                            })()}
+                                        ${(dd.type === 'container') ? html `
+                                            <div class="subBt d-none"
+                                                 onclick="${gvc.event((e, event) => {
+                                viewModel.selectContainer = original.find((d2) => {
+                                    return d2.id === dd.id;
+                                }).data.setting;
+                                glitter.share.pastEvent();
+                                event.stopPropagation();
+                                event.preventDefault();
+                            })}">
+                                                <i class="fa-duotone fa-paste d-flex align-items-center justify-content-center subBt"
+                                                   style="width:15px;height:15px;"
+                                                ></i>
+                                            </div>
+                                        ` : ``}
+                                        <div class="subBt ${(option.readonly) ? `d-none` : ``}">
+                                            <i class="fa-solid fa-grip-dots-vertical d-flex align-items-center justify-content-center  "
+                                               style="width:15px;height:15px;"></i>
+                                        </div>
+
+                                    </div>
+                                    ${(() => {
+                                if (dd.type === 'container') {
+                                    if (dd.data.setting.length === 0) {
+                                        return ``;
+                                    }
+                                    else {
+                                        checkChildSelect(dd.data.setting);
+                                        return `<div class="${(dd.toggle || (checkChildSelect(dd.data.setting))) ? `` : `d-none`}" style="padding-left:5px;">${this.renderLineItem(dd.data.setting.map((dd, index) => {
+                                            dd.index = index;
+                                            return dd;
+                                        }), true, dd.data.setting, option)}</div>`;
+                                    }
                                 }
                                 else {
-                                    checkChildSelect(dd.data.setting);
-                                    return `<div class="${(dd.toggle || (checkChildSelect(dd.data.setting))) ? `` : `d-none`}" style="padding-left:5px;">${this.renderLineItem(dd.data.setting.map((dd, index) => {
-                                        dd.index = index;
-                                        return dd;
-                                    }), true, dd.data.setting, option)}</div>`;
+                                    return ``;
                                 }
-                            }
-                            else {
-                                return ``;
-                            }
-                        })()}
-                            </li>`;
-                    }).join('');
+                            })()}
+                                </li>`;
+                        }).join('');
+                    }
+                    catch (e) {
+                        console.log(e);
+                    }
                 },
                 divCreate: {
                     class: `d-flex flex-column ${(child) ? `` : ``} position-relative border-bottom position-relative ps-0 m-0`,
@@ -280,6 +283,7 @@ export class PageEditor {
                     ]
                 },
                 onCreate: () => {
+                    console.log(`sort_on_create`);
                     if (this.vid === 'MainEditorLeft') {
                         const leftItem = document.querySelectorAll('.selectLeftItem');
                         leftItem[leftItem.length - 1].scrollIntoView({
@@ -321,6 +325,38 @@ export class PageEditor {
                             }
                         }, 100);
                     }
+                    const interval = setInterval(() => {
+                        if (window.Sortable) {
+                            try {
+                                gvc.addStyle(`ul {
+  list-style: none;
+  padding: 0;
+}`);
+                                function swapArr(arr, index1, index2) {
+                                    const data = arr[index1];
+                                    arr.splice(index1, 1);
+                                    arr.splice(index2, 0, data);
+                                }
+                                let startIndex = 0;
+                                Sortable.create(document.getElementById(parId), {
+                                    group: gvc.glitter.getUUID(),
+                                    animation: 100,
+                                    onChange: function (evt) {
+                                    },
+                                    onEnd: (evt) => {
+                                        swapArr(original, startIndex, evt.newIndex);
+                                    },
+                                    onStart: function (evt) {
+                                        startIndex = evt.oldIndex;
+                                        console.log(`oldIndex--`, startIndex);
+                                    }
+                                });
+                            }
+                            catch (e) {
+                            }
+                            clearInterval(interval);
+                        }
+                    }, 100);
                 }
             };
         });
@@ -336,14 +372,6 @@ export class PageEditor {
                 bind: docID,
                 view: () => {
                     return html `
-                        <div class="d-flex mx-n2 mt-n2 px-2 hi fw-bold d-flex align-items-center border-bottom border-top py-2 bgf6"
-                             style="color:#151515;font-size:16px;gap:0px;height:48px;">
-                            <i class="fa-sharp fa-regular fa-circle-arrow-left me-2" style="cursor:pointer;"
-                               onclick="${gvc.event(() => {
-                        obj.editFinish();
-                    })}"></i>
-                            編輯設計樣式
-                        </div>
                         ${gvc.bindView(() => {
                         return {
                             bind: `htmlGenerate`,
@@ -381,7 +409,7 @@ export class PageEditor {
                                 });
                             },
                             divCreate: {
-                                class: `p-0`, style: `overflow-y:auto;height:calc(100vh - 200px);`
+                                class: `pt-2 px-n2`, style: ``
                             },
                             onCreate: () => {
                                 setTimeout(() => {
@@ -391,29 +419,11 @@ export class PageEditor {
                             }
                         };
                     })}
-                        <div class="flex-fill"></div>
-                        <div class=" d-flex border-top align-items-center mb-n1 py-2 pt-2 mx-n2 pe-3 bgf6"
-                             style="height:50px;">
-                            <div class="flex-fill"></div>
-                            <button class="btn btn-outline-secondary-c " style="height: 40px;width: 100px;"
-                                    onclick="${gvc.event(() => {
-                        viewModel.globalStyle = viewModel.globalStyle.filter((dd) => {
-                            return dd !== viewModel.selectItem;
-                        });
-                        viewModel.data.config = viewModel.data.config.filter((dd) => {
-                            return dd !== viewModel.selectItem;
-                        });
-                        viewModel.selectItem = undefined;
-                        obj.editFinish();
-                    })}">
-                                <i class="fa-light fa-circle-minus me-2"></i>移除設計
-                            </button>
-                        </div>
                     `;
                 },
                 divCreate: () => {
                     return {
-                        class: ` h-100 p-2 d-flex flex-column`, style: `width:350px;max-width:100%;`
+                        class: ` px-2 d-flex flex-column`, style: `overflow-x:hidden;`
                     };
                 },
                 onCreate: () => {
@@ -640,7 +650,9 @@ export class PageEditor {
                         }),
                     ].join('');
                 },
-                divCreate: {}
+                divCreate: {
+                    style: 'min-height:300px;'
+                }
             };
         });
     }
@@ -660,8 +672,7 @@ export class PageEditor {
                         bind: vid,
                         view: () => {
                             return [
-                                html `
-                                    <div class="d-flex   px-2   hi fw-bold d-flex align-items-center border-bottom"
+                                html `<div class="d-flex   px-2   hi fw-bold d-flex align-items-center border-bottom"
                                          style="font-size:14px;">共用資源管理
                                         <div class="flex-fill"></div>
                                         <li class="btn-group dropend" onclick="${gvc.event(() => {
@@ -704,7 +715,9 @@ export class PageEditor {
                                     },
                                     copyType: 'directly',
                                     selectEvent: (dd) => {
+                                        var _a;
                                         viewModel.selectItem = dd;
+                                        dd.data.tagType = (_a = dd.data.tagType) !== null && _a !== void 0 ? _a : 'value';
                                         gvc.notifyDataChange([docID, vid]);
                                     }
                                 })
@@ -861,6 +874,11 @@ export class PageEditor {
                                                             viewModel.selectItem.data.value = text;
                                                         }
                                                     }));
+                                                    if (viewModel.selectItem.data.tagType === 'value') {
+                                                        data.push(`<div class="alert alert-info mt-2" style="white-space:normal;word-break: break-all;">
+取值代碼:<br><strong>glitter.share.globalValue["${viewModel.selectItem.data.tag}"]</strong>
+</div>`);
+                                                    }
                                                 }
                                                 else if (viewModel.selectItem.data.tagType === 'style') {
                                                     data.push(`<div class="mt-2"></div>`);
@@ -974,14 +992,6 @@ export class PageEditor {
                 bind: docID,
                 view: () => {
                     return html `
-                        <div class="d-flex mx-n2 mt-n2 px-2 hi fw-bold d-flex align-items-center border-bottom border-top py-2 bgf6"
-                             style="color:#151515;font-size:16px;gap:0px;height:48px;">
-                            <i class="fa-sharp fa-regular fa-circle-arrow-left me-2" style="cursor:pointer;"
-                               onclick="${gvc.event(() => {
-                        obj.editFinish();
-                    })}"></i>
-                            觸發事件編輯
-                        </div>
                         ${gvc.bindView(() => {
                         return {
                             bind: `htmlGenerate`,
@@ -1019,7 +1029,7 @@ export class PageEditor {
                                 });
                             },
                             divCreate: {
-                                class: ``, style: `overflow-y:auto;height:calc(100vh - 200px);`
+                                class: ``, style: ``
                             },
                             onCreate: () => {
                                 setTimeout(() => {
@@ -1030,28 +1040,11 @@ export class PageEditor {
                         };
                     })}
                         <div class="flex-fill"></div>
-                        <div class=" d-flex border-top align-items-center mb-n1 py-2 pt-2 mx-n2 pe-3 bgf6"
-                             style="height:50px;">
-                            <div class="flex-fill"></div>
-                            <button class="btn btn-outline-secondary-c " style="height: 40px;width: 100px;"
-                                    onclick="${gvc.event(() => {
-                        viewModel.globalScript = viewModel.globalScript.filter((dd) => {
-                            return dd !== viewModel.selectItem;
-                        });
-                        viewModel.data.config = viewModel.data.config.filter((dd) => {
-                            return dd !== viewModel.selectItem;
-                        });
-                        viewModel.selectItem = undefined;
-                        obj.editFinish();
-                    })}">
-                                <i class="fa-light fa-circle-minus me-2"></i>移除事件
-                            </button>
-                        </div>
                     `;
                 },
                 divCreate: () => {
                     return {
-                        class: ` h-100 p-2 d-flex flex-column`, style: `width:350px;max-width:100%;`
+                        class: ` h-100 p-2 d-flex flex-column`, style: ``
                     };
                 },
                 onCreate: () => {
@@ -1278,7 +1271,9 @@ export class PageEditor {
                         }),
                     ].join('');
                 },
-                divCreate: {}
+                divCreate: {
+                    style: 'min-height:300px;'
+                }
             };
         });
     }
@@ -1731,16 +1726,16 @@ ${EditorElem.arrayItem({
                                 });
                                 dataList.push({
                                     type: 'container',
-                                    label: 'Blog / 網誌',
+                                    label: '電子商務',
                                     dataList: official.filter((dd) => {
-                                        return dd.label.split('/')[0].includes('Blog');
+                                        return dd.label.split('/')[0].includes('電子商務');
                                     })
                                 });
                                 dataList.push({
                                     type: 'container',
-                                    label: '電子商務',
+                                    label: 'Blog / 網誌',
                                     dataList: official.filter((dd) => {
-                                        return dd.label.split('/')[0].includes('電子商務');
+                                        return dd.label.split('/')[0].includes('Blog');
                                     })
                                 });
                                 dataList.push({
@@ -1778,7 +1773,7 @@ ${EditorElem.arrayItem({
                                         return dd.label.split('/')[0].includes('手機裝置');
                                     })
                                 });
-                                if (window.glitterAuth.memberType === 'noLimit') {
+                                if (window.memberType === 'noLimit') {
                                     dataList.push({
                                         type: 'container',
                                         label: 'GLITTER',
@@ -2015,73 +2010,7 @@ ${EditorElem.arrayItem({
                     const editData = obj.viewModel.selectItem;
                     return html `
                         <div class="mx-n2  mt-n2" style="">
-                            <div class="d-flex  px-2 hi fw-bold d-flex align-items-center border-bottom border-top  bgf6"
-                                 style="color:#151515;font-size:16px;gap:0px;height:48px;">
-                                ${editData.name}
-                            </div>
-                            <div class=" pt-0 justify-content-start px-2" style="">
-                                ${[EditorElem.select({
-                            title: "設為首頁",
-                            gvc: gvc,
-                            def: (glitter.share.editorViewModel.homePage === editData.tag) ? `true` : `false`,
-                            array: [{ title: "是", value: 'true' }, { title: "否", value: 'false' }],
-                            callback: (text) => {
-                                if (text === 'true') {
-                                    editData.page_config.seo.type = 'custom';
-                                    glitter.share.editorViewModel.homePage = editData.tag;
-                                }
-                                else {
-                                    glitter.share.editorViewModel.homePage = undefined;
-                                }
-                                gvc.notifyDataChange(docID);
-                            }
-                        }),
-                        EditorElem.editeInput({
-                            gvc: gvc,
-                            title: '頁面連結',
-                            placeHolder: `請輸入頁面標籤`,
-                            default: editData.tag,
-                            callback: (text) => {
-                                editData.tag = text;
-                            }
-                        }),
-                        EditorElem.editeInput({
-                            gvc: gvc,
-                            title: '頁面名稱',
-                            placeHolder: `請輸入頁面名稱`,
-                            default: editData.name,
-                            callback: (text) => {
-                                editData.name = text;
-                            }
-                        }),
-                        EditorElem.searchInput({
-                            title: `頁面分類
-<div class="alert alert-info p-2 mt-2" style="word-break: break-all;white-space:normal">
-可加入 / 進行分類:<br>例如:頁面/權限相關/註冊頁面
-</div>`,
-                            gvc: gvc,
-                            def: editData.group,
-                            array: (() => {
-                                let group = [];
-                                viewModel.dataList.map((dd) => {
-                                    if (group.indexOf(dd.group) === -1) {
-                                        group.push(dd.group);
-                                    }
-                                });
-                                return group;
-                            })(),
-                            callback: (text) => {
-                                editData.group = text;
-                                gvc.notifyDataChange(docID);
-                                gvc.notifyDataChange(obj.vid);
-                            },
-                            placeHolder: "請輸入頁面分類"
-                        })
-                    ].map((dd) => {
-                        return `<div class="">${dd}</div>`;
-                    }).join(``)}
-                            </div>
-                            <div class="mt-2 d-flex  px-2 hi fw-bold d-flex align-items-center border-bottom border-top py-2 bgf6"
+                            <div class=" d-flex  px-2 hi fw-bold d-flex align-items-center border-bottom border-top py-2 bgf6"
                                  style="color:#151515;font-size:16px;gap:0px;">
                                 SEO設定
                             </div>
@@ -2169,37 +2098,13 @@ ${EditorElem.arrayItem({
                     var _a, _b, _c, _d;
                     return {
                         class: `p-2 d-flex flex-column position-relative ${(_b = (_a = obj.style) === null || _a === void 0 ? void 0 : _a.class) !== null && _b !== void 0 ? _b : ""}`,
-                        style: `width:400px;max-height:80vh;overflow-y:auto;overflow-x:hidden;max-width:100%;${(_d = (_c = obj.style) === null || _c === void 0 ? void 0 : _c.style) !== null && _d !== void 0 ? _d : ""}`
+                        style: `max-height:calc(100vh - 100px);overflow-y:auto;overflow-x:hidden;width:100%;${(_d = (_c = obj.style) === null || _c === void 0 ? void 0 : _c.style) !== null && _d !== void 0 ? _d : ""}`
                     };
                 },
                 onCreate: () => {
                 }
             };
-        }) + `
-        <div class="w-100 position-absolute bottom-0 border-top d-flex align-items-center ps-3 ${obj.hiddenDelete ? 'd-none' : ''}" style="height:50px;background:#f6f6f6;font-size:14px;" 
-        onclick="${gvc.event(() => {
-            const dialog = new ShareDialog(glitter);
-            dialog.checkYesOrNot({
-                callback: (response) => {
-                    if (response) {
-                        dialog.dataLoading({ visible: true });
-                        ApiPageConfig.deletePage({
-                            "id": obj.viewModel.selectItem.id,
-                            "appName": glitter.getUrlParameter('appName'),
-                        }).then((data) => {
-                            dialog.dataLoading({ visible: false });
-                            location.reload();
-                        });
-                    }
-                },
-                text: "是否確認刪除頁面?"
-            });
-        })}">
-                                    <div class="hoverBtn fw-bold" style="color:#8e1f0b;cursor:pointer;">
-                                        <i class="fa-solid fa-trash-can me-2" aria-hidden="true"></i>刪除頁面
-                                    </div>
-                                </div>
-        `;
+        });
     }
     static formSetting(obj) {
         var _a, _b;
@@ -2217,7 +2122,7 @@ ${EditorElem.arrayItem({
                     return html `
                         <div class="d-flex  px-2 hi fw-bold d-flex align-items-center border-bottom border-top  bgf6"
                              style="color:#151515;font-size:16px;gap:0px;height:48px;">
-                            編輯表單內容
+                            編輯頁面內容
                             <button class="btn ms-2 btn-primary-c ms-auto" style="height: 30px;width: 80px;"
                                     onclick="${gvc.event(() => {
                         EditorElem.openEditorDialog(gvc, (gvc) => {
@@ -2235,7 +2140,7 @@ ${EditorElem.arrayItem({
                     })}">表單設置
                             </button>
                         </div>
-                        <div class="p-2" style="max-height: calc(100vh - 230px);overflow-y:auto;">
+                        <div class="p-2" style="max-height: calc(100vh - 160px);overflow-y:auto;">
                             ${FormWidget.editorView({
                         gvc: gvc,
                         array: formFormat,
@@ -2280,7 +2185,7 @@ ${EditorElem.arrayItem({
                                     viewModel.selectItem = viewModel.data;
                                 }
                                 data.group = data.group || '未分類';
-                                if (data.group !== 'glitter-article') {
+                                if ((option && option.filter) ? option.filter(data) : (data.group !== 'glitter-article')) {
                                     const folder = data.group.split('/');
                                     let nowFolder = mapData;
                                     folder.map((d2) => {
@@ -2304,6 +2209,12 @@ ${EditorElem.arrayItem({
                                     nowFolder.push(data);
                                 }
                             });
+                            if (mapData.length === 0) {
+                                return `  <div class="d-flex align-items-center justify-content-center flex-column">
+                                    <lottie-player style="max-width: 100%;width: 200px;" src="https://assets10.lottiefiles.com/packages/lf20_rc6CDU.json" speed="1" loop="true" background="transparent"></lottie-player>
+                                    <h3 class="text-dark fs-6 mt-n3 px-2  " style="line-height: 200%;text-align: center;">尚未添加任何頁面。</h3>
+</div>`;
+                            }
                             return new PageEditor(gvc, vid, docID).renderLineItem(mapData, false, mapData, {
                                 copyType: 'directly',
                                 readonly: true,
@@ -2345,7 +2256,6 @@ ${EditorElem.arrayItem({
                                         else {
                                             viewModel.homePage = undefined;
                                         }
-                                        alert(glitter.share.editorViewModel.homePage);
                                         gvc.notifyDataChange(docID);
                                     }
                                 }),
@@ -2556,7 +2466,9 @@ ${EditorElem.arrayItem({
                                     })}`
                                 },
                                 {
-                                    title: '步驟四：部署網域', content: `<button type="button" class="btn btn-primary-c  w-100" style=""
+                                    title: '步驟四：部署網域', content: `
+DNS設定至少需要10分鐘到72小時才會生效，如設定失敗可以稍加等待後再重新嘗試。
+<button type="button" class="btn btn-primary-c  w-100 mt-2" style=""
 onclick="${gvc.event(() => {
                                         const dialog = new ShareDialog(glitter);
                                         dialog.dataLoading({ text: '', visible: true });
@@ -2567,7 +2479,7 @@ onclick="${gvc.event(() => {
                                                 dialog.successMessage({ text: "設定成功!" });
                                             }
                                             else {
-                                                dialog.errorMessage({ text: "設定失敗，請確認網域所有權。" });
+                                                dialog.errorMessage({ text: "設定失敗，DNS設定可能尚未生效或者請確認網域所有權。" });
                                             }
                                         });
                                     })}"

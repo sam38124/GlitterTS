@@ -39,6 +39,14 @@ export default class FinancialService {
             return await (new EzPay(this.appName, this.keyData).createOrderPage(orderData))
         } else if (this.keyData.TYPE === 'ecPay') {
             return await (new EcPay(this.appName, this.keyData).createOrderPage(orderData))
+        }else{
+            return await db.execute(`insert into \`${this.appName}\`.t_checkout (cart_token, status, email, orderData)
+                          values (?, ?, ?, ?)`, [
+                new Date().getTime(),
+                0,
+                orderData.email,
+                orderData
+            ]);
         }
         return ``
     }

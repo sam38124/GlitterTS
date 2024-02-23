@@ -9,17 +9,19 @@ import autosize from "../plugins/autosize.js";
 import {ShareDialog} from "../dialog/ShareDialog.js";
 
 export const widgetComponent = {
-    render: (gvc: GVC, widget: HtmlJson, setting: any, hoverID: string[], subData: any, htmlGenerate: any) => {
+    render: (gvc: GVC, widget: HtmlJson, setting: any, hoverID: string[], sub: any, htmlGenerate: any) => {
         const glitter = gvc.glitter
         widget.data.elem = widget.data.elem ?? "div"
         widget.data.inner = widget.data.inner ?? ""
         widget.data.attr = widget.data.attr ?? []
         widget.data.onCreateEvent = widget.data.onCreateEvent ?? {}
         const id = htmlGenerate.widgetComponentID
-        subData = subData ?? {}
-        let formData = subData
+        const subData = sub ?? {} ;
+        let formData = subData;
+
         return {
             view: () => {
+
                 let re = false
                 let innerText = widget.data.inner
 
@@ -51,9 +53,7 @@ export const widgetComponent = {
                                         clickEvent: dd,
                                         subData: subData
                                     }).then((data) => {
-                                        if (data) {
-                                            resolve(dd.attr)
-                                        }
+                                        if (data) {resolve(dd.attr)}
                                     })
                                 })), value: ''
                             }
@@ -67,8 +67,7 @@ export const widgetComponent = {
                                         clickEvent: dd,
                                         element: {e, event},
                                         subData: subData
-                                    }).then((data) => {
-                                    })
+                                    }).then((data) => {})
                                 })
                             }
                         }
@@ -102,7 +101,11 @@ export const widgetComponent = {
                                 gvc: gvc,
                                 widget: widget,
                                 clickEvent: widget.data.onCreateEvent,
-                                subData: subData
+                                subData: subData,
+                                element:{
+                                    e:gvc.getBindViewElem(id).get(0),
+                                    event:{}
+                                }
                             })
                         },
                         app_config: widget.global.appConfig,
@@ -217,7 +220,11 @@ export const widgetComponent = {
                                 gvc: gvc,
                                 widget: widget,
                                 clickEvent: widget.data.onCreateEvent,
-                                subData: subData
+                                subData: subData,
+                                element:{
+                                    e:gvc.getBindViewElem(id).get(0),
+                                    event:{}
+                                }
                             })
                             glitter.elementCallback[gvc.id(id)].updateAttribute()
                             if (widget.data.elem.toLowerCase() === 'textarea') {
@@ -658,7 +665,7 @@ export const widgetComponent = {
                                                                         title: '特徵標籤',
                                                                         gvc: gvc,
                                                                         def: dd.attr,
-                                                                        array: ['onclick', 'oninput', 'onchange', 'ondrag'],
+                                                                        array: ['onclick', 'oninput', 'onchange', 'ondrag','onmouseover','onmouseout'],
                                                                         callback: (text: string) => {
                                                                             dd.attr = text
                                                                             widget.refreshComponent()

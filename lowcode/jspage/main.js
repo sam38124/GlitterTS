@@ -18,9 +18,14 @@ import { Plugin_editor } from "./plugin_editor.js";
 import * as triggerBridge from "../editor-bridge/trigger-event.js";
 import { TriggerEvent } from "../glitterBundle/plugins/trigger-event.js";
 import { StoreHelper } from "../helper/store-helper.js";
+import { DialogInterface } from "../dialog/dialog-interface.js";
+import { Storage } from "../helper/storage.js";
 const html = String.raw;
 const editorContainerID = `HtmlEditorContainer`;
 init(import.meta.url, (gvc, glitter, gBundle) => {
+    gvc.addStyle(`.tooltip{
+    z-index:99999 !important;
+    }`);
     const swal = new Swal(gvc);
     const viewModel = {
         appName: gBundle.appName,
@@ -74,8 +79,15 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                 (() => __awaiter(this, void 0, void 0, function* () {
                     return yield new Promise((resolve) => __awaiter(this, void 0, void 0, function* () {
                         const clock = gvc.glitter.ut.clock();
-                        const data = yield ApiPageConfig.getPage(gBundle.appName, undefined, undefined, 'template');
-                        viewModel.data = (yield ApiPageConfig.getPage(gBundle.appName, glitter.getUrlParameter('page'))).response.result[0];
+                        const data = yield ApiPageConfig.getPage({
+                            appName: gBundle.appName,
+                            type: 'template'
+                        });
+                        viewModel.data = (yield ApiPageConfig.getPage({
+                            appName: gBundle.appName,
+                            tag: glitter.getUrlParameter('page')
+                        })).response.result[0];
+                        Storage.select_page_type = viewModel.data.page_type;
                         if (data.result) {
                             data.response.result.map((dd) => {
                                 var _a;
@@ -190,6 +202,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                                     dd.js = (dd.js).replace(`${location.origin}/${window.appName}/`, './');
                                     dd.formData = undefined;
                                     dd.pageConfig = undefined;
+                                    dd.subData = undefined;
                                     dd.appConfig = undefined;
                                     dd.editorEvent = undefined;
                                     dd.share = undefined;
@@ -213,7 +226,10 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                                     name: viewModel.data.name,
                                     config: viewModel.data.config,
                                     group: viewModel.data.group,
-                                    page_config: viewModel.data.page_config
+                                    page_config: viewModel.data.page_config,
+                                    page_type: viewModel.data.page_type,
+                                    preview_image: viewModel.data.preview_image,
+                                    favorite: viewModel.data.favorite,
                                 }).then((api) => {
                                     resolve(result && api.result);
                                 });
@@ -367,6 +383,7 @@ function initialEditor(gvc, viewModel) {
     var _a;
     const glitter = gvc.glitter;
     glitter.share.editorViewModel = viewModel;
+    localStorage.setItem('editor_mode', localStorage.getItem('editor_mode') || 'user');
     const swal = new Swal(gvc);
     glitter.share.pastEvent = () => {
         if (!glitter.share.copycomponent) {
@@ -398,6 +415,9 @@ function initialEditor(gvc, viewModel) {
         gvc.notifyDataChange(editorContainerID);
     };
     glitter.share.addComponent = (data) => {
+        const url = new URL(location.href);
+        url.search = '';
+        data.js = data.js.replace(url.href, './');
         viewModel.selectContainer.push(data);
         glitter.setCookie('lastSelect', data.id);
         gvc.notifyDataChange(editorContainerID);
@@ -406,4 +426,13 @@ function initialEditor(gvc, viewModel) {
         glitter.share.blogEditor = true;
         glitter.share.blogPage = glitter.getUrlParameter('page');
     }
+    shortCutKey(gvc);
+}
+function shortCutKey(gvc) {
+    document.addEventListener('keydown', function (event) {
+        let keyCode = event.keyCode || event.which;
+        if ((event.ctrlKey) && keyCode === 71) {
+            DialogInterface.globalResource(gvc);
+        }
+    });
 }

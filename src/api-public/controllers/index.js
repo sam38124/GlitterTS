@@ -25,6 +25,7 @@ const smtp = require("./smtp");
 const fcm = require("./fcm");
 const wallet = require("./wallet");
 const article = require("./article");
+const delivery = require("./delivery");
 const live_source_js_1 = require("../../live_source.js");
 const public_table_check_js_1 = require("../services/public-table-check.js");
 router.use('/api-public/*', doAuthAction);
@@ -41,6 +42,7 @@ router.use(config_1.config.getRoute(config_1.config.public_route.smtp, 'public')
 router.use(config_1.config.getRoute(config_1.config.public_route.fcm, 'public'), fcm);
 router.use(config_1.config.getRoute(config_1.config.public_route.wallet, 'public'), wallet);
 router.use(config_1.config.getRoute(config_1.config.public_route.article, 'public'), article);
+router.use(config_1.config.getRoute(config_1.config.public_route.delivery, 'public'), delivery);
 const whiteList = [
     { url: config_1.config.getRoute(config_1.config.public_route.chat, 'public'), method: 'POST' },
     { url: config_1.config.getRoute(config_1.config.public_route.chat + '/message', 'public'), method: 'POST' },
@@ -73,6 +75,8 @@ const whiteList = [
     { url: config_1.config.getRoute(config_1.config.public_route.wallet + "/notify", 'public'), method: 'POST' },
     { url: config_1.config.getRoute(config_1.config.public_route.manager + "/config", 'public'), method: 'GET' },
     { url: config_1.config.getRoute(config_1.config.public_route.article, 'public'), method: 'GET' },
+    { url: config_1.config.getRoute(config_1.config.public_route.delivery + '/c2cMap', 'public'), method: 'POST' },
+    { url: config_1.config.getRoute(config_1.config.public_route.delivery + '/c2cRedirect', 'public'), method: 'POST' }
 ];
 async function doAuthAction(req, resp, next) {
     var _a, _b, _c;
@@ -83,6 +87,7 @@ async function doAuthAction(req, resp, next) {
     const logger = new logger_1.default();
     const TAG = '[DoAuthAction]';
     const url = req.baseUrl;
+    console.log(`url-->`, url);
     const matches = underscore_1.default.where(whiteList, { url: url, method: req.method });
     const token = (_c = req.get('Authorization')) === null || _c === void 0 ? void 0 : _c.replace('Bearer ', '');
     if (matches.length > 0) {

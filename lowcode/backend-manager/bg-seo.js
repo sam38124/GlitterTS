@@ -62,7 +62,10 @@ export class BgSeo {
                     return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
                         const dialog = new ShareDialog(gvc.glitter);
                         dialog.dataLoading({ visible: true });
-                        const selectItem = (yield ApiPageConfig.getPage(window.appName, selectTag)).response.result[0];
+                        const selectItem = (yield ApiPageConfig.getPage({
+                            appName: window.appName,
+                            tag: selectTag
+                        })).response.result[0];
                         dialog.dataLoading({ visible: false });
                         saveEvent = () => __awaiter(this, void 0, void 0, function* () {
                             dialog.dataLoading({ visible: true });

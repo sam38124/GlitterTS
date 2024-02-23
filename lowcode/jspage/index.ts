@@ -7,14 +7,17 @@ import {TriggerEvent} from "../glitterBundle/plugins/trigger-event.js";
 import {BaseApi} from "../glitterBundle/api/base.js";
 import {GlobalUser} from "../glitter-base/global/global-user.js";
 
-init(import.meta.url,(gvc, glitter, gBundle) => {
+init(import.meta.url, (gvc, glitter, gBundle) => {
     return {
         onCreateView: () => {
             return ``
         },
         onCreate: () => {
             const vm = {
-                pageData: ApiPageConfig.getPage(config.appName, glitter.getUrlParameter('page') ?? glitter.getUUID()),
+                pageData: ApiPageConfig.getPage({
+                    appName: config.appName,
+                    tag: glitter.getUrlParameter('page')
+                }),
                 appConfig: []
             };
 
@@ -214,7 +217,10 @@ function toBackendEditor(glitter: Glitter) {
     function toNext() {
         running().then(async () => {
             {
-                let data = await ApiPageConfig.getPage(config.appName, glitter.getUrlParameter('page') ?? glitter.getUUID())
+                let data = await ApiPageConfig.getPage({
+                    appName: config.appName,
+                    tag: glitter.getUrlParameter('page')
+                })
                 if (data.response.result.length === 0) {
                     glitter.setUrlParameter('page', data.response.redirect)
                 }
@@ -243,7 +249,7 @@ function toBackendEditor(glitter: Glitter) {
             "pwd": glitter.getUrlParameter('pwd')
         }).then((re) => {
             if (re.result) {
-                GlobalUser.token=re.response.userData.token
+                GlobalUser.token = re.response.userData.token
                 toNext()
             } else {
                 const url = new URL(glitter.location.href)

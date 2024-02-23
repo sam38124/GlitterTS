@@ -232,7 +232,7 @@ class TriggerEventBridge {
                                 }),
                             },
                             refreshComponent: () => {
-                                gvc.recreateView()
+                                // gvc.recreateView()
                             },
                             customEditor: true
                         })

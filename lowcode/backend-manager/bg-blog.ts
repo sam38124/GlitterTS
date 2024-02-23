@@ -113,10 +113,6 @@ export class BgBlog {
                                         style="height:35px !important;font-size: 14px;color:white;border:1px solid black;"
                                         onclick="${
                                                 gvc.event(() => {
-                                                    // vm.data={
-                                                    //     page_config:{}
-                                                    // }
-                                                    // vm.type='add'
                                                     gvc.glitter.innerDialog((gvc) => {
                                                         return addArticle(gvc, (data) => {
                                                             Article.get({
@@ -153,7 +149,6 @@ export class BgBlog {
                                     })
                                 },
                                 rowClick: (data, index) => {
-
                                     if (type === 'select') {
                                         vm.dataList[index].checked = !vm.dataList[index].checked
                                         vmi.data = getDatalist()
@@ -164,25 +159,6 @@ export class BgBlog {
                                     } else {
                                         vm.data = vm.dataList[index]
                                         vm.type = "replace"
-
-                                        // alert(JSON.stringify(vm.dataList[index]))
-                                        // gvc.glitter.innerDialog(() => {
-                                        //     return EditorElem.pageEditor({
-                                        //         page: vm.dataList[index].tag,
-                                        //         width: window.innerWidth - 30,
-                                        //         height: window.innerHeight - 30,
-                                        //         par: [
-                                        //             {
-                                        //                 key: 'is_manager',
-                                        //                 value: 'true'
-                                        //             },
-                                        //             {
-                                        //                 key: 'chat_who',
-                                        //                 value: vm.dataList[index].who
-                                        //             }
-                                        //         ]
-                                        //     })
-                                        // }, '')
                                     }
 
                                 },
@@ -282,7 +258,8 @@ function editor(cf: {
     vm.data.page_config.seo = vm.data.page_config.seo ?? {}
     vm.data.page_config.meta_article = vm.data.page_config.meta_article ?? {}
     vm.data.page_config.seo.type = 'custom'
-    vm.data.page_config.meta_article.tag=vm.data.page_config.meta_article.tag??[]
+    vm.data.page_config.meta_article.view_type = vm.data.page_config.meta_article.view_type ?? 'html'
+    vm.data.page_config.meta_article.tag = vm.data.page_config.meta_article.tag ?? []
     return BgWidget.container(`<div class="d-flex w-100 align-items-center mb-3 ">
                 ${BgWidget.goBack(gvc.event(() => {
         vm.type = "list"
@@ -297,6 +274,7 @@ function editor(cf: {
                 <button class="btn btn-primary-c " style="height:35px;font-size: 14px;"
                         onclick="${gvc.event(() => {
         dialog.dataLoading({visible: true})
+
         ApiPageConfig.setPage({
             id: (vm.data! as any).id,
             appName: vm.data.appName,
@@ -315,51 +293,91 @@ function editor(cf: {
                 </button>
             </div>
             <div class="d-flex justify-content-between" style="gap:10px;">
-            <div style="width: 612px;">
-       ${BgWidget.card([
-        EditorElem.editeInput({
-            gvc: gvc,
-            title: '網誌名稱',
-            default: vm.data.name,
-            placeHolder: '請輸入網誌名稱',
-            callback: (text) => {
-                vm.data.name = text;
-            }
-        }),
-        EditorElem.editeInput({
-            gvc: gvc,
-            title: '網誌標題',
-            default: vm.data.page_config.meta_article.title,
-            placeHolder: '請輸入網誌標題',
-            callback: (text) => {
-                vm.data.page_config.meta_article.title = text;
-            }
-        }),
-        EditorElem.editeText({
-            gvc: gvc,
-            title: '網誌摘要',
-            default: vm.data.page_config.meta_article.description,
-            placeHolder: '請輸入網誌摘要',
-            callback: (text) => {
-                vm.data.page_config.meta_article.description = text;
-            }
-        }),
-        `<div class="btn btn-primary-c w-100" onclick="${gvc.event(() => {
-            gvc.glitter.innerDialog(() => {
-                return EditorElem.pageEditor({
-                    page: vm.data.tag,
-                    width: window.innerWidth - 30,
-                    height: window.innerHeight - 30,
-                    par: [
-                        {
-                            key: 'page',
-                            value: vm.data.tag
+            <div style="width: 752px;">
+       ${BgWidget.card(gvc.bindView(() => {
+        const artViewID = gvc.glitter.getUUID()
+        return {
+            bind: artViewID,
+            view: () => {
+                return [
+                    EditorElem.editeInput({
+                        gvc: gvc,
+                        title: '網誌名稱',
+                        default: vm.data.name,
+                        placeHolder: '請輸入網誌名稱',
+                        callback: (text) => {
+                            vm.data.name = text;
                         }
-                    ]
-                })
-            }, '')
-        })}">編輯網誌內容</div>`,
-    ].join(`<div class="my-2"></div>`))}   
+                    }),
+                    EditorElem.editeInput({
+                        gvc: gvc,
+                        title: '網誌標題',
+                        default: vm.data.page_config.meta_article.title,
+                        placeHolder: '請輸入網誌標題',
+                        callback: (text) => {
+                            vm.data.page_config.meta_article.title = text;
+                        }
+                    }),
+                    EditorElem.editeText({
+                        gvc: gvc,
+                        title: '網誌摘要',
+                        default: vm.data.page_config.meta_article.description,
+                        placeHolder: '請輸入網誌摘要',
+                        callback: (text) => {
+                            vm.data.page_config.meta_article.description = text;
+                        }
+                    }),
+                    EditorElem.select({
+                        title: '網誌編輯類型',
+                        gvc: gvc,
+                        def: vm.data.page_config.meta_article.view_type,
+                        array: [
+                            {
+                                title: 'HTML編輯器',
+                                value: 'html'
+                            },
+                            {
+                                title: '富文本',
+                                value: 'rich_text'
+                            }
+                        ],
+                        callback: (text: string) => {
+                            vm.data.page_config.meta_article.view_type = text
+                            gvc.notifyDataChange(artViewID)
+                        }
+                    }),
+                    (() => {
+                        if (vm.data.page_config.meta_article.view_type === 'rich_text') {
+                            return EditorElem.richText({
+                                gvc: gvc,
+                                def: vm.data.page_config.meta_article.content ?? '',
+                                callback: (text) => {
+                                    vm.data.page_config.meta_article.content = text
+                                }
+                            })
+                        } else {
+                            return `<div class="btn btn-primary-c w-100" onclick="${gvc.event(() => {
+                                gvc.glitter.innerDialog(() => {
+                                    return EditorElem.pageEditor({
+                                        page: vm.data.tag,
+                                        width: window.innerWidth - 30,
+                                        height: window.innerHeight - 30,
+                                        par: [
+                                            {
+                                                key: 'page',
+                                                value: vm.data.tag
+                                            }
+                                        ]
+                                    })
+                                }, '')
+                            })}">前往頁面編輯器</div>`
+                        }
+                    })()
+                ].join(`<div class="my-2"></div>`)
+            },
+            divCreate: {}
+        }
+    }))}   
        <div class="my-2">
        ${EditorElem.h3('SEO配置')}
 </div>
@@ -394,111 +412,142 @@ function editor(cf: {
     ].join(`<div class="my-2"></div>`))}   
 </div>
        <div class="flex-fill" style="width:270px;">
-       ${[BgWidget.card([
-        `
-      ${EditorElem.pageSelect(gvc, '選擇佈景主題', vm.data.page_config.template ?? "", (data) => {
-            vm.data.page_config.template = data
-        }, (dd) => {
-            return dd.group !== 'glitter-article'
-        })}
+       ${[
+        BgWidget.card([
+            gvc.bindView(() => {
+                const id = gvc.glitter.getUUID()
+                return {
+                    bind: id,
+                    view: () => {
+                        return EditorElem.pageSelect(gvc, '選擇佈景主題', vm.data.page_config.template ?? "", (data) => {
+                            vm.data.page_config.template = data
+                        }, (dd) => {
+                            const filter_result = dd.group !== 'glitter-article' && dd.page_type === 'article'
+                            if (filter_result && !vm.data.page_config.template) {
+                                vm.data.page_config.template = dd.tag
+                                gvc.notifyDataChange(id)
+                            }
+                            return filter_result
+                        })
+                    }
+                }
+            }),
+            `
       <h3 style="color: black;font-size: 14px;margin-bottom: 10px;" class="fw-normal mt-2">從您目前的模板主題中指派範本，以打造網誌文章外觀。</h3>
       `,
-        EditorElem.editeInput({
-            gvc: gvc,
-            title: '作者資訊',
-            default: vm.data.page_config.meta_article.author,
-            placeHolder: '請輸入作者資訊',
-            callback: (text) => {
-                vm.data.page_config.meta_article.author = text;
-            }
-        }),
-        gvc.bindView(() => {
-            const id = gvc.glitter.getUUID()
-            return {
-                bind: id,
-                view: () => {
-                    const imageArray = []
-                    if (vm.data.page_config.meta_article.preview_image) {
-                        imageArray.push(vm.data.page_config.meta_article.preview_image)
+            EditorElem.select({
+                title: '是否支援網誌索引',
+                gvc: gvc,
+                def: vm.data.page_config.hideIndex ?? 'false',
+                array: [
+                    {
+                        title: '是', value: 'false',
+                    },
+                    {
+                        title: '否', value: 'true',
                     }
-                    return [EditorElem.h3(html`
-                        <div class="d-flex align-items-center" style="gap:10px;">預覽圖
-                            <div class="d-flex align-items-center justify-content-center rounded-3"
-                                 style="height: 30px;width: 80px;
+                ],
+                callback: (text) => {
+                    vm.data.page_config.hideIndex = text
+                }
+            })
+            ,
+            EditorElem.editeInput({
+                gvc: gvc,
+                title: '作者資訊',
+                default: vm.data.page_config.meta_article.author,
+                placeHolder: '請輸入作者資訊',
+                callback: (text) => {
+                    vm.data.page_config.meta_article.author = text;
+                }
+            }),
+            gvc.bindView(() => {
+                const id = gvc.glitter.getUUID()
+                return {
+                    bind: id,
+                    view: () => {
+                        const imageArray = []
+                        if (vm.data.page_config.meta_article.preview_image) {
+                            imageArray.push(vm.data.page_config.meta_article.preview_image)
+                        }
+                        return [EditorElem.h3(html`
+                            <div class="d-flex align-items-center" style="gap:10px;">預覽圖
+                                <div class="d-flex align-items-center justify-content-center rounded-3"
+                                     style="height: 30px;width: 80px;
 ">
-                                <button class="btn ms-2 btn-primary-c ms-2"
-                                        style="height: 30px;width: 80px;"
-                                        onclick="${gvc.event(() => {
-                                            EditorElem.uploadFileFunction({
-                                                gvc: gvc,
-                                                callback: (text) => {
-                                                    vm.data.page_config.meta_article.preview_image = text
-                                                    gvc.notifyDataChange(id)
-                                                },
-                                                type: `image/*, video/*`
-                                            })
-                                        })}">添加檔案
-                                </button>
-                            </div>
-                        </div>`), EditorElem.flexMediaManager({
-                        gvc: gvc,
-                        data: imageArray
-                    }),
-                        `<div class="mx-n3">${
-                            EditorElem.arrayItem({
-                                originalArray: vm.data.page_config.meta_article.tag,
-                                gvc: gvc,
-                                title: '文章標籤',
-                                array: (() => {
-                                    return vm.data.page_config.meta_article.tag.map((dd: any, index: number) => {
-                                        return {
-                                            title: `<span style="color:black;">${dd}</span>`,
-                                            innerHtml: (gvc:GVC) => {
-                                                return `<div class="w-100 mb-2">
-${EditorElem.editeInput({
-                                                    gvc:gvc,
-                                                    title:"標籤名稱",
-                                                    default:`${dd}`,
-                                                    placeHolder:"請輸入標籤名稱",
-                                                    callback:(text)=>{
-                                                        vm.data.page_config.meta_article.tag[index]=text
+                                    <button class="btn ms-2 btn-primary-c ms-2"
+                                            style="height: 30px;width: 80px;"
+                                            onclick="${gvc.event(() => {
+                                                EditorElem.uploadFileFunction({
+                                                    gvc: gvc,
+                                                    callback: (text) => {
+                                                        vm.data.page_config.meta_article.preview_image = text
                                                         gvc.notifyDataChange(id)
                                                     },
-                                                    type:'text'
-                                                })}
+                                                    type: `image/*, video/*`
+                                                })
+                                            })}">添加檔案
+                                    </button>
+                                </div>
+                            </div>`), EditorElem.flexMediaManager({
+                            gvc: gvc,
+                            data: imageArray
+                        }),
+                            `<div class="mx-n3">${
+                                EditorElem.arrayItem({
+                                    originalArray: vm.data.page_config.meta_article.tag,
+                                    gvc: gvc,
+                                    title: '文章分類',
+                                    array: (() => {
+                                        return vm.data.page_config.meta_article.tag.map((dd: any, index: number) => {
+                                            return {
+                                                title: `<span style="color:black;">${dd}</span>`,
+                                                innerHtml: (gvc: GVC) => {
+                                                    return `<div class="w-100 mb-2">
+${EditorElem.editeInput({
+                                                        gvc: gvc,
+                                                        title: "標籤名稱",
+                                                        default: `${dd}`,
+                                                        placeHolder: "請輸入標籤名稱",
+                                                        callback: (text) => {
+                                                            vm.data.page_config.meta_article.tag[index] = text
+                                                            gvc.notifyDataChange(id)
+                                                        },
+                                                        type: 'text'
+                                                    })}
 </div>`
-                                            },
-                                            expand: dd,
-                                            minus: gvc.event(() => {
-                                                vm.data.page_config.meta_article.tag.splice(index, 1);
-                                                gvc.notifyDataChange(id);
-                                            })
-                                        }
-                                    })
-                                }),
-                                expand: {},
-                                plus: {
-                                    title: '添加標籤',
-                                    event: gvc.event(() => {
-                                        vm.data.page_config.meta_article.tag.push('')
-                                        gvc.notifyDataChange(id);
+                                                },
+                                                expand: dd,
+                                                minus: gvc.event(() => {
+                                                    vm.data.page_config.meta_article.tag.splice(index, 1);
+                                                    gvc.notifyDataChange(id);
+                                                })
+                                            }
+                                        })
                                     }),
-                                },
-                                refreshComponent: () => {
-                                    gvc.notifyDataChange(id);
-                                }
-                            })
-                        }</div>`
-                    ].join(`<div class="my-2"></div>`)
+                                    expand: {},
+                                    plus: {
+                                        title: '添加分類',
+                                        event: gvc.event(() => {
+                                            vm.data.page_config.meta_article.tag.push('')
+                                            gvc.notifyDataChange(id);
+                                        }),
+                                    },
+                                    refreshComponent: () => {
+                                        gvc.notifyDataChange(id);
+                                    }
+                                })
+                            }</div>`
+                        ].join(`<div class="my-2"></div>`)
 
-                },
-                divCreate: {}
-            }
-        })
-    ].join(`<div class="my-3 border-bottom"></div>`))].join(`<div class="my-3"></div>`)}
+                    },
+                    divCreate: {}
+                }
+            })
+        ].join(`<div class="my-3 border-bottom"></div>`))].join(`<div class="my-3"></div>`)}
 </div>
 </div>
-                        `, 900)
+                        `, 1100)
 }
 
 
@@ -511,113 +560,120 @@ function addArticle(gvc: GVC, callback: (tag: string) => void) {
         "config"?: [],
         "page_config"?: any,
         "copy"?: string,
+        "page_type": string
     } = {
         "appName": config.appName,
         "tag": "",
-        "group": "glitter-article",
+        "group": "",
         "name": "",
-        "config": []
+        "config": [],
+        "page_type": 'blog'
     }
+    const html = String.raw
     const glitter = gvc.glitter;
-    return `
-            <div  class="w-100 h-100 d-flex flex-column align-items-center justify-content-center" style="background-color: rgba(0,0,0,0.5);" >
+    return html`
+        <div class="w-100 h-100 d-flex flex-column align-items-center justify-content-center"
+             style="background-color: rgba(0,0,0,0.5);">
             <div class="m-auto rounded shadow bg-white" style="max-width: 100%;max-height: 100%;width: 360px;">
-        <div class="w-100 d-flex align-items-center border-bottom justify-content-center position-relative py-3" style="">
-        <h3 class="modal-title fs-5" >添加網誌</h3>
-        <i class="fa-solid fa-xmark text-dark position-absolute " style="font-size:20px;transform: translateY(-50%);right: 20px;top: 50%;cursor: pointer;"
-        onclick="${gvc.event(() => {
-        glitter.closeDiaLog();
-    })}"></i>
-</div>    
-<div class="py-2 px-3">
-${gvc.bindView(() => {
-        const id = glitter.getUUID()
-        return {
-            bind: id,
-            view: () => {
-                return new Promise(async (resolve, reject) => {
-                    let dataList: any = []
-                    await new Promise(async (resolve, reject) => {
-                        Article.get({
-                            page: 0,
-                            limit: 200
-                        }).then((data) => {
-                            dataList = data.response.data
-                            resolve(true)
-                        })
-                    })
-                    resolve([
-                        glitter.htmlGenerate.editeInput({
-                            gvc: gvc,
-                            title: '網誌標籤連結',
-                            default: "",
-                            placeHolder: "請輸入網誌標籤連結",
-                            callback: (text) => {
-                                tdata.tag = text
-                            }
-                        }),
-                        glitter.htmlGenerate.editeInput({
-                            gvc: gvc,
-                            title: '網誌名稱',
-                            default: "",
-                            placeHolder: "請輸入網誌名稱",
-                            callback: (text) => {
-                                tdata.name = text
-                            }
-                        }),
-                        EditorElem.select({
-                            title: "[可選]：複製網誌模板",
-                            gvc: gvc,
-                            def: tdata.copy ?? "",
-                            array: [
-                                {
-                                    title: '選擇複製頁面內容', value: ''
-                                }
-                            ].concat(dataList.sort((function (a: any, b: any) {
-                                if (a.group.toUpperCase() < b.group.toUpperCase()) {
-                                    return -1;
-                                }
-                                if (a.group.toUpperCase() > b.group.toUpperCase()) {
-                                    return 1;
-                                }
+                <div class="w-100 d-flex align-items-center border-bottom justify-content-center position-relative py-3"
+                     style="">
+                    <h3 class="modal-title fs-5">添加網誌</h3>
+                    <i class="fa-solid fa-xmark text-dark position-absolute "
+                       style="font-size:20px;transform: translateY(-50%);right: 20px;top: 50%;cursor: pointer;"
+                       onclick="${gvc.event(() => {
+                           glitter.closeDiaLog();
+                       })}"></i>
+                </div>
+                <div class="py-2 px-3">
+                    ${gvc.bindView(() => {
+                        const id = glitter.getUUID()
+                        return {
+                            bind: id,
+                            view: () => {
+                                return new Promise(async (resolve, reject) => {
+                                    let dataList: any = []
+                                    await new Promise(async (resolve, reject) => {
+                                        Article.get({
+                                            page: 0,
+                                            limit: 200
+                                        }).then((data) => {
+                                            dataList = data.response.data
+                                            resolve(true)
+                                        })
+                                    })
+                                    resolve([
+                                        glitter.htmlGenerate.editeInput({
+                                            gvc: gvc,
+                                            title: '網誌標籤連結',
+                                            default: "",
+                                            placeHolder: "請輸入網誌標籤連結",
+                                            callback: (text) => {
+                                                tdata.tag = text
+                                            }
+                                        }),
+                                        glitter.htmlGenerate.editeInput({
+                                            gvc: gvc,
+                                            title: '網誌名稱',
+                                            default: "",
+                                            placeHolder: "請輸入網誌名稱",
+                                            callback: (text) => {
+                                                tdata.name = text
+                                            }
+                                        }),
+                                        EditorElem.select({
+                                            title: "[可選]：複製網誌模板",
+                                            gvc: gvc,
+                                            def: tdata.copy ?? "",
+                                            array: [
+                                                {
+                                                    title: '選擇複製頁面內容', value: ''
+                                                }
+                                            ].concat(dataList.sort((function (a: any, b: any) {
+                                                if (a.group.toUpperCase() < b.group.toUpperCase()) {
+                                                    return -1;
+                                                }
+                                                if (a.group.toUpperCase() > b.group.toUpperCase()) {
+                                                    return 1;
+                                                }
 
-                                // names must be equal
-                                return 0;
-                            })).map((dd: any) => {
-                                return {
-                                    title: `${dd.name}`, value: dd.tag
-                                }
-                            })),
-                            callback: (text: string) => {
-                                tdata.copy = text
+                                                // names must be equal
+                                                return 0;
+                                            })).map((dd: any) => {
+                                                return {
+                                                    title: `${dd.name}`, value: dd.tag
+                                                }
+                                            })),
+                                            callback: (text: string) => {
+                                                tdata.copy = text
+                                            },
+                                        })
+                                    ].join(''))
+                                })
                             },
+                            divCreate: {}
+                        }
+                    })}
+                </div>
+                <div class="d-flex w-100 mb-2 align-items-center justify-content-center">
+                    <button class="btn btn-primary " style="width: calc(100% - 20px);" onclick="${gvc.event(() => {
+                        const dialog = new ShareDialog(glitter)
+                        dialog.dataLoading({text: "上傳中", visible: true})
+                        ApiPageConfig.addPage(tdata).then((it) => {
+                            setTimeout(() => {
+                                dialog.dataLoading({text: "", visible: false})
+                                if (it.result) {
+                                    callback(tdata.tag)
+                                } else {
+                                    dialog.errorMessage({
+                                        text: "已有此頁面標籤"
+                                    })
+                                }
+                            }, 1000)
                         })
-                    ].join(''))
-                })
-            },
-            divCreate: {}
-        }
-    })}
-</div>
-<div class="d-flex w-100 mb-2 align-items-center justify-content-center">
-<button class="btn btn-primary " style="width: calc(100% - 20px);" onclick="${gvc.event(() => {
-        const dialog = new ShareDialog(glitter)
-        dialog.dataLoading({text: "上傳中", visible: true})
-        ApiPageConfig.addPage(tdata).then((it) => {
-            setTimeout(() => {
-                dialog.dataLoading({text: "", visible: false})
-                if (it.result) {
-                    callback(tdata.tag)
-                } else {
-                    dialog.errorMessage({
-                        text: "已有此頁面標籤"
-                    })
-                }
-            }, 1000)
-        })
-    })}">確認新增</button>
-</div>
-</div>
-</div>
-            `;
+                    })}">確認新增
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
 }

@@ -1,7 +1,20 @@
 import { config } from "../config.js";
 import { BaseApi } from "../glitterBundle/api/base.js";
+import { GlobalUser } from "../glitter-base/global/global-user.js";
 export class ApiPageConfig {
-    constructor() { }
+    constructor() {
+    }
+    static getAppList() {
+        return BaseApi.create({
+            "url": config.url + `/api/v1/app`,
+            "type": "GET",
+            "timeout": 0,
+            "headers": {
+                "Content-Type": "application/json",
+                "Authorization": GlobalUser.token
+            }
+        });
+    }
     static getAppConfig() {
         return BaseApi.create({
             "url": config.url + `/api/v1/app?appName=${config.appName}`,
@@ -11,6 +24,20 @@ export class ApiPageConfig {
                 "Content-Type": "application/json",
                 "Authorization": config.token
             }
+        });
+    }
+    static deleteApp(appName) {
+        return BaseApi.create({
+            "url": config.url + `/api/v1/app`,
+            "type": "DELETE",
+            "timeout": 0,
+            "headers": {
+                "Content-Type": "application/json",
+                "Authorization": GlobalUser.token
+            },
+            data: JSON.stringify({
+                appName: appName
+            })
         });
     }
     static setDomain(domain) {
@@ -28,16 +55,25 @@ export class ApiPageConfig {
             })
         });
     }
-    static getPage(appName, tag, group, type) {
+    static getPage(request) {
         return BaseApi.create({
-            "url": config.url + `/api/v1/template?appName=${appName}` +
-                (tag ? `&tag=${tag}` : "") +
-                (group ? `&group=${group}` : "") +
-                (type ? `&type=${type}` : ""),
+            "url": config.url + `/api/v1/template?` +
+                (() => {
+                    const query = [];
+                    (request.appName) && (query.push(`appName=${request.appName}`));
+                    (request.tag) && (query.push(`tag=${request.tag}`));
+                    (request.group) && (query.push(`group=${request.group}`));
+                    (request.type) && (query.push(`type=${request.type}`));
+                    (request.page_type) && (query.push(`page_type=${request.page_type}`));
+                    (request.me) && (query.push(`me=${request.me}`));
+                    (request.favorite) && (query.push(`favorite=${request.favorite}`));
+                    return query.join('&');
+                })(),
             "type": "GET",
             "timeout": 0,
             "headers": {
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
+                "Authorization": config.token
             }
         });
     }

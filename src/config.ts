@@ -20,8 +20,11 @@ export let saasConfig = {
     get SAAS_NAME() {
         return process.env.GLITTER_DB
     },
-    DEF_DEADLINE: 365
+    get DEF_DEADLINE(){
+        return parseInt(process.env.DEF_DEADLINE as string,10)
+    }
 }
+
 
 export const config = {
     get domain() {
@@ -98,7 +101,8 @@ export const config = {
         manager:'/manager',
         app:'/app',
         wallet:'/wallet',
-        article:'/article'
+        article:'/article',
+        delivery:'/delivery'
     },
     route: {
         user: "/user",
@@ -107,7 +111,7 @@ export const config = {
         fileManager: "/fileManager",
         private: "/private",
         ai: "/ai",
-
+        globalEvent:'/global-event'
     }
 }
 export default config;

@@ -12,11 +12,15 @@ const router = express_1.default.Router();
 router.get('/', async (req, resp) => {
     try {
         let query = [
-            `\`group\` = 'glitter-article'`,
+            `page_type = 'blog'`,
             `\`appName\` = ${database_js_1.default.escape(req.get('g-app'))}`
         ];
         req.query.tag && query.push(`tag = ${database_js_1.default.escape(req.query.tag)}`);
         req.query.label && query.push(`(JSON_EXTRACT(page_config, '$.meta_article.tag') LIKE '%${req.query.label}%')`);
+        if (!(await ut_permission_js_1.UtPermission.isManager(req))) {
+            query.push(`(JSON_EXTRACT(page_config, '$.hideIndex') IS NULL
+   OR JSON_EXTRACT(page_config, '$.hideIndex') != 'true')`);
+        }
         if (req.query.search) {
             query.push(`tag like '%${req.query.search}%'`);
         }

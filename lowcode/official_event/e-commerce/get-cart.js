@@ -9,6 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 import { TriggerEvent } from '../../glitterBundle/plugins/trigger-event.js';
 import { ApiShop } from "../../glitter-base/route/shopping.js";
+import { GlobalUser } from "../../glitter-base/global/global-user.js";
 TriggerEvent.createSingleEvent(import.meta.url, () => {
     return {
         fun: (gvc, widget, object, subData) => {
@@ -43,7 +44,7 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                     };
                                 }),
                                 code: voucher,
-                                use_rebate: parseInt(rebate, 10)
+                                use_rebate: GlobalUser.token && parseInt(rebate, 10)
                             }).then((res) => {
                                 if (res.result) {
                                     resolve(res.response.data);

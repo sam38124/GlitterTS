@@ -4,11 +4,13 @@ import {GVC} from "../../glitterBundle/GVController.js";
 import {BaseApi} from "../../glitterBundle/api/base.js";
 import {TriggerEvent} from "../../glitterBundle/plugins/trigger-event.js";
 import {EditorElem} from "../../glitterBundle/plugins/editor-elem.js";
+import {FormWidget} from "./form.js";
+import {ApiPageConfig} from "../../api/pageConfig.js";
+import {ShareDialog} from "../../dialog/ShareDialog.js";
 
 export const component = Plugin.createComponent(import.meta.url, (glitter: Glitter, editMode: boolean) => {
     return {
         render: (gvc: GVC, widget: HtmlJson, setting: HtmlJson[], hoverID: string[], subData, htmlGenerate) => {
-            console.log(`subData--->`,subData)
             widget.data.list = widget.data.list ?? []
             return {
                 view: () => {
@@ -29,7 +31,6 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
                                 const saasConfig = (window as any).saasConfig
                                 let fal = 0
                                 let tag = widget.data.tag
-
                                 let carryData = widget.data.carryData
 
                                 async function getData() {
@@ -83,10 +84,10 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
                                         })
                                     } catch (e) {
                                     }
-                                    if(!tag){
+                                    if (!tag) {
                                         target!.outerHTML = ''
-                                    }else{
-                                        ((window as any).glitterInitialHelper).getPageData(tag,(d2:any)=>{
+                                    } else {
+                                        ((window as any).glitterInitialHelper).getPageData(tag, (d2: any) => {
                                             data = d2.response.result[0]
                                             data.config.map((dd: any) => {
                                                 glitter.htmlGenerate.renameWidgetID(dd)
@@ -121,16 +122,14 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
 
                     function getData() {
                         BaseApi.create({
-                            "url": saasConfig.config.url + `/api/v1/template?appName=${saasConfig.config.appName}`,
+                            "url": saasConfig.config.url + `/api/v1/template?appName=${saasConfig.config.appName}&page_type=module`,
                             "type": "GET",
                             "timeout": 0,
                             "headers": {
                                 "Content-Type": "application/json"
                             }
                         }).then((d2) => {
-                            data.dataList = d2.response.result.filter((dd:any)=>{
-                                return dd.group !== 'glitter-article'
-                            })
+                            data.dataList = d2.response.result
                             gvc.notifyDataChange(id)
                         })
                     }
@@ -331,7 +330,7 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
                                                         view: () => {
                                                             return new Promise((resolve, reject) => {
                                                                 BaseApi.create({
-                                                                    "url": saasConfig.config.url + `/api/v1/template?appName=${saasConfig.config.appName}`,
+                                                                    "url": saasConfig.config.url + `/api/v1/template?appName=${saasConfig.config.appName}&page_type=module`,
                                                                     "type": "GET",
                                                                     "timeout": 0,
                                                                     "headers": {
@@ -389,6 +388,141 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
                             }
                         }
                     })
+                },
+                user_editor: () => {
+                    const saasConfig = (window as any).saasConfig
+                    let data = {
+                        dataList: []
+                    }
+                    return gvc.bindView(() => {
+                        const id = glitter.getUUID()
+                        let selectTag = ''
+                        return {
+                            bind: id,
+                            view: () => {
+                                return new Promise(async (resolve, reject) => {
+                                    BaseApi.create({
+                                        "url": saasConfig.config.url + `/api/v1/template?appName=${saasConfig.config.appName}`,
+                                        "type": "GET",
+                                        "timeout": 0,
+                                        "headers": {
+                                            "Content-Type": "application/json"
+                                        }
+                                    }).then((d2) => {
+                                        data.dataList = d2.response.result
+                                        let valueArray: { title: string, tag: string }[] = []
+                                        const def: any = data.dataList.find((dd: any) => {
+                                            return dd.tag === widget.data.tag
+                                        })
+                                        def && valueArray.push({
+                                            title: def.name, tag: def.tag
+                                        })
+                                        widget.data.list.map((d2: any) => {
+                                            const def: any = data.dataList.find((dd: any) => {
+                                                return dd.tag === d2.tag
+                                            })
+                                            def && valueArray.push({
+                                                title: def.name, tag: def.tag
+                                            })
+                                        })
+                                        valueArray.map((dd) => {
+                                            selectTag = selectTag || dd.tag
+                                        })
+                                        let saveEvent = () => {
+                                        }
+                                        const html = String.raw
+                                        resolve([
+                                            `<div class="mx-0 d-flex mx-n2 mt-n2  px-2 hi fw-bold d-flex justify-content-between align-items-center border-bottom border-top py-2 bgf6" style="color:#151515;font-size:16px;gap:0px;">
+                                               編輯模塊內容
+                                               <button class=" btn ms-2 btn-primary-c " style="height: 30px;width: 80px;" onclick="${gvc.event(() => {
+                                                saveEvent()
+                                            })}">儲存變更
+                                </button>
+                                            </div>`,
+                                            html`
+                                                <div class="d-flex align-items-center mt-2 mb-2">
+                                                    <select class="form-control form-select " style="border-top-right-radius: 0;border-bottom-right-radius: 0;"
+                                                            onchange="${gvc.event((e, event) => {
+                                                                selectTag = e.value;
+                                                                gvc.notifyDataChange(id)
+                                                            })}">${
+                                                            valueArray.map((dd) => {
+                                                                return `<option value="${dd.tag}" ${(dd.tag === selectTag) ? `selected` : ''} >${dd.title}</option>`
+                                                            })
+                                                    }</select>
+                                                    <div class="hoverBtn ms-auto d-flex align-items-center justify-content-center   border"
+                                                         style="height:44px;width:44px;cursor:pointer;color:#151515;
+                                                         border-left: none;
+border-radius: 0px 10px 10px 0px;"
+                                                         data-bs-toggle="tooltip" data-bs-placement="top"
+                                                         data-bs-custom-class="custom-tooltip"
+                                                         data-bs-title="跳轉至模塊" onclick="${gvc.event(()=>{
+                                                        glitter.setUrlParameter('page', selectTag)
+                                                        glitter.share.reloadEditor()
+                                                    })}">
+                                                        <i class="fa-sharp fa-regular fa-arrow-left-to-arc"
+                                                           aria-hidden="true"></i>
+                                                    </div>
+                                                </div>
+                                            `,
+                                            gvc.bindView(() => {
+                                                const id = gvc.glitter.getUUID()
+                                                return {
+                                                    bind: id,
+                                                    view: () => {
+                                                        return new Promise(async (resolve, reject) => {
+                                                            const page_config: any = await (new Promise((resolve, reject) => {
+                                                                BaseApi.create({
+                                                                    "url": saasConfig.config.url + `/api/v1/template?appName=${saasConfig.config.appName}&tag=${encodeURIComponent(selectTag)}`,
+                                                                    "type": "GET",
+                                                                    "timeout": 0,
+                                                                    "headers": {
+                                                                        "Content-Type": "application/json"
+                                                                    }
+                                                                }).then((res) => {
+                                                                    saveEvent = () => {
+                                                                        const dialog = new ShareDialog(glitter)
+                                                                        dialog.dataLoading({visible: true})
+                                                                        ApiPageConfig.setPage({
+                                                                            id: res.response.result[0].id,
+                                                                            appName: res.response.result[0].appName,
+                                                                            tag: res.response.result[0].tag,
+                                                                            page_config: res.response.result[0].page_config,
+                                                                        }).then((api) => {
+                                                                            dialog.dataLoading({visible: false})
+                                                                            gvc.notifyDataChange('showView')
+                                                                        })
+                                                                    }
+
+                                                                    resolve(res.response.result[0].page_config)
+                                                                })
+                                                            }));
+                                                            resolve(FormWidget.editorView({
+                                                                gvc: gvc,
+                                                                array: page_config.formFormat,
+                                                                refresh: () => {
+
+                                                                },
+                                                                formData: page_config.formData
+                                                            }))
+                                                        })
+                                                    }
+                                                }
+                                            })
+                                        ].join(''))
+                                    })
+                                })
+                            },
+                            divCreate: {
+                                class: 'pb-2'
+                            },
+                            onCreate:()=>{
+                                $('.tooltip').remove();
+                                ($('[data-bs-toggle="tooltip"]') as any).tooltip();
+                            }
+                        }
+                    })
+
                 }
             }
         }

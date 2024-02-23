@@ -65,23 +65,26 @@ class Firebase {
     async sendMessage(cf) {
         return new Promise(async (resolve, reject) => {
             if (cf.userID) {
-                cf.token = (await database_1.default.query(`SELECT deviceToken FROM \`${this.app}\`.t_fcm;`, []))[0]['deviceToken'];
+                const us = (await database_1.default.query(`SELECT deviceToken FROM \`${this.app}\`.t_fcm;`, []))[0];
+                cf.token = us && us['deviceToken'];
             }
-            firebase_admin_1.default.apps.find((dd) => {
-                return (dd === null || dd === void 0 ? void 0 : dd.name) === 'glitter';
-            }).messaging().send({
-                notification: {
-                    title: cf.title,
-                    body: cf.body
-                },
-                "token": cf.token
-            }).then((response) => {
-                resolve(true);
-                console.log('成功發送推播：', response);
-            }).catch((error) => {
-                resolve(false);
-                console.error('發送推播時發生錯誤：', error);
-            });
+            if (cf.token) {
+                firebase_admin_1.default.apps.find((dd) => {
+                    return (dd === null || dd === void 0 ? void 0 : dd.name) === 'glitter';
+                }).messaging().send({
+                    notification: {
+                        title: cf.title,
+                        body: cf.body
+                    },
+                    "token": cf.token
+                }).then((response) => {
+                    resolve(true);
+                    console.log('成功發送推播：', response);
+                }).catch((error) => {
+                    resolve(false);
+                    console.error('發送推播時發生錯誤：', error);
+                });
+            }
         });
     }
 }

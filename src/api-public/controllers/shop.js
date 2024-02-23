@@ -8,7 +8,6 @@ const multer_1 = __importDefault(require("multer"));
 const exception_1 = __importDefault(require("../../modules/exception"));
 const shopping_1 = require("../services/shopping");
 const ut_permission_1 = require("../utils/ut-permission");
-const path_1 = __importDefault(require("path"));
 const financial_service_js_1 = require("../services/financial-service.js");
 const private_config_js_1 = require("../../services/private_config.js");
 const database_js_1 = __importDefault(require("../../modules/database.js"));
@@ -309,7 +308,30 @@ router.delete('/voucher', async (req, resp) => {
 });
 router.post('/redirect', async (req, resp) => {
     try {
-        return resp.sendFile(path_1.default.resolve(__dirname, '../../../lowcode/redirect.html'));
+        let return_url = new URL(req.query.return.replace(/\*R\*/g, '&'));
+        return resp.send(`<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+
+<body>
+    <script>
+        try {
+            window.webkit.messageHandlers.addJsInterFace.postMessage(JSON.stringify({
+                functionName: 'closeWebView',
+                callBackId: 0,
+                data: {}
+            }));
+
+        } catch (e) { }
+        location.href = '${return_url.href}';
+    </script>
+</body>
+
+</html>
+`);
     }
     catch (err) {
         return response_1.default.fail(resp, err);

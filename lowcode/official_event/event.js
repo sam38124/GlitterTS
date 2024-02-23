@@ -22,7 +22,10 @@ GlobalData.data = {
         }
         GlobalData.data.isRunning = true;
         const saasConfig = window.saasConfig;
-        saasConfig.api.getPage(saasConfig.config.appName).then((data) => {
+        saasConfig.api.getPage({
+            appName: saasConfig.config.appName,
+            page_type: 'page'
+        }).then((data) => {
             if (data.result) {
                 GlobalData.data.pageList = data.response.result.map((dd) => {
                     var _a;
@@ -67,6 +70,11 @@ TriggerEvent.create(import.meta.url, {
             }
         ]),
         fun: TriggerEvent.setEventRouter(import.meta.url, './page/change-page.js'),
+    },
+    goBack: {
+        title: '官方事件 / 畫面 / 返回上一頁',
+        subContent: ``,
+        fun: TriggerEvent.setEventRouter(import.meta.url, './page/goback.js'),
     },
     dialog: {
         title: '官方事件 / 畫面 / 彈跳視窗',
@@ -305,14 +313,16 @@ TriggerEvent.create(import.meta.url, {
                                     gvc: gvc,
                                     widget: widget,
                                     clickEvent: a.yesEvent,
-                                    subData: subData
+                                    subData: subData,
+                                    element: element
                                 });
                                 if (result) {
                                     const response = yield TriggerEvent.trigger({
                                         gvc: gvc,
                                         widget: widget,
                                         clickEvent: a.trigger,
-                                        subData: subData
+                                        subData: subData,
+                                        element: element
                                     });
                                     resolve(response);
                                     break;
@@ -331,6 +341,10 @@ TriggerEvent.create(import.meta.url, {
     setURl: {
         title: '官方事件 / 開發工具 / 設定URL參數',
         fun: TriggerEvent.setEventRouter(import.meta.url, './glitter-util/set-url.js'),
+    },
+    globalEvent: {
+        title: '官方事件 / 開發工具 / 執行事件集',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './glitter-util/global-event.js'),
     },
     getLanguageCode: {
         title: '官方事件 / 開發工具 / 取得多國語言代號',
@@ -359,6 +373,22 @@ TriggerEvent.create(import.meta.url, {
     delay: {
         title: '官方事件 / 開發工具 / 延遲執行事件',
         fun: TriggerEvent.setEventRouter(import.meta.url, './glitter-util/delay-event.js'),
+    },
+    api_request: {
+        title: "官方事件 / 開發工具 / API 請求",
+        fun: TriggerEvent.setEventRouter(import.meta.url, './api/api-request.js')
+    },
+    scrollWatch: {
+        title: "官方事件 / 開發工具 / 滾動監聽",
+        fun: TriggerEvent.setEventRouter(import.meta.url, './glitter-util/scroll-watch.js')
+    },
+    storeData: {
+        title: "官方事件 / 開發工具 / 儲存資料",
+        fun: TriggerEvent.setEventRouter(import.meta.url, './glitter-util/store-data.js')
+    },
+    getData: {
+        title: "官方事件 / 開發工具 / 取得儲存資料",
+        fun: TriggerEvent.setEventRouter(import.meta.url, './glitter-util/get-data.js')
     },
     registerDevice: {
         title: '官方事件 / 推播 / 註冊裝置',
@@ -633,6 +663,10 @@ TriggerEvent.create(import.meta.url, {
         title: '電子商務 / 取得購物車內容',
         fun: TriggerEvent.setEventRouter(import.meta.url, './e-commerce/get-cart.js'),
     },
+    deleteCart: {
+        title: '電子商務 / 清空購物車',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './e-commerce/delete-cart.js'),
+    },
     getRebate: {
         title: '電子商務 / 取得回饋金金額',
         fun: TriggerEvent.setEventRouter(import.meta.url, './e-commerce/get-rebate.js'),
@@ -684,6 +718,10 @@ TriggerEvent.create(import.meta.url, {
     inWishList: {
         title: '電子商務 / 判斷商品是否存在於許願池',
         fun: TriggerEvent.setEventRouter(import.meta.url, './e-commerce/check-wish-list.js'),
+    },
+    c2cMap: {
+        title: '電子商務 / 選擇門市',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './e-commerce/to-c2cMap.js'),
     },
     postWallet: {
         title: '電子錢包 / 新增儲值金額',
@@ -760,6 +798,14 @@ TriggerEvent.create(import.meta.url, {
     glitterPreview: {
         title: 'GLITTER / 預覽APP',
         fun: TriggerEvent.setEventRouter(import.meta.url, './glitter/preview.js')
+    },
+    glitterAPPList: {
+        title: 'GLITTER / 取得APP列表',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './glitter/app-list.js')
+    },
+    deleteAPP: {
+        title: 'GLITTER / 刪除APP',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './glitter/delete.js')
     },
     getTopInset: {
         title: '手機裝置 / 取得上方導覽列高度',

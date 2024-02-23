@@ -2,11 +2,14 @@ import {TriggerEvent} from '../../glitterBundle/plugins/trigger-event.js';
 import {GlobalData} from "../event.js";
 import {GVC} from "../../glitterBundle/GVController.js";
 import {component} from "../../official_view_component/official/component.js";
+import {EditorElem} from "../../glitterBundle/plugins/editor-elem.js";
 
 TriggerEvent.createSingleEvent(import.meta.url, () => {
     return {
         fun: (gvc, widget, object, subData, element) => {
             object.coverData = object.coverData ?? {}
+            object.dialogTag = object.dialogTag ?? {}
+            object.waitType = object.waitType ?? 'block'
             return {
                 editor: () => {
                     const id = gvc.glitter.getUUID()
@@ -22,6 +25,7 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                             gvc.notifyDataChange(id);
                         }
                     }
+
                     recursive();
 
                     return gvc.bindView(() => {
@@ -45,7 +49,32 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                     hover: true,
                                     option: [],
                                     title: "夾帶資料"
-                                })].join('<div class="my-2"></div>')
+                                }),
+                                    TriggerEvent.editer(gvc, widget, object.dialogTag, {
+                                        hover: true,
+                                        option: [],
+                                        title: "視窗標籤"
+                                    }),
+                                    EditorElem.select({
+                                        title: "是否阻塞事件，直到視窗關閉?",
+                                        gvc: gvc,
+                                        def: object.waitType,
+                                        array: [
+                                            {
+                                                title: '是',
+                                                value: 'block'
+                                            },
+                                            {
+                                                title: '否',
+                                                value: 'async'
+                                            }
+                                        ],
+                                        callback: (text) => {
+                                            object.waitType = text
+                                            gvc.notifyDataChange(id)
+                                        }
+                                    })
+                                ].join('<div class="my-2"></div>')
                             },
                             divCreate: {}
                         }
@@ -58,6 +87,10 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                         const data = await TriggerEvent.trigger({
                             gvc, widget, clickEvent: object.coverData, subData
                         })
+                        const tag = (await TriggerEvent.trigger({
+                            gvc, widget, clickEvent: object.dialogTag, subData
+                        })) || gvc.glitter.getUUID()
+
                         gvc.glitter.innerDialog((gvc: GVC) => {
                             gvc.getBundle().carryData = data
                             return new Promise<string>(async (resolve, reject) => {
@@ -69,11 +102,14 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                 resolve(view)
                             })
 
-                        }, gvc.glitter.getUUID(), {
+                        }, tag as string, {
                             dismiss: () => {
                                 resolve(true)
                             }
                         })
+                        if(object.waitType!=='block'){
+                            resolve(true)
+                        }
                     })
 
 

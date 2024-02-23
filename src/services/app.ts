@@ -111,6 +111,16 @@ export class App {
                     ]);
                 }
             }
+            for (const dd of (await db.query(`SELECT *
+                                                  FROM \`${config.copyApp}\`.t_global_event`, []))) {
+                dd.json = dd.json && JSON.stringify(dd.json)
+                await trans.execute(`
+                        insert into \`${config.appName}\`.t_global_event
+                        SET ?;
+                    `, [
+                    dd
+                ]);
+            }
             if (config.copyWith.indexOf('public_config') !== -1) {
                 for (const dd of (await db.query(`SELECT *
                                                   FROM \`${config.copyApp}\`.public_config`, []))) {
@@ -150,7 +160,7 @@ export class App {
                 for (const dd of copyPageData) {
                     await trans.execute(`
                         insert into \`${saasConfig.SAAS_NAME}\`.page_config (userID, appName, tag, \`group\`, \`name\`,
-                                                                             \`config\`, \`page_config\`)
+                                                                             \`config\`, \`page_config\`,page_type)
                         values (?, ?, ?, ?, ?, ${db.escape(JSON.stringify(dd.config))},
                                 ${db.escape(JSON.stringify(dd.page_config))});
                     `, [
@@ -158,7 +168,8 @@ export class App {
                         config.appName,
                         dd.tag,
                         dd.group || '未分類',
-                        dd.name
+                        dd.name,
+                        dd.page_type
                     ]);
                 }
             } else {
@@ -181,7 +192,6 @@ export class App {
             console.log(JSON.stringify(e))
             throw exception.BadRequestError(e.code ?? 'BAD_REQUEST', e, null);
         }
-
     }
 
     public async getAPP(query: {
@@ -217,11 +227,13 @@ export class App {
 
     public async getAppConfig(config: { appName: string }) {
         try {
-            const pluginList = ((await db.execute(`
-                SELECT config
+            const data=(await db.execute(`
+                SELECT config,\`dead_line\`
                 FROM \`${saasConfig.SAAS_NAME}\`.app_config
-                where appName = '${config.appName}';
-            `, []))[0]['config']) ?? {}
+                where appName = ${db.escape(config.appName)};
+            `, []))[0]
+            const pluginList = data['config'] ?? {}
+            pluginList.dead_line = data.dead_line
             pluginList.pagePlugin = pluginList.pagePlugin ?? []
             pluginList.eventPlugin = pluginList.eventPlugin ?? []
             return pluginList
@@ -241,21 +253,17 @@ export class App {
         }
     }
 
-    public static async checkOverDue(app: string) {
-        let brand=(await db.query(`SELECT brand FROM glitter.app_config where appName = ? `,[app]))[0]['brand']
+    public static async checkBrandAndMemberType(app: string) {
+        let brand=(await db.query(`SELECT brand FROM \`${saasConfig.SAAS_NAME}\`.app_config where appName = ? `,[app]))[0]['brand']
+        console.log(`brand-->`,brand)
         const userID = (await db.query(`SELECT user
                                         FROM \`${saasConfig.SAAS_NAME}\`.app_config
                                         where appName = ?`, [app]))[0]['user'];
         const userData = (await db.query(`SELECT userData
                                           FROM \`${brand}\`.t_user
                                           where userID = ? `, [userID]))[0];
-        let appCount = (await db.query(`SELECT count(1)
-                                        FROM \`${saasConfig.SAAS_NAME}\`.app_config
-                                        where user = ?`, [userID]))[0]['count(1)']
         return {
-            overdue: !(userData.userData.expireDate && new Date(userData.userData.expireDate).getTime() > new Date().getTime()),
             memberType: userData.userData.menber_type,
-            appCount: appCount,
             brand:brand
         };
     }
@@ -263,9 +271,8 @@ export class App {
     public async setAppConfig(config: { appName: string, data: any }) {
         try {
             const official = (await db.query(`SELECT count(1)
-                                              FROM \`${saasConfig.SAAS_NAME}\`.user
-                                              where userID = ?
-                                                and company = ?`, [this.token.userID, 'LION']))[0]['count(1)'] == 1;
+                                              FROM \`${saasConfig.SAAS_NAME}\`.t_user
+                                              where userID = ?`, [this.token.userID, 'LION']))[0]['count(1)'] == 1;
             if (official) {
                 const trans = await db.Transaction.build()
                 await trans.execute(`delete

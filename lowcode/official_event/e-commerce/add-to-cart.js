@@ -34,16 +34,19 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                         const pdid = yield TriggerEvent.trigger({
                             gvc: gvc,
                             widget: widget,
-                            clickEvent: object.pdid
+                            clickEvent: object.pdid,
+                            subData: subData,
+                            element: element
                         });
                         const count = (yield TriggerEvent.trigger({
                             gvc: gvc,
                             widget: widget,
-                            clickEvent: object.count
+                            clickEvent: object.count,
+                            subData: subData,
+                            element: element
                         })) || 1;
                         ApiShop.addToCart(pdid, count);
-                        ApiShop.getCart().then((resolve) => {
-                        });
+                        ApiShop.getCart().then((resolve) => { });
                         resolve(pdid);
                     }));
                 },

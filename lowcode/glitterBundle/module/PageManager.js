@@ -118,6 +118,7 @@ export class PageManager {
                 src: PageManager.getRelativeUrl(url),
                 callback: (gvFunction) => {
                     var _a, _b, _c;
+                    glitter.setUrlParameter('page', tag);
                     const pageConfig = new PageConfig({
                         id: glitter.getUUID(),
                         obj: obj,
@@ -145,13 +146,6 @@ export class PageManager {
                     });
                     glitter.pageConfig.push(pageConfig);
                     glitter.defaultSetting.pageLoading();
-                    const search = glitter.setSearchParam(glitter.removeSearchParam(glitter.window.location.search, 'page'), 'page', tag);
-                    try {
-                        glitter.window.history.pushState({}, glitter.document.title, search);
-                    }
-                    catch (e) {
-                    }
-                    glitter.setUrlParameter('page', tag);
                     gvFunction({
                         pageConfig: pageConfig
                     });
@@ -215,6 +209,16 @@ export class PageManager {
             }, 100);
         });
     }
+    static setHistory(tag) {
+        const glitter = Glitter.glitter;
+        const search = glitter.setSearchParam(glitter.removeSearchParam(glitter.window.location.search, 'page'), 'page', tag);
+        try {
+            glitter.window.history.pushState({}, glitter.document.title, search);
+        }
+        catch (e) {
+        }
+        glitter.setUrlParameter('page', tag);
+    }
     static changePage(url, tag, goBack, obj, option = {}) {
         var _a, _b, _c;
         const glitter = Glitter.glitter;
@@ -243,16 +247,10 @@ export class PageManager {
             {
                 src: PageManager.getRelativeUrl(url),
                 callback: (gvFunction) => {
+                    glitter.setUrlParameter('page', tag);
                     if (glitter.pageConfig.find((dd) => {
                         return dd === pageConfig;
                     })) {
-                        const search = glitter.setSearchParam(glitter.removeSearchParam(glitter.window.location.search, 'page'), 'page', tag);
-                        try {
-                            glitter.window.history.pushState({}, glitter.document.title, search);
-                        }
-                        catch (e) {
-                        }
-                        glitter.setUrlParameter('page', tag);
                         gvFunction({
                             pageConfig: pageConfig
                         });

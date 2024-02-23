@@ -14,6 +14,7 @@ class ApiPublic {
         ApiPublic.checkApp.push(appName);
         try {
             await database_1.default.execute(`CREATE SCHEMA if not exists \`${appName}\` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;`, []);
+            await database_1.default.execute(`CREATE SCHEMA if not exists \`${appName}_recover\` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;`, []);
             const groupSize = 15;
             const sqlArray = [
                 {
@@ -213,6 +214,35 @@ class ApiPublic {
   \`created_time\` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (\`id\`),
   INDEX \`index2\` (\`userID\` ASC) VISIBLE) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;`
+                },
+                {
+                    scheme: appName,
+                    table: 't_global_event',
+                    sql: ` (
+  \`id\` INT NOT NULL AUTO_INCREMENT,
+  \`tag\` VARCHAR(45) NOT NULL,
+  \`name\` VARCHAR(45) NOT NULL,
+  \`json\` JSON NULL,
+  \`created_time\` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (\`id\`),
+  UNIQUE INDEX \`tag_UNIQUE\` (\`tag\` ASC) VISIBLE) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+`
+                },
+                {
+                    scheme: appName,
+                    table: 't_stock_recover',
+                    sql: `(
+  \`id\` int NOT NULL AUTO_INCREMENT,
+  \`order_id\` varchar(45) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  \`product_id\` varchar(45) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  \`count\` int DEFAULT NULL,
+  \`spec\` varchar(45) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  \`dead_line\` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (\`id\`),
+  KEY \`index2\` (\`dead_line\`),
+  KEY \`index3\` (\`product_id\`)
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+`
                 }
             ];
             for (const b of chunkArray(sqlArray, groupSize)) {

@@ -20,9 +20,11 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
             return ``;
         },
         onCreate: () => {
-            var _a;
             const vm = {
-                pageData: ApiPageConfig.getPage(config.appName, (_a = glitter.getUrlParameter('page')) !== null && _a !== void 0 ? _a : glitter.getUUID()),
+                pageData: ApiPageConfig.getPage({
+                    appName: config.appName,
+                    tag: glitter.getUrlParameter('page')
+                }),
                 appConfig: []
             };
             window.saasConfig = {
@@ -201,9 +203,11 @@ function toBackendEditor(glitter) {
     window.root.classList.add('light-mode');
     function toNext() {
         running().then(() => __awaiter(this, void 0, void 0, function* () {
-            var _a;
             {
-                let data = yield ApiPageConfig.getPage(config.appName, (_a = glitter.getUrlParameter('page')) !== null && _a !== void 0 ? _a : glitter.getUUID());
+                let data = yield ApiPageConfig.getPage({
+                    appName: config.appName,
+                    tag: glitter.getUrlParameter('page')
+                });
                 if (data.response.result.length === 0) {
                     glitter.setUrlParameter('page', data.response.redirect);
                 }

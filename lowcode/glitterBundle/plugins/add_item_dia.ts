@@ -9,6 +9,9 @@ import {HtmlGenerate} from "../module/html-generate.js";
 //@ts-ignore
 import autosize from "./autosize.js";
 import {component_group_key} from "./group_key.js";
+import {ApiPageConfig} from "../../api/pageConfig.js";
+import {GlobalUser} from "../../glitter-base/global/global-user.js";
+import {Storage} from "../../helper/storage.js";
 
 const html = String.raw
 
@@ -17,11 +20,6 @@ class Add_item_dia {
         let searchText = ''
         let searchInterval: any = 0
         const id = gvc.glitter.getUUID()
-        const vm: {
-            select: 'view' | 'code' | 'ai' | 'template' | 'copy'
-        } = {
-            select: "template"
-        }
         return html`
             <div class="bg-white rounded" style="max-height:90vh;">
                 <div class="d-flex w-100 border-bottom align-items-center" style="height:50px;">
@@ -37,156 +35,422 @@ class Add_item_dia {
                 </div>
                 <div class="d-flex " style="">
                     <div>
-                        ${`<div class="add_item_search_bar w-100">
-<i class="fa-regular fa-magnifying-glass"></i>
-<input class="w-100" placeholder="搜尋區段" oninput="${gvc.event((e, event) => {
-                            searchText = e.value;
-                            clearInterval(searchInterval);
-                            searchInterval = setTimeout(() => {
-                                if (searchText) {
-                                    vm.select = 'view'
-                                }
-                                gvc.notifyDataChange(id);
-                            }, 500)
-                        })}" value="${searchText}">
-                        </div>` + gvc.bindView(() => {
-                            return {
-                                bind: id,
-                                view: () => {
-
-                                    const contentVM: {
-                                        loading: boolean,
-                                        leftID: string,
-                                        rightID: string,
-                                        leftBar: string,
-                                        rightBar: string
-                                    } = {
-                                        loading: true,
-                                        leftID: gvc.glitter.getUUID(),
-                                        rightID: gvc.glitter.getUUID(),
-                                        leftBar: '',
-                                        rightBar: ''
-                                    }
-
-                                    switch (vm.select) {
-                                        case "template":
-                                            Add_item_dia.add_official_plugin(gvc, searchText).then((data) => {
-                                                contentVM.loading = false
-                                                contentVM.leftBar = data.left
-                                                contentVM.rightBar = data.right
-                                                gvc.notifyDataChange([contentVM.leftID, contentVM.rightID])
-                                            })
-                                            break
-                                        case "view":
-                                            Add_item_dia.add_unit_component(gvc, searchText).then((data) => {
-                                                contentVM.loading = false
-                                                contentVM.leftBar = data.left
-                                                contentVM.rightBar = data.right
-                                                gvc.notifyDataChange([contentVM.leftID, contentVM.rightID])
-                                            })
-                                            break
-                                        case "code":
-                                            Add_item_dia.add_code_component(gvc).then((data) => {
-                                                contentVM.loading = false
-                                                contentVM.leftBar = data.left
-                                                contentVM.rightBar = data.right
-                                                gvc.notifyDataChange([contentVM.leftID, contentVM.rightID])
-                                            })
-                                            break
-                                        case "ai":
-                                            Add_item_dia.add_ai_micro_phone(gvc).then((data) => {
-                                                contentVM.loading = false
-                                                contentVM.leftBar = data.left
-                                                contentVM.rightBar = data.right
-                                                gvc.notifyDataChange([contentVM.leftID, contentVM.rightID])
-                                            })
-                                            break
-                                        case 'copy':
-                                            Add_item_dia.past_data(gvc).then((data) => {
-                                                contentVM.loading = false
-                                                contentVM.leftBar = data.left
-                                                contentVM.rightBar = data.right
-                                                gvc.notifyDataChange([contentVM.leftID, contentVM.rightID])
-                                            })
-                                            break
-                                        default:
-                                            break
-                                    }
-
-                                    return html`
-                                        <div class="d-flex">
-                                            <div style="width:450px;" class="border-end">
-                                                <div class="d-flex border-bottom ">
-                                                    ${[
-                                                        {
-                                                            key: 'template',
-                                                            label: "官方模塊"
-                                                        }
-                                                        , {
-                                                            key: 'view',
-                                                            label: "客製插件"
-                                                        }, {
-                                                            key: 'code',
-                                                            label: "代碼轉換"
-                                                        }, {
-                                                            key: 'ai',
-                                                            label: "AI生成"
-                                                        },
-                                                        {
-                                                            key: 'copy',
-                                                            label: "剪貼簿"
-                                                        }
-                                                    ].map((dd: { key: string, label: string }) => {
-                                                        return `<div class="add_item_button ${(dd.key === vm.select) ? `add_item_button_active` : ``}" onclick="${
-                                                                gvc.event((e, event) => {
-                                                                    (vm as any).select = dd.key
-                                                                    gvc.notifyDataChange(id)
-                                                                })
-                                                        }">${dd.label}</div>`
-                                                    }).join('')}
-                                                </div>
-                                                ${gvc.bindView(() => {
-                                                    return {
-                                                        bind: contentVM.leftID,
-                                                        view: () => {
-                                                            return contentVM.leftBar
-                                                        },
-                                                        divCreate: {
-                                                            class: ``,
-                                                            style: `max-height:calc(90vh - 150px);min-height:490px;overflow-y:auto;`
-                                                        }
-                                                    }
-                                                })}
-                                            </div>
-                                            ${gvc.bindView(() => {
-                                                return {
-                                                    bind: contentVM.rightID,
-                                                    view: () => {
-                                                        return contentVM.rightBar
-                                                    },
-                                                    divCreate: {}
-                                                }
-                                            })}
-                                        </div>`
-                                },
-                                divCreate: {
-                                    style: `overflow-y:auto;`
-                                },
-                                onCreate: () => {
-
-                                }
-                            }
-                        })}
+                       ${Add_item_dia.userMode(
+                               gvc, id, searchText
+                       )}
                     </div>
                 </div>
             </div>
         `
     }
 
+    public static userMode(gvc: GVC, id: string, searchText: string) {
+        const html = String.raw
+        let searchInterval: any = 0
+        let vm: {
+            select: 'me' | 'official' | "view" | 'code' | 'ai' | "template" | 'copy'
+        } = {
+            select: "official"
+        }
+        return gvc.bindView(() => {
+            return {
+                bind: id,
+                view: () => {
+                    const contentVM: {
+                        loading: boolean,
+                        leftID: string,
+                        rightID: string,
+                        leftBar: string,
+                        rightBar: string
+                    } = {
+                        loading: true,
+                        leftID: gvc.glitter.getUUID(),
+                        rightID: gvc.glitter.getUUID(),
+                        leftBar: '',
+                        rightBar: ''
+                    }
+                    return html`
+                        <div class="position-absolute d-flex flex-column rounded py-3 px-2 bg-white align-items-center"
+                             style="left:-60px;top:-50px;gap:10px;z-index:10;">
+                            <i class="fa-solid fa-chevron-down" style="color:black;"></i>
+                            ${(() => {
+                                const list = [
+                                    {
+                                        key: 'official',
+                                        label: "官方模板庫",
+                                        icon: '<i class="fa-regular fa-block"></i>'
+                                    }
+                                    , {
+                                        key: 'me',
+                                        label: "我的模板庫",
+                                        icon: '<i class="fa-regular fa-user"></i>'
+                                    },
+                                    {
+                                        key: 'template',
+                                        label: "開發元件",
+                                        icon: '<i class="fa-sharp fa-regular fa-screwdriver-wrench"></i>'
+                                    }
+                                    , {
+                                        key: 'view',
+                                        label: "客製化插件",
+                                        icon: '<i class="fa-regular fa-puzzle-piece-simple"></i>'
+                                    }, {
+                                        key: 'code',
+                                        label: "代碼轉換",
+                                        icon: '<i class="fa-sharp fa-solid fa-repeat"></i>'
+                                    }, {
+                                        key: 'ai',
+                                        label: "AI生成",
+                                        icon: '<i class="fa-solid fa-microchip-ai"></i>'
+                                    },
+                                    {
+                                        key: 'copy',
+                                        label: "剪貼簿",
+                                        icon: '<i class="fa-regular fa-scissors"></i>'
+                                    }
+                                ]
+                                return list.map((dd) => {
+                                    return `<div class="d-flex align-items-center justify-content-center hoverBtn  border"
+                                 style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;
+                                 ${(vm.select === dd.key) ? `background:linear-gradient(135deg, #667eea 0%, #764ba2 100%);background:-webkit-linear-gradient(135deg, #667eea 0%, #764ba2 100%);color:white;` : ``}
+                                 "
+                                 data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="custom-tooltip"
+                                 data-bs-title="${dd.label}" onclick="${gvc.event(() => {
+                                        vm.select = dd.key as any
+                                        gvc.notifyDataChange(id)
+                                    })}">
+                               ${dd.icon}
+                            </div>`
+                                }).join('')
+                            })()}
+
+                        </div>
+                        ${(['official','me','template','view'].find((d3)=>{
+                            return d3===vm.select
+                        })) ? `<div class="add_item_search_bar w-100">
+                            <i class="fa-regular fa-magnifying-glass"></i>
+                            <input class="w-100" placeholder="搜尋模塊" oninput="${gvc.event((e, event) => {
+                            searchText = e.value;
+                            clearInterval(searchInterval);
+                            searchInterval = setTimeout(() => {
+                                gvc.notifyDataChange(id);
+                            }, 500)
+                        })}" value="${searchText}">
+                        </div>`:``}
+                        <div class="d-flex border-bottom  d-none">
+                            ${[
+                                {
+                                    key: 'official',
+                                    label: "官方模板庫"
+                                }
+                                , {
+                                    key: 'me',
+                                    label: "我的模板庫"
+                                }
+                            ].map((dd: { key: string, label: string }) => {
+                                return html`
+                                    <div class="add_item_button ${(dd.key === vm.select) ? `add_item_button_active` : ``}"
+                                         onclick="${
+                                                 gvc.event((e, event) => {
+                                                     (vm as any).select = dd.key
+                                                     gvc.notifyDataChange(id)
+                                                 })
+                                         }">${dd.label}
+                                    </div>`
+                            }).join('')}
+                        </div>
+                        ${gvc.bindView(() => {
+                            gvc.addStyle(`.hoverHidden div{
+                        display:none;
+                        }
+                        .hoverHidden:hover div{
+                        display:flex;
+                        }
+                        `)
+                            return {
+                                bind: contentVM.leftID,
+                                view: () => {
+                                    return new Promise(async (resolve, reject) => {
+                                        switch (vm.select) {
+                                            case "official":
+                                            case "me":
+                                                const data = await ApiPageConfig.getPage({
+                                                    page_type: 'module',
+                                                    me: vm.select === 'me',
+                                                    favorite:true
+                                                })
+                                                data.response.result = data.response.result.filter((dd: any) => {
+                                                    return dd.name.includes(searchText)
+                                                })
+                                                if (data.response.result.length === 0) {
+                                                    resolve(html`
+                                                        <div class="d-flex align-items-center justify-content-center flex-column w-100"
+                                                             style="width:700px;">
+                                                            <lottie-player style="max-width: 100%;width: 300px;"
+                                                                           src="https://assets10.lottiefiles.com/packages/lf20_rc6CDU.json"
+                                                                           speed="1" loop="true"
+                                                                           background="transparent"></lottie-player>
+                                                            <h3 class="text-dark fs-6 mt-n3 px-2  "
+                                                                style="line-height: 200%;text-align: center;">
+                                                                查無相關模塊。</h3>
+                                                        </div>
+
+                                                    `)
+                                                } else {
+                                                    resolve(html`
+                                                        <div class="row m-0 pt-2" style="width:700px;max-height:550px;overflow-y: auto;">
+                                                            ${data.response.result.map((dd: any) => {
+                                                                return html`
+                                                                    <div class="col-4 mb-3">
+                                                                        <div class="d-flex flex-column align-items-center justify-content-center w-100"
+                                                                             style="gap:5px;cursor:pointer;">
+                                                                            <div class="card w-100 position-relative rounded hoverHidden"
+                                                                                 style="padding-bottom: 58%;">
+                                                                                <div class="position-absolute w-100 h-100 d-flex align-items-center justify-content-center"
+                                                                                     style="overflow: hidden;">
+                                                                                    <img class="w-100 "
+                                                                                         src="${dd.preview_image ?? 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1708434247510-未命名設計 (1).jpg'}"></img>
+                                                                                </div>
+
+                                                                                <div class="position-absolute w-100 h-100  align-items-center justify-content-center rounded "
+                                                                                     style="background: rgba(0,0,0,0.5);">
+                                                                                    <button class="btn btn-primary-c"
+                                                                                            style="height: 35px;width: 90px;"
+                                                                                            onclick="${gvc.event(() => {
+                                                                                                gvc.glitter.innerDialog((gvc) => {
+                                                                                                    const tdata: {
+                                                                                                        "appName": string,
+                                                                                                        "tag": string,
+                                                                                                        "group"?: string,
+                                                                                                        "name"?: string,
+                                                                                                        "page_config"?: any,
+                                                                                                        "copy"?: string,
+                                                                                                        'page_type': string,
+                                                                                                        "copyApp":string
+                                                                                                    } = {
+                                                                                                        "appName": (window as any).appName,
+                                                                                                        "tag": "",
+                                                                                                        "group": "",
+                                                                                                        "name": "",
+                                                                                                        "copy": dd.tag,
+                                                                                                        "copyApp":dd.appName,
+                                                                                                        page_type: 'module'
+                                                                                                    }
+                                                                                                    return html`
+                                                                                                        <div class="modal-content bg-white rounded-3 p-3  "
+                                                                                                             style="max-width:90%;width:400px;;">
+                                                                                                            <div class="  "
+                                                                                                                 style="">
+                                                                                                                <div class="ps-1 pe-1  "
+                                                                                                                     style="">
+                                                                                                                    <div class="mb-3  "
+                                                                                                                         style="">
+                                                                                                                        <label class="form-label mb-3  "
+                                                                                                                               style="color: black;"
+                                                                                                                               for="username">模塊標籤</label>
+                                                                                                                        <input
+                                                                                                                                class="  "
+                                                                                                                                style="border-color: black;    color: black;    display: block;    width: 100%;    padding: 0.625rem 1rem;    font-size: 0.875rem;    font-weight: 400;    line-height: 1.6;    background-color: #fff;    background-clip: padding-box;    border: 1px solid #d4d7e5;    -webkit-appearance: none;    -moz-appearance: none;    appearance: none;    border-radius: 0.375rem;    box-shadow: inset 0 0 0 transparent;    transition: border-color .15s ease-in-out,background-color .15s ease-in-out,box-shadow .15s ease-in-out;"
+                                                                                                                                type="text"
+                                                                                                                                placeholder="請輸入模塊標籤"
+                                                                                                                                value=""
+                                                                                                                                onchange="${gvc.event((e, event) => {
+                                                                                                                                    tdata.tag = e.value
+                                                                                                                                })}">
+                                                                                                                    </div>
+                                                                                                                </div>
+                                                                                                                ${[gvc.glitter.htmlGenerate.editeInput({
+                                                                                                                    gvc: gvc,
+                                                                                                                    title: '模塊名稱',
+                                                                                                                    default: "",
+                                                                                                                    placeHolder: "請輸入模塊名稱",
+                                                                                                                    callback: (text) => {
+                                                                                                                        tdata.name = text
+                                                                                                                    }
+                                                                                                                }), EditorElem.searchInput({
+                                                                                                                    title: html`模塊分類
+                                                                                                                    <div class="alert alert-info p-2 mt-2"
+                                                                                                                         style="word-break: break-all;white-space:normal">
+                                                                                                                        可加入
+                                                                                                                        /
+                                                                                                                        進行分類:<br>例如:首頁／置中版面
+                                                                                                                    </div>`,
+                                                                                                                    gvc: gvc,
+                                                                                                                    def: "",
+                                                                                                                    array: (() => {
+                                                                                                                        let group: string[] = []
+                                                                                                                        gvc.glitter.share.editorViewModel.dataList.map((dd: any) => {
+                                                                                                                            if (group.indexOf(dd.group) === -1 && dd.page_type === 'module') {
+                                                                                                                                group.push(dd.group)
+                                                                                                                            }
+                                                                                                                        });
+                                                                                                                        return group
+                                                                                                                    })(),
+                                                                                                                    callback: (text: string) => {
+                                                                                                                        tdata.group = text
+                                                                                                                    },
+                                                                                                                    placeHolder: "請輸入模塊分類"
+                                                                                                                })].join('')}
+                                                                                                                <div class="d-flex mb-0 pb-0 mt-2"
+                                                                                                                     style="justify-content: end;"
+                                                                                                                >
+                                                                                                                    <button class="btn btn-outline-dark me-2  "
+                                                                                                                            style=""
+                                                                                                                            type="button"
+                                                                                                                            onclick="${gvc.event(() => {
+                                                                                                                                gvc.closeDialog()
+                                                                                                                            })}">
+                                                                                                                        取消
+                                                                                                                    </button>
+                                                                                                                    <button class="btn btn-primary-c  "
+                                                                                                                            style=""
+                                                                                                                            type="button"
+                                                                                                                            onclick="${gvc.event(() => {
+                                                                                                                                const dialog = new ShareDialog(gvc.glitter)
+                                                                                                                                dialog.dataLoading({
+                                                                                                                                    text: "上傳中",
+                                                                                                                                    visible: true
+                                                                                                                                })
+                                                                                                                                ApiPageConfig.addPage(tdata).then((it) => {
+                                                                                                                                    setTimeout(() => {
+                                                                                                                                        dialog.dataLoading({visible: false})
+                                                                                                                                        if (it.result) {
+                                                                                                                                            gvc.glitter.share.addComponent({
+                                                                                                                                                "id": gvc.glitter.getUUID(),
+                                                                                                                                                "js": "./official_view_component/official.js",
+                                                                                                                                                "css": {
+                                                                                                                                                    "class": {},
+                                                                                                                                                    "style": {}
+                                                                                                                                                },
+                                                                                                                                                "data": {
+                                                                                                                                                    "tag": tdata.tag,
+                                                                                                                                                    "list": [],
+                                                                                                                                                    "carryData": {}
+                                                                                                                                                },
+                                                                                                                                                "type": "component",
+                                                                                                                                                "class": "",
+                                                                                                                                                "index": 0,
+                                                                                                                                                "label": "標頭區塊",
+                                                                                                                                                "style": "",
+                                                                                                                                                "bundle": {},
+                                                                                                                                                "global": [],
+                                                                                                                                                "toggle": false,
+                                                                                                                                                "stylist": [],
+                                                                                                                                                "dataType": "static",
+                                                                                                                                                "style_from": "code",
+                                                                                                                                                "classDataType": "static",
+                                                                                                                                                "preloadEvenet": {},
+                                                                                                                                                "share": {}
+                                                                                                                                            })
+                                                                                                                                            gvc.glitter.closeDiaLog()
+                                                                                                                                            gvc.glitter.htmlGenerate.saveEvent(true)
+                                                                                                                                        } else {
+                                                                                                                                            dialog.errorMessage({
+                                                                                                                                                text: "已有此頁面標籤"
+                                                                                                                                            })
+                                                                                                                                        }
+                                                                                                                                    }, 1000)
+                                                                                                                                })
+                                                                                                                            })}">
+                                                                                                                        確認添加
+                                                                                                                    </button>
+                                                                                                                </div>
+                                                                                                            </div>
+                                                                                                        </div>`
+                                                                                                }, '')
+
+                                                                                            })}"
+                                                                                    >
+                                                                                        <i class="fa-regular fa-circle-plus me-2"></i>新增模塊
+                                                                                    </button>
+                                                                                </div>
+                                                                            </div>
+                                                                            <h3 class="fs-6 mb-0">${dd.name}</h3>
+                                                                        </div>
+                                                                    </div>
+                                                                `
+                                                            }).join('')}
+                                                        </div>`)
+                                                }
+                                                break
+                                            case "template":
+                                                Add_item_dia.add_official_plugin(gvc, searchText).then((data) => {
+                                                    contentVM.loading = false
+                                                    contentVM.leftBar = data.left
+                                                    contentVM.rightBar = data.right
+                                                    resolve(`<div class="d-flex">
+<div style="width:300px;overflow-y: auto;height:400px;" class="border-end">${data.left}</div>
+<div style="height:400px;">${data.right}</div>
+</div>`)
+                                                })
+                                                break
+                                            case "view":
+                                                Add_item_dia.add_unit_component(gvc, searchText).then((data) => {
+                                                    contentVM.loading = false
+                                                    contentVM.leftBar = data.left
+                                                    contentVM.rightBar = data.right
+                                                    resolve(`<div class="d-flex">
+<div style="width:300px;overflow-y: auto;height:400px;" class="border-end">${data.left}</div>
+<div style="height:400px;">${data.right}</div>
+</div>`)
+                                                })
+                                                break
+                                            case "ai":
+                                                Add_item_dia.add_ai_micro_phone(gvc).then((data) => {
+                                                    contentVM.loading = false
+                                                    contentVM.leftBar = data.left
+                                                    contentVM.rightBar = data.right
+                                                    resolve(`<div class="d-flex">
+<div style="width:400px;overflow-y: auto;height:490px;" class="border-end">${data.left}</div>
+</div>`)
+                                                })
+                                                break
+                                            case "code":
+                                                Add_item_dia.add_code_component(gvc).then((data) => {
+                                                    contentVM.loading = false
+                                                    contentVM.leftBar = data.left
+                                                    contentVM.rightBar = data.right
+                                                    resolve(`<div class="d-flex">
+<div style="width:450px;overflow-y: auto;height:720px;" class="border-end">${data.left}</div>
+</div>`)
+                                                })
+                                                break
+                                            case "copy":
+                                                Add_item_dia.past_data(gvc).then((data) => {
+                                                    contentVM.loading = false
+                                                    contentVM.leftBar = data.left
+                                                    contentVM.rightBar = data.right
+                                                    resolve(`<div class="d-flex">
+<div style="width:450px;overflow-y: auto;height:540px;" class="border-end">${data.left}</div>
+</div>`)
+                                                })
+                                        }
+
+                                    })
+                                },
+                                divCreate: {
+                                    class: ``,
+                                    style: `overflow-y:auto;min-height:280px;`
+                                }
+                            }
+                        })}
+                    `
+                },
+                divCreate: {
+                    class: `position-relative`,
+                    style: 'max-width:100%;'
+                },
+                onCreate: () => {
+                    $('.tooltip')!.remove();
+                    ($('[data-bs-toggle="tooltip"]') as any).tooltip();
+                }
+            }
+        })
+    }
+
+
     public static add_official_plugin(gvc: GVC, search: string) {
-
         return new Promise<{ left: string, right: string }>(async (resolve, reject) => {
-
             const glitter = gvc.glitter;
             const docID = gvc.glitter.getUUID()
             const tabID = gvc.glitter.getUUID()
@@ -404,7 +668,16 @@ class Add_item_dia {
                             if (hi) {
                                 return it
                             } else {
-                                return `<span class="font-14 m-auto p-2 w-100 d-flex align-items-center justify-content-center fw-500">很抱歉，查無相關模塊.</span>`
+                                return `<div class="d-flex align-items-center justify-content-center flex-column w-100"
+                                                             style="width:700px;">
+                                                            <lottie-player style="max-width: 100%;width: 300px;"
+                                                                           src="https://assets10.lottiefiles.com/packages/lf20_rc6CDU.json"
+                                                                           speed="1" loop="true"
+                                                                           background="transparent"></lottie-player>
+                                                            <h3 class="text-dark fs-6 mt-n3 px-2  "
+                                                                style="line-height: 200%;text-align: center;">
+                                                                查無相關模塊。</h3>
+                                                        </div>`
                             }
                         } catch (e) {
                             console.log(e)
@@ -432,7 +705,7 @@ class Add_item_dia {
 
                         return html`
                             <div class="d-flex mx-n2 mt-n2 px-2 hi fw-bold d-flex align-items-center border-bottom border-top py-2 bgf6"
-                                 style="color:#151515;font-size:16px;gap:0px;height:48px;">
+                                 style="color:#151515;font-size:16px;gap:0px;height:44px;">
                                 模塊描述
                             </div>
                             <div class="d-flex flex-column w-100" style="height:calc(100% - 48px);">
@@ -675,7 +948,16 @@ class Add_item_dia {
                             if (hi) {
                                 return it
                             } else {
-                                return `<span class="font-14 m-auto p-2 w-100 d-flex align-items-center justify-content-center fw-500">很抱歉，查無相關模塊.</span>`
+                                return `<div class="d-flex align-items-center justify-content-center flex-column w-100"
+                                                             style="width:700px;">
+                                                            <lottie-player style="max-width: 100%;width: 300px;"
+                                                                           src="https://assets10.lottiefiles.com/packages/lf20_rc6CDU.json"
+                                                                           speed="1" loop="true"
+                                                                           background="transparent"></lottie-player>
+                                                            <h3 class="text-dark fs-6 mt-n3 px-2  "
+                                                                style="line-height: 200%;text-align: center;">
+                                                                查無相關模塊。</h3>
+                                                        </div>`
                             }
                         } catch (e) {
                             console.log(e)
@@ -852,11 +1134,11 @@ class Add_item_dia {
                     ${EditorElem.customCodeEditor({
                         gvc: gvc,
                         title: '',
-                        height:370,
-                        initial:code,
+                        height: 370,
+                        initial: code,
                         language: 'html',
                         callback: (text) => {
-                            console.log(`change--`,text)
+                            console.log(`change--`, text)
                             code = text;
                         }
                     })}
@@ -892,7 +1174,7 @@ class Add_item_dia {
                     dialog.errorMessage({text: "請輸入描述語句"})
                     return
                 }
-                dialog.dataLoading({text:"AI運算中",visible:true})
+                dialog.dataLoading({text: "AI運算中", visible: true})
                 BaseApi.create({
                     "url": config.url + `/api/v1/ai/generate-html`,
                     "type": "POST",
@@ -903,8 +1185,8 @@ class Add_item_dia {
                     data: JSON.stringify({
                         "search": configText
                     })
-                }).then((re:any) => {
-                    dialog.dataLoading({visible:false})
+                }).then((re: any) => {
+                    dialog.dataLoading({visible: false})
                     if (re.result) {
                         const html = document.createElement('body');
                         console.log(`responseData:` + re.response.data)
@@ -994,7 +1276,7 @@ class Add_item_dia {
 
     public static past_data(gvc: GVC) {
         return new Promise<{ left: string, right: string }>((resolve, reject) => {
-            let copyCount=1
+            let copyCount = 1
             const textID = gvc.glitter.getUUID()
             const glitter = gvc.glitter
             let configText = ''
@@ -1011,7 +1293,7 @@ class Add_item_dia {
                     return
                 }
                 glitter.share.copycomponent = configText;
-                for(let c=0;c<copyCount;c++){
+                for (let c = 0; c < copyCount; c++) {
                     glitter.share.pastEvent()
                 }
                 gvc.closeDialog()
@@ -1028,16 +1310,16 @@ class Add_item_dia {
                             return `<div class=" alert alert-info mt-2 p-2" style="white-space: normal;word-break:break-all;">
 將複製於剪貼簿的元件貼上於下方區塊，確認後來產生元件．
 </div>
-` +EditorElem.editeInput({
-                                gvc:gvc,
-                                title:"複製數量",
-                                default:`${copyCount}`,
-                                placeHolder:"複製數量",
-                                callback:(text)=>{
-                                    copyCount=parseInt(text,10)
+` + EditorElem.editeInput({
+                                gvc: gvc,
+                                title: "複製數量",
+                                default: `${copyCount}`,
+                                placeHolder: "複製數量",
+                                callback: (text) => {
+                                    copyCount = parseInt(text, 10)
                                 },
-                                type:'number'
-                            })+ `<div class="my-2"></div>`+gvc.bindView({
+                                type: 'number'
+                            }) + `<div class="my-2"></div>` + gvc.bindView({
                                 bind: id,
                                 view: () => {
                                     return configText ?? ""
@@ -1064,7 +1346,7 @@ class Add_item_dia {
                                  確認並複製
                                 </button>`
                         },
-                        divCreate: {class: `w-100 px-2 ` ,style:`height:530px;`}
+                        divCreate: {class: `w-100 px-2 `, style: `height:530px;`}
                     }
                 })}
 `,
@@ -1073,7 +1355,7 @@ class Add_item_dia {
         })
     }
 
-    public static add_content_folder(gvc: GVC,tagType:string, callback?: (data: any) => void) {
+    public static add_content_folder(gvc: GVC, tagType: string, callback?: (data: any) => void) {
         return gvc.bindView(() => {
             const id = gvc.glitter.getUUID()
             return {
@@ -1081,12 +1363,12 @@ class Add_item_dia {
                 view: () => {
                     return html`<a class="dropdown-item" style="cursor:pointer;" onclick="${gvc.event(() => {
                         const data = {
-                            id:gvc.glitter.getUUID(),
-                            label:"分類名稱",
-                            data:{
-                                setting:[]
+                            id: gvc.glitter.getUUID(),
+                            label: "分類名稱",
+                            data: {
+                                setting: []
                             },
-                            type:'container'
+                            type: 'container'
                         }
                         if (callback) {
                             callback(data)
@@ -1097,24 +1379,36 @@ class Add_item_dia {
                     })}">添加分類</a>
                     <a class="dropdown-item" style="cursor:pointer;" onclick="${gvc.event(() => {
                         const data = {
-                            id:gvc.glitter.getUUID(),
-                            label:"標籤名稱",
-                            data:{
-                                value:"",
-                                tagType:tagType
+                            id: gvc.glitter.getUUID(),
+                            label: "標籤名稱",
+                            data: {
+                                value: "",
+                                tagType: tagType
                             },
-                            type:'text',
+                            type: 'text',
                         }
                         if (callback) {
                             callback(data)
                         } else {
                             gvc.glitter.share.addComponent(data);
                         }
-                    })}">添加資源</a>`
+                    })}">添加資源</a>
+                    <a class="dropdown-item" style="cursor:pointer;" onclick="${gvc.event(() => {
+                        new Promise(async (resolve, reject) => {
+                            const data = JSON.parse((await navigator.clipboard.readText()));
+                            data.id = gvc.glitter.getUUID()
+                            if (callback) {
+                                callback(data);
+                            } else {
+                                gvc.glitter.share.addComponent(data);
+                            }
+                        })
+                    })}">剪貼簿貼上</a>`
                 }
             }
         })
     }
+
     public static add_style(gvc: GVC, callback?: (data: any) => void
     ) {
         return gvc.bindView(() => {
@@ -1217,7 +1511,7 @@ class Add_item_dia {
                             }
                         })}">添加SCRIPT代碼</a>
                         <a class="dropdown-item" style="cursor:pointer;" onclick="${gvc.event(() => {
-                            const data ={
+                            const data = {
                                 "id": gvc.glitter.getUUID(),
                                 "js": "https://sam38124.github.io/One-page-plugin/src/official.js",
                                 "data": {
@@ -1250,7 +1544,7 @@ class Add_item_dia {
                             }
                         })}">添加SCRIPT資源</a>
                         <a class="dropdown-item" style="cursor:pointer;" onclick="${gvc.event(() => {
-                            const data ={
+                            const data = {
                                 "id": gvc.glitter.getUUID(),
                                 "data": {"triggerTime": "first", "clickEvent": {}},
                                 "type": "code",
@@ -1475,7 +1769,7 @@ async function saveHTML(json: any, relativePath: string, gvc: GVC, elem?: {
                 "class": obj.attributes.class ?? "",
                 "style": (obj.attributes.style ?? ""),
                 "attr": Object.keys(obj.attributes).filter((key) => {
-                    return key !== 'class' && key !== 'style' && key !=='gvc-id' && key !== 'glem'
+                    return key !== 'class' && key !== 'style' && key !== 'gvc-id' && key !== 'glem'
                 }).map((dd) => {
                     const of = obj.attributes[dd]
                     return {

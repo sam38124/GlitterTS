@@ -128,12 +128,6 @@ ${(!itemList.find((dd: any) => {
                                         view: (gvc: GVC) => {
                                             return BgSeo.mainPage(gvc)
                                         }
-                                    },
-                                    {
-                                        title: `金流 / 發票`,
-                                        view: (gvc: GVC) => {
-                                            return BgShopping.setFinanceWay(gvc) + BgShopping.invoice_setting(gvc)
-                                        }
                                     }
                                 ]
                                 return html`
@@ -156,15 +150,13 @@ ${(!itemList.find((dd: any) => {
                                             }
                                         }
                                     ], id)}
-                                    ${setBackendEditor(`fa-regular fa-blog me-1`, `Blog / 網誌`, [
-                                        {
-                                            title: `內容管理`,
-                                            view: (gvc: GVC) => {
-                                                return BgBlog.contentManager(gvc,'list')
-                                            }
-                                        }
-                                    ], id)}
                                     ${setBackendEditor(`fa-regular fa-shop me-1`, `電子商務`, [
+                                        {
+                                            title: `金流 / 物流 / 發票`,
+                                            view: (gvc: GVC) => {
+                                                return BgShopping.setFinanceWay(gvc) + BgShopping.logistics_setting(gvc) + BgShopping.invoice_setting(gvc)
+                                            }
+                                        },
                                         {
                                             title: `商品管理`,
                                             view: (gvc: GVC) => {
@@ -175,14 +167,6 @@ ${(!itemList.find((dd: any) => {
                                             title: `商品系列`,
                                             view: (gvc: GVC) => {
                                                 return BgShopping.collectionManager({
-                                                    gvc: gvc
-                                                })
-                                            }
-                                        },
-                                        {
-                                            title: `顯示區塊`,
-                                            view: (gvc: GVC) => {
-                                                return BgShopping.showListManager({
                                                     gvc: gvc
                                                 })
                                             }
@@ -209,6 +193,14 @@ ${(!itemList.find((dd: any) => {
                                             title: `回饋金`,
                                             view: (gvc: GVC) => {
                                                 return BgWallet.rebateList(gvc)
+                                            }
+                                        }
+                                    ], id)}
+                                    ${setBackendEditor(`fa-regular fa-blog me-1`, `Blog / 網誌`, [
+                                        {
+                                            title: `內容管理`,
+                                            view: (gvc: GVC) => {
+                                                return BgBlog.contentManager(gvc,'list')
                                             }
                                         }
                                     ], id)}
@@ -294,7 +286,8 @@ ${(!itemList.find((dd: any) => {
                                             }
                                         }
                                     ], id)}
-                                    ${((window as any).glitterAuth.memberType==='noLimit') ? setBackendEditor(`fa-solid fa-code`, `自訂代碼事件`, [
+                                    
+                                    ${((window as any).memberType==='noLimit') ? setBackendEditor(`fa-solid fa-code`, `自訂代碼事件`, [
                                         ...(() => {
                                             let cCat = []
                                             cCat.push({

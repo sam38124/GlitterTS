@@ -11,7 +11,8 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                 "tag": "",
                 "group": "",
                 "name": "",
-                "config": []
+                "config": [],
+                "page_type": 'page'
             };
             let addType = 'manual';
             return `
@@ -30,8 +31,35 @@ ${gvc.bindView(() => {
                 return {
                     bind: id,
                     view: () => {
-                        var _a;
+                        var _a, _b;
                         return gvc.map([
+                            EditorElem.select({
+                                gvc: gvc,
+                                title: '類型',
+                                def: (_a = tdata.page_type) !== null && _a !== void 0 ? _a : 'page',
+                                array: [
+                                    {
+                                        title: "網頁",
+                                        value: 'page'
+                                    },
+                                    {
+                                        title: "頁面模塊",
+                                        value: 'module'
+                                    },
+                                    {
+                                        title: "網誌模板",
+                                        value: 'article'
+                                    },
+                                    {
+                                        title: "Blog網誌",
+                                        value: 'blog'
+                                    }
+                                ],
+                                callback: (text) => {
+                                    tdata.page_type = text;
+                                    gvc.notifyDataChange(id);
+                                }
+                            }),
                             glitter.htmlGenerate.editeInput({
                                 gvc: gvc,
                                 title: '頁面標籤',
@@ -60,7 +88,7 @@ ${gvc.bindView(() => {
                                 array: (() => {
                                     let group = [];
                                     gBundle.vm.dataList.map((dd) => {
-                                        if (group.indexOf(dd.group) === -1) {
+                                        if (group.indexOf(dd.group) === -1 && (dd.page_type === tdata.page_type)) {
                                             group.push(dd.group);
                                         }
                                     });
@@ -74,7 +102,7 @@ ${gvc.bindView(() => {
                             EditorElem.select({
                                 title: "[可選]：複製頁面內容",
                                 gvc: gvc,
-                                def: (_a = tdata.copy) !== null && _a !== void 0 ? _a : "",
+                                def: (_b = tdata.copy) !== null && _b !== void 0 ? _b : "",
                                 array: [
                                     {
                                         title: '選擇複製頁面內容', value: ''
@@ -87,7 +115,9 @@ ${gvc.bindView(() => {
                                         return 1;
                                     }
                                     return 0;
-                                })).map((dd) => {
+                                })).filter((d2) => {
+                                    return d2.page_type === tdata.page_type;
+                                }).map((dd) => {
                                     return {
                                         title: `${dd.group}-${dd.name}`, value: dd.tag
                                     };

@@ -19,6 +19,15 @@ class FinancialService {
         else if (this.keyData.TYPE === 'ecPay') {
             return await (new EcPay(this.appName, this.keyData).createOrderPage(orderData));
         }
+        else {
+            return await database_js_1.default.execute(`insert into \`${this.appName}\`.t_checkout (cart_token, status, email, orderData)
+                          values (?, ?, ?, ?)`, [
+                new Date().getTime(),
+                0,
+                orderData.email,
+                orderData
+            ]);
+        }
         return ``;
     }
     async saveMoney(orderData) {

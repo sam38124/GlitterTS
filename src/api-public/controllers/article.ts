@@ -16,11 +16,16 @@ export = router;
 router.get('/', async (req: express.Request, resp: express.Response) => {
     try {
         let query = [
-            `\`group\` = 'glitter-article'`,
+            `page_type = 'blog'`,
             `\`appName\` = ${db.escape(req.get('g-app') as string)}`
         ]
         req.query.tag && query.push(`tag = ${db.escape(req.query.tag)}`)
         req.query.label && query.push(`(JSON_EXTRACT(page_config, '$.meta_article.tag') LIKE '%${req.query.label}%')`)
+        if(!(await UtPermission.isManager(req))){
+            query.push(`(JSON_EXTRACT(page_config, '$.hideIndex') IS NULL
+   OR JSON_EXTRACT(page_config, '$.hideIndex') != 'true')`)
+        }
+
         if(req.query.search){
             query.push(`tag like '%${req.query.search}%'`)
         }

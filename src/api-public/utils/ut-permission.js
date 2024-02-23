@@ -9,10 +9,15 @@ const config_js_1 = require("../../config.js");
 class UtPermission {
     static isManager(req) {
         return new Promise(async (resolve, reject) => {
-            resolve((await database_js_1.default.query(`SELECT count(1)
+            try {
+                resolve((await database_js_1.default.query(`SELECT count(1)
                              FROM ${config_js_1.saasConfig.SAAS_NAME}.app_config
                              where user = ?
                                and appName = ?`, [req.body.token.userID, req.get('g-app')]))[0]['count(1)'] == 1);
+            }
+            catch (e) {
+                resolve(false);
+            }
         });
     }
     static isAppUser(req) {

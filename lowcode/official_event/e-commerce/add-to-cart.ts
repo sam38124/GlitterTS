@@ -28,16 +28,19 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                         const pdid = await TriggerEvent.trigger({
                             gvc: gvc,
                             widget: widget,
-                            clickEvent: object.pdid
+                            clickEvent: object.pdid,
+                            subData:subData,
+                            element:element
                         })
                         const count = (await TriggerEvent.trigger({
                             gvc: gvc,
                             widget: widget,
-                            clickEvent: object.count
+                            clickEvent: object.count,
+                            subData:subData,
+                            element:element
                         })) || 1
                         ApiShop.addToCart(pdid as string, count as string)
-                        ApiShop.getCart().then((resolve) => {
-                        })
+                        ApiShop.getCart().then((resolve) => {})
                         resolve(pdid)
                     })
                 },

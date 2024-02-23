@@ -17,9 +17,11 @@ import ai=require('./ai');
 import template=require('./template');
 import app=require('./app');
 import filemanager=require('./filemanager')
+import globalEvent=require('./global-event')
 import * as fs from "fs";
 import {Express} from "express-serve-static-core";
 import {IToken} from "../models/Auth.js";
+
 router.use('/api/*', doAuthAction);
 router.use(config.getRoute(config.route.user), userRouter);
 router.use(config.getRoute(config.route.template), template);
@@ -27,6 +29,7 @@ router.use(config.getRoute(config.route.app), app);
 router.use(config.getRoute(config.route.fileManager),filemanager)
 router.use(config.getRoute(config.route.private),privateConfig)
 router.use(config.getRoute(config.route.ai),ai)
+router.use(config.getRoute(config.route.globalEvent),globalEvent)
 /******************************/
 
 const whiteList:{}[] = [
@@ -35,8 +38,10 @@ const whiteList:{}[] = [
     { url: config.getRoute(config.route.app)+"/plugin", method: 'GET' },
     { url: config.getRoute(config.route.template), method: 'GET' },
     { url: config.getRoute(config.route.fileManager)+"/upload", method: 'POST' },
-    { url: config.getRoute(config.route.app)+"/official/plugin", method: 'GET' }
+    { url: config.getRoute(config.route.app)+"/official/plugin", method: 'GET' },
+    { url: config.getRoute(config.route.globalEvent), method: 'GET' }
 ];
+
 async function doAuthAction(req: express.Request, resp: express.Response, next: express.NextFunction) {
     const logger = new Logger();
     const TAG = '[DoAuthAction]';

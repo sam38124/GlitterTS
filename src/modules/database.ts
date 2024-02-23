@@ -236,6 +236,10 @@ const escape = (parameter: any) => {
     return mysql.escape(parameter);
 };
 
+const checkExists = async (sql:string)=>{
+    return (await query('select count(1) from '+sql,[]))[0]['count(1)']>0
+}
+
 export default {
     createPool,
     execute,
@@ -244,10 +248,5 @@ export default {
     getPagination,
     escape,
     queryLambada,
+    checkExists
 };
-
-// module.exports.createPool = createPool;
-// module.exports.execute = execute;
-// module.exports.Transaction = Transaction;
-// module.exports.getPagination = getPagination;
-// module.exports.escape = escape;

@@ -56,6 +56,11 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                         title:'購買數量'
                                     }))
                                 }
+                                map.push(
+                                    EditorElem.pageSelect(gvc,'跳轉頁面',object.switchPage??'',(tag)=>{
+                                        object.switchPage=tag
+                                    })
+                                )
                                 return EditorElem.container(map)
                             }
                         }
@@ -85,7 +90,7 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                         const rebate=await ApiShop.getRebateValue() || 0
                         function checkout(){
                             const href=new URL(location.href)
-                            href.searchParams.set('page','')
+                            href.searchParams.set('page',object.switchPage || '')
                             ApiShop.toCheckout({
                                 line_items:cartData.line_items.map((dd)=>{
                                     return {
@@ -99,15 +104,13 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                 code:voucher as string,
                                 use_rebate:parseInt(rebate as string,10)
                             }).then((res)=>{
-                                if(object.payType==='offline'){
+                                if(object.payType==='offline' || res.response.off_line){
                                     ApiShop.clearCart()
                                     resolve(true)
-
+                                    location.href=href.href
                                 }else{
-                                    $('body').html(res.response.form)
-                                    setTimeout(()=>{
-                                        console.log( (document.querySelector('#submit') as any).click())
-                                    },1000)
+                                    $('body').html(res.response.form);
+                                    (document.querySelector('#submit') as any).click();
                                     ApiShop.clearCart()
                                 }
 
@@ -129,15 +132,19 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                         }else{
                             ApiShop.getCart().then(async (res:any)=>{
                                 for (const b of Object.keys(res)){
-                                    const pd:any=(await  ApiShop.getProduct({limit:50,page:0,id:b.split('-')[0]})).response.data.content
-                                    const vard=pd.variants.find((d2:any)=>{
-                                        return `${pd.id}-${d2.spec.join('-')}`===b
-                                    });
-                                    vard.id=pd.id
-                                    vard.count=res[b]
-                                    vard.title=pd.title
-                                    cartData.line_items.push(vard)
-                                    cartData.total+=vard.count*vard.sale_price
+                                    try {
+                                        const pd:any=(await  ApiShop.getProduct({limit:50,page:0,id:b.split('-')[0]})).response.data.content
+                                        const vard=pd.variants.find((d2:any)=>{
+                                            return `${pd.id}-${d2.spec.join('-')}`===b
+                                        });
+                                        vard.id=pd.id
+                                        vard.count=res[b]
+                                        vard.title=pd.title
+                                        cartData.line_items.push(vard)
+                                        cartData.total+=vard.count*vard.sale_price
+                                    }catch (e) {
+
+                                    }
                                 }
                                 checkout()
                             })

@@ -6,7 +6,6 @@ import {GlobalUser} from "../../glitter-base/global/global-user.js";
 TriggerEvent.createSingleEvent(import.meta.url, () => {
     return {
         fun: (gvc, widget, object, subData) => {
-
             return {
                 editor: () => {
                     return ``
@@ -51,7 +50,7 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                     }
                                 }),
                                 code: voucher as string,
-                                use_rebate: parseInt(rebate as string, 10)
+                                use_rebate: GlobalUser.token && parseInt(rebate as string, 10)
                             }).then((res) => {
                                 if (res.result) {
                                     resolve(res.response.data)

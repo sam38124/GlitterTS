@@ -100,6 +100,76 @@ export class Plugin {
                             },
                         };
                     });
+                },
+                user_editor: () => {
+                    return gvc.bindView(() => {
+                        const tempView = glitter.getUUID();
+                        return {
+                            bind: tempView,
+                            view: () => {
+                                return ``;
+                            },
+                            divCreate: {
+                                class: ``
+                            },
+                            onCreate: () => {
+                                glitter.htmlGenerate.loadScript(glitter, [
+                                    {
+                                        src: url.href,
+                                        callback: (dd) => {
+                                            const target = document.querySelector(`[gvc-id="${gvc.id(tempView)}"]`);
+                                            let user_editor = dd.render(gvc, widget, setting, hoverID, subData, htmlGenerate).user_editor;
+                                            const editor = dd.render(gvc, widget, setting, hoverID, subData, htmlGenerate).editor;
+                                            function loopValue(view, first) {
+                                                if (!view) {
+                                                    if (first) {
+                                                        loopValue(editor, true);
+                                                    }
+                                                    else {
+                                                        target.outerHTML = '';
+                                                    }
+                                                }
+                                                else {
+                                                    view = view();
+                                                    if (typeof view === 'string') {
+                                                        if (view) {
+                                                            target.outerHTML = view;
+                                                        }
+                                                        else {
+                                                            if (first) {
+                                                                loopValue(editor, true);
+                                                            }
+                                                            else {
+                                                                target.outerHTML = view;
+                                                            }
+                                                        }
+                                                    }
+                                                    else {
+                                                        view.then((dd) => {
+                                                            if (dd) {
+                                                                target.outerHTML = dd;
+                                                            }
+                                                            else {
+                                                                if (first) {
+                                                                    loopValue(editor, true);
+                                                                }
+                                                                else {
+                                                                    target.outerHTML = dd;
+                                                                }
+                                                            }
+                                                        });
+                                                    }
+                                                }
+                                            }
+                                            loopValue(user_editor, true);
+                                        }
+                                    }
+                                ]);
+                            },
+                            onDestroy: () => {
+                            },
+                        };
+                    });
                 }
             };
         };
@@ -171,6 +241,76 @@ export class Plugin {
                                                     target.outerHTML = dd;
                                                 });
                                             }
+                                        }
+                                    }
+                                ]);
+                            },
+                            onDestroy: () => {
+                            },
+                        };
+                    });
+                },
+                user_editor: () => {
+                    return cf.gvc.bindView(() => {
+                        const tempView = glitter.getUUID();
+                        return {
+                            bind: tempView,
+                            view: () => {
+                                return ``;
+                            },
+                            divCreate: {
+                                class: ``
+                            },
+                            onCreate: () => {
+                                glitter.htmlGenerate.loadScript(glitter, [
+                                    {
+                                        src: url.href,
+                                        callback: (widget) => {
+                                            const target = document.querySelector(`[gvc-id="${cf.gvc.id(tempView)}"]`);
+                                            let user_editor = widget.render(cf).user_editor;
+                                            const editor = widget.render(cf).editor;
+                                            function loopValue(view, first) {
+                                                if (!view) {
+                                                    if (first) {
+                                                        loopValue(editor, true);
+                                                    }
+                                                    else {
+                                                        target.outerHTML = '';
+                                                    }
+                                                }
+                                                else {
+                                                    view = view();
+                                                    if (typeof view === 'string') {
+                                                        if (view) {
+                                                            target.outerHTML = view;
+                                                        }
+                                                        else {
+                                                            if (first) {
+                                                                loopValue(editor, true);
+                                                            }
+                                                            else {
+                                                                target.outerHTML = view;
+                                                            }
+                                                        }
+                                                    }
+                                                    else {
+                                                        view.then((dd) => {
+                                                            if (dd) {
+                                                                target.outerHTML = dd;
+                                                            }
+                                                            else {
+                                                                if (first) {
+                                                                    loopValue(editor, true);
+                                                                }
+                                                                else {
+                                                                    target.outerHTML = dd;
+                                                                }
+                                                            }
+                                                        });
+                                                    }
+                                                }
+                                            }
+                                            loopValue(user_editor, true);
                                         }
                                     }
                                 ]);

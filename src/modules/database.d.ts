@@ -27,5 +27,6 @@ declare const _default: {
     }, fun: (v: {
         query(sql: string, params: unknown[]): Promise<any>;
     }) => any) => Promise<any>;
+    checkExists: (sql: string) => Promise<boolean>;
 };
 export default _default;

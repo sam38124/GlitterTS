@@ -328,17 +328,18 @@ ${addNewlineAfterSemicolon(obj.initial)}
         width: number,
         height: number,
         par: { key: string, value: string }[]
-    }){
+    }) {
         const href = new URL(location.href)
         href.searchParams.set('page', cf.page)
         href.searchParams.set('type', 'editor')
-        href.searchParams.set('editorPosition','0')
-        href.searchParams.set('blogEditor',"true")
+        href.searchParams.set('editorPosition', '0')
+        href.searchParams.set('blogEditor', "true")
         cf.par.map((dd) => {
             href.searchParams.set(dd.key, dd.value)
         })
         return `<iframe class="rounded-3" src="${href.href}" style="border: none;width:${cf.width}px;height:${cf.height}px;"></iframe>`
     }
+
     public static iframeComponent(cf: {
         page: string,
         width: number,
@@ -364,8 +365,7 @@ ${addNewlineAfterSemicolon(obj.initial)}
         structStart?: string,
         structEnd?: string
     }) {
-        let idlist: any = []
-
+        const codeID = obj.gvc.glitter.getUUID()
         function getComponent(gvc: GVC, height: number) {
             return gvc.bindView(() => {
                 const id = obj.gvc.glitter.getUUID()
@@ -409,21 +409,27 @@ ${(obj.structEnd) ? obj.structEnd : "})()"}`,
                 }
             })
         }
-
         const html = String.raw
-        return obj.gvc.glitter.html`
-        <div class="d-flex">
-        ${(obj.title ? EditorElem.h3(obj.title) : '')}
-        <div class="d-flex align-items-center justify-content-center" style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;"
-        onclick="${obj.gvc.event(() => {
-            EditorElem.openEditorDialog(obj.gvc, (gvc: GVC) => {
-                return getComponent(gvc, window.innerHeight - 100)
-            }, () => {
-                obj.gvc.notifyDataChange(idlist)
-            })
-        })}"><i class="fa-solid fa-expand"></i></div>
-</div>
-        ` + getComponent(obj.gvc, obj.height)
+        return obj.gvc.bindView(() => {
+            return {
+                bind: codeID,
+                view: () => {
+                    return html`<div class="d-flex">
+                            ${(obj.title ? EditorElem.h3(obj.title) : '')}
+                            <div class="d-flex align-items-center justify-content-center"
+                                 style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;"
+                                 onclick="${obj.gvc.event(() => {
+                                     EditorElem.openEditorDialog(obj.gvc, (gvc: GVC) => {
+                                         return getComponent(gvc, window.innerHeight - 100)
+                                     }, () => {
+                                         obj.gvc.notifyDataChange(codeID)
+                                     })
+                                 })}"><i class="fa-solid fa-expand"></i></div>
+                        </div>` + getComponent(obj.gvc, obj.height)
+                }
+            }
+        })
+
     }
 
     public static customCodeEditor(obj: {
@@ -577,7 +583,7 @@ ${(obj.structEnd) ? obj.structEnd : "})()"}`,
         })
     }
 
-    public static pageSelect(gvc: GVC, title: string, def: any, callback: (tag: string) => void,filter?:(data:any)=>boolean) {
+    public static pageSelect(gvc: GVC, title: string, def: any, callback: (tag: string) => void, filter?: (data: any) => boolean) {
         const glitter = gvc.glitter
         const id = glitter.getUUID()
         const data: any = {
@@ -594,7 +600,7 @@ ${(obj.structEnd) ? obj.structEnd : "})()"}`,
                     "Content-Type": "application/json"
                 }
             }).then((d2: any) => {
-                data.dataList = d2.response.result.filter((dd:any)=>{
+                data.dataList = d2.response.result.filter((dd: any) => {
                     return (!filter) || filter!(dd)
                 })
 
@@ -1001,6 +1007,7 @@ ${obj.gvc.bindView(() => {
         callback: (text: string) => void;
         placeHolder: string;
     }) {
+        obj.def=obj.def || ''
         const glitter = (window as any).glitter;
         const gvc = obj.gvc;
         const $ = glitter.$;
@@ -1068,7 +1075,7 @@ ${obj.gvc.bindView(() => {
                     },
                     divCreate: {
                         class: `dropdown-menu`,
-                        style: `transform: translateY(40px);max-height:300px;overflow-y:scroll;`,
+                        style: `transform: translateY(40px);max-height:200px;overflow-y:scroll;position:fixed;`,
                     },
                 };
             })}
@@ -1240,10 +1247,12 @@ ${obj.gvc.bindView(() => {
     public static checkBox(obj: {
         title: string;
         gvc: any;
-        def: string;
+        def: string|string[];
         array: string[] | { title: string; value: string; innerHtml?: string }[];
         callback: (text: string) => void;
+        type?:'single'|'multiple'
     }) {
+        obj.type=obj.type ?? 'single'
         const gvc = obj.gvc;
         return /*html*/ `
             ${(obj.title) ? EditorElem.h3(obj.title) : ``}
@@ -1254,14 +1263,36 @@ ${obj.gvc.bindView(() => {
                     bind: id,
                     view: () => {
                         return obj.array.map((dd: any) => {
+                            function isSelect(){
+                                if(obj.type==='multiple'){
+                                  return (obj.def as any).find((d2:any)=>{
+                                      return d2===dd.value;
+                                  })
+                                }else{
+                                   return obj.def === dd.value
+                                }
+                            }
                             return `<div class="d-flex align-items-center" onclick="${
                                 obj.gvc.event(() => {
-                                    obj.def = dd.value
-                                    obj.callback(dd.value)
+                                    if(obj.type==='multiple'){
+                                        if((obj.def as any).find((d2:any)=>{
+                                            return d2===dd.value;
+                                        })){
+                                            obj.def=(obj.def as any).filter((d2:any)=>{
+                                                return d2!==dd.value;
+                                            })
+                                        }else{
+                                            (obj.def as any).push(dd.value)
+                                        }
+                                        obj.callback(obj.def as any)
+                                    }else{
+                                        obj.def = dd.value
+                                        obj.callback(dd.value)
+                                    }
                                     gvc.notifyDataChange(id)
                                 })
                             }">
-<i class="${(obj.def === dd.value) ? `fa-solid fa-square-check` : `fa-regular fa-square`} me-2" style="${(obj.def === dd.value) ? `color:#295ed1;` : `color:black;`}"></i>
+<i class="${(isSelect()) ? `fa-solid fa-square-check` : `fa-regular fa-square`} me-2" style="${(isSelect()) ? `color:#295ed1;` : `color:black;`}"></i>
 <span style="font-size:0.85rem;">${dd.title}</span>
 </div>
 ${(obj.def === dd.value && dd.innerHtml) ? `<div class="mt-1">${dd.innerHtml}</div>` : ``}
@@ -1731,51 +1762,38 @@ ${(obj.def === dd.value && dd.innerHtml) ? `<div class="mt-1">${dd.innerHtml}</d
                                     return ``
                                 }
                                 let interval: any = undefined
-                                return `<div class="btn-group dropend subBt my-auto ms-1">
-
-                                                <div type="button" class="bt" style="background:none;"
+                                return ` <div type="button" class="bt ms-1" style="background:none;"
                                                      data-bs-toggle="dropdown" aria-haspopup="true"
                                                      data-placement="right"
-                                                     aria-expanded="false">
-                                                    <i class="fa-regular fa-paste"></i>
-                                                </div>
-                                                <div class="dropdown-menu mx-1 shadow-lg bgf6" data-placement="right"
-                                                    style="min-height: 150px;border:1px solid black;">
-                                                     <div class="px-2 position-relative" style="width:250px;z-index:2;">
-                                                       <i class="fa-sharp fa-regular fa-circle-xmark fs-5 position-absolute" style="right:10px;top:-5px;color:black;cursor:pointer;"></i>
-                                                     ${(() => {
-                                    let json = ''
-                                    return ` ${EditorElem.editeInput({
-                                        gvc: gvc,
-                                        title: "剪貼簿內容",
-                                        default: '',
-                                        placeHolder: '請貼上JSON資料格式',
-                                        callback: (text: string) => {
-                                            json = text
-                                        }
-                                    })}
-                                                       <button class="btn btn-primary-c  w-100 mt-2" onclick="${gvc.event(() => {
+                                                     aria-expanded="false" onclick="${gvc.event(()=>{
+                                    async function readClipboardContent() {
                                         try {
-                                            const data=JSON.parse(json)
-                                            if(Array.isArray(data)){
-                                                data.map((dd)=>{
-                                                    obj.originalArray.push(dd)
-                                                })
-                                            }else{
-                                                obj.originalArray.push(data)
+                                            // 使用 navigator.clipboard.readText() 方法取得剪貼簿的文字內容
+                                            const clipboardText:any = await navigator.clipboard.readText();
+                                            try {
+                                                const data = JSON.parse(clipboardText)
+                                                if (Array.isArray(data)) {
+                                                    data.map((dd) => {
+                                                        obj.originalArray.push(dd)
+                                                    })
+                                                } else {
+                                                    obj.originalArray.push(data)
+                                                }
+
+                                                gvc.notifyDataChange(viewId)
+                                                obj.refreshComponent()
+                                            } catch (e) {
+                                                alert('請貼上JSON格式')
                                             }
-                                          
-                                            gvc.notifyDataChange(viewId)
-                                            obj.refreshComponent()
-                                        } catch (e) {
-                                            alert('請貼上JSON格式')
+                                        } catch (error) {
+                                            // 處理錯誤，例如未授權或不支援
+                                            console.error('無法取得剪貼簿內容:', error);
                                         }
-                                    })}">確認新增</button>`
-                                })()}
-</div>
-                                                  
-                                                </div>
-                                            </div>`
+                                    }
+                                    readClipboardContent()
+                                })}">
+                                                    <i class="fa-regular fa-paste"></i>
+                                                </div>`
                             })()
                     }
                 </l1>` : ``)
@@ -1785,16 +1803,16 @@ ${(obj.def === dd.value && dd.innerHtml) ? `<div class="mt-1">${dd.innerHtml}</d
                              style="color:#151515;font-size:16px;gap:0px;">
                             ${obj.title}
                             <div class="flex-fill"></div>
-                          ${(obj.copyable!==false) ? `
+                          ${(obj.copyable !== false) ? `
                           <div class="d-flex align-items-center justify-content-center hoverBtn me-2 border" style="height:30px;width:30px;border-radius:6px;cursor:pointer;color:#151515;"
-                          onclick="${gvc.event(()=>{
+                          onclick="${gvc.event(() => {
             navigator.clipboard.writeText(JSON.stringify(obj.originalArray));
-            const dialog=new ShareDialog(gvc.glitter)
-            dialog.successMessage({text:"已複製至剪貼簿!"})
+            const dialog = new ShareDialog(gvc.glitter)
+            dialog.successMessage({text: "已複製至剪貼簿!"})
         })}">
                                     <i class="fa-sharp fa-regular fa-scissors" aria-hidden="true"></i>
                                 </div>
-                          `:``}
+                          ` : ``}
                         </div>` : ``) + gvc.bindView(() => {
             return {
                 bind: viewId,
@@ -1810,7 +1828,16 @@ ${(obj.def === dd.value && dd.innerHtml) ? `<div class="mt-1">${dd.innerHtml}</d
 
     }
 
-    public static openEditorDialog(gvc: GVC, inner: (gvc: GVC) => string, close: () => void, width?: number, title?: string) {
+    public static buttonPrimary(title: string, event: string) {
+        return `<button type="button" class="btn btn-primary-c  w-100" onclick="${event}">${title}</button>`
+    }
+
+    public static buttonNormal(title: string, event: string) {
+        return `<button type="button" class="btn w-100" style="background:white;width:calc(100%);border-radius:8px;
+                    min-height:45px;border:1px solid black;color:#151515;" onclick="${event}">${title}</button>`
+    }
+
+    public static openEditorDialog(gvc: GVC, inner: (gvc: GVC) => string, close: () => void, width?: number, title?: string,tag?:string) {
         return gvc.glitter.innerDialog((gvc: GVC) => {
             return gvc.glitter.html`
             <div class="dropdown-menu mx-0 position-fixed pb-0 border p-0 show "
@@ -1843,7 +1870,7 @@ ${(obj.def === dd.value && dd.innerHtml) ? `<div class="mt-1">${dd.innerHtml}</d
                     ${inner(gvc)}
                 </div>
             </div>`
-        }, gvc.glitter.getUUID())
+        }, tag ?? gvc.glitter.getUUID())
     }
 
     public static btnGroup(obj: {

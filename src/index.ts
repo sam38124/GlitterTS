@@ -186,13 +186,16 @@ export async function createAPP(dd: any) {
                     if (req.query.appName) {
                         appName = req.query.appName
                     }
-                    let overDue = await App.checkOverDue(appName)
+                    console.log(`appName-->`,appName)
+                    //SAAS品牌和用戶類型
+                    const brandAndMemberType=await App.checkBrandAndMemberType(appName)
+
                     let vm = {
                         glitterInfo: `<script>
 window.appName='${appName}';
-window.glitterBase='${overDue.brand}'
+window.glitterBase='${brandAndMemberType.brand}'
+window.memberType='${brandAndMemberType.memberType}'
 window.glitterBackend='${config.domain}';
-window.glitterAuth = ${JSON.stringify(overDue)}
 </script>`
                     }
                     let data = (await db.execute(`SELECT page_config, \`${saasConfig.SAAS_NAME}\`.app_config.\`config\`, tag
@@ -258,15 +261,14 @@ window.glitterAuth = ${JSON.stringify(overDue)}
     <meta property="og:image" content="${d.image ?? ""}">
     <meta property="og:title" content="${d.title ?? ""}">
     <meta name="description" content="${d.content ?? ""}">
+     <meta name="og:description" content="${d.content ?? ""}">
   ${(() => {
                                 if (req.query.type === 'editor') {
                                     return ``
                                 } else {
                                     return `  ${(data.config.globalStyle ?? []).map((dd: any) => {
                                         try {
-                                            if (dd.data.elem === 'style') {
-                                                return `<style>${dd.data.inner}</style>`
-                                            } else if (dd.data.elem === 'link') {
+                                          if (dd.data.elem === 'link') {
                                                 return `<link type="text/css" rel="stylesheet" href="${dd.data.attr.find((dd: any) => {
                                                     return dd.attr === 'href'
                                                 }).value}">`
@@ -294,7 +296,7 @@ window.location.href='?page=${redirect}';
                         }
                     })()}${vm.glitterInfo}`
                 } catch (e:any) {
-                    console.log(e.message)
+                    console.log(e)
                     return e.message
                 }
 

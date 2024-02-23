@@ -189,13 +189,14 @@ async function createAPP(dd) {
                     if (req.query.appName) {
                         appName = req.query.appName;
                     }
-                    let overDue = await app_js_1.App.checkOverDue(appName);
+                    console.log(`appName-->`, appName);
+                    const brandAndMemberType = await app_js_1.App.checkBrandAndMemberType(appName);
                     let vm = {
                         glitterInfo: `<script>
 window.appName='${appName}';
-window.glitterBase='${overDue.brand}'
+window.glitterBase='${brandAndMemberType.brand}'
+window.memberType='${brandAndMemberType.memberType}'
 window.glitterBackend='${config_1.config.domain}';
-window.glitterAuth = ${JSON.stringify(overDue)}
 </script>`
                     };
                     let data = (await database_2.default.execute(`SELECT page_config, \`${config_1.saasConfig.SAAS_NAME}\`.app_config.\`config\`, tag
@@ -251,7 +252,7 @@ window.glitterAuth = ${JSON.stringify(overDue)}
                         }
                     }
                     return `${(() => {
-                        var _a, _b, _c, _d, _e, _f, _g, _h, _j;
+                        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k;
                         data.page_config = (_a = data.page_config) !== null && _a !== void 0 ? _a : {};
                         if (data && data.page_config) {
                             const d = (_b = data.page_config.seo) !== null && _b !== void 0 ? _b : {};
@@ -263,6 +264,7 @@ window.glitterAuth = ${JSON.stringify(overDue)}
     <meta property="og:image" content="${(_g = d.image) !== null && _g !== void 0 ? _g : ""}">
     <meta property="og:title" content="${(_h = d.title) !== null && _h !== void 0 ? _h : ""}">
     <meta name="description" content="${(_j = d.content) !== null && _j !== void 0 ? _j : ""}">
+     <meta name="og:description" content="${(_k = d.content) !== null && _k !== void 0 ? _k : ""}">
   ${(() => {
                                 var _a;
                                 if (req.query.type === 'editor') {
@@ -271,10 +273,7 @@ window.glitterAuth = ${JSON.stringify(overDue)}
                                 else {
                                     return `  ${((_a = data.config.globalStyle) !== null && _a !== void 0 ? _a : []).map((dd) => {
                                         try {
-                                            if (dd.data.elem === 'style') {
-                                                return `<style>${dd.data.inner}</style>`;
-                                            }
-                                            else if (dd.data.elem === 'link') {
+                                            if (dd.data.elem === 'link') {
                                                 return `<link type="text/css" rel="stylesheet" href="${dd.data.attr.find((dd) => {
                                                     return dd.attr === 'href';
                                                 }).value}">`;
@@ -306,7 +305,7 @@ window.location.href='?page=${redirect}';
                     })()}${vm.glitterInfo}`;
                 }
                 catch (e) {
-                    console.log(e.message);
+                    console.log(e);
                     return e.message;
                 }
             }

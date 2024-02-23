@@ -9,6 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 import { TriggerEvent } from '../../glitterBundle/plugins/trigger-event.js';
 import { ApiShop } from "../../glitter-base/route/shopping.js";
+import { GlobalUser } from "../../glitter-base/global/global-user.js";
 TriggerEvent.createSingleEvent(import.meta.url, () => {
     return {
         fun: (gvc, widget, object, subData) => {
@@ -19,15 +20,43 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                 event: () => {
                     return new Promise((resolve, reject) => __awaiter(void 0, void 0, void 0, function* () {
                         ApiShop.getCart().then((res) => __awaiter(void 0, void 0, void 0, function* () {
-                            let total = 0;
+                            const cartData = {
+                                line_items: [],
+                                total: 0
+                            };
                             for (const b of Object.keys(res)) {
-                                const pd = (yield ApiShop.getProduct({ limit: 50, page: 0, id: b.split('-')[0] })).response.data.content;
-                                const vard = pd.variants.find((d2) => {
-                                    return `${pd.id}-${d2.spec.join('-')}` === b;
+                                cartData.line_items.push({
+                                    id: b.split('-')[0],
+                                    count: res[b],
+                                    spec: b.split('-').filter((dd, index) => {
+                                        return index !== 0;
+                                    })
                                 });
-                                total += parseInt(res[b], 10);
                             }
-                            resolve(total);
+                            const voucher = yield ApiShop.getVoucherCode();
+                            const rebate = (yield ApiShop.getRebateValue()) || 0;
+                            ApiShop.getCheckout({
+                                line_items: cartData.line_items.map((dd) => {
+                                    return {
+                                        id: dd.id,
+                                        spec: dd.spec,
+                                        count: dd.count
+                                    };
+                                }),
+                                code: voucher,
+                                use_rebate: GlobalUser.token && parseInt(rebate, 10)
+                            }).then((res) => {
+                                if (res.result) {
+                                    let total = 0;
+                                    res.response.data.lineItems.map((dd) => {
+                                        total += dd.count;
+                                    });
+                                    resolve(total);
+                                }
+                                else {
+                                    resolve(0);
+                                }
+                            });
                         }));
                     }));
                 },

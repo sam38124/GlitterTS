@@ -9,6 +9,7 @@ const config_1 = require("../config");
 exports.SaasScheme = {
     createScheme: async () => {
         const sql = String.raw;
+        await database_1.default.execute(`CREATE SCHEMA if not exists \`${config_1.saasConfig.SAAS_NAME}_recover\` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci ;`, []);
         await database_1.default.execute(`CREATE SCHEMA if not exists \`${config_1.saasConfig.SAAS_NAME}\` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci ;`, []);
         const sqlArray = [
             {
@@ -22,12 +23,17 @@ exports.SaasScheme = {
   \`group\` varchar(45) DEFAULT NULL,
   \`name\` varchar(45) NOT NULL,
   \`config\` json NOT NULL,
-  \`page_config\` json,
- \`created_time\` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  \`page_type\` varchar(45) NOT NULL DEFAULT 'page',
+  \`page_config\` json DEFAULT NULL,
+  \`created_time\` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  \`preview_image\` varchar(200) DEFAULT NULL,
+  \`favorite\` int NOT NULL DEFAULT '0',
   PRIMARY KEY (\`id\`),
   UNIQUE KEY \`page_index\` (\`appName\`,\`tag\`),
-  KEY \`app_index\` (\`userID\`,\`appName\`)
-) ENGINE=InnoDB AUTO_INCREMENT=1072 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci`
+  KEY \`app_index\` (\`userID\`,\`appName\`),
+  KEY \`index4\` (\`page_type\`),
+  KEY \`index5\` (\`favorite\`)
+) ENGINE=InnoDB AUTO_INCREMENT=3783 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci`
             },
             {
                 scheme: config_1.saasConfig.SAAS_NAME,
@@ -40,11 +46,12 @@ exports.SaasScheme = {
   \`created_time\` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   \`dead_line\` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   \`config\` json DEFAULT NULL,
-  \`brand\` varchar(45) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'glitter',
+  \`brand\` varchar(45) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'glitter',
   PRIMARY KEY (\`id\`),
   UNIQUE KEY \`user_app\` (\`user\`,\`appName\`),
   KEY \`find_user\` (\`user\`)
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+`
             },
             {
                 scheme: config_1.saasConfig.SAAS_NAME,
@@ -122,7 +129,6 @@ async function compare_sql_table(scheme, table, sql) {
     const older2 = await database_1.default.query(compareStruct2, [table, scheme]);
     const newest2 = await database_1.default.query(compareStruct2, [tempKey, scheme]);
     if (!(JSON.stringify(older) == JSON.stringify(newest)) || !(JSON.stringify(older2) == JSON.stringify(newest2))) {
-        console.log(`compare:${scheme}-table:${table}-sql:CREATE TABLE if not exists \`${scheme}\`.\`${table}\` ${sql}`);
         older = older.filter((dd) => {
             return newest.find((d2) => {
                 return dd.COLUMN_NAME === d2.COLUMN_NAME;
@@ -139,6 +145,9 @@ async function compare_sql_table(scheme, table, sql) {
         })
             .join(',')}
                                    FROM \`${scheme}\`.\`${table}\`
+        `, []);
+        await transaction.execute(`
+        CREATE TABLE  \`${scheme}_recover\`.\`${table}_${new Date().getTime()}\` AS SELECT * FROM \`${scheme}\`.\`${table}\`;
         `, []);
         await transaction.execute(`DROP TABLE \`${scheme}\`.\`${table}\`;`, []);
         await transaction.execute(`ALTER TABLE \`${scheme}\`.${tempKey} RENAME TO \`${scheme}\`.\`${table}\`;`, []);

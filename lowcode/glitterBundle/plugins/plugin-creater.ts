@@ -18,10 +18,12 @@ export interface HtmlJson {
     styleManager?: (tag: string) => { value: string, editor: (gvc: GVC, title: string) => string }
     refreshView?: () => void,
     refreshEditor?: () => void
-    formData?:any
-    pageConfig:any;
-    appConfig:any,
-    global:any
+    formData?: any
+    pageConfig: any;
+    appConfig: any,
+    global: any,
+    share: any,
+    bundle: any
 }
 
 export class Plugin {
@@ -62,23 +64,24 @@ export class Plugin {
     }) {
         const glitter = (window as any).glitter
         const val = fun(glitter, isEditMode())
-        glitter.share.htmlExtension[url]=val
+        glitter.share.htmlExtension[url] = val
         return val;
     }
 
     public static createViewComponent(url: string, fun: (
         glitter: Glitter, editMode: boolean) => {
         defaultData?: any, render: ((cf: {
-            gvc: GVC, widget: HtmlJson, widgetList: HtmlJson[], hoverID: string[], subData?: any, htmlGenerate?: any,formData:any
+            gvc: GVC, widget: HtmlJson, widgetList: HtmlJson[], hoverID: string[], subData?: any, htmlGenerate?: any, formData: any
         }) => {
             view: () => (Promise<string> | string),
-            editor: () => Promise<string> | string
+            editor: () => Promise<string> | string,
+            user_editor?:()=>(Promise<string> | string),
         })
     }) {
 
         const glitter = (window as any).glitter
         const val = fun(glitter, isEditMode())
-        glitter.share.htmlExtension[url]=val
+        glitter.share.htmlExtension[url] = val
         return val;
     }
 
@@ -101,12 +104,12 @@ export class Plugin {
                                 class: ``
                             },
                             onCreate: () => {
-                                glitter.htmlGenerate.loadScript(glitter,[
+                                glitter.htmlGenerate.loadScript(glitter, [
                                     {
                                         src: url.href,
-                                        callback:(dd:any)=>{
+                                        callback: (dd: any) => {
                                             const target = document.querySelector(`[gvc-id="${gvc.id(tempView)}"]`)
-                                            const view = dd.render(gvc, widget, setting, hoverID, subData,htmlGenerate).view()
+                                            const view = dd.render(gvc, widget, setting, hoverID, subData, htmlGenerate).view()
                                             if (typeof view === 'string') {
                                                 target!.outerHTML = view;
                                             } else {
@@ -116,7 +119,7 @@ export class Plugin {
                                             }
                                         }
                                     }
-                                ] )
+                                ])
                             },
                             onDestroy: () => {
                             },
@@ -135,12 +138,12 @@ export class Plugin {
                                 class: ``
                             },
                             onCreate: () => {
-                                glitter.htmlGenerate.loadScript(glitter,[
+                                glitter.htmlGenerate.loadScript(glitter, [
                                     {
                                         src: url.href,
-                                        callback:(dd:any)=>{
+                                        callback: (dd: any) => {
                                             const target = document.querySelector(`[gvc-id="${gvc.id(tempView)}"]`)
-                                            const view = dd.render(gvc, widget, setting, hoverID, subData,htmlGenerate).editor()
+                                            const view = dd.render(gvc, widget, setting, hoverID, subData, htmlGenerate).editor()
                                             if (typeof view === 'string') {
                                                 target!.outerHTML = view;
                                             } else {
@@ -150,7 +153,72 @@ export class Plugin {
                                             }
                                         }
                                     }
-                                ] )
+                                ])
+                            },
+                            onDestroy: () => {
+                            },
+                        }
+                    })
+                },
+                user_editor: () => {
+                    return gvc.bindView(() => {
+                        const tempView = glitter.getUUID()
+                        return {
+                            bind: tempView,
+                            view: () => {
+                                return ``
+                            },
+                            divCreate: {
+                                class: ``
+                            },
+                            onCreate: () => {
+                                glitter.htmlGenerate.loadScript(glitter, [
+                                    {
+                                        src: url.href,
+                                        callback: (dd: any) => {
+                                            const target = document.querySelector(`[gvc-id="${gvc.id(tempView)}"]`)
+                                            let user_editor: any = dd.render(gvc, widget, setting, hoverID, subData, htmlGenerate).user_editor
+                                            const editor=dd.render(gvc, widget, setting, hoverID, subData, htmlGenerate).editor
+                                            function loopValue(view:any,first:boolean){
+                                                if (!view) {
+                                                    if(first){
+                                                        loopValue(editor,true)
+                                                    }else{
+                                                        target!.outerHTML = ''
+                                                    }
+                                                } else {
+                                                    view = view();
+                                                    if (typeof view === 'string') {
+                                                        if(view){
+                                                            target!.outerHTML = view;
+                                                        }else{
+                                                            if(first){
+                                                                loopValue(editor,true)
+                                                            }else{
+                                                                target!.outerHTML = view
+                                                            }
+                                                        }
+                                                    } else {
+                                                        view.then((dd: any) => {
+                                                            if(dd){
+                                                                target!.outerHTML = dd;
+                                                            }else{
+                                                                if(first){
+                                                                    loopValue(editor,true)
+                                                                }else{
+                                                                    target!.outerHTML = dd
+                                                                }
+                                                            }
+                                                        })
+                                                    }
+                                                }
+                                            }
+                                            loopValue(user_editor,true)
+
+
+                                        }
+                                    }
+                                ])
                             },
                             onDestroy: () => {
                             },
@@ -163,7 +231,7 @@ export class Plugin {
         return fun
     }
 
-    public static setViewComponent( url: URL): (cf: any) => {
+    public static setViewComponent(url: URL): (cf: any) => {
         view: () => (Promise<string> | string),
         editor: () => Promise<string> | string
     } {
@@ -184,10 +252,10 @@ export class Plugin {
                                 class: ``
                             },
                             onCreate: () => {
-                                glitter.htmlGenerate.loadScript(glitter,[
+                                glitter.htmlGenerate.loadScript(glitter, [
                                     {
                                         src: url.href,
-                                        callback:(widget:any)=>{
+                                        callback: (widget: any) => {
                                             const target = document.querySelector(`[gvc-id="${cf.gvc.id(tempView)}"]`)
                                             const view = widget.render(cf).view()
                                             if (typeof view === 'string') {
@@ -199,7 +267,7 @@ export class Plugin {
                                             }
                                         }
                                     }
-                                ] )
+                                ])
                             },
                             onDestroy: () => {
                             },
@@ -218,10 +286,10 @@ export class Plugin {
                                 class: ``
                             },
                             onCreate: () => {
-                                glitter.htmlGenerate.loadScript(glitter,[
+                                glitter.htmlGenerate.loadScript(glitter, [
                                     {
                                         src: url.href,
-                                        callback:(widget:any)=>{
+                                        callback: (widget: any) => {
                                             const target = document.querySelector(`[gvc-id="${cf.gvc.id(tempView)}"]`)
                                             const view = widget.render(cf).editor()
                                             if (typeof view === 'string') {
@@ -233,7 +301,72 @@ export class Plugin {
                                             }
                                         }
                                     }
-                                ] )
+                                ])
+                            },
+                            onDestroy: () => {
+                            },
+                        }
+                    })
+                },
+                user_editor: () => {
+                    return cf.gvc.bindView(() => {
+                        const tempView = glitter.getUUID()
+                        return {
+                            bind: tempView,
+                            view: () => {
+                                return ``
+                            },
+                            divCreate: {
+                                class: ``
+                            },
+                            onCreate: () => {
+                                glitter.htmlGenerate.loadScript(glitter, [
+                                    {
+                                        src: url.href,
+                                        callback: (widget: any) => {
+                                            const target = document.querySelector(`[gvc-id="${cf.gvc.id(tempView)}"]`)
+                                            let user_editor: any = widget.render(cf).user_editor
+                                            const editor=widget.render(cf).editor
+                                            function loopValue(view:any,first:boolean){
+                                                if (!view) {
+                                                    if(first){
+                                                        loopValue(editor,true)
+                                                    }else{
+                                                        target!.outerHTML = ''
+                                                    }
+                                                } else {
+                                                    view = view();
+                                                    if (typeof view === 'string') {
+                                                        if(view){
+                                                            target!.outerHTML = view;
+                                                        }else{
+                                                            if(first){
+                                                                loopValue(editor,true)
+                                                            }else{
+                                                                target!.outerHTML = view
+                                                            }
+                                                        }
+                                                    } else {
+                                                        view.then((dd: any) => {
+                                                            if(dd){
+                                                                target!.outerHTML = dd;
+                                                            }else{
+                                                                if(first){
+                                                                    loopValue(editor,true)
+                                                                }else{
+                                                                    target!.outerHTML = dd
+                                                                }
+                                                            }
+                                                        })
+                                                    }
+                                                }
+                                            }
+                                            loopValue(user_editor,true)
+
+
+                                        }
+                                    }
+                                ])
                             },
                             onDestroy: () => {
                             },

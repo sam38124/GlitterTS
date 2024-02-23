@@ -2,7 +2,7 @@ import { IToken } from "../models/Auth.js";
 interface VoucherData {
     title: string;
     method: 'percent' | 'fixed';
-    reBackType: 'rebate' | 'discount';
+    reBackType: 'rebate' | 'discount' | 'shipment_free';
     trigger: 'auto' | "code";
     value: string;
     for: 'collection' | 'product' | 'all';
@@ -25,6 +25,7 @@ interface VoucherData {
         "collection": string[];
         "discount_price": number;
         "rebate": number;
+        shipment_fee: number;
     }[];
     start_ISO_Date: string;
     end_ISO_Date: string;
@@ -92,6 +93,7 @@ export declare class Shopping {
             title?: string;
             preview_image?: string;
             "sku": string;
+            shipment_fee: number;
         }[];
         "email"?: string;
         "return_url": string;
@@ -108,6 +110,7 @@ export declare class Shopping {
                 "collection": string[];
                 title: string;
                 preview_image: string;
+                shipment_fee: number;
             }[];
             total: number;
             email: string;
@@ -117,11 +120,18 @@ export declare class Shopping {
             rebate: number;
             use_rebate: number;
             orderID: string;
+            shipment_support: string[];
         };
+        off_line?: undefined;
         form?: undefined;
     } | {
-        form: string;
+        off_line: boolean;
         data?: undefined;
+        form?: undefined;
+    } | {
+        form: any;
+        data?: undefined;
+        off_line?: undefined;
     }>;
     checkVoucher(cart: {
         lineItems: {
@@ -131,6 +141,7 @@ export declare class Shopping {
             "sale_price": number;
             "collection": string[];
             "discount_price"?: number;
+            shipment_fee: number;
             rebate?: number;
         }[];
         discount?: number;
@@ -138,6 +149,7 @@ export declare class Shopping {
         total: number;
         email: string;
         user_info: any;
+        shipment_fee: number;
         voucherList?: VoucherData[];
         code?: string;
     }): Promise<void>;

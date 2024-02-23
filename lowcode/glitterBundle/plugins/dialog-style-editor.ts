@@ -4,6 +4,7 @@ import Add_item_dia from "./add_item_dia.js";
 //@ts-ignore
 import {Swal} from "../../modules/sweetAlert.js";
 import {TriggerEvent} from "./trigger-event.js";
+import {ShareDialog} from "../dialog/ShareDialog.js";
 
 
 const html = String.raw
@@ -57,12 +58,81 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                 }
             }
 
+            let vm: any = {}
             migrateFrSize("class")
             migrateFrSize("style")
             return html`
                 <div class="vw-100 vh-100 d-flex align-items-center justify-content-center"
                      style="background:rgba(0,0,0,0.6);">
-                    <div class="bg-white rounded" style="max-height:90vh;max-width:900px;">
+                    <div class="bg-white rounded position-relative" style="max-height:90vh;max-width:900px;">
+                        ${gvc.bindView(() => {
+                            const leftId = gvc.glitter.getUUID()
+                            return {
+                                bind: leftId,
+                                view: () => {
+                                    return html`<i class="fa-solid fa-chevron-down" style="color:black;"></i>
+                                    ${(() => {
+                                        const list = [
+                                            {
+                                                key: 'official',
+                                                label: "預設樣式",
+                                                icon: '<i class="fa-solid fa-pencil-slash"></i>'
+                                            }
+                                            , {
+                                                key: 'me',
+                                                label: "我的模板庫",
+                                                icon: '<i class="fa-regular fa-user"></i>'
+                                            },
+                                            {
+                                                key: 'template',
+                                                label: "開發元件",
+                                                icon: '<i class="fa-sharp fa-regular fa-screwdriver-wrench"></i>'
+                                            }
+                                            , {
+                                                key: 'view',
+                                                label: "客製化插件",
+                                                icon: '<i class="fa-regular fa-puzzle-piece-simple"></i>'
+                                            }, {
+                                                key: 'code',
+                                                label: "代碼轉換",
+                                                icon: '<i class="fa-sharp fa-solid fa-repeat"></i>'
+                                            }, {
+                                                key: 'ai',
+                                                label: "AI生成",
+                                                icon: '<i class="fa-solid fa-microchip-ai"></i>'
+                                            },
+                                            {
+                                                key: 'copy',
+                                                label: "剪貼簿",
+                                                icon: '<i class="fa-regular fa-scissors"></i>'
+                                            }
+                                        ]
+                                        return list.map((dd) => {
+                                            return html`
+                                                <div class="d-flex align-items-center justify-content-center hoverBtn  border"
+                                                     style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;
+                                 ${(vm.select === dd.key) ? `background:linear-gradient(135deg, #667eea 0%, #764ba2 100%);background:-webkit-linear-gradient(135deg, #667eea 0%, #764ba2 100%);color:white;` : ``}
+                                 "
+                                                     data-bs-toggle="tooltip" data-bs-placement="top"
+                                                     data-bs-custom-class="custom-tooltip"
+                                                     data-bs-title="${dd.label}" onclick="${gvc.event(() => {
+                                                    vm.select = dd.key as any
+                                                })}">
+                                                    ${dd.icon}
+                                                </div>`
+                                        }).join('')
+                                    })()}`
+                                },
+                                divCreate: {
+                                    class: `position-absolute d-flex flex-column rounded py-3 px-2 bg-white align-items-center`,
+                                    style: `left:-60px;top:-50px;gap:10px;z-index:10;`
+                                },
+                                onCreate:()=>{
+                                    $('.tooltip')!.remove();
+                                    ($('[data-bs-toggle="tooltip"]') as any).tooltip();
+                                }
+                            }
+                        })}
                         <div class="d-flex w-100 border-bottom align-items-center" style="height:50px;">
                             <h3 style="font-size:15px;font-weight:500;" class="m-0 ps-3">
                                 設定CSS樣式</h3>
@@ -96,8 +166,8 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                                                                             gvc: gvc,
                                                                             def: styleData.style_from,
                                                                             array: [
-                                                                                {title: "設計代碼", value: "code"},
-                                                                                {title: "設計標籤", value: "tag"}
+                                                                                {title: "設定值", value: "code"},
+                                                                                {title: "標籤值", value: "tag"}
                                                                             ],
                                                                             callback: (text) => {
                                                                                 styleData.style_from = text as any
@@ -149,7 +219,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                                                                                                                       onclick="${gvc.event(() => {
                                                                                                                           if ((styleData as any).tag) {
                                                                                                                               glitter.share.selectStyleCallback((styleData as any).tag)
-                                                                                                                          }else{
+                                                                                                                          } else {
                                                                                                                               gvc.closeDialog()
                                                                                                                           }
                                                                                                                       })}"
@@ -471,20 +541,122 @@ function styleRender(gvc: GVC, tag?: string) {
 function styleEditor(gvc: GVC, styleData: any, classs: string = 'mx-2') {
     styleData.stylist = styleData.stylist ?? []
     const glitter = gvc.glitter;
+    const vm: {
+        select: string,
+        pageID: string
+    } = {
+        select: 'class',
+        pageID: gvc.glitter.getUUID()
+    }
 
     function editIt(gvc: GVC, data: any) {
         data.class = (data.class ?? "").trim()
         data.style = (data.style ?? "").trim()
-        return [
-            gvc.bindView(() => {
+        let array = [gvc.bindView(() => {
+            const id = glitter.getUUID()
+            data.classDataType = data.classDataType ?? "static"
+            return {
+                bind: vm.pageID,
+                view: () => {
+                    return html`
+                        <div class="w-100 mt-n2" style="">
+                            <div style=""
+                                 class="d-flex align-items-center justify-content-around  w-100 p-2">
+                                ${[
+                                    {
+                                        title: 'ClASS樣式設定',
+                                        value: 'class',
+                                        icon: 'fa-solid fa-c'
+                                    },
+                                    {
+                                        title: 'STYLE樣式設定',
+                                        value: 'style',
+                                        icon: 'fa-solid fa-s'
+                                    },
+                                    {
+                                        title: '檔案上傳',
+                                        value: 'file',
+                                        icon: 'fa-solid fa-upload'
+                                    },
+                                ].map((dd) => {
+                                    return html`
+                                        <div class=" d-flex align-items-center justify-content-center ${(dd.value === vm.select) ? `border` : ``} rounded-3"
+                                             style="height:36px;width:36px;cursor:pointer;
+${(dd.value === vm.select) ? `background:linear-gradient(135deg, #667eea 0%, #764ba2 100%);background:-webkit-linear-gradient(135deg, #667eea 0%, #764ba2 100%);color:white;` : `color:#151515;`}
+"
+                                             onclick="${gvc.event(() => {
+                                                 if (dd.value === 'file') {
+                                                     glitter.ut.chooseMediaCallback({
+                                                         single: true,
+                                                         accept: '*',
+                                                         callback(data: any) {
+                                                             const saasConfig: { config: any; api: any } = (window as any).saasConfig;
+                                                             const dialog = new ShareDialog(gvc.glitter);
+                                                             dialog.dataLoading({visible: true});
+                                                             const file = data[0].file;
+                                                             saasConfig.api.uploadFile(file.name).then((data: any) => {
+                                                                 dialog.dataLoading({visible: false});
+                                                                 const data1 = data.response;
+                                                                 dialog.dataLoading({visible: true});
+                                                                 $.ajax({
+                                                                     url: data1.url,
+                                                                     type: 'put',
+                                                                     data: file,
+                                                                     headers: {
+                                                                         "Content-Type": data1.type
+                                                                     },
+                                                                     processData: false,
+                                                                     crossDomain: true,
+                                                                     success: () => {
+                                                                         dialog.dataLoading({visible: false});
+                                                                         navigator.clipboard.writeText(data1.fullUrl);
+                                                                         dialog.successMessage({
+                                                                             text: "已將檔案連結複製至剪貼簿"
+                                                                         })
+                                                                     },
+                                                                     error: () => {
+                                                                         dialog.dataLoading({visible: false});
+                                                                         dialog.errorMessage({text: '上傳失敗'});
+                                                                     },
+                                                                 });
+                                                             });
+                                                         },
+                                                     });
+                                                 } else {
+                                                     vm.select = dd.value
+                                                     gvc.recreateView()
+                                                 }
+                                             })}"
+                                             data-bs-toggle="tooltip" data-bs-placement="top"
+                                             data-bs-custom-class="custom-tooltip"
+                                             data-bs-title="${dd.title}">
+                                            <i class="${dd.icon}"
+                                               aria-hidden="true"></i>
+                                        </div>`
+                                }).join(``)}
+                            </div>
+                        </div>`
+                },
+                divCreate: {
+                    class: `d-flex bg-white mx-n3 border-bottom`,
+                },
+                onCreate: () => {
+                    $('.tooltip')!.remove();
+                    ($('[data-bs-toggle="tooltip"]') as any).tooltip();
+                }
+            }
+        })];
+        if (vm.select === 'class') {
+            array.push(`<div style="color: black;font-size: 16px;background: #f6f6f6;" class="fw-bold mx-n2 py-2 px-3">
+                                CLASS參數設置</div>`)
+            array.push(gvc.bindView(() => {
                 const id = glitter.getUUID()
                 data.classDataType = data.classDataType ?? "static"
+
                 return {
                     bind: id,
                     view: () => {
                         return [
-                            html`<h3 style="color: black;font-size: 24px;margin-bottom: 10px;" class="fw-bold mt-2">
-                                CLASS參數</h3>`,
                             EditorElem.select({
                                 title: "設定參數資料來源",
                                 gvc: gvc,
@@ -542,19 +714,22 @@ function styleEditor(gvc: GVC, styleData: any, classs: string = 'mx-2') {
                         ].join('')
                     },
                     divCreate: {
-                        class: ` rounded-3 px-3 mt-2 py-1 `,
-                        style: `border:1px solid black;`
+                        class: `  px-2 mt-0 py-1 `,
+                        style: ``
                     }
                 }
-            }),
-            gvc.bindView(() => {
+            }))
+        }
+        if (vm.select === 'style') {
+            array.push(`<div style="color: black;font-size: 16px;background: #f6f6f6;" class="fw-bold mx-n2 py-2 px-3">
+                                STYLE參數設置</div>`)
+            array.push(gvc.bindView(() => {
                 const id = glitter.getUUID()
                 data.dataType = data.dataType ?? "static"
                 return {
                     bind: id,
                     view: () => {
                         return [
-                            `<h3 style="color: black;font-size: 24px;margin-bottom: 10px;" class="fw-bold mt-2">STYLE參數</h3>`,
                             EditorElem.select({
                                 title: "設定參數資料來源",
                                 gvc: gvc,
@@ -612,12 +787,14 @@ function styleEditor(gvc: GVC, styleData: any, classs: string = 'mx-2') {
                         ].join('')
                     },
                     divCreate: {
-                        class: ` rounded-3 px-3 mt-2 py-1 `,
-                        style: `border:1px solid black;`
+                        class: `  px-2 mt-0 py-1 `,
+                        style: ``
                     }
                 }
-            })
-        ].join('')
+            }))
+        }
+
+        return array.join('')
     }
 
     return html`
@@ -626,17 +803,18 @@ function styleEditor(gvc: GVC, styleData: any, classs: string = 'mx-2') {
             return {
                 bind: id,
                 view: () => {
-                    return `<div class="mx-2 mt-2">
+                    return `
+<div class="mx-2 mt-2">
             ${EditorElem.editerDialog({
                         gvc: gvc,
                         dialog: (gvc: GVC) => {
                             return editIt(gvc, styleData)
                         },
-                        width: '600px',
+                        width: '400px',
                         editTitle: `裝置預設樣式`
                     })}
         </div>
-        <div class="my-2 w-100">
+        <div class="my-2 w-100 ">
             ${EditorElem.arrayItem({
                         gvc: gvc,
                         title: '設定其他裝置尺寸',
@@ -644,18 +822,18 @@ function styleEditor(gvc: GVC, styleData: any, classs: string = 'mx-2') {
                             return styleData.stylist.map((dd: any) => {
                                 return {
                                     title: `寬度:${dd.size}`,
-                                    innerHtml: () => {
-                                        return EditorElem.editeInput({
+                                    innerHtml: (gvc: GVC) => {
+                                        return [EditorElem.editeInput({
                                             gvc: gvc,
                                             title: '設定寬度尺寸',
                                             default: `${dd.size}`,
-                                            placeHolder: '請輸入Class參數',
+                                            placeHolder: '請輸入寬度尺寸',
                                             callback: (text) => {
                                                 dd.size = text
                                                 gvc.recreateView()
                                             },
                                             type: 'text'
-                                        }) + editIt(gvc, dd)
+                                        }), editIt(gvc, dd)].join(`<div class="my-2"></div>`)
                                     },
                                     width: '600px'
                                 }
@@ -680,7 +858,9 @@ function styleEditor(gvc: GVC, styleData: any, classs: string = 'mx-2') {
                     })}
         </div>`
                 },
-                divCreate: {}
+                divCreate: {
+                    class: `position-relative`
+                }
             }
         })}
     `

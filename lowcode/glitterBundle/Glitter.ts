@@ -271,7 +271,7 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
         var search = (value !== undefined) ? this.setSearchParam(this.removeSearchParam(window.location.search, tag), tag, value) :
             this.removeSearchParam(window.location.search, tag)
         try {
-            window.history.pushState({}, document.title, search);
+            window.history.replaceState({}, document.title, search);
         } catch (e) {
         }
     }
@@ -492,7 +492,7 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
         }
     }
 
-    public getUUID(format?:string): string {
+    public getUUID(format?: string): string {
         let d = Date.now();
 
         if (typeof performance !== 'undefined' && typeof performance.now === 'function') {
@@ -530,15 +530,22 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
 
     public async addStyleLink(data: string | string[]) {
         const glitter = this;
-        var head = document.head;
-
+        const head = document.head;
         function add(filePath: string) {
             const id = glitter.getUUID()
-            var haveURL = glitter.parameter.styleLinks.find((dd: any) => {
-                return dd.src === filePath
-            })
-            if (!haveURL) {
-                var link = document.createElement("link");
+            // 获取所有<a>标签
+            let allLinks:any = document.getElementsByTagName("link");
+            let pass=true
+            // 遍历所有<a>标签并输出其href属性值
+            for (let i = 0; i < allLinks.length; i++) {
+                const hrefValue = allLinks[i].getAttribute("href");
+                if(hrefValue===filePath){
+                    pass=false
+                    break
+                }
+            }
+            if (pass) {
+                let link = document.createElement("link");
                 link.type = "text/css";
                 link.rel = "stylesheet";
                 link.href = filePath;
@@ -563,7 +570,7 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
     /*util*/
     public ut = {
         glitter: this,
-        queue:{},
+        queue: {},
         clock() {
             return {
                 start: new Date(),
@@ -575,19 +582,19 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
                 }
             }
         },
-        setQueue:(tag:string, fun:any, callback:any) => {
-            const queue:any=Glitter.glitter.ut.queue;
+        setQueue: (tag: string, fun: any, callback: any) => {
+            const queue: any = Glitter.glitter.ut.queue;
             queue[tag] = queue[tag] ?? {
                 callback: [],
                 data: undefined,
                 isRunning: false
             }
             if (queue[tag].data) {
-                callback && callback((()=>{
+                callback && callback((() => {
                     try {
                         return JSON.parse(JSON.stringify(queue[tag].data))
-                    }catch (e) {
-                        console.log(`parseError`,queue[tag].data)
+                    } catch (e) {
+                        console.log(`parseError`, queue[tag].data)
                     }
                 })())
             } else {
@@ -595,13 +602,13 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
 
                 if (!queue[tag].isRunning) {
                     queue[tag].isRunning = true
-                    fun((response:any) => {
-                        queue[tag].callback.map((callback:any) => {
-                            callback && callback((()=>{
+                    fun((response: any) => {
+                        queue[tag].callback.map((callback: any) => {
+                            callback && callback((() => {
                                 try {
                                     return JSON.parse(JSON.stringify(response))
-                                }catch (e) {
-                                    console.log(`parseError`,queue[tag].data)
+                                } catch (e) {
+                                    console.log(`parseError`, queue[tag].data)
                                 }
                             })())
                         })
@@ -925,23 +932,24 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
             if ((glitter.share.EditorMode === true)) {
                 return inputString
             }
-            const pattern = /@{{(.*?)}}/g;
-            // 使用正则表达式的 exec 方法来提取匹配项
-            let match;
             let convert = inputString
-            while ((match = pattern.exec(inputString)) !== null) {
-                const placeholder = match[0]; // 完整的匹配项，例如 "@{{value}}"
-                const value = match[1]; // 提取的值，例如 "value"
-                if (glitter.share.globalValue && glitter.share.globalValue[value]) {
-                    convert = (convert.replace(placeholder, glitter.share.globalValue[value]));
+            function replaceString(pattern:any){
+                let match;
+                while ((match = pattern.exec(convert)) !== null) {
+                    const placeholder = match[0]; // 完整的匹配项，例如 "@{{value}}"
+                    const value = match[1]; // 提取的值，例如 "value"
+                    if (glitter.share.globalValue && glitter.share.globalValue[value]) {
+                        convert = convert.replace(placeholder, glitter.share.globalValue[value])
+                    }
                 }
             }
+            replaceString(/\/\**@{{(.*?)}}\*\//g)
+            replaceString(/@{{(.*?)}}/g)
             return convert
         },
         replacePromiseValue: function (inputString: string) {
             const glitter: any = Glitter.glitter;
             return new Promise(async (resolve, reject) => {
-                console.log(`replacePromiseValue-1->`,inputString)
                 const pattern = /@PROMISE{{(.*?)}}/g;
                 // 使用正则表达式的 exec 方法来提取匹配项
                 let match;
@@ -951,7 +959,6 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
                     const value = match[1]; // 提取的值，例如 "value"
                     inputString = inputString.replace(placeholder, await glitter.promiseValueMap[value])
                 }
-                console.log(`replacePromiseValue-2->`,inputString)
                 resolve(inputString)
             })
         },
@@ -971,7 +978,7 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
                         const funString = `${dd.value}`;
                         if (!((element as any).replaceAtMemory[dd.key])) {
                             element.addEventListener(dd.key.substring(2), function () {
-                                if (glitter.htmlGenerate.isEditMode() && !glitter.share.EditorMode && glitter.getUrlParameter('type')==='htmlEditor') {
+                                if (glitter.htmlGenerate.isEditMode() && !glitter.share.EditorMode && glitter.getUrlParameter('type') === 'htmlEditor') {
                                     if (funString.indexOf('editorEvent') !== -1) {
                                         eval(funString.replace('editorEvent', 'clickMap'))
                                     } else if (dd.key !== 'onclick') {
@@ -1028,6 +1035,54 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
             }
 
 
+        }
+    }
+
+    public setModule(key: string, value: any) {
+        this.share.glitterModule = this.share.glitterModule ?? {}
+        this.share.glitterModule[key] = value
+    }
+
+    public getModule(js: string,callback:(module:any)=>void) {
+        const glitter = this;
+        glitter.share.glitterModule = glitter.share.glitterModule ?? {}
+        glitter.share.glitterModuleCallback= glitter.share.glitterModuleCallback ?? {}
+        if(glitter.share.glitterModule[js]){
+            callback(glitter.share.glitterModule[js])
+        }else{
+            glitter.share.glitterModuleCallback[js]=glitter.share.glitterModuleCallback[js]??[]
+            glitter.share.glitterModuleCallback[js].push(callback)
+            Object.defineProperty(glitter.share.glitterModule, js, {
+                // getter 函数返回属性的值
+                get() {
+                    return glitter.share.glitterModule['init_'+js];
+                },
+                // setter 函数设置属性的值，并触发监听事件
+                set(newValue) {
+                    glitter.share.glitterModule['init_'+js]=newValue
+                    glitter.share.glitterModuleCallback[js].map((callback: any) => {
+                        callback && callback(newValue)
+                    })
+                    glitter.share.glitterModuleCallback[js]=[]
+                },
+                // 可选：指定属性是否可枚举
+                enumerable: true,
+                // 可选：指定属性是否可配置
+                configurable: true
+            })
+            glitter.addMtScript(
+                [{
+                    type: 'module',
+                    src: js
+                }],
+                () => {
+                },
+                () => {
+                },
+                [
+                    {key: "async", value: "true"}
+                ]
+            );
         }
     }
 

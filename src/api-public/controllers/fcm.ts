@@ -16,7 +16,7 @@ export = router;
 router.post('/', async (req: express.Request, resp: express.Response) => {
     try {
         if (await UtPermission.isManager(req)) {
-            for (const b of chunkArray(  Array.from(new Set(req.body.device_token)), 20)) {
+            for (const b of chunkArray(Array.from(new Set(req.body.device_token)), 20)) {
                 let check = b.length;
                 await new Promise((resolve) => {
                     for (const d of b) {

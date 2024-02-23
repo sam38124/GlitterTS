@@ -27,7 +27,7 @@ export class Entry {
 }`);
         window.renderClock = (_a = window.renderClock) !== null && _a !== void 0 ? _a : clockF();
         console.log(`Entry-time:`, window.renderClock.stop());
-        glitter.share.editerVersion = "V_4.5.8";
+        glitter.share.editerVersion = "V_5.1.2";
         glitter.share.start = new Date();
         glitter.debugMode = false;
         const vm = {
@@ -81,7 +81,6 @@ export class Entry {
                 loopCheckGlobalValue(glitter.share.appConfigresponse.response.data.globalStyleTag, 'globalStyle');
                 loopCheckGlobalValue(glitter.share.appConfigresponse.response.data.globalValue, 'globalValue');
             }
-            console.log(glitter.share.appConfigresponse.response.data.globalStyleTag);
             window.saasConfig.appConfig = dd.response.data;
             (() => __awaiter(this, void 0, void 0, function* () {
                 return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
@@ -255,27 +254,8 @@ export class Entry {
                                 backGroundColor: `transparent;`
                             });
                         }
-                        const glitterAuth = window.glitterAuth;
-                        if ((window.appName !== window.glitterBase) && (glitterAuth)) {
-                            if (glitterAuth.overdue) {
-                                authError('使用權限已過期，請前往後台執行續費。');
-                            }
-                            else {
-                                glitterAuth.memberType = glitterAuth.memberType || 'free';
-                                const memberCheck = {
-                                    vip: 10,
-                                    basic: 2,
-                                    company: 4,
-                                    free: 1,
-                                    noLimit: Infinity
-                                };
-                                if (memberCheck[glitterAuth.memberType] < glitterAuth.appCount) {
-                                    authError(`當前可建立應用數量為${memberCheck[glitterAuth.memberType]}個，請前往後台升級方案，或者刪除不要使用的應用。`);
-                                }
-                                else {
-                                    authPass();
-                                }
-                            }
+                        if ((window.memberType !== 'noLimit') && vm.appConfig.dead_line && (new Date(vm.appConfig.dead_line).getTime()) < new Date().getTime()) {
+                            authError('使用權限已過期，請前往後台執行續費。');
                         }
                         else {
                             authPass();
@@ -317,9 +297,11 @@ function toBackendEditor(glitter) {
     window.root.classList.add('light-mode');
     function toNext() {
         running().then(() => __awaiter(this, void 0, void 0, function* () {
-            var _a;
             {
-                let data = yield ApiPageConfig.getPage(config.appName, (_a = glitter.getUrlParameter('page')) !== null && _a !== void 0 ? _a : glitter.getUUID());
+                let data = yield ApiPageConfig.getPage({
+                    appName: config.appName,
+                    tag: glitter.getUrlParameter('page')
+                });
                 if (data.response.result.length === 0) {
                     glitter.setUrlParameter('page', data.response.redirect);
                 }

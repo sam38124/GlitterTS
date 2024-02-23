@@ -97,9 +97,11 @@ export class TriggerEvent {
                                 const widget = oj.widget;
                                 let passCommand = false;
                                 returnData = yield inter[event.clickEvent.route].fun(oj.gvc, oj.widget, event, oj.subData, oj.element).event();
-                                const response = returnData;
+                                let response = returnData;
                                 if (event.dataPlace) {
-                                    eval(event.dataPlace);
+                                    (() => {
+                                        eval(event.dataPlace);
+                                    })();
                                 }
                                 oj.subData = response;
                                 if (event.blockCommand) {
