@@ -1421,8 +1421,13 @@ ${(obj.def === dd.value && dd.innerHtml) ? `<div class="mt-1">${dd.innerHtml}</d
                                     >
                                         <div class="subBt ms-n2 ${(obj.minus === false) ? `d-none` : ``}"
                                              onclick="${gvc.event((e, event) => {
-                                obj.originalArray.splice(index, 1);
-                                obj.refreshComponent();
+                                if (obj.minusEvent) {
+                                    obj.minusEvent(obj.originalArray, index);
+                                }
+                                else {
+                                    obj.originalArray.splice(index, 1);
+                                    obj.refreshComponent();
+                                }
                                 gvc.notifyDataChange(viewId);
                                 event.stopPropagation();
                             })}">

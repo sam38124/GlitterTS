@@ -162,14 +162,13 @@ export class App {
                         insert into \`${saasConfig.SAAS_NAME}\`.page_config (userID, appName, tag, \`group\`, \`name\`,
                                                                              \`config\`, \`page_config\`,page_type)
                         values (?, ?, ?, ?, ?, ${db.escape(JSON.stringify(dd.config))},
-                                ${db.escape(JSON.stringify(dd.page_config))});
+                                ${db.escape(JSON.stringify(dd.page_config))},${db.escape(dd.page_type)});
                     `, [
                         this.token.userID,
                         config.appName,
                         dd.tag,
                         dd.group || '未分類',
-                        dd.name,
-                        dd.page_type
+                        dd.name
                     ]);
                 }
             } else {

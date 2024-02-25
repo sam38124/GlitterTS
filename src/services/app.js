@@ -161,14 +161,13 @@ class App {
                         insert into \`${config_1.saasConfig.SAAS_NAME}\`.page_config (userID, appName, tag, \`group\`, \`name\`,
                                                                              \`config\`, \`page_config\`,page_type)
                         values (?, ?, ?, ?, ?, ${database_1.default.escape(JSON.stringify(dd.config))},
-                                ${database_1.default.escape(JSON.stringify(dd.page_config))});
+                                ${database_1.default.escape(JSON.stringify(dd.page_config))},${database_1.default.escape(dd.page_type)});
                     `, [
                         this.token.userID,
                         config.appName,
                         dd.tag,
                         dd.group || '未分類',
-                        dd.name,
-                        dd.page_type
+                        dd.name
                     ]);
                 }
             }

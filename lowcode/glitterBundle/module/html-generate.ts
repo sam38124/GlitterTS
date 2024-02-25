@@ -299,112 +299,123 @@ export class HtmlGenerate {
                 }">${title ?? "設計樣式"}</div><br>`;
             },
             class: () => {
-                const data = getStyleData()
+                function classString(data: any) {
+                    function getClass(data: any) {
+                        let classs = ''
+                        if (data.classDataType === 'static') {
+                            return data.class
+                        } else if (data.classDataType === 'triggerEvent') {
+                            return glitter.promiseValue(new Promise(async (resolve, reject) => {
+                                resolve((await TriggerEvent.trigger({
+                                    gvc: gvc!, widget: widget as any, clickEvent: data.trigger, subData: subData,
+                                })))
+                            }))
+                        } else {
+                            try {
+                                if (data.classDataType === 'code') {
+                                    classs = eval(`(() => {
+                                        ${data.class}
+                                    })()`)
+                                } else {
+                                    classs = eval(data.class)
+                                }
 
-                function getClass(data: any) {
-                    let classs = ''
-                    if (data.classDataType === 'static') {
-                        return data.class
-                    } else if (data.classDataType === 'triggerEvent') {
-                        return glitter.promiseValue(new Promise(async (resolve, reject) => {
-                            resolve((await TriggerEvent.trigger({
-                                gvc: gvc!, widget: widget as any, clickEvent: data.trigger, subData: subData,
-                            })))
-                        }))
-                    } else {
-                        try {
-                            if (data.classDataType === 'code') {
-                                classs = eval(`(() => {
-                                    ${data.class}
-                                })()`)
-                            } else {
-                                classs = eval(data.class)
+                            } catch (e) {
+                                classs = data.class
                             }
-
-                        } catch (e) {
-                            classs = data.class
+                            return classs
                         }
-                        return classs
                     }
+
+                    const tempMap: any = {};
+                    (data.stylist ?? []).map((dd: any) => {
+                        tempMap[dd.size] = (() => {
+                            return getClass(dd)
+                        })
+                    })
+
+                    return glitter.ut.frSize(tempMap, (() => {
+                        return getClass(data)
+                    }))()
                 }
 
-                const tempMap: any = {};
-                (data.stylist ?? []).map((dd: any) => {
-                    tempMap[dd.size] = (() => {
-                        return getClass(dd)
-                    })
-                })
-
-                return glitter.ut.frSize(tempMap, (() => {
-                    return getClass(data)
-                }))()
+                return [getStyleData()].concat(getStyleData().list ?? []).map((dd) => {
+                    return classString(dd)
+                }).join('')
             },
             style: () => {
-                const data = getStyleData()
-                let styles = ''
+                function styleString(data: any) {
+                    let styles = ''
 
-                function getStyle(data: any) {
+                    function getStyle(data: any) {
 
-                    let style = ''
-                    if (data.dataType === 'static') {
-                        return data.style
-                    } else {
+                        let style = ''
+                        if (data.dataType === 'static') {
+                            return data.style
+                        } else {
 
-                        try {
-                            if (data.dataType === 'code') {
-                                style = eval(`(() => {
-                                    ${data.style}
-                                })()`)
-                            } else if (data.dataType === 'triggerEvent') {
-                                return glitter.promiseValue(new Promise(async (resolve, reject) => {
-                                    resolve((await TriggerEvent.trigger({
-                                        gvc: gvc!,
-                                        widget: widget as any,
-                                        clickEvent: data.triggerStyle,
-                                        subData: subData,
-                                    })))
-                                }))
-                            } else {
-                                style = eval(data.style)
+                            try {
+                                if (data.dataType === 'code') {
+                                    style = eval(`(() => {
+                                        ${data.style}
+                                    })()`)
+                                } else if (data.dataType === 'triggerEvent') {
+                                    return glitter.promiseValue(new Promise(async (resolve, reject) => {
+                                        resolve((await TriggerEvent.trigger({
+                                            gvc: gvc!,
+                                            widget: widget as any,
+                                            clickEvent: data.triggerStyle,
+                                            subData: subData,
+                                        })))
+                                    }))
+                                } else {
+                                    style = eval(data.style)
+                                }
+                            } catch (e) {
+                                style = data.style
                             }
-                        } catch (e) {
-                            style = data.style
+                            return style
                         }
-                        return style
                     }
+
+                    const tempMap: any = {};
+                    (data.stylist ?? []).map((dd: any) => {
+                        tempMap[dd.size] = (() => {
+                            return getStyle(dd)
+                        })
+                    })
+                    styles = glitter.ut.frSize(tempMap, (() => {
+                        return getStyle(data)
+                    }))()
+                    let styleString: string[] = [styles];
+                    (data.styleList ?? []).map((dd: any) => {
+                        Object.keys(dd.data).map((d2) => {
+                            styleString.push([d2, dd.data[d2]].join(':'));
+                        });
+                    });
+                    // 正则表达式模式
+                    let styleStringJoin = styleString.join(';');
+
+                    // 使用正则表达式的 exec 方法来提取匹配项
+                    function replaceString(pattern: any) {
+                        let match;
+                        while ((match = pattern.exec(styleStringJoin)) !== null) {
+                            const placeholder = match[0]; // 完整的匹配项，例如 "@{{value}}"
+                            const value = match[1]; // 提取的值，例如 "value"
+                            if (glitter.share.globalValue && glitter.share.globalValue[value]) {
+                                styleStringJoin = styleStringJoin.replace(placeholder, glitter.share.globalValue[value])
+                            }
+                        }
+                    }
+
+                    replaceString(/\/\**@{{(.*?)}}\*\//g)
+                    replaceString(/@{{(.*?)}}/g)
+                    return styleStringJoin
                 }
 
-                const tempMap: any = {};
-                (data.stylist ?? []).map((dd: any) => {
-                    tempMap[dd.size] = (() => {
-                        return getStyle(dd)
-                    })
-                })
-                styles = glitter.ut.frSize(tempMap, (() => {
-                    return getStyle(data)
-                }))()
-                let styleString: string[] = [styles];
-                (data.styleList ?? []).map((dd: any) => {
-                    Object.keys(dd.data).map((d2) => {
-                        styleString.push([d2, dd.data[d2]].join(':'));
-                    });
-                });
-                // 正则表达式模式
-                let styleStringJoin=styleString.join(';');
-                // 使用正则表达式的 exec 方法来提取匹配项
-                function replaceString(pattern:any){
-                    let match;
-                    while ((match = pattern.exec(styleStringJoin)) !== null) {
-                        const placeholder = match[0]; // 完整的匹配项，例如 "@{{value}}"
-                        const value = match[1]; // 提取的值，例如 "value"
-                        if (glitter.share.globalValue && glitter.share.globalValue[value]) {
-                            styleStringJoin = styleStringJoin.replace(placeholder, glitter.share.globalValue[value])
-                        }
-                    }
-                }
-                replaceString(/\/\**@{{(.*?)}}\*\//g)
-                replaceString(/@{{(.*?)}}/g)
-                return styleStringJoin
+                return [getStyleData()].concat(getStyleData().list ?? []).map((dd) => {
+                    return styleString(dd)
+                }).join('')
             },
         };
     }
@@ -545,7 +556,7 @@ ${obj.gvc.bindView({
                     (window as any).glitter.deBugMessage(`${e.message}<br>${e.stack}<br>${e.line}`)
                 }
             };
-            dd.formData=dd.formData ?? formData;
+            dd.formData = dd.formData ?? formData;
             return dd;
         });
 
@@ -574,7 +585,7 @@ ${obj.gvc.bindView({
             }
         }, createOption?: any) => {
             const childContainer = option.childContainer
-            const renderStart=(window as any).renderClock.stop()
+            const renderStart = (window as any).renderClock.stop()
             option = option ?? {}
             const container = option.containerID ?? gvc.glitter.getUUID();
             let timerTask: {
@@ -587,6 +598,7 @@ ${obj.gvc.bindView({
                         return new Promise((resolve, reject) => {
                             let waitAddScript: string[] = []
                             gvc.glitter.defaultSetting.pageLoading();
+
                             function startRender() {
                                 const start = new Date().getTime()
                                 new Promise(async (resolve, reject) => {
@@ -662,9 +674,10 @@ ${obj.gvc.bindView({
                                         dd.refreshAllParameter!.view1 = () => {
                                             gvc.notifyDataChange(container)
                                         };
+
                                         //Load resource
                                         function loadResource() {
-                                           if ((dd.data.elem === 'link') && (dd.data.attr.find((dd: any) => {
+                                            if ((dd.data.elem === 'link') && (dd.data.attr.find((dd: any) => {
                                                 return dd.attr === 'rel' && dd.value === 'stylesheet'
                                             }))) {
                                                 gvc.addStyleLink(dd.data.attr.find((dd: any) => {
@@ -678,7 +691,9 @@ ${obj.gvc.bindView({
                                                 }).value)
                                             }
                                         }
+
                                         loadResource()
+
                                         //Get the html content for this component
                                         function getHtml() {
                                             if (((dd.data.elem === 'link') && (dd.data.attr.find((dd: any) => {
@@ -746,11 +761,11 @@ ${obj.gvc.bindView({
                                                                             clickEvent: dd.arrayData,
                                                                             subData: subData
                                                                         }));
-                                                                        if(!Array.isArray(data) && data){
-                                                                            data=[data]
+                                                                        if (!Array.isArray(data) && data) {
+                                                                            data = [data]
                                                                         }
-                                                                        if(!data){
-                                                                            data=[]
+                                                                        if (!data) {
+                                                                            data = []
                                                                         }
                                                                         target!.outerHTML = data.map((subData: any) => {
                                                                             let option: any = []
@@ -909,12 +924,12 @@ ${obj.gvc.bindView({
                                                                             subData: subData
                                                                         }))
 
-                                                                        if(!Array.isArray(data) && data){
-                                                                            data=[data]
+                                                                        if (!Array.isArray(data) && data) {
+                                                                            data = [data]
                                                                         }
-                                                                        if(!data){
-                                                                            console.log(`isNull`,dd)
-                                                                            data=[]
+                                                                        if (!data) {
+                                                                            console.log(`isNull`, dd)
+                                                                            data = []
                                                                         }
                                                                         target!.outerHTML = data.map((subData: any) => {
                                                                             return render(subData)
@@ -934,6 +949,7 @@ ${obj.gvc.bindView({
                                                 return ``
                                             }
                                         }
+
                                         return getHtml()
                                     }).join('')
                                     resolve(html)
@@ -1146,7 +1162,7 @@ ${(() => {
                                                                             widgetList: setting,
                                                                             hoverID: hover,
                                                                             subData: subData,
-                                                                            formData:dd.formData
+                                                                            formData: dd.formData
                                                                         }).user_editor) {
                                                                             resolve(true)
                                                                         } else {
@@ -1291,7 +1307,7 @@ onclick="${gvc.event(() => {
 <div class="p-2">
 ${(() => {
                                                                                                     const array: any = []
-                                                                                                    if(dd.data.elem !== 'style' && dd.data.elem !== 'script'){
+                                                                                                    if (dd.data.elem !== 'style' && dd.data.elem !== 'script') {
                                                                                                         array.push(
                                                                                                             EditorElem.select({
                                                                                                                 title: '生成方式',
@@ -1310,9 +1326,9 @@ ${(() => {
                                                                                                                     gvc.notifyDataChange('HtmlEditorContainer')
                                                                                                                 }
                                                                                                             })
-                                                                                                        )  
+                                                                                                        )
                                                                                                     }
-                                                                                                  
+
                                                                                                     if (dd.gCount === 'multiple') {
                                                                                                         dd.arrayData = dd.arrayData ?? {}
                                                                                                         array.push(

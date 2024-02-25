@@ -27,7 +27,7 @@ class Template {
         if (config.copy) {
             const data = (await database_1.default.execute(`
                 select \`${config_1.saasConfig.SAAS_NAME}\`.page_config.page_config,
-                       \`${config_1.saasConfig.SAAS_NAME}\`.page_config.config,
+                       \`${config_1.saasConfig.SAAS_NAME}\`.page_config.config
                 from \`${config_1.saasConfig.SAAS_NAME}\`.page_config
                 where tag = ${database_1.default.escape(config.copy)}
                   and appName = ${database_1.default.escape(config.copyApp || config.appName)}

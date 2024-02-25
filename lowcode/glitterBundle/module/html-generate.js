@@ -1086,111 +1086,121 @@ ${e.line}
             },
             class: () => {
                 var _a;
-                const data = getStyleData();
-                function getClass(data) {
-                    let classs = '';
-                    if (data.classDataType === 'static') {
-                        return data.class;
-                    }
-                    else if (data.classDataType === 'triggerEvent') {
-                        return glitter.promiseValue(new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
-                            resolve((yield TriggerEvent.trigger({
-                                gvc: gvc, widget: widget, clickEvent: data.trigger, subData: subData,
+                function classString(data) {
+                    var _a;
+                    function getClass(data) {
+                        let classs = '';
+                        if (data.classDataType === 'static') {
+                            return data.class;
+                        }
+                        else if (data.classDataType === 'triggerEvent') {
+                            return glitter.promiseValue(new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
+                                resolve((yield TriggerEvent.trigger({
+                                    gvc: gvc, widget: widget, clickEvent: data.trigger, subData: subData,
+                                })));
                             })));
-                        })));
-                    }
-                    else {
-                        try {
-                            if (data.classDataType === 'code') {
-                                classs = eval(`(() => {
-                                    ${data.class}
-                                })()`);
-                            }
-                            else {
-                                classs = eval(data.class);
-                            }
                         }
-                        catch (e) {
-                            classs = data.class;
+                        else {
+                            try {
+                                if (data.classDataType === 'code') {
+                                    classs = eval(`(() => {
+                                        ${data.class}
+                                    })()`);
+                                }
+                                else {
+                                    classs = eval(data.class);
+                                }
+                            }
+                            catch (e) {
+                                classs = data.class;
+                            }
+                            return classs;
                         }
-                        return classs;
                     }
-                }
-                const tempMap = {};
-                ((_a = data.stylist) !== null && _a !== void 0 ? _a : []).map((dd) => {
-                    tempMap[dd.size] = (() => {
-                        return getClass(dd);
+                    const tempMap = {};
+                    ((_a = data.stylist) !== null && _a !== void 0 ? _a : []).map((dd) => {
+                        tempMap[dd.size] = (() => {
+                            return getClass(dd);
+                        });
                     });
-                });
-                return glitter.ut.frSize(tempMap, (() => {
-                    return getClass(data);
-                }))();
+                    return glitter.ut.frSize(tempMap, (() => {
+                        return getClass(data);
+                    }))();
+                }
+                return [getStyleData()].concat((_a = getStyleData().list) !== null && _a !== void 0 ? _a : []).map((dd) => {
+                    return classString(dd);
+                }).join('');
             },
             style: () => {
-                var _a, _b;
-                const data = getStyleData();
-                let styles = '';
-                function getStyle(data) {
-                    let style = '';
-                    if (data.dataType === 'static') {
-                        return data.style;
-                    }
-                    else {
-                        try {
-                            if (data.dataType === 'code') {
-                                style = eval(`(() => {
-                                    ${data.style}
-                                })()`);
-                            }
-                            else if (data.dataType === 'triggerEvent') {
-                                return glitter.promiseValue(new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
-                                    resolve((yield TriggerEvent.trigger({
-                                        gvc: gvc,
-                                        widget: widget,
-                                        clickEvent: data.triggerStyle,
-                                        subData: subData,
+                var _a;
+                function styleString(data) {
+                    var _a, _b;
+                    let styles = '';
+                    function getStyle(data) {
+                        let style = '';
+                        if (data.dataType === 'static') {
+                            return data.style;
+                        }
+                        else {
+                            try {
+                                if (data.dataType === 'code') {
+                                    style = eval(`(() => {
+                                        ${data.style}
+                                    })()`);
+                                }
+                                else if (data.dataType === 'triggerEvent') {
+                                    return glitter.promiseValue(new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
+                                        resolve((yield TriggerEvent.trigger({
+                                            gvc: gvc,
+                                            widget: widget,
+                                            clickEvent: data.triggerStyle,
+                                            subData: subData,
+                                        })));
                                     })));
-                                })));
+                                }
+                                else {
+                                    style = eval(data.style);
+                                }
                             }
-                            else {
-                                style = eval(data.style);
+                            catch (e) {
+                                style = data.style;
                             }
-                        }
-                        catch (e) {
-                            style = data.style;
-                        }
-                        return style;
-                    }
-                }
-                const tempMap = {};
-                ((_a = data.stylist) !== null && _a !== void 0 ? _a : []).map((dd) => {
-                    tempMap[dd.size] = (() => {
-                        return getStyle(dd);
-                    });
-                });
-                styles = glitter.ut.frSize(tempMap, (() => {
-                    return getStyle(data);
-                }))();
-                let styleString = [styles];
-                ((_b = data.styleList) !== null && _b !== void 0 ? _b : []).map((dd) => {
-                    Object.keys(dd.data).map((d2) => {
-                        styleString.push([d2, dd.data[d2]].join(':'));
-                    });
-                });
-                let styleStringJoin = styleString.join(';');
-                function replaceString(pattern) {
-                    let match;
-                    while ((match = pattern.exec(styleStringJoin)) !== null) {
-                        const placeholder = match[0];
-                        const value = match[1];
-                        if (glitter.share.globalValue && glitter.share.globalValue[value]) {
-                            styleStringJoin = styleStringJoin.replace(placeholder, glitter.share.globalValue[value]);
+                            return style;
                         }
                     }
+                    const tempMap = {};
+                    ((_a = data.stylist) !== null && _a !== void 0 ? _a : []).map((dd) => {
+                        tempMap[dd.size] = (() => {
+                            return getStyle(dd);
+                        });
+                    });
+                    styles = glitter.ut.frSize(tempMap, (() => {
+                        return getStyle(data);
+                    }))();
+                    let styleString = [styles];
+                    ((_b = data.styleList) !== null && _b !== void 0 ? _b : []).map((dd) => {
+                        Object.keys(dd.data).map((d2) => {
+                            styleString.push([d2, dd.data[d2]].join(':'));
+                        });
+                    });
+                    let styleStringJoin = styleString.join(';');
+                    function replaceString(pattern) {
+                        let match;
+                        while ((match = pattern.exec(styleStringJoin)) !== null) {
+                            const placeholder = match[0];
+                            const value = match[1];
+                            if (glitter.share.globalValue && glitter.share.globalValue[value]) {
+                                styleStringJoin = styleStringJoin.replace(placeholder, glitter.share.globalValue[value]);
+                            }
+                        }
+                    }
+                    replaceString(/\/\**@{{(.*?)}}\*\//g);
+                    replaceString(/@{{(.*?)}}/g);
+                    return styleStringJoin;
                 }
-                replaceString(/\/\**@{{(.*?)}}\*\//g);
-                replaceString(/@{{(.*?)}}/g);
-                return styleStringJoin;
+                return [getStyleData()].concat((_a = getStyleData().list) !== null && _a !== void 0 ? _a : []).map((dd) => {
+                    return styleString(dd);
+                }).join('');
             },
         };
     }
