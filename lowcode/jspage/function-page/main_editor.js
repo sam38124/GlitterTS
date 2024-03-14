@@ -7,13 +7,13 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import { Swal } from "../modules/sweetAlert.js";
-import Add_item_dia from "../glitterBundle/plugins/add_item_dia.js";
-import { EditorElem } from "../glitterBundle/plugins/editor-elem.js";
-import { PageEditor } from "../editor/page-editor.js";
-import { ShareDialog } from "../dialog/ShareDialog.js";
-import { ApiPageConfig } from "../api/pageConfig.js";
-import { Storage } from "../helper/storage.js";
+import { Swal } from "../../modules/sweetAlert.js";
+import { EditorElem } from "../../glitterBundle/plugins/editor-elem.js";
+import { PageEditor } from "../../editor/page-editor.js";
+import { ShareDialog } from "../../dialog/ShareDialog.js";
+import { ApiPageConfig } from "../../api/pageConfig.js";
+import { Storage } from "../../helper/storage.js";
+import { AddComponent } from "../../editor/add-component.js";
 var ViewType;
 (function (ViewType) {
     ViewType["mobile"] = "mobile";
@@ -27,14 +27,13 @@ export class Main_editor {
         const swal = new Swal(gvc);
         const glitter = gvc.glitter;
         return gvc.bindView(() => {
-            glitter.debugMode = true;
             const vid = glitter.getUUID();
             return {
                 bind: vid,
                 view: () => {
                     function checkSelect(array) {
                         array.map((dd) => {
-                            if (dd.id === glitter.getCookieByName('lastSelect')) {
+                            if (dd.id === Storage.lastSelect) {
                                 viewModel.selectContainer = array;
                                 viewModel.selectItem = dd;
                             }
@@ -44,10 +43,11 @@ export class Main_editor {
                         });
                     }
                     checkSelect(viewModel.data.config);
-                    if ((glitter.getCookieByName("ViewType") === ViewType.col3) || (glitter.getCookieByName("ViewType") === ViewType.mobile)) {
+                    Storage.lastSelect;
+                    if ((Storage.view_type === ViewType.col3) || (Storage.view_type === ViewType.mobile)) {
                         gvc.notifyDataChange('right_NAV');
                     }
-                    if (viewModel.selectItem && (glitter.getCookieByName("ViewType") !== ViewType.col3) && (glitter.getCookieByName("ViewType") !== ViewType.mobile) &&
+                    if (viewModel.selectItem && (Storage.view_type !== ViewType.col3) && (Storage.view_type !== ViewType.mobile) &&
                         (viewModel.selectItem.type !== 'code') && (viewModel.selectItem.type !== 'widget' || (viewModel.selectItem.data.elem !== 'style' && viewModel.selectItem.data.elem !== 'link' && viewModel.selectItem.data.elem !== 'script'))) {
                         return Main_editor.pageAndComponent({
                             gvc: gvc,
@@ -67,9 +67,7 @@ export class Main_editor {
                                      style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;"
                                      onclick="${gvc.event(() => {
                             glitter.share.editorViewModel.selectContainer = glitter.share.editorViewModel.data.config;
-                            gvc.glitter.innerDialog((gvc) => {
-                                return Add_item_dia.view(gvc);
-                            }, 'Add_Item');
+                            AddComponent.toggle(true);
                         })}">
                                     <i class="fa-regular fa-circle-plus"></i>
                                 </div>
@@ -78,31 +76,6 @@ export class Main_editor {
 
                             ${(() => {
                             return gvc.map([
-                                html `
-                                        <div class="d-flex ms-2  px-2   hi fw-bold d-flex align-items-center border-bottom d-none"
-                                             style="color:#151515;font-size:14px;gap:0px;">頁面-區段
-                                            <div class="flex-fill"></div>
-                                            <l1 class="btn-group dropend me-0" onclick="${gvc.event(() => {
-                                    viewModel.selectContainer = viewModel.data.config;
-                                })}">
-                                                <div class="editor_item d-none  px-2 me-0" style="cursor:pointer; "
-                                                     onclick="${gvc.event(() => {
-                                    viewModel.selectContainer = viewModel.data.config;
-                                    glitter.share.pastEvent();
-                                })}">
-                                                    <i class="fa-duotone fa-paste"></i>
-                                                </div>
-                                                <div class="editor_item   px-2 ms-0 me-n1"
-                                                     style="cursor:pointer;gap:5px;" onclick="${gvc.event(() => {
-                                    viewModel.selectContainer = viewModel.data.config;
-                                    gvc.glitter.innerDialog((gvc) => {
-                                        return Add_item_dia.view(gvc);
-                                    }, 'Add_Item');
-                                })}">
-                                                    <i class="fa-regular fa-circle-plus"></i>
-                                                </div>
-                                            </l1>
-                                        </div>`,
                                 (() => {
                                     let pageConfig = (viewModel.data.config.filter((dd, index) => {
                                         return (dd.type !== 'code') && (dd.type !== 'widget' || (dd.data.elem !== 'style' && dd.data.elem !== 'link' && dd.data.elem !== 'script'));
@@ -123,7 +96,7 @@ export class Main_editor {
                                     }
                                     return new PageEditor(gvc, 'MainEditorLeft', 'MainEditorRight').renderLineItem(pageConfig, false, pageConfig, {
                                         selectEv: (dd) => {
-                                            return dd.id === glitter.getCookieByName('lastSelect');
+                                            return dd.id === Storage.lastSelect;
                                         },
                                         refreshEvent: () => {
                                             setPageConfig();
@@ -137,15 +110,20 @@ export class Main_editor {
                 },
                 divCreate: { class: `swiper-slide h-100 position-relative` },
                 onCreate: () => {
-                    const htmlGenerate = new gvc.glitter.htmlGenerate(viewModel.data.config, [glitter.getCookieByName('lastSelect')], undefined, true);
+                    const htmlGenerate = new gvc.glitter.htmlGenerate(viewModel.data.config, [Storage.lastSelect], undefined, true);
                     window.editerData = htmlGenerate;
                     window.page_config = viewModel.data.page_config;
+                    setTimeout(() => {
+                        document.querySelector('.selectLeftItem').scrollIntoView({
+                            behavior: 'auto',
+                            block: 'center',
+                        });
+                    }, 1000);
                 }
             };
         });
     }
     static right(gvc, viewModel, createID, gBundle) {
-        alert('s');
         const glitter = gvc.glitter;
         return gvc.bindView(() => {
             let haveAdd = true;
@@ -208,7 +186,7 @@ export class Main_editor {
         const gvc = option.gvc;
         function checkSelect(array) {
             array.map((dd) => {
-                if (dd.id === glitter.getCookieByName('lastSelect')) {
+                if (dd.id === Storage.lastSelect) {
                     viewModel.selectContainer = array;
                     viewModel.selectItem = dd;
                 }
@@ -218,7 +196,7 @@ export class Main_editor {
             });
         }
         return [html `
-            <div class=" " style="overflow-y:auto;height:calc(100vh - 200px)">
+            <div class=" " style="overflow-y:auto;height:calc(100vh - 150px)">
                 ${gvc.bindView(() => {
                 return {
                     bind: `htmlGenerate`,
@@ -353,8 +331,8 @@ export class Main_editor {
     }
     static center(viewModel, gvc) {
         return html `
-            <div class="${(viewModel.type === ViewType.mobile && gvc.glitter.getUrlParameter('editorPosition') !== '2') ? `d-flex align-items-center justify-content-center flex-column mx-auto` : `d-flex align-items-center justify-content-center flex-column`}"
-                 style="${(viewModel.type === ViewType.mobile && gvc.glitter.getUrlParameter('editorPosition') !== '2') ? `width: 414px;height: calc(100vh - 50px);padding-top: 20px;` : `width: calc(100% - 20px);margin-left:10px;height: calc(100vh - 50px);padding-top: 20px;"`}">
+            <div class="${(viewModel.type === ViewType.mobile && Storage.select_function === 'page-editor') ? `d-flex align-items-center justify-content-center flex-column mx-auto` : `d-flex align-items-center justify-content-center flex-column`}"
+                 style="${(viewModel.type === ViewType.mobile && Storage.select_function === 'page-editor') ? `width: 414px;height: calc(100vh - 50px);padding-top: 20px;` : `width: calc(100% - 20px);margin-left:10px;height: calc(100vh - 50px);padding-top: 20px;"`}">
                 <div class="" style="width:100%;height: calc(100%);" id="editerCenter">
                     <iframe class="w-100 h-100 rounded bg-white"
                             src="index.html?type=htmlEditor&page=${gvc.glitter.getUrlParameter('page')}&appName=${gvc.glitter.getUrlParameter('appName')}"></iframe>
@@ -404,11 +382,6 @@ export class Main_editor {
                                                 icon: 'fa-regular fa-memo'
                                             },
                                             {
-                                                title: 'SEO相關配置',
-                                                value: 'basic',
-                                                icon: 'fa-regular fa-magnifying-glass'
-                                            },
-                                            {
                                                 title: '樣式設計',
                                                 value: 'style',
                                                 icon: 'fa-regular fa-regular fa-pen-swirl'
@@ -417,11 +390,6 @@ export class Main_editor {
                                                 title: '觸發事件',
                                                 value: 'script',
                                                 icon: 'fa-regular fa-file-code'
-                                            },
-                                            {
-                                                title: '頁面原始碼',
-                                                value: 'code',
-                                                icon: 'fa-regular fa-regular fa-code'
                                             },
                                             {
                                                 title: '區段編輯',
@@ -642,7 +610,6 @@ ${(dd.value === vm.select) ? `background:linear-gradient(135deg, #667eea 0%, #76
         });
     }
 }
-Main_editor.index = '0';
 function swapArr(arr, index1, index2) {
     const data = arr[index1];
     arr.splice(index1, 1);

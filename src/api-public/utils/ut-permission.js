@@ -12,8 +12,7 @@ class UtPermission {
             try {
                 resolve((await database_js_1.default.query(`SELECT count(1)
                              FROM ${config_js_1.saasConfig.SAAS_NAME}.app_config
-                             where user = ?
-                               and appName = ?`, [req.body.token.userID, req.get('g-app')]))[0]['count(1)'] == 1);
+                             where user = ? and appName = ?`, [req.body.token.userID, req.get('g-app') || req.query.appName || req.body.appName]))[0]['count(1)'] == 1);
             }
             catch (e) {
                 resolve(false);

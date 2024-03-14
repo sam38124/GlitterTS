@@ -1,11 +1,10 @@
-import { ShareDialog } from "../dialog/ShareDialog.js";
-import { EditorElem } from "../glitterBundle/plugins/editor-elem.js";
-import { BgShopping } from "../backend-manager/bg-shopping.js";
-import { BgProject } from "../backend-manager/bg-project.js";
-import { BgNotify } from "../backend-manager/bg-notify.js";
-import { BgWallet } from "../backend-manager/bg-wallet.js";
-import { BgBlog } from "../backend-manager/bg-blog.js";
-import { BgSeo } from "../backend-manager/bg-seo.js";
+import { ShareDialog } from "../../dialog/ShareDialog.js";
+import { EditorElem } from "../../glitterBundle/plugins/editor-elem.js";
+import { BgShopping } from "../../backend-manager/bg-shopping.js";
+import { BgProject } from "../../backend-manager/bg-project.js";
+import { BgNotify } from "../../backend-manager/bg-notify.js";
+import { BgWallet } from "../../backend-manager/bg-wallet.js";
+import { BgBlog } from "../../backend-manager/bg-blog.js";
 export class Setting_editor {
     static left(gvc, viewModel, createID, gBundle) {
         const html = String.raw;
@@ -100,26 +99,11 @@ ${(!itemList.find((dd) => {
                         </div>` + (() => {
                         switch (vm.select) {
                             case "official":
-                                const itemList = [
-                                    {
-                                        title: `共用資源`,
-                                        view: (gvc) => {
-                                            return BgProject.setGlobalValue(gvc);
-                                        }
-                                    },
-                                    {
-                                        title: `SEO設定`,
-                                        view: (gvc) => {
-                                            return BgSeo.mainPage(gvc);
-                                        }
-                                    }
-                                ];
                                 return html `
                                     <div class="alert alert-info m-2 p-3 d-none"
                                          style="white-space: normal;word-break: break-all;">
                                         已下為官方提供的後台開發管理工具，能為您解決基本的系統開發需求。
                                     </div>
-                                    ${setBackendEditor(`fa-regular fa-gear me-1`, `專案開發`, itemList, id)}
                                     ${setBackendEditor(`fa-regular fa-user me-1`, `用戶相關`, [
                                     {
                                         title: `登入設定`,
@@ -258,6 +242,12 @@ ${(!itemList.find((dd) => {
                                 ], id)}
                                     ${setBackendEditor(`fa-sharp fa-regular fa-cloud-arrow-up`, `應用發佈`, [
                                     {
+                                        title: `模板發佈`,
+                                        view: (gvc) => {
+                                            return BgProject.templateReleaseForm(gvc);
+                                        }
+                                    },
+                                    {
                                         title: `蘋果商城`,
                                         view: (gvc) => {
                                             return BgProject.appRelease(gvc, 'apple_release');
@@ -270,7 +260,7 @@ ${(!itemList.find((dd) => {
                                         }
                                     }
                                 ], id)}
-                                    
+
                                     ${(window.memberType === 'noLimit') ? setBackendEditor(`fa-solid fa-code`, `自訂代碼事件`, [
                                     ...(() => {
                                         let cCat = [];
@@ -316,18 +306,14 @@ ${(!itemList.find((dd) => {
                                             if (vm.loading) {
                                                 return ``;
                                             }
-                                            return html `
-                                                <div class="alert alert-info m-2 p-3"
-                                                     style="white-space: normal;word-break: break-all;">
-                                                    透過官方或第三方平台取得相關後台套件，來達成所有客製化系統開發。
+                                            return html `<div class="alert alert-info m-2 p-3" style="white-space: normal;word-break: break-all;">
+                                                透過官方或第三方平台取得相關後台套件，來達成所有客製化系統開發。
                                                 </div>
                                                 <div class="w-100"
                                                      style="border-bottom: 1px solid #e2e5f1 !important;"></div>
                                             ` + EditorElem.arrayItem({
                                                 gvc: gvc,
-                                                title: `<div class="d-flex w-100">
-選項列表
-<div class="flex-fill"></div>
+                                                title: `<div class="d-flex w-100">選項列表<div class="flex-fill"></div>
 <div class="hoverBtn  px-2 ms-0 me-n1" style="cursor:pointer;" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" onclick="${gvc.event(() => {
                                                     Setting_editor.addPlugin(gvc, () => {
                                                         getData();
@@ -568,5 +554,4 @@ ${(() => {
         }, 'addPlugin');
     }
 }
-Setting_editor.index = '2';
 Setting_editor.pluginUrl = '';

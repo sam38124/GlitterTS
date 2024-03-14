@@ -11,21 +11,53 @@ import { init } from '../glitterBundle/GVController.js';
 import { Editor } from './editor.js';
 import { ApiPageConfig } from '../api/pageConfig.js';
 import { Swal } from '../modules/sweetAlert.js';
-import { Main_editor } from "./main_editor.js";
-import { Page_editor } from "./page_editor.js";
-import { Setting_editor } from "./setting_editor.js";
-import { Plugin_editor } from "./plugin_editor.js";
+import { Main_editor } from "./function-page/main_editor.js";
+import { Page_editor } from "./function-page/page_editor.js";
+import { Setting_editor } from "./function-page/setting_editor.js";
 import * as triggerBridge from "../editor-bridge/trigger-event.js";
 import { TriggerEvent } from "../glitterBundle/plugins/trigger-event.js";
 import { StoreHelper } from "../helper/store-helper.js";
-import { DialogInterface } from "../dialog/dialog-interface.js";
 import { Storage } from "../helper/storage.js";
+import { ServerEditor } from "./function-page/server-editor/server-editor.js";
+import { AddComponent } from "../editor/add-component.js";
+import { PageSettingView } from "../editor/page-setting-view.js";
+import { AddPage } from "../editor/add-page.js";
+import { SetGlobalValue } from "../editor/set-global-value.js";
 const html = String.raw;
 const editorContainerID = `HtmlEditorContainer`;
 init(import.meta.url, (gvc, glitter, gBundle) => {
     gvc.addStyle(`.tooltip{
     z-index:99999 !important;
-    }`);
+    }
+     .scroll-in {
+    
+      left: -100%; /* 將元素移到畫面外 */
+      animation: slideInFromLeft 0.5s ease-out forwards;
+    }
+
+  .scroll-out {
+      left: 0%; /* 將元素移到畫面外 */
+      animation: slideOutFromLeft 1s ease-out forwards;
+    }
+    /* @keyframes 定義動畫 */
+    @keyframes slideInFromLeft {
+      0% {
+        left: -100%; /* 起始位置在畫面外 */
+      }
+      100% {
+        left: 0; /* 結束位置在畫面內 */
+      }
+    }
+     /* @keyframes 定義動畫 */
+    @keyframes slideOutFromLeft {
+      0% {
+        left: 0; /* 起始位置在畫面外 */
+      }
+      100% {
+        left: -100%; /* 結束位置在畫面內 */
+      }
+    }
+    `);
     const swal = new Swal(gvc);
     const viewModel = {
         appName: gBundle.appName,
@@ -97,7 +129,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                             viewModel.dataList = data.response.result;
                             viewModel.originalData = JSON.parse(JSON.stringify(viewModel.dataList));
                             glitter.share.allPageResource = JSON.parse(JSON.stringify(data.response.result));
-                            const htmlGenerate = new gvc.glitter.htmlGenerate(viewModel.data.config, [glitter.getCookieByName('lastSelect')], undefined, true);
+                            const htmlGenerate = new gvc.glitter.htmlGenerate(viewModel.data.config, [Storage.lastSelect], undefined, true);
                             window.editerData = htmlGenerate;
                             window.page_config = viewModel.data.page_config;
                             if (!data) {
@@ -187,7 +219,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
         });
     }
     lod().then(() => {
-        glitter.htmlGenerate.saveEvent = (refresh = true) => {
+        glitter.htmlGenerate.saveEvent = (refresh = true, callback) => {
             glitter.closeDiaLog();
             glitter.setCookie("jumpToNavScroll", $(`#jumpToNav`).scrollTop());
             swal.loading('更新中...');
@@ -261,6 +293,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                 });
             }
             saveEvent().then(r => {
+                callback && callback();
             });
         };
         glitter.share.reloadEditor = () => {
@@ -274,8 +307,6 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
             return gvc.bindView({
                 bind: editorContainerID,
                 view: () => {
-                    var _a;
-                    let selectPosition = (_a = glitter.getUrlParameter('editorPosition')) !== null && _a !== void 0 ? _a : "0";
                     if (viewModel.loading) {
                         return ``;
                     }
@@ -287,45 +318,66 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                                             <div style="width:60px;gap:20px;padding-top: 15px;"
                                                  class="h-100 border-end d-flex flex-column align-items-center">
                                                 ${[
-                                { src: `fa-table-layout`, index: Main_editor.index },
-                                { src: `fa-solid fa-list-check`, index: Setting_editor.index },
-                            ].filter((dd) => {
-                                return !(dd.index === Setting_editor.index && glitter.getUrlParameter('blogEditor') === 'true');
-                            }).map((da) => {
-                                return `<i class="fa-regular ${da.src} fs-5 fw-bold ${(selectPosition === `${da.index}`) ? `text-primary` : ``}  p-2 rounded" style="cursor:pointer;${(selectPosition === `${da.index}`) ? `background-color: rgba(10,83,190,0.1);` : ``}"
-onclick="${gvc.event(() => {
+                                {
+                                    src: `fa-table-layout`,
+                                    index: 'page-editor',
+                                    hint: '頁面編輯'
+                                },
+                                {
+                                    src: `fa-solid fa-list-check`,
+                                    index: 'backend-manger',
+                                    hint: '後台系統'
+                                },
+                                {
+                                    src: `fa-duotone fa-server`,
+                                    index: 'server-manager',
+                                    hint: '伺服器設定'
+                                },
+                            ].map((da) => {
+                                return html `<i
+                                                            class="fa-regular ${da.src} fs-5 fw-bold ${(Storage.select_function === `${da.index}`) ? `text-primary` : ``}  p-2 rounded"
+                                                            data-bs-toggle="tooltip"
+                                                            data-bs-placement="top"
+                                                            data-bs-custom-class="custom-tooltip"
+                                                            data-bs-title="${da.hint}"
+                                                            style="cursor:pointer;${(Storage.select_function === `${da.index}`) ? `background-color: rgba(10,83,190,0.1);` : ``}"
+                                                            onclick="${gvc.event(() => {
                                     viewModel.waitCopy = undefined;
                                     viewModel.selectItem = undefined;
-                                    glitter.setUrlParameter(`editorPosition`, `${da.index}`);
+                                    Storage.select_function = da.index;
                                     gvc.notifyDataChange(editorContainerID);
                                 })}"></i>`;
                             }).join('')}
                                             </div>
                                             <div class="offcanvas-body swiper scrollbar-hover  w-100 ${(() => {
-                                switch (selectPosition) {
-                                    case Setting_editor.index:
-                                    case Main_editor.index:
+                                switch (Storage.select_function) {
+                                    case 'backend-manger':
+                                    case 'server-manager':
                                         return `pt-0`;
-                                    case Page_editor.index:
+                                    case 'page-editor':
                                         return `p-0`;
                                     default:
                                         return `p-0`;
                                 }
                             })()}" style="overflow-y: auto;overflow-x:hidden;height:calc(100vh - 56px);">
+                                                ${AddComponent.leftNav(gvc)}
+                                                ${PageSettingView.leftNav(gvc)}
+                                                ${AddPage.leftNav(gvc)}
+                                                ${SetGlobalValue.leftNav(gvc)}
                                                 <div class="h-100" style="">
                                                     ${gvc.bindView(() => {
                                 return {
                                     bind: 'MainEditorLeft',
                                     view: () => {
-                                        switch (selectPosition) {
-                                            case Setting_editor.index:
+                                        switch (Storage.select_function) {
+                                            case 'backend-manger':
                                                 return Setting_editor.left(gvc, viewModel, editorContainerID, gBundle);
-                                            case Page_editor.index:
-                                                return Page_editor.left(gvc, viewModel, editorContainerID, gBundle);
-                                            case Plugin_editor.index:
-                                                return Plugin_editor.left(gvc, viewModel, editorContainerID, gBundle);
-                                            default:
+                                            case 'server-manager':
+                                                return ServerEditor.left(gvc);
+                                            case 'page-editor':
                                                 return Main_editor.left(gvc, viewModel, editorContainerID, gBundle);
+                                            default:
+                                                return Page_editor.left(gvc, viewModel, editorContainerID, gBundle);
                                         }
                                     },
                                     divCreate: {
@@ -357,10 +409,10 @@ onclick="${gvc.event(() => {
                     });
                     function scrollToItem(element) {
                         if (element) {
-                            var elementRect = element.getBoundingClientRect();
-                            var elementTop = elementRect.top;
-                            var elementHeight = elementRect.height;
-                            var windowHeight = document.querySelector('.scrollbar-hover').scrollHeight;
+                            let elementRect = element.getBoundingClientRect();
+                            let elementTop = elementRect.top;
+                            let elementHeight = elementRect.height;
+                            let windowHeight = document.querySelector('.scrollbar-hover').scrollHeight;
                             let scrollTo = elementTop - (windowHeight - elementHeight) / 2;
                             document.querySelector('.scrollbar-hover').scrollTo({
                                 top: scrollTo,
@@ -432,7 +484,7 @@ function shortCutKey(gvc) {
     document.addEventListener('keydown', function (event) {
         let keyCode = event.keyCode || event.which;
         if ((event.ctrlKey) && keyCode === 71) {
-            DialogInterface.globalResource(gvc);
+            SetGlobalValue.toggle(true);
         }
     });
 }

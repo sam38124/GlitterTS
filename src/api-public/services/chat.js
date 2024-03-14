@@ -10,10 +10,6 @@ const ut_database_js_1 = require("../utils/ut-database.js");
 const user_js_1 = require("./user.js");
 const ses_js_1 = require("../../services/ses.js");
 class Chat {
-    constructor(app, token) {
-        this.app = app;
-        this.token = token;
-    }
     async addChatRoom(room) {
         try {
             if (room.type === 'user') {
@@ -218,6 +214,10 @@ class Chat {
         catch (e) {
             throw exception_1.default.BadRequestError((_a = e.code) !== null && _a !== void 0 ? _a : 'BAD_REQUEST', 'GetMessage Error:' + e.message, null);
         }
+    }
+    constructor(app, token) {
+        this.app = app;
+        this.token = token;
     }
 }
 exports.Chat = Chat;

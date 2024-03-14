@@ -1,8 +1,8 @@
-import {GVC} from "../glitterBundle/GVController.js";
-import {EditorElem} from "../glitterBundle/plugins/editor-elem.js";
-import {HtmlGenerate} from "../glitterBundle/module/html-generate.js";
-import {initialCode} from "../setting/initialCode.js";
-import {TriggerEvent} from "../glitterBundle/plugins/trigger-event.js";
+import {GVC} from "../../glitterBundle/GVController.js";
+import {EditorElem} from "../../glitterBundle/plugins/editor-elem.js";
+import {HtmlGenerate} from "../../glitterBundle/module/html-generate.js";
+import {initialCode} from "../../setting/initialCode.js";
+import {TriggerEvent} from "../../glitterBundle/plugins/trigger-event.js";
 
 export class Plugin_editor {
     public static index = 'plugin'

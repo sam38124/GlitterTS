@@ -102,7 +102,7 @@ Plugin.createComponent(import.meta.url, (glitter, editMode) => {
                             },
                             onCreate: () => {
                                 return new Promise((resolve, reject) => __awaiter(void 0, void 0, void 0, function* () {
-                                    let targetElement = gvc.getBindViewElem(id).get(0);
+                                    let targetElement = gvc.getBindViewElem(id);
                                     if (targetElement.infinityScroll) {
                                         targetElement.removeEventListener('scroll', targetElement.infinityScroll);
                                     }
@@ -120,7 +120,7 @@ Plugin.createComponent(import.meta.url, (glitter, editMode) => {
                                                     if (!loading_finish) {
                                                         const loadingID = gvc.glitter.getUUID();
                                                         const view = yield getPageView(config.loadingView.tag, subData, loadingStyle.class() + ` ${loadingID}`, loadingStyle.style());
-                                                        gvc.getBindViewElem(id).append(view);
+                                                        gvc.getBindViewElem(id).innerHTML += (view);
                                                         const response = yield (TriggerEvent.trigger({
                                                             gvc: gvc,
                                                             widget: widget,
@@ -129,7 +129,7 @@ Plugin.createComponent(import.meta.url, (glitter, editMode) => {
                                                         }));
                                                         for (const b of response) {
                                                             const view = yield getPageView(widget.data.tag, b, childStyle.class(), childStyle.style());
-                                                            gvc.getBindViewElem(id).append(view);
+                                                            gvc.getBindViewElem(id).innerHTML += (view);
                                                         }
                                                         document.querySelector('.' + loadingID).remove();
                                                         vm.loading = false;

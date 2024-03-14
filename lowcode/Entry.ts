@@ -8,23 +8,24 @@ import {GlobalUser} from "./glitter-base/global/global-user.js";
 
 export class Entry {
     public static onCreate(glitter: Glitter) {
+        const css = String.raw
         if (glitter.getUrlParameter('appName')) {
             (window as any).appName = glitter.getUrlParameter('appName')
             config.appName = glitter.getUrlParameter('appName')
         }
-        glitter.addStyle(glitter.html`@media (prefers-reduced-motion: no-preference) {
-    :root {
-        scroll-behavior: auto !important;
-    }
-}`);
+        glitter.addStyle(css`@media (prefers-reduced-motion: no-preference) {
+          :root {
+            scroll-behavior: auto !important;
+          }
+        }`);
+
         (window as any).renderClock = (window as any).renderClock ?? clockF()
         console.log(`Entry-time:`, (window as any).renderClock.stop())
-        glitter.share.editerVersion = "V_5.1.5"
+        glitter.share.editerVersion = "V_5.3.9"
         glitter.share.start = new Date()
-        glitter.debugMode = false
-        const vm :{
-            appConfig:any
-        }= {
+        const vm: {
+            appConfig: any
+        } = {
             appConfig: []
         };
         (window as any).saasConfig = {
@@ -42,6 +43,7 @@ export class Entry {
             glitter.share.globalStyle = {}
             glitter.share.appConfigresponse.response.data.globalValue = glitter.share.appConfigresponse.response.data.globalValue ?? []
             glitter.share.appConfigresponse.response.data.globalStyleTag = glitter.share.appConfigresponse.response.data.globalStyleTag ?? []
+
             function loopCheckGlobalValue(array: any, tag: string) {
                 try {
                     array.map((dd: any) => {
@@ -119,7 +121,6 @@ export class Entry {
                                     vm.count--
                                 })
                             } else {
-                                const dd = await eval(data.src.official)
                                 vm.count--
                             }
                         } catch (e) {
@@ -139,6 +140,7 @@ export class Entry {
                     })
                     toBackendEditor(glitter)
                 } else if (glitter.getUrlParameter("type") === 'htmlEditor') {
+                    console.log('timer');
                     (window.parent as any).glitter.share.editerGlitter = glitter;
                     let timer: any = 0
                     // 获取<body>元素
@@ -156,9 +158,16 @@ export class Entry {
 
                         clearInterval(timer)
                         timer = setTimeout(() => {
-                            scrollToItem(document.querySelector('.selectComponentHover'))
+                            const clock = glitter.ut.clock()
+                            const interVal = setInterval(() => {
+                                if (document.querySelector('.selectComponentHover')) {
+                                    scrollToItem(document.querySelector('.selectComponentHover'))
+                                }
+                                if (clock.stop() > 2000) {
+                                    clearInterval(interVal)
+                                }
+                            })
                         }, 100)
-
                     });
                     // 启动观察器并开始监听<body>元素的大小变化
                     observer.observe(bodyElement);
@@ -214,7 +223,7 @@ export class Entry {
                         return eval(evals)
                     })
                     console.log(`exePlugin-time:`, (window as any).renderClock.stop());
-                    (window as any).glitterInitialHelper.getPageData(glitter.getUrlParameter('page'),(data: any) => {
+                    (window as any).glitterInitialHelper.getPageData(glitter.getUrlParameter('page'), (data: any) => {
                         console.log(`getPageData-time:`, (window as any).renderClock.stop())
                         if (data.response.result.length === 0) {
                             const url = new URL("./", location.href)
@@ -260,10 +269,11 @@ export class Entry {
                                 backGroundColor: `transparent;`
                             });
                         }
+
                         //判斷APP是否過期
-                        if(((window as any).memberType !== 'noLimit') && vm.appConfig.dead_line && (new Date(vm.appConfig.dead_line).getTime()) < new Date().getTime()){
+                        if (((window as any).memberType !== 'noLimit') && vm.appConfig.dead_line && (new Date(vm.appConfig.dead_line).getTime()) < new Date().getTime()) {
                             authError('使用權限已過期，請前往後台執行續費。')
-                        }else{
+                        } else {
                             authPass()
                         }
                     })
@@ -274,7 +284,6 @@ export class Entry {
 }
 
 
-
 //跳轉至頁面編輯器
 function toBackendEditor(glitter: Glitter) {
     async function running() {
@@ -282,8 +291,7 @@ function toBackendEditor(glitter: Glitter) {
         glitter.addStyleLink([
             'assets/vendor/boxicons/css/boxicons.min.css',
             'assets/css/theme.css',
-            'css/editor.css',
-
+            'css/editor.css'
         ]);
         await new Promise((resolve, reject) => {
             glitter.addMtScript(
@@ -314,8 +322,8 @@ function toBackendEditor(glitter: Glitter) {
         running().then(async () => {
             {
                 let data = await ApiPageConfig.getPage({
-                    appName:config.appName,
-                    tag:glitter.getUrlParameter('page')
+                    appName: config.appName,
+                    tag: glitter.getUrlParameter('page')
                 })
                 if (data.response.result.length === 0) {
                     glitter.setUrlParameter('page', data.response.redirect)

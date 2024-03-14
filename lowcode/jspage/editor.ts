@@ -1,8 +1,8 @@
 import {GVC} from '../glitterBundle/GVController.js';
-import {Main_editor} from "./main_editor.js";
-import {Page_editor} from "./page_editor.js";
-import {Setting_editor} from "./setting_editor.js";
-import {Plugin_editor} from "./plugin_editor.js";
+import {Main_editor} from "./function-page/main_editor.js";
+import {Page_editor} from "./function-page/page_editor.js";
+import {Setting_editor} from "./function-page/setting_editor.js";
+import {Plugin_editor} from "./function-page/plugin_editor.js";
 import {PageEditor} from "../editor/page-editor.js";
 import {EditorElem} from "../glitterBundle/plugins/editor-elem.js";
 import {fileManager} from "../setting/appSetting.js";
@@ -13,6 +13,9 @@ import {BgGlobalEvent} from "../backend-manager/bg-global-event.js";
 import {DialogInterface} from "../dialog/dialog-interface.js";
 import {ApiPageConfig} from "../api/pageConfig.js";
 import {Storage} from "../helper/storage.js";
+import {PageSettingView} from "../editor/page-setting-view.js";
+import {AddPage} from "../editor/add-page.js";
+import {SetGlobalValue} from "../editor/set-global-value.js";
 
 export enum ViewType {
     mobile = "mobile",
@@ -50,12 +53,12 @@ export class Editor {
         `);
         gvc.addStyle(`div{word-break: break-word;white-space: nowrap;}`);
         const viewModel: { type: string } = {
-            "type": glitter.getCookieByName("ViewType") ?? ViewType.col3
+            "type": Storage.view_type ?? ViewType.col3
         }
         this.create = (left: string, right: string) => {
             function getEditorTitle() {
                 return (glitter.share.blogEditor) ? `編輯Blog文章` :
-                    `GLITTER.EDITOR<span class="ms-1" style="font-size: 11px;">${glitter.share.editerVersion}</span>`
+                    `CODENEX.EDITOR<span class="ms-1" style="font-size: 11px;">${glitter.share.editerVersion}</span>`
             }
 
             return html`
@@ -96,23 +99,34 @@ export class Editor {
                                         `
                                 }
                             </div>
-                            <div style="width:${(glitter.getUrlParameter('blogEditor')) ? `100px` : `30px`};"></div>
-                            <div class="d-flex align-items-center flex-fill " style="">
-                                <div class=" d-flex align-items-center justify-content-center me-2">
-                                    <div class="form-check form-switch mode-switch" data-bs-toggle="mode"
-                                         onchange="${gvc.event(() => {
-                                             Storage.editor_mode = (Storage.editor_mode === 'user') ? 'dev' : 'user';
-                                             gvc.recreateView()
-                                         })}">
-                                        <input type="checkbox" class="form-check-input" id="theme-mode"
-                                               ${(Storage.editor_mode === 'dev') ? `checked` : ``}>
-                                        <label class="form-check-label d-none d-sm-block "
-                                               for="theme-mode">編輯者</label>
-                                        <label class="form-check-label d-none d-sm-block"
-                                               for="theme-mode">開發者</label>
-                                    </div>
-
-                                </div>
+                            <div style="width:${(glitter.getUrlParameter('blogEditor')) ? `100px` : `20px`};"></div>
+                            
+                            <div class="d-flex align-items-center flex-fill ${(Storage.select_function==='page-editor') ? ``:`d-none`}" style="">
+                               
+                                ${gvc.bindView(()=>{
+                                    const id=gvc.glitter.getUUID()
+                                    return {
+                                        bind:id,
+                                        view:()=>{
+                                            return `  <div class="hoverBtn  d-flex align-items-center justify-content-center   border"
+                                     style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;"
+                                     onclick="${gvc.event(() => {
+                                                SetGlobalValue.toggle(true)
+                                            })}"
+                                     data-bs-toggle="tooltip" data-bs-placement="top"
+                                     data-bs-custom-class="custom-tooltip"
+                                     data-bs-title="全域設置"
+                                >
+                                    <i class="fa-solid fa-bars"></i>
+                                </div>`
+                                        },
+                                        onCreate:()=>{
+                                            $('.tooltip').remove();
+                                            $('[data-bs-toggle="tooltip"]').tooltip();  
+                                        }
+                                    }
+                                })}
+                               
                                 <div class="flex-fill"></div>
                                 <div class="d-flex align-items-center justify-content-center hoverBtn me-1 border"
                                      style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;"
@@ -120,244 +134,7 @@ export class Editor {
                                      data-bs-custom-class="custom-tooltip"
                                      data-bs-title="頁面編輯"
                                      onclick="${gvc.event(() => {
-                                         EditorElem.openEditorDialog(gvc, (gvc) => {
-                                             return gvc.bindView(() => {
-                                                 const docID = gvc.glitter.getUUID()
-                                                 return {
-                                                     bind: docID,
-                                                     view: () => {
-                                                         let viewModel=glitter.share.editorViewModel
-                                                         let editData: any = glitter.share.editorViewModel.data;
-                                                         return html`
-                                                             <div class="mx-n2  mt-n2" style="">
-                                                                 <div class=" pt-0 justify-content-start px-2"
-                                                                      style="">
-                                                                     ${
-                                                                             [
-                                                                                 (() => {
-                                                                                     let view: any = [EditorElem.select({
-                                                                                         gvc: gvc,
-                                                                                         title: '類型',
-                                                                                         def: editData.page_type ?? 'page',
-                                                                                         array: [
-                                                                                             {
-                                                                                                 title: "網頁",
-                                                                                                 value: 'page'
-                                                                                             },
-                                                                                             {
-                                                                                                 title: "頁面模塊",
-                                                                                                 value: 'module'
-                                                                                             },
-                                                                                             {
-                                                                                                 title: "網誌模板",
-                                                                                                 value: 'article'
-                                                                                             },
-                                                                                             {
-                                                                                                 title: "Blog網誌",
-                                                                                                 value: 'blog'
-                                                                                             }
-                                                                                         ],
-                                                                                         callback: (text) => {
-                                                                                             editData.page_type = text
-                                                                                             gvc.notifyDataChange(docID)
-                                                                                         }
-                                                                                     })]
-                                                                                     const title=(()=>{
-                                                                                         switch (editData.page_type){
-                                                                                             case 'page':
-                                                                                                 return '頁面'
-                                                                                             case 'module':
-                                                                                                 return '模塊'
-                                                                                             case 'article':
-                                                                                                 return '模板'
-                                                                                             case 'blog':
-                                                                                                 return '網誌'
-                                                                                         }
-                                                                                     })()
-                                                                                     editData.page_type = editData.page_type ?? 'page';
-                                                                                     ((editData.page_type === 'page') || (editData.page_type === 'blog')) && view.push(EditorElem.select({
-                                                                                         title: "設為首頁",
-                                                                                         gvc: gvc,
-                                                                                         def: (viewModel.homePage === editData.tag) ? `true` : `false`,
-                                                                                         array: [{
-                                                                                             title: "是",
-                                                                                             value: 'true'
-                                                                                         }, {
-                                                                                             title: "否",
-                                                                                             value: 'false'
-                                                                                         }],
-                                                                                         callback: (text) => {
-                                                                                             if (text === 'true') {
-                                                                                                 viewModel.homePage = editData.tag
-                                                                                                 editData.page_config.seo.type = 'custom'
-                                                                                             } else {
-                                                                                                 viewModel.homePage = undefined
-                                                                                             }
-                                                                                             gvc.notifyDataChange(docID)
-                                                                                         }
-                                                                                     }));
-                                                                                     if(editData.page_type==='module'){
-                                                                                         view.push(EditorElem.select({
-                                                                                             title: "是否加入至模板庫",
-                                                                                             gvc: gvc,
-                                                                                             def: `${editData.favorite ?? '0'}`,
-                                                                                             array: [{
-                                                                                                 title: "是",
-                                                                                                 value: '1'
-                                                                                             }, {
-                                                                                                 title: "否",
-                                                                                                 value: '0'
-                                                                                             }],
-                                                                                             callback: (text) => {
-                                                                                                 editData.favorite=text
-                                                                                                 gvc.notifyDataChange(docID)
-                                                                                             }
-                                                                                         }))
-                                                                                         editData.preview_image=editData.preview_image??''
-                                                                                         view.push(EditorElem.uploadImage({
-                                                                                             gvc: gvc,
-                                                                                             title: `預覽圖片`,
-                                                                                             def:editData.preview_image,
-                                                                                             callback: (text) => {
-                                                                                                 editData.preview_image = text
-                                                                                             }
-                                                                                         }))   
-                                                                                     }
-                                                                                     view.push(EditorElem.editeInput({
-                                                                                         gvc: gvc,
-                                                                                         title: `${title}標籤`,
-                                                                                         placeHolder: `請輸入${title}標籤`,
-                                                                                         default: editData.tag,
-                                                                                         callback: (text) => {
-                                                                                             editData.tag = text
-                                                                                         }
-                                                                                     }))
-                                                                                     view.push(EditorElem.editeInput({
-                                                                                         gvc: gvc,
-                                                                                         title: `${title}名稱`,
-                                                                                         placeHolder: `請輸入${title}名稱`,
-                                                                                         default: editData.name,
-                                                                                         callback: (text) => {
-                                                                                             editData.name = text
-                                                                                         }
-                                                                                     }))
-                                                                                     view.push(EditorElem.searchInput({
-                                                                                         title: `${title}分類`,
-                                                                                         gvc: gvc,
-                                                                                         def: editData.group,
-                                                                                         array: (() => {
-                                                                                             let group: string[] = []
-                                                                                             viewModel.dataList.map((dd: any) => {
-                                                                                                 if ((group.indexOf(dd.group) === -1)&&dd.page_type===editData.page_type) {
-                                                                                                     group.push(dd.group)
-                                                                                                 }
-                                                                                             });
-                                                                                             return group
-                                                                                         })(),
-                                                                                         callback: (text: string) => {
-                                                                                             editData.group = text
-                                                                                             gvc.notifyDataChange(docID)
-                                                                                         },
-                                                                                         placeHolder: `請輸入${title}分類`
-                                                                                     }))
-                                                                                     return view.join('')
-                                                                                 })(),
-                                                                                 html`
-                                                                                     <div class="w-100 mt-2 d-flex align-items-center justify-content-end"
-                                                                                          style="gap:5px;">
-                                                                                         <div class="d-flex align-items-center justify-content-center hoverBtn  border"
-                                                                                              style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;"
-                                                                                              onclick="${gvc.event(() => {
-                                                                                                  EditorElem.openEditorDialog(gvc, (gvc) => {
-                                                                                                      return gvc.bindView(() => {
-                                                                                                          const id = glitter.getUUID();
-                                                                                                          let checkText = ''
-                                                                                                          return {
-                                                                                                              bind: id,
-                                                                                                              view: () => {
-                                                                                                                  return `<lottie-player
-  autoplay
-  loop
-  mode="normal"
-  src="${new URL('../lottie/error.json', import.meta.url)}"
-  style="width: 200px;"
-  class=""
->
-</lottie-player>
-<div class="alert alert-danger w-100" style="word-break: break-all;white-space: normal;"><strong>請注意</strong>，頁面刪除後即無法復原，請警慎進行操作。</div>
-<input placeholder="請輸入『 我要刪除 』後按下確認刪除" class="form-control" onchange="${gvc.event((e, event) => {
-                                                                                                                      checkText = e.value;
-                                                                                                                  })}"></input>
-<div class="btn btn-danger w-100 mt-2" onclick="${gvc.event(() => {
-                                                                                                                      const dialog = new ShareDialog(gvc.glitter)
-                                                                                                                      if (checkText !== '我要刪除') {
-                                                                                                                          dialog.errorMessage({text: "請輸入我要刪除"})
-                                                                                                                      } else {
-                                                                                                                          dialog.checkYesOrNot({
-                                                                                                                              callback: (response) => {
-                                                                                                                                  if (response) {
-                                                                                                                                      dialog.dataLoading({visible: true})
-                                                                                                                                      ApiPageConfig.deletePage({
-                                                                                                                                          "id": glitter.share.editorViewModel.data.id,
-                                                                                                                                          "appName": (window as any).appName,
-                                                                                                                                      }).then((data) => {
-                                                                                                                                          dialog.dataLoading({visible: false})
-                                                                                                                                          location.reload()
-                                                                                                                                      })
-                                                                                                                                  }
-                                                                                                                              },
-                                                                                                                              text: "是否確認刪除頁面?"
-                                                                                                                          })
-                                                                                                                      }
-                                                                                                                  })}">確認刪除</div>
-`
-                                                                                                              },
-                                                                                                              divCreate: {
-                                                                                                                  class: `flex-column p-2 d-flex align-items-center justify-content-center`,
-                                                                                                                  style: ``
-                                                                                                              }
-                                                                                                          }
-                                                                                                      })
-                                                                                                  }, () => {
-                                                                                                  }, 400)
-                                                                                              })}"
-                                                                                              data-bs-toggle="tooltip"
-                                                                                              data-bs-placement="top"
-                                                                                              data-bs-custom-class="custom-tooltip"
-                                                                                              data-bs-title="刪除頁面"
-                                                                                         >
-                                                                                             <i class="fa-solid fa-trash text-danger"></i>
-                                                                                         </div>
-                                                                                         <button class="btn btn-primary-c "
-                                                                                                 style="height: 35px;"
-                                                                                                 onclick="${gvc.event(() => {
-                                                                                                     gvc.glitter.htmlGenerate.saveEvent(false)
-                                                                                                     location.reload()
-                                                                                                 })}">儲存
-                                                                                         </button>
-                                                                                     </div>
-                                                                                 `
-                                                                             ].map((dd) => {
-                                                                                 return `<div class="">${dd}</div>`
-                                                                             }).join(``)}
-                                                                 </div>
-                                                             </div>`
-                                                     },
-                                                     divCreate: () => {
-                                                         return {
-                                                             class: ` h-100 p-2 d-flex flex-column`,
-                                                             style: `width:400px;max-height:80vh;overflow-y:auto;overflow-x:hidden;`
-                                                         }
-                                                     },
-                                                     onCreate: () => {
-                                                         $('.tooltip')!.remove();
-                                                         ($('[data-bs-toggle="tooltip"]') as any).tooltip();
-                                                     }
-                                                 }
-                                             })
-                                         }, () => {
-                                         }, 400, data.data.name)
-
+                                         PageSettingView.toggle(true)
                                      })}">
                                     <i class="fa-regular fa-gear"></i>
                                 </div>
@@ -481,9 +258,7 @@ background:linear-gradient(135deg, #667eea 0%, #764ba2 100%);background:-webkit-
                                      data-bs-custom-class="custom-tooltip"
                                      data-bs-title="添加頁面"
                                      onclick="${gvc.event(() => {
-                                         glitter.openDiaLog('dialog/addTemplate.js', 'addTemplate', {
-                                             vm: data
-                                         });
+                                         AddPage.toggle(true)
                                      })}">
                                     <i class="fa-regular fa-circle-plus"></i>
                                 </div>
@@ -498,60 +273,11 @@ background:linear-gradient(135deg, #667eea 0%, #764ba2 100%);background:-webkit-
                                                     })
                                             }">返回編輯文章內容</button>`
                                         }
-                                        return [
-                                            `<div class="d-flex align-items-center justify-content-center hoverBtn  border"
-                                                     style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;"
-                                                     onclick="${gvc.event(() => {
-                                                DialogInterface.globalResource(gvc)
-                                            })}"
-                                                     data-bs-toggle="tooltip" data-bs-placement="top"
-                                                     data-bs-custom-class="custom-tooltip"
-                                                     data-bs-title="資源管理 : CTRL + G"
-                                                >
-                                                    <i class="fa-regular fa-folder"></i>
-                                                </div>`
-                                        ]
+                                        return []
                                     } else {
                                         return [
                                             html`
-                                                <div class="hoverBtn ms-auto d-flex align-items-center justify-content-center   border"
-                                                     style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;"
-                                                     onclick="${gvc.event(() => {
-                                                         PageEditor.openDialog.seo_with_domain(gvc)
-                                                     })}"
-                                                     data-bs-toggle="tooltip" data-bs-placement="top"
-                                                     data-bs-custom-class="custom-tooltip"
-                                                     data-bs-title="網域設置"
-                                                >
-                                                    <i class="fa-sharp fa-regular fa-globe-pointer"></i>
-                                                </div>`,
-                                            html`
-                                                <div class="hoverBtn d-flex align-items-center justify-content-center   border "
-                                                     style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;"
-                                                     onclick="${gvc.event(() => {
-                                                         PageEditor.openDialog.plugin_setting(gvc)
-                                                     })}"
-                                                     data-bs-toggle="tooltip" data-bs-placement="top"
-                                                     data-bs-custom-class="custom-tooltip"
-                                                     data-bs-title="模塊設置"
-                                                >
-                                                    <i class="fa-solid fa-puzzle-piece-simple"></i>
-
-                                                </div>`,
-                                            html`
-                                                <div class="d-flex align-items-center justify-content-center hoverBtn  border"
-                                                     style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;"
-                                                     onclick="${gvc.event(() => {
-                                                         DialogInterface.globalResource(gvc)
-                                                     })}"
-                                                     data-bs-toggle="tooltip" data-bs-placement="top"
-                                                     data-bs-custom-class="custom-tooltip"
-                                                     data-bs-title="資源管理 : CTRL + G"
-                                                >
-                                                    <i class="fa-regular fa-folder"></i>
-                                                </div>`,
-                                            html`
-                                                <div class="d-flex align-items-center justify-content-center hoverBtn  border"
+                                                <div class="d-flex align-items-center justify-content-center hoverBtn  border d-none"
                                                      style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;"
                                                      onclick="${gvc.event(() => {
                                                          EditorElem.openEditorDialog(gvc, (gvc) => {
@@ -585,7 +311,6 @@ background:linear-gradient(135deg, #667eea 0%, #764ba2 100%);background:-webkit-
                                 ${gvc.bindView({
                                     bind: `showViewIcon`,
                                     view: () => {
-
                                         glitter.setCookie("ViewType", viewModel.type)
                                         return html`
                                             <div style="background:#f1f1f1;border-radius:10px;"
@@ -663,7 +388,7 @@ background:linear-gradient(135deg, #667eea 0%, #764ba2 100%);background:-webkit-
                     </aside>
                     <!-- Page container -->
                     <main class="docs-container"
-                          style="padding-top: 40px;padding-right:${((viewModel.type === ViewType.col3 || viewModel.type === ViewType.mobile) && glitter.getUrlParameter('editorPosition') !== Setting_editor.index) ? `290` : `0`}px;${(viewModel.type === ViewType.fullScreen) ? `padding-left:0px;` : `
+                          style="padding-top: 40px;padding-right:${((viewModel.type === ViewType.col3 || viewModel.type === ViewType.mobile) && Storage.select_function !== 'backend-manger' && Storage.select_function !== 'server-manager') ? `290` : `0`}px;${(viewModel.type === ViewType.fullScreen) ? `padding-left:0px;` : `
                           padding-left:20rem;
                           `}">
                         ${gvc.bindView({
@@ -680,7 +405,7 @@ background:linear-gradient(135deg, #667eea 0%, #764ba2 100%);background:-webkit-
                         })}
                     </main>
                     ${(() => {
-                        if (((viewModel.type === ViewType.col3 || (viewModel.type === ViewType.mobile)) && glitter.getUrlParameter('editorPosition') !== Setting_editor.index)) {
+                        if (((viewModel.type === ViewType.col3 || (viewModel.type === ViewType.mobile)) && Storage.select_function !== 'backend-manger' && Storage.select_function !== 'server-manager')) {
                             return Main_editor.pageAndComponent({
                                 gvc: gvc,
                                 data: data,

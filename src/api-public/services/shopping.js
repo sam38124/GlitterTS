@@ -99,8 +99,7 @@ class Shopping {
                    where ${querySql.join(' & ')} ${query.order_by || `order by id desc`}
         `;
         if (query.id) {
-            const data = (await database_js_1.default.query(`SELECT *
-                                          FROM (${sql}) as subqyery limit ${query.page * query.limit}, ${query.limit}`, []))[0];
+            const data = (await database_js_1.default.query(`SELECT * FROM (${sql}) as subqyery limit ${query.page * query.limit}, ${query.limit}`, []))[0];
             return {
                 data: data,
                 result: !!(data)

@@ -30,6 +30,25 @@ export declare class Template {
         id?: string;
         tag?: string;
     }): Promise<boolean>;
+    getTemplate(query: {
+        app_name?: string;
+        template_from: 'all' | 'me';
+        page?: string;
+        limit?: string;
+    }): Promise<{
+        data: any;
+        result: boolean;
+        total?: undefined;
+    } | {
+        data: any;
+        total: any;
+        result?: undefined;
+    }>;
+    postTemplate(config: {
+        appName: string;
+        data: any;
+        tag: string;
+    }): Promise<boolean>;
     getPage(config: {
         appName?: string;
         tag?: string;

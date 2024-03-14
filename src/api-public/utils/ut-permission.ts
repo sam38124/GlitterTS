@@ -8,8 +8,7 @@ export class UtPermission{
             try {
                 resolve((await db.query(`SELECT count(1)
                              FROM ${saasConfig.SAAS_NAME}.app_config
-                             where user = ?
-                               and appName = ?`, [req.body.token.userID, req.get('g-app') as string]))[0]['count(1)'] == 1)
+                             where user = ? and appName = ?`, [req.body.token.userID, (req.get('g-app') as string) || req.query.appName || req.body.appName]))[0]['count(1)'] == 1)
             }catch (e){
                 resolve(false)
             }

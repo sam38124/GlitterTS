@@ -120,16 +120,27 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                                                 set[index].data.inner = gBundle.page_config.meta_article.content;
                                             }
                                             else {
-                                                set[index].type = 'container';
-                                                set[index].data = {
-                                                    "setting": gBundle.config,
-                                                    "elem": "div",
-                                                    "style_from": set[index].style_from,
-                                                    "class": set[index].class,
-                                                    "style": set[index].style,
-                                                    "classDataType": set[index].classDataType,
-                                                    "dataType": set[index].dataType
-                                                };
+                                                if (gBundle.editMode) {
+                                                    set[index].type = 'widget';
+                                                    set[index].data.inner = (gBundle.editMode && gBundle.editMode.render(gvc, {
+                                                        class: ``,
+                                                        style: ``,
+                                                        app_config: gBundle.app_config,
+                                                        page_config: gBundle.page_config
+                                                    }));
+                                                }
+                                                else {
+                                                    set[index].type = 'container';
+                                                    set[index].data = {
+                                                        "setting": gBundle.config,
+                                                        "elem": "div",
+                                                        "style_from": set[index].style_from,
+                                                        "class": set[index].class,
+                                                        "style": set[index].style,
+                                                        "classDataType": set[index].classDataType,
+                                                        "dataType": set[index].dataType
+                                                    };
+                                                }
                                                 function loopFormData(dd) {
                                                     dd.formData = gBundle.page_config.formData;
                                                     if (dd.type === 'container') {
@@ -152,12 +163,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                                     style: ``,
                                     app_config: gBundle.app_config,
                                     page_config: gBundle.page_config
-                                }) + ((gBundle.editMode && gBundle.editMode.render(gvc, {
-                                    class: ``,
-                                    style: ``,
-                                    app_config: gBundle.app_config,
-                                    page_config: gBundle.page_config
-                                })) || new glitter.htmlGenerate(template_config, [], undefined, true).render(gvc, {
+                                }) + (new glitter.htmlGenerate(template_config, [], undefined, true).render(gvc, {
                                     class: ``,
                                     style: ``,
                                     app_config: gBundle.app_config,

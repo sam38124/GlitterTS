@@ -9,9 +9,6 @@ const database_js_1 = __importDefault(require("../modules/database.js"));
 const config_js_1 = require("../config.js");
 const moment_js_1 = __importDefault(require("moment/moment.js"));
 class Private_config {
-    constructor(token) {
-        this.token = token;
-    }
     async setConfig(config) {
         if (!(await this.verifyPermission(config.appName))) {
             throw exception_js_1.default.BadRequestError("Forbidden", "No Permission.", null);
@@ -64,6 +61,9 @@ class Private_config {
             where (user = ${this.token.userID} and appName = ${database_js_1.default.escape(appName)})
         `, []);
         return count[0]["count(1)"] === 1;
+    }
+    constructor(token) {
+        this.token = token;
     }
 }
 exports.Private_config = Private_config;

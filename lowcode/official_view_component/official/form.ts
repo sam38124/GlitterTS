@@ -377,8 +377,8 @@ export class FormWidget {
             const label = `<label class="${labelCSS.class()}" style="${labelCSS.style()}"><span class="text-danger  ${dd.require === "true" ? `` : 'd-none'}"> * </span>${dd.title}</label>`
             const containerClass = containerCss.class() ?? ``
             const containerStyle = containerCss.style() ?? ``
-            const inputClass = inputCSS.class() ?? "form-control"
-            const inputStyle = inputCSS.style() ?? ""
+            const inputClass = inputCSS.class() || "form-control"
+            const inputStyle = inputCSS.style() || ""
             //當參數不可見時
             if (dd.readonly === 'block') {
                 return ``
@@ -469,6 +469,7 @@ export class FormWidget {
                                                 event: gvc.event(() => {
                                                     formData[dd.key].push({})
                                                     gvc.notifyDataChange(arrayViewID)
+                                                    obj.refresh(dd.key)
                                                 })
                                             }
                                         })}

@@ -784,7 +784,7 @@ class Render{
                             }
                             viewModel.selectContainer = original
                             viewModel.selectItem = dd
-                            glitter.setCookie('lastSelect', dd.id);
+                            Storage.lastSelect=dd.id;
                             gvc.notifyDataChange([vid, this.editorID])
                             return true
                         }
@@ -824,7 +824,7 @@ class Render{
                                              onclick="${option.selectEvent || gvc.event(() => {
                                 viewModel.selectContainer = original
                                 viewModel.selectItem = dd
-                                glitter.setCookie('lastSelect', dd.id);
+                                Storage.lastSelect=dd.id;
                                 gvc.notifyDataChange(['htmlGenerate', 'showView', vid, this.editorID]);
                             })}">
                                             ${(dd.type === 'container') ? html`

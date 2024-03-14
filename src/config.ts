@@ -108,10 +108,12 @@ export const config = {
         user: "/user",
         template: "/template",
         app: "/app",
+        page: "/page",
         fileManager: "/fileManager",
         private: "/private",
         ai: "/ai",
-        globalEvent:'/global-event'
+        globalEvent:'/global-event',
+        backendServer:'/backend-server'
     }
 }
 export default config;

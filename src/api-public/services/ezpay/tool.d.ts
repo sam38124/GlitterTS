@@ -3,7 +3,7 @@ import { Encoding } from 'crypto';
 interface IData {
     [key: string]: string | string[] | number;
 }
-declare type QueryParams = Record<string, string>;
+type QueryParams = Record<string, string>;
 export default class Tool {
     arrayEquals(a_array: any[], b_array: any[]): boolean;
     randomString(max: number): string;

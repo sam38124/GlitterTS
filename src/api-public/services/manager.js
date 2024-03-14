@@ -7,9 +7,6 @@ exports.Manager = void 0;
 const exception_js_1 = __importDefault(require("../../modules/exception.js"));
 const database_js_1 = __importDefault(require("../../modules/database.js"));
 class Manager {
-    constructor(token) {
-        this.token = token;
-    }
     async setConfig(config) {
         try {
             await database_js_1.default.execute(`replace
@@ -35,6 +32,9 @@ class Manager {
             console.log(e);
             throw exception_js_1.default.BadRequestError("ERROR", "ERROR." + e, null);
         }
+    }
+    constructor(token) {
+        this.token = token;
     }
 }
 exports.Manager = Manager;

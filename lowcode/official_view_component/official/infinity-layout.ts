@@ -104,7 +104,7 @@ Plugin.createComponent(import.meta.url, (glitter: Glitter, editMode: boolean) =>
                             onCreate: () => {
                                 return new Promise(async (resolve, reject) => {
                                     // 取得要監聽的元素
-                                    let targetElement = gvc.getBindViewElem(id).get(0);
+                                    let targetElement:any = gvc.getBindViewElem(id)!;
                                     if (targetElement.infinityScroll) {
                                         targetElement.removeEventListener('scroll', targetElement.infinityScroll)
                                     }
@@ -124,7 +124,7 @@ Plugin.createComponent(import.meta.url, (glitter: Glitter, editMode: boolean) =>
                                                     if (!loading_finish) {
                                                         const loadingID=gvc.glitter.getUUID()
                                                         const view=await getPageView(config.loadingView.tag,subData,loadingStyle.class()+` ${loadingID}`,loadingStyle.style())
-                                                        gvc.getBindViewElem(id).append(view)
+                                                        gvc.getBindViewElem(id)!.innerHTML+=(view)
                                                         const response = await (TriggerEvent.trigger({
                                                             gvc: gvc,
                                                             widget: widget,
@@ -133,7 +133,7 @@ Plugin.createComponent(import.meta.url, (glitter: Glitter, editMode: boolean) =>
                                                         }));
                                                         for (const b of response as any){
                                                             const view=await getPageView(widget.data.tag,b,childStyle.class(),childStyle.style())
-                                                            gvc.getBindViewElem(id).append(view)
+                                                            gvc.getBindViewElem(id)!.innerHTML+=(view)
                                                         }
                                                         document.querySelector('.'+loadingID)!.remove()
                                                         vm.loading = false

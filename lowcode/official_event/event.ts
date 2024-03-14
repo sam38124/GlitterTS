@@ -782,6 +782,10 @@ TriggerEvent.create(import.meta.url, {
         title: 'GLITTER / 建立APP',
         fun: TriggerEvent.setEventRouter(import.meta.url, './glitter/create.js')
     },
+    glitterGetTemplate: {
+        title: 'GLITTER / 取得模板列表',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './glitter/get-template-list.js')
+    },
     glitterPreview: {
         title: 'GLITTER / 預覽APP',
         fun: TriggerEvent.setEventRouter(import.meta.url, './glitter/preview.js')

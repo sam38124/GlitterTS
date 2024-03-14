@@ -50,10 +50,12 @@ export declare const config: {
         user: string;
         template: string;
         app: string;
+        page: string;
         fileManager: string;
         private: string;
         ai: string;
         globalEvent: string;
+        backendServer: string;
     };
 };
 export default config;

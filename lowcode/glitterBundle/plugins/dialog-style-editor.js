@@ -4,6 +4,7 @@ import Add_item_dia from "./add_item_dia.js";
 import { Swal } from "../../modules/sweetAlert.js";
 import { TriggerEvent } from "./trigger-event.js";
 import { ShareDialog } from "../dialog/ShareDialog.js";
+import { Storage } from "../../helper/storage.js";
 const html = String.raw;
 init(import.meta.url, (gvc, glitter, gBundle) => {
     return {
@@ -656,6 +657,11 @@ function styleEditor(gvc, styleData, classs = 'mx-2') {
     function refreshView() {
         gvc.notifyDataChange(vm.pageID);
     }
+    styleData.stylist.map((dd, index) => {
+        if (document.querySelector('#editerCenter').clientWidth > parseInt(dd.size)) {
+            vm.selectData = `${index}`;
+        }
+    });
     function editIt(gvc, data) {
         var _a, _b;
         data.class = ((_a = data.class) !== null && _a !== void 0 ? _a : "").trim();
@@ -690,7 +696,9 @@ border-radius: 0px 10px 10px 0px;" data-bs-toggle="tooltip" data-bs-placement="t
                         array: () => {
                             return styleData.stylist.map((dd) => {
                                 return {
-                                    title: `<div class="d-flex align-items-center">寬度:<input class="form-control ms-2 ps-2" style="height:30px;" value="${dd.size}"></div>`,
+                                    title: `<div class="d-flex align-items-center">寬度:<input class="form-control ms-2 ps-2" style="height:30px;" type="number" value="${dd.size}" onchange="${gvc.event((e, event) => {
+                                        dd.size = parseInt(e.value);
+                                    })}"></div>`,
                                     innerHtml: (gvc) => {
                                         return [];
                                     },
@@ -1093,7 +1101,7 @@ class Render {
                             }
                             viewModel.selectContainer = original;
                             viewModel.selectItem = dd;
-                            glitter.setCookie('lastSelect', dd.id);
+                            Storage.lastSelect = dd.id;
                             gvc.notifyDataChange([vid, this.editorID]);
                             return true;
                         };
@@ -1133,7 +1141,7 @@ class Render {
                                              onclick="${option.selectEvent || gvc.event(() => {
                             viewModel.selectContainer = original;
                             viewModel.selectItem = dd;
-                            glitter.setCookie('lastSelect', dd.id);
+                            Storage.lastSelect = dd.id;
                             gvc.notifyDataChange(['htmlGenerate', 'showView', vid, this.editorID]);
                         })}">
                                             ${(dd.type === 'container') ? html `

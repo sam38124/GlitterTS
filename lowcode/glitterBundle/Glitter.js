@@ -33,7 +33,7 @@ export class Glitter {
         this.parameter = { styleList: [], styleLinks: [] };
         this.callBackId = 0;
         this.callBackList = new Map();
-        this.debugMode = false;
+        this.debugMode = localStorage.getItem('glitter-db-mode') || 'false';
         this.publicBeans = {};
         this.share = {};
         this.deviceType = this.deviceTypeEnum.Web;
@@ -692,7 +692,7 @@ export class Glitter {
     }
     ;
     deBugMessage(error) {
-        if (this.debugMode) {
+        if (this.debugMode === 'true') {
             try {
                 if (error && error.message) {
                     console.error(`${error}
@@ -708,7 +708,7 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
         }
     }
     consoleLog(text) {
-        if (this.debugMode) {
+        if (this.debugMode === 'true') {
             console.log(text);
         }
     }
@@ -938,7 +938,7 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
         if (typeof performance !== 'undefined' && typeof performance.now === 'function') {
             d += performance.now();
         }
-        return (format !== null && format !== void 0 ? format : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx').replace(/[xy]/g, function (c) {
+        return (format !== null && format !== void 0 ? format : 'xxxxxxxx').replace(/[xy]/g, function (c) {
             let r = (d + Math.random() * 16) % 16 | 0;
             d = Math.floor(d / 16);
             return "s" + (c === 'x' ? r : r & 0x3 | 0x8).toString(16);
@@ -964,13 +964,15 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
             glitter.parameter.styleList.push(sl);
         }
     }
-    addStyleLink(data) {
+    addStyleLink(data, doc) {
         return __awaiter(this, void 0, void 0, function* () {
+            const document = doc !== null && doc !== void 0 ? doc : (window.document);
             const glitter = this;
-            const head = document.head;
+            const head = document.head || document;
+            console.log(`head-->`, head);
             function add(filePath) {
                 const id = glitter.getUUID();
-                let allLinks = document.getElementsByTagName("link");
+                let allLinks = document.querySelectorAll("link");
                 let pass = true;
                 for (let i = 0; i < allLinks.length; i++) {
                     const hrefValue = allLinks[i].getAttribute("href");
@@ -980,7 +982,7 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
                     }
                 }
                 if (pass) {
-                    let link = document.createElement("link");
+                    let link = (window.document).createElement("link");
                     link.type = "text/css";
                     link.rel = "stylesheet";
                     link.href = filePath;

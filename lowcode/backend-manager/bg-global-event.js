@@ -8,7 +8,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 import { EditorElem } from "../glitterBundle/plugins/editor-elem.js";
-import { BgWidget } from "./bg-widget.js";
 import { PageEditor } from "../editor/page-editor.js";
 import { ShareDialog } from "../dialog/ShareDialog.js";
 import { TriggerEvent } from "../glitterBundle/plugins/trigger-event.js";
@@ -17,34 +16,45 @@ const html = String.raw;
 export class BgGlobalEvent {
     static mainPage(gvc) {
         const rightID = gvc.glitter.getUUID();
-        return BgWidget.container(html `
-            <div class="d-flex" style="gap:10px;">
-                <div style="width:300px;" class="">
-                    ${BgWidget.card(BgGlobalEvent.leftBar(gvc, (tag) => {
+        return `<div class="d-flex w-100">
+                <div style="width:250px;" class="">
+                    ${BgGlobalEvent.leftBar(gvc, (tag) => {
             BgGlobalEvent.selectTag = tag;
             gvc.notifyDataChange(rightID);
-        }), 'p-1 bg-white rounded-3 shadow border w-100')}
+        })}
                 </div>
-                <div class="flex-fill">
-                    ${BgWidget.card(gvc.bindView(() => {
+               <div class="flex-fill">
+${gvc.bindView(() => {
             return {
                 bind: rightID,
                 view: () => {
                     return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
                         if (BgGlobalEvent.selectTag !== undefined) {
-                            resolve(BgGlobalEvent.editor({
+                            resolve(`<div class="d-flex w-100  px-2   hi fw-bold d-flex align-items-center border-bottom bgf6" style="color:#151515;font-size:16px;gap:0px;height:48px;">
+                                                    事件編輯
+                                                    <div class="flex-fill"></div>
+                                              <button class="btn btn-primary" style="height:28px;width:60px;" onclick="${gvc.event(() => {
+                                BgGlobalEvent.saveEvent();
+                            })}">儲存</button>
+                                                </div>
+<div class="p-2">${BgGlobalEvent.editor({
                                 gvc: gvc,
                                 tag: BgGlobalEvent.selectTag,
                                 type: (BgGlobalEvent.selectTag) ? "put" : "post"
-                            }));
+                            })}</div>
+`);
                         }
                         else {
                             resolve(html `
+                                <div class="d-flex p-2      hi fw-bold d-flex align-items-center border-bottom bgf6" style="color:#151515;font-size:16px;gap:0px;height:48px;">
+                                    事件編輯
+                                    <div class="flex-fill"></div>
+                                </div>
                                             <div class="d-flex flex-column w-100 align-items-center justify-content-center"
                                                  style="height:calc(100% - 48px);">
                                                 <lottie-player src="lottie/animation_code.json" class="mx-auto my-n4"
                                                                speed="1"
-                                                               style="max-width: 100%;width: 250px;height:300px;" loop
+                                                               style="max-width: 100%;width: 100%;height:300px;" loop
                                                                autoplay></lottie-player>
                                                 <h3 class=" text-center px-4" style="font-size:18px;">
                                                     透過設定事件集，來管理程式碼事件。
@@ -54,13 +64,11 @@ export class BgGlobalEvent {
                     }));
                 },
                 divCreate: {
-                    style: `max-height:calc(100vh - 200px);overflow-y:auto;`,
-                    class: `p-2`
+                    style: `height:calc(100vh - 120px);overflow-y:auto;`, class: ``
                 }
             };
-        }), 'p-0 bg-white border rounded-3 shadow')}
-                </div>
-            </div>`, 800, 'padding:10px;');
+        })}</div>
+            </div>`;
     }
     static leftBar(gvc, callback) {
         const vid = gvc.glitter.getUUID();
@@ -113,15 +121,17 @@ export class BgGlobalEvent {
                                 }
                             });
                             resolve(`
-                            <li class="w-100 align-items-center  d-flex editor_item_title  start-0 bg-white z-index-9 ps-2" style="z-index: 999;">
-                                <span style="font-size:14px;">事件集列表</span>
-                                <div class="hoverBtn d-flex align-items-center justify-content-center   border ms-auto me-2" style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;"
+<div class="d-flex w-100  ps-2   hi fw-bold d-flex align-items-center border-bottom bgf6" style="color:#151515;font-size:16px;gap:0px;height:48px;">
+                                                    事件集列表
+                                                    <div class="flex-fill"></div>
+                                                    <div class="hoverBtn d-flex align-items-center justify-content-center   border ms-auto me-2" style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;"
                                 onclick="${gvc.event(() => {
                                 callback('');
                             })}">
                                     <i class="fa-regular fa-circle-plus" aria-hidden="true"></i>
                                 </div>
-                            </li>
+                                                </div>
+                           
                             ` + new PageEditor(gvc, vid, '').renderLineItem(mapData, false, mapData, {
                                 copyType: 'directly',
                                 readonly: true,
@@ -141,7 +151,9 @@ export class BgGlobalEvent {
                         }
                     }));
                 },
-                divCreate: {}
+                divCreate: {
+                    style: `height:calc(100vh - 120px);overflow-y:auto;`, class: `border-end`
+                }
             };
         });
     }
@@ -174,6 +186,31 @@ export class BgGlobalEvent {
                 bind: id,
                 view: () => {
                     var _a;
+                    BgGlobalEvent.saveEvent = () => {
+                        if (!vm.data.tag || !vm.data.name) {
+                            dialog.errorMessage({ text: "標題與標籤不得為空!" });
+                            return;
+                        }
+                        dialog.dataLoading({ visible: true });
+                        if (obj.type === 'put') {
+                            GlobalEvent.putGlobalEvent(vm.data).then((data) => {
+                                dialog.dataLoading({ visible: false });
+                                dialog.successMessage({
+                                    text: "儲存成功!"
+                                });
+                            });
+                        }
+                        else {
+                            BgGlobalEvent.selectTag = vm.data.tag;
+                            GlobalEvent.addGlobalEvent(vm.data).then((data) => {
+                                dialog.dataLoading({ visible: false });
+                                dialog.successMessage({
+                                    text: "儲存成功!"
+                                });
+                                obj.gvc.recreateView();
+                            });
+                        }
+                    };
                     if (!vm) {
                         return ``;
                     }
@@ -221,7 +258,8 @@ export class BgGlobalEvent {
                                 }
                             }),
                             `<div class="d-flex border-top pt-2">
-<button class="btn btn-outline-danger ${(obj.type === 'put') ? `` : `d-none`}"  style="height:35px;width:100px;" onclick="${obj.gvc.event(() => {
+<div class="flex-fill"></div>
+<button class="btn btn-danger ${(obj.type === 'put') ? `` : `d-none`}"  style="height:35px;width:100px;" onclick="${obj.gvc.event(() => {
                                 dialog.checkYesOrNot({
                                     callback: (response) => {
                                         if (response) {
@@ -239,32 +277,6 @@ export class BgGlobalEvent {
                                     text: '是否確認刪除?'
                                 });
                             })}">刪除事件</button>
-<div class="flex-fill"></div>
-<button class="btn btn-primary" style="height:35px;width:80px;" onclick="${obj.gvc.event(() => {
-                                if (!vm.data.tag || !vm.data.name) {
-                                    dialog.errorMessage({ text: "標題與標籤不得為空!" });
-                                    return;
-                                }
-                                dialog.dataLoading({ visible: true });
-                                if (obj.type === 'put') {
-                                    GlobalEvent.putGlobalEvent(vm.data).then((data) => {
-                                        dialog.dataLoading({ visible: false });
-                                        dialog.successMessage({
-                                            text: "儲存成功!"
-                                        });
-                                    });
-                                }
-                                else {
-                                    BgGlobalEvent.selectTag = vm.data.tag;
-                                    GlobalEvent.addGlobalEvent(vm.data).then((data) => {
-                                        dialog.dataLoading({ visible: false });
-                                        dialog.successMessage({
-                                            text: "儲存成功!"
-                                        });
-                                        obj.gvc.recreateView();
-                                    });
-                                }
-                            })}">${(obj.type === 'put') ? `儲存` : `確認新增`}</button>
 </div>`
                         ].join(`<div class="my-2"></div>`);
                     }
@@ -274,3 +286,4 @@ export class BgGlobalEvent {
     }
 }
 BgGlobalEvent.selectTag = undefined;
+BgGlobalEvent.saveEvent = () => { };

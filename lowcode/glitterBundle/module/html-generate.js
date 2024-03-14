@@ -13,6 +13,7 @@ import { widgetComponent } from "../html-component/widget.js";
 import { codeComponent } from "../html-component/code.js";
 import { TriggerEvent } from "../plugins/trigger-event.js";
 import { EditorElem } from "../plugins/editor-elem.js";
+import { Storage } from "../../helper/storage.js";
 export class HtmlGenerate {
     constructor(setting, hover = [], subData, root) {
         var _a;
@@ -76,11 +77,12 @@ export class HtmlGenerate {
             onCreate: () => {
             }
         }, createOption) => {
-            var _a;
+            var _a, _b;
+            const document = (_a = option.document) !== null && _a !== void 0 ? _a : (gvc.glitter.document);
             const childContainer = option.childContainer;
             const renderStart = window.renderClock.stop();
             option = option !== null && option !== void 0 ? option : {};
-            const container = (_a = option.containerID) !== null && _a !== void 0 ? _a : gvc.glitter.getUUID();
+            const container = (_b = option.containerID) !== null && _b !== void 0 ? _b : gvc.glitter.getUUID();
             let timerTask = [];
             return gvc.bindView(() => {
                 return {
@@ -162,9 +164,10 @@ export class HtmlGenerate {
                                             if ((dd.data.elem === 'link') && (dd.data.attr.find((dd) => {
                                                 return dd.attr === 'rel' && dd.value === 'stylesheet';
                                             }))) {
-                                                gvc.addStyleLink(dd.data.attr.find((dd) => {
+                                                console.log(`document`, document.querySelector('div'));
+                                                gvc.glitter.addStyleLink(dd.data.attr.find((dd) => {
                                                     return dd.attr === 'href';
-                                                }).value);
+                                                }).value, document);
                                             }
                                             else if (((dd.data.elem === 'script')) && dd.data.attr.find((dd) => {
                                                 return dd.attr === 'src';
@@ -227,7 +230,7 @@ export class HtmlGenerate {
                                                                         });
                                                                     }
                                                                 }
-                                                                const target = gvc.glitter.document.querySelector(`[gvc-id="${gvc.id(tempView)}"]`);
+                                                                const target = document.querySelector(`[gvc-id="${gvc.id(tempView)}"]`);
                                                                 if (dd.gCount === 'multiple') {
                                                                     new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
                                                                         let data = (yield TriggerEvent.trigger({
@@ -249,7 +252,7 @@ export class HtmlGenerate {
                                                                             return widgetComponent.render(gvc, dd, setting, hover, subData, {
                                                                                 option: option,
                                                                                 widgetComponentID: widgetComponentID
-                                                                            })
+                                                                            }, document)
                                                                                 .view();
                                                                         }).join('');
                                                                     }));
@@ -261,7 +264,7 @@ export class HtmlGenerate {
                                                                     target.outerHTML = widgetComponent.render(gvc, dd, setting, hover, dd.subData || subData, {
                                                                         option: option,
                                                                         widgetComponentID: widgetComponentID
-                                                                    })
+                                                                    }, document)
                                                                         .view();
                                                                 }
                                                             },
@@ -312,7 +315,7 @@ export class HtmlGenerate {
                                                                         })()
                                                                     });
                                                                 }
-                                                                const target = gvc.glitter.document.querySelector(`[gvc-id="${gvc.id(tempView)}"]`);
+                                                                const target = document.querySelector(`[gvc-id="${gvc.id(tempView)}"]`);
                                                                 function render(subData) {
                                                                     return gvc.bindView(() => {
                                                                         var _a;
@@ -383,7 +386,7 @@ export class HtmlGenerate {
                                                                             },
                                                                             divCreate: {
                                                                                 style: `${gvc.glitter.htmlGenerate.styleEditor(dd, gvc, dd, {}).style()} `,
-                                                                                class: `position-relative ${(_a = dd.class) !== null && _a !== void 0 ? _a : ''} ${(dd.hashTag) ? `glitterTag${dd.hashTag}` : ''} ${hover.indexOf(component) !== -1 ? ` selectComponentHover` : ``}
+                                                                                class: `position-relative ${(_a = dd.class) !== null && _a !== void 0 ? _a : ''} ${(dd.hashTag) ? `glitterTag${dd.hashTag}` : ''} ${hover.indexOf(dd.id) !== -1 ? ` selectComponentHover` : ``}
                                                                 ${gvc.glitter.htmlGenerate.styleEditor(dd, gvc, dd, {}).class()}`,
                                                                                 option: option
                                                                             },
@@ -471,8 +474,8 @@ export class HtmlGenerate {
                     onInitial: () => {
                     },
                     onCreate: () => {
-                        console.log(`RenderFinish-time:(start:${renderStart})-(end:${window.renderClock.stop()})`);
-                        console.log(setting);
+                        gvc.glitter.deBugMessage(`RenderFinishID:${option.containerID}`);
+                        gvc.glitter.deBugMessage(`RenderFinish-time:(start:${renderStart})-(end:${window.renderClock.stop()})`);
                         option.onCreate && option.onCreate();
                         for (const script of setting.filter((dd) => {
                             return dd.type === 'code' && dd.data.triggerTime === 'timer';
@@ -587,7 +590,7 @@ export class HtmlGenerate {
                                 });
                                 return `<div style=" ${option.return_
                                     ? `padding: 10px;`
-                                    : `padding-bottom: 10px;margin-bottom: 10px;border-bottom: 1px solid lightgrey;`}" class="
+                                    : ``}" class="
 ${option.return_ ? `w-100 border rounded bg-dark mt-2` : ``} " >
 ${(() => {
                                     return gvc.bindView(() => {
@@ -596,9 +599,8 @@ ${(() => {
                                             bind: id,
                                             view: () => {
                                                 return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
-                                                    var _a;
                                                     let haveUserMode = false;
-                                                    let mode = ((_a = localStorage.getItem('editor_mode')) !== null && _a !== void 0 ? _a : 'user');
+                                                    let mode = Storage.editor_mode;
                                                     if ((dd.type !== 'code') && !((dd.type === 'widget') || (dd.type === 'container'))) {
                                                         haveUserMode = yield new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
                                                             gvc.glitter.htmlGenerate.loadScript(gvc.glitter, [{
@@ -751,7 +753,7 @@ ${EditorElem.editeInput({
                                                                             })}"></i>
 <span class="fw-bold" style="color:black;text-overflow: ellipsis;max-width:120px;overflow: hidden;">${dd.label}</span>
 <div class="flex-fill"></div>
-<button class="btn ms-2 btn-outline-primary-c d-flex align-items-center justify-content-center p-0" style="height: 30px;width: 70px;gap:5px;"
+<button class="btn ms-2 btn-outline-secondary-c d-flex align-items-center justify-content-center p-0" style="height: 30px;width: 70px;gap:5px;"
 onclick="${gvc.event(() => {
                                                                                 EditorElem.openEditorDialog(gvc, (gvc) => {
                                                                                     return gvc.bindView(() => {
@@ -855,8 +857,8 @@ ${gvc.bindView(() => {
                                                                         }
                                                                     },
                                                                     divCreate: {
-                                                                        class: `d-flex align-items-center mx-n2 mt-n2 p-3 py-2`,
-                                                                        style: `background: #f6f6f6;`
+                                                                        class: `d-flex align-items-center mx-n2 mt-n2 p-3 py-2 shadow border-bottom`,
+                                                                        style: `background: #f6f6f6;height:48px;`
                                                                     }
                                                                 };
                                                             }),
@@ -940,14 +942,7 @@ ${gvc.bindView(() => {
                                                                                                     view: () => {
                                                                                                         var _a;
                                                                                                         dd.preloadEvenet = (_a = dd.preloadEvenet) !== null && _a !== void 0 ? _a : {};
-                                                                                                        if (dd.type !== 'container' && dd.type !== 'widget') {
-                                                                                                            return [gvc.glitter.htmlGenerate.styleEditor(dd, gvc, dd, {}).editor(gvc, () => {
-                                                                                                                    gvc.notifyDataChange('showView');
-                                                                                                                }, '模塊容器樣式')].join(`<div class="my-2"></div>`);
-                                                                                                        }
-                                                                                                        else {
-                                                                                                            return ``;
-                                                                                                        }
+                                                                                                        return ``;
                                                                                                     },
                                                                                                     divCreate: {
                                                                                                         class: 'mt-2 mb-2 '
@@ -1032,7 +1027,7 @@ ${e.line}
         return js;
     }
     static scrollToCenter(gvc, elementId) {
-        var element = gvc.getBindViewElem(elementId).get(0);
+        var element = gvc.getBindViewElem(elementId);
         if (element) {
             var elementRect = element.getBoundingClientRect();
             var elementTop = elementRect.top;
@@ -1051,18 +1046,24 @@ ${e.line}
     static styleEditor(data, gvc, widget, subData) {
         const glitter = (gvc !== null && gvc !== void 0 ? gvc : window).glitter;
         function getStyleData() {
-            const globalStyle = glitter.share.globalStyle;
-            if (data.style_from === 'tag') {
-                if (globalStyle[data.tag]) {
-                    return globalStyle[data.tag];
+            var _a;
+            const response = (() => {
+                const globalStyle = glitter.share.globalStyle;
+                if (data.style_from === 'tag') {
+                    if (globalStyle[data.tag]) {
+                        return globalStyle[data.tag];
+                    }
+                    else {
+                        return data;
+                    }
                 }
                 else {
                     return data;
                 }
-            }
-            else {
-                return data;
-            }
+            })();
+            response.list = (_a = response.list) !== null && _a !== void 0 ? _a : [];
+            response.version = 'v2';
+            return response;
         }
         return {
             editor: (gvc, widget, title, option) => {
@@ -1128,7 +1129,8 @@ ${e.line}
                     }))();
                 }
                 return [getStyleData()].concat((_a = getStyleData().list) !== null && _a !== void 0 ? _a : []).map((dd) => {
-                    return classString(dd);
+                    const data = classString(dd);
+                    return data && ` ${data}`;
                 }).join('');
             },
             style: () => {
@@ -1199,7 +1201,8 @@ ${e.line}
                     return styleStringJoin;
                 }
                 return [getStyleData()].concat((_a = getStyleData().list) !== null && _a !== void 0 ? _a : []).map((dd) => {
-                    return styleString(dd);
+                    const data = styleString(dd);
+                    return data && ` ${data}`;
                 }).join('');
             },
         };
@@ -1262,9 +1265,19 @@ ${obj.gvc.bindView({
 HtmlGenerate.share = {};
 HtmlGenerate.isEditMode = isEditMode;
 HtmlGenerate.resourceHook = (src) => {
+    if (Storage.develop_mode === 'true') {
+        window.saasConfig.appConfig.initialList.map((dd) => {
+            src = src.replace(`$${dd.tag}`, dd.staging);
+        });
+    }
+    else {
+        window.saasConfig.appConfig.initialList.map((dd) => {
+            src = src.replace(`$${dd.tag}`, dd.official);
+        });
+    }
     return src;
 };
-HtmlGenerate.saveEvent = (boolean) => {
+HtmlGenerate.saveEvent = (boolean, callback) => {
     alert('save');
 };
 HtmlGenerate.loadScript = (glitter, js, where = 'htmlExtension') => {

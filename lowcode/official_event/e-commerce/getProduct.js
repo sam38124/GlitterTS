@@ -33,7 +33,7 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                             bind: id,
                             view: () => {
                                 return new Promise((resolve, reject) => __awaiter(void 0, void 0, void 0, function* () {
-                                    var _a;
+                                    var _a, _b;
                                     if (object.getType == 'manual') {
                                         const title = yield new Promise((resolve, reject) => {
                                             ApiShop.getProduct({ page: 0, limit: 50, id: object.id }).then((data) => {
@@ -71,11 +71,29 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                     }
                                     else {
                                         object.dataFrom = (_a = object.dataFrom) !== null && _a !== void 0 ? _a : {};
-                                        resolve(TriggerEvent.editer(gvc, widget, object.dataFrom, {
-                                            hover: false,
-                                            title: "取得商品ID",
-                                            option: []
-                                        }));
+                                        object.comefromTp = (_b = object.comefromTp) !== null && _b !== void 0 ? _b : 'single';
+                                        resolve([EditorElem.select({
+                                                title: '來源類型',
+                                                gvc: gvc,
+                                                def: object.comefromTp,
+                                                array: [
+                                                    {
+                                                        title: '單一',
+                                                        value: 'single'
+                                                    },
+                                                    {
+                                                        title: '多項',
+                                                        value: 'multiple'
+                                                    }
+                                                ],
+                                                callback: (text) => {
+                                                    object.comefromTp = text;
+                                                }
+                                            }), TriggerEvent.editer(gvc, widget, object.dataFrom, {
+                                                hover: false,
+                                                title: "取得商品ID",
+                                                option: []
+                                            })].join(`<div class="my-2"></div>`));
                                     }
                                 }));
                             },
@@ -95,14 +113,28 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                     clickEvent: object.dataFrom,
                                     subData: subData
                                 });
-                                ApiShop.getProduct({ page: 0, limit: 50, id: id }).then((data) => {
-                                    if (data.result && data.response.result) {
-                                        resolve(data.response.data.content);
-                                    }
-                                    else {
-                                        resolve('');
-                                    }
-                                });
+                                if (object.comefromTp === 'multiple') {
+                                    ApiShop.getProduct({ page: 0, limit: 200, id_list: id }).then((data) => {
+                                        if (data.result && data.response.data) {
+                                            resolve(data.response.data.map((dd) => {
+                                                return dd.content;
+                                            }));
+                                        }
+                                        else {
+                                            resolve('');
+                                        }
+                                    });
+                                }
+                                else {
+                                    ApiShop.getProduct({ page: 0, limit: 50, id: id }).then((data) => {
+                                        if (data.result && data.response.result) {
+                                            resolve(data.response.data.content);
+                                        }
+                                        else {
+                                            resolve('');
+                                        }
+                                    });
+                                }
                             }
                             else {
                                 ApiShop.getProduct({ page: 0, limit: 50, id: object.id }).then((data) => {

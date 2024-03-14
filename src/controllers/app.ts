@@ -3,6 +3,10 @@ import response from "../modules/response";
 import db from '../modules/database';
 import {saasConfig} from "../config";
 import {App} from "../services/app";
+import {Template} from "../services/template.js";
+import {UtPermission} from "../api-public/utils/ut-permission.js";
+import exception from "../modules/exception.js";
+import {Ssh} from "../modules/ssh.js";
 const router: express.Router = express.Router();
 export = router;
 
@@ -18,8 +22,17 @@ router.get('/', async (req: express.Request, resp: express.Response) => {
     try {
         const app=new App(req.body.token);
         return response.succ(resp, { result:await app.getAPP({
-                app_name:req.query.appName as string
+                app_name:req.query.appName as string,
             })});
+    } catch (err) {
+        return response.fail(resp, err);
+    }
+});
+
+router.get('/template', async (req: express.Request, resp: express.Response) => {
+    try {
+        const app=new App(req.body.token);
+        return response.succ(resp, { result:await app.getTemplate(req.query as any)});
     } catch (err) {
         return response.fail(resp, err);
     }
@@ -78,6 +91,21 @@ router.put('/domain', async (req: express.Request, resp: express.Response) => {
             domain:req.body.domain
         }))
         return response.succ(resp, { result:true});
+    } catch (err) {
+        return response.fail(resp, err);
+    }
+});
+
+router.post('/create_template', async (req: express.Request, resp: express.Response) => {
+    try {
+        if (!await UtPermission.isManager(req)) {
+            throw exception.BadRequestError("Forbidden", "No Permission.", null);
+        }
+        const app=new App(req.body.token);
+        return response.succ(resp, {result: (await app.postTemplate({
+                appName:req.body.appName,
+                data:req.body.config
+            }))});
     } catch (err) {
         return response.fail(resp, err);
     }

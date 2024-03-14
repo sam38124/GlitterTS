@@ -13,6 +13,8 @@ import {Ssh} from "../modules/ssh.js";
 import {NginxConfFile} from "nginx-conf";
 import * as process from "process";
 import {ApiPublic} from "../api-public/services/public-table-check.js";
+import {BackendService} from "./backend-service.js";
+import {UtPermission} from "../api-public/utils/ut-permission.js";
 
 export class App {
     public token: IToken;
@@ -57,7 +59,9 @@ export class App {
             await ApiPublic.createScheme(config.appName)
             const trans = await db.Transaction.build();
             await trans.execute(`insert into \`${saasConfig.SAAS_NAME}\`.app_config (user, appName, dead_line, \`config\`, brand)
-                                 values (?, ?, ?, ${db.escape(JSON.stringify((copyAppData && copyAppData.config) || {}))} , ${db.escape(config.brand ?? saasConfig.SAAS_NAME)})`, [
+                                 values (?, ?, ?,
+                                         ${db.escape(JSON.stringify((copyAppData && copyAppData.config) || {}))},
+                                         ${db.escape(config.brand ?? saasConfig.SAAS_NAME)})`, [
                 this.token.userID,
                 config.appName,
                 addDays(new Date(), saasConfig.DEF_DEADLINE)
@@ -112,12 +116,12 @@ export class App {
                 }
             }
             for (const dd of (await db.query(`SELECT *
-                                                  FROM \`${config.copyApp}\`.t_global_event`, []))) {
+                                              FROM \`${config.copyApp}\`.t_global_event`, []))) {
                 dd.json = dd.json && JSON.stringify(dd.json)
                 await trans.execute(`
-                        insert into \`${config.appName}\`.t_global_event
-                        SET ?;
-                    `, [
+                    insert into \`${config.appName}\`.t_global_event
+                    SET ?;
+                `, [
                     dd
                 ]);
             }
@@ -160,9 +164,9 @@ export class App {
                 for (const dd of copyPageData) {
                     await trans.execute(`
                         insert into \`${saasConfig.SAAS_NAME}\`.page_config (userID, appName, tag, \`group\`, \`name\`,
-                                                                             \`config\`, \`page_config\`,page_type)
+                                                                             \`config\`, \`page_config\`, page_type)
                         values (?, ?, ?, ?, ?, ${db.escape(JSON.stringify(dd.config))},
-                                ${db.escape(JSON.stringify(dd.page_config))},${db.escape(dd.page_type)});
+                                ${db.escape(JSON.stringify(dd.page_config))}, ${db.escape(dd.page_type)});
                     `, [
                         this.token.userID,
                         config.appName,
@@ -194,19 +198,19 @@ export class App {
     }
 
     public async getAPP(query: {
-        app_name?: string
+        app_name?: string,
     }) {
         try {
             console.log(`
                 SELECT *
                 FROM \`${saasConfig.SAAS_NAME}\`.app_config
                 where ${(() => {
-                const sql = [`user = '${this.token.userID}'`]
-                if (query.app_name) {
-                    sql.push(` appName='${query.app_name}' `)
-                }
-                return sql.join(' and ')
-            })()};
+                    const sql = [`user = '${this.token.userID}'`]
+                    if (query.app_name) {
+                        sql.push(` appName='${query.app_name}' `)
+                    }
+                    return sql.join(' and ')
+                })()};
             `)
             return (await db.execute(`
                 SELECT *
@@ -224,10 +228,33 @@ export class App {
         }
     }
 
+    public async getTemplate(query: {
+        app_name?: string,
+        template_from: 'all' | 'me'
+    }) {
+        try {
+            return (await db.execute(`
+                SELECT user, appName, created_time, dead_line, brand, template_config, template_type
+                FROM \`${saasConfig.SAAS_NAME}\`.app_config
+                where ${(() => {
+                    const sql = []
+                    query.template_from === 'me' && sql.push(`user = '${this.token.userID}'`);
+                    query.template_from === 'me' && sql.push(`template_type in (3,2)`);
+                    query.template_from === 'all' && sql.push(`template_type = 2`);
+                    return sql.map((dd) => {
+                        return `(${dd})`
+                    }).join(' and ')
+                })()};
+            `, []))
+        } catch (e: any) {
+            throw exception.BadRequestError(e.code ?? 'BAD_REQUEST', e, null);
+        }
+    }
+
     public async getAppConfig(config: { appName: string }) {
         try {
-            const data=(await db.execute(`
-                SELECT config,\`dead_line\`
+            const data = (await db.execute(`
+                SELECT config, \`dead_line\`, \`template_config\`, \`template_type\`
                 FROM \`${saasConfig.SAAS_NAME}\`.app_config
                 where appName = ${db.escape(config.appName)};
             `, []))[0]
@@ -235,6 +262,8 @@ export class App {
             pluginList.dead_line = data.dead_line
             pluginList.pagePlugin = pluginList.pagePlugin ?? []
             pluginList.eventPlugin = pluginList.eventPlugin ?? []
+            pluginList.template_config = data.template_config;
+            pluginList.template_type = data.template_type;
             return pluginList
         } catch (e: any) {
             throw exception.BadRequestError(e.code ?? 'BAD_REQUEST', e, null);
@@ -253,8 +282,10 @@ export class App {
     }
 
     public static async checkBrandAndMemberType(app: string) {
-        let brand=(await db.query(`SELECT brand FROM \`${saasConfig.SAAS_NAME}\`.app_config where appName = ? `,[app]))[0]['brand']
-        console.log(`brand-->`,brand)
+        let brand = (await db.query(`SELECT brand
+                                     FROM \`${saasConfig.SAAS_NAME}\`.app_config
+                                     where appName = ? `, [app]))[0]['brand']
+        console.log(`brand-->`, brand)
         const userID = (await db.query(`SELECT user
                                         FROM \`${saasConfig.SAAS_NAME}\`.app_config
                                         where appName = ?`, [app]))[0]['user'];
@@ -263,7 +294,7 @@ export class App {
                                           where userID = ? `, [userID]))[0];
         return {
             memberType: userData.userData.menber_type,
-            brand:brand
+            brand: brand
         };
     }
 
@@ -294,6 +325,31 @@ export class App {
 
             return (await db.execute(`update \`${saasConfig.SAAS_NAME}\`.app_config
                                       set config=?
+                                      where appName = ${db.escape(config.appName)}
+                                        and user = '${this.token.userID}'
+            `, [config.data]))['changedRows'] == true
+        } catch (e: any) {
+            throw exception.BadRequestError(e.code ?? 'BAD_REQUEST', e, null);
+        }
+    }
+
+
+    public async postTemplate(config: { appName: string, data: any }) {
+        try {
+            let template_type = '0'
+            if (config.data.post_to === 'all') {
+                let officialAccount = (process.env.OFFICIAL_ACCOUNT ?? '').split(',')
+                if (officialAccount.indexOf(`${this.token.userID}`) !== -1) {
+                    template_type = '2'
+                } else {
+                    template_type = '1'
+                }
+            } else if (config.data.post_to === 'me') {
+                template_type = '3'
+            }
+            return (await db.execute(`update \`${saasConfig.SAAS_NAME}\`.app_config
+                                      set template_config = ?,
+                                          template_type=${template_type}
                                       where appName = ${db.escape(config.appName)}
                                         and user = '${this.token.userID}'
             `, [config.data]))['changedRows'] == true
@@ -367,6 +423,11 @@ export class App {
 
     public async deleteAPP(config: { appName: string }) {
         try {
+           try{
+               await (new BackendService(config.appName).stopServer());
+           }catch (e) {
+
+           }
             (await db.execute(`delete
                                from \`${saasConfig.SAAS_NAME}\`.app_config
                                where appName = ${db.escape(config.appName)}
@@ -377,7 +438,8 @@ export class App {
                                  and userID = '${this.token.userID}'`, []));
             (await db.execute(`delete
                                from \`${saasConfig.SAAS_NAME}\`.private_config
-                               where app_name = ${db.escape(config.appName)}`, []));
+                               where app_name = ${db.escape(config.appName)}
+            `, []));
         } catch (e: any) {
             throw exception.BadRequestError(e.code ?? 'BAD_REQUEST', e, null);
         }

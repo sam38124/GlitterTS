@@ -68,5 +68,17 @@ router.get('/', async (req, resp) => {
         return response_1.default.fail(resp, err);
     }
 });
+router.post('/create_template', async (req, resp) => {
+    try {
+        return response_1.default.succ(resp, { result: (await new template_1.Template(req.body.token).postTemplate({
+                appName: req.body.appName,
+                data: req.body.config,
+                tag: req.body.tag
+            })) });
+    }
+    catch (err) {
+        return response_1.default.fail(resp, err);
+    }
+});
 module.exports = router;
 //# sourceMappingURL=template.js.map

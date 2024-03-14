@@ -33,7 +33,7 @@ export class Glitter {
     public callBackId: number = 0;
     public callBackList = new Map();
     public location: any;
-    public debugMode = false
+    public debugMode = localStorage.getItem('glitter-db-mode') || 'false'
     public publicBeans = {};
     public share: any = {};
     public deviceType = this.deviceTypeEnum.Web
@@ -44,7 +44,7 @@ export class Glitter {
     public pageConfig: PageConfig[] = []
     public nowPageConfig?: PageConfig
     public waitChangePage = false
-    public elementCallback: { [name: string]: { onCreate: () => void, onInitial: () => void, notifyDataChange: () => void, getView: () => string | Promise<string>, updateAttribute: () => void, onDestroy: () => void, rendered: boolean } } = {}
+    public elementCallback: { [name: string]: { onCreate: () => void, onInitial: () => void, notifyDataChange: () => void, getView: () => string | Promise<string>, updateAttribute: () => void, onDestroy: () => void, rendered: boolean,recreateView:()=>void ,document:any} } = {}
     public html = String.raw
     public promiseValueMap: any = {}
     /*Getter*/
@@ -241,7 +241,7 @@ export class Glitter {
     };
 
     public deBugMessage(error: any) {
-        if (this.debugMode) {
+        if (this.debugMode==='true') {
             try {
                 if (error && error.message) {
                     console.error(`${error}
@@ -261,7 +261,7 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
     }
 
     public consoleLog(text: string) {
-        if (this.debugMode) {
+        if (this.debugMode==='true') {
             console.log(text)
         }
     }
@@ -499,7 +499,7 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
             d += performance.now(); //use high-precision timer if available
         }
 
-        return (format ?? 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx').replace(/[xy]/g, function (c) {
+        return (format ?? 'xxxxxxxx').replace(/[xy]/g, function (c) {
             let r = (d + Math.random() * 16) % 16 | 0;
             d = Math.floor(d / 16);
             return "s" + (c === 'x' ? r : r & 0x3 | 0x8).toString(16);
@@ -528,13 +528,15 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
         }
     }
 
-    public async addStyleLink(data: string | string[]) {
+    public async addStyleLink(data: string | string[],doc?:any) {
+        const document=doc ?? (window.document)
         const glitter = this;
-        const head = document.head;
+        const head = document.head || document;
+        console.log(`head-->`,head)
         function add(filePath: string) {
             const id = glitter.getUUID()
             // 获取所有<a>标签
-            let allLinks:any = document.getElementsByTagName("link");
+            let allLinks:any = document.querySelectorAll("link");
             let pass=true
             // 遍历所有<a>标签并输出其href属性值
             for (let i = 0; i < allLinks.length; i++) {
@@ -545,7 +547,7 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
                 }
             }
             if (pass) {
-                let link = document.createElement("link");
+                let link = (window.document).createElement("link");
                 link.type = "text/css";
                 link.rel = "stylesheet";
                 link.href = filePath;
@@ -1097,4 +1099,3 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
         Glitter.glitter.share.htmlExtension = Glitter.glitter.share.htmlExtension ?? {}
     }
 }
-

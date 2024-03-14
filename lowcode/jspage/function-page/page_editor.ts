@@ -1,9 +1,9 @@
-import {GVC} from "../glitterBundle/GVController.js";
-import {Swal} from "../modules/sweetAlert.js";
-import {pageManager} from "../setting/pageManager.js";
-import {EditorElem} from "../glitterBundle/plugins/editor-elem.js";
-import {ApiPageConfig} from "../api/pageConfig.js";
-import {ShareDialog} from "../dialog/ShareDialog.js";
+import {GVC} from "../../glitterBundle/GVController.js";
+import {Swal} from "../../modules/sweetAlert.js";
+import {pageManager} from "../../setting/pageManager.js";
+import {EditorElem} from "../../glitterBundle/plugins/editor-elem.js";
+import {ApiPageConfig} from "../../api/pageConfig.js";
+import {ShareDialog} from "../../dialog/ShareDialog.js";
 
 export class Page_editor {
     public static index = '1'

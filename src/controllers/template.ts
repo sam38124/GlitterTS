@@ -3,6 +3,7 @@ import response from "../modules/response";
 import db from '../modules/database';
 import {saasConfig} from "../config";
 import {Template} from "../services/template";
+import {App} from "../services/app.js";
 
 const router: express.Router = express.Router();
 export = router;
@@ -62,6 +63,18 @@ router.get('/', async (req: express.Request, resp: express.Response) => {
             result: result,
             redirect: redirect
         });
+    } catch (err) {
+        return response.fail(resp, err);
+    }
+});
+
+router.post('/create_template', async (req: express.Request, resp: express.Response) => {
+    try {
+        return response.succ(resp, {result: (await new Template(req.body.token).postTemplate({
+                appName:req.body.appName,
+                data:req.body.config,
+                tag:req.body.tag
+            }))});
     } catch (err) {
         return response.fail(resp, err);
     }

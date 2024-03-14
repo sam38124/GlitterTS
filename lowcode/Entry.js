@@ -16,20 +16,20 @@ import { GlobalUser } from "./glitter-base/global/global-user.js";
 export class Entry {
     static onCreate(glitter) {
         var _a;
+        const css = String.raw;
         if (glitter.getUrlParameter('appName')) {
             window.appName = glitter.getUrlParameter('appName');
             config.appName = glitter.getUrlParameter('appName');
         }
-        glitter.addStyle(glitter.html `@media (prefers-reduced-motion: no-preference) {
-    :root {
-        scroll-behavior: auto !important;
-    }
-}`);
+        glitter.addStyle(css `@media (prefers-reduced-motion: no-preference) {
+          :root {
+            scroll-behavior: auto !important;
+          }
+        }`);
         window.renderClock = (_a = window.renderClock) !== null && _a !== void 0 ? _a : clockF();
         console.log(`Entry-time:`, window.renderClock.stop());
-        glitter.share.editerVersion = "V_5.1.5";
+        glitter.share.editerVersion = "V_5.3.9";
         glitter.share.start = new Date();
-        glitter.debugMode = false;
         const vm = {
             appConfig: []
         };
@@ -131,7 +131,6 @@ export class Entry {
                                 });
                             }
                             else {
-                                const dd = yield eval(data.src.official);
                                 vm.count--;
                             }
                         }
@@ -154,6 +153,7 @@ export class Entry {
                     toBackendEditor(glitter);
                 }
                 else if (glitter.getUrlParameter("type") === 'htmlEditor') {
+                    console.log('timer');
                     window.parent.glitter.share.editerGlitter = glitter;
                     let timer = 0;
                     var bodyElement = document.body;
@@ -168,7 +168,15 @@ export class Entry {
                         }
                         clearInterval(timer);
                         timer = setTimeout(() => {
-                            scrollToItem(document.querySelector('.selectComponentHover'));
+                            const clock = glitter.ut.clock();
+                            const interVal = setInterval(() => {
+                                if (document.querySelector('.selectComponentHover')) {
+                                    scrollToItem(document.querySelector('.selectComponentHover'));
+                                }
+                                if (clock.stop() > 2000) {
+                                    clearInterval(interVal);
+                                }
+                            });
                         }, 100);
                     });
                     observer.observe(bodyElement);
@@ -273,7 +281,7 @@ function toBackendEditor(glitter) {
             glitter.addStyleLink([
                 'assets/vendor/boxicons/css/boxicons.min.css',
                 'assets/css/theme.css',
-                'css/editor.css',
+                'css/editor.css'
             ]);
             yield new Promise((resolve, reject) => {
                 glitter.addMtScript([

@@ -1,7 +1,11 @@
 "use strict";
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
-    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
 }) : (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
     o[k2] = m[k];
@@ -27,10 +31,10 @@ const ssh2_1 = require("ssh2");
 const process = __importStar(require("process"));
 const fs_1 = __importDefault(require("fs"));
 class Ssh {
-    static async exec(array) {
+    static async exec(array, ip) {
         const conn = new ssh2_1.Client();
         const sshConfig = {
-            host: process.env.sshIP,
+            host: ip || process.env.sshIP,
             port: 22,
             username: 'ubuntu',
             privateKey: fs_1.default.readFileSync(process.env.ssh),
@@ -55,7 +59,6 @@ class Ssh {
                                     }).on('data', (data) => {
                                         response.push(data);
                                         console.log(`命令输出: ${data}`);
-                                        resolve(true);
                                     });
                                 }
                                 ;
@@ -73,10 +76,10 @@ class Ssh {
             });
         });
     }
-    static async readFile(remote) {
+    static async readFile(remote, ip) {
         const conn = new ssh2_1.Client();
         const sshConfig = {
-            host: process.env.sshIP,
+            host: ip || process.env.sshIP,
             port: 22,
             username: 'ubuntu',
             privateKey: fs_1.default.readFileSync(process.env.ssh),
@@ -108,6 +111,28 @@ class Ssh {
                 console.error('SSH 连接错误:', err);
                 conn.end();
                 resolve(false);
+            });
+        });
+    }
+    static async uploadFile(file, fileName, type) {
+        return new Promise((resolve, reject) => {
+            const AWS = require('aws-sdk');
+            const fs = require('fs');
+            const s3 = new AWS.S3();
+            const bucketName = 'liondesign-prd';
+            const params = {
+                Bucket: bucketName,
+                Key: fileName,
+                Body: (type === 'data') ? file : fs.createReadStream(file)
+            };
+            s3.upload(params, (err, data) => {
+                if (err) {
+                    console.error('Error uploading file:', err);
+                }
+                else {
+                    resolve(data.Location);
+                    console.log('File uploaded successfully. S3 URL:', data.Location);
+                }
             });
         });
     }

@@ -14,6 +14,7 @@ import { BaseApi } from "../api/base.js";
 import autosize from "./autosize.js";
 import { component_group_key } from "./group_key.js";
 import { ApiPageConfig } from "../../api/pageConfig.js";
+import { Storage } from "../../helper/storage.js";
 const html = String.raw;
 class Add_item_dia {
     static view(gvc) {
@@ -35,7 +36,7 @@ class Add_item_dia {
                 </div>
                 <div class="d-flex " style="">
                     <div>
-                       ${Add_item_dia.userMode(gvc, id, searchText)}
+                        ${Add_item_dia.userMode(gvc, id, searchText)}
                     </div>
                 </div>
             </div>
@@ -47,6 +48,7 @@ class Add_item_dia {
         let vm = {
             select: "official"
         };
+        vm.select = Storage.select_add_btn;
         return gvc.bindView(() => {
             return {
                 bind: id,
@@ -106,6 +108,7 @@ class Add_item_dia {
                                  data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="custom-tooltip"
                                  data-bs-title="${dd.label}" onclick="${gvc.event(() => {
                                 vm.select = dd.key;
+                                Storage.select_add_btn = vm.select;
                                 gvc.notifyDataChange(id);
                             })}">
                                ${dd.icon}
@@ -186,7 +189,8 @@ class Add_item_dia {
                                             }
                                             else {
                                                 resolve(html `
-                                                        <div class="row m-0 pt-2" style="width:700px;max-height:550px;overflow-y: auto;">
+                                                        <div class="row m-0 pt-2"
+                                                             style="width:700px;max-height:550px;overflow-y: auto;">
                                                             ${data.response.result.map((dd) => {
                                                     var _a;
                                                     return html `
@@ -380,9 +384,7 @@ class Add_item_dia {
                                                 contentVM.loading = false;
                                                 contentVM.leftBar = data.left;
                                                 contentVM.rightBar = data.right;
-                                                resolve(`<div class="d-flex">
-<div style="width:400px;overflow-y: auto;height:490px;" class="border-end">${data.left}</div>
-</div>`);
+                                                resolve(data.left);
                                             });
                                             break;
                                         case "code":
@@ -517,16 +519,15 @@ class Add_item_dia {
                                         hi = true;
                                     }
                                     return html `
-                                        <div class="w-100 px-2 ${(search && !haveItem) ? `d-none` : ``}">
-                                            <div class="mx-0 d-flex mx-n2  px-2 hi fw-bold d-flex align-items-center border-bottom border-top py-2 bgf6"
-                                                 style="color:#151515;font-size:16px;gap:0px;"
+                                        <div class="border-bottom w-100  ${(search && !haveItem) ? `d-none` : ``}">
+                                            <div class="px-2 hi fw-bold d-flex align-items-center border-bottom border-top py-2 bgf6"
+                                                 style="color:#151515;font-size:16px;gap:0px;cursor: pointer;"
                                                  onclick="${gvc.event(() => {
                                         dd.toggle = !dd.toggle;
                                         gvc.notifyDataChange([tabID, docID]);
                                     })}">
                                                     ．${dd.name}
                                                 <div class="flex-fill"></div>
-
                                                 <i class="fa-solid  ${(dd.toggle || search) ? `fa-angle-down` : `fa-angle-right`} d-flex align-items-center justify-content-center me-2"
                                                    style="cursor:pointer;"></i>
                                             </div>
@@ -535,94 +536,78 @@ class Add_item_dia {
                                         return gvc.bindView({
                                             bind: id,
                                             view: () => {
-                                                if (search) {
-                                                    return gvc.map(Object.keys(obg).filter((d2) => {
-                                                        return d2 !== 'document' && d2 !== 'code';
-                                                    }).map((dd) => {
-                                                        if (obg[dd].title.indexOf(search) !== -1) {
-                                                            return html `
-                                                                        <div class="editor_item text_unselect"
-                                                                             onclick="${gvc.event(() => {
-                                                                viewModel.selectSource = obg[dd];
-                                                                viewModel.addEvent = () => {
-                                                                    var _a;
-                                                                    const ob = JSON.parse(JSON.stringify(obg));
-                                                                    glitter.share.addComponent({
-                                                                        'id': glitter.getUUID(),
-                                                                        'data': (_a = ob[dd].defaultData) !== null && _a !== void 0 ? _a : {},
-                                                                        'style': ob[dd].style,
-                                                                        'class': ob[dd].class,
-                                                                        'type': dd,
-                                                                        'label': tryReturn(() => {
-                                                                            return ob[dd].title;
-                                                                        }, dd),
-                                                                        'js': source
-                                                                    });
-                                                                    glitter.closeDiaLog();
-                                                                };
-                                                                gvc.notifyDataChange([tabID, docID]);
-                                                            })}">
-                                                                            ${obg[dd].title}
-                                                                        </div>`;
-                                                        }
-                                                        else {
-                                                            return html ``;
-                                                        }
-                                                    }));
-                                                }
-                                                else {
-                                                    return gvc.map(Object.keys(obg).filter((d2) => {
-                                                        return d2 !== 'document' && d2 !== 'code';
-                                                    }).map((dd) => {
-                                                        if (!viewModel.selectSource) {
-                                                            viewModel.selectSource = obg[dd];
-                                                            viewModel.addEvent = () => {
-                                                                var _a;
-                                                                const ob = JSON.parse(JSON.stringify(obg));
-                                                                glitter.share.addComponent({
-                                                                    'id': glitter.getUUID(),
-                                                                    'data': (_a = ob[dd].defaultData) !== null && _a !== void 0 ? _a : {},
-                                                                    'style': ob[dd].style,
-                                                                    'class': ob[dd].class,
-                                                                    'type': dd,
-                                                                    'label': tryReturn(() => {
-                                                                        return ob[dd].title;
-                                                                    }, dd),
-                                                                    'js': source
-                                                                });
-                                                                glitter.closeDiaLog();
-                                                            };
-                                                            gvc.notifyDataChange(docID);
-                                                        }
-                                                        return html `
-                                                                    <div class="editor_item  ${(viewModel.selectSource === obg[dd]) ? `active` : `text_unselect`}"
-                                                                         onclick="${gvc.event(() => {
-                                                            viewModel.selectSource = obg[dd];
-                                                            viewModel.addEvent = () => {
-                                                                var _a;
-                                                                const ob = JSON.parse(JSON.stringify(obg));
-                                                                glitter.share.addComponent({
-                                                                    'id': glitter.getUUID(),
-                                                                    'data': (_a = ob[dd].defaultData) !== null && _a !== void 0 ? _a : {},
-                                                                    'style': ob[dd].style,
-                                                                    'class': ob[dd].class,
-                                                                    'type': dd,
-                                                                    'label': tryReturn(() => {
-                                                                        return ob[dd].title;
-                                                                    }, dd),
-                                                                    'js': source
-                                                                });
-                                                                glitter.closeDiaLog();
-                                                            };
-                                                            gvc.notifyDataChange([tabID, docID]);
-                                                        })}">
-                                                                        ${obg[dd].title}
-                                                                    </div>`;
-                                                    }));
-                                                }
+                                                return gvc.map(Object.keys(obg).filter((d2) => {
+                                                    return d2 !== 'document' && d2 !== 'code';
+                                                }).map((dd) => {
+                                                    if (!viewModel.selectSource) {
+                                                        viewModel.selectSource = obg[dd];
+                                                        viewModel.addEvent = () => {
+                                                            var _a;
+                                                            const ob = JSON.parse(JSON.stringify(obg));
+                                                            glitter.share.addComponent({
+                                                                'id': glitter.getUUID(),
+                                                                'data': (_a = ob[dd].defaultData) !== null && _a !== void 0 ? _a : {},
+                                                                'style': ob[dd].style,
+                                                                'class': ob[dd].class,
+                                                                'type': dd,
+                                                                'label': tryReturn(() => {
+                                                                    return ob[dd].title;
+                                                                }, dd),
+                                                                'js': source
+                                                            });
+                                                            glitter.closeDiaLog();
+                                                        };
+                                                        gvc.notifyDataChange(docID);
+                                                    }
+                                                    return html `
+                                                                <div class="d-flex editor_item ${(viewModel.selectSource === obg[dd]) ? `active` : `text_unselect`}"
+                                                                     onclick="${gvc.event(() => {
+                                                        viewModel.selectSource = obg[dd];
+                                                        viewModel.addEvent = () => {
+                                                            var _a;
+                                                            const ob = JSON.parse(JSON.stringify(obg));
+                                                            glitter.share.addComponent({
+                                                                'id': glitter.getUUID(),
+                                                                'data': (_a = ob[dd].defaultData) !== null && _a !== void 0 ? _a : {},
+                                                                'style': ob[dd].style,
+                                                                'class': ob[dd].class,
+                                                                'type': dd,
+                                                                'label': tryReturn(() => {
+                                                                    return ob[dd].title;
+                                                                }, dd),
+                                                                'js': source
+                                                            });
+                                                            glitter.closeDiaLog();
+                                                        };
+                                                        gvc.notifyDataChange([tabID, docID]);
+                                                    })}">
+                                                                    ${obg[dd].title}
+                                                                    <div class="flex-fill"></div>
+                                                                    <button class="btn ms-2 btn-primary-c me-2 p-2"
+                                                                            style="height: 25px;width: 25px;"
+                                                                            onclick="${gvc.event(() => {
+                                                        var _a;
+                                                        const ob = JSON.parse(JSON.stringify(obg));
+                                                        glitter.share.addComponent({
+                                                            'id': glitter.getUUID(),
+                                                            'data': (_a = ob[dd].defaultData) !== null && _a !== void 0 ? _a : {},
+                                                            'style': ob[dd].style,
+                                                            'class': ob[dd].class,
+                                                            'type': dd,
+                                                            'label': tryReturn(() => {
+                                                                return ob[dd].title;
+                                                            }, dd),
+                                                            'js': source
+                                                        });
+                                                        glitter.closeDiaLog();
+                                                    })}">
+                                                                        <i class="fa-regular fa-circle-plus"></i>
+                                                                    </button>
+                                                                </div>`;
+                                                }));
                                             },
                                             divCreate: {
-                                                class: `pe-2 ${(!dd.toggle && !search) ? `d-none` : ``}`
+                                                class: `${(!dd.toggle && !search) ? `d-none` : ``}`
                                             }
                                         });
                                     })()}
@@ -658,7 +643,7 @@ class Add_item_dia {
                         }
                     },
                     divCreate: {
-                        style: 'overflow-y:auto;'
+                        style: 'overflow-y:auto;height:calc(100vh - 110px);', class: 'border-bottom '
                     }
                 }),
                 right: gvc.bindView({
@@ -731,47 +716,8 @@ class Add_item_dia {
             const tabID = gvc.glitter.getUUID();
             let viewModel = {
                 loading: true,
-                pluginList: []
+                pluginList: window.saasConfig.appConfig.pagePlugin
             };
-            function getSource(dd) {
-                return dd.src.official;
-            }
-            function loading() {
-                viewModel.loading = true;
-                const data = glitter.share.appConfigresponse;
-                if (data.result) {
-                    viewModel.loading = false;
-                    viewModel.pluginList = data.response.data.pagePlugin;
-                    if (data.response.data.lambdaView) {
-                        data.response.data.lambdaView.map((dd) => {
-                            for (let i = viewModel.pluginList.length - 1; i >= 0; i--) {
-                                if (viewModel.pluginList[i].src.official === dd.path) {
-                                    viewModel.pluginList.splice(i, 1);
-                                }
-                            }
-                            viewModel.pluginList.push({
-                                "src": {
-                                    "official": dd.path
-                                },
-                                "name": dd.name
-                            });
-                        });
-                    }
-                    if (viewModel.pluginList.length > 0) {
-                        viewModel.pluginList[0].toggle = true;
-                    }
-                    glitter.addMtScript(viewModel.pluginList.map((dd) => {
-                        return {
-                            src: glitter.htmlGenerate.resourceHook(getSource(dd)),
-                            type: 'module'
-                        };
-                    }), () => {
-                        console.log('notify-tab');
-                        gvc.notifyDataChange(tabID);
-                    }, () => {
-                    });
-                }
-            }
             function tryReturn(fun, defaults) {
                 try {
                     return fun();
@@ -780,133 +726,146 @@ class Add_item_dia {
                     return defaults;
                 }
             }
-            loading();
             resolve({
                 left: gvc.bindView({
                     bind: tabID,
                     view: () => {
                         try {
-                            let hi = false;
-                            const it = gvc.map(viewModel.pluginList.map((dd, index) => {
-                                try {
-                                    const source = getSource(dd);
-                                    const obg = gvc.glitter.share.htmlExtension[gvc.glitter.htmlGenerate.resourceHook(getSource(dd))];
-                                    if (!obg) {
-                                        setTimeout(() => {
-                                            gvc.notifyDataChange(tabID);
-                                        }, 1000);
-                                        return ``;
-                                    }
-                                    const haveItem = Object.keys(obg).filter((d2) => {
-                                        return d2 !== 'document';
-                                    }).find((dd) => {
-                                        return obg[dd].title.indexOf(search) !== -1;
-                                    });
-                                    if (haveItem || (!search)) {
-                                        hi = true;
-                                    }
-                                    return html `
-                                        <div class="w-100 px-2 ${(search && !haveItem) ? `d-none` : ``}">
-                                            <div class="mx-0 d-flex mx-n2  px-2 hi fw-bold d-flex align-items-center border-bottom border-top py-2 bgf6"
-                                                 style="color:black;"
-                                                 onclick="${gvc.event(() => {
-                                        dd.toggle = !dd.toggle;
-                                        gvc.notifyDataChange([tabID, docID]);
-                                    })}">
-                                                    ．${dd.name}
-                                                <div class="flex-fill"></div>
-
-                                                <i class="fa-solid  ${(dd.toggle || search) ? `fa-angle-down` : `fa-angle-right`} d-flex align-items-center justify-content-center me-2"
-                                                   style="cursor:pointer;"></i>
-                                            </div>
-                                            ${(() => {
-                                        const id = gvc.glitter.getUUID();
-                                        return gvc.bindView({
-                                            bind: id,
-                                            view: () => {
-                                                if (search) {
-                                                    return gvc.map(Object.keys(obg).filter((d2) => {
-                                                        return d2 !== 'document';
-                                                    }).map((dd) => {
-                                                        if (obg[dd].title.indexOf(search) !== -1) {
-                                                            return html `
-                                                                        <div class="editor_item text_unselect"
-                                                                             onclick="${gvc.event(() => {
-                                                                viewModel.selectSource = obg[dd];
-                                                                viewModel.addEvent = () => {
-                                                                    var _a;
-                                                                    const ob = JSON.parse(JSON.stringify(obg));
-                                                                    glitter.share.addComponent({
-                                                                        'id': glitter.getUUID(),
-                                                                        'data': (_a = ob[dd].defaultData) !== null && _a !== void 0 ? _a : {},
-                                                                        'style': ob[dd].style,
-                                                                        'class': ob[dd].class,
-                                                                        'type': dd,
-                                                                        'label': tryReturn(() => {
-                                                                            return ob[dd].title;
-                                                                        }, dd),
-                                                                        'js': source
-                                                                    });
-                                                                    glitter.closeDiaLog();
-                                                                };
+                            return viewModel.pluginList.map((dd, index) => {
+                                return gvc.bindView(() => {
+                                    const id = gvc.glitter.getUUID();
+                                    return {
+                                        bind: id,
+                                        view: () => {
+                                            return new Promise((resolve, reject) => {
+                                                glitter.htmlGenerate.loadScript(glitter, [
+                                                    {
+                                                        src: gvc.glitter.htmlGenerate.resourceHook(dd.src.official),
+                                                        callback: (obg) => {
+                                                            console.log(`obg-->`, obg);
+                                                            const source = dd.src.official;
+                                                            resolve(html `
+                                                                <div class="w-100 ">
+                                                                    <div class="mx-0 d-flex   px-2 hi fw-bold d-flex align-items-center border-bottom border-top py-2 bgf6"
+                                                                         style="color:black;"
+                                                                         onclick="${gvc.event(() => {
+                                                                dd.toggle = !dd.toggle;
                                                                 gvc.notifyDataChange([tabID, docID]);
                                                             })}">
-                                                                            ${obg[dd].title}
-                                                                        </div>`;
-                                                        }
-                                                        else {
-                                                            return html ``;
-                                                        }
-                                                    }));
-                                                }
-                                                else {
-                                                    return gvc.map(Object.keys(obg).filter((d2) => {
-                                                        return d2 !== 'document';
-                                                    }).map((dd) => {
-                                                        return html `
-                                                                    <div class="editor_item  ${(viewModel.selectSource === obg[dd]) ? `active` : `text_unselect`}"
-                                                                         onclick="${gvc.event(() => {
-                                                            viewModel.selectSource = obg[dd];
-                                                            viewModel.addEvent = () => {
-                                                                var _a;
-                                                                const ob = JSON.parse(JSON.stringify(obg));
-                                                                glitter.share.addComponent({
-                                                                    'id': glitter.getUUID(),
-                                                                    'data': (_a = ob[dd].defaultData) !== null && _a !== void 0 ? _a : {},
-                                                                    'style': ob[dd].style,
-                                                                    'class': ob[dd].class,
-                                                                    'type': dd,
-                                                                    'label': tryReturn(() => {
-                                                                        return ob[dd].title;
-                                                                    }, dd),
-                                                                    'js': source
+                                                                            ．${dd.name}
+                                                                        <div class="flex-fill"></div>
+
+                                                                        <i class="fa-solid  ${(dd.toggle || search) ? `fa-angle-down` : `fa-angle-right`} d-flex align-items-center justify-content-center me-2"
+                                                                           style="cursor:pointer;"></i>
+                                                                    </div>
+                                                                    ${(() => {
+                                                                const id = gvc.glitter.getUUID();
+                                                                return gvc.bindView({
+                                                                    bind: id,
+                                                                    view: () => {
+                                                                        if (search) {
+                                                                            return gvc.map(Object.keys(obg).filter((d2) => {
+                                                                                return d2 !== 'document';
+                                                                            }).map((dd) => {
+                                                                                if (obg[dd].title.indexOf(search) !== -1) {
+                                                                                    return html `
+                                                                                                <div class="editor_item text_unselect"
+                                                                                                     onclick="${gvc.event(() => {
+                                                                                        viewModel.selectSource = obg[dd];
+                                                                                        viewModel.addEvent = () => {
+                                                                                            var _a;
+                                                                                            const ob = JSON.parse(JSON.stringify(obg));
+                                                                                            glitter.share.addComponent({
+                                                                                                'id': glitter.getUUID(),
+                                                                                                'data': (_a = ob[dd].defaultData) !== null && _a !== void 0 ? _a : {},
+                                                                                                'style': ob[dd].style,
+                                                                                                'class': ob[dd].class,
+                                                                                                'type': dd,
+                                                                                                'label': tryReturn(() => {
+                                                                                                    return ob[dd].title;
+                                                                                                }, dd),
+                                                                                                'js': source
+                                                                                            });
+                                                                                            glitter.closeDiaLog();
+                                                                                        };
+                                                                                        gvc.notifyDataChange([tabID, docID]);
+                                                                                    })}">
+                                                                                                    ${obg[dd].title}
+                                                                                                </div>`;
+                                                                                }
+                                                                                else {
+                                                                                    return html ``;
+                                                                                }
+                                                                            }));
+                                                                        }
+                                                                        else {
+                                                                            return gvc.map(Object.keys(obg).filter((d2) => {
+                                                                                return d2 !== 'document';
+                                                                            }).map((dd) => {
+                                                                                return html `
+                                                                                            <div class="editor_item  ${(viewModel.selectSource === obg[dd]) ? `active` : `text_unselect`}"
+                                                                                                 onclick="${gvc.event(() => {
+                                                                                    viewModel.selectSource = obg[dd];
+                                                                                    viewModel.addEvent = () => {
+                                                                                        var _a;
+                                                                                        const ob = JSON.parse(JSON.stringify(obg));
+                                                                                        glitter.share.addComponent({
+                                                                                            'id': glitter.getUUID(),
+                                                                                            'data': (_a = ob[dd].defaultData) !== null && _a !== void 0 ? _a : {},
+                                                                                            'style': ob[dd].style,
+                                                                                            'class': ob[dd].class,
+                                                                                            'type': dd,
+                                                                                            'label': tryReturn(() => {
+                                                                                                return ob[dd].title;
+                                                                                            }, dd),
+                                                                                            'js': source
+                                                                                        });
+                                                                                        glitter.closeDiaLog();
+                                                                                    };
+                                                                                    gvc.notifyDataChange([tabID, docID]);
+                                                                                })}">
+                                                                                                ${obg[dd].title}
+                                                                                                <div class="flex-fill"></div>
+                                                                                                <button class="btn ms-2 btn-primary-c me-2 p-2"
+                                                                                                        style="height: 25px;width: 25px;"
+                                                                                                        onclick="${gvc.event(() => {
+                                                                                    var _a;
+                                                                                    const ob = JSON.parse(JSON.stringify(obg));
+                                                                                    glitter.share.addComponent({
+                                                                                        'id': glitter.getUUID(),
+                                                                                        'data': (_a = ob[dd].defaultData) !== null && _a !== void 0 ? _a : {},
+                                                                                        'style': ob[dd].style,
+                                                                                        'class': ob[dd].class,
+                                                                                        'type': dd,
+                                                                                        'label': tryReturn(() => {
+                                                                                            return ob[dd].title;
+                                                                                        }, dd),
+                                                                                        'js': source
+                                                                                    });
+                                                                                    glitter.closeDiaLog();
+                                                                                })}">
+                                                                                                    <i class="fa-regular fa-circle-plus"></i>
+                                                                                                </button>
+                                                                                            </div>`;
+                                                                            }));
+                                                                        }
+                                                                    },
+                                                                    divCreate: {
+                                                                        class: ` ${(!dd.toggle && !search) ? `d-none` : ``}`
+                                                                    }
                                                                 });
-                                                                glitter.closeDiaLog();
-                                                            };
-                                                            gvc.notifyDataChange([tabID, docID]);
-                                                        })}">
-                                                                        ${obg[dd].title}
-                                                                    </div>`;
-                                                    }));
-                                                }
-                                            },
-                                            divCreate: {
-                                                class: `pe-2 ${(!dd.toggle && !search) ? `d-none` : ``}`
-                                            }
-                                        });
-                                    })()}
-                                        </div>
-                                    `;
-                                }
-                                catch (e) {
-                                    return ``;
-                                }
-                            }));
-                            if (hi) {
-                                return it;
-                            }
-                            else {
-                                return `<div class="d-flex align-items-center justify-content-center flex-column w-100"
+                                                            })()}
+                                                                </div>
+                                                            `);
+                                                        }
+                                                    }
+                                                ]);
+                                            });
+                                        },
+                                        divCreate: {}
+                                    };
+                                });
+                            }).join('') || `<div class="d-flex align-items-center justify-content-center flex-column w-100"
                                                              style="width:700px;">
                                                             <lottie-player style="max-width: 100%;width: 300px;"
                                                                            src="https://assets10.lottiefiles.com/packages/lf20_rc6CDU.json"
@@ -914,74 +873,21 @@ class Add_item_dia {
                                                                            background="transparent"></lottie-player>
                                                             <h3 class="text-dark fs-6 mt-n3 px-2  "
                                                                 style="line-height: 200%;text-align: center;">
-                                                                查無相關模塊。</h3>
+                                                                尚未加入任何模塊。</h3>
                                                         </div>`;
-                            }
                         }
                         catch (e) {
-                            console.log(e);
-                            setTimeout(() => {
-                                gvc.notifyDataChange(tabID);
-                            }, 500);
-                            return `<span class="font-14 m-auto p-2 w-100 d-flex align-items-center justify-content-center fw-500">loading...</span>`;
+                            console.log(`error-->`, e);
                         }
                     },
                     divCreate: {
-                        style: 'overflow-y:auto;'
+                        style: 'overflow-y:auto;height:calc(100vh - 110px);', class: 'border-bottom '
                     }
                 }),
                 right: gvc.bindView({
                     bind: docID,
                     view: () => {
-                        function tryReturn(fun, defaults) {
-                            try {
-                                return fun();
-                            }
-                            catch (e) {
-                                return defaults;
-                            }
-                        }
-                        if (!viewModel.selectSource) {
-                            return ``;
-                        }
-                        function isValidHTML(str) {
-                            const htmlRegex = /<[a-z][\s\S]*>/i;
-                            return htmlRegex.test(str);
-                        }
-                        return html `
-                            <div class="d-flex mx-n2 mt-n2 px-2 hi fw-bold d-flex align-items-center border-bottom border-top py-2 bgf6"
-                                 style="color:#151515;font-size:16px;gap:0px;height:48px;">
-                                模塊描述
-                            </div>
-                            <div class="d-flex flex-column w-100" style="height:calc(100% - 48px);">
-                                ${(() => {
-                            if (isValidHTML(viewModel.selectSource.subContent)) {
-                                return viewModel.selectSource.subContent;
-                            }
-                            else {
-                                return html `
-                                            <div class="flex-fill"></div>
-                                            <div class="alert alert-info p-2"
-                                                 style="white-space: normal;word-break:break-all;">
-                                                <strong>元件說明:</strong>
-                                                ${viewModel.selectSource.subContent}
-                                            </div>
-                                            <div class="flex-fill"></div>
-                                            <div class="w-100 d-flex border-top align-items-center mb-n2 pt-2"
-                                                 style="height:50px;">
-                                                <div class="flex-fill"></div>
-                                                <button class="btn btn-primary-c" style="height: 40px;width: 100px;"
-                                                        onclick="${gvc.event(() => {
-                                    viewModel.addEvent();
-                                })}">
-                                                    <i class="fa-light fa-circle-plus me-2"></i>插入模塊
-                                                </button>
-                                            </div>
-                                        `;
-                            }
-                        })()}
-                            </div>
-                        `;
+                        return ``;
                     },
                     divCreate: () => {
                         if (viewModel.selectSource) {
@@ -1028,20 +934,27 @@ class Add_item_dia {
             ];
             resolve({
                 left: html `<!-- Your code -->
-                <div class="px-2 pb-2">
-                    <div class="d-flex mx-n2  px-2 hi fw-bold d-flex align-items-center border-bottom border-top py-2 bgf6"
-                         style="color:#151515;font-size:16px;gap:0px;">
-                        勾選欲複製項目
-                    </div>
-                    <div class="my-2 mx-2">
-
+                <div class="position-relative bgf6 d-flex align-items-center justify-content-between  p-2 border-bottom shadow">
+                    <span class="fs-6 fw-bold " style="color:black;">代碼轉換</span>
+                    <button class="btn btn-primary-c "
+                            style="height: 28px;width:80px;font-size:14px;"
+                            onclick="${gvc.event(() => {
+                    const html = document.createElement('body');
+                    html.innerHTML = code;
+                    saveHTML(traverseHTML(html), relativePath, gvc, copyElem);
+                })}">轉換代碼
+                    </button>
+                </div>
+                <div class="px-2 pb-2 overflow-auto" style="height: calc(100vh - 170px)">
+                    ${EditorElem.h3('勾選複製項目')}
+                    <div class="pb-2 px-2 border-bottom">
                         ${gvc.bindView(() => {
                     const id = glitter.getUUID();
                     return {
                         bind: id,
                         view: () => {
                             return copyElem.map((dd) => {
-                                return `<div class="d-flex align-items-center" style="gap:5px;cursor:pointer;" onclick="${gvc.event(() => {
+                                return `<div class="d-flex align-items-center" style="gap:10px;cursor:pointer;" onclick="${gvc.event(() => {
                                     if ((dd.elem === 'all')) {
                                         copyElem.map((dd) => {
                                             dd.check = false;
@@ -1061,7 +974,7 @@ class Add_item_dia {
                                     gvc.notifyDataChange(id);
                                 })}">
   <i class="${(dd.check) ? `fa-solid fa-square-check` : `fa-regular fa-square`}" style="font-size:15px;${(dd.check) ? `color:rgb(41, 94, 209);` : ``}"></i>
-  <span class="form-check-label " style="font-size:15px;color:#6e6e6e;font-weight: 400!important;" >${dd.title}</span>
+  <span class="form-check-label " style="font-size:15px;color:#5e5e5e;font-weight: 400!important;" >${dd.title}</span>
 </div>`;
                             }).join('');
                         },
@@ -1070,10 +983,7 @@ class Add_item_dia {
                 })}
                     </div>
                     <div class="my-2"></div>
-                    <div class="d-flex  px-2 mx-n2 hi fw-bold d-flex align-items-center border-bottom border-top py-2 bgf6"
-                         style="color:#151515;font-size:16px;gap:0px;">
-                        資源相對路徑
-                    </div>
+                    ${EditorElem.h3('資源相對路徑')}
                     ${glitter.htmlGenerate.editeInput({
                     gvc: gvc,
                     title: ``,
@@ -1083,15 +993,11 @@ class Add_item_dia {
                         relativePath = text;
                     }
                 })}
-                    <div class="d-flex  px-2 mx-n2 hi fw-bold d-flex align-items-center border-bottom border-top py-2 bgf6"
-                         style="color:#151515;font-size:16px;gap:0px;">
-                        複製的代碼內容
-                    </div>
-                    <div class="my-2"></div>
+                    <div class="mt-3 mb-2 border-bottom"></div>
                     ${EditorElem.customCodeEditor({
                     gvc: gvc,
-                    title: '',
-                    height: 370,
+                    title: '複製的代碼內容',
+                    height: 550,
                     initial: code,
                     language: 'html',
                     callback: (text) => {
@@ -1100,14 +1006,7 @@ class Add_item_dia {
                     }
                 })}
                 </div>
-                <div class="d-flex p-2 align-content-end justify-content-end " style="font-weight:400;font-size:15px;">
-                    <button class="btn btn-primary-c w-100" onclick="${gvc.event(() => {
-                    const html = document.createElement('body');
-                    html.innerHTML = code;
-                    saveHTML(traverseHTML(html), relativePath, gvc, copyElem);
-                })}"><i class="fa-regular fa-arrows-retweet me-2"></i>轉換代碼
-                    </button>
-                </div>`,
+                `,
                 right: ``
             });
         });
@@ -1153,8 +1052,19 @@ class Add_item_dia {
                 });
             }
             resolve({
-                left: `      <lottie-player src="lottie/ai.json"    class="mx-auto my-n4" speed="1"   style="max-width: 100%;width: 250px;height:300px;"  loop  autoplay></lottie-player>
- ${gvc.bindView(() => {
+                left: html `
+                    <div class="position-relative bgf6 d-flex align-items-center justify-content-between  p-2 border-bottom shadow">
+                        <span class="fs-6 fw-bold " style="color:black;">AI 代碼生成工具</span>
+                        <button class="btn btn-primary-c "
+                                style="height: 28px;width:80px;font-size:14px;"
+                                onclick="${gvc.event(() => {
+                    trigger();
+                })}">轉換代碼
+                        </button>
+                    </div>
+                    <lottie-player src="lottie/ai.json" class="mx-auto my-n4" speed="1"
+                                   style="max-width: 100%;width: 250px;height:300px;" loop autoplay></lottie-player>
+                    ${gvc.bindView(() => {
                     return {
                         bind: textID,
                         view: () => {
@@ -1175,7 +1085,7 @@ class Add_item_dia {
                         divCreate: { class: `w-100 px-2` }
                     };
                 })}
-  ${gvc.bindView(() => {
+                    ${gvc.bindView(() => {
                     let linsten = false;
                     const id = glitter.getUUID();
                     const recognition = new webkitSpeechRecognition();
@@ -1192,7 +1102,7 @@ class Add_item_dia {
                         bind: id,
                         view: () => {
                             return html `
-                                ${(linsten) ? `
+                                    ${(linsten) ? `
                                   <button class="btn btn-danger flex-fill" style="flex:1;"
                                         onclick="${gvc.event(() => {
                                 linsten = false;
@@ -1210,18 +1120,14 @@ class Add_item_dia {
                                     <i class="fa-light fa-microphone me-2" style="font-size:20px;"></i>語音輸入
                                 </button>`}
 
-                                <button class="btn btn-primary-c flex-fill" style="flex:1;" onclick="${gvc.event(() => {
-                                trigger();
-                            })}">
-                                    <i class="fa-light fa-microchip-ai me-2" style="font-size:20px;"></i>開始AI生成
-                                </button>`;
+                                `;
                         },
                         divCreate: {
                             class: `p-2 w-100 d-flex`, style: `gap:10px;`
                         }
                     };
                 })}
-`,
+                `,
                 right: ``
             });
         });
@@ -1251,14 +1157,22 @@ class Add_item_dia {
             }
             resolve({
                 left: `     
-             
+      <div class="position-relative bgf6 d-flex align-items-center justify-content-between  p-2 border-bottom shadow">
+                    <span class="fs-6 fw-bold " style="color:black;">元件複製</span>
+                    <button class="btn btn-primary-c "
+                            style="height: 28px;width:80px;font-size:14px;"
+                            onclick="${gvc.event(() => {
+                    trigger();
+                })}">確認複製
+                    </button>
+                </div>        
  ${gvc.bindView(() => {
                     return {
                         bind: textID,
                         view: () => {
                             const id = gvc.glitter.getUUID();
-                            return `<div class=" alert alert-info mt-2 p-2" style="white-space: normal;word-break:break-all;">
-將複製於剪貼簿的元件貼上於下方區塊，確認後來產生元件．
+                            return `<div class="alert alert-info mt-2 p-2 fw-500 mb-0" style="white-space: normal;word-break:break-all;font-size:14px;">
+將複製於剪貼簿的元件貼上於下方區塊，確認後來產生元件。
 </div>
 ` + EditorElem.editeInput({
                                 gvc: gvc,
@@ -1289,11 +1203,7 @@ class Add_item_dia {
                                 onCreate: () => {
                                     autosize(obj.gvc.getBindViewElem(id));
                                 }
-                            }) + `<button class="btn btn-primary-c flex-fill mt-2 w-100" style="flex:1;" onclick="${gvc.event(() => {
-                                trigger();
-                            })}">
-                                 確認並複製
-                                </button>`;
+                            });
                         },
                         divCreate: { class: `w-100 px-2 `, style: `height:530px;` }
                     };

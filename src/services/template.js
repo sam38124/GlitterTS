@@ -7,10 +7,9 @@ exports.Template = void 0;
 const database_1 = __importDefault(require("../modules/database"));
 const config_1 = require("../config");
 const exception_1 = __importDefault(require("../modules/exception"));
+const process_1 = __importDefault(require("process"));
+const ut_database_js_1 = require("../api-public/utils/ut-database.js");
 class Template {
-    constructor(token) {
-        this.token = token;
-    }
     async verifyPermission(appName) {
         const count = await database_1.default.execute(`
             select count(1)
@@ -37,8 +36,9 @@ class Template {
         }
         try {
             await database_1.default.execute(`
-                insert into \`${config_1.saasConfig.SAAS_NAME}\`.page_config (userID, appName, tag, \`group\`, \`name\`, config, page_config,page_type)
-                values (?, ?, ?, ?, ?, ?, ?,?);
+                insert into \`${config_1.saasConfig.SAAS_NAME}\`.page_config (userID, appName, tag, \`group\`, \`name\`, config,
+                                                                     page_config, page_type)
+                values (?, ?, ?, ?, ?, ?, ?, ?);
             `, [
                 this.token.userID,
                 config.appName,
@@ -112,12 +112,57 @@ class Template {
             throw exception_1.default.BadRequestError("Forbidden", "No permission." + e, null);
         }
     }
+    async getTemplate(query) {
+        var _a;
+        try {
+            const sql = [];
+            query.template_from === 'me' && sql.push(`user = '${this.token.userID}'`);
+            query.template_from === 'me' && sql.push(`template_type in (3,2)`);
+            query.template_from === 'all' && sql.push(`template_type = 2`);
+            const data = await new ut_database_js_1.UtDatabase(config_1.saasConfig.SAAS_NAME, `page_config`).querySql(sql, query, `
+            id,userID,tag,\`group\`,name, page_type,  preview_image,appName,template_type,template_config
+            `);
+            return data;
+        }
+        catch (e) {
+            throw exception_1.default.BadRequestError((_a = e.code) !== null && _a !== void 0 ? _a : 'BAD_REQUEST', e, null);
+        }
+    }
+    async postTemplate(config) {
+        var _a, _b;
+        try {
+            if (!(await this.verifyPermission(config.appName))) {
+                throw exception_1.default.BadRequestError("Forbidden", "No Permission.", null);
+            }
+            let template_type = '0';
+            if (config.data.post_to === 'all') {
+                let officialAccount = ((_a = process_1.default.env.OFFICIAL_ACCOUNT) !== null && _a !== void 0 ? _a : '').split(',');
+                if (officialAccount.indexOf(`${this.token.userID}`) !== -1) {
+                    template_type = '2';
+                }
+                else {
+                    template_type = '1';
+                }
+            }
+            else if (config.data.post_to === 'me') {
+                template_type = '3';
+            }
+            return (await database_1.default.execute(`update \`${config_1.saasConfig.SAAS_NAME}\`.page_config
+                                      set template_config = ?,
+                                          template_type=${template_type}
+                                      where appName = ${database_1.default.escape(config.appName)}
+                                        and tag = ?
+            `, [config.data, config.tag]))['changedRows'] == true;
+        }
+        catch (e) {
+            throw exception_1.default.BadRequestError((_b = e.code) !== null && _b !== void 0 ? _b : 'BAD_REQUEST', e, null);
+        }
+    }
     async getPage(config) {
         try {
             let sql = `select ${(config.tag) ? `*` : `id,userID,tag,\`group\`,name,page_type,preview_image,appName`}
                        from \`${config_1.saasConfig.SAAS_NAME}\`.page_config
                        where ${(() => {
-                var _a;
                 let query = [`1 = 1`];
                 (config.user_id) && query.push(`userID=${config.user_id}`);
                 (config.appName) && query.push(`appName=${database_1.default.escape(config.appName)}`);
@@ -128,19 +173,13 @@ class Template {
                 (config.group) && query.push(`\`group\` in (${config.group.split(',').map((dd) => {
                     return database_1.default.escape(dd);
                 }).join(',')})`);
-                if (config.page_type === 'module') {
-                    if (config.favorite && config.favorite === 'true') {
-                        query.push(`favorite=1`);
-                    }
-                    if (config.me === 'true') {
-                        query.push(`userID = ${this.token.userID}`);
-                    }
-                    else {
-                        let officialAccount = ((_a = process.env.OFFICIAL_ACCOUNT) !== null && _a !== void 0 ? _a : '').split(',');
-                        query.push(`userID in (${officialAccount.map((dd) => {
-                            return `${database_1.default.escape(dd)}`;
-                        }).join(',')})`);
-                    }
+                if (config.favorite && config.favorite === 'true') {
+                    query.push(`favorite=1`);
+                }
+                if (config.me === 'true') {
+                    query.push(`userID = ${this.token.userID}`);
+                }
+                else {
                 }
                 return query.join(' and ');
             })()}`;
@@ -157,6 +196,9 @@ class Template {
         catch (e) {
             throw exception_1.default.BadRequestError("Forbidden", "No permission." + e, null);
         }
+    }
+    constructor(token) {
+        this.token = token;
     }
 }
 exports.Template = Template;

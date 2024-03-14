@@ -1,7 +1,11 @@
 "use strict";
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
-    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
 }) : (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
     o[k2] = m[k];
@@ -29,10 +33,6 @@ const app_js_1 = require("../../services/app.js");
 const message_js_1 = require("../../firebase/message.js");
 const shopping_js_1 = require("./shopping.js");
 class Post {
-    constructor(app, token) {
-        this.app = app;
-        this.token = token;
-    }
     static addPostObserver(callback) {
         Post.postObserverList.push(callback);
     }
@@ -304,6 +304,10 @@ class Post {
                 throw exception_1.default.BadRequestError('BAD_REQUEST', 'PostContent Error:' + e, null);
             }
         });
+    }
+    constructor(app, token) {
+        this.app = app;
+        this.token = token;
     }
 }
 exports.Post = Post;

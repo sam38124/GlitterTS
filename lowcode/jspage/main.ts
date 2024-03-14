@@ -2,10 +2,10 @@ import {GVC, init} from '../glitterBundle/GVController.js';
 import {Editor} from './editor.js';
 import {ApiPageConfig} from '../api/pageConfig.js';
 import {Swal} from '../modules/sweetAlert.js';
-import {Main_editor} from "./main_editor.js";
-import {Page_editor} from "./page_editor.js";
-import {Setting_editor} from "./setting_editor.js";
-import {Plugin_editor} from "./plugin_editor.js";
+import {Main_editor} from "./function-page/main_editor.js";
+import {Page_editor} from "./function-page/page_editor.js";
+import {Setting_editor} from "./function-page/setting_editor.js";
+import {Plugin_editor} from "./function-page/plugin_editor.js";
 import * as triggerBridge from "../editor-bridge/trigger-event.js";
 import {TriggerEvent} from "../glitterBundle/plugins/trigger-event.js";
 import {EditorElem} from "../glitterBundle/plugins/editor-elem.js";
@@ -13,14 +13,49 @@ import {StoreHelper} from "../helper/store-helper.js";
 import {GlobalUser} from "../glitter-base/global/global-user.js";
 import {DialogInterface} from "../dialog/dialog-interface.js";
 import {Storage} from "../helper/storage.js";
+import {ServerEditor} from "./function-page/server-editor/server-editor.js";
+import {AddComponent} from "../editor/add-component.js";
+import {PageSettingView} from "../editor/page-setting-view.js";
+import {AddPage} from "../editor/add-page.js";
+import {SetGlobalValue} from "../editor/set-global-value.js";
 
 const html = String.raw
 //
 const editorContainerID = `HtmlEditorContainer`;
 init(import.meta.url, (gvc, glitter, gBundle) => {
+
     gvc.addStyle(`.tooltip{
     z-index:99999 !important;
-    }`)
+    }
+     .scroll-in {
+    
+      left: -100%; /* 將元素移到畫面外 */
+      animation: slideInFromLeft 0.5s ease-out forwards;
+    }
+
+  .scroll-out {
+      left: 0%; /* 將元素移到畫面外 */
+      animation: slideOutFromLeft 1s ease-out forwards;
+    }
+    /* @keyframes 定義動畫 */
+    @keyframes slideInFromLeft {
+      0% {
+        left: -100%; /* 起始位置在畫面外 */
+      }
+      100% {
+        left: 0; /* 結束位置在畫面內 */
+      }
+    }
+     /* @keyframes 定義動畫 */
+    @keyframes slideOutFromLeft {
+      0% {
+        left: 0; /* 起始位置在畫面外 */
+      }
+      100% {
+        left: -100%; /* 結束位置在畫面內 */
+      }
+    }
+    `)
     const swal = new Swal(gvc);
     const viewModel: {
         dataList: any
@@ -102,14 +137,14 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                 return await new Promise(async (resolve) => {
                     const clock = gvc.glitter.ut.clock()
                     const data = await ApiPageConfig.getPage({
-                        appName:gBundle.appName,
-                        type:'template'
+                        appName: gBundle.appName,
+                        type: 'template'
                     })
                     viewModel.data = (await ApiPageConfig.getPage({
-                        appName:gBundle.appName,
-                        tag:glitter.getUrlParameter('page')
+                        appName: gBundle.appName,
+                        tag: glitter.getUrlParameter('page')
                     })).response.result[0];
-                    Storage.select_page_type=viewModel.data.page_type
+                    Storage.select_page_type = viewModel.data.page_type
                     if (data.result) {
                         data.response.result.map((dd: any) => {
                             dd.page_config = dd.page_config ?? {}
@@ -118,7 +153,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                         viewModel.dataList = data.response.result;
                         viewModel.originalData = JSON.parse(JSON.stringify(viewModel.dataList))
                         glitter.share.allPageResource = JSON.parse(JSON.stringify(data.response.result))
-                        const htmlGenerate = new gvc.glitter.htmlGenerate((viewModel.data! as any).config, [glitter.getCookieByName('lastSelect')], undefined, true);
+                        const htmlGenerate = new gvc.glitter.htmlGenerate((viewModel.data! as any).config, [Storage.lastSelect], undefined, true);
                         (window as any).editerData = htmlGenerate;
                         (window as any).page_config = (viewModel.data! as any).page_config
                         if (!data) {
@@ -205,7 +240,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
 
     lod().then(() => {
         //設定儲存事件
-        glitter.htmlGenerate.saveEvent = (refresh: boolean = true) => {
+        glitter.htmlGenerate.saveEvent = (refresh: boolean = true,callback?:()=>void) => {
             glitter.closeDiaLog()
             glitter.setCookie("jumpToNavScroll", $(`#jumpToNav`).scrollTop())
             swal.loading('更新中...');
@@ -281,6 +316,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
             }
 
             saveEvent().then(r => {
+                callback && callback()
             });
         };
         glitter.share.reloadEditor = () => {
@@ -294,7 +330,6 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
             return gvc.bindView({
                 bind: editorContainerID,
                 view: () => {
-                    let selectPosition = glitter.getUrlParameter('editorPosition') ?? "0"
                     if (viewModel.loading) {
                         return ``;
                     } else {
@@ -305,48 +340,68 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                                             <div style="width:60px;gap:20px;padding-top: 15px;"
                                                  class="h-100 border-end d-flex flex-column align-items-center">
                                                 ${[
-                                                    {src: `fa-table-layout`, index: Main_editor.index},
-                                                    {src: `fa-solid fa-list-check`, index: Setting_editor.index},
+                                                    {
+                                                        src: `fa-table-layout`,
+                                                        index: 'page-editor',
+                                                        hint: '頁面編輯'
+                                                    },
+                                                    {
+                                                        src: `fa-solid fa-list-check`,
+                                                        index: 'backend-manger',
+                                                        hint: '後台系統'
+                                                    },
+                                                    {
+                                                        src: `fa-duotone fa-server`,
+                                                        index: 'server-manager',
+                                                        hint: '伺服器設定'
+                                                    },
                                                     // {src: `fa-sharp fa-regular fa-file-dashed-line`, index: Page_editor.index},
-                                                ].filter((dd) => {
-                                                    return !(dd.index === Setting_editor.index && glitter.getUrlParameter('blogEditor') === 'true');
+                                                ].map((da: any) => {
 
-                                                }).map((da: any) => {
-                                                    return `<i class="fa-regular ${da.src} fs-5 fw-bold ${(selectPosition === `${da.index}`) ? `text-primary` : ``}  p-2 rounded" style="cursor:pointer;${(selectPosition === `${da.index}`) ? `background-color: rgba(10,83,190,0.1);` : ``}"
-onclick="${gvc.event(() => {
-
-                                                        viewModel.waitCopy = undefined
-                                                        viewModel.selectItem = undefined
-                                                        glitter.setUrlParameter(`editorPosition`, `${da.index}`)
-                                                        gvc.notifyDataChange(editorContainerID)
-                                                    })}"></i>`
+                                                    return html`<i
+                                                            class="fa-regular ${da.src} fs-5 fw-bold ${(Storage.select_function === `${da.index}`) ? `text-primary` : ``}  p-2 rounded"
+                                                            data-bs-toggle="tooltip"
+                                                            data-bs-placement="top"
+                                                            data-bs-custom-class="custom-tooltip"
+                                                            data-bs-title="${da.hint}"
+                                                            style="cursor:pointer;${(Storage.select_function === `${da.index}`) ? `background-color: rgba(10,83,190,0.1);` : ``}"
+                                                            onclick="${gvc.event(() => {
+                                                                viewModel.waitCopy = undefined
+                                                                viewModel.selectItem = undefined
+                                                                Storage.select_function = da.index
+                                                                gvc.notifyDataChange(editorContainerID)
+                                                            })}"></i>`
                                                 }).join('')}
                                             </div>
                                             <div class="offcanvas-body swiper scrollbar-hover  w-100 ${(() => {
-                                                switch (selectPosition) {
-                                                    case Setting_editor.index:
-                                                    case Main_editor.index:
+                                                switch (Storage.select_function) {
+                                                    case 'backend-manger':
+                                                    case 'server-manager':
                                                         return `pt-0`
-                                                    case Page_editor.index:
+                                                    case 'page-editor':
                                                         return `p-0`
                                                     default:
                                                         return `p-0`
                                                 }
                                             })()}" style="overflow-y: auto;overflow-x:hidden;height:calc(100vh - 56px);">
+                                                ${AddComponent.leftNav(gvc)}
+                                                ${PageSettingView.leftNav(gvc)}
+                                                ${AddPage.leftNav(gvc)}
+                                                ${SetGlobalValue.leftNav(gvc)}
                                                 <div class="h-100" style="">
                                                     ${gvc.bindView(() => {
                                                         return {
                                                             bind: 'MainEditorLeft',
                                                             view: () => {
-                                                                switch (selectPosition) {
-                                                                    case Setting_editor.index:
+                                                                switch (Storage.select_function) {
+                                                                    case 'backend-manger':
                                                                         return Setting_editor.left(gvc, viewModel, editorContainerID, gBundle)
-                                                                    case Page_editor.index:
-                                                                        return Page_editor.left(gvc, viewModel, editorContainerID, gBundle)
-                                                                    case Plugin_editor.index:
-                                                                        return Plugin_editor.left(gvc, viewModel, editorContainerID, gBundle)
-                                                                    default:
+                                                                    case 'server-manager':
+                                                                        return ServerEditor.left(gvc)
+                                                                    case 'page-editor':
                                                                         return Main_editor.left(gvc, viewModel, editorContainerID, gBundle)
+                                                                    default:
+                                                                        return Page_editor.left(gvc, viewModel, editorContainerID, gBundle)
                                                                 }
                                                             },
                                                             divCreate: {
@@ -375,7 +430,6 @@ onclick="${gvc.event(() => {
                 },
                 divCreate: {},
                 onCreate: () => {
-
                     $("#jumpToNav").scroll(function () {
                         glitter.setCookie("jumpToNavScroll", $(`#jumpToNav`).scrollTop())
                     });
@@ -383,12 +437,11 @@ onclick="${gvc.event(() => {
                     function scrollToItem(element: any) {
                         if (element) {
                             // 获取元素的位置信息
-                            var elementRect = element.getBoundingClientRect();
-                            var elementTop = elementRect.top;
-                            var elementHeight = elementRect.height;
-
+                            let elementRect = element.getBoundingClientRect();
+                            let elementTop = elementRect.top;
+                            let elementHeight = elementRect.height;
                             // 获取窗口的高度
-                            var windowHeight = document.querySelector('.scrollbar-hover')!.scrollHeight;
+                            let windowHeight = document.querySelector('.scrollbar-hover')!.scrollHeight;
                             // 计算滚动位置，以使元素的中心位于窗口的垂直中心
                             let scrollTo = elementTop - (windowHeight - elementHeight) / 2;
                             // 滚动页面
@@ -402,14 +455,11 @@ onclick="${gvc.event(() => {
 
                     setTimeout(() => {
                         scrollToItem(document.querySelector(`.editor_item.active`)!)
-
                     }, 200)
-
                 }
             });
         },
         onCreate: () => {
-
         },
     };
 });
@@ -460,9 +510,9 @@ function initialEditor(gvc: GVC, viewModel: any) {
     }
     //添加Component至當前頁面
     glitter.share.addComponent = (data: any) => {
-        const url=new URL(location.href)
-        url.search=''
-        data.js=data.js.replace(url.href,'./')
+        const url = new URL(location.href)
+        url.search = ''
+        data.js = data.js.replace(url.href, './')
         viewModel.selectContainer.push(data);
         glitter.setCookie('lastSelect', data.id);
         gvc.notifyDataChange(editorContainerID)
@@ -483,7 +533,7 @@ function shortCutKey(gvc: GVC) {
         let keyCode = event.keyCode || event.which;
         // Ctrl + G
         if ((event.ctrlKey) && keyCode === 71) {
-            DialogInterface.globalResource(gvc)
+            SetGlobalValue.toggle(true)
         }
     });
 }

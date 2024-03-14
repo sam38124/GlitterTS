@@ -8,7 +8,7 @@ function listenElementChange(query) {
     const targetElement = document.querySelector(query);
     const observer = new MutationObserver(function (mutationsList) {
         Object.keys(glitter.elementCallback).map((dd) => {
-            if (glitter.elementCallback[dd].rendered && ($(`[gvc-id="${dd}"]`).length === 0)) {
+            if (glitter.elementCallback[dd].rendered && (document.querySelector(`[gvc-id="${dd}"]`))) {
                 glitter.elementCallback[dd].rendered = false;
                 glitter.elementCallback[dd].onDestroy();
             }
@@ -16,14 +16,14 @@ function listenElementChange(query) {
         for (let mutation of mutationsList) {
             if (mutation.addedNodes.length > 0) {
                 for (const b of mutation.addedNodes) {
-                    traverseHTML($(b).get(0));
+                    traverseHTML(b, document);
                 }
             }
         }
     });
     observer.observe(targetElement, { childList: true, subtree: true });
 }
-function traverseHTML(element) {
+function traverseHTML(element, document) {
     var _a;
     let result = {};
     result.tag = element.tagName;
@@ -38,58 +38,70 @@ function traverseHTML(element) {
     if (children && children.length > 0) {
         result.children = [];
         for (let j = 0; j < children.length; j++) {
-            result.children.push(traverseHTML(children[j]));
+            result.children.push(traverseHTML(children[j], document));
         }
     }
-    if ($(element).attr('glem') === 'bindView') {
+    if (element && element.getAttribute && (element.getAttribute('glem') === 'bindView')) {
+        const id = element.getAttribute('gvc-id');
         function renderBindView() {
-            console.log(`renderBindView`);
+            glitter.consoleLog(`renderBindView`);
             function notifyLifeCycle() {
                 try {
-                    glitter.elementCallback[$(element).attr('gvc-id')].updateAttribute();
+                    glitter.elementCallback[element.getAttribute('gvc-id')].updateAttribute();
                 }
                 catch (e) {
                     glitter.deBugMessage(e);
                 }
                 try {
-                    glitter.elementCallback[$(element).attr('gvc-id')].onInitial();
+                    glitter.elementCallback[element.getAttribute('gvc-id')].onInitial();
                 }
                 catch (e) {
                     glitter.deBugMessage(e);
                 }
                 try {
-                    glitter.elementCallback[$(element).attr('gvc-id')].onCreate();
+                    glitter.elementCallback[element.getAttribute('gvc-id')].onCreate();
                 }
                 catch (e) {
                     glitter.deBugMessage(e);
                 }
             }
             try {
-                const id = $(element).attr('gvc-id');
-                glitter.elementCallback[$(element).attr('gvc-id')].rendered = true;
-                if (!document.querySelector(`[gvc-id="${id}"]`).wasRender) {
-                    let view = glitter.elementCallback[id].getView();
-                    if (typeof view === 'string') {
-                        $(`[gvc-id="${id}"]`).html(glitter.renderView.replaceGlobalValue(view));
-                        notifyLifeCycle();
+                if (document.querySelector(`[gvc-id="${id}"]`)) {
+                    glitter.elementCallback[element.getAttribute('gvc-id')].rendered = true;
+                    if (!document.querySelector(`[gvc-id="${id}"]`).wasRender) {
+                        let view = glitter.elementCallback[id].getView();
+                        if (typeof view === 'string') {
+                            element.innerHTML = glitter.renderView.replaceGlobalValue(view);
+                            notifyLifeCycle();
+                        }
+                        else {
+                            view.then((data) => {
+                                element.innerHTML = glitter.renderView.replaceGlobalValue(data);
+                                notifyLifeCycle();
+                            });
+                        }
                     }
                     else {
-                        view.then((data) => {
-                            $(`[gvc-id="${id}"]`).html(glitter.renderView.replaceGlobalValue(data));
-                            notifyLifeCycle();
+                        console.log(`wasRender`);
+                    }
+                    if (document.querySelector(`[gvc-id="${id}"]`)) {
+                        document.querySelector(`[gvc-id="${id}"]`).recreateView = (() => {
+                            document.querySelector(`[gvc-id="${id}"]`).wasRender = false;
+                            renderBindView();
                         });
+                        document.querySelector(`[gvc-id="${id}"]`).wasRender = true;
                     }
                 }
-                document.querySelector(`[gvc-id="${id}"]`).recreateView = (() => {
-                    document.querySelector(`[gvc-id="${id}"]`).wasRender = false;
-                    renderBindView();
-                });
-                document.querySelector(`[gvc-id="${id}"]`).wasRender = true;
             }
             catch (e) {
                 glitter.deBugMessage(e);
             }
         }
+        glitter.elementCallback[element.getAttribute('gvc-id')].document = document;
+        glitter.elementCallback[element.getAttribute('gvc-id')].recreateView = () => {
+            document.querySelector(`[gvc-id="${id}"]`).wasRender = false;
+            renderBindView();
+        };
         renderBindView();
     }
     else {
@@ -106,11 +118,12 @@ function traverseHTML(element) {
         }
     }
     if (!(glitter.share.EditorMode === true)) {
-        const inputString = $(element).html();
-        inputString != glitter.renderView.replaceGlobalValue(inputString) && $(element).html(glitter.renderView.replaceGlobalValue(inputString));
+        const inputString = element.innerHTML || element.innerText || element.textContent;
+        inputString != glitter.renderView.replaceGlobalValue(inputString) && (element.innerHTML = glitter.renderView.replaceGlobalValue(inputString));
     }
     return result;
 }
+glitter.share.traverseHTML = traverseHTML;
 if (window.GL !== undefined) {
     glitter.deviceType = glitter.deviceTypeEnum.Android;
 }
@@ -128,7 +141,7 @@ function glitterInitial() {
             glitter.goBack();
         });
     }
-    glitter.getBoundingClientRect = glitter.$('html').get(0).getBoundingClientRect();
+    glitter.getBoundingClientRect = document.querySelector('html').getBoundingClientRect();
     if (glitter.deviceType !== glitter.deviceTypeEnum.Web) {
         var css = document.createElement('style');
         css.type = 'text/css';
@@ -144,3 +157,48 @@ function glitterInitial() {
     }
 }
 glitterInitial();
+window.glitter.share.postMessageCallback = [];
+window.addEventListener('message', (event) => {
+    console.log(`linsMessage`);
+    window.glitter.share.postMessageCallback = window.glitter.share.postMessageCallback.filter(function (obj, index, array) {
+        return array.findIndex((item) => item.id === obj.id) === index;
+    });
+    window.glitter.share.postMessageCallback.map((dd) => {
+        dd.fun(event);
+    });
+});
+class GlitterWebComponent extends HTMLElement {
+    constructor() {
+        super();
+        this.attachShadow({ mode: 'open' });
+        this.shadowRoot.isCompoment = true;
+    }
+    setView(cf) {
+        const html = String.raw;
+        this.glitter = cf.gvc.glitter;
+        this.listenElementChange();
+        this.shadowRoot.innerHTML = cf.view;
+    }
+    listenElementChange() {
+        const glitter = (this.glitter);
+        const doc = this.shadowRoot;
+        const observer = new MutationObserver(function (mutationsList) {
+            Object.keys(glitter.elementCallback).map((dd) => {
+                if (glitter.elementCallback[dd].rendered && (document.querySelector(`[gvc-id="${dd}"]`))) {
+                    glitter.elementCallback[dd].rendered = false;
+                    glitter.elementCallback[dd].onDestroy();
+                }
+            });
+            for (let mutation of mutationsList) {
+                if (mutation.addedNodes.length > 0) {
+                    for (const b of mutation.addedNodes) {
+                        glitter.share.traverseHTML(b, doc);
+                        console.log(`traverseHTML(b)`);
+                    }
+                }
+            }
+        });
+        observer.observe(this.shadowRoot, { childList: true, subtree: true });
+    }
+}
+customElements.define('web-component', GlitterWebComponent);

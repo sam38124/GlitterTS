@@ -12,29 +12,26 @@ const router = express_1.default.Router();
 const logger_1 = __importDefault(require("../modules/logger"));
 const underscore_1 = __importDefault(require("underscore"));
 const exception_1 = __importDefault(require("../modules/exception"));
-const userRouter = require("./user");
-const privateConfig = require("./private_config");
-const ai = require("./ai");
-const template = require("./template");
-const app = require("./app");
-const filemanager = require("./filemanager");
-const globalEvent = require("./global-event");
 router.use('/api/*', doAuthAction);
-router.use(config_1.config.getRoute(config_1.config.route.user), userRouter);
-router.use(config_1.config.getRoute(config_1.config.route.template), template);
-router.use(config_1.config.getRoute(config_1.config.route.app), app);
-router.use(config_1.config.getRoute(config_1.config.route.fileManager), filemanager);
-router.use(config_1.config.getRoute(config_1.config.route.private), privateConfig);
-router.use(config_1.config.getRoute(config_1.config.route.ai), ai);
-router.use(config_1.config.getRoute(config_1.config.route.globalEvent), globalEvent);
+router.use(config_1.config.getRoute(config_1.config.route.user), require('./user'));
+router.use(config_1.config.getRoute(config_1.config.route.template), require('./template'));
+router.use(config_1.config.getRoute(config_1.config.route.app), require('./app'));
+router.use(config_1.config.getRoute(config_1.config.route.fileManager), require('./filemanager'));
+router.use(config_1.config.getRoute(config_1.config.route.private), require('./private_config'));
+router.use(config_1.config.getRoute(config_1.config.route.ai), require('./ai'));
+router.use(config_1.config.getRoute(config_1.config.route.globalEvent), require('./global-event'));
+router.use(config_1.config.getRoute(config_1.config.route.backendServer), require('./backend-server'));
+router.use(config_1.config.getRoute(config_1.config.route.page), require('./page'));
 const whiteList = [
     { url: config_1.config.getRoute(config_1.config.route.user) + "/login", method: 'POST' },
     { url: config_1.config.getRoute(config_1.config.route.user) + "/register", method: 'POST' },
     { url: config_1.config.getRoute(config_1.config.route.app) + "/plugin", method: 'GET' },
+    { url: config_1.config.getRoute(config_1.config.route.app) + "/template", method: 'GET' },
     { url: config_1.config.getRoute(config_1.config.route.template), method: 'GET' },
     { url: config_1.config.getRoute(config_1.config.route.fileManager) + "/upload", method: 'POST' },
     { url: config_1.config.getRoute(config_1.config.route.app) + "/official/plugin", method: 'GET' },
-    { url: config_1.config.getRoute(config_1.config.route.globalEvent), method: 'GET' }
+    { url: config_1.config.getRoute(config_1.config.route.globalEvent), method: 'GET' },
+    { url: config_1.config.getRoute(config_1.config.route.page), method: 'GET' }
 ];
 async function doAuthAction(req, resp, next) {
     var _a;

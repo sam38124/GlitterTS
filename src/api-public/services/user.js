@@ -1,7 +1,11 @@
 "use strict";
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
-    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
 }) : (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
     o[k2] = m[k];
@@ -36,10 +40,6 @@ const process_1 = __importDefault(require("process"));
 const ut_database_js_1 = require("../utils/ut-database.js");
 const custom_code_js_1 = require("./custom-code.js");
 class User {
-    constructor(app, token) {
-        this.app = app;
-        this.token = token;
-    }
     async createUser(account, pwd, userData, req) {
         var _a, _b, _c;
         try {
@@ -481,6 +481,10 @@ class User {
             console.log(e);
             throw exception_1.default.BadRequestError("ERROR", "ERROR." + e, null);
         }
+    }
+    constructor(app, token) {
+        this.app = app;
+        this.token = token;
     }
 }
 exports.User = User;

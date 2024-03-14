@@ -25,7 +25,7 @@ import {App} from "./services/app.js";
 import {Firebase} from "./modules/firebase.js";
 import {GlitterUtil} from "./helper/glitter-util.js";
 import Tool from "./api-public/services/ezpay/tool.js";
-import crypto, { Encoding } from 'crypto';
+import crypto, {Encoding} from 'crypto';
 import bcrypt from 'bcrypt';
 //Glitter FrontEnd Rout
 export const app = express();
@@ -186,10 +186,9 @@ export async function createAPP(dd: any) {
                     if (req.query.appName) {
                         appName = req.query.appName
                     }
-                    console.log(`appName-->`,appName)
+                    console.log(`appName-->`, appName)
                     //SAAS品牌和用戶類型
-                    const brandAndMemberType=await App.checkBrandAndMemberType(appName)
-
+                    const brandAndMemberType = await App.checkBrandAndMemberType(appName)
                     let vm = {
                         glitterInfo: `<script>
 window.appName='${appName}';
@@ -261,14 +260,15 @@ window.glitterBackend='${config.domain}';
     <meta property="og:image" content="${d.image ?? ""}">
     <meta property="og:title" content="${d.title ?? ""}">
     <meta name="description" content="${d.content ?? ""}">
-     <meta name="og:description" content="${d.content ?? ""}">
+    <meta name="og:description" content="${d.content ?? ""}">
+     ${d.code ?? ''}
   ${(() => {
                                 if (req.query.type === 'editor') {
                                     return ``
                                 } else {
-                                    return `  ${(data.config.globalStyle ?? []).map((dd: any) => {
+                                    return `${(data.config.globalStyle ?? []).map((dd: any) => {
                                         try {
-                                          if (dd.data.elem === 'link') {
+                                            if (dd.data.elem === 'link') {
                                                 return `<link type="text/css" rel="stylesheet" href="${dd.data.attr.find((dd: any) => {
                                                     return dd.attr === 'href'
                                                 }).value}">`
@@ -295,7 +295,7 @@ window.location.href='?page=${redirect}';
 </script>`
                         }
                     })()}${vm.glitterInfo}`
-                } catch (e:any) {
+                } catch (e: any) {
                     console.log(e)
                     return e.message
                 }

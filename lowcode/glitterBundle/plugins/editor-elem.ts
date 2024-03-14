@@ -7,6 +7,8 @@ import autosize from "./autosize.js";
 import {BaseApi} from "../api/base.js";
 import {TriggerEvent} from "./trigger-event.js";
 import Add_item_dia from "./add_item_dia.js";
+import {config} from "../../config.js";
+import {GlobalUser} from "../../glitter-base/global/global-user.js";
 
 
 export class EditorElem {
@@ -48,26 +50,24 @@ ${
                                         dialog.dataLoading({visible: false});
                                         const data1 = data.response;
                                         dialog.dataLoading({visible: true});
-                                        $.ajax({
+                                        BaseApi.create({
                                             url: data1.url,
                                             type: 'put',
                                             data: file,
                                             headers: {
                                                 "Content-Type": data1.type
-                                            },
-                                            processData: false,
-                                            crossDomain: true,
-                                            success: () => {
+                                            }
+                                        }).then((res)=>{
+                                            if(res.result){
                                                 dialog.dataLoading({visible: false});
                                                 obj.callback(data1.fullUrl);
                                                 obj.def = data1.fullUrl;
                                                 obj.gvc.notifyDataChange(id)
-                                            },
-                                            error: () => {
+                                            }else{
                                                 dialog.dataLoading({visible: false});
                                                 dialog.errorMessage({text: '上傳失敗'});
-                                            },
-                                        });
+                                            }
+                                        })
                                     });
                                 },
                             });
@@ -97,24 +97,22 @@ ${
                     dialog.dataLoading({visible: false});
                     const data1 = data.response;
                     dialog.dataLoading({visible: true});
-                    $.ajax({
+                    BaseApi.create({
                         url: data1.url,
                         type: 'put',
                         data: file,
                         headers: {
                             "Content-Type": data1.type
-                        },
-                        processData: false,
-                        crossDomain: true,
-                        success: () => {
+                        }
+                    }).then((res)=>{
+                        if(res.result){
                             dialog.dataLoading({visible: false});
                             callback(data1.fullUrl);
-                        },
-                        error: () => {
+                        }else{
                             dialog.dataLoading({visible: false});
                             dialog.errorMessage({text: '上傳失敗'});
-                        },
-                    });
+                        }
+                    })
                 });
             },
         });
@@ -292,6 +290,73 @@ ${addNewlineAfterSemicolon(obj.initial)}
                 return {
                     bind: id,
                     view: () => {
+                        return gvc.glitter.html`<iframe id="${frameID}" class="w-100 h-100 border rounded-3"
+                                    src="${domain}/browser-amd-editor/component.html?height=${height}&link=${location.origin}&callbackID=${id}"></iframe>`
+                    },
+                    divCreate: {class: `w-100 `, style: `height:${height}px;`},
+                    onDestroy: () => {
+                        gvc.glitter.share.postMessageCallback=gvc.glitter.share.postMessageCallback.filter((dd:any)=>{
+                            return dd.id===frameID
+                        })
+                    },
+                    onCreate: () => {
+                        gvc.glitter.share.postMessageCallback.push( {
+                            fun: listener,
+                            id:frameID
+                        })
+                    }
+                }
+            })
+        }
+
+        return obj.gvc.glitter.html`
+        <div class="d-flex">
+        ${(obj.title ? EditorElem.h3(obj.title) : '')}
+        <div class="d-flex align-items-center justify-content-center" style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;"
+        onclick="${obj.gvc.event(() => {
+            EditorElem.openEditorDialog(obj.gvc, (gvc: GVC) => {
+                return getComponent(gvc, window.innerHeight - 100)
+            }, () => {
+                obj.gvc.notifyDataChange(idlist)
+            })
+        })}"><i class="fa-solid fa-expand"></i></div>
+</div>
+        ` + getComponent(obj.gvc, obj.height)
+    }
+
+    public static htmlEditor(obj: {
+        gvc: GVC
+        height: number,
+        initial: string,
+        title: string,
+        dontRefactor?: boolean,
+        callback: (data: string) => void
+    }) {
+        let idlist: any = []
+
+        function getComponent(gvc: GVC, height: number) {
+            return gvc.bindView(() => {
+                const id = obj.gvc.glitter.getUUID()
+                idlist.push(id)
+                const frameID = obj.gvc.glitter.getUUID()
+                const domain = 'https://sam38124.github.io/code_component'
+                let listener = function (event: any) {
+                    if (event.data.type === 'initial') {
+                        const childWindow = (document.getElementById(frameID)! as any).contentWindow!!;
+                        childWindow.postMessage({
+                            type: 'getData',
+                            value: obj.initial,
+                            language: 'html',
+                            refactor: !obj.dontRefactor
+                        }, domain);
+                    } else if (event.data.data.callbackID === id) {
+                        obj.initial = event.data.data.value
+                        obj.callback(event.data.data.value)
+                    }
+                }
+                return {
+                    bind: id,
+                    view: () => {
                         return gvc.glitter.html`
                             <iframe id="${frameID}" class="w-100 h-100 border rounded-3"
                                     src="${domain}/browser-amd-editor/component.html?height=${height}&link=${location.origin}&callbackID=${id}"></iframe>
@@ -299,10 +364,15 @@ ${addNewlineAfterSemicolon(obj.initial)}
                     },
                     divCreate: {class: `w-100 `, style: `height:${height}px;`},
                     onDestroy: () => {
-                        window.removeEventListener('message', listener)
+                        gvc.glitter.share.postMessageCallback=gvc.glitter.share.postMessageCallback.filter((dd:any)=>{
+                            return dd.id===frameID
+                        })
                     },
                     onCreate: () => {
-                        window.addEventListener('message', listener)
+                        gvc.glitter.share.postMessageCallback.push( {
+                            fun: listener,
+                            id:frameID
+                        })
                     }
                 }
             })
@@ -356,6 +426,10 @@ ${addNewlineAfterSemicolon(obj.initial)}
         return `<iframe class="rounded-3" src="${href.href}" style="border: none;width:${cf.width}px;height:${cf.height}px;"></iframe>`
     }
 
+    public static codeEventListener = () => {
+
+    }
+
     public static codeEditor(obj: {
         gvc: GVC
         height: number,
@@ -366,6 +440,7 @@ ${addNewlineAfterSemicolon(obj.initial)}
         structEnd?: string
     }) {
         const codeID = obj.gvc.glitter.getUUID()
+
         function getComponent(gvc: GVC, height: number) {
             return gvc.bindView(() => {
                 const id = obj.gvc.glitter.getUUID()
@@ -373,6 +448,7 @@ ${addNewlineAfterSemicolon(obj.initial)}
                 const domain = 'https://sam38124.github.io/code_component'
                 let listener = function (event: any) {
                     if (event.data.type === 'initial') {
+                        console.log(frameID)
                         const childWindow = (document.getElementById(frameID)! as any).contentWindow!!;
                         childWindow.postMessage({
                             type: 'getData',
@@ -401,20 +477,27 @@ ${(obj.structEnd) ? obj.structEnd : "})()"}`,
                     },
                     divCreate: {class: `w-100 `, style: `height:${height}px;`},
                     onDestroy: () => {
-                        window.removeEventListener('message', listener)
+                        gvc.glitter.share.postMessageCallback=gvc.glitter.share.postMessageCallback.filter((dd:any)=>{
+                            return dd.id===frameID
+                        })
                     },
                     onCreate: () => {
-                        window.addEventListener('message', listener)
+                        gvc.glitter.share.postMessageCallback.push( {
+                            fun: listener,
+                            id:frameID
+                        })
                     }
                 }
             })
         }
+
         const html = String.raw
         return obj.gvc.bindView(() => {
             return {
                 bind: codeID,
                 view: () => {
-                    return html`<div class="d-flex">
+                    return html`
+                        <div class="d-flex">
                             ${(obj.title ? EditorElem.h3(obj.title) : '')}
                             <div class="d-flex align-items-center justify-content-center"
                                  style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;"
@@ -448,20 +531,6 @@ ${(obj.structEnd) ? obj.structEnd : "})()"}`,
                 const frameID = obj.gvc.glitter.getUUID()
                 idlist.push(id)
                 const domain = 'https://sam38124.github.io/code_component'
-                let listener = function (event: any) {
-                    if (event.data.type === 'initial') {
-                        const childWindow = (document.getElementById(frameID)! as any).contentWindow!!;
-                        childWindow.postMessage({
-                            type: 'getData',
-                            value: obj.initial ?? "",
-                            language: obj.language,
-                            refactor: true
-                        }, domain);
-                    } else if (event.data.data.callbackID === id) {
-                        obj.initial = event.data.data.value
-                        obj.callback(event.data.data.value)
-                    }
-                }
                 return {
                     bind: id,
                     view: () => {
@@ -472,10 +541,31 @@ ${(obj.structEnd) ? obj.structEnd : "})()"}`,
                     },
                     divCreate: {class: `w-100 `, style: `height:${height}px;`},
                     onDestroy: () => {
-                        window.removeEventListener('message', listener)
+                        gvc.glitter.share.postMessageCallback=gvc.glitter.share.postMessageCallback.filter((dd:any)=>{
+                            return dd.id===frameID
+                        })
                     },
                     onCreate: () => {
-                        window.addEventListener('message', listener)
+                        gvc.glitter.share.postMessageCallback.push( {
+                            fun: (event: any) => {
+                                if (event.data.type === 'initial') {
+                                    if ((document.getElementById(frameID)! as any)) {
+                                        const childWindow = (document.getElementById(frameID)! as any).contentWindow!!;
+                                        childWindow.postMessage({
+                                            type: 'getData',
+                                            value: obj.initial ?? "",
+                                            language: obj.language,
+                                            refactor: true
+                                        }, domain);
+                                    }
+
+                                } else if (event.data.data.callbackID === id) {
+                                    obj.initial = event.data.data.value
+                                    obj.callback(event.data.data.value)
+                                }
+                            },
+                            id:frameID
+                        })
                     }
                 }
             })
@@ -691,25 +781,24 @@ ${obj.gvc.bindView(() => {
                                     dialog.dataLoading({visible: false});
                                     const data1 = data.response;
                                     dialog.dataLoading({visible: true});
-                                    $.ajax({
+                                    BaseApi.create({
                                         url: data1.url,
                                         type: 'put',
                                         data: file,
                                         headers: {
                                             "Content-Type": data1.type
-                                        },
-                                        processData: false,
-                                        crossDomain: true,
-                                        success: () => {
+                                        }
+                                    }).then((res)=>{
+                                        console.log(res)
+                                        if(res.result){
                                             dialog.dataLoading({visible: false});
                                             obj.def = data1.fullUrl
                                             obj.callback(data1.fullUrl);
                                             obj.gvc.notifyDataChange(id)
-                                        },
-                                        error: () => {
+                                        }else{
                                             dialog.dataLoading({visible: false});
                                             dialog.errorMessage({text: '上傳失敗'});
-                                        },
+                                        }
                                     });
                                 });
                             },
@@ -718,7 +807,7 @@ ${obj.gvc.bindView(() => {
                 ></i>`
                 },
                 divCreate: {
-                    class: `d-flex align-items-center mb-3`
+                    class: `d-flex align-items-center mb-2`
                 }
             }
         })}
@@ -737,27 +826,25 @@ ${obj.gvc.bindView(() => {
             const saasConfig: { config: any; api: any } = (window as any).saasConfig;
             const dialog = new ShareDialog(obj.gvc.glitter);
             dialog.dataLoading({visible: true});
-            saasConfig.api.uploadFile(file.name).then((data: any) => {
+            saasConfig.api.uploadFile(file.name.replace(/ /g, '')).then((data: any) => {
                 dialog.dataLoading({visible: false});
                 const data1 = data.response;
                 dialog.dataLoading({visible: true});
-                $.ajax({
+                BaseApi.create({
                     url: data1.url,
                     type: 'put',
                     data: file,
                     headers: {
                         "Content-Type": data1.type
-                    },
-                    processData: false,
-                    crossDomain: true,
-                    success: () => {
+                    }
+                }).then((res)=>{
+                    if(res.result){
                         dialog.dataLoading({visible: false});
                         obj.callback(data1.fullUrl);
-                    },
-                    error: () => {
+                    }else{
                         dialog.dataLoading({visible: false});
                         dialog.errorMessage({text: '上傳失敗'});
-                    },
+                    }
                 });
             });
         }
@@ -802,23 +889,21 @@ ${obj.gvc.bindView(() => {
                         dialog.dataLoading({visible: false});
                         const data1 = data.response;
                         dialog.dataLoading({visible: true});
-                        $.ajax({
+                        BaseApi.create({
                             url: data1.url,
                             type: 'put',
                             data: file,
-                            processData: false,
                             headers: {
                                 "Content-Type": data1.type
-                            },
-                            crossDomain: true,
-                            success: () => {
+                            }
+                        }).then((res)=>{
+                            if(res.result){
                                 dialog.dataLoading({visible: false});
                                 obj.callback(data1.fullUrl);
-                            },
-                            error: () => {
+                            }else{
                                 dialog.dataLoading({visible: false});
                                 dialog.errorMessage({text: '上傳失敗'});
-                            },
+                            }
                         });
                     });
                 },
@@ -866,23 +951,21 @@ ${obj.gvc.bindView(() => {
                         dialog.dataLoading({visible: false});
                         const data1 = data.response;
                         dialog.dataLoading({visible: true});
-                        $.ajax({
+                        BaseApi.create({
                             url: data1.url,
                             type: 'put',
+                            data: file,
                             headers: {
                                 "Content-Type": data1.type
-                            },
-                            data: file,
-                            processData: false,
-                            crossDomain: true,
-                            success: () => {
+                            }
+                        }).then((res)=>{
+                            if(res.result){
                                 dialog.dataLoading({visible: false});
                                 obj.callback(data1.fullUrl);
-                            },
-                            error: () => {
+                            }else{
                                 dialog.dataLoading({visible: false});
                                 dialog.errorMessage({text: '上傳失敗'});
-                            },
+                            }
                         });
                     });
                 },
@@ -893,7 +976,7 @@ ${obj.gvc.bindView(() => {
     }
 
     public static h3(title: string) {
-        return /*html*/ `<h3 style="color: black;font-size: 15px;margin-bottom: 10px;" class="fw-500 mt-2">${title}</h3>`;
+        return /*html*/ `<h3 style="color: black;font-size: 15px;margin-bottom: 5px;" class="fw-500 mt-2">${title}</h3>`;
     }
 
     public static plusBtn(title: string, event: any) {
@@ -1007,7 +1090,7 @@ ${obj.gvc.bindView(() => {
         callback: (text: string) => void;
         placeHolder: string;
     }) {
-        obj.def=obj.def || ''
+        obj.def = obj.def || ''
         const glitter = (window as any).glitter;
         const gvc = obj.gvc;
         const $ = glitter.$;
@@ -1247,12 +1330,12 @@ ${obj.gvc.bindView(() => {
     public static checkBox(obj: {
         title: string;
         gvc: any;
-        def: string|string[];
+        def: string | string[];
         array: string[] | { title: string; value: string; innerHtml?: string }[];
         callback: (text: string) => void;
-        type?:'single'|'multiple'
+        type?: 'single' | 'multiple'
     }) {
-        obj.type=obj.type ?? 'single'
+        obj.type = obj.type ?? 'single'
         const gvc = obj.gvc;
         return /*html*/ `
             ${(obj.title) ? EditorElem.h3(obj.title) : ``}
@@ -1263,29 +1346,30 @@ ${obj.gvc.bindView(() => {
                     bind: id,
                     view: () => {
                         return obj.array.map((dd: any) => {
-                            function isSelect(){
-                                if(obj.type==='multiple'){
-                                  return (obj.def as any).find((d2:any)=>{
-                                      return d2===dd.value;
-                                  })
-                                }else{
-                                   return obj.def === dd.value
+                            function isSelect() {
+                                if (obj.type === 'multiple') {
+                                    return (obj.def as any).find((d2: any) => {
+                                        return d2 === dd.value;
+                                    })
+                                } else {
+                                    return obj.def === dd.value
                                 }
                             }
+
                             return `<div class="d-flex align-items-center" onclick="${
                                 obj.gvc.event(() => {
-                                    if(obj.type==='multiple'){
-                                        if((obj.def as any).find((d2:any)=>{
-                                            return d2===dd.value;
-                                        })){
-                                            obj.def=(obj.def as any).filter((d2:any)=>{
-                                                return d2!==dd.value;
+                                    if (obj.type === 'multiple') {
+                                        if ((obj.def as any).find((d2: any) => {
+                                            return d2 === dd.value;
+                                        })) {
+                                            obj.def = (obj.def as any).filter((d2: any) => {
+                                                return d2 !== dd.value;
                                             })
-                                        }else{
+                                        } else {
                                             (obj.def as any).push(dd.value)
                                         }
                                         obj.callback(obj.def as any)
-                                    }else{
+                                    } else {
                                         obj.def = dd.value
                                         obj.callback(dd.value)
                                     }
@@ -1298,6 +1382,9 @@ ${obj.gvc.bindView(() => {
 ${(obj.def === dd.value && dd.innerHtml) ? `<div class="mt-1">${dd.innerHtml}</div>` : ``}
 `
                         }).join('<div class="my-2"></div>')
+                    },
+                    divCreate: {
+                        class: `ps-1`
                     }
                 }
             })
@@ -1531,7 +1618,7 @@ ${(obj.def === dd.value && dd.innerHtml) ? `<div class="mt-1">${dd.innerHtml}</d
         draggable?: boolean,
         copyable?: boolean,
         customEditor?: boolean,
-        minusEvent?:(data:any,index:number)=>void
+        minusEvent?: (data: any, index: number) => void
     }) {
         const gvc = obj.gvc
         const glitter = gvc.glitter
@@ -1624,9 +1711,9 @@ ${(obj.def === dd.value && dd.innerHtml) ? `<div class="mt-1">${dd.innerHtml}</d
                                     >
                                         <div class="subBt ms-n2 ${(obj.minus === false) ? `d-none` : ``}"
                                              onclick="${gvc.event((e: any, event: any) => {
-                                                 if(obj.minusEvent){
-                                                     obj.minusEvent(obj.originalArray,index)
-                                                 }else{
+                                                 if (obj.minusEvent) {
+                                                     obj.minusEvent(obj.originalArray, index)
+                                                 } else {
                                                      obj.originalArray.splice(index, 1)
                                                      obj.refreshComponent()
                                                  }
@@ -1770,11 +1857,11 @@ ${(obj.def === dd.value && dd.innerHtml) ? `<div class="mt-1">${dd.innerHtml}</d
                                 return ` <div type="button" class="bt ms-1" style="background:none;"
                                                      data-bs-toggle="dropdown" aria-haspopup="true"
                                                      data-placement="right"
-                                                     aria-expanded="false" onclick="${gvc.event(()=>{
+                                                     aria-expanded="false" onclick="${gvc.event(() => {
                                     async function readClipboardContent() {
                                         try {
                                             // 使用 navigator.clipboard.readText() 方法取得剪貼簿的文字內容
-                                            const clipboardText:any = await navigator.clipboard.readText();
+                                            const clipboardText: any = await navigator.clipboard.readText();
                                             try {
                                                 const data = JSON.parse(clipboardText)
                                                 if (Array.isArray(data)) {
@@ -1795,6 +1882,7 @@ ${(obj.def === dd.value && dd.innerHtml) ? `<div class="mt-1">${dd.innerHtml}</d
                                             console.error('無法取得剪貼簿內容:', error);
                                         }
                                     }
+
                                     readClipboardContent()
                                 })}">
                                                     <i class="fa-regular fa-paste"></i>
@@ -1842,7 +1930,7 @@ ${(obj.def === dd.value && dd.innerHtml) ? `<div class="mt-1">${dd.innerHtml}</d
                     min-height:45px;border:1px solid black;color:#151515;" onclick="${event}">${title}</button>`
     }
 
-    public static openEditorDialog(gvc: GVC, inner: (gvc: GVC) => string, close: () => void, width?: number, title?: string,tag?:string) {
+    public static openEditorDialog(gvc: GVC, inner: (gvc: GVC) => string, close: () => void, width?: number, title?: string, tag?: string) {
         return gvc.glitter.innerDialog((gvc: GVC) => {
             return gvc.glitter.html`
             <div class="dropdown-menu mx-0 position-fixed pb-0 border p-0 show "

@@ -4,10 +4,10 @@ import fs from 'fs';
 
 
 export class Ssh {
-    public static async exec(array: string[]) {
+    public static async exec(array: string[],ip?:string) {
         const conn = new Client();
         const sshConfig = {
-            host: process.env.sshIP,
+            host: ip || process.env.sshIP,
             port: 22, // 默认 SSH 端口号
             username: 'ubuntu',
             privateKey: fs.readFileSync(process.env.ssh as string), // 用您的私钥路径替换
@@ -31,7 +31,7 @@ export class Ssh {
                                     }).on('data', (data: any) => {
                                         response.push(data)
                                         console.log(`命令输出: ${data}`);
-                                        resolve(true)
+                                        // resolve(true)
                                     });
                                 };
                             })
@@ -50,10 +50,10 @@ export class Ssh {
         })
     }
 
-    public static async readFile(remote:string){
+    public static async readFile(remote:string,ip?:string){
         const conn = new Client();
         const sshConfig = {
-            host: process.env.sshIP,
+            host: ip||process.env.sshIP,
             port: 22, // 默认 SSH 端口号
             username: 'ubuntu',
             privateKey: fs.readFileSync(process.env.ssh as string), // 用您的私钥路径替换
@@ -84,6 +84,31 @@ export class Ssh {
                 console.error('SSH 连接错误:', err);
                 conn.end();
                 resolve(false)
+            });
+        })
+
+    }
+
+    public static  async uploadFile(file:string,fileName:string,type:'data'|'file'){
+        return new Promise((resolve, reject)=>{
+            const AWS = require('aws-sdk');
+            const fs = require('fs');
+            const s3 = new AWS.S3();
+            const bucketName = 'liondesign-prd'; // 替换为你的S3存储桶名称
+
+            const params = {
+                Bucket: bucketName,
+                Key: fileName,
+                Body:(type==='data')  ? file:fs.createReadStream(file)
+            };
+
+            s3.upload(params, (err:any, data:any) => {
+                if (err) {
+                    console.error('Error uploading file:', err);
+                } else {
+                    resolve(data.Location)
+                    console.log('File uploaded successfully. S3 URL:', data.Location);
+                }
             });
         })
 

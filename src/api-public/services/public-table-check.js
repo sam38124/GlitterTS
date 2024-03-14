@@ -5,7 +5,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ApiPublic = void 0;
 const database_1 = __importDefault(require("../../modules/database"));
+const config_js_1 = require("../../config.js");
 const saas_table_check_js_1 = require("../../services/saas-table-check.js");
+const tool_js_1 = __importDefault(require("../../services/tool.js"));
 class ApiPublic {
     static async createScheme(appName) {
         if (ApiPublic.checkApp.indexOf(appName) !== -1) {
@@ -30,6 +32,35 @@ class ApiPublic {
   KEY \`index2\` (\`chat_id\`),
   KEY \`index3\` (\`user_id\`),
   KEY \`index4\` (\`created_time\`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`
+                },
+                {
+                    scheme: appName,
+                    table: 't_api_router',
+                    sql: `(
+  \`id\` int NOT NULL AUTO_INCREMENT,
+  \`name\` varchar(45) COLLATE utf8mb4_unicode_ci NOT NULL,
+  \`port\` int NOT NULL,
+  \`domain\` varchar(200) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  \`version\` varchar(45) COLLATE utf8mb4_unicode_ci NOT NULL,
+  \`file\` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL,
+  \`created_time\` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (\`id\`),
+  UNIQUE KEY \`name_UNIQUE\` (\`name\`),
+  UNIQUE KEY \`port_UNIQUE\` (\`port\`)
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`
+                },
+                {
+                    scheme: appName,
+                    table: `t_domain_setting`,
+                    sql: `(
+  \`id\` int NOT NULL AUTO_INCREMENT,
+  \`domain\` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL,
+  \`port\` int NOT NULL,
+  \`created_time\` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (\`id\`),
+  UNIQUE KEY \`domain_UNIQUE\` (\`domain\`),
+  UNIQUE KEY \`port_UNIQUE\` (\`port\`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`
                 },
                 {
@@ -260,9 +291,32 @@ class ApiPublic {
             }
         }
         catch (e) {
+            console.log(e);
             ApiPublic.checkApp = ApiPublic.checkApp.filter((dd) => {
                 return dd === appName;
             });
+        }
+    }
+    static async checkSQLAdmin(appName) {
+        const sql_info = (await database_1.default.query(`select sql_pwd,sql_admin
+                                               from \`${config_js_1.saasConfig.SAAS_NAME}\`.app_config
+                                               where appName = ${database_1.default.escape(appName)}`, []))[0];
+        if (!sql_info.sql_admin || !sql_info.sql_pwd) {
+            try {
+                sql_info.sql_admin = tool_js_1.default.randomString(6);
+                sql_info.sql_pwd = tool_js_1.default.randomString(12);
+                const trans = await database_1.default.Transaction.build();
+                await trans.execute(`CREATE USER '${sql_info.sql_admin}'@'%' IDENTIFIED BY '${sql_info.sql_pwd}';`, []);
+                await trans.execute(`update \`${config_js_1.saasConfig.SAAS_NAME}\`.app_config set sql_admin=? , sql_pwd=? where appName = ${database_1.default.escape(appName)}`, [
+                    sql_info.sql_admin,
+                    sql_info.sql_pwd
+                ]);
+                await trans.execute(`GRANT ALL PRIVILEGES ON \`${appName}\`.* TO '${sql_info.sql_admin}'@'*';`, []);
+                await trans.commit();
+                await trans.release();
+            }
+            catch (e) {
+            }
         }
     }
 }

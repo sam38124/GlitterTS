@@ -6,7 +6,7 @@ export declare class UtDatabase {
         page: number;
         limit: number;
         id?: string;
-    }): Promise<{
+    }, select?: string): Promise<{
         data: any;
         result: boolean;
         total?: undefined;

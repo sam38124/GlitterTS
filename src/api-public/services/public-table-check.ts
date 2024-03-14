@@ -1,6 +1,7 @@
 import db from '../../modules/database';
 import {saasConfig} from "../../config.js";
 import {compare_sql_table} from "../../services/saas-table-check.js";
+import tool from "../../services/tool.js";
 
 
 export class ApiPublic {
@@ -10,6 +11,7 @@ export class ApiPublic {
         if (ApiPublic.checkApp.indexOf(appName) !== -1) {
             return
         }
+
         ApiPublic.checkApp.push(appName)
         try {
             await db.execute(`CREATE SCHEMA if not exists \`${appName}\` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;`, [])
@@ -29,6 +31,35 @@ export class ApiPublic {
   KEY \`index2\` (\`chat_id\`),
   KEY \`index3\` (\`user_id\`),
   KEY \`index4\` (\`created_time\`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`
+                },
+                {
+                    scheme: appName,
+                    table: 't_api_router',
+                    sql: `(
+  \`id\` int NOT NULL AUTO_INCREMENT,
+  \`name\` varchar(45) COLLATE utf8mb4_unicode_ci NOT NULL,
+  \`port\` int NOT NULL,
+  \`domain\` varchar(200) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  \`version\` varchar(45) COLLATE utf8mb4_unicode_ci NOT NULL,
+  \`file\` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL,
+  \`created_time\` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (\`id\`),
+  UNIQUE KEY \`name_UNIQUE\` (\`name\`),
+  UNIQUE KEY \`port_UNIQUE\` (\`port\`)
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`
+                },
+                {
+                  scheme:appName,
+                  table:`t_domain_setting`,
+                  sql:`(
+  \`id\` int NOT NULL AUTO_INCREMENT,
+  \`domain\` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL,
+  \`port\` int NOT NULL,
+  \`created_time\` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (\`id\`),
+  UNIQUE KEY \`domain_UNIQUE\` (\`domain\`),
+  UNIQUE KEY \`port_UNIQUE\` (\`port\`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`
                 },
                 {
@@ -144,9 +175,9 @@ export class ApiPublic {
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci `
                 },
                 {
-                    scheme:appName,
-                    table:'t_subscribe',
-                    sql:`(
+                    scheme: appName,
+                    table: 't_subscribe',
+                    sql: `(
   \`id\` int NOT NULL AUTO_INCREMENT,
   \`email\` varchar(105) COLLATE utf8mb4_general_ci NOT NULL,
   \`tag\` varchar(100) COLLATE utf8mb4_general_ci NOT NULL,
@@ -155,9 +186,9 @@ export class ApiPublic {
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci         `
                 },
                 {
-                    scheme:appName,
-                    table:'t_fcm',
-                    sql:`(
+                    scheme: appName,
+                    table: 't_fcm',
+                    sql: `(
   \`id\` INT NOT NULL AUTO_INCREMENT,
   \`userID\` VARCHAR(100) NULL,
   \`deviceToken\` VARCHAR(200) NULL,
@@ -168,9 +199,9 @@ export class ApiPublic {
   `
                 },
                 {
-                    scheme:appName,
-                    table:'t_wallet',
-                    sql:` (
+                    scheme: appName,
+                    table: 't_wallet',
+                    sql: ` (
   \`id\` int NOT NULL AUTO_INCREMENT,
   \`orderID\` varchar(45) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   \`userID\` varchar(45) COLLATE utf8mb4_unicode_ci NOT NULL,
@@ -185,9 +216,9 @@ export class ApiPublic {
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`
                 },
                 {
-                    scheme:appName,
-                    table:'t_rebate',
-                    sql:` (
+                    scheme: appName,
+                    table: 't_rebate',
+                    sql: ` (
   \`id\` int NOT NULL AUTO_INCREMENT,
   \`orderID\` varchar(45) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   \`userID\` varchar(45) COLLATE utf8mb4_unicode_ci NOT NULL,
@@ -202,9 +233,9 @@ export class ApiPublic {
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`
                 },
                 {
-                    scheme:appName,
-                    table:'t_withdraw',
-                    sql:`(
+                    scheme: appName,
+                    table: 't_withdraw',
+                    sql: `(
   \`id\` INT NOT NULL AUTO_INCREMENT,
   \`userID\` VARCHAR(45) NOT NULL,
   \`money\` INT NOT NULL DEFAULT 0,
@@ -215,9 +246,9 @@ export class ApiPublic {
   INDEX \`index2\` (\`userID\` ASC) VISIBLE) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;`
                 },
                 {
-                    scheme:appName,
-                    table:'t_global_event',
-                    sql:` (
+                    scheme: appName,
+                    table: 't_global_event',
+                    sql: ` (
   \`id\` INT NOT NULL AUTO_INCREMENT,
   \`tag\` VARCHAR(45) NOT NULL,
   \`name\` VARCHAR(45) NOT NULL,
@@ -228,9 +259,9 @@ export class ApiPublic {
 `
                 },
                 {
-                    scheme:appName,
-                    table:'t_stock_recover',
-                    sql:`(
+                    scheme: appName,
+                    table: 't_stock_recover',
+                    sql: `(
   \`id\` int NOT NULL AUTO_INCREMENT,
   \`order_id\` varchar(45) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   \`product_id\` varchar(45) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
@@ -258,9 +289,33 @@ export class ApiPublic {
                 });
             }
         } catch (e) {
+            console.log(e)
             ApiPublic.checkApp = ApiPublic.checkApp.filter((dd) => {
                 return dd === appName
             })
+        }
+    }
+
+    public static async checkSQLAdmin(appName:string){
+        const sql_info = (await db.query(`select sql_pwd,sql_admin
+                                               from \`${saasConfig.SAAS_NAME}\`.app_config
+                                               where appName = ${db.escape(appName)}`, []))[0]
+        if (!sql_info.sql_admin || !sql_info.sql_pwd) {
+            try {
+                sql_info.sql_admin=tool.randomString(6)
+                sql_info.sql_pwd=tool.randomString(12)
+                const trans = await db.Transaction.build();
+                await trans.execute(`CREATE USER '${sql_info.sql_admin}'@'%' IDENTIFIED BY '${sql_info.sql_pwd}';`,[])
+                await trans.execute(`update \`${saasConfig.SAAS_NAME}\`.app_config set sql_admin=? , sql_pwd=? where appName = ${db.escape(appName)}`,[
+                    sql_info.sql_admin,
+                    sql_info.sql_pwd
+                ])
+                await trans.execute(`GRANT ALL PRIVILEGES ON \`${appName}\`.* TO '${sql_info.sql_admin}'@'*';`,[]);
+                await trans.commit()
+                await trans.release()
+            }catch (e) {
+
+            }
         }
     }
 }

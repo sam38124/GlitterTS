@@ -152,7 +152,10 @@ body {
     background-color: #214ba7;
     /*border-color: #5b63c4;*/
 }
-
+.fs-base{
+    font-size:15px !important;
+    margin-top: 5px !important;
+}
 .btn-check:focus + .btn-primary-c,
 .btn-primary-c:focus {
     color: #fff;
@@ -282,4 +285,17 @@ body {
 
 .fs-7{
     font-size:0.85rem;
+}
+
+.hoverAdd:hover{
+    background: white;
+    border-radius: 5px;
+    color: black;
+    border: 1px solid black;
+}
+.hoverAdd{
+    cursor:pointer;
+    color:white;
+    border: 1px solid white;
+    border-radius: 5px;
 }

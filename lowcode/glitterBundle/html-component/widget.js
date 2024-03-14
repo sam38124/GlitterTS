@@ -13,7 +13,7 @@ import { EditorElem } from "../plugins/editor-elem.js";
 import autosize from "../plugins/autosize.js";
 import { ShareDialog } from "../dialog/ShareDialog.js";
 export const widgetComponent = {
-    render: (gvc, widget, setting, hoverID, sub, htmlGenerate) => {
+    render: (gvc, widget, setting, hoverID, sub, htmlGenerate, document) => {
         var _a, _b, _c, _d;
         const glitter = gvc.glitter;
         widget.data.elem = (_a = widget.data.elem) !== null && _a !== void 0 ? _a : "div";
@@ -26,9 +26,7 @@ export const widgetComponent = {
         return {
             view: () => {
                 var _a;
-                let re = false;
                 let innerText = widget.data.inner;
-                let createOption = {};
                 function getCreateOption() {
                     let option = widget.data.attr.map((dd) => {
                         if (dd.type === 'par') {
@@ -90,9 +88,12 @@ export const widgetComponent = {
                     else if (widget.data.elem === 'input') {
                         option.push({ key: 'value', value: innerText });
                     }
+                    let classList = [glitter.htmlGenerate.styleEditor(widget.data, gvc, widget, subData).class()];
+                    widget.hashTag && classList.push(`glitterTag${widget.hashTag}`);
+                    (hoverID.indexOf(widget.id) !== -1) && classList.push(`selectComponentHover`);
                     return {
                         elem: widget.data.elem,
-                        class: glitter.htmlGenerate.styleEditor(widget.data, gvc, widget, subData).class() + ` ${(widget.hashTag) ? `glitterTag${widget.hashTag}` : ``} ${hoverID.indexOf(widget.id) !== -1 ? ` selectComponentHover` : ``}`,
+                        class: classList.join(' '),
                         style: glitter.htmlGenerate.styleEditor(widget.data, gvc, widget, subData).style(),
                         option: option.concat(htmlGenerate.option),
                     };
@@ -110,13 +111,14 @@ export const widgetComponent = {
                                 clickEvent: widget.data.onCreateEvent,
                                 subData: subData,
                                 element: {
-                                    e: gvc.getBindViewElem(id).get(0),
+                                    e: gvc.getBindViewElem(id),
                                     event: {}
                                 }
                             });
                         },
                         app_config: widget.global.appConfig,
-                        page_config: widget.global.pageConfig
+                        page_config: widget.global.pageConfig,
+                        document: document
                     }, getCreateOption());
                 }
                 if ((widget.data.dataFrom === "code")) {
@@ -133,8 +135,7 @@ export const widgetComponent = {
                         if (widget.data.elem === 'select') {
                             formData[widget.data.key] = data;
                         }
-                        innerText = data;
-                        re = true;
+                        innerText = data || '';
                         gvc.notifyDataChange(id);
                     });
                 }
@@ -230,7 +231,7 @@ export const widgetComponent = {
                                 clickEvent: widget.data.onCreateEvent,
                                 subData: subData,
                                 element: {
-                                    e: gvc.getBindViewElem(id).get(0),
+                                    e: gvc.getBindViewElem(id),
                                     event: {}
                                 }
                             });

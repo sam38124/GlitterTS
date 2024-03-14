@@ -1,7 +1,11 @@
 "use strict";
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
-    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
 }) : (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
     o[k2] = m[k];
@@ -252,7 +256,7 @@ window.glitterBackend='${config_1.config.domain}';
                         }
                     }
                     return `${(() => {
-                        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k;
+                        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l;
                         data.page_config = (_a = data.page_config) !== null && _a !== void 0 ? _a : {};
                         if (data && data.page_config) {
                             const d = (_b = data.page_config.seo) !== null && _b !== void 0 ? _b : {};
@@ -264,14 +268,15 @@ window.glitterBackend='${config_1.config.domain}';
     <meta property="og:image" content="${(_g = d.image) !== null && _g !== void 0 ? _g : ""}">
     <meta property="og:title" content="${(_h = d.title) !== null && _h !== void 0 ? _h : ""}">
     <meta name="description" content="${(_j = d.content) !== null && _j !== void 0 ? _j : ""}">
-     <meta name="og:description" content="${(_k = d.content) !== null && _k !== void 0 ? _k : ""}">
+    <meta name="og:description" content="${(_k = d.content) !== null && _k !== void 0 ? _k : ""}">
+     ${(_l = d.code) !== null && _l !== void 0 ? _l : ''}
   ${(() => {
                                 var _a;
                                 if (req.query.type === 'editor') {
                                     return ``;
                                 }
                                 else {
-                                    return `  ${((_a = data.config.globalStyle) !== null && _a !== void 0 ? _a : []).map((dd) => {
+                                    return `${((_a = data.config.globalStyle) !== null && _a !== void 0 ? _a : []).map((dd) => {
                                         try {
                                             if (dd.data.elem === 'link') {
                                                 return `<link type="text/css" rel="stylesheet" href="${dd.data.attr.find((dd) => {

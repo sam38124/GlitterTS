@@ -9,7 +9,7 @@ import autosize from "../plugins/autosize.js";
 import {ShareDialog} from "../dialog/ShareDialog.js";
 
 export const widgetComponent = {
-    render: (gvc: GVC, widget: HtmlJson, setting: any, hoverID: string[], sub: any, htmlGenerate: any) => {
+    render: (gvc: GVC, widget: HtmlJson, setting: any, hoverID: string[], sub: any, htmlGenerate: any,document?:any) => {
         const glitter = gvc.glitter
         widget.data.elem = widget.data.elem ?? "div"
         widget.data.inner = widget.data.inner ?? ""
@@ -21,12 +21,7 @@ export const widgetComponent = {
 
         return {
             view: () => {
-
-                let re = false
                 let innerText = widget.data.inner
-
-                let createOption = {}
-
                 function getCreateOption() {
                     let option = widget.data.attr.map((dd: any) => {
                         if (dd.type === 'par') {
@@ -82,14 +77,16 @@ export const widgetComponent = {
                     } else if (widget.data.elem === 'input') {
                         option.push({key: 'value', value: innerText})
                     }
+                    let classList=[glitter.htmlGenerate.styleEditor(widget.data, gvc, widget as any, subData).class()]
+                    widget.hashTag && classList.push(`glitterTag${widget.hashTag}`);
+                    (hoverID.indexOf(widget.id) !== -1) && classList.push(`selectComponentHover`);
                     return {
                         elem: widget.data.elem,
-                        class: glitter.htmlGenerate.styleEditor(widget.data, gvc, widget as any, subData).class() + ` ${(widget.hashTag) ? `glitterTag${widget.hashTag}` : ``} ${hoverID.indexOf(widget.id) !== -1 ? ` selectComponentHover` : ``}`,
+                        class: classList.join(' '),
                         style: glitter.htmlGenerate.styleEditor(widget.data, gvc, widget as any, subData).style(),
                         option: option.concat(htmlGenerate.option),
                     }
                 }
-
                 if (widget.type === 'container') {
                     const glitter = (window as any).glitter
                     widget.data.setting.formData = widget.formData;
@@ -103,13 +100,14 @@ export const widgetComponent = {
                                 clickEvent: widget.data.onCreateEvent,
                                 subData: subData,
                                 element:{
-                                    e:gvc.getBindViewElem(id).get(0),
+                                    e:gvc.getBindViewElem(id),
                                     event:{}
                                 }
                             })
                         },
                         app_config: widget.global.appConfig,
-                        page_config: widget.global.pageConfig
+                        page_config: widget.global.pageConfig,
+                        document:document
                     }, getCreateOption())
                 }
                 if ((widget.data.dataFrom === "code")) {
@@ -126,8 +124,7 @@ export const widgetComponent = {
                         if (widget.data.elem === 'select') {
                             formData[widget.data.key] = data
                         }
-                        innerText = data
-                        re = true
+                        innerText = data || ''
                         gvc.notifyDataChange(id)
                     })
                 }
@@ -222,7 +219,7 @@ export const widgetComponent = {
                                 clickEvent: widget.data.onCreateEvent,
                                 subData: subData,
                                 element:{
-                                    e:gvc.getBindViewElem(id).get(0),
+                                    e:gvc.getBindViewElem(id),
                                     event:{}
                                 }
                             })

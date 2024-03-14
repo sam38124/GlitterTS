@@ -8,6 +8,7 @@ import {response} from "express";
 import {TriggerEvent} from "../plugins/trigger-event.js";
 import {BaseApi} from "../api/base.js";
 import {EditorElem} from "../plugins/editor-elem.js";
+import {Storage} from "../../helper/storage.js";
 
 export interface HtmlJson {
     route: string;
@@ -53,6 +54,15 @@ export class HtmlGenerate {
     public static isEditMode = isEditMode
 
     public static resourceHook: (src: string) => string = (src) => {
+        if(Storage.develop_mode==='true'){
+            (window as any).saasConfig.appConfig.initialList.map((dd:any)=>{
+                src=src.replace(`$${dd.tag}`,dd.staging)
+            })
+        }else{
+            (window as any).saasConfig.appConfig.initialList.map((dd:any)=>{
+                src=src.replace(`$${dd.tag}`,dd.official)
+            })
+        }
         return src;
     };
 
@@ -63,11 +73,12 @@ export class HtmlGenerate {
 
     public render: (gvc: GVC, option?: {
         class: string; style: string, jsFinish?: () => void, containerID?: string, onCreate?: () => void,
-        attribute?: { key: string, value: string }[], childContainer?: boolean, page_config?: any, app_config?: any
+        attribute?: { key: string, value: string }[], childContainer?: boolean, page_config?: any, app_config?: any,
+        document?:any
     }, createOption?: any) => string;
     public exportJson: (setting: HtmlJson[]) => any;
     public editor: (gvc: GVC, option?: { return_: boolean; refreshAll: () => void; setting?: any[]; deleteEvent?: () => void, hideInfo?: boolean }) => string;
-    public static saveEvent = (boolean?: boolean) => {
+    public static saveEvent = (boolean?: boolean,callback?:()=>void) => {
         alert('save');
     };
 
@@ -235,7 +246,7 @@ export class HtmlGenerate {
 
     public static scrollToCenter(gvc: GVC, elementId: string) {
         // 找到要滚动到的元素
-        var element = gvc.getBindViewElem(elementId).get(0);
+        var element = gvc.getBindViewElem(elementId)
         if (element) {
 
             // 获取元素的位置信息
@@ -265,16 +276,21 @@ export class HtmlGenerate {
         const glitter = (gvc ?? (window as any)).glitter
 
         function getStyleData() {
-            const globalStyle = glitter.share.globalStyle
-            if (data.style_from === 'tag') {
-                if (globalStyle[data.tag]) {
-                    return globalStyle[data.tag]
+            const response = (() => {
+                const globalStyle = glitter.share.globalStyle
+                if (data.style_from === 'tag') {
+                    if (globalStyle[data.tag]) {
+                        return globalStyle[data.tag]
+                    } else {
+                        return data
+                    }
                 } else {
                     return data
                 }
-            } else {
-                return data
-            }
+            })();
+            response.list = response.list ?? []
+            response.version = 'v2'
+            return response
         }
 
         return {
@@ -340,7 +356,8 @@ export class HtmlGenerate {
                 }
 
                 return [getStyleData()].concat(getStyleData().list ?? []).map((dd) => {
-                    return classString(dd)
+                    const data = classString(dd)
+                    return data && ` ${data}`
                 }).join('')
             },
             style: () => {
@@ -414,7 +431,8 @@ export class HtmlGenerate {
                 }
 
                 return [getStyleData()].concat(getStyleData().list ?? []).map((dd) => {
-                    return styleString(dd)
+                    const data = styleString(dd)
+                    return data && ` ${data}`
                 }).join('')
             },
         };
@@ -575,6 +593,7 @@ ${obj.gvc.bindView({
         this.render = (gvc: GVC, option: {
             class: string; style: string, jsFinish?: () => void, containerID?: string, onCreate?: () => void,
             attribute?: { key: string, value: string }[], childContainer?: boolean, page_config?: any, app_config?: any
+            document?:any
         } = {
             class: ``,
             style: ``,
@@ -584,6 +603,8 @@ ${obj.gvc.bindView({
             onCreate: () => {
             }
         }, createOption?: any) => {
+            const document=option.document ?? (gvc.glitter.document)
+            // console.log(`document`,document)
             const childContainer = option.childContainer
             const renderStart = (window as any).renderClock.stop()
             option = option ?? {}
@@ -680,9 +701,10 @@ ${obj.gvc.bindView({
                                             if ((dd.data.elem === 'link') && (dd.data.attr.find((dd: any) => {
                                                 return dd.attr === 'rel' && dd.value === 'stylesheet'
                                             }))) {
-                                                gvc.addStyleLink(dd.data.attr.find((dd: any) => {
+                                                console.log(`document`,document.querySelector('div'))
+                                                gvc.glitter.addStyleLink(dd.data.attr.find((dd: any) => {
                                                     return dd.attr === 'href'
-                                                }).value)
+                                                }).value,document)
                                             } else if (((dd.data.elem === 'script')) && dd.data.attr.find((dd: any) => {
                                                 return dd.attr === 'src'
                                             })) {
@@ -752,7 +774,8 @@ ${obj.gvc.bindView({
                                                                     }
                                                                 }
 
-                                                                const target = gvc.glitter.document.querySelector(`[gvc-id="${gvc.id(tempView)}"]`)
+                                                                const target :any= (document as any).querySelector(`[gvc-id="${gvc.id(tempView)}"]`)
+
                                                                 if (dd.gCount === 'multiple') {
                                                                     new Promise(async (resolve, reject) => {
                                                                         let data: any = (await TriggerEvent.trigger({
@@ -774,7 +797,7 @@ ${obj.gvc.bindView({
                                                                             return (widgetComponent.render(gvc, dd as any, setting as any, hover, subData, {
                                                                                 option: option,
                                                                                 widgetComponentID: widgetComponentID
-                                                                            })
+                                                                            },document)
                                                                                 .view() as string)
                                                                         }).join('')
                                                                     })
@@ -785,7 +808,7 @@ ${obj.gvc.bindView({
                                                                     target!.outerHTML = (widgetComponent.render(gvc, dd as any, setting as any, hover, (dd as any).subData || subData, {
                                                                         option: option,
                                                                         widgetComponentID: widgetComponentID
-                                                                    })
+                                                                    },document)
                                                                         .view() as string)
                                                                 }
                                                             },
@@ -812,7 +835,6 @@ ${obj.gvc.bindView({
                                                                 if (isEditMode() && !childContainer) {
                                                                     option.push({
                                                                         key: "onclick", value: (() => {
-
                                                                             function selectEvent(event: any) {
                                                                                 try {
                                                                                     gvc.glitter.$('.selectComponentHover').removeClass('selectComponentHover');
@@ -836,7 +858,7 @@ ${obj.gvc.bindView({
                                                                         })()
                                                                     })
                                                                 }
-                                                                const target = gvc.glitter.document.querySelector(`[gvc-id="${gvc.id(tempView)}"]`)
+                                                                const target = document.querySelector(`[gvc-id="${gvc.id(tempView)}"]`)
 
                                                                 function render(subData: any) {
                                                                     return gvc.bindView(() => {
@@ -905,7 +927,7 @@ ${obj.gvc.bindView({
                                                                             },
                                                                             divCreate: {
                                                                                 style: `${gvc.glitter.htmlGenerate.styleEditor(dd, gvc, dd, {}).style()} `,
-                                                                                class: `position-relative ${dd.class ?? ''} ${(dd.hashTag) ? `glitterTag${dd.hashTag}` : ''} ${hover.indexOf(component) !== -1 ? ` selectComponentHover` : ``}
+                                                                                class: `position-relative ${dd.class ?? ''} ${(dd.hashTag) ? `glitterTag${dd.hashTag}` : ''} ${hover.indexOf(dd.id) !== -1 ? ` selectComponentHover` : ``}
                                                                 ${gvc.glitter.htmlGenerate.styleEditor(dd, gvc, dd, {}).class()}`,
                                                                                 option: option
                                                                             },
@@ -1000,8 +1022,8 @@ ${obj.gvc.bindView({
                     onInitial: () => {
                     },
                     onCreate: () => {
-                        console.log(`RenderFinish-time:(start:${renderStart})-(end:${(window as any).renderClock.stop()})`);
-                        console.log(setting)
+                        gvc.glitter.deBugMessage(`RenderFinishID:${option.containerID}`)
+                        gvc.glitter.deBugMessage(`RenderFinish-time:(start:${renderStart})-(end:${(window as any).renderClock.stop()})`)
                         option.onCreate && option.onCreate()
                         //定時任務
                         for (const script of setting.filter((dd) => {
@@ -1125,7 +1147,7 @@ ${obj.gvc.bindView({
                                 return `<div style=" ${
                                     option.return_
                                         ? `padding: 10px;`
-                                        : `padding-bottom: 10px;margin-bottom: 10px;border-bottom: 1px solid lightgrey;`
+                                        : ``
                                 }" class="
 ${option.return_ ? `w-100 border rounded bg-dark mt-2` : ``} " >
 ${(() => {
@@ -1136,7 +1158,7 @@ ${(() => {
                                             view: () => {
                                                 return new Promise(async (resolve, reject) => {
                                                     let haveUserMode = false
-                                                    let mode: 'user' | 'dev' = (localStorage.getItem('editor_mode') ?? 'user') as any;
+                                                    let mode: 'user' | 'dev' = Storage.editor_mode
                                                     if ((dd.type !== 'code') && !((dd.type === 'widget') || (dd.type === 'container'))) {
                                                         haveUserMode = await new Promise(async (resolve, reject) => {
                                                             gvc.glitter.htmlGenerate.loadScript(gvc.glitter, [{
@@ -1289,7 +1311,7 @@ ${EditorElem.editeInput({
                                                                             }"></i>
 <span class="fw-bold" style="color:black;text-overflow: ellipsis;max-width:120px;overflow: hidden;">${dd.label}</span>
 <div class="flex-fill"></div>
-<button class="btn ms-2 btn-outline-primary-c d-flex align-items-center justify-content-center p-0" style="height: 30px;width: 70px;gap:5px;"
+<button class="btn ms-2 btn-outline-secondary-c d-flex align-items-center justify-content-center p-0" style="height: 30px;width: 70px;gap:5px;"
 onclick="${gvc.event(() => {
                                                                                 EditorElem.openEditorDialog(gvc, (gvc: GVC) => {
                                                                                     return gvc.bindView(() => {
@@ -1402,8 +1424,8 @@ ${gvc.bindView(() => {
 
                                                                     },
                                                                     divCreate: {
-                                                                        class: `d-flex align-items-center mx-n2 mt-n2 p-3 py-2`,
-                                                                        style: `background: #f6f6f6;`
+                                                                        class: `d-flex align-items-center mx-n2 mt-n2 p-3 py-2 shadow border-bottom`,
+                                                                        style: `background: #f6f6f6;height:48px;`
                                                                     }
                                                                 }
                                                             }),
@@ -1485,18 +1507,7 @@ ${gvc.bindView(() => {
                                                                                                     view: () => {
                                                                                                         dd.preloadEvenet = dd.preloadEvenet ?? {};
 
-                                                                                                        if (dd.type !== 'container' && dd.type !== 'widget') {
-                                                                                                            return [gvc.glitter.htmlGenerate.styleEditor(dd, gvc, dd, {}).editor(
-                                                                                                                gvc,
-                                                                                                                () => {
-                                                                                                                    gvc.notifyDataChange('showView')
-                                                                                                                },
-                                                                                                                '模塊容器樣式'
-                                                                                                            )].join(`<div class="my-2"></div>`);
-                                                                                                        } else {
-                                                                                                            return ``
-                                                                                                        }
-
+                                                                                                        return ``
                                                                                                     },
                                                                                                     divCreate: {
                                                                                                         class: 'mt-2 mb-2 '

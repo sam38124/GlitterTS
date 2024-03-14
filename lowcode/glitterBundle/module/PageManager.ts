@@ -107,6 +107,7 @@ export class PageManager {
         }
     }
 
+
     public static showPageView(id: string) {
         const glitter = Glitter.glitter;
         try {

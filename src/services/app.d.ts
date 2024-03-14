@@ -11,6 +11,10 @@ export declare class App {
     getAPP(query: {
         app_name?: string;
     }): Promise<any>;
+    getTemplate(query: {
+        app_name?: string;
+        template_from: 'all' | 'me';
+    }): Promise<any>;
     getAppConfig(config: {
         appName: string;
     }): Promise<any>;
@@ -20,6 +24,10 @@ export declare class App {
         brand: any;
     }>;
     setAppConfig(config: {
+        appName: string;
+        data: any;
+    }): Promise<boolean>;
+    postTemplate(config: {
         appName: string;
         data: any;
     }): Promise<boolean>;

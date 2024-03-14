@@ -3,13 +3,24 @@
 export class BaseApi {
     public static create(config: any) {
         return new Promise<{result:boolean,response:any}>((resolve, reject) => {
-            config.error = (jqXHR: any, textStatus: any, errorThrown: any) => {
-                resolve({result: false,response:jqXHR})
-            }
-            config.success = (response:any) => {
-                resolve({result: true,response:response})
-            }
-            $.ajax(config);
+            const requestOptions :any= {
+                method: config.type,
+                headers: config.headers,
+                body:config.data,
+                mode: 'cors'
+            };
+            fetch(config.url, requestOptions)
+                .then(async (response) => {
+                    try {
+                        const json=await response.json()
+                        resolve({result: true,response:json})
+                    }catch (e){
+                        resolve({result: true,response:''})
+                    }
+
+                }).catch(error => {
+                resolve({result: false,response:error})
+            });
         })
     }
 }

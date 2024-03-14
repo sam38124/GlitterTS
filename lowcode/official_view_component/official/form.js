@@ -341,15 +341,15 @@ export class FormWidget {
         const gvc = obj.gvc;
         const formData = obj.formData;
         return obj.array.map((dd) => {
-            var _a, _b, _c, _d, _e, _f, _g, _h, _j;
+            var _a, _b, _c, _d, _e, _f, _g;
             const labelCSS = glitter.htmlGenerate.editor_component(dd.style_data.label, gvc, obj.widget, obj.subData);
             const inputCSS = glitter.htmlGenerate.editor_component(dd.style_data.input, gvc, obj.widget, obj.subData);
             const containerCss = glitter.htmlGenerate.editor_component(dd.style_data.container, gvc, obj.widget, obj.subData);
             const label = `<label class="${labelCSS.class()}" style="${labelCSS.style()}"><span class="text-danger  ${dd.require === "true" ? `` : 'd-none'}"> * </span>${dd.title}</label>`;
             const containerClass = (_a = containerCss.class()) !== null && _a !== void 0 ? _a : ``;
             const containerStyle = (_b = containerCss.style()) !== null && _b !== void 0 ? _b : ``;
-            const inputClass = (_c = inputCSS.class()) !== null && _c !== void 0 ? _c : "form-control";
-            const inputStyle = (_d = inputCSS.style()) !== null && _d !== void 0 ? _d : "";
+            const inputClass = inputCSS.class() || "form-control";
+            const inputStyle = inputCSS.style() || "";
             if (dd.readonly === 'block') {
                 return ``;
             }
@@ -394,7 +394,7 @@ export class FormWidget {
                     })}
                         </div>`;
                 case "array":
-                    formData[dd.key] = (_e = formData[dd.key]) !== null && _e !== void 0 ? _e : [];
+                    formData[dd.key] = (_c = formData[dd.key]) !== null && _c !== void 0 ? _c : [];
                     return gvc.bindView(() => {
                         const arrayViewID = gvc.glitter.getUUID();
                         return {
@@ -437,6 +437,7 @@ export class FormWidget {
                                         event: gvc.event(() => {
                                             formData[dd.key].push({});
                                             gvc.notifyDataChange(arrayViewID);
+                                            obj.refresh(dd.key);
                                         })
                                     }
                                 })}
@@ -455,7 +456,7 @@ export class FormWidget {
                         }
                     });
                 case 'select':
-                    formData[dd.key] = (_f = formData[dd.key]) !== null && _f !== void 0 ? _f : ((_g = dd.formList[0]) !== null && _g !== void 0 ? _g : {}).key;
+                    formData[dd.key] = (_d = formData[dd.key]) !== null && _d !== void 0 ? _d : ((_e = dd.formList[0]) !== null && _e !== void 0 ? _e : {}).key;
                     return EditorElem.select({
                         title: label,
                         gvc: gvc,
@@ -488,7 +489,7 @@ export class FormWidget {
                     <div class="alert alert-info p-2 mb-2" style="word-break: break-word;white-space: normal;">前往<a onclick="${gvc.event(() => {
                         glitter.openNewTab('https://fontawesome.com');
                     })}" style="cursor: pointer;" class="mx-2 fw-bold mb-1">Fontawesome</a>官網，查找ICON標籤。</div>
-                    <input type="text" value="${(_h = formData[dd.key]) !== null && _h !== void 0 ? _h : ""}"
+                    <input type="text" value="${(_f = formData[dd.key]) !== null && _f !== void 0 ? _f : ""}"
                            class="${inputClass}"
                            style="${inputStyle}" onchange="${gvc.event((e, event) => {
                         formData[dd.key] = e.value;
@@ -520,7 +521,7 @@ export class FormWidget {
             return html `
                 <div class="${containerClass}" style="${containerStyle}">
                     ${label}
-                    <input type="${dd.type}" value="${(_j = formData[dd.key]) !== null && _j !== void 0 ? _j : ""}"
+                    <input type="${dd.type}" value="${(_g = formData[dd.key]) !== null && _g !== void 0 ? _g : ""}"
                            class="${inputClass}"
                            style="${inputStyle}" onchange="${gvc.event((e, event) => {
                 formData[dd.key] = e.value;

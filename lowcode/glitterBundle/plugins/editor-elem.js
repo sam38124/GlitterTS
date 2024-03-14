@@ -49,25 +49,24 @@ ${obj.gvc.bindView(() => {
                                     dialog.dataLoading({ visible: false });
                                     const data1 = data.response;
                                     dialog.dataLoading({ visible: true });
-                                    $.ajax({
+                                    BaseApi.create({
                                         url: data1.url,
                                         type: 'put',
                                         data: file,
                                         headers: {
                                             "Content-Type": data1.type
-                                        },
-                                        processData: false,
-                                        crossDomain: true,
-                                        success: () => {
+                                        }
+                                    }).then((res) => {
+                                        if (res.result) {
                                             dialog.dataLoading({ visible: false });
                                             obj.callback(data1.fullUrl);
                                             obj.def = data1.fullUrl;
                                             obj.gvc.notifyDataChange(id);
-                                        },
-                                        error: () => {
+                                        }
+                                        else {
                                             dialog.dataLoading({ visible: false });
                                             dialog.errorMessage({ text: '上傳失敗' });
-                                        },
+                                        }
                                     });
                                 });
                             },
@@ -96,23 +95,22 @@ ${obj.gvc.bindView(() => {
                     dialog.dataLoading({ visible: false });
                     const data1 = data.response;
                     dialog.dataLoading({ visible: true });
-                    $.ajax({
+                    BaseApi.create({
                         url: data1.url,
                         type: 'put',
                         data: file,
                         headers: {
                             "Content-Type": data1.type
-                        },
-                        processData: false,
-                        crossDomain: true,
-                        success: () => {
+                        }
+                    }).then((res) => {
+                        if (res.result) {
                             dialog.dataLoading({ visible: false });
                             callback(data1.fullUrl);
-                        },
-                        error: () => {
+                        }
+                        else {
                             dialog.dataLoading({ visible: false });
                             dialog.errorMessage({ text: '上傳失敗' });
-                        },
+                        }
                     });
                 });
             },
@@ -271,6 +269,64 @@ ${addNewlineAfterSemicolon(obj.initial)}
                 return {
                     bind: id,
                     view: () => {
+                        return gvc.glitter.html `<iframe id="${frameID}" class="w-100 h-100 border rounded-3"
+                                    src="${domain}/browser-amd-editor/component.html?height=${height}&link=${location.origin}&callbackID=${id}"></iframe>`;
+                    },
+                    divCreate: { class: `w-100 `, style: `height:${height}px;` },
+                    onDestroy: () => {
+                        gvc.glitter.share.postMessageCallback = gvc.glitter.share.postMessageCallback.filter((dd) => {
+                            return dd.id === frameID;
+                        });
+                    },
+                    onCreate: () => {
+                        gvc.glitter.share.postMessageCallback.push({
+                            fun: listener,
+                            id: frameID
+                        });
+                    }
+                };
+            });
+        }
+        return obj.gvc.glitter.html `
+        <div class="d-flex">
+        ${(obj.title ? EditorElem.h3(obj.title) : '')}
+        <div class="d-flex align-items-center justify-content-center" style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;"
+        onclick="${obj.gvc.event(() => {
+            EditorElem.openEditorDialog(obj.gvc, (gvc) => {
+                return getComponent(gvc, window.innerHeight - 100);
+            }, () => {
+                obj.gvc.notifyDataChange(idlist);
+            });
+        })}"><i class="fa-solid fa-expand"></i></div>
+</div>
+        ` + getComponent(obj.gvc, obj.height);
+    }
+    static htmlEditor(obj) {
+        let idlist = [];
+        function getComponent(gvc, height) {
+            return gvc.bindView(() => {
+                const id = obj.gvc.glitter.getUUID();
+                idlist.push(id);
+                const frameID = obj.gvc.glitter.getUUID();
+                const domain = 'https://sam38124.github.io/code_component';
+                let listener = function (event) {
+                    if (event.data.type === 'initial') {
+                        const childWindow = document.getElementById(frameID).contentWindow;
+                        childWindow.postMessage({
+                            type: 'getData',
+                            value: obj.initial,
+                            language: 'html',
+                            refactor: !obj.dontRefactor
+                        }, domain);
+                    }
+                    else if (event.data.data.callbackID === id) {
+                        obj.initial = event.data.data.value;
+                        obj.callback(event.data.data.value);
+                    }
+                };
+                return {
+                    bind: id,
+                    view: () => {
                         return gvc.glitter.html `
                             <iframe id="${frameID}" class="w-100 h-100 border rounded-3"
                                     src="${domain}/browser-amd-editor/component.html?height=${height}&link=${location.origin}&callbackID=${id}"></iframe>
@@ -278,10 +334,15 @@ ${addNewlineAfterSemicolon(obj.initial)}
                     },
                     divCreate: { class: `w-100 `, style: `height:${height}px;` },
                     onDestroy: () => {
-                        window.removeEventListener('message', listener);
+                        gvc.glitter.share.postMessageCallback = gvc.glitter.share.postMessageCallback.filter((dd) => {
+                            return dd.id === frameID;
+                        });
                     },
                     onCreate: () => {
-                        window.addEventListener('message', listener);
+                        gvc.glitter.share.postMessageCallback.push({
+                            fun: listener,
+                            id: frameID
+                        });
                     }
                 };
             });
@@ -331,6 +392,7 @@ ${addNewlineAfterSemicolon(obj.initial)}
                 let listener = function (event) {
                     var _a;
                     if (event.data.type === 'initial') {
+                        console.log(frameID);
                         const childWindow = document.getElementById(frameID).contentWindow;
                         childWindow.postMessage({
                             type: 'getData',
@@ -360,10 +422,15 @@ ${(obj.structEnd) ? obj.structEnd : "})()"}`,
                     },
                     divCreate: { class: `w-100 `, style: `height:${height}px;` },
                     onDestroy: () => {
-                        window.removeEventListener('message', listener);
+                        gvc.glitter.share.postMessageCallback = gvc.glitter.share.postMessageCallback.filter((dd) => {
+                            return dd.id === frameID;
+                        });
                     },
                     onCreate: () => {
-                        window.addEventListener('message', listener);
+                        gvc.glitter.share.postMessageCallback.push({
+                            fun: listener,
+                            id: frameID
+                        });
                     }
                 };
             });
@@ -373,7 +440,8 @@ ${(obj.structEnd) ? obj.structEnd : "})()"}`,
             return {
                 bind: codeID,
                 view: () => {
-                    return html `<div class="d-flex">
+                    return html `
+                        <div class="d-flex">
                             ${(obj.title ? EditorElem.h3(obj.title) : '')}
                             <div class="d-flex align-items-center justify-content-center"
                                  style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;"
@@ -397,22 +465,6 @@ ${(obj.structEnd) ? obj.structEnd : "})()"}`,
                 const frameID = obj.gvc.glitter.getUUID();
                 idlist.push(id);
                 const domain = 'https://sam38124.github.io/code_component';
-                let listener = function (event) {
-                    var _a;
-                    if (event.data.type === 'initial') {
-                        const childWindow = document.getElementById(frameID).contentWindow;
-                        childWindow.postMessage({
-                            type: 'getData',
-                            value: (_a = obj.initial) !== null && _a !== void 0 ? _a : "",
-                            language: obj.language,
-                            refactor: true
-                        }, domain);
-                    }
-                    else if (event.data.data.callbackID === id) {
-                        obj.initial = event.data.data.value;
-                        obj.callback(event.data.data.value);
-                    }
-                };
                 return {
                     bind: id,
                     view: () => {
@@ -423,10 +475,32 @@ ${(obj.structEnd) ? obj.structEnd : "})()"}`,
                     },
                     divCreate: { class: `w-100 `, style: `height:${height}px;` },
                     onDestroy: () => {
-                        window.removeEventListener('message', listener);
+                        gvc.glitter.share.postMessageCallback = gvc.glitter.share.postMessageCallback.filter((dd) => {
+                            return dd.id === frameID;
+                        });
                     },
                     onCreate: () => {
-                        window.addEventListener('message', listener);
+                        gvc.glitter.share.postMessageCallback.push({
+                            fun: (event) => {
+                                var _a;
+                                if (event.data.type === 'initial') {
+                                    if (document.getElementById(frameID)) {
+                                        const childWindow = document.getElementById(frameID).contentWindow;
+                                        childWindow.postMessage({
+                                            type: 'getData',
+                                            value: (_a = obj.initial) !== null && _a !== void 0 ? _a : "",
+                                            language: obj.language,
+                                            refactor: true
+                                        }, domain);
+                                    }
+                                }
+                                else if (event.data.data.callbackID === id) {
+                                    obj.initial = event.data.data.value;
+                                    obj.callback(event.data.data.value);
+                                }
+                            },
+                            id: frameID
+                        });
                     }
                 };
             });
@@ -599,25 +673,25 @@ ${obj.gvc.bindView(() => {
                                     dialog.dataLoading({ visible: false });
                                     const data1 = data.response;
                                     dialog.dataLoading({ visible: true });
-                                    $.ajax({
+                                    BaseApi.create({
                                         url: data1.url,
                                         type: 'put',
                                         data: file,
                                         headers: {
                                             "Content-Type": data1.type
-                                        },
-                                        processData: false,
-                                        crossDomain: true,
-                                        success: () => {
+                                        }
+                                    }).then((res) => {
+                                        console.log(res);
+                                        if (res.result) {
                                             dialog.dataLoading({ visible: false });
                                             obj.def = data1.fullUrl;
                                             obj.callback(data1.fullUrl);
                                             obj.gvc.notifyDataChange(id);
-                                        },
-                                        error: () => {
+                                        }
+                                        else {
                                             dialog.dataLoading({ visible: false });
                                             dialog.errorMessage({ text: '上傳失敗' });
-                                        },
+                                        }
                                     });
                                 });
                             },
@@ -626,7 +700,7 @@ ${obj.gvc.bindView(() => {
                 ></i>`;
                 },
                 divCreate: {
-                    class: `d-flex align-items-center mb-3`
+                    class: `d-flex align-items-center mb-2`
                 }
             };
         })}
@@ -639,27 +713,26 @@ ${obj.gvc.bindView(() => {
             const saasConfig = window.saasConfig;
             const dialog = new ShareDialog(obj.gvc.glitter);
             dialog.dataLoading({ visible: true });
-            saasConfig.api.uploadFile(file.name).then((data) => {
+            saasConfig.api.uploadFile(file.name.replace(/ /g, '')).then((data) => {
                 dialog.dataLoading({ visible: false });
                 const data1 = data.response;
                 dialog.dataLoading({ visible: true });
-                $.ajax({
+                BaseApi.create({
                     url: data1.url,
                     type: 'put',
                     data: file,
                     headers: {
                         "Content-Type": data1.type
-                    },
-                    processData: false,
-                    crossDomain: true,
-                    success: () => {
+                    }
+                }).then((res) => {
+                    if (res.result) {
                         dialog.dataLoading({ visible: false });
                         obj.callback(data1.fullUrl);
-                    },
-                    error: () => {
+                    }
+                    else {
                         dialog.dataLoading({ visible: false });
                         dialog.errorMessage({ text: '上傳失敗' });
-                    },
+                    }
                 });
             });
         }
@@ -698,23 +771,22 @@ ${obj.gvc.bindView(() => {
                         dialog.dataLoading({ visible: false });
                         const data1 = data.response;
                         dialog.dataLoading({ visible: true });
-                        $.ajax({
+                        BaseApi.create({
                             url: data1.url,
                             type: 'put',
                             data: file,
-                            processData: false,
                             headers: {
                                 "Content-Type": data1.type
-                            },
-                            crossDomain: true,
-                            success: () => {
+                            }
+                        }).then((res) => {
+                            if (res.result) {
                                 dialog.dataLoading({ visible: false });
                                 obj.callback(data1.fullUrl);
-                            },
-                            error: () => {
+                            }
+                            else {
                                 dialog.dataLoading({ visible: false });
                                 dialog.errorMessage({ text: '上傳失敗' });
-                            },
+                            }
                         });
                     });
                 },
@@ -761,23 +833,22 @@ ${obj.gvc.bindView(() => {
                         dialog.dataLoading({ visible: false });
                         const data1 = data.response;
                         dialog.dataLoading({ visible: true });
-                        $.ajax({
+                        BaseApi.create({
                             url: data1.url,
                             type: 'put',
+                            data: file,
                             headers: {
                                 "Content-Type": data1.type
-                            },
-                            data: file,
-                            processData: false,
-                            crossDomain: true,
-                            success: () => {
+                            }
+                        }).then((res) => {
+                            if (res.result) {
                                 dialog.dataLoading({ visible: false });
                                 obj.callback(data1.fullUrl);
-                            },
-                            error: () => {
+                            }
+                            else {
                                 dialog.dataLoading({ visible: false });
                                 dialog.errorMessage({ text: '上傳失敗' });
-                            },
+                            }
                         });
                     });
                 },
@@ -787,7 +858,7 @@ ${obj.gvc.bindView(() => {
             </div>`;
     }
     static h3(title) {
-        return `<h3 style="color: black;font-size: 15px;margin-bottom: 10px;" class="fw-500 mt-2">${title}</h3>`;
+        return `<h3 style="color: black;font-size: 15px;margin-bottom: 5px;" class="fw-500 mt-2">${title}</h3>`;
     }
     static plusBtn(title, event) {
         return `<div class="w-100 my-3" style="background: black;height: 1px;"></div>
@@ -1147,6 +1218,9 @@ ${obj.gvc.bindView(() => {
 ${(obj.def === dd.value && dd.innerHtml) ? `<div class="mt-1">${dd.innerHtml}</div>` : ``}
 `;
                     }).join('<div class="my-2"></div>');
+                },
+                divCreate: {
+                    class: `ps-1`
                 }
             };
         })}
@@ -1700,6 +1774,8 @@ ${(obj.def === dd.value && dd.innerHtml) ? `<div class="mt-1">${dd.innerHtml}</d
             </div>`;
     }
 }
+EditorElem.codeEventListener = () => {
+};
 function swapArr(arr, index1, index2) {
     const data = arr[index1];
     arr.splice(index1, 1);

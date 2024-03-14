@@ -6,6 +6,8 @@ import { TriggerEvent } from "../glitterBundle/plugins/trigger-event.js";
 import { ApiPageConfig } from "../api/pageConfig.js";
 import { HtmlGenerate } from "../glitterBundle/module/html-generate.js";
 import { FormWidget } from "../official_view_component/official/form.js";
+import { Storage } from "../helper/storage.js";
+import { AddComponent } from "./add-component.js";
 const html = String.raw;
 export class PageEditor {
     constructor(gvc, vid, editorID = '') {
@@ -37,7 +39,7 @@ export class PageEditor {
                                 }
                                 viewModel.selectContainer = original;
                                 viewModel.selectItem = dd;
-                                glitter.setCookie('lastSelect', dd.id);
+                                Storage.lastSelect = dd.id;
                                 localStorage.setItem('rightSelect', 'module');
                                 gvc.notifyDataChange(['right_NAV', parId, this.editorID, vid]);
                                 setTimeout(() => {
@@ -54,7 +56,7 @@ export class PageEditor {
                                 if ((() => {
                                     return dd.type === 'container' && checkChildSelect(dd.data.setting);
                                 })() && !dd.toggle) {
-                                    glitter.setCookie('lastSelect', '');
+                                    Storage.lastSelect = '';
                                     viewModel.selectItem = undefined;
                                 }
                                 gvc.notifyDataChange(parId);
@@ -94,7 +96,7 @@ export class PageEditor {
                                 else {
                                     viewModel.selectContainer = original;
                                     viewModel.selectItem = dd;
-                                    glitter.setCookie('lastSelect', dd.id);
+                                    Storage.lastSelect = dd.id;
                                     localStorage.setItem('rightSelect', 'module');
                                     if (dd.editorEvent) {
                                         dd.editorEvent();
@@ -144,10 +146,7 @@ export class PageEditor {
                                 </div>
                                                                                 ` : ` <div class="position-relative d-flex align-items-center justify-content-center w-100 h-100 ${(option.readonly) ? `d-none` : ``}" 
                                                                                    onclick="${gvc.event(() => {
-                                glitter.innerDialog((gvc) => {
-                                    viewModel.selectContainer = dd.data.setting;
-                                    return Add_item_dia.view(gvc);
-                                }, 'Add_item_dia');
+                                AddComponent.toggle(true);
                             })}">
                                                                                     <i class="fa-regular fa-circle-plus d-flex align-items-center justify-content-center subBt "></i>
                                                                                     
@@ -267,7 +266,8 @@ export class PageEditor {
                                     return ``;
                                 }
                             })()}
-                                </li>`;
+                                </li>
+                            `;
                         }).join('');
                     }
                     catch (e) {
@@ -520,7 +520,7 @@ export class PageEditor {
                                     </div>
                                 </div>
                             </div>`,
-                        (viewModel.globalStyle.length === 0) ? ` <div class="alert-info alert p-2 m-2">尚未設定全域樣式</div>` :
+                        (viewModel.globalStyle.length === 0) ? ` <div class="alert-info alert p-2 m-2" style="">尚未設定全域樣式</div>` :
                             EditorElem.arrayItem({
                                 gvc: gvc,
                                 title: '',
@@ -651,334 +651,9 @@ export class PageEditor {
                     ].join('');
                 },
                 divCreate: {
-                    style: 'min-height:300px;'
+                    style: 'min-height:300px;height:calc(100vh - 115px);overflow-y: auto;', class: ``
                 }
             };
-        });
-    }
-    static valueRender(gvc) {
-        var _a;
-        const html = String.raw;
-        const glitter = gvc.glitter;
-        const viewModel = gvc.glitter.share.editorViewModel;
-        const docID = glitter.getUUID();
-        const vid = glitter.getUUID();
-        viewModel.selectItem = undefined;
-        viewModel.globalValue = (_a = viewModel.globalValue) !== null && _a !== void 0 ? _a : [];
-        return new Promise((resolve, reject) => {
-            resolve({
-                left: gvc.bindView(() => {
-                    return {
-                        bind: vid,
-                        view: () => {
-                            return [
-                                html `<div class="d-flex   px-2   hi fw-bold d-flex align-items-center border-bottom"
-                                         style="font-size:14px;">共用資源管理
-                                        <div class="flex-fill"></div>
-                                        <li class="btn-group dropend" onclick="${gvc.event(() => {
-                                    viewModel.selectContainer = viewModel.globalValue;
-                                })}">
-                                            <div class="editor_item   px-2 me-0 d-none" style="cursor:pointer; "
-                                                 onclick="${gvc.event(() => {
-                                    viewModel.selectContainer = viewModel.globalValue;
-                                    glitter.share.pastEvent();
-                                })}"
-                                            >
-                                                <i class="fa-duotone fa-paste"></i>
-                                            </div>
-                                            <div class="editor_item   px-2 ms-0 me-n1"
-                                                 style="cursor:pointer;gap:5px;"
-                                                 data-bs-toggle="dropdown"
-                                                 aria-haspopup="true"
-                                                 aria-expanded="false">
-                                                <i class="fa-regular fa-circle-plus "></i>
-                                            </div>
-                                            <div class="dropdown-menu mx-1 position-fixed pb-0 border "
-                                                 style="z-index:999999;"
-                                                 onclick="${gvc.event((e, event) => {
-                                    event.preventDefault();
-                                    event.stopPropagation();
-                                })}">
-                                                ${Add_item_dia.add_content_folder(gvc, 'globalValue', (response) => {
-                                    viewModel.globalValue.push(response);
-                                    gvc.notifyDataChange(vid);
-                                })}
-                                            </div>
-                                        </li>
-                                    </div>`,
-                                new PageEditor(gvc, vid, docID).renderLineItem(viewModel.globalValue.map((dd, index) => {
-                                    dd.index = index;
-                                    return dd;
-                                }), false, viewModel.globalValue, {
-                                    addComponentView: (gvc, callback) => {
-                                        return Add_item_dia.add_content_folder(gvc, 'globalValue', callback);
-                                    },
-                                    copyType: 'directly',
-                                    selectEvent: (dd) => {
-                                        var _a;
-                                        viewModel.selectItem = dd;
-                                        dd.data.tagType = (_a = dd.data.tagType) !== null && _a !== void 0 ? _a : 'value';
-                                        gvc.notifyDataChange([docID, vid]);
-                                    }
-                                })
-                            ].join('');
-                        },
-                        divCreate: {
-                            style: `min-height:400px;`
-                        },
-                        onCreate: () => {
-                            gvc.notifyDataChange(docID);
-                        }
-                    };
-                }),
-                right: gvc.bindView(() => {
-                    return {
-                        bind: docID,
-                        view: () => {
-                            if (viewModel.selectItem && viewModel.selectItem.data && (viewModel.selectItem.data.tagType || (viewModel.selectItem.type === 'container'))) {
-                                return html `
-                                    <div class="d-flex mx-n2 mt-n2 px-2 hi fw-bold d-flex align-items-center border-bottom border-top py-2 bgf6"
-                                         style="color:#151515;font-size:16px;gap:0px;height:48px;">
-                                        ${viewModel.selectItem.label}
-                                    </div>
-                                    ${gvc.bindView(() => {
-                                    return {
-                                        bind: `htmlGenerate`,
-                                        view: () => {
-                                            var _a;
-                                            return EditorElem.editeInput({
-                                                gvc: gvc,
-                                                title: `${((viewModel.selectItem.type === 'container') ? `分類` : `參數`)}名稱`,
-                                                default: (_a = viewModel.selectItem.label) !== null && _a !== void 0 ? _a : "",
-                                                placeHolder: `請輸入${((viewModel.selectItem.type === 'container') ? `分類` : `參數`)}名稱`,
-                                                callback: (text) => {
-                                                    viewModel.selectItem.label = text;
-                                                    gvc.notifyDataChange([vid, docID]);
-                                                }
-                                            }) + ((viewModel.selectItem.type === 'container') ? `` : (() => {
-                                                var _a, _b, _c, _d;
-                                                viewModel.selectItem.data.tagType = (_a = viewModel.selectItem.data.tagType) !== null && _a !== void 0 ? _a : "value";
-                                                const data = [EditorElem.editeInput({
-                                                        gvc: gvc,
-                                                        title: `標籤名稱`,
-                                                        default: (_b = viewModel.selectItem.data.tag) !== null && _b !== void 0 ? _b : "",
-                                                        placeHolder: `請輸入標籤名`,
-                                                        callback: (text) => {
-                                                            viewModel.selectItem.data.tag = text;
-                                                            gvc.notifyDataChange([vid, docID]);
-                                                        }
-                                                    }), EditorElem.select({
-                                                        title: "資料類型",
-                                                        gvc: gvc,
-                                                        def: viewModel.selectItem.data.tagType,
-                                                        array: [
-                                                            {
-                                                                title: '多國語言',
-                                                                value: `language`
-                                                            },
-                                                            {
-                                                                title: '參數',
-                                                                value: `value`
-                                                            },
-                                                            {
-                                                                title: 'STYLE設計',
-                                                                value: `style`
-                                                            },
-                                                            {
-                                                                title: '檔案路徑',
-                                                                value: `file`
-                                                            }
-                                                        ],
-                                                        callback: (text) => {
-                                                            viewModel.selectItem.data.tagType = text;
-                                                            gvc.notifyDataChange([vid, docID]);
-                                                        }
-                                                    })];
-                                                if (viewModel.selectItem.data.tagType === 'language') {
-                                                    if (!Array.isArray(viewModel.selectItem.data.value)) {
-                                                        viewModel.selectItem.data.value = [];
-                                                    }
-                                                    data.push(gvc.bindView(() => {
-                                                        const id = glitter.getUUID();
-                                                        return {
-                                                            bind: id,
-                                                            view: () => {
-                                                                return EditorElem.arrayItem({
-                                                                    gvc: gvc,
-                                                                    title: ``,
-                                                                    array: () => {
-                                                                        return viewModel.selectItem.data.value.map((dd) => {
-                                                                            var _a;
-                                                                            return {
-                                                                                title: (_a = dd.lan) !== null && _a !== void 0 ? _a : "尚未設定語言",
-                                                                                innerHtml: (gvc) => {
-                                                                                    var _a;
-                                                                                    return [
-                                                                                        EditorElem.searchInput({
-                                                                                            gvc: gvc,
-                                                                                            title: `語言代號`,
-                                                                                            def: dd.lan,
-                                                                                            placeHolder: `請輸入語言代號`,
-                                                                                            array: ['zh-TW', 'en', "af", "sq", "ar", "hy", "az", "eu", "be", "bs", "bg", "ca", "hr", "cs", "da",
-                                                                                                "nl", "en", "et", "fi", "fr", "ka", "de", "el", "ht", "hu", "is", "id", "ga",
-                                                                                                "it", "ja", "ko", "lv", "lt", "mk", "mt", "no", "fa", "pl", "pt", "ro", "ru",
-                                                                                                "sr", "sk", "sl", "es", "sw", "sv", "th", "tr", "uk", "vi", "cy", "yi", "zu"],
-                                                                                            callback: (text) => {
-                                                                                                dd.lan = text;
-                                                                                            }
-                                                                                        }),
-                                                                                        EditorElem.editeText({
-                                                                                            gvc: gvc,
-                                                                                            title: `文字內容`,
-                                                                                            default: (_a = dd.text) !== null && _a !== void 0 ? _a : "",
-                                                                                            placeHolder: `請輸入文字內容`,
-                                                                                            callback: (text) => {
-                                                                                                dd.text = text;
-                                                                                            }
-                                                                                        })
-                                                                                    ].join('');
-                                                                                }
-                                                                            };
-                                                                        });
-                                                                    },
-                                                                    originalArray: viewModel.selectItem.data.value,
-                                                                    expand: {},
-                                                                    refreshComponent: () => {
-                                                                        gvc.notifyDataChange(id);
-                                                                    },
-                                                                    plus: {
-                                                                        title: "新增多國語言",
-                                                                        event: gvc.event(() => {
-                                                                            viewModel.selectItem.data.value.push({
-                                                                                lan: navigator.language,
-                                                                                text: ''
-                                                                            });
-                                                                            gvc.notifyDataChange(id);
-                                                                        })
-                                                                    }
-                                                                });
-                                                            },
-                                                            divCreate: {
-                                                                class: `mx-n3`
-                                                            }
-                                                        };
-                                                    }));
-                                                }
-                                                else if (viewModel.selectItem.data.tagType === 'value') {
-                                                    data.push(EditorElem.editeText({
-                                                        gvc: gvc,
-                                                        title: ``,
-                                                        default: (_c = viewModel.selectItem.data.value) !== null && _c !== void 0 ? _c : "",
-                                                        placeHolder: '請輸入參數內容',
-                                                        callback: (text) => {
-                                                            viewModel.selectItem.data.value = text;
-                                                        }
-                                                    }));
-                                                    if (viewModel.selectItem.data.tagType === 'value') {
-                                                        data.push(`<div class="alert alert-info mt-2" style="white-space:normal;word-break: break-all;">
-取值代碼:<br><strong>glitter.share.globalValue["${viewModel.selectItem.data.tag}"]</strong>
-</div>`);
-                                                    }
-                                                }
-                                                else if (viewModel.selectItem.data.tagType === 'style') {
-                                                    data.push(`<div class="mt-2"></div>`);
-                                                    data.push(EditorElem.styleEditor({
-                                                        gvc: gvc,
-                                                        height: 300,
-                                                        initial: viewModel.selectItem.data.value,
-                                                        title: '',
-                                                        callback: (data) => {
-                                                            viewModel.selectItem.data.value = data;
-                                                        }
-                                                    }));
-                                                }
-                                                else if (viewModel.selectItem.data.tagType === 'file') {
-                                                    data.push(`<div class="mt-2"></div>`);
-                                                    data.push(EditorElem.uploadFile({
-                                                        gvc: gvc,
-                                                        title: ``,
-                                                        def: (_d = viewModel.selectItem.data.value) !== null && _d !== void 0 ? _d : "",
-                                                        callback: (text) => {
-                                                            viewModel.selectItem.data.value = text;
-                                                            gvc.notifyDataChange([vid, docID]);
-                                                        }
-                                                    }));
-                                                }
-                                                return data.join('');
-                                            })());
-                                        },
-                                        divCreate: {
-                                            class: `p-2`, style: `overflow-y:auto;max-height:calc(100vh - 270px);`
-                                        },
-                                        onCreate: () => {
-                                            setTimeout(() => {
-                                                var _a;
-                                                $('#jumpToNav').scrollTop((_a = parseInt(glitter.getCookieByName('jumpToNavScroll'), 10)) !== null && _a !== void 0 ? _a : 0);
-                                            }, 1000);
-                                        }
-                                    };
-                                })}
-                                    <div class="flex-fill"></div>
-                                    <div class=" d-flex border-top align-items-center mb-n1 py-2 pt-2 mx-n2 pe-3 bgf6"
-                                         style="height:50px;">
-                                        <div class="flex-fill"></div>
-                                        <button class="btn btn-outline-secondary-c " style="height: 40px;width: 100px;"
-                                                onclick="${gvc.event(() => {
-                                    function checkValue(check) {
-                                        let data = [];
-                                        check.map((dd) => {
-                                            var _a;
-                                            if (dd.id !== viewModel.selectItem.id) {
-                                                data.push(dd);
-                                            }
-                                            if (dd.type === 'container') {
-                                                dd.data.setting = checkValue((_a = dd.data.setting) !== null && _a !== void 0 ? _a : []);
-                                            }
-                                        });
-                                        return data;
-                                    }
-                                    viewModel.globalValue = checkValue(viewModel.globalValue);
-                                    viewModel.selectItem = undefined;
-                                    gvc.notifyDataChange([vid, docID]);
-                                })}">
-                                            <i class="fa-light fa-circle-minus me-2"></i>移除參數
-                                        </button>
-                                    </div>
-                                `;
-                            }
-                            else {
-                                return html `
-                                    <div class="d-flex mx-n2 mt-n2 px-2 hi fw-bold  d-flex align-items-center border-bottom border-top py-2 bgf6"
-                                         style="color:#151515;font-size:16px;gap:0px;height:48px;">
-                                        說明描述
-                                    </div>
-                                    <div class="d-flex flex-column w-100 align-items-center justify-content-center"
-                                         style="height:calc(100% - 48px);">
-                                        <lottie-player src="lottie/animation_data.json" class="mx-auto my-n4" speed="1"
-                                                       style="max-width: 100%;width: 250px;height:300px;" loop
-                                                       autoplay></lottie-player>
-                                        <h3 class=" text-center px-4" style="font-size:18px;">透過設定共用資源，來決定頁面的統一內容。
-                                            <div class="alert alert-info mt-3 mx-n3 p-2 text-start"
-                                                 style="white-space: normal;font-size: 15px;font-weight: 500;">
-                                                <p class="m-0">．使用 @{{value}}，在HTML特徵值中嵌入參數。</p>
-                                                <p class="m-0 mt-2">
-                                                    ．使用glitter.share.globalValue[value]，在代碼中取得參數。</p>
-                                            </div>
-                                        </h3>
-                                    </div>
-                                `;
-                            }
-                        },
-                        divCreate: () => {
-                            return {
-                                class: ` h-100 p-2 d-flex flex-column`, style: `width:400px;`
-                            };
-                        },
-                        onCreate: () => {
-                        }
-                    };
-                })
-            });
         });
     }
     static scriptRenderEditor(obj) {
@@ -1272,123 +947,9 @@ export class PageEditor {
                     ].join('');
                 },
                 divCreate: {
-                    style: 'min-height:300px;'
+                    style: 'min-height:300px;height:calc(100vh - 115px);overflow-y: auto;'
                 }
             };
-        });
-    }
-    static pluginViewRender(gvc) {
-        const html = String.raw;
-        const glitter = gvc.glitter;
-        const viewModel = gvc.glitter.share.editorViewModel;
-        const docID = glitter.getUUID();
-        const vid = glitter.getUUID();
-        return new Promise((resolve, reject) => {
-            resolve({
-                left: gvc.bindView(() => {
-                    const id = vid;
-                    return {
-                        bind: id,
-                        view: () => {
-                            return `
-${EditorElem.arrayItem({
-                                originalArray: viewModel.pluginList,
-                                gvc: gvc,
-                                customEditor: true,
-                                title: '',
-                                array: () => {
-                                    return viewModel.pluginList.map((dd, index) => {
-                                        return {
-                                            title: `<span style="color: black;">${dd.name || `區塊:${index}`}</span>`,
-                                            innerHtml: (() => {
-                                                viewModel.selectItem = dd;
-                                                gvc.notifyDataChange(docID);
-                                            })
-                                        };
-                                    });
-                                },
-                                expand: undefined,
-                                plus: {
-                                    title: '頁面模塊',
-                                    event: gvc.event(() => {
-                                        viewModel.pluginList.push({
-                                            name: '',
-                                            route: '',
-                                            src: {
-                                                official: '',
-                                                staging: '',
-                                                open: true
-                                            }
-                                        });
-                                        gvc.notifyDataChange(id);
-                                    }),
-                                },
-                                refreshComponent: () => {
-                                    viewModel.selectItem = viewModel.pluginList.find((dd) => {
-                                        return dd === viewModel.selectItem;
-                                    });
-                                    gvc.notifyDataChange(id);
-                                    gvc.notifyDataChange(docID);
-                                }
-                            })}`;
-                        },
-                        divCreate: {}
-                    };
-                }),
-                right: gvc.bindView(() => {
-                    return {
-                        bind: docID,
-                        view: () => {
-                            const dd = viewModel.selectItem;
-                            if (!dd) {
-                                return html `
-                                    <div class="d-flex ps-2 hi fw-bold d-flex align-items-center border-bottom border-top py-2 bgf6"
-                                         style="color:#151515;font-size:16px;gap:0px;height:48px;">
-                                        插件說明
-                                    </div>
-                                    <div class="d-flex flex-column w-100 align-items-center justify-content-center"
-                                         style="height:calc(100% - 48px);">
-                                        <div class="alert alert-info m-2 p-3"
-                                             style="white-space: normal;word-break: break-all;">
-                                            頁面模塊決定您能夠在網站上使用哪些設計模塊。您可以從官方或第三方資源中獲取連結，或自行開發插件上傳以供使用。
-                                        </div>
-                                    </div>
-
-                                `;
-                            }
-                            return html `
-                                <div class="d-flex ps-2 hi fw-bold d-flex align-items-center border-bottom border-top py-2 bgf6"
-                                     style="color:#151515;font-size:16px;gap:0px;height:48px;">
-                                    插件設定
-                                </div>
-                                <div class="px-2">
-                                    ${[EditorElem.editeInput({
-                                    gvc,
-                                    title: '自定義模塊名稱',
-                                    default: dd.name,
-                                    placeHolder: '自定義模塊名稱',
-                                    callback: (text) => {
-                                        dd.name = text;
-                                        gvc.notifyDataChange(vid);
-                                    }
-                                }), EditorElem.editeInput({
-                                    gvc,
-                                    title: '模塊路徑',
-                                    default: dd.src.official,
-                                    placeHolder: '模塊路徑',
-                                    callback: (text) => {
-                                        dd.src.official = text;
-                                    }
-                                })].join('')}
-                                </div>
-                            `;
-                        },
-                        divCreate: {
-                            style: `width:300px;min-height:400px;height:400px;`
-                        }
-                    };
-                })
-            });
         });
     }
     static eventRender(gvc) {
@@ -1457,6 +1018,7 @@ ${EditorElem.arrayItem({
                             const dd = viewModel.selectItem;
                             if (!dd) {
                                 return html `
+                                 
                                     <div class="d-flex ps-2 hi fw-bold d-flex align-items-center border-bottom border-top py-2 bgf6"
                                          style="color:#151515;font-size:16px;gap:0px;height:48px;">
                                         插件說明
@@ -2440,7 +2002,7 @@ ${EditorElem.arrayItem({
                     return {
                         bind: vid,
                         view: () => {
-                            return questionText(`網域上架步驟`, [
+                            return questionText(`網域設定步驟`, [
                                 {
                                     title: '步驟一：購買網域', content: `前往第三方服務購買網域，例如:<br>
                              -<a class="fw-bold mt-2" href="https://domain.hinet.net/#/" target="_blank">中華電信HiNet</a><br>
@@ -2450,12 +2012,13 @@ ${EditorElem.arrayItem({
                                 },
                                 {
                                     title: '步驟二：更改DNS', content: `
-                             前往DNS設定，並將A標籤設置為13.209.195.65。
+                             前往DNS設定，並將A標籤設置為18.167.180.238。
                              `
                                 },
                                 {
                                     title: '步驟三：填寫網域名稱', content: `
-                             請輸入您的網域名稱:${EditorElem.editeInput({
+                             <div class="mb-2">請輸入您的網域名稱:</div>
+${EditorElem.editeInput({
                                         gvc: gvc,
                                         title: "",
                                         default: viewModel.domain,
@@ -2485,52 +2048,12 @@ onclick="${gvc.event(() => {
                                     })}"
 >點我部署</button>`
                                 }
-                            ]);
+                            ], true);
                         },
-                        divCreate: { class: `p-2 position-relative mx-n2 my-n2`, style: `width:400px;` }
+                        divCreate: { class: ` position-relative `, style: `width:600px;` }
                     };
                 }),
-                right: gvc.bindView(() => {
-                    return {
-                        bind: docID,
-                        view: () => {
-                            return questionText(`網域上架步驟`, [
-                                {
-                                    title: '步驟一', content: `前往第三方網站購買網域，例如:<br>
-                             -<a class="fw-bold mt-2" href="https://domain.hinet.net/#/" target="_blank">中華電信HiNet</a><br>
-                             -<a class="fw-bold" href="https://tw.godaddy.com/" target="_blank">GoDaddy</a><br>
-                             -<a class="fw-bold" href="https://aws.amazon.com/tw/route53/" target="_blank">AWS Router 53</a><br>
-                             `
-                                },
-                                {
-                                    title: '步驟二', content: `
-                             前往DNS設定，並將A標籤設置為13.209.195.65。
-                             `
-                                },
-                                {
-                                    title: '步驟三', content: `
-                             於左側填入您的網域名稱，例如:<br>
-                             <span class="fw-bold">glitter-ai.com</span><br>
-                             <span class="fw-bold">liondesign.com</span>
-                             `
-                                },
-                                {
-                                    title: '步驟四', content: `
-                             儲存並等待部署。
-                             `
-                                }
-                            ]);
-                        },
-                        divCreate: () => {
-                            return {
-                                class: `d-none h-100 p-2 d-flex flex-column mx-n2 my-n2`,
-                                style: `max-height:80vh;overflow-y:auto;overflow-x:hidden;width:350px;`
-                            };
-                        },
-                        onCreate: () => {
-                        }
-                    };
-                })
+                right: ``
             });
         });
     }
@@ -2574,12 +2097,6 @@ PageEditor.openDialog = {
                         };
                         switch (vm.select) {
                             case "view":
-                                PageEditor.pluginViewRender(gvc).then((data) => {
-                                    contentVM.loading = false;
-                                    contentVM.leftBar = data.left;
-                                    contentVM.rightBar = data.right;
-                                    gvc.notifyDataChange([contentVM.leftID, contentVM.rightID]);
-                                });
                                 break;
                             case "event":
                                 PageEditor.eventRender(gvc).then((data) => {
@@ -2994,16 +2511,16 @@ function uploadImage(obj) {
         };
     });
 }
-function questionText(title, data) {
+function questionText(title, data, show) {
     return `<div class="bg-secondary rounded-3 py-2 px-2 ">
           <h2 class="text-center my-3 mt-2" style="font-size:22px;">${title}</h2>
-             <div class="accordion mx-2" id="faq">
+             <div class="accordion mx-2" id="${(show) || `faq`}">
                 ${data.map((dd, index) => {
         return ` <div class="accordion-item border-0 rounded-3 shadow-sm mb-3">
                   <h3 class="accordion-header">
-                    <button class="accordion-button shadow-none rounded-3 ${(index === 0) ? '' : 'collapsed'}" type="button" data-bs-toggle="collapse" data-bs-target="#q-${index}" aria-expanded="false" aria-controls="q-1">${dd.title}</button>
+                    <button class="accordion-button shadow-none rounded-3 ${(index === 0 || show) ? '' : 'collapsed'}" type="button" data-bs-toggle="collapse" data-bs-target="#q-${index}" aria-expanded="false" aria-controls="q-1">${dd.title}</button>
                   </h3>
-                  <div class="accordion-collapse collapse ${(index === 0) ? 'show' : ''}" id="q-${index}" data-bs-parent="#faq" style="">
+                  <div class="accordion-collapse collapse ${(index === 0 || show) ? 'show' : ''}" id="q-${index}" data-bs-parent="#faq" style="">
                     <div class="accordion-body fs-sm pt-0">
                      ${dd.content}
                     </div>
@@ -3013,4 +2530,27 @@ function questionText(title, data) {
               
               </div>
         </div>`;
+}
+function deepEqual(obj1, obj2) {
+    if (obj1 === obj2) {
+        return true;
+    }
+    if (typeof obj1 !== 'object' || typeof obj2 !== 'object') {
+        return false;
+    }
+    const keys1 = Object.keys(obj1);
+    const keys2 = Object.keys(obj2);
+    if (keys1.length !== keys2.length) {
+        console.log(`長度不同:${keys1.length}-${keys2.length}`);
+        console.log(`keys1`, keys1);
+        console.log(`keys2`, keys2);
+        return false;
+    }
+    for (let key of keys1) {
+        if (!deepEqual(obj1[key], obj2[key])) {
+            console.log(`內容不同-${key}:${obj1[key]}-${obj2[key]}`);
+            return false;
+        }
+    }
+    return true;
 }

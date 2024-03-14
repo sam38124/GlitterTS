@@ -12,6 +12,8 @@ import {ApiApp} from "../glitter-base/route/app.js";
 import {FormWidget} from "../official_view_component/official/form.js";
 import {BgWallet} from "./bg-wallet.js";
 import {ApiWallet} from "../glitter-base/route/wallet.js";
+import {StoreHelper} from "../helper/store-helper.js";
+import {ApiPageConfig} from "../api/pageConfig.js";
 
 
 const html = String.raw
@@ -33,8 +35,8 @@ export class BgProject {
             forget_title: string,
             forget_content: string,
             forget_page: string,
-            will_come_title:string,
-            will_come_content:string
+            will_come_title: string,
+            will_come_content: string
         } = {
             verify: 'normal',
             name: '',
@@ -44,8 +46,8 @@ export class BgProject {
             forget_title: '',
             forget_content: '',
             forget_page: '',
-            will_come_title:'',
-            will_come_content:''
+            will_come_title: '',
+            will_come_content: ''
         }
 
         function save(next: () => void) {
@@ -234,7 +236,7 @@ export class BgProject {
       </tr>
     </tbody></table>`
                                             keyData.will_come_title = keyData.will_come_title || '嗨！歡迎加入 Glitter.AI。'
-                                       
+
                                             return [
                                                 EditorElem.editeInput({
                                                     gvc: gvc,
@@ -432,43 +434,9 @@ export class BgProject {
         `, 900)
     }
 
-    public static setGlobalValue(gvc: GVC) {
-        gvc.glitter.share.editorViewModel.selectItem = undefined
-        return gvc.bindView(() => {
-            const id = gvc.glitter.getUUID()
-            return {
-                bind: id,
-                view: () => {
-                    return new Promise(async (resolve, reject) => {
-                        PageEditor.valueRender(gvc).then((response) => {
-                            resolve(BgWidget.container([html`
-                                <div class="d-flex w-100 align-items-center mb-3 ">
-                                    ${BgWidget.title(`共用資源`)}
-                                    <div class="flex-fill"></div>
-                                    <button class="btn btn-primary-c" style="height:38px;font-size: 14px;"
-                                            onclick="${gvc.event(() => {
-                                                gvc.glitter.htmlGenerate.saveEvent(false)
-                                            })}">儲存並更改
-                                    </button>
-                                </div>
-                            `,
-                                BgWidget.card(html`
-                                    <div class="d-flex">
-                                        <div class="border-end " style="width:350px;overflow:hidden;">${response.left}
-                                        </div>
-                                        <div class="flex-fill " style="width:400px;">${response.right}</div>
-                                    </div>`, 'p-0 bg-white rounded border'),
-                            ].join(''), 700))
-                        })
 
-                    })
-                }
-            }
-        })
-
-    }
-
-    public static userManager(gvc: GVC,type:'select'|'list'='list',callback:(list:any[])=>void=()=>{}) {
+    public static userManager(gvc: GVC, type: 'select' | 'list' = 'list', callback: (list: any[]) => void = () => {
+    }) {
         const glitter = gvc.glitter
         const vm: {
             type: "list" | "add" | "replace" | 'select',
@@ -491,7 +459,8 @@ export class BgProject {
             query: ''
         }
         const filterID = gvc.glitter.getUUID()
-        let vmi:any=undefined
+        let vmi: any = undefined
+
         function getDatalist() {
             return vm.dataList.map((dd: any) => {
                 return [
@@ -508,7 +477,7 @@ export class BgProject {
                                 vmi.data = getDatalist()
                                 vmi.callback()
                                 gvc.notifyDataChange(filterID)
-                                callback(vm.dataList.filter((dd:any)=>{
+                                callback(vm.dataList.filter((dd: any) => {
                                     return dd.checked
                                 }))
                             }
@@ -521,7 +490,7 @@ export class BgProject {
                                 vmi.data = getDatalist()
                                 vmi.callback()
                                 gvc.notifyDataChange(filterID)
-                                callback(vm.dataList.filter((dd:any)=>{
+                                callback(vm.dataList.filter((dd: any) => {
                                     return dd.checked
                                 }))
 
@@ -554,6 +523,7 @@ export class BgProject {
                 ]
             })
         }
+
         return gvc.bindView(() => {
             const id = glitter.getUUID()
             return {
@@ -562,8 +532,8 @@ export class BgProject {
                 view: () => {
                     if (vm.type === 'list') {
                         return BgWidget.container(html`
-                            <div class="d-flex w-100 align-items-center mb-3 ${(type==='select') ? `d-none`:``}">
-                                ${(type==='select') ? BgWidget.title('選擇用戶'):BgWidget.title('用戶管理')}
+                            <div class="d-flex w-100 align-items-center mb-3 ${(type === 'select') ? `d-none` : ``}">
+                                ${(type === 'select') ? BgWidget.title('選擇用戶') : BgWidget.title('用戶管理')}
                                 <div class="flex-fill"></div>
                                 <button class="btn hoverBtn me-2 px-3"
                                         style="height:35px !important;font-size: 14px;color:black;border:1px solid black;"
@@ -581,7 +551,7 @@ export class BgProject {
                             ${BgWidget.table({
                                 gvc: gvc,
                                 getData: (vd) => {
-                                    vmi=vd
+                                    vmi = vd
                                     ApiUser.getUserList({
                                         page: vmi.page - 1,
                                         limit: 20,
@@ -595,19 +565,19 @@ export class BgProject {
                                     })
                                 },
                                 rowClick: (data, index) => {
-                                  
-                                    if(type==='select'){
-                                        vm.dataList[index].checked=!vm.dataList[index].checked
-                                        vmi.data=getDatalist()
+
+                                    if (type === 'select') {
+                                        vm.dataList[index].checked = !vm.dataList[index].checked
+                                        vmi.data = getDatalist()
                                         vmi.callback()
-                                        callback(vm.dataList.filter((dd:any)=>{
+                                        callback(vm.dataList.filter((dd: any) => {
                                             return dd.checked
                                         }))
-                                    }else{
+                                    } else {
                                         vm.data = vm.dataList[index]
                                         vm.type = "replace"
                                     }
-                                   
+
                                 },
                                 filter: html`
                                     <div style="height:50px;" class="w-100 border-bottom">
@@ -624,7 +594,7 @@ export class BgProject {
                                                     view: () => {
                                                         if (!vm.dataList || !vm.dataList.find((dd: any) => {
                                                             return dd.checked
-                                                        }) || type==='select') {
+                                                        }) || type === 'select') {
                                                             return ``
                                                         } else {
                                                             return [
@@ -663,7 +633,7 @@ export class BgProject {
                                                         return {
                                                             class: `d-flex align-items-center p-2 py-3 ${(!vm.dataList || !vm.dataList.find((dd: any) => {
                                                                 return dd.checked
-                                                            }) || type==='select') ? `d-none` : ``}`,
+                                                            }) || type === 'select') ? `d-none` : ``}`,
                                                             style: `height:40px;gap:10px;`
                                                         }
                                                     }
@@ -694,15 +664,15 @@ export class BgProject {
         userID: string,
         gvc: GVC,
         callback: () => void,
-        type?:'readonly'|'write'
+        type?: 'readonly' | 'write'
     }) {
         const gvc = cf.gvc
         const id = gvc.glitter.getUUID()
-        const vm :any = {
+        const vm: any = {
             data: undefined
         };
-        ( ApiUser.getPublicUserData(cf.userID)).then((dd)=>{
-            vm.data=dd.response;
+        (ApiUser.getPublicUserData(cf.userID)).then((dd) => {
+            vm.data = dd.response;
             gvc.notifyDataChange(id)
         })
         return gvc.bindView(() => {
@@ -715,7 +685,7 @@ export class BgProject {
                             cf.callback()
                         }))} ${BgWidget.title(vm.data.userData.name)}
                 <div class="flex-fill"></div>
-                <button class="btn hoverBtn me-2 px-3 ${(cf.type==='readonly') ? `d-none`:``}" style="height:35px !important;font-size: 14px;color:black;border:1px solid black;" onclick="${
+                <button class="btn hoverBtn me-2 px-3 ${(cf.type === 'readonly') ? `d-none` : ``}" style="height:35px !important;font-size: 14px;color:black;border:1px solid black;" onclick="${
                             gvc.event(() => {
                                 BgProject.setUserForm(gvc, () => {
                                     gvc.notifyDataChange(id)
@@ -725,7 +695,7 @@ export class BgProject {
                 <i class="fa-regular fa-gear me-2 " ></i>
                 自訂資料
 </button>
-                <button class="btn btn-primary-c ${(cf.type==='readonly') ? `d-none`:``}" style="height:35px;font-size: 14px;"
+                <button class="btn btn-primary-c ${(cf.type === 'readonly') ? `d-none` : ``}" style="height:35px;font-size: 14px;"
                         onclick="${gvc.event(() => {
                             const dialog = new ShareDialog(gvc.glitter)
                             dialog.dataLoading({text: "更新中", visible: true})
@@ -766,7 +736,7 @@ ${
                                     <div class="fw-normal fs-7">${gvc.glitter.ut.dateFormat(new Date(vm.data.created_time), 'yyyy-MM-dd hh:mm')}</div>
 </div>
                                                     <div class="flex-fill"></div>
-                                                    <i class="fa-solid fa-pencil ${(cf.type==='readonly') ? `d-none`:``}" style="cursor:pointer;" onclick="${
+                                                    <i class="fa-solid fa-pencil ${(cf.type === 'readonly') ? `d-none` : ``}" style="cursor:pointer;" onclick="${
                                                 gvc.event(() => {
                                                     vmi.mode = (vmi.mode === 'edit') ? 'read' : 'edit'
                                                     gvc.notifyDataChange(id)
@@ -812,35 +782,35 @@ ${
 <div style="width:350px;">
 ${BgWidget.card([`<div class="fw-bold fs-7">電子錢包</div>
      ${gvc.bindView(() => {
-                                return {
-                                    bind: gvc.glitter.getUUID(),
-                                    view: () => {
-                                        return new Promise(async (resolve, reject) => {
-                                            const sum = (await ApiWallet.getSum({userID: vm.data.userID})).response.sum
-                                            resolve(`$${sum.toLocaleString()}`)
-                                        })
-                                    },
-                                    divCreate: {
-                                        class: `fs-7 `
-                                    }
+                            return {
+                                bind: gvc.glitter.getUUID(),
+                                view: () => {
+                                    return new Promise(async (resolve, reject) => {
+                                        const sum = (await ApiWallet.getSum({userID: vm.data.userID})).response.sum
+                                        resolve(`$${sum.toLocaleString()}`)
+                                    })
+                                },
+                                divCreate: {
+                                    class: `fs-7 `
                                 }
-                            })}
-    `,`
+                            }
+                        })}
+    `, `
      <div class="fw-bold fs-7">回饋金</div>
      <div class="fs-7">${gvc.bindView(() => {
-                                return {
-                                    bind: gvc.glitter.getUUID(),
-                                    view: () => {
-                                        return new Promise(async (resolve, reject) => {
-                                            const sum = (await ApiWallet.getRebateSum({userID: vm.data.userID})).response.sum
-                                            resolve(`$${sum.toLocaleString()}`)
-                                        })
-                                    },
-                                    divCreate: {
-                                        class: `fs-7 `
-                                    }
+                            return {
+                                bind: gvc.glitter.getUUID(),
+                                view: () => {
+                                    return new Promise(async (resolve, reject) => {
+                                        const sum = (await ApiWallet.getRebateSum({userID: vm.data.userID})).response.sum
+                                        resolve(`$${sum.toLocaleString()}`)
+                                    })
+                                },
+                                divCreate: {
+                                    class: `fs-7 `
                                 }
-                            })}</div>
+                            }
+                        })}</div>
     `].join(`<div class="w-100 border-bottom my-2"></div>`))}
 </div>
 </div>`,
@@ -1163,6 +1133,277 @@ ${BgWidget.card([`<div class="fw-bold fs-7">電子錢包</div>
         })
     }
 
+
+    public static templateReleaseForm(gvc: GVC) {
+        const saasConfig: {
+            config: any,
+            api: any
+        } = (window as any).saasConfig
+        const html = String.raw
+        const postMD: {
+            preview_img: string,
+            image: string[],
+            desc: string,
+            name: string,
+            created_by: string
+            version: string
+            status: "finish" | 'error' | 'wait' | 'no',
+            post_to: 'all' | 'me' | 'cancel',
+            tag: string []
+        } = gvc.glitter.share.editorViewModel.appConfig.template_config ?? {
+            preview_img: '',
+            image: [],
+            desc: '',
+            name: '',
+            created_by: '',
+            status: 'no',
+            post_to: 'all',
+            version: '1.0',
+            tag: []
+        }
+
+        if ((gvc.glitter.share.editorViewModel.appConfig.template_type === 2) || (gvc.glitter.share.editorViewModel.appConfig.template_type === 3)) {
+            postMD.status = 'finish'
+        } else if (gvc.glitter.share.editorViewModel.appConfig.template_type === -1) {
+            postMD.status = 'error'
+        }else if(gvc.glitter.share.editorViewModel.appConfig.template_type===0){
+            postMD.status = 'no'
+        }
+        postMD.tag = postMD.tag ?? []
+        if(postMD.post_to==='cancel'){
+            postMD.post_to='all'
+        }
+        function save() {
+            const dialog = new ShareDialog(gvc.glitter)
+            if (postMD.post_to === 'all') {
+                postMD.status = 'wait';
+            } else {
+                postMD.status = 'finish';
+            }
+            dialog.dataLoading({text: '提交審核中...', visible: true});
+            ApiPageConfig.createTemplate((window as any).appName, postMD).then((response) => {
+                dialog.dataLoading({visible: false})
+                if (response.result) {
+                    dialog.successMessage({text: `上傳成功...`})
+                }
+                location.reload()
+            })
+        }
+
+        return BgWidget.container(html`
+            <div class="d-flex w-100 align-items-center mb-3 ">
+                ${BgWidget.title(`模板發佈`)}
+                ${
+                        (() => {
+                            return (() => {
+                                switch (postMD.status) {
+                                    case "finish":
+                                        return `<div class="badge badge-success fs-7 ms-2" >審核通過</div>`;
+                                    case "error":
+                                        return `<div class="badge bg-danger fs-7 ms-2" >審核失敗</div>`;
+                                    case "wait":
+                                        return `<div class="badge bg-warning fs-7 ms-2" style="color:black;">等待審核</div>`
+                                    default:
+                                        return `<div class="badge bg-secondary fs-7 ms-2 border" >尚未發佈</div>`
+
+                                }
+                            })()
+                        })()
+                }
+                <div class="flex-fill"></div>
+                <button class="btn btn-primary-c" style="height:38px;font-size: 14px;" onclick="${gvc.event(() => {
+                    save()
+                })}">確認發佈
+                </button>
+            </div>
+            ${gvc.bindView(() => {
+                const id = gvc.glitter.getUUID()
+                return {
+                    bind: id,
+                    view: () => {
+                        return new Promise(async (resolve, reject) => {
+                            resolve(html`
+                                <div style="width:900px;max-width:100%;">
+                                    ${[
+                                        BgWidget.card(html`
+                                            <div class="alert alert-info p-2 m-1" style="white-space: normal;">
+                                                <strong>請注意!!</strong><br>
+                                                模板發佈請注意上架規範守則，嚴禁發佈觸犯法律條款之內容。
+                                            </div>`),
+                                        BgWidget.card([
+                                            html`
+                                                ${[
+                                                    html`
+                                                        <div class="row">
+                                                            ${[EditorElem.editeInput({
+                                                                title: '模板名稱',
+                                                                gvc: gvc,
+                                                                default: postMD.name,
+                                                                callback: (text) => {
+                                                                    postMD.name = text
+                                                                },
+                                                                placeHolder: '請輸入模板名稱'
+                                                            }),
+                                                                EditorElem.editeInput({
+                                                                    title: '作者名稱',
+                                                                    gvc: gvc,
+                                                                    default: postMD.created_by,
+                                                                    callback: (text) => {
+                                                                        postMD.created_by = text
+                                                                    },
+                                                                    placeHolder: '請輸入作者名稱'
+                                                                }),
+                                                                EditorElem.editeInput({
+                                                                    title: '版本號碼',
+                                                                    gvc: gvc,
+                                                                    default: postMD.version,
+                                                                    callback: (text) => {
+                                                                        postMD.version = text
+                                                                    },
+                                                                    placeHolder: '請輸入版本號碼'
+                                                                }),
+                                                                EditorElem.select({
+                                                                    title: '發佈至',
+                                                                    gvc: gvc,
+                                                                    def: postMD.post_to,
+                                                                    array: [
+                                                                        {
+                                                                            title: '官方與個人模板庫',
+                                                                            value: 'all'
+                                                                        },
+                                                                        {
+                                                                            title: '個人模板庫',
+                                                                            value: 'me'
+                                                                        }
+                                                                    ],
+                                                                    callback: (text: string) => {
+                                                                        postMD.post_to = text as any
+                                                                    }
+                                                                })].map((dd) => {
+                                                                return `<div class="col-6 ">${dd}</div>`
+                                                            }).join('')}
+                                                        </div>`,
+                                                    `${EditorElem.h3('模板標籤')}
+                                                    ${
+                                                            gvc.bindView(() => {
+                                                                const id = gvc.glitter.getUUID()
+
+                                                                function refreshTag() {
+                                                                    gvc.notifyDataChange(id)
+                                                                }
+
+                                                                return {
+                                                                    bind: id,
+                                                                    view: () => {
+                                                                       
+                                                                        return html`
+                                                                            ${ postMD.tag.map((dd,index)=>{
+                                                                                return ` <div class="badge bg-warning text-dark btn "
+                                                                                 ><i
+                                                                                    class="fa-regular fa-circle-minus me-1 text-danger fw-bold" onclick="${gvc.event(() => {
+                                                                                    postMD.tag.splice(index,1)
+                                                                                    refreshTag()
+                                                                                })}"></i>${dd}
+                                                                            </div>`
+                                                                            }).join('')}
+                                                                            <div class="badge  btn " style="background: #295ed1;"
+                                                                                 onclick="${gvc.event(() => {
+                                                                                     EditorElem.openEditorDialog(gvc, (gvc) => {
+                                                                                         let label = ''
+                                                                                         return `<div class="p-2">${EditorElem.editeInput({
+                                                                                             gvc: gvc,
+                                                                                             title: '標籤名稱',
+                                                                                             default: label,
+                                                                                             placeHolder: '請輸入標籤名稱',
+                                                                                             callback: (text) => {
+                                                                                                 label = text;
+                                                                                             },
+                                                                                         })}</div>
+<div class="w-100 border-top p-2 d-flex align-items-center justify-content-end">
+<button class="btn btn-primary" style="height:35px;width:80px;" onclick="${gvc.event(() => {
+                                                                                             postMD.tag.push(label)
+                                                                                             refreshTag()
+                                                                                             gvc.closeDialog()
+                                                                                         })}">確認新增</button>
+</div>
+`
+                                                                                     }, () => {
+                                                                                     }, 400, '新增標籤')
+                                                                                 })}"><i
+                                                                                    class="fa-regular fa-circle-plus me-1"></i>新增標籤
+                                                                            </div>`
+                                                                    },
+                                                                    divCreate: {
+                                                                        class: `w-100 d-flex flex-wrap bg-secondary p-3`,
+                                                                        style: `gap:5px;`
+                                                                    }
+                                                                }
+                                                            })
+                                                    } 
+                                                     `,
+                                                    EditorElem.editeText({
+                                                        gvc: gvc,
+                                                        title: "模板描述",
+                                                        placeHolder: `請輸入模板描述`,
+                                                        default: postMD.desc,
+                                                        callback: (text) => {
+                                                            postMD.desc = text
+                                                        }
+                                                    }),
+
+                                                    gvc.bindView(() => {
+                                                        const id = gvc.glitter.getUUID()
+                                                        return {
+                                                            bind: id,
+                                                            view: () => {
+                                                                return EditorElem.h3(html`
+                                                                            <div class="d-flex align-items-center"
+                                                                                 style="gap:10px;">模板圖片 [ 首張圖片為預覽圖 ]
+                                                                                <div class="d-flex align-items-center justify-content-center rounded-3"
+                                                                                     style="height: 30px;width: 80px;
+">
+                                                                                    <button class="btn ms-2 btn-primary-c ms-2"
+                                                                                            style="height: 30px;width: 80px;"
+                                                                                            onclick="${gvc.event(() => {
+                                                                                                EditorElem.uploadFileFunction({
+                                                                                                    gvc: gvc,
+                                                                                                    callback: (text) => {
+                                                                                                        postMD.image.push(text)
+                                                                                                        gvc.notifyDataChange(id)
+                                                                                                    },
+                                                                                                    type: `image/*, video/*`
+                                                                                                })
+                                                                                            })}">添加圖檔
+                                                                                    </button>
+                                                                                </div>
+                                                                            </div>`) + html`
+                                                                            <div class="my-2"></div>` +
+                                                                        EditorElem.flexMediaManager({
+                                                                            gvc: gvc,
+                                                                            data: postMD.image
+                                                                        })
+                                                            },
+                                                            divCreate: {}
+                                                        }
+                                                    })
+                                                ].join('')}
+                                            `
+                                        ].join('<div class="my-2"></div>')),
+                                            `<div class=" align-items-center justify-content-end ${(postMD.status === 'finish') ? `d-flex`:`d-none`}">
+ <div class="btn btn-danger" style="height:35px;" onclick="${gvc.event(()=>{
+                                                postMD.post_to='cancel'
+                                                save()
+                                            })}"><i class="fa-regular fa-trash-can me-2"></i> 取消發佈</div>
+</div>`
+                                    ].join(`<div class="my-3"></div>`)}
+                                </div>`)
+                        })
+                    },
+                    divCreate: {class: `d-flex flex-column flex-column-reverse  flex-md-row`, style: `gap:10px;`}
+                }
+            })}
+        `, 900)
+    }
 
     public static appReleaseForm(vm: {
         status: 'list' | 'add' | 'replace',

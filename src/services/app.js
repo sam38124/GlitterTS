@@ -1,4 +1,27 @@
 "use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -12,11 +35,10 @@ const config_js_1 = __importDefault(require("../config.js"));
 const fs_1 = __importDefault(require("fs"));
 const ssh_js_1 = require("../modules/ssh.js");
 const nginx_conf_1 = require("nginx-conf");
+const process = __importStar(require("process"));
 const public_table_check_js_1 = require("../api-public/services/public-table-check.js");
+const backend_service_js_1 = require("./backend-service.js");
 class App {
-    constructor(token) {
-        this.token = token;
-    }
     static getAdConfig(app, key) {
         return new Promise(async (resolve, reject) => {
             const data = await database_1.default.query(`select \`value\`
@@ -56,7 +78,9 @@ class App {
             await public_table_check_js_1.ApiPublic.createScheme(config.appName);
             const trans = await database_1.default.Transaction.build();
             await trans.execute(`insert into \`${config_1.saasConfig.SAAS_NAME}\`.app_config (user, appName, dead_line, \`config\`, brand)
-                                 values (?, ?, ?, ${database_1.default.escape(JSON.stringify((copyAppData && copyAppData.config) || {}))} , ${database_1.default.escape((_b = config.brand) !== null && _b !== void 0 ? _b : config_1.saasConfig.SAAS_NAME)})`, [
+                                 values (?, ?, ?,
+                                         ${database_1.default.escape(JSON.stringify((copyAppData && copyAppData.config) || {}))},
+                                         ${database_1.default.escape((_b = config.brand) !== null && _b !== void 0 ? _b : config_1.saasConfig.SAAS_NAME)})`, [
                 this.token.userID,
                 config.appName,
                 addDays(new Date(), config_1.saasConfig.DEF_DEADLINE)
@@ -111,12 +135,12 @@ class App {
                 }
             }
             for (const dd of (await database_1.default.query(`SELECT *
-                                                  FROM \`${config.copyApp}\`.t_global_event`, []))) {
+                                              FROM \`${config.copyApp}\`.t_global_event`, []))) {
                 dd.json = dd.json && JSON.stringify(dd.json);
                 await trans.execute(`
-                        insert into \`${config.appName}\`.t_global_event
-                        SET ?;
-                    `, [
+                    insert into \`${config.appName}\`.t_global_event
+                    SET ?;
+                `, [
                     dd
                 ]);
             }
@@ -159,9 +183,9 @@ class App {
                 for (const dd of copyPageData) {
                     await trans.execute(`
                         insert into \`${config_1.saasConfig.SAAS_NAME}\`.page_config (userID, appName, tag, \`group\`, \`name\`,
-                                                                             \`config\`, \`page_config\`,page_type)
+                                                                             \`config\`, \`page_config\`, page_type)
                         values (?, ?, ?, ?, ?, ${database_1.default.escape(JSON.stringify(dd.config))},
-                                ${database_1.default.escape(JSON.stringify(dd.page_config))},${database_1.default.escape(dd.page_type)});
+                                ${database_1.default.escape(JSON.stringify(dd.page_config))}, ${database_1.default.escape(dd.page_type)});
                     `, [
                         this.token.userID,
                         config.appName,
@@ -223,11 +247,32 @@ class App {
             throw exception_1.default.BadRequestError((_a = e.code) !== null && _a !== void 0 ? _a : 'BAD_REQUEST', e, null);
         }
     }
+    async getTemplate(query) {
+        var _a;
+        try {
+            return (await database_1.default.execute(`
+                SELECT user, appName, created_time, dead_line, brand, template_config, template_type
+                FROM \`${config_1.saasConfig.SAAS_NAME}\`.app_config
+                where ${(() => {
+                const sql = [];
+                query.template_from === 'me' && sql.push(`user = '${this.token.userID}'`);
+                query.template_from === 'me' && sql.push(`template_type in (3,2)`);
+                query.template_from === 'all' && sql.push(`template_type = 2`);
+                return sql.map((dd) => {
+                    return `(${dd})`;
+                }).join(' and ');
+            })()};
+            `, []));
+        }
+        catch (e) {
+            throw exception_1.default.BadRequestError((_a = e.code) !== null && _a !== void 0 ? _a : 'BAD_REQUEST', e, null);
+        }
+    }
     async getAppConfig(config) {
         var _a, _b, _c, _d;
         try {
             const data = (await database_1.default.execute(`
-                SELECT config,\`dead_line\`
+                SELECT config, \`dead_line\`, \`template_config\`, \`template_type\`
                 FROM \`${config_1.saasConfig.SAAS_NAME}\`.app_config
                 where appName = ${database_1.default.escape(config.appName)};
             `, []))[0];
@@ -235,6 +280,8 @@ class App {
             pluginList.dead_line = data.dead_line;
             pluginList.pagePlugin = (_b = pluginList.pagePlugin) !== null && _b !== void 0 ? _b : [];
             pluginList.eventPlugin = (_c = pluginList.eventPlugin) !== null && _c !== void 0 ? _c : [];
+            pluginList.template_config = data.template_config;
+            pluginList.template_type = data.template_type;
             return pluginList;
         }
         catch (e) {
@@ -254,7 +301,9 @@ class App {
         }
     }
     static async checkBrandAndMemberType(app) {
-        let brand = (await database_1.default.query(`SELECT brand FROM \`${config_1.saasConfig.SAAS_NAME}\`.app_config where appName = ? `, [app]))[0]['brand'];
+        let brand = (await database_1.default.query(`SELECT brand
+                                     FROM \`${config_1.saasConfig.SAAS_NAME}\`.app_config
+                                     where appName = ? `, [app]))[0]['brand'];
         console.log(`brand-->`, brand);
         const userID = (await database_1.default.query(`SELECT user
                                         FROM \`${config_1.saasConfig.SAAS_NAME}\`.app_config
@@ -294,6 +343,33 @@ class App {
             }
             return (await database_1.default.execute(`update \`${config_1.saasConfig.SAAS_NAME}\`.app_config
                                       set config=?
+                                      where appName = ${database_1.default.escape(config.appName)}
+                                        and user = '${this.token.userID}'
+            `, [config.data]))['changedRows'] == true;
+        }
+        catch (e) {
+            throw exception_1.default.BadRequestError((_b = e.code) !== null && _b !== void 0 ? _b : 'BAD_REQUEST', e, null);
+        }
+    }
+    async postTemplate(config) {
+        var _a, _b;
+        try {
+            let template_type = '0';
+            if (config.data.post_to === 'all') {
+                let officialAccount = ((_a = process.env.OFFICIAL_ACCOUNT) !== null && _a !== void 0 ? _a : '').split(',');
+                if (officialAccount.indexOf(`${this.token.userID}`) !== -1) {
+                    template_type = '2';
+                }
+                else {
+                    template_type = '1';
+                }
+            }
+            else if (config.data.post_to === 'me') {
+                template_type = '3';
+            }
+            return (await database_1.default.execute(`update \`${config_1.saasConfig.SAAS_NAME}\`.app_config
+                                      set template_config = ?,
+                                          template_type=${template_type}
                                       where appName = ${database_1.default.escape(config.appName)}
                                         and user = '${this.token.userID}'
             `, [config.data]))['changedRows'] == true;
@@ -366,6 +442,11 @@ class App {
     async deleteAPP(config) {
         var _a;
         try {
+            try {
+                await (new backend_service_js_1.BackendService(config.appName).stopServer());
+            }
+            catch (e) {
+            }
             (await database_1.default.execute(`delete
                                from \`${config_1.saasConfig.SAAS_NAME}\`.app_config
                                where appName = ${database_1.default.escape(config.appName)}
@@ -376,11 +457,15 @@ class App {
                                  and userID = '${this.token.userID}'`, []));
             (await database_1.default.execute(`delete
                                from \`${config_1.saasConfig.SAAS_NAME}\`.private_config
-                               where app_name = ${database_1.default.escape(config.appName)}`, []));
+                               where app_name = ${database_1.default.escape(config.appName)}
+            `, []));
         }
         catch (e) {
             throw exception_1.default.BadRequestError((_a = e.code) !== null && _a !== void 0 ? _a : 'BAD_REQUEST', e, null);
         }
+    }
+    constructor(token) {
+        this.token = token;
     }
 }
 exports.App = App;

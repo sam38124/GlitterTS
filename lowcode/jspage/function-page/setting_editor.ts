@@ -1,20 +1,19 @@
-import {GVC} from "../glitterBundle/GVController.js";
-import {pageManager} from "../setting/pageManager.js";
-import {appCreate, appSetting, fileManager} from "../setting/appSetting.js";
-import {ShareDialog} from "../dialog/ShareDialog.js";
-import {EditorElem} from "../glitterBundle/plugins/editor-elem.js";
-import {BgShopping} from "../backend-manager/bg-shopping.js";
-import {BgWidget} from "../backend-manager/bg-widget.js";
-import {ApiShop} from "../glitter-base/route/shopping.js";
-import {BgProject} from "../backend-manager/bg-project.js";
-import {GlobalUser} from "../glitter-base/global/global-user.js";
-import {BgNotify} from "../backend-manager/bg-notify.js";
-import {BgWallet} from "../backend-manager/bg-wallet.js";
-import {BgBlog} from "../backend-manager/bg-blog.js";
-import {BgSeo} from "../backend-manager/bg-seo.js";
+import {GVC} from "../../glitterBundle/GVController.js";
+import {pageManager} from "../../setting/pageManager.js";
+import {appCreate, appSetting, fileManager} from "../../setting/appSetting.js";
+import {ShareDialog} from "../../dialog/ShareDialog.js";
+import {EditorElem} from "../../glitterBundle/plugins/editor-elem.js";
+import {BgShopping} from "../../backend-manager/bg-shopping.js";
+import {BgWidget} from "../../backend-manager/bg-widget.js";
+import {ApiShop} from "../../glitter-base/route/shopping.js";
+import {BgProject} from "../../backend-manager/bg-project.js";
+import {GlobalUser} from "../../glitter-base/global/global-user.js";
+import {BgNotify} from "../../backend-manager/bg-notify.js";
+import {BgWallet} from "../../backend-manager/bg-wallet.js";
+import {BgBlog} from "../../backend-manager/bg-blog.js";
+import {BgSeo} from "../../backend-manager/bg-seo.js";
 
 export class Setting_editor {
-    public static index = '2'
     public static pluginUrl = ''
 
     public static left(gvc: GVC, viewModel: any, createID: string, gBundle: any) {
@@ -116,26 +115,11 @@ ${(!itemList.find((dd: any) => {
                         </div>` + (() => {
                         switch (vm.select) {
                             case "official":
-                                const itemList: any[] = [
-                                    {
-                                        title: `共用資源`,
-                                        view: (gvc: GVC) => {
-                                            return BgProject.setGlobalValue(gvc)
-                                        }
-                                    },
-                                    {
-                                        title: `SEO設定`,
-                                        view: (gvc: GVC) => {
-                                            return BgSeo.mainPage(gvc)
-                                        }
-                                    }
-                                ]
                                 return html`
                                     <div class="alert alert-info m-2 p-3 d-none"
                                          style="white-space: normal;word-break: break-all;">
                                         已下為官方提供的後台開發管理工具，能為您解決基本的系統開發需求。
                                     </div>
-                                    ${setBackendEditor(`fa-regular fa-gear me-1`, `專案開發`, itemList, id)}
                                     ${setBackendEditor(`fa-regular fa-user me-1`, `用戶相關`, [
                                         {
                                             title: `登入設定`,
@@ -146,7 +130,7 @@ ${(!itemList.find((dd: any) => {
                                         {
                                             title: `用戶列表`,
                                             view: (gvc: GVC) => {
-                                                return BgProject.userManager(gvc,'list')
+                                                return BgProject.userManager(gvc, 'list')
                                             }
                                         }
                                     ], id)}
@@ -200,7 +184,7 @@ ${(!itemList.find((dd: any) => {
                                         {
                                             title: `內容管理`,
                                             view: (gvc: GVC) => {
-                                                return BgBlog.contentManager(gvc,'list')
+                                                return BgBlog.contentManager(gvc, 'list')
                                             }
                                         }
                                     ], id)}
@@ -274,6 +258,12 @@ ${(!itemList.find((dd: any) => {
                                     ], id)}
                                     ${setBackendEditor(`fa-sharp fa-regular fa-cloud-arrow-up`, `應用發佈`, [
                                         {
+                                            title: `模板發佈`,
+                                            view: (gvc: GVC) => {
+                                                return BgProject.templateReleaseForm(gvc)
+                                            }
+                                        },
+                                        {
                                             title: `蘋果商城`,
                                             view: (gvc: GVC) => {
                                                 return BgProject.appRelease(gvc, 'apple_release')
@@ -286,8 +276,8 @@ ${(!itemList.find((dd: any) => {
                                             }
                                         }
                                     ], id)}
-                                    
-                                    ${((window as any).memberType==='noLimit') ? setBackendEditor(`fa-solid fa-code`, `自訂代碼事件`, [
+
+                                    ${((window as any).memberType === 'noLimit') ? setBackendEditor(`fa-solid fa-code`, `自訂代碼事件`, [
                                         ...(() => {
                                             let cCat = []
                                             cCat.push({
@@ -340,18 +330,14 @@ ${(!itemList.find((dd: any) => {
                                             if (vm.loading) {
                                                 return ``
                                             }
-                                            return html`
-                                                <div class="alert alert-info m-2 p-3"
-                                                     style="white-space: normal;word-break: break-all;">
-                                                    透過官方或第三方平台取得相關後台套件，來達成所有客製化系統開發。
+                                            return html`<div class="alert alert-info m-2 p-3" style="white-space: normal;word-break: break-all;">
+                                                透過官方或第三方平台取得相關後台套件，來達成所有客製化系統開發。
                                                 </div>
                                                 <div class="w-100"
                                                      style="border-bottom: 1px solid #e2e5f1 !important;"></div>
                                             ` + EditorElem.arrayItem({
                                                 gvc: gvc,
-                                                title: `<div class="d-flex w-100">
-選項列表
-<div class="flex-fill"></div>
+                                                title: `<div class="d-flex w-100">選項列表<div class="flex-fill"></div>
 <div class="hoverBtn  px-2 ms-0 me-n1" style="cursor:pointer;" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" onclick="${gvc.event(() => {
                                                     Setting_editor.addPlugin(gvc, () => {
                                                         getData()

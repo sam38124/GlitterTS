@@ -28,17 +28,19 @@ exports.SaasScheme = {
   \`created_time\` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   \`preview_image\` varchar(200) DEFAULT NULL,
   \`favorite\` int NOT NULL DEFAULT '0',
+  \`template_config\` json DEFAULT NULL,
+  \`template_type\` int NOT NULL DEFAULT '0',
   PRIMARY KEY (\`id\`),
   UNIQUE KEY \`page_index\` (\`appName\`,\`tag\`),
   KEY \`app_index\` (\`userID\`,\`appName\`),
   KEY \`index4\` (\`page_type\`),
   KEY \`index5\` (\`favorite\`)
-) ENGINE=InnoDB AUTO_INCREMENT=3783 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci`
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci`
             },
             {
                 scheme: config_1.saasConfig.SAAS_NAME,
                 table: 'app_config',
-                sql: ` (
+                sql: `(
   \`id\` int NOT NULL AUTO_INCREMENT,
   \`domain\` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   \`user\` varchar(45) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
@@ -47,10 +49,15 @@ exports.SaasScheme = {
   \`dead_line\` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   \`config\` json DEFAULT NULL,
   \`brand\` varchar(45) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'glitter',
+  \`template_config\` json DEFAULT NULL,
+  \`template_type\` int NOT NULL DEFAULT '0' COMMENT '0尚未發布，1審核中，2已發布至商城，3已發布至個人模板庫',
+  \`sql_pwd\` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  \`sql_admin\` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  \`ec2_id\` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   PRIMARY KEY (\`id\`),
   UNIQUE KEY \`user_app\` (\`user\`,\`appName\`),
   KEY \`find_user\` (\`user\`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+) ENGINE=InnoDB AUTO_INCREMENT=269 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 `
             },
             {
@@ -81,6 +88,18 @@ exports.SaasScheme = {
   KEY \`index4\` (\`app_name\`),
   KEY \`index2\` (\`key\`),
   KEY \`index3\` (\`group\`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`
+            },
+            {
+                scheme: config_1.saasConfig.SAAS_NAME,
+                table: 't_template_tag',
+                sql: `(
+  \`id\` int NOT NULL AUTO_INCREMENT,
+  \`type\` varchar(45) COLLATE utf8mb4_unicode_ci NOT NULL,
+  \`tag\` varchar(45) COLLATE utf8mb4_unicode_ci NOT NULL,
+  \`bind\` varchar(45) COLLATE utf8mb4_unicode_ci NOT NULL,
+  PRIMARY KEY (\`id\`),
+  UNIQUE KEY \`index2\` (\`type\`,\`bind\`,\`tag\`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`
             }
         ];

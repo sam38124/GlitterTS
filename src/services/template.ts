@@ -3,6 +3,8 @@ import {saasConfig} from "../config";
 import exception from "../modules/exception";
 import {createAPP} from "../index";
 import {IToken} from "../models/Auth.js";
+import process from "process";
+import {UtDatabase} from "../api-public/utils/ut-database.js";
 
 export class Template {
     public token: IToken;
@@ -17,12 +19,13 @@ export class Template {
     }
 
     public async createPage(config: {
-        appName: string, tag: string, group: string, name: string, config: any, page_config: any, copy: any,page_type:string,
-        copyApp:string
+        appName: string, tag: string, group: string, name: string, config: any, page_config: any, copy: any, page_type: string,
+        copyApp: string
     }) {
         if (!(await this.verifyPermission(config.appName))) {
             throw exception.BadRequestError("Forbidden", "No Permission.", null);
         }
+
         if (config.copy) {
             const data = (await db.execute(`
                 select \`${saasConfig.SAAS_NAME}\`.page_config.page_config,
@@ -36,8 +39,9 @@ export class Template {
         }
         try {
             await db.execute(`
-                insert into \`${saasConfig.SAAS_NAME}\`.page_config (userID, appName, tag, \`group\`, \`name\`, config, page_config,page_type)
-                values (?, ?, ?, ?, ?, ?, ?,?);
+                insert into \`${saasConfig.SAAS_NAME}\`.page_config (userID, appName, tag, \`group\`, \`name\`, config,
+                                                                     page_config, page_type)
+                values (?, ?, ?, ?, ?, ?, ?, ?);
             `, [
                 this.token.userID,
                 config.appName,
@@ -57,8 +61,8 @@ export class Template {
     public async updatePage(config: {
         appName: string, tag: string, group: string, name: string, config: any, page_config: any, id?: string,
         page_type: string,
-        preview_image:string,
-        favorite:number
+        preview_image: string,
+        favorite: number
     }) {
         if (!(await this.verifyPermission(config.appName))) {
             throw exception.BadRequestError("Forbidden", "No Permission.", null);
@@ -93,7 +97,7 @@ export class Template {
     }
 
     public async deletePage(config: {
-        appName: string, id?: string,tag?:string
+        appName: string, id?: string, tag?: string
     }) {
         if (!(await this.verifyPermission(config.appName))) {
             throw exception.BadRequestError("Forbidden", "No Permission.", null);
@@ -105,7 +109,7 @@ export class Template {
                 delete
                 from \`${saasConfig.SAAS_NAME}\`.page_config
                 WHERE appName = ${db.escape(config.appName)}
-                  and id = ${db.escape(config.id)}`:`
+                  and id = ${db.escape(config.id)}` : `
                 delete
                 from \`${saasConfig.SAAS_NAME}\`.page_config
                 WHERE appName = ${db.escape(config.appName)}
@@ -118,8 +122,55 @@ export class Template {
         }
     }
 
+    public async getTemplate(query: {
+        app_name?: string,
+        template_from: 'all' | 'me',
+        page?: string,
+        limit?: string
+    }) {
+        try {
+            const sql = []
+            query.template_from === 'me' && sql.push(`user = '${this.token.userID}'`);
+            query.template_from === 'me' && sql.push(`template_type in (3,2)`);
+            query.template_from === 'all' && sql.push(`template_type = 2`);
+            const data = await new UtDatabase(saasConfig.SAAS_NAME as string, `page_config`).querySql(sql, query as any, `
+            id,userID,tag,\`group\`,name, page_type,  preview_image,appName,template_type,template_config
+            `)
+            return data
+        } catch (e: any) {
+            throw exception.BadRequestError(e.code ?? 'BAD_REQUEST', e, null);
+        }
+    }
+
+    public async postTemplate(config: { appName: string, data: any, tag: string }) {
+        try {
+            if (!(await this.verifyPermission(config.appName))) {
+                throw exception.BadRequestError("Forbidden", "No Permission.", null);
+            }
+            let template_type = '0'
+            if (config.data.post_to === 'all') {
+                let officialAccount = (process.env.OFFICIAL_ACCOUNT ?? '').split(',')
+                if (officialAccount.indexOf(`${this.token.userID}`) !== -1) {
+                    template_type = '2'
+                } else {
+                    template_type = '1'
+                }
+            } else if (config.data.post_to === 'me') {
+                template_type = '3'
+            }
+            return (await db.execute(`update \`${saasConfig.SAAS_NAME}\`.page_config
+                                      set template_config = ?,
+                                          template_type=${template_type}
+                                      where appName = ${db.escape(config.appName)}
+                                        and tag = ?
+            `, [config.data, config.tag]))['changedRows'] == true
+        } catch (e: any) {
+            throw exception.BadRequestError(e.code ?? 'BAD_REQUEST', e, null);
+        }
+    }
+
     public async getPage(config: {
-        appName?: string, tag?: string, group?: string, type?: string, page_type?: string, user_id?: string,me?:string,favorite?:string
+        appName?: string, tag?: string, group?: string, type?: string, page_type?: string, user_id?: string, me?: string, favorite?: string
     }) {
 
         try {
@@ -137,20 +188,17 @@ export class Template {
                                          (config.group) && query.push(`\`group\` in (${config.group.split(',').map((dd) => {
                                              return db.escape(dd)
                                          }).join(',')})`);
-                                         if(config.page_type === 'module'){
-                                             if(config.favorite&&config.favorite==='true'){
-                                                 query.push(`favorite=1`)
-                                             }
-                                             if (config.me==='true' ) {
-                                                 query.push(`userID = ${this.token.userID}`)
-                                             }else{
-                                                 let officialAccount=(process.env.OFFICIAL_ACCOUNT ?? '').split(',')
-                                                 query.push(`userID in (${officialAccount.map((dd)=>{
-                                                     return `${db.escape(dd)}`
-                                                 }).join(',')})`)
-                                             }
+                                         if (config.favorite && config.favorite === 'true') {
+                                             query.push(`favorite=1`)
                                          }
-                                        
+                                         if (config.me === 'true') {
+                                             query.push(`userID = ${this.token.userID}`)
+                                         } else {
+                                             // let officialAccount=(process.env.OFFICIAL_ACCOUNT ?? '').split(',')
+                                             // query.push(`userID in (${officialAccount.map((dd)=>{
+                                             //     return `${db.escape(dd)}`
+                                             // }).join(',')})`)
+                                         }
                                          return query.join(' and ')
                                      })()
                              }`

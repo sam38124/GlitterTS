@@ -15,6 +15,17 @@ export class ApiPageConfig {
             }
         });
     }
+    static getTemplateList() {
+        return BaseApi.create({
+            "url": config.url + `/api/v1/app/template?template_from=all`,
+            "type": "GET",
+            "timeout": 0,
+            "headers": {
+                "Content-Type": "application/json",
+                "Authorization": GlobalUser.token
+            }
+        });
+    }
     static getAppConfig() {
         return BaseApi.create({
             "url": config.url + `/api/v1/app?appName=${config.appName}`,
@@ -67,6 +78,44 @@ export class ApiPageConfig {
                     (request.page_type) && (query.push(`page_type=${request.page_type}`));
                     (request.me) && (query.push(`me=${request.me}`));
                     (request.favorite) && (query.push(`favorite=${request.favorite}`));
+                    return query.join('&');
+                })(),
+            "type": "GET",
+            "timeout": 0,
+            "headers": {
+                "Content-Type": "application/json",
+                "Authorization": config.token
+            }
+        });
+    }
+    static getPageTemplate(request) {
+        return BaseApi.create({
+            "url": config.url + `/api/v1/page/template?` +
+                (() => {
+                    const query = [];
+                    (request.template_from) && (query.push(`template_from=${request.template_from}`));
+                    (request.page) && (query.push(`page=${request.page}`));
+                    (request.limit) && (query.push(`limit=${request.limit}`));
+                    (request.type) && (query.push(`type=${request.type}`));
+                    (request.tag) && (query.push(`tag=${request.tag}`));
+                    (request.search) && (query.push(`search=${request.search}`));
+                    return query.join('&');
+                })(),
+            "type": "GET",
+            "timeout": 0,
+            "headers": {
+                "Content-Type": "application/json",
+                "Authorization": config.token
+            }
+        });
+    }
+    static getTagList(request) {
+        return BaseApi.create({
+            "url": config.url + `/api/v1/page/tag_list?` +
+                (() => {
+                    const query = [];
+                    (request.type) && (query.push(`type=${request.type}`));
+                    (request.template_from) && (query.push(`template_from=${request.template_from}`));
                     return query.join('&');
                 })(),
             "type": "GET",
@@ -134,6 +183,35 @@ export class ApiPageConfig {
             data: JSON.stringify({
                 appName: appName,
                 config: obj
+            })
+        });
+    }
+    static createTemplate(appName, obj) {
+        return BaseApi.create({
+            "url": config.url + `/api/v1/app/create_template`,
+            "type": "POST",
+            "headers": {
+                "Content-Type": "application/json",
+                "Authorization": config.token
+            },
+            data: JSON.stringify({
+                appName: appName,
+                config: obj
+            })
+        });
+    }
+    static createPageTemplate(appName, obj, tag) {
+        return BaseApi.create({
+            "url": config.url + `/api/v1/page/template`,
+            "type": "POST",
+            "headers": {
+                "Content-Type": "application/json",
+                "Authorization": config.token
+            },
+            data: JSON.stringify({
+                appName: appName,
+                config: obj,
+                tag: tag
             })
         });
     }

@@ -9,7 +9,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 import { EditorElem } from "../glitterBundle/plugins/editor-elem.js";
 import { ShareDialog } from "../dialog/ShareDialog.js";
-import { PageEditor } from "../editor/page-editor.js";
 import { BgWidget } from "./bg-widget.js";
 import { ApiShop } from "../glitter-base/route/shopping.js";
 import { ApiUser } from "../glitter-base/route/user.js";
@@ -18,6 +17,7 @@ import { GlobalUser } from "../glitter-base/global/global-user.js";
 import { ApiApp } from "../glitter-base/route/app.js";
 import { FormWidget } from "../official_view_component/official/form.js";
 import { ApiWallet } from "../glitter-base/route/wallet.js";
+import { ApiPageConfig } from "../api/pageConfig.js";
 const html = String.raw;
 export class BgProject {
     static setLoginConfig(gvc) {
@@ -420,40 +420,8 @@ export class BgProject {
         })}
         `, 900);
     }
-    static setGlobalValue(gvc) {
-        gvc.glitter.share.editorViewModel.selectItem = undefined;
-        return gvc.bindView(() => {
-            const id = gvc.glitter.getUUID();
-            return {
-                bind: id,
-                view: () => {
-                    return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
-                        PageEditor.valueRender(gvc).then((response) => {
-                            resolve(BgWidget.container([html `
-                                <div class="d-flex w-100 align-items-center mb-3 ">
-                                    ${BgWidget.title(`共用資源`)}
-                                    <div class="flex-fill"></div>
-                                    <button class="btn btn-primary-c" style="height:38px;font-size: 14px;"
-                                            onclick="${gvc.event(() => {
-                                    gvc.glitter.htmlGenerate.saveEvent(false);
-                                })}">儲存並更改
-                                    </button>
-                                </div>
-                            `,
-                                BgWidget.card(html `
-                                    <div class="d-flex">
-                                        <div class="border-end " style="width:350px;overflow:hidden;">${response.left}
-                                        </div>
-                                        <div class="flex-fill " style="width:400px;">${response.right}</div>
-                                    </div>`, 'p-0 bg-white rounded border'),
-                            ].join(''), 700));
-                        });
-                    }));
-                }
-            };
-        });
-    }
-    static userManager(gvc, type = 'list', callback = () => { }) {
+    static userManager(gvc, type = 'list', callback = () => {
+    }) {
         const glitter = gvc.glitter;
         const vm = {
             type: "list",
@@ -1078,6 +1046,256 @@ ${BgWidget.card([`<div class="fw-bold fs-7">電子錢包</div>
                 }
             };
         });
+    }
+    static templateReleaseForm(gvc) {
+        var _a, _b;
+        const saasConfig = window.saasConfig;
+        const html = String.raw;
+        const postMD = (_a = gvc.glitter.share.editorViewModel.appConfig.template_config) !== null && _a !== void 0 ? _a : {
+            preview_img: '',
+            image: [],
+            desc: '',
+            name: '',
+            created_by: '',
+            status: 'no',
+            post_to: 'all',
+            version: '1.0',
+            tag: []
+        };
+        if ((gvc.glitter.share.editorViewModel.appConfig.template_type === 2) || (gvc.glitter.share.editorViewModel.appConfig.template_type === 3)) {
+            postMD.status = 'finish';
+        }
+        else if (gvc.glitter.share.editorViewModel.appConfig.template_type === -1) {
+            postMD.status = 'error';
+        }
+        else if (gvc.glitter.share.editorViewModel.appConfig.template_type === 0) {
+            postMD.status = 'no';
+        }
+        postMD.tag = (_b = postMD.tag) !== null && _b !== void 0 ? _b : [];
+        if (postMD.post_to === 'cancel') {
+            postMD.post_to = 'all';
+        }
+        function save() {
+            const dialog = new ShareDialog(gvc.glitter);
+            if (postMD.post_to === 'all') {
+                postMD.status = 'wait';
+            }
+            else {
+                postMD.status = 'finish';
+            }
+            dialog.dataLoading({ text: '提交審核中...', visible: true });
+            ApiPageConfig.createTemplate(window.appName, postMD).then((response) => {
+                dialog.dataLoading({ visible: false });
+                if (response.result) {
+                    dialog.successMessage({ text: `上傳成功...` });
+                }
+                location.reload();
+            });
+        }
+        return BgWidget.container(html `
+            <div class="d-flex w-100 align-items-center mb-3 ">
+                ${BgWidget.title(`模板發佈`)}
+                ${(() => {
+            return (() => {
+                switch (postMD.status) {
+                    case "finish":
+                        return `<div class="badge badge-success fs-7 ms-2" >審核通過</div>`;
+                    case "error":
+                        return `<div class="badge bg-danger fs-7 ms-2" >審核失敗</div>`;
+                    case "wait":
+                        return `<div class="badge bg-warning fs-7 ms-2" style="color:black;">等待審核</div>`;
+                    default:
+                        return `<div class="badge bg-secondary fs-7 ms-2 border" >尚未發佈</div>`;
+                }
+            })();
+        })()}
+                <div class="flex-fill"></div>
+                <button class="btn btn-primary-c" style="height:38px;font-size: 14px;" onclick="${gvc.event(() => {
+            save();
+        })}">確認發佈
+                </button>
+            </div>
+            ${gvc.bindView(() => {
+            const id = gvc.glitter.getUUID();
+            return {
+                bind: id,
+                view: () => {
+                    return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
+                        resolve(html `
+                                <div style="width:900px;max-width:100%;">
+                                    ${[
+                            BgWidget.card(html `
+                                            <div class="alert alert-info p-2 m-1" style="white-space: normal;">
+                                                <strong>請注意!!</strong><br>
+                                                模板發佈請注意上架規範守則，嚴禁發佈觸犯法律條款之內容。
+                                            </div>`),
+                            BgWidget.card([
+                                html `
+                                                ${[
+                                    html `
+                                                        <div class="row">
+                                                            ${[EditorElem.editeInput({
+                                            title: '模板名稱',
+                                            gvc: gvc,
+                                            default: postMD.name,
+                                            callback: (text) => {
+                                                postMD.name = text;
+                                            },
+                                            placeHolder: '請輸入模板名稱'
+                                        }),
+                                        EditorElem.editeInput({
+                                            title: '作者名稱',
+                                            gvc: gvc,
+                                            default: postMD.created_by,
+                                            callback: (text) => {
+                                                postMD.created_by = text;
+                                            },
+                                            placeHolder: '請輸入作者名稱'
+                                        }),
+                                        EditorElem.editeInput({
+                                            title: '版本號碼',
+                                            gvc: gvc,
+                                            default: postMD.version,
+                                            callback: (text) => {
+                                                postMD.version = text;
+                                            },
+                                            placeHolder: '請輸入版本號碼'
+                                        }),
+                                        EditorElem.select({
+                                            title: '發佈至',
+                                            gvc: gvc,
+                                            def: postMD.post_to,
+                                            array: [
+                                                {
+                                                    title: '官方與個人模板庫',
+                                                    value: 'all'
+                                                },
+                                                {
+                                                    title: '個人模板庫',
+                                                    value: 'me'
+                                                }
+                                            ],
+                                            callback: (text) => {
+                                                postMD.post_to = text;
+                                            }
+                                        })].map((dd) => {
+                                        return `<div class="col-6 ">${dd}</div>`;
+                                    }).join('')}
+                                                        </div>`,
+                                    `${EditorElem.h3('模板標籤')}
+                                                    ${gvc.bindView(() => {
+                                        const id = gvc.glitter.getUUID();
+                                        function refreshTag() {
+                                            gvc.notifyDataChange(id);
+                                        }
+                                        return {
+                                            bind: id,
+                                            view: () => {
+                                                return html `
+                                                                            ${postMD.tag.map((dd, index) => {
+                                                    return ` <div class="badge bg-warning text-dark btn "
+                                                                                 ><i
+                                                                                    class="fa-regular fa-circle-minus me-1 text-danger fw-bold" onclick="${gvc.event(() => {
+                                                        postMD.tag.splice(index, 1);
+                                                        refreshTag();
+                                                    })}"></i>${dd}
+                                                                            </div>`;
+                                                }).join('')}
+                                                                            <div class="badge  btn " style="background: #295ed1;"
+                                                                                 onclick="${gvc.event(() => {
+                                                    EditorElem.openEditorDialog(gvc, (gvc) => {
+                                                        let label = '';
+                                                        return `<div class="p-2">${EditorElem.editeInput({
+                                                            gvc: gvc,
+                                                            title: '標籤名稱',
+                                                            default: label,
+                                                            placeHolder: '請輸入標籤名稱',
+                                                            callback: (text) => {
+                                                                label = text;
+                                                            },
+                                                        })}</div>
+<div class="w-100 border-top p-2 d-flex align-items-center justify-content-end">
+<button class="btn btn-primary" style="height:35px;width:80px;" onclick="${gvc.event(() => {
+                                                            postMD.tag.push(label);
+                                                            refreshTag();
+                                                            gvc.closeDialog();
+                                                        })}">確認新增</button>
+</div>
+`;
+                                                    }, () => {
+                                                    }, 400, '新增標籤');
+                                                })}"><i
+                                                                                    class="fa-regular fa-circle-plus me-1"></i>新增標籤
+                                                                            </div>`;
+                                            },
+                                            divCreate: {
+                                                class: `w-100 d-flex flex-wrap bg-secondary p-3`,
+                                                style: `gap:5px;`
+                                            }
+                                        };
+                                    })} 
+                                                     `,
+                                    EditorElem.editeText({
+                                        gvc: gvc,
+                                        title: "模板描述",
+                                        placeHolder: `請輸入模板描述`,
+                                        default: postMD.desc,
+                                        callback: (text) => {
+                                            postMD.desc = text;
+                                        }
+                                    }),
+                                    gvc.bindView(() => {
+                                        const id = gvc.glitter.getUUID();
+                                        return {
+                                            bind: id,
+                                            view: () => {
+                                                return EditorElem.h3(html `
+                                                                            <div class="d-flex align-items-center"
+                                                                                 style="gap:10px;">模板圖片 [ 首張圖片為預覽圖 ]
+                                                                                <div class="d-flex align-items-center justify-content-center rounded-3"
+                                                                                     style="height: 30px;width: 80px;
+">
+                                                                                    <button class="btn ms-2 btn-primary-c ms-2"
+                                                                                            style="height: 30px;width: 80px;"
+                                                                                            onclick="${gvc.event(() => {
+                                                    EditorElem.uploadFileFunction({
+                                                        gvc: gvc,
+                                                        callback: (text) => {
+                                                            postMD.image.push(text);
+                                                            gvc.notifyDataChange(id);
+                                                        },
+                                                        type: `image/*, video/*`
+                                                    });
+                                                })}">添加圖檔
+                                                                                    </button>
+                                                                                </div>
+                                                                            </div>`) + html `
+                                                                            <div class="my-2"></div>` +
+                                                    EditorElem.flexMediaManager({
+                                                        gvc: gvc,
+                                                        data: postMD.image
+                                                    });
+                                            },
+                                            divCreate: {}
+                                        };
+                                    })
+                                ].join('')}
+                                            `
+                            ].join('<div class="my-2"></div>')),
+                            `<div class=" align-items-center justify-content-end ${(postMD.status === 'finish') ? `d-flex` : `d-none`}">
+ <div class="btn btn-danger" style="height:35px;" onclick="${gvc.event(() => {
+                                postMD.post_to = 'cancel';
+                                save();
+                            })}"><i class="fa-regular fa-trash-can me-2"></i> 取消發佈</div>
+</div>`
+                        ].join(`<div class="my-3"></div>`)}
+                                </div>`);
+                    }));
+                },
+                divCreate: { class: `d-flex flex-column flex-column-reverse  flex-md-row`, style: `gap:10px;` }
+            };
+        })}
+        `, 900);
     }
     static appReleaseForm(vm, gvc, type, editorData) {
         const saasConfig = window.saasConfig;

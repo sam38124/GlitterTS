@@ -10,16 +10,16 @@ class UtDatabase {
         this.app = app;
         this.table = table;
     }
-    async querySql(querySql, query) {
+    async querySql(querySql, query, select) {
         if (querySql.length === 0) {
             querySql.push(`1=1`);
         }
-        let sql = `SELECT *
+        let sql = `SELECT ${select || '*'}
                    FROM \`${this.app}\`.\`${this.table}\`
                    where ${querySql.join(' and ')}
                    order by id desc`;
         if (query.id) {
-            const data = (await database_js_1.default.query(`SELECT *
+            const data = (await database_js_1.default.query(`SELECT  ${select || '*'}
                                           FROM (${sql}) as subqyery limit ${query.page * query.limit}, ${query.limit}`, []))[0];
             return {
                 data: data,
@@ -28,7 +28,7 @@ class UtDatabase {
         }
         else {
             return {
-                data: (await database_js_1.default.query(`SELECT *
+                data: (await database_js_1.default.query(`SELECT  ${select || '*'}
                                        FROM (${sql}) as subqyery limit ${query.page * query.limit}, ${query.limit}`, [])),
                 total: (await database_js_1.default.query(`SELECT count(1)
                                         FROM (${sql}) as subqyery`, []))[0]['count(1)']

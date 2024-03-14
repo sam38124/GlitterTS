@@ -1,7 +1,7 @@
-import { pageManager } from "../setting/pageManager.js";
-import { EditorElem } from "../glitterBundle/plugins/editor-elem.js";
-import { ApiPageConfig } from "../api/pageConfig.js";
-import { ShareDialog } from "../dialog/ShareDialog.js";
+import { pageManager } from "../../setting/pageManager.js";
+import { EditorElem } from "../../glitterBundle/plugins/editor-elem.js";
+import { ApiPageConfig } from "../../api/pageConfig.js";
+import { ShareDialog } from "../../dialog/ShareDialog.js";
 export class Page_editor {
     static left(gvc, viewModel, createID, gBundle) {
         const id = gvc.glitter.getUUID();
