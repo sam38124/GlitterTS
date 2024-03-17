@@ -59,11 +59,12 @@ export class HtmlGenerate {
         });
         function loop(array) {
             array.map((dd) => {
-                var _a, _b;
+                var _a, _b, _c;
                 if (dd.type === 'container') {
                     loop((_a = dd.data.setting) !== null && _a !== void 0 ? _a : []);
                 }
-                dd.share = (_b = dd.share) !== null && _b !== void 0 ? _b : share;
+                dd.storage = (_b = dd.storage) !== null && _b !== void 0 ? _b : {};
+                dd.share = (_c = dd.share) !== null && _c !== void 0 ? _c : share;
                 dd.bundle = subData !== null && subData !== void 0 ? subData : {};
             });
         }
@@ -83,7 +84,6 @@ export class HtmlGenerate {
             const renderStart = window.renderClock.stop();
             option = option !== null && option !== void 0 ? option : {};
             const container = (_b = option.containerID) !== null && _b !== void 0 ? _b : gvc.glitter.getUUID();
-            let timerTask = [];
             return gvc.bindView(() => {
                 return {
                     bind: container,
@@ -164,7 +164,6 @@ export class HtmlGenerate {
                                             if ((dd.data.elem === 'link') && (dd.data.attr.find((dd) => {
                                                 return dd.attr === 'rel' && dd.value === 'stylesheet';
                                             }))) {
-                                                console.log(`document`, document.querySelector('div'));
                                                 gvc.glitter.addStyleLink(dd.data.attr.find((dd) => {
                                                     return dd.attr === 'href';
                                                 }).value, document);
@@ -477,32 +476,8 @@ export class HtmlGenerate {
                         gvc.glitter.deBugMessage(`RenderFinishID:${option.containerID}`);
                         gvc.glitter.deBugMessage(`RenderFinish-time:(start:${renderStart})-(end:${window.renderClock.stop()})`);
                         option.onCreate && option.onCreate();
-                        for (const script of setting.filter((dd) => {
-                            return dd.type === 'code' && dd.data.triggerTime === 'timer';
-                        })) {
-                            timerTask.push((() => {
-                                let vm = {
-                                    toggle: true
-                                };
-                                function execute() {
-                                    codeComponent.render(gvc, script, setting, [], subData).view().then(() => {
-                                        setTimeout(() => {
-                                            if (vm.toggle) {
-                                                execute();
-                                            }
-                                        }, parseInt(script.data.timer, 10));
-                                    });
-                                }
-                                execute();
-                                return vm;
-                            })());
-                        }
                     },
                     onDestroy: () => {
-                        timerTask.map((dd) => {
-                            dd.toggle = false;
-                        });
-                        timerTask = [];
                     }
                 };
             });

@@ -1953,3 +1953,4 @@ export class BgNotify {
         });
     }
 }
+window.glitter.setModule(import.meta.url, BgNotify);

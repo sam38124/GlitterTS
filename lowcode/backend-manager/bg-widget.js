@@ -126,3 +126,4 @@ ${html}
                                 </div>`;
     }
 }
+window.glitter.setModule(import.meta.url, BgWidget);

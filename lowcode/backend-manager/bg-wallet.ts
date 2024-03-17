@@ -1039,3 +1039,5 @@ ${BgWidget.card(BgProject.userInformationDetail({
         })
     }
 }
+
+(window as any).glitter.setModule(import.meta.url, BgWallet)

@@ -16,7 +16,16 @@ export class Swal {
         const funnel = new Funnel(gvc);
         let sw;
         this.init = (callback) => {
-            gvc.addMtScript([{ src: 'https://cdn.jsdelivr.net/npm/sweetalert2@11.6.5/dist/sweetalert2.all.min.js' }], () => ((sw = window.Swal), callback()), () => { });
+            gvc.addMtScript([{ src: 'https://cdn.jsdelivr.net/npm/sweetalert2@11.6.5/dist/sweetalert2.all.min.js' }], () => {
+                const interval = setInterval(() => {
+                    if (window.Swal) {
+                        (sw = window.Swal);
+                        callback();
+                        clearInterval(interval);
+                    }
+                }, 1000);
+            }, () => {
+            });
         };
         this.fire = (title, text, icon) => {
             this.init(() => sw.fire(title, text, icon));

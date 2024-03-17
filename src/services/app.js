@@ -38,6 +38,7 @@ const nginx_conf_1 = require("nginx-conf");
 const process = __importStar(require("process"));
 const public_table_check_js_1 = require("../api-public/services/public-table-check.js");
 const backend_service_js_1 = require("./backend-service.js");
+const template_js_1 = require("./template.js");
 class App {
     static getAdConfig(app, key) {
         return new Promise(async (resolve, reject) => {
@@ -313,8 +314,46 @@ class App {
                                           where userID = ? `, [userID]))[0];
         return {
             memberType: userData.userData.menber_type,
-            brand: brand
+            brand: brand,
+            userData: userData.userData
         };
+    }
+    static async preloadPageData(appName, page) {
+        const app = new App();
+        const preloadData = {
+            component: [],
+            appConfig: (await app.getAppConfig({
+                appName: appName
+            }))
+        };
+        const pageData = (await (new template_js_1.Template(undefined).getPage({
+            appName: appName,
+            tag: page
+        })))[0];
+        preloadData.component.push(pageData);
+        async function loop(array) {
+            var _a;
+            for (const dd of array) {
+                if (dd.type === 'container') {
+                    await loop(dd.data.setting);
+                }
+                else if (dd.type === 'component') {
+                    const pageData = (await (new template_js_1.Template(undefined).getPage({
+                        appName: appName,
+                        tag: dd.data.tag
+                    })))[0];
+                    preloadData.component.push(pageData);
+                    await loop((_a = pageData.config) !== null && _a !== void 0 ? _a : []);
+                }
+            }
+        }
+        (await loop(pageData.config));
+        let mapPush = {};
+        mapPush['getPlugin'] = { callback: [], data: { response: { data: preloadData.appConfig, result: true } }, isRunning: true };
+        preloadData.component.map((dd) => {
+            mapPush['getPageData-' + dd.tag] = { callback: [], isRunning: true, data: { response: { result: [dd] } } };
+        });
+        return mapPush;
     }
     async setAppConfig(config) {
         var _a, _b;

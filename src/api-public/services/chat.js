@@ -9,6 +9,7 @@ const exception_1 = __importDefault(require("../../modules/exception"));
 const ut_database_js_1 = require("../utils/ut-database.js");
 const user_js_1 = require("./user.js");
 const ses_js_1 = require("../../services/ses.js");
+const app_js_1 = require("../../services/app.js");
 class Chat {
     async addChatRoom(room) {
         try {
@@ -168,11 +169,7 @@ class Chat {
             if (particpant.find((dd) => {
                 return dd.user_id === 'manager';
             }) && room.user_id !== 'manager') {
-                const managerUser = (await database_1.default.query(`select userData
-                                                     from ${process.env.GLITTER_DB}.t_user
-                                                     where userID in (select user
-                                                                      from ${process.env.GLITTER_DB}.app_config
-                                                                      where appName = ${database_1.default.escape(this.app)})`, []))[0];
+                const managerUser = (await app_js_1.App.checkBrandAndMemberType(this.app));
                 if (user) {
                     await (0, ses_js_1.sendmail)(`service@ncdesign.info`, managerUser['userData'].email, `有一則客服訊息`, this.templateWithCustomerMessage('收到客服訊息', ` ${user.userData.name}傳送一則客服訊息:`, room.message.text));
                 }
@@ -182,6 +179,7 @@ class Chat {
             }
         }
         catch (e) {
+            console.log(e);
             throw exception_1.default.BadRequestError((_c = e.code) !== null && _c !== void 0 ? _c : 'BAD_REQUEST', 'AddMessage Error:' + e.message, null);
         }
     }

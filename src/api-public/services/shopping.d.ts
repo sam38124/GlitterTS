@@ -34,8 +34,8 @@ interface VoucherData {
 }
 export declare class Shopping {
     app: string;
-    token: IToken;
-    constructor(app: string, token: IToken);
+    token?: IToken;
+    constructor(app: string, token?: IToken);
     deleteRebate(cf: {
         id: string;
     }): Promise<void>;

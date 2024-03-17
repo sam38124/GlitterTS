@@ -1,6 +1,6 @@
 import { IToken } from "../models/Auth.js";
 export declare class App {
-    token: IToken;
+    token?: IToken;
     static getAdConfig(app: string, key: string): Promise<any>;
     createApp(config: {
         appName: string;
@@ -22,7 +22,9 @@ export declare class App {
     static checkBrandAndMemberType(app: string): Promise<{
         memberType: any;
         brand: any;
+        userData: any;
     }>;
+    static preloadPageData(appName: string, page: string): Promise<any>;
     setAppConfig(config: {
         appName: string;
         data: any;
@@ -38,5 +40,5 @@ export declare class App {
     deleteAPP(config: {
         appName: string;
     }): Promise<void>;
-    constructor(token: IToken);
+    constructor(token?: IToken);
 }

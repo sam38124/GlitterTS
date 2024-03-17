@@ -145,6 +145,7 @@
     }
 </style>
 <script>
+    console.log(`window.preloadData-->`,window.preloadData);
     function preload(data) {
         let joinArray = ['__']
 
@@ -176,12 +177,12 @@
                     })
                     preload(data)
                 })
-            })
+            },()=>{})
         })
     }
 
     window.glitterInitialHelper = {
-        share: {},
+        share: window.preloadData ?? {},
         setQueue: (tag, fun, callback) => {
             window.glitterInitialHelper.share[tag] = window.glitterInitialHelper.share[tag] ?? {
                 callback: [],
@@ -202,6 +203,8 @@
                 if (!window.glitterInitialHelper.share[tag].isRunning) {
                     window.glitterInitialHelper.share[tag].isRunning = true
                     fun((response) => {
+                        console.log(tag)
+                        console.log(window.glitterInitialHelper.share[tag].callback)
                         window.glitterInitialHelper.share[tag].callback.map((callback) => {
                             callback && callback((() => {
                                 try {
@@ -301,13 +304,14 @@
     if (location.pathname.slice(-1) !== '/' && !location.pathname.endsWith("html")) {
         location.pathname = location.pathname + "/"
     }
-    glitterInitialHelper.getPlugin()
-    const url = new URL(location.href)
-    glitterInitialHelper.getPageData(url.searchParams.get('page'), (data) => {
-        preload(data)
-    })
+    const loc = new URL(location.href)
+    if (loc.searchParams.get('isIframe')==='true'){
+        (window).glitterInitialHelper=(window.parent).glitterInitialHelper;
+    }else if(loc.searchParams.get('type')==='editor'){
+        glitterInitialHelper.getPlugin()
+        glitterInitialHelper.getPageData(loc.searchParams.get('page'), (data) => { preload(data) })
+    }
 </script>
-
 <script src="glitterBundle/jquery.js"></script>
 <script src="glitterBundle/module/PageManager.js" type="module"></script>
 <script src="Entry.js" type="module"></script>

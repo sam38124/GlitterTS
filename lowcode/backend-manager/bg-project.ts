@@ -14,6 +14,7 @@ import {BgWallet} from "./bg-wallet.js";
 import {ApiWallet} from "../glitter-base/route/wallet.js";
 import {StoreHelper} from "../helper/store-helper.js";
 import {ApiPageConfig} from "../api/pageConfig.js";
+import {BackendServer} from "../api/backend-server.js";
 
 
 const html = String.raw
@@ -1857,3 +1858,6 @@ ${BgWidget.card([`<div class="fw-bold fs-7">電子錢包</div>
     }
 
 }
+
+
+(window as any).glitter.setModule(import.meta.url, BgProject)

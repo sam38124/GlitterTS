@@ -1,21 +1,15 @@
 import {GVC} from '../glitterBundle/GVController.js';
 import {Main_editor} from "./function-page/main_editor.js";
-import {Page_editor} from "./function-page/page_editor.js";
-import {Setting_editor} from "./function-page/setting_editor.js";
-import {Plugin_editor} from "./function-page/plugin_editor.js";
 import {PageEditor} from "../editor/page-editor.js";
 import {EditorElem} from "../glitterBundle/plugins/editor-elem.js";
-import {fileManager} from "../setting/appSetting.js";
-import {ShareDialog} from "../dialog/ShareDialog.js";
-import Add_item_dia from "../glitterBundle/plugins/add_item_dia.js";
-import {FormWidget} from "../official_view_component/official/form.js";
 import {BgGlobalEvent} from "../backend-manager/bg-global-event.js";
-import {DialogInterface} from "../dialog/dialog-interface.js";
-import {ApiPageConfig} from "../api/pageConfig.js";
 import {Storage} from "../helper/storage.js";
 import {PageSettingView} from "../editor/page-setting-view.js";
 import {AddPage} from "../editor/add-page.js";
 import {SetGlobalValue} from "../editor/set-global-value.js";
+import {config} from "../config.js";
+import {ShareDialog} from "../dialog/ShareDialog.js";
+import {ApiPageConfig} from "../api/pageConfig.js";
 
 export enum ViewType {
     mobile = "mobile",
@@ -103,6 +97,9 @@ export class Editor {
                             
                             <div class="d-flex align-items-center flex-fill ${(Storage.select_function==='page-editor') ? ``:`d-none`}" style="">
                                
+                              
+                               <div style="width:36px;"></div>
+                                <div class="flex-fill"></div>
                                 ${gvc.bindView(()=>{
                                     const id=gvc.glitter.getUUID()
                                     return {
@@ -122,13 +119,11 @@ export class Editor {
                                         },
                                         onCreate:()=>{
                                             $('.tooltip').remove();
-                                            $('[data-bs-toggle="tooltip"]').tooltip();  
+                                            $('[data-bs-toggle="tooltip"]').tooltip();
                                         }
                                     }
                                 })}
-                               
-                                <div class="flex-fill"></div>
-                                <div class="d-flex align-items-center justify-content-center hoverBtn me-1 border"
+                                <div class="d-flex align-items-center justify-content-center hoverBtn ms-1 me-1 border"
                                      style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;"
                                      data-bs-toggle="tooltip" data-bs-placement="top"
                                      data-bs-custom-class="custom-tooltip"
@@ -172,15 +167,15 @@ export class Editor {
                                                                             type: 'module'
                                                                         },
                                                                         {
-                                                                            title: '網誌模板',
+                                                                            title: '樣板',
                                                                             icon: 'fa-regular fa-file-dashed-line',
                                                                             type: 'article'
                                                                         },
-                                                                        {
-                                                                            title: '網誌文章',
-                                                                            icon: 'fa-solid fa-blog',
-                                                                            type: 'blog'
-                                                                        }
+                                                                        // {
+                                                                        //     title: '網誌文章',
+                                                                        //     icon: 'fa-solid fa-blog',
+                                                                        //     type: 'blog'
+                                                                        // }
                                                                     ];
                                                                     return list.map((dd: any) => {
                                                                         if (dd.type === Storage.select_page_type) {
@@ -256,6 +251,88 @@ background:linear-gradient(135deg, #667eea 0%, #764ba2 100%);background:-webkit-
                                      style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;"
                                      data-bs-toggle="tooltip" data-bs-placement="top"
                                      data-bs-custom-class="custom-tooltip"
+                                     data-bs-title="複製當前頁面"
+                                     onclick="${gvc.event(() => {
+                                         EditorElem.openEditorDialog(gvc,(gvc)=>{
+                                             const tdata: {
+                                                 "appName": string,
+                                                 "tag": string,
+                                                 "group"?: string,
+                                                 "name"?: string,
+                                                 "config"?: [],
+                                                 "page_config"?: any,
+                                                 "copy"?: string,
+                                                 "page_type"?: string
+                                             } = {
+                                                 "appName": config.appName,
+                                                 "tag": "",
+                                                 "group": gvc.glitter.share.editorViewModel.data.group,
+                                                 "name": "",
+                                                 "config": [],
+                                                 "page_type": 'page',
+                                                 copy:gvc.glitter.getUrlParameter('page')
+                                             }
+                                             return `
+            <div class="py-2 px-2">
+${gvc.bindView(() => {
+                                                 const id = glitter.getUUID()
+                                                 return {
+                                                     bind: id,
+                                                     view: () => {
+                                                         return gvc.map([
+                                                             glitter.htmlGenerate.editeInput({
+                                                                 gvc: gvc,
+                                                                 title: '頁面標籤',
+                                                                 default: "",
+                                                                 placeHolder: "請輸入頁面標籤[不得重複]",
+                                                                 callback: (text) => {
+                                                                     tdata.tag = text
+                                                                 }
+                                                             }),
+                                                             glitter.htmlGenerate.editeInput({
+                                                                 gvc: gvc,
+                                                                 title: '頁面名稱',
+                                                                 default: "",
+                                                                 placeHolder: "請輸入頁面名稱",
+                                                                 callback: (text) => {
+                                                                     tdata.name = text
+                                                                 }
+                                                             })
+                                                         ])
+                                                     },
+                                                     divCreate: {}
+                                                 }
+                                             })}
+</div>
+<div class="d-flex w-100 my-2 align-items-center justify-content-center">
+<button class="btn btn-primary " style="width: calc(100% - 20px);" onclick="${gvc.event(() => {
+                                                 const dialog = new ShareDialog(glitter)
+                                                 dialog.dataLoading({text: "上傳中", visible: true})
+                                                 ApiPageConfig.addPage(tdata).then((it) => {
+                                                     setTimeout(() => {
+                                                         dialog.dataLoading({text: "", visible: false})
+                                                         if (it.result) {
+                                                             const li = new URL(location.href)
+                                                             li.searchParams.set('page', tdata.tag)
+                                                             location.href = li.href
+                                                         } else {
+                                                             dialog.errorMessage({
+                                                                 text: "已有此頁面標籤"
+                                                             })
+                                                         }
+                                                     }, 1000)
+                                                 })
+                                             })}">確認新增</button>
+</div>
+            `;
+                                         },()=>{},300,'複製頁面')
+                                     })}">
+                                    <i class="fa-regular fa-copy"></i>
+                                </div>
+                                <div class="d-flex align-items-center justify-content-center hoverBtn  me-1 border"
+                                     style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;"
+                                     data-bs-toggle="tooltip" data-bs-placement="top"
+                                     data-bs-custom-class="custom-tooltip"
                                      data-bs-title="添加頁面"
                                      onclick="${gvc.event(() => {
                                          AddPage.toggle(true)
@@ -294,7 +371,20 @@ background:linear-gradient(135deg, #667eea 0%, #764ba2 100%);background:-webkit-
                                         ].join(`<div class="me-1"></div>`)
                                     }
                                 })()}
-                                <div class="d-flex align-items-center justify-content-center hoverBtn ms-1 me-2 border"
+                                <div class="d-flex align-items-center justify-content-center hoverBtn ms-1 me-2 border bg-white
+${(glitter.share.editorViewModel.homePage===glitter.getUrlParameter('page')) ? `d-none`:``}
+"
+                                     style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;"
+                                     data-bs-toggle="tooltip" data-bs-placement="top"
+                                     data-bs-custom-class="custom-tooltip" data-bs-title="返回首頁"
+                                     onclick="${gvc.event(() => {
+                                         const url = new URL(location.href)
+                                         url.searchParams.set('page', glitter.share.editorViewModel.homePage);
+                                         location.href=url.href;
+                                     })}">
+                                    <i class="fa-regular fa-house"></i>
+                                </div>
+                                <div class="d-flex align-items-center justify-content-center hoverBtn  me-2 border"
                                      style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;"
                                      data-bs-toggle="tooltip" data-bs-placement="top"
                                      data-bs-custom-class="custom-tooltip"

@@ -1,6 +1,6 @@
 import { IToken } from "../models/Auth.js";
 export declare class Template {
-    token: IToken;
+    token?: IToken;
     verifyPermission(appName: string): Promise<boolean>;
     createPage(config: {
         appName: string;
@@ -12,6 +12,7 @@ export declare class Template {
         copy: any;
         page_type: string;
         copyApp: string;
+        replace?: boolean;
     }): Promise<boolean>;
     updatePage(config: {
         appName: string;
@@ -59,5 +60,5 @@ export declare class Template {
         me?: string;
         favorite?: string;
     }): Promise<any>;
-    constructor(token: IToken);
+    constructor(token?: IToken);
 }

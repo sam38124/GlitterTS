@@ -1,7 +1,7 @@
 'use strict';
-import { Funnel } from '../glitterBundle/funnel.js';
-import { GVC } from '../glitterBundle/GVController.js';
-import { Editor } from './editor.js';
+import {Funnel} from '../glitterBundle/funnel.js';
+import {GVC} from '../glitterBundle/GVController.js';
+import {Editor} from './editor.js';
 
 type icons = 'success' | 'error' | 'warning' | 'info' | 'question';
 
@@ -36,9 +36,18 @@ export class Swal {
         let sw: any;
         this.init = (callback: () => void) => {
             gvc.addMtScript(
-                [{ src: 'https://cdn.jsdelivr.net/npm/sweetalert2@11.6.5/dist/sweetalert2.all.min.js' }],
-                () => ((sw = (window as any).Swal), callback()),
-                () => {}
+                [{src: 'https://cdn.jsdelivr.net/npm/sweetalert2@11.6.5/dist/sweetalert2.all.min.js'}],
+                () => {
+                    const interval = setInterval(() => {
+                        if ((window as any).Swal) {
+                            (sw = (window as any).Swal)
+                            callback()
+                            clearInterval(interval)
+                        }
+                    }, 1000)
+                },
+                () => {
+                }
             );
         };
 
@@ -103,7 +112,7 @@ export class Swal {
                         // t.addEventListener('mouseleave', sw.resumeTimer);
                     },
                 });
-                toast.fire({ icon: data.icon, title: data.title });
+                toast.fire({icon: data.icon, title: data.title});
             });
         };
 
@@ -159,7 +168,7 @@ export class Swal {
             this.init(() => {
                 sw.fire({
                     title: title,
-                    html: editor.generateForm(formList, window, (res:any) => formCB(res)),
+                    html: editor.generateForm(formList, window, (res: any) => formCB(res)),
                     focusConfirm: false,
                     showCancelButton: true,
                     confirmButtonColor: '#6169d0',

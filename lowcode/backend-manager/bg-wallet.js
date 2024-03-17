@@ -1005,3 +1005,4 @@ ${BgWidget.card(BgProject.userInformationDetail({
         });
     }
 }
+window.glitter.setModule(import.meta.url, BgWallet);

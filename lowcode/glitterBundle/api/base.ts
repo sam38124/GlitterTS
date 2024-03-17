@@ -9,6 +9,9 @@ export class BaseApi {
                 body:config.data,
                 mode: 'cors'
             };
+            if(requestOptions.method==='GET'){
+                requestOptions.body=undefined
+            }
             fetch(config.url, requestOptions)
                 .then(async (response) => {
                     try {
@@ -19,6 +22,7 @@ export class BaseApi {
                     }
 
                 }).catch(error => {
+                    console.log(error)
                 resolve({result: false,response:error})
             });
         })

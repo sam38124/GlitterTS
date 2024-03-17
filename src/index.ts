@@ -16,18 +16,15 @@ import AWS from "aws-sdk";
 import {Live_source} from "./live_source";
 import * as process from "process";
 import bodyParser from 'body-parser'
-import {Post} from "./api-public/services/post.js";
-import response from "./modules/response.js";
 import {ApiPublic} from "./api-public/services/public-table-check.js";
 import {Release} from "./services/release.js";
 import fs from "fs";
 import {App} from "./services/app.js";
 import {Firebase} from "./modules/firebase.js";
 import {GlitterUtil} from "./helper/glitter-util.js";
-import Tool from "./api-public/services/ezpay/tool.js";
-import crypto, {Encoding} from 'crypto';
-import bcrypt from 'bcrypt';
-//Glitter FrontEnd Rout
+import {Seo} from "./services/seo.js";
+import {Shopping} from "./api-public/services/shopping.js";
+
 export const app = express();
 const logger = new Logger();
 
@@ -174,6 +171,7 @@ async function createAppRoute() {
     }
 }
 
+
 export async function createAPP(dd: any) {
     Live_source.liveAPP.push(dd.appName)
     return await GlitterUtil.set_frontend(app, [
@@ -186,71 +184,37 @@ export async function createAPP(dd: any) {
                     if (req.query.appName) {
                         appName = req.query.appName
                     }
-                    console.log(`appName-->`, appName)
                     //SAAS品牌和用戶類型
                     const brandAndMemberType = await App.checkBrandAndMemberType(appName)
-                    let vm = {
-                        glitterInfo: `<script>
-window.appName='${appName}';
-window.glitterBase='${brandAndMemberType.brand}'
-window.memberType='${brandAndMemberType.memberType}'
-window.glitterBackend='${config.domain}';
-</script>`
-                    }
-                    let data = (await db.execute(`SELECT page_config, \`${saasConfig.SAAS_NAME}\`.app_config.\`config\`, tag
-                                                  FROM \`${saasConfig.SAAS_NAME}\`.page_config,
-                                                       \`${saasConfig.SAAS_NAME}\`.app_config
-                                                  where \`${saasConfig.SAAS_NAME}\`.page_config.appName = ${db.escape(appName)}
-                                                    and tag = ${db.escape(req.query.page)}
-                                                    and \`${saasConfig.SAAS_NAME}\`.page_config.appName = \`${saasConfig.SAAS_NAME}\`.app_config.appName;
-                    `, []))[0]
-                    let redirect = ''
+                    let data = await Seo.getPageInfo(appName,req.query.page as string);
                     if (data && data.page_config) {
-                        const d = data.page_config.seo ?? {}
-                        if (d.type !== 'custom') {
-                            data = (await db.execute(`SELECT page_config, \`${saasConfig.SAAS_NAME}\`.app_config.\`config\`, tag
-                                                      FROM \`${saasConfig.SAAS_NAME}\`.page_config,
-                                                           \`${saasConfig.SAAS_NAME}\`.app_config
-                                                      where \`${saasConfig.SAAS_NAME}\`.page_config.appName = ${db.escape(appName)}
-                                                        and tag = ${db.escape(data.config.homePage)}
-                                                        and \`${saasConfig.SAAS_NAME}\`.page_config.appName = \`${saasConfig.SAAS_NAME}\`.app_config.appName;
-                            `, []))[0]
-                        }
-                    } else {
-                        const config = (await db.execute(`SELECT \`${saasConfig.SAAS_NAME}\`.app_config.\`config\`
-                                                          FROM \`${saasConfig.SAAS_NAME}\`.app_config
-                                                          where \`${saasConfig.SAAS_NAME}\`.app_config.appName = ${db.escape(appName)} limit 0,1
-                        `, []))[0]['config']
-                        if (config && ((await db.execute(`SELECT count(1)
-                                                          FROM \`${saasConfig.SAAS_NAME}\`.page_config
-                                                          where \`${saasConfig.SAAS_NAME}\`.page_config.appName = ${db.escape(appName)}
-                                                            and tag = ${db.escape(config['homePage'])}
-                        `, []))[0]["count(1)"] === 1)) {
-                            redirect = config['homePage']
-                        } else {
-                            redirect = (await db.execute(`SELECT tag
-                                                          FROM \`${saasConfig.SAAS_NAME}\`.page_config
-                                                          where \`${saasConfig.SAAS_NAME}\`.page_config.appName = ${db.escape(appName)} limit 0,1
-                            `, []))[0]['tag']
-                        }
-                        data = (await db.execute(`SELECT page_config, \`${saasConfig.SAAS_NAME}\`.app_config.\`config\`, tag
-                                                  FROM \`${saasConfig.SAAS_NAME}\`.page_config,
-                                                       \`${saasConfig.SAAS_NAME}\`.app_config
-                                                  where \`${saasConfig.SAAS_NAME}\`.page_config.appName = ${db.escape(appName)}
-                                                    and tag = ${db.escape(redirect)}
-                                                    and \`${saasConfig.SAAS_NAME}\`.page_config.appName = \`${saasConfig.SAAS_NAME}\`.app_config.appName;
-                        `, []))[0]
-
-                        if (req.query.type) {
-                            redirect += `&type=${req.query.type}`
-                        }
-                        if (req.query.appName) {
-                            redirect += `&appName=${req.query.appName}`
-                        }
-                    }
-                    return `${(() => {
                         data.page_config = data.page_config ?? {}
-                        if (data && data.page_config) {
+                        const d = data.page_config.seo ?? {}
+                        if(data.page_type==='article' && data.page_config.template_type==='product'){
+                            const pd=(await new Shopping(appName,undefined).getProduct({
+                                page:0,
+                                limit:1,
+                                id:req.query.product_id as string
+                            }))
+                            if(pd.data.content){
+                                const productSeo=pd.data.content.seo ?? {}
+                                if (d.type !== 'custom') {
+                                    data =await Seo.getPageInfo(appName,data.config.homePage);
+                                    data.page_config = data.page_config ?? {}
+                                    data.page_config.seo=data.page_config.seo??{}
+                                    data.page_config.seo.title=productSeo.title;
+                                    data.page_config.seo.content=productSeo.content;
+                                }
+                            }else{
+                                data =await Seo.getPageInfo(appName,data.config.homePage);
+                            }
+
+                        }else  if (d.type !== 'custom') {
+                            data =await Seo.getPageInfo(appName,data.config.homePage);
+                        }
+                        const preload=(req.query.type === 'editor' || req.query.isIframe === 'true') ? {} : await App.preloadPageData(appName,data.tag);
+                        return `${(() => {
+                            data.page_config = data.page_config ?? {}
                             const d = data.page_config.seo ?? {}
                             return `<title>${d.title ?? "尚未設定標題"}</title>
     <link rel="canonical" href="./?page=${data.tag}">
@@ -258,11 +222,12 @@ window.glitterBackend='${config.domain}';
     <link id="appImage" rel="shortcut icon" href="${d.logo ?? ""}" type="image/x-icon">
     <link rel="icon" href="${d.logo ?? ""}" type="image/png" sizes="128x128">
     <meta property="og:image" content="${d.image ?? ""}">
-    <meta property="og:title" content="${d.title ?? ""}">
-    <meta name="description" content="${d.content ?? ""}">
-    <meta name="og:description" content="${d.content ?? ""}">
+    <meta property="og:title" content="${(d.title ?? "").replace(/\n/g,'')}">
+    <meta name="description" content="${(d.content ?? "").replace(/\n/g,'')}">
+    <meta name="og:description" content="${(d.content ?? "").replace(/\n/g,'')}">
      ${d.code ?? ''}
   ${(() => {
+      return  ``
                                 if (req.query.type === 'editor') {
                                     return ``
                                 } else {
@@ -279,22 +244,22 @@ window.glitterBackend='${config.domain}';
                                     }).join('')}`
                                 }
                             })()}
-    ${(() => {
-                                if (redirect) {
-                                    return `<script>
-window.location.href='?page=${redirect}';
-</script>`
-                                } else {
-                                    return ``
-                                }
-                            })()}
+
+
 `
-                        } else {
-                            return `<script>
-window.location.href='?page=${redirect}';
-</script>`
-                        }
-                    })()}${vm.glitterInfo}`
+                        })()}
+                        <script>
+window.appName='${appName}';
+window.glitterBase='${brandAndMemberType.brand}';
+window.memberType='${brandAndMemberType.memberType}';
+window.glitterBackend='${config.domain}';
+window.preloadData=${JSON.stringify(preload)};
+</script>
+                         
+                        `
+                    } else {
+                       return  await Seo.redirectToHomePage(appName,req);
+                    }
                 } catch (e: any) {
                     console.log(e)
                     return e.message

@@ -221,58 +221,58 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
                                         width: "400px",
                                         editTitle: `判斷式頁面嵌入`
                                     }),
-                    //                 html`
-                    //                     <div class="mx-n2">
-                    //                         ${gvc.bindView(() => {
-                    //                             const id = glitter.getUUID()
-                    //                             return {
-                    //                                 bind: id,
-                    //                                 view: () => {
-                    //                                     return new Promise((resolve, reject) => {
-                    //                                         BaseApi.create({
-                    //                                             "url": saasConfig.config.url + `/api/v1/template?appName=${saasConfig.config.appName}&page_type=module`,
-                    //                                             "type": "GET",
-                    //                                             "timeout": 0,
-                    //                                             "headers": {
-                    //                                                 "Content-Type": "application/json"
-                    //                                             }
-                    //                                         }).then((d2) => {
-                    //                                             data.dataList = d2.response.result
-                    //                                             let map = [
-                    //                                                 `<div class="mx-0 d-flex   px-2 hi fw-bold d-flex align-items-center border-bottom border-top py-2 bgf6" style="color:#151515;font-size:16px;gap:0px;">
-                    //                            嵌入頁面編輯
-                    //                         </div>`,
-                    //                                             ]
-                    //                                             const def = data.dataList.find((dd: any) => {
-                    //                                                 return dd.tag === widget.data.tag
-                    //                                             })
-                    //                                             def && map.push(`<div class="btn " style="background:white;width:calc(100% - 20px);border-radius:8px;
-                    // min-height:45px;border:1px solid black;color:#151515;margin-left:10px;" onclick="${gvc.event(() => {
-                    //                                                 glitter.setUrlParameter('page', def.tag)
-                    //                                                 glitter.share.reloadEditor()
-                    //                                             })}">${def.name}</div>`)
-                    //                                             widget.data.list.map((d2: any) => {
-                    //                                                 const def = data.dataList.find((dd: any) => {
-                    //                                                     return dd.tag === d2.tag
-                    //                                                 })
-                    //                                                 def && map.push(`<div class="btn " style="background:white;width:calc(100% - 20px);border-radius:8px;
-                    // min-height:45px;border:1px solid black;color:#151515;margin-left:10px;" onclick="${gvc.event(() => {
-                    //                                                     glitter.setUrlParameter('page', def.tag)
-                    //                                                     location.reload()
-                    //                                                 })}">${def.name}</div>`)
-                    //                                             })
-                    //                                             if (map.length === 1) {
-                    //                                                 resolve('')
-                    //                                             } else {
-                    //                                                 resolve(map.join(`<div class="my-2"></div>`))
-                    //                                             }
-                    //                                         })
-                    //                                     })
-                    //                                 },
-                    //                                 divCreate: {}
-                    //                             }
-                    //                         })}
-                    //                     </div>`
+                                    //                 html`
+                                    //                     <div class="mx-n2">
+                                    //                         ${gvc.bindView(() => {
+                                    //                             const id = glitter.getUUID()
+                                    //                             return {
+                                    //                                 bind: id,
+                                    //                                 view: () => {
+                                    //                                     return new Promise((resolve, reject) => {
+                                    //                                         BaseApi.create({
+                                    //                                             "url": saasConfig.config.url + `/api/v1/template?appName=${saasConfig.config.appName}&page_type=module`,
+                                    //                                             "type": "GET",
+                                    //                                             "timeout": 0,
+                                    //                                             "headers": {
+                                    //                                                 "Content-Type": "application/json"
+                                    //                                             }
+                                    //                                         }).then((d2) => {
+                                    //                                             data.dataList = d2.response.result
+                                    //                                             let map = [
+                                    //                                                 `<div class="mx-0 d-flex   px-2 hi fw-bold d-flex align-items-center border-bottom border-top py-2 bgf6" style="color:#151515;font-size:16px;gap:0px;">
+                                    //                            嵌入頁面編輯
+                                    //                         </div>`,
+                                    //                                             ]
+                                    //                                             const def = data.dataList.find((dd: any) => {
+                                    //                                                 return dd.tag === widget.data.tag
+                                    //                                             })
+                                    //                                             def && map.push(`<div class="btn " style="background:white;width:calc(100% - 20px);border-radius:8px;
+                                    // min-height:45px;border:1px solid black;color:#151515;margin-left:10px;" onclick="${gvc.event(() => {
+                                    //                                                 glitter.setUrlParameter('page', def.tag)
+                                    //                                                 glitter.share.reloadEditor()
+                                    //                                             })}">${def.name}</div>`)
+                                    //                                             widget.data.list.map((d2: any) => {
+                                    //                                                 const def = data.dataList.find((dd: any) => {
+                                    //                                                     return dd.tag === d2.tag
+                                    //                                                 })
+                                    //                                                 def && map.push(`<div class="btn " style="background:white;width:calc(100% - 20px);border-radius:8px;
+                                    // min-height:45px;border:1px solid black;color:#151515;margin-left:10px;" onclick="${gvc.event(() => {
+                                    //                                                     glitter.setUrlParameter('page', def.tag)
+                                    //                                                     location.reload()
+                                    //                                                 })}">${def.name}</div>`)
+                                    //                                             })
+                                    //                                             if (map.length === 1) {
+                                    //                                                 resolve('')
+                                    //                                             } else {
+                                    //                                                 resolve(map.join(`<div class="my-2"></div>`))
+                                    //                                             }
+                                    //                                         })
+                                    //                                     })
+                                    //                                 },
+                                    //                                 divCreate: {}
+                                    //                             }
+                                    //                         })}
+                                    //                     </div>`
                                 ].join(` <div class="my-2"></div>`)
                             } else {
                                 return `<div class="w-100 d-flex align-items-center justify-content-center p-3">
@@ -300,12 +300,12 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
                 return gvc.bindView(() => {
                     const id = glitter.getUUID()
                     let selectTag = ''
-                    let vm:{
-                        loading:boolean,
-                        data:any
-                    }={
-                        loading:true,
-                        data:{}
+                    let vm: {
+                        loading: boolean,
+                        data: any
+                    } = {
+                        loading: true,
+                        data: {}
                     }
                     BaseApi.create({
                         "url": saasConfig.config.url + `/api/v1/template?appName=${saasConfig.config.appName}`,
@@ -314,20 +314,20 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
                         "headers": {
                             "Content-Type": "application/json"
                         }
-                    }).then((d2)=>{
-                        vm.data=d2
-                        vm.loading=false
+                    }).then((d2) => {
+                        vm.data = d2
+                        vm.loading = false
                         gvc.notifyDataChange(id)
                     })
                     return {
                         bind: id,
                         view: () => {
-                            if(vm.loading){
-                                return  `<div class="w-100 d-flex align-items-center justify-content-center">
+                            if (vm.loading) {
+                                return `<div class="w-100 d-flex align-items-center justify-content-center">
 <div class="spinner-border"></div>
 </div>`
-                            }else{
-                                const d2=vm.data
+                            } else {
+                                const d2 = vm.data
                                 data.dataList = d2.response.result
                                 let valueArray: { title: string, tag: string }[] = []
                                 const def: any = data.dataList.find((dd: any) => {
@@ -351,32 +351,33 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
                                 }
                                 let interVal: any = 0
                                 const html = String.raw
-                                return  [
-                                    html`<div class="d-flex align-items-center mt-2 mb-2">
-                                                <select class="form-control form-select "
-                                                        style="border-top-right-radius: 0;border-bottom-right-radius: 0;"
-                                                        onchange="${gvc.event((e, event) => {
-                                        selectTag = e.value;
-                                        gvc.notifyDataChange(id)
-                                    })}">${
-                                        valueArray.map((dd) => {
-                                            return `<option value="${dd.tag}" ${(dd.tag === selectTag) ? `selected` : ''} >${dd.title}</option>`
-                                        })
-                                    }</select>
-                                                <div class="hoverBtn ms-auto d-flex align-items-center justify-content-center   border"
-                                                     style="height:44px;width:44px;cursor:pointer;color:#151515;
+                                return [
+                                    html`
+                                        <div class="d-flex align-items-center mt-2 mb-2">
+                                            <select class="form-control form-select "
+                                                    style="border-top-right-radius: 0;border-bottom-right-radius: 0;"
+                                                    onchange="${gvc.event((e, event) => {
+                                                        selectTag = e.value;
+                                                        gvc.notifyDataChange(id)
+                                                    })}">${
+                                                    valueArray.map((dd) => {
+                                                        return `<option value="${dd.tag}" ${(dd.tag === selectTag) ? `selected` : ''} >${dd.title}</option>`
+                                                    })
+                                            }</select>
+                                            <div class="hoverBtn ms-auto d-flex align-items-center justify-content-center   border"
+                                                 style="height:44px;width:44px;cursor:pointer;color:#151515;
                                                          border-left: none;
 border-radius: 0px 10px 10px 0px;"
-                                                     data-bs-toggle="tooltip" data-bs-placement="top"
-                                                     data-bs-custom-class="custom-tooltip"
-                                                     data-bs-title="跳轉至模塊" onclick="${gvc.event(() => {
-                                        glitter.setUrlParameter('page', selectTag)
-                                        glitter.share.reloadEditor()
-                                    })}">
-                                                    <i class="fa-regular fa-eye"></i>
-                                                </div>
+                                                 data-bs-toggle="tooltip" data-bs-placement="top"
+                                                 data-bs-custom-class="custom-tooltip"
+                                                 data-bs-title="跳轉至模塊" onclick="${gvc.event(() => {
+                                                glitter.setUrlParameter('page', selectTag)
+                                                glitter.share.reloadEditor()
+                                            })}">
+                                                <i class="fa-regular fa-eye"></i>
                                             </div>
-                                        `,
+                                        </div>
+                                    `,
                                     gvc.bindView(() => {
                                         const id = gvc.glitter.getUUID()
                                         return {
@@ -410,7 +411,7 @@ border-radius: 0px 10px 10px 0px;"
                                                             resolve(res.response.result[0].page_config)
                                                         })
                                                     }));
-                                                    if(!page_config.formFormat || page_config.formFormat.length===0){
+                                                    if (!page_config.formFormat || page_config.formFormat.length === 0) {
                                                         resolve(`<div class="d-flex align-items-center justify-content-center flex-column w-100"
                                          style="width:100%;">
                                         <lottie-player style="max-width: 100%;width: 200px;"
@@ -421,7 +422,7 @@ border-radius: 0px 10px 10px 0px;"
                                             style="line-height: 200%;text-align: center;">
                                             尚未設定編輯表單。</h3>
                                     </div>`)
-                                                    }else{
+                                                    } else {
                                                         resolve(FormWidget.editorView({
                                                             gvc: gvc,
                                                             array: page_config.formFormat,
@@ -461,8 +462,9 @@ border-radius: 0px 10px 10px 0px;"
                     let fal = 0
                     let tag = widget.data.tag
                     let carryData = widget.data.carryData
-                    async function getData(document:any) {
-                        return new Promise(async (resolve, reject)=>{
+
+                    async function getData(document: any) {
+                        return new Promise(async (resolve, reject) => {
                             for (const b of widget.data.list) {
                                 b.evenet = b.evenet ?? {}
                                 try {
@@ -485,8 +487,8 @@ border-radius: 0px 10px 10px 0px;"
                                     } else {
                                         if (b.codeVersion === 'v2') {
                                             if ((await eval(`(() => {
-                                                        ${b.code}
-                                                    })()`)) === true) {
+                                                ${b.code}
+                                            })()`)) === true) {
                                                 tag = b.tag
                                                 carryData = b.carryData
                                                 break
@@ -521,50 +523,126 @@ border-radius: 0px 10px 10px 0px;"
                                     data.config.map((dd: any) => {
                                         glitter.htmlGenerate.renameWidgetID(dd)
                                     })
-                                    let createOption = (htmlGenerate ?? {}).createOption ?? {}
-                                    createOption.option = createOption.option ?? []
-                                    createOption.childContainer = true
+                                    if (data.page_config.resource_from === 'own') {
+                                        const url = new URL("", location.href)
+                                        url.search = ''
+                                        url.searchParams.set("page", data.tag)
+                                        url.searchParams.set('appName', (window as any).appName)
+                                        url.searchParams.set('isIframe','true')
+                                        const id = gvc.glitter.getUUID()
+                                        gvc.glitter.config.frameHeight=gvc.glitter.config.frameHeight??{}
+                                        gvc.glitter.config.frameHeight[url.href]= gvc.glitter.config.frameHeight[url.href]??0
+                                         async function iframeView(){
+                                            let rendered=false
+                                            return `<iframe id="${id}" style="height:${0}px;pointer-events: none;" src="${url.href}" class="w-100" onload="${gvc.event(() => {
+                                                if(rendered){return}
+                                                rendered=true
+                                                let iframe = document.getElementById(id);
+                                                iframe.contentWindow.addEventListener('beforeunload', function (event: any) {
+                                                    if (!editMode) {
+                                                        $('#glitterPage').hide()
+                                                        $('body').append(html`
+                                                        <div class="flex-fill vw-100 vh-100 position-fixed top-0 start-0">
+                                                            <div class="page-loading active">
+                                                                <div class="page-loading-inner">
+                                                                    <div class="page-spinner" style=""></div>
+                                                                </div>
+                                                            </div>
+                                                        </div>`)
+                                                    }
 
-                                    data.config.formData = data.page_config.formData
-                                    resolve(`
+                                                });
+                                                iframe.addEventListener('load', function () {
+                                                    const iUrl=new URL(iframe.contentWindow.location.href)
+                                                    if (!editMode&&iUrl.href !== url.href && (iUrl.searchParams.get('isIframe')) !== 'true') {
+                                                        // 在 iframe 页面加载完成时执行的操作
+                                                        location.href = iframe.contentWindow.location.href
+                                                    }else if(editMode && iUrl.href !== url.href){
+                                                        iframeView().then((dd)=>{
+                                                            iframe!.outerHTML = dd
+                                                        })
+                                                    }
+                                                });
+                                                // 获取 body 元素
+                                                const body = iframe.contentWindow.document.body;
+                                                body.style.overflowY = 'hidden'
+                                                // 创建一个 MutationObserver 实例
+                                                const observer = new MutationObserver(function (mutations) {
+                                                    // 在每次变化发生时执行的操作
+                                                    mutations.forEach(function (mutation) {
+                                                        // 检查 body 高度的变化
+                                                        if (mutation.type === 'childList' || mutation.type === 'characterData') {
+                                                            // 获取 body 的新高度
+                                                            let newHeight = body.scrollHeight;
+                                                            iframe.style.height = `${newHeight + 1}px`;
+                                                            gvc.glitter.config.frameHeight[url.href]=newHeight
+                                                        }
+                                                    });
+                                                });
+                                                observer.observe(body, {childList: true, subtree: true});
+                                                const clock=gvc.glitter.ut.clock()
+                                                const interval=setInterval(()=>{
+                                                    let newHeight = body.scrollHeight;
+                                                    iframe.style.height = `${newHeight + 1}px`;
+                                                    gvc.glitter.config.frameHeight[url.href]=newHeight
+                                                    if(clock.stop()>1000){
+                                                        clearInterval(interval)
+                                                    }
+                                                },100)
+                                              
+                                            })}" ></iframe>`
+                                        }
+                                        iframeView().then((dd)=>{
+                                            resolve(dd)
+                                        })
+
+                                    } else {
+                                        let createOption = (htmlGenerate ?? {}).createOption ?? {}
+                                        createOption.option = createOption.option ?? []
+                                        createOption.childContainer = true
+                                        data.config.formData = data.page_config.formData
+                                        resolve(`
                                                 <!-- tag=${tag} -->
                                               ${new glitter.htmlGenerate(data.config, [], sub).render(gvc, {
-                                        class: ``,
-                                        style: ``,
-                                        containerID: gvc.glitter.getUUID(),
-                                        jsFinish: () => {
-                                        },
-                                        onCreate: () => {
-                                        },
-                                        document:document
-                                    }, createOption ?? {})}
+                                            class: ``,
+                                            style: ``,
+                                            containerID: gvc.glitter.getUUID(),
+                                            jsFinish: () => {
+                                            },
+                                            onCreate: () => {
+                                            },
+                                            document: document
+                                        }, createOption ?? {})}
                                                 `)
+                                    }
+
                                 })
                             }
                         })
 
 
                     }
-                    const comp=false
-                    if(comp){
-                        return gvc.bindView(()=>{
-                            const id=gvc.glitter.getUUID()
+
+                    const comp = false
+                    if (comp) {
+                        return gvc.bindView(() => {
+                            const id = gvc.glitter.getUUID()
                             return {
-                                bind:id,
-                                view:()=>{
+                                bind: id,
+                                view: () => {
                                     return ``
                                 },
-                                divCreate:{
-                                    elem:'web-component',option:[
+                                divCreate: {
+                                    elem: 'web-component', option: [
                                         {
-                                            key:'id',value:id
+                                            key: 'id', value: id
                                         }
                                     ]
                                 },
-                                onCreate:async ()=>{
-                                    const html=(await getData((document.querySelector('#'+id) as any)!.shadowRoot) as any);
-                                    (document.querySelector('#'+id)! as any).setView({
-                                        gvc:gvc,view:html,id:id
+                                onCreate: async () => {
+                                    const html = (await getData((document.querySelector('#' + id) as any)!.shadowRoot) as any);
+                                    (document.querySelector('#' + id)! as any).setView({
+                                        gvc: gvc, view: html, id: id
                                     })
                                     // (document.querySelector('#'+id)! as any).setView(gvc,gvc.bindView(()=>{
                                     //     const id=gvc.glitter.getUUID()
@@ -587,7 +665,7 @@ border-radius: 0px 10px 10px 0px;"
                                 }
                             }
                         })
-                    }else{
+                    } else {
                         return gvc.bindView(() => {
                             const tempView = glitter.getUUID()
                             return {
@@ -598,9 +676,9 @@ border-radius: 0px 10px 10px 0px;"
                                 divCreate: {
                                     class: ``
                                 },
-                                onInitial:async () => {
+                                onInitial: async () => {
                                     const target = document.querySelector(`[gvc-id="${gvc.id(tempView)}"]`)
-                                    target!.outerHTML=(await getData(gvc.glitter.document) as any)
+                                    target!.outerHTML = (await getData(gvc.glitter.document) as any)
                                 },
                                 onDestroy: () => {
                                 },
@@ -612,59 +690,59 @@ border-radius: 0px 10px 10px 0px;"
                 },
                 editor: () => {
                     return [
-                        gvc.bindView(()=>{
-                            const id=gvc.glitter.getUUID()
-                            let toggle=true
+                        gvc.bindView(() => {
+                            const id = gvc.glitter.getUUID()
+                            let toggle = true
                             return {
-                                bind:id,
-                                view:()=>{
+                                bind: id,
+                                view: () => {
                                     return `<div class="mx-0 d-flex  px-3 hi fw-bold d-flex align-items-center shadow border-bottom  py-2 bgf6 "
-                                 style="color:black;cursor: pointer;font-size:15px;" onclick="${gvc.event(()=>{
-                                        toggle=!toggle
+                                 style="color:black;cursor: pointer;font-size:15px;" onclick="${gvc.event(() => {
+                                        toggle = !toggle
                                         gvc.notifyDataChange(id)
                                     })}">
                                 內容編輯
                                 <div class="flex-fill"></div>
                                 ${toggle ? ` <i class="fa-solid fa-chevron-up d-flex align-items-center justify-content-center me-2"
-                                   style="cursor:pointer;" aria-hidden="true"></i>`:` <i class="fa-solid  fa-angle-down d-flex align-items-center justify-content-center me-2"
+                                   style="cursor:pointer;" aria-hidden="true"></i>` : ` <i class="fa-solid  fa-angle-down d-flex align-items-center justify-content-center me-2"
                                    style="cursor:pointer;" aria-hidden="true"></i>`}
                             </div>
 <div class="p-2">
-${(toggle) ? userEditorView():``}
+${(toggle) ? userEditorView() : ``}
 <div style="height:10px;"></div>
 </div>
 `
                                 },
-                                divCreate:{
-                                    class:`mx-n2 mt-n2`,style:``
+                                divCreate: {
+                                    class: `mx-n2 mt-n2`, style: ``
                                 }
                             }
                         }),
-                        gvc.bindView(()=>{
-                            const id=gvc.glitter.getUUID()
-                            let toggle=true
+                        gvc.bindView(() => {
+                            const id = gvc.glitter.getUUID()
+                            let toggle = true
                             return {
-                                bind:id,
-                                view:()=>{
+                                bind: id,
+                                view: () => {
                                     return `<div class="mx-0 d-flex   border-top px-3 hi fw-bold d-flex align-items-center shadow border-bottom  py-2 bgf6"
-                                 style="color:black;cursor: pointer;font-size:15px;" onclick="${gvc.event(()=>{
-                                        toggle=!toggle
+                                 style="color:black;cursor: pointer;font-size:15px;" onclick="${gvc.event(() => {
+                                        toggle = !toggle
                                         gvc.notifyDataChange(id)
                                     })}">
                                 模塊進階設定
                                 <div class="flex-fill"></div>
                                 ${toggle ? ` <i class="fa-solid fa-chevron-up d-flex align-items-center justify-content-center me-2"
-                                   style="cursor:pointer;" aria-hidden="true"></i>`:` <i class="fa-solid  fa-angle-down d-flex align-items-center justify-content-center me-2"
+                                   style="cursor:pointer;" aria-hidden="true"></i>` : ` <i class="fa-solid  fa-angle-down d-flex align-items-center justify-content-center me-2"
                                    style="cursor:pointer;" aria-hidden="true"></i>`}
                             </div>
                             ${(toggle) ? `<div class="p-2 border-bottom">
 ${devEditorView()}
-</div>`:``}
+</div>` : ``}
 
 `
                                 },
-                                divCreate:{
-                                    class:`mx-n2 mt-n3`,style:``
+                                divCreate: {
+                                    class: `mx-n2 mt-n3`, style: ``
                                 }
                             }
                         })

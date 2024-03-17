@@ -256,7 +256,8 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                                 dd.formData = undefined;
                                 dd.pageConfig = undefined;
                                 dd.subData = undefined;
-                                dd.appConfig = undefined
+                                dd.appConfig = undefined;
+                                dd.storage = undefined;
                                 dd.editorEvent = undefined;
                                 dd.share = undefined;
                                 if (haveID.indexOf(dd.id) !== -1) {
@@ -350,11 +351,11 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                                                         index: 'backend-manger',
                                                         hint: '後台系統'
                                                     },
-                                                    {
-                                                        src: `fa-duotone fa-server`,
-                                                        index: 'server-manager',
-                                                        hint: '伺服器設定'
-                                                    },
+                                                    // {
+                                                    //     src: `fa-duotone fa-server`,
+                                                    //     index: 'server-manager',
+                                                    //     hint: '伺服器設定'
+                                                    // },
                                                     // {src: `fa-sharp fa-regular fa-file-dashed-line`, index: Page_editor.index},
                                                 ].map((da: any) => {
 

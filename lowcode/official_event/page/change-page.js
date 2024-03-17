@@ -210,24 +210,36 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                         return;
                                     }
                                     if (object.stackControl === 'home') {
-                                        gvc.glitter.htmlGenerate.setHome({
+                                        const cf = {
                                             app_config: saasConfig.appConfig,
                                             page_config: data.response.result[0].page_config,
                                             config: data.response.result[0].config,
                                             data: subData !== null && subData !== void 0 ? subData : {},
                                             tag: link
-                                        });
+                                        };
+                                        if (gvc.glitter.getUrlParameter('isIframe') === 'true') {
+                                            window.parent.glitter.htmlGenerate.setHome(cf);
+                                        }
+                                        else {
+                                            gvc.glitter.htmlGenerate.setHome(cf);
+                                        }
                                         resolve(true);
                                     }
                                     else {
-                                        gvc.glitter.htmlGenerate.changePage({
+                                        const cf = {
                                             app_config: saasConfig.appConfig,
                                             page_config: data.response.result[0].page_config,
                                             config: data.response.result[0].config,
                                             data: subData !== null && subData !== void 0 ? subData : {},
                                             tag: link,
                                             goBack: true
-                                        });
+                                        };
+                                        if (gvc.glitter.getUrlParameter('isIframe') === 'true') {
+                                            window.parent.glitter.htmlGenerate.changePage(cf);
+                                        }
+                                        else {
+                                            gvc.glitter.htmlGenerate.changePage(cf);
+                                        }
                                         resolve(true);
                                     }
                                 });

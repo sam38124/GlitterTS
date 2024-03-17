@@ -204,27 +204,33 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                         return
                                     }
                                     if (object.stackControl === 'home') {
-                                        gvc.glitter.htmlGenerate.setHome(
-                                            {
-                                                app_config: saasConfig.appConfig,
-                                                page_config: data.response.result[0].page_config,
-                                                config: data.response.result[0].config,
-                                                data: subData ?? {},
-                                                tag: link
-                                            }
-                                        );
+                                        const cf={
+                                            app_config: saasConfig.appConfig,
+                                            page_config: data.response.result[0].page_config,
+                                            config: data.response.result[0].config,
+                                            data: subData ?? {},
+                                            tag: link
+                                        }
+                                        if(gvc.glitter.getUrlParameter('isIframe') === 'true'){
+                                            (window.parent as any).glitter.htmlGenerate.setHome(cf)
+                                        }else{
+                                            gvc.glitter.htmlGenerate.setHome(cf)
+                                        }
                                         resolve(true)
                                     } else {
-                                        gvc.glitter.htmlGenerate.changePage(
-                                            {
-                                                app_config: saasConfig.appConfig,
-                                                page_config: data.response.result[0].page_config,
-                                                config: data.response.result[0].config,
-                                                data: subData ?? {},
-                                                tag: link,
-                                                goBack: true
-                                            }
-                                        );
+                                        const cf={
+                                            app_config: saasConfig.appConfig,
+                                            page_config: data.response.result[0].page_config,
+                                            config: data.response.result[0].config,
+                                            data: subData ?? {},
+                                            tag: link,
+                                            goBack: true
+                                        }
+                                        if(gvc.glitter.getUrlParameter('isIframe') === 'true'){
+                                            (window.parent as any).glitter.htmlGenerate.changePage(cf)
+                                        }else{
+                                            gvc.glitter.htmlGenerate.changePage(cf)
+                                        }
                                         resolve(true)
                                     }
                                 })

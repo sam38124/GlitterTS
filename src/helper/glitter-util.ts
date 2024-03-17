@@ -15,7 +15,7 @@ export class GlitterUtil {
                     let fullPath = dd.path + "/index.html"
                     const data = fs.readFileSync(fullPath, 'utf8');
                     resp.header('Content-Type', 'text/html; charset=UTF-8')
-                    return resp.send(data.replace(data.substring(data.indexOf(`<head>`), data.indexOf(`</head>`)), seo))
+                    return resp.send(data.replace(data.substring(data.indexOf(`<head>`)+6, data.indexOf(`</head>`)), seo))
                 } else {
                     return resp.sendFile(decodeURI((dd.path + path)))
                 }

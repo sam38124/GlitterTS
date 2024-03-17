@@ -70,11 +70,37 @@ export class GVC {
         const gvc = this
         try {
             const refresh = (id: string) => {
-                if (!gvc.glitter.elementCallback[gvc.id(id)]) {
+                if (gvc.getBindViewElem(id).length === 0) {
                     return
                 }
-                gvc.glitter.elementCallback[gvc.id(id)].recreateView()
+                gvc.parameter.bindViewList[id].divCreate = gvc.parameter.bindViewList[id].divCreate ?? {}
+
+                function notifyLifeCycle() {
+                    if (gvc.parameter.bindViewList[id].onCreate) {
+                        gvc.parameter.bindViewList[id].onCreate()
+                    }
+                }
+
+                function refreshView() {
+                    const view = gvc.glitter.elementCallback[gvc.id(id)].getView()
+                    if (typeof view === 'string') {
+                        $(`[gvc-id="${gvc.id(id)}"]`).html(view)
+                        gvc.glitter.elementCallback[gvc.id(id)].updateAttribute()
+                        notifyLifeCycle()
+
+                    } else {
+                        view.then((resolve: string) => {
+                            $(`[gvc-id="${gvc.id(id)}"]`).html(resolve)
+                            gvc.glitter.elementCallback[gvc.id(id)].updateAttribute()
+                            notifyLifeCycle()
+                        })
+                    }
+                }
+
+                refreshView()
+
             };
+
             const convID = function () {
                 if (typeof id === 'object') {
                     id.map(function (id: string) {
@@ -86,6 +112,7 @@ export class GVC {
                 }
             }
             convID()
+
         } catch (e: any) {
             if (gvc.glitter.debugMode) {
                 console.log(e);
@@ -222,10 +249,14 @@ export class GVC {
         if (map.dataList) {
             map.dataList.map(function (data) {
                 function refreshView() {
-                    if (!gvc.glitter.elementCallback[gvc.id((map as any).bind)] || !gvc.glitter.elementCallback[gvc.id((map as any).bind)].recreateView) {
-                        return
+                    const view = (map as any).view()
+                    if (typeof view === 'string') {
+                        $(`[gvc-id="${gvc.id(map.bind as string)}"]`).html(view)
+                    } else {
+                        view.then((resolve: string) => {
+                            $(`[gvc-id="${gvc.id(map.bind as string)}"]`).html(resolve)
+                        })
                     }
-                    gvc.glitter.elementCallback[gvc.id((map as any).bind)].recreateView()
                 }
 
                 refreshView()
@@ -256,7 +287,7 @@ export class GVC {
                         {key: 'style', value: divCreate2.style}
                     ).map((dd: any) => {
                         try {
-                            gvc.glitter.renderView.replaceAttributeValue(dd, gvc.glitter.elementCallback[id].document.querySelector(`[gvc-id="${id}"]`)!)
+                            gvc.glitter.renderView.replaceAttributeValue(dd, document.querySelector(`[gvc-id="${id}"]`)!)
                         } catch (e) {
                             gvc.glitter.deBugMessage(e)
                         }

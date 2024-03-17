@@ -1,6 +1,7 @@
 import {PageSplit} from "./splitPage.js";
 import {ApiShop} from "../glitter-base/route/shopping.js";
 import {GVC} from "../glitterBundle/GVController.js";
+import {BgShopping} from "./bg-shopping.js";
 
 export class BgWidget {
     public static table(obj:{
@@ -153,3 +154,5 @@ ${html}
                                 </div>`
     }
 }
+
+(window as any).glitter.setModule(import.meta.url, BgWidget)

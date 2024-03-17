@@ -2044,3 +2044,5 @@ export class BgNotify {
         })
     }
 }
+
+(window as any).glitter.setModule(import.meta.url, BgNotify)

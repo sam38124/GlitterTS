@@ -6,6 +6,7 @@ import {IToken} from "../models/Auth.js";
 import {UtDatabase} from "../utils/ut-database.js";
 import {User} from "./user.js";
 import {sendmail} from "../../services/ses.js";
+import {App} from "../../services/app.js";
 
 export interface ChatRoom {
     chat_id: string,
@@ -204,12 +205,8 @@ export class Chat {
             if (particpant.find((dd: any) => {
                 return dd.user_id === 'manager'
             }) && room.user_id !== 'manager') {
-                //取得客服信箱
-                const managerUser = (await db.query(`select userData
-                                                     from ${process.env.GLITTER_DB}.t_user
-                                                     where userID in (select user
-                                                                      from ${process.env.GLITTER_DB}.app_config
-                                                                      where appName = ${db.escape(this.app)})`, []))[0]
+                //SAAS品牌和用戶類型
+                const managerUser = (await App.checkBrandAndMemberType(this.app))
                 if (user) {
                     await sendmail(`service@ncdesign.info`, managerUser['userData'].email, `有一則客服訊息`, this.templateWithCustomerMessage(
                         '收到客服訊息',
@@ -225,6 +222,7 @@ export class Chat {
                 }
             }
         } catch (e: any) {
+            console.log(e);
             throw exception.BadRequestError(e.code ?? 'BAD_REQUEST', 'AddMessage Error:' + e!.message, null);
         }
 

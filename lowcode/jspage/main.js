@@ -236,6 +236,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                                     dd.pageConfig = undefined;
                                     dd.subData = undefined;
                                     dd.appConfig = undefined;
+                                    dd.storage = undefined;
                                     dd.editorEvent = undefined;
                                     dd.share = undefined;
                                     if (haveID.indexOf(dd.id) !== -1) {
@@ -327,11 +328,6 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                                     src: `fa-solid fa-list-check`,
                                     index: 'backend-manger',
                                     hint: '後台系統'
-                                },
-                                {
-                                    src: `fa-duotone fa-server`,
-                                    index: 'server-manager',
-                                    hint: '伺服器設定'
                                 },
                             ].map((da) => {
                                 return html `<i

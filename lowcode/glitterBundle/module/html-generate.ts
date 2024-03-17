@@ -583,6 +583,7 @@ ${obj.gvc.bindView({
                 if (dd.type === 'container') {
                     loop(dd.data.setting ?? [])
                 }
+                dd.storage =  dd.storage ?? {}
                 dd.share = dd.share ?? share
                 dd.bundle = subData ?? {}
             })
@@ -609,9 +610,6 @@ ${obj.gvc.bindView({
             const renderStart = (window as any).renderClock.stop()
             option = option ?? {}
             const container = option.containerID ?? gvc.glitter.getUUID();
-            let timerTask: {
-                toggle: boolean
-            }[] = []
             return gvc.bindView(() => {
                 return {
                     bind: container,
@@ -701,7 +699,6 @@ ${obj.gvc.bindView({
                                             if ((dd.data.elem === 'link') && (dd.data.attr.find((dd: any) => {
                                                 return dd.attr === 'rel' && dd.value === 'stylesheet'
                                             }))) {
-                                                console.log(`document`,document.querySelector('div'))
                                                 gvc.glitter.addStyleLink(dd.data.attr.find((dd: any) => {
                                                     return dd.attr === 'href'
                                                 }).value,document)
@@ -1025,36 +1022,8 @@ ${obj.gvc.bindView({
                         gvc.glitter.deBugMessage(`RenderFinishID:${option.containerID}`)
                         gvc.glitter.deBugMessage(`RenderFinish-time:(start:${renderStart})-(end:${(window as any).renderClock.stop()})`)
                         option.onCreate && option.onCreate()
-                        //定時任務
-                        for (const script of setting.filter((dd) => {
-                            return dd.type === 'code' && dd.data.triggerTime === 'timer'
-                        })) {
-                            timerTask.push((() => {
-                                let vm = {
-                                    toggle: true
-                                }
-
-                                function execute() {
-                                    codeComponent.render(gvc, script as any, setting as any, [], subData).view().then(() => {
-                                        setTimeout(() => {
-                                            if (vm.toggle) {
-                                                execute()
-                                            }
-                                        }, parseInt(script.data.timer, 10))
-                                    })
-                                }
-
-                                execute()
-                                return vm
-                            })())
-                        }
                     },
                     onDestroy: () => {
-                        //清空定時任務
-                        timerTask.map((dd) => {
-                            dd.toggle = false
-                        });
-                        timerTask = []
                     }
                 }
             })

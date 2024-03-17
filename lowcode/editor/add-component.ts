@@ -511,20 +511,24 @@ export class AddComponent {
                                                                                     }).then(async (res) => {
                                                                                         async function next() {
                                                                                             for (const dd of res.copy_component) {
-                                                                                                const data = {
-                                                                                                    "appName": (window as any).appName,
-                                                                                                    "tag": dd.tag,
-                                                                                                    "group": dd.group,
-                                                                                                    "name": dd.name,
-                                                                                                    page_type: dd.page_type,
-                                                                                                    config: dd.config,
-                                                                                                    page_config: dd.page_config
-                                                                                                }
-                                                                                                await new Promise((resolve, reject) => {
-                                                                                                    ApiPageConfig.addPage(data).then((it) => {
-                                                                                                        resolve(true)
+                                                                                                if(dd.execute !=='ignore'){
+                                                                                                    const data = {
+                                                                                                        "appName": (window as any).appName,
+                                                                                                        "tag": dd.tag,
+                                                                                                        "group": dd.group,
+                                                                                                        "name": dd.name,
+                                                                                                        page_type: dd.page_type,
+                                                                                                        config: dd.config,
+                                                                                                        page_config: dd.page_config,
+                                                                                                        replace:dd.execute==='replace'
+                                                                                                    }
+                                                                                                    await new Promise((resolve, reject) => {
+                                                                                                        ApiPageConfig.addPage(data).then((it) => {
+                                                                                                            resolve(true)
+                                                                                                        })
                                                                                                     })
-                                                                                                })
+                                                                                                }
+                                                                                             
                                                                                             }
                                                                                             gvc.glitter.htmlGenerate.saveEvent(false, () => {
                                                                                                 dialog.dataLoading({visible: false})
@@ -538,10 +542,6 @@ export class AddComponent {
                                                                                                     page_config: res.copy_component[0].page_config
                                                                                                 })
                                                                                             })
-
-                                                                                            console.log(`needAddPage->`, res.copy_component)
-                                                                                            console.log(`needAddGlobal->`, res.global_script)
-                                                                                            console.log(`needAddGlobal->`, res.global_style)
                                                                                         }
 
                                                                                         gvc.glitter.share.editorViewModel.globalStyle = gvc.glitter.share.editorViewModel.globalStyle.concat(res.global_style)
@@ -555,7 +555,7 @@ export class AddComponent {
                                                                                                 visible: false
                                                                                             })
                                                                                             EditorElem.openEditorDialog(gvc, (gvc) => {
-                                                                                                return gvc.bindView(() => {
+                                                                                                return [gvc.bindView(() => {
                                                                                                     const id = gvc.glitter.getUUID()
                                                                                                     return {
                                                                                                         bind: id,
@@ -608,7 +608,7 @@ ${[
                                                                                                                         default: data.changeTag,
                                                                                                                         placeHolder: `請輸入標籤名稱`,
                                                                                                                         callback: (text) => {
-                                                                                                                            data.changeTag=text
+                                                                                                                            data.changeTag = text
                                                                                                                         }
                                                                                                                     })}</div>`));
                                                                                                                     return `<div class="border-bottom w-100 ">${view.join('')}</div>`
@@ -619,7 +619,59 @@ ${[
                                                                                                             class: `p-2 `
                                                                                                         }
                                                                                                     }
-                                                                                                })
+                                                                                                }),
+                                                                                                    html`
+                                                                                                        <div class="d-flex align-items-center justify-content-end px-2 ">
+                                                                                                            <button class="btn btn-primary-c btn-sm mb-2 fs-base"
+                                                                                                                    onclick="${gvc.event(() => {
+                                                                                                                        const conflict=res.copy_component.filter((d1: any) => {
+                                                                                                                            return gvc.glitter.share.editorViewModel.dataList.find((dd: any) => {
+                                                                                                                                return d1.tag === dd.tag
+                                                                                                                            })
+                                                                                                                        })
+                                                                                                                        if(conflict.find((dd:any)=>{
+                                                                                                                            return !dd.execute
+                                                                                                                        })){
+                                                                                                                            dialog.errorMessage({text:'請勾選項目'})
+                                                                                                                        }else if(conflict.find((dd:any)=>{
+                                                                                                                            return (dd.execute==='tag') && !dd.changeTag
+                                                                                                                        })){
+                                                                                                                            dialog.errorMessage({text:'請設定標籤名稱'})
+                                                                                                                        }else if(conflict.find((d1:any)=>{
+                                                                                                                            return (d1.execute==='tag') && gvc.glitter.share.editorViewModel.dataList.find((dd: any) => {
+                                                                                                                                return d1.changeTag === dd.tag
+                                                                                                                            })
+                                                                                                                        })){
+                                                                                                                            dialog.errorMessage({text:`此標籤名稱已重複:${conflict.find((d1:any)=>{
+                                                                                                                                    return (d1.execute==='tag') && gvc.glitter.share.editorViewModel.dataList.find((dd: any) => {
+                                                                                                                                        return d1.changeTag === dd.tag
+                                                                                                                                    })
+                                                                                                                                }).changeTag}`})
+                                                                                                                        }else{
+                                                                                                                             function loop(array: any,tag:string,replace:string) {
+                                                                                                                                for (const dd of array) {
+                                                                                                                                    if (dd.type === 'container') {
+                                                                                                                                         loop(dd.data.setting,tag,replace)
+                                                                                                                                    } else if (dd.type === 'component') {
+                                                                                                                                        if(dd.data.tag===tag){
+                                                                                                                                            dd.data.tag=replace
+                                                                                                                                        }
+                                                                                                                                    }
+                                                                                                                                }
+                                                                                                                            }
+                                                                                                                            conflict.filter((d1:any)=>{
+                                                                                                                                return (d1.execute==='tag')
+                                                                                                                            }).map((dd:any)=>{
+                                                                                                                                loop(dd.config,dd.tag,dd.changeTag)
+                                                                                                                                dd.tag=dd.changeTag
+                                                                                                                            })
+                                                                                                                        }
+                                                                                                                        next()
+                                                                                                                    })}">
+                                                                                                                確認
+                                                                                                            </button>
+                                                                                                        </div>`
+                                                                                                ].join('')
                                                                                             }, () => {
                                                                                             }, 400, '偵測到衝突組件')
                                                                                         } else {

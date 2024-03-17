@@ -15,9 +15,10 @@ import * as process from "process";
 import {ApiPublic} from "../api-public/services/public-table-check.js";
 import {BackendService} from "./backend-service.js";
 import {UtPermission} from "../api-public/utils/ut-permission.js";
+import {Template} from "./template.js";
 
 export class App {
-    public token: IToken;
+    public token?: IToken;
 
     public static getAdConfig(app: string, key: string) {
         return new Promise<any>(async (resolve, reject) => {
@@ -62,7 +63,7 @@ export class App {
                                  values (?, ?, ?,
                                          ${db.escape(JSON.stringify((copyAppData && copyAppData.config) || {}))},
                                          ${db.escape(config.brand ?? saasConfig.SAAS_NAME)})`, [
-                this.token.userID,
+                this.token!.userID,
                 config.appName,
                 addDays(new Date(), saasConfig.DEF_DEADLINE)
             ]);
@@ -82,7 +83,7 @@ export class App {
                 for (const dd of (await db.query(`SELECT *
                                                   FROM \`${config.copyApp}\`.t_manager_post`, []))) {
                     dd.content = dd.content && JSON.stringify(dd.content)
-                    dd.userID = this.token.userID
+                    dd.userID = this.token!.userID
                     await trans.execute(`
                         insert into \`${config.appName}\`.t_manager_post
                         SET ?;
@@ -168,7 +169,7 @@ export class App {
                         values (?, ?, ?, ?, ?, ${db.escape(JSON.stringify(dd.config))},
                                 ${db.escape(JSON.stringify(dd.page_config))}, ${db.escape(dd.page_type)});
                     `, [
-                        this.token.userID,
+                        this.token!.userID,
                         config.appName,
                         dd.tag,
                         dd.group || '未分類',
@@ -181,7 +182,7 @@ export class App {
                                                                          \`config\`, \`page_config\`)
                     values (?, ?, ?, ?, ?, ${db.escape(JSON.stringify({}))}, ${db.escape(JSON.stringify({}))});
                 `, [
-                    this.token.userID,
+                    this.token!.userID,
                     config.appName,
                     'index',
                     '',
@@ -205,7 +206,7 @@ export class App {
                 SELECT *
                 FROM \`${saasConfig.SAAS_NAME}\`.app_config
                 where ${(() => {
-                    const sql = [`user = '${this.token.userID}'`]
+                    const sql = [`user = '${this.token!.userID}'`]
                     if (query.app_name) {
                         sql.push(` appName='${query.app_name}' `)
                     }
@@ -216,7 +217,7 @@ export class App {
                 SELECT *
                 FROM \`${saasConfig.SAAS_NAME}\`.app_config
                 where ${(() => {
-                    const sql = [`user = '${this.token.userID}'`]
+                    const sql = [`user = '${this.token!.userID}'`]
                     if (query.app_name) {
                         sql.push(` appName='${query.app_name}' `)
                     }
@@ -238,7 +239,7 @@ export class App {
                 FROM \`${saasConfig.SAAS_NAME}\`.app_config
                 where ${(() => {
                     const sql = []
-                    query.template_from === 'me' && sql.push(`user = '${this.token.userID}'`);
+                    query.template_from === 'me' && sql.push(`user = '${this.token!.userID}'`);
                     query.template_from === 'me' && sql.push(`template_type in (3,2)`);
                     query.template_from === 'all' && sql.push(`template_type = 2`);
                     return sql.map((dd) => {
@@ -294,15 +295,55 @@ export class App {
                                           where userID = ? `, [userID]))[0];
         return {
             memberType: userData.userData.menber_type,
-            brand: brand
+            brand: brand,
+            userData:userData.userData
         };
+    }
+
+    public static async preloadPageData(appName:string,page:string){
+        const app=new App();
+        const preloadData:{
+            component:any,
+            appConfig:any
+        }={
+            component:[],
+            appConfig:(await app.getAppConfig({
+                appName:appName
+            }))
+        }
+        const pageData=(await (new Template(undefined).getPage({
+            appName:appName,
+            tag:page
+        })))[0];
+        preloadData.component.push(pageData)
+        async function loop(array: any) {
+            for (const dd of array) {
+                if (dd.type === 'container') {
+                    await loop(dd.data.setting)
+                } else if (dd.type === 'component') {
+                    const pageData=(await (new Template(undefined).getPage({
+                        appName:appName,
+                        tag:dd.data.tag
+                    })))[0]
+                    preloadData.component.push(pageData)
+                    await loop(pageData.config ?? [])
+                }
+            }
+        }
+        ( await loop(pageData.config));
+        let mapPush:any={}
+        mapPush['getPlugin']={callback:[],data:{response:{data:preloadData.appConfig,result:true}},isRunning:true}
+        preloadData.component.map((dd:any)=>{
+            mapPush['getPageData-'+dd.tag]={callback:[],isRunning:true,data:{response: {result:[dd]}}}
+        })
+        return mapPush
     }
 
     public async setAppConfig(config: { appName: string, data: any }) {
         try {
             const official = (await db.query(`SELECT count(1)
                                               FROM \`${saasConfig.SAAS_NAME}\`.t_user
-                                              where userID = ?`, [this.token.userID, 'LION']))[0]['count(1)'] == 1;
+                                              where userID = ?`, [this.token!.userID, 'LION']))[0]['count(1)'] == 1;
             if (official) {
                 const trans = await db.Transaction.build()
                 await trans.execute(`delete
@@ -314,7 +355,7 @@ export class App {
                         {
                             key: b.key,
                             group: b.name,
-                            userID: this.token.userID,
+                            userID: this.token!.userID,
                             app_name: config.appName,
                             url: b.path,
                         }
@@ -326,7 +367,7 @@ export class App {
             return (await db.execute(`update \`${saasConfig.SAAS_NAME}\`.app_config
                                       set config=?
                                       where appName = ${db.escape(config.appName)}
-                                        and user = '${this.token.userID}'
+                                        and user = '${this.token!.userID}'
             `, [config.data]))['changedRows'] == true
         } catch (e: any) {
             throw exception.BadRequestError(e.code ?? 'BAD_REQUEST', e, null);
@@ -339,7 +380,7 @@ export class App {
             let template_type = '0'
             if (config.data.post_to === 'all') {
                 let officialAccount = (process.env.OFFICIAL_ACCOUNT ?? '').split(',')
-                if (officialAccount.indexOf(`${this.token.userID}`) !== -1) {
+                if (officialAccount.indexOf(`${this.token!.userID}`) !== -1) {
                     template_type = '2'
                 } else {
                     template_type = '1'
@@ -351,7 +392,7 @@ export class App {
                                       set template_config = ?,
                                           template_type=${template_type}
                                       where appName = ${db.escape(config.appName)}
-                                        and user = '${this.token.userID}'
+                                        and user = '${this.token!.userID}'
             `, [config.data]))['changedRows'] == true
         } catch (e: any) {
             throw exception.BadRequestError(e.code ?? 'BAD_REQUEST', e, null);
@@ -365,7 +406,7 @@ export class App {
         let checkExists = (await db.query(`select count(1)
                                            from \`${saasConfig.SAAS_NAME}\`.app_config
                                            where domain =?
-                                             and user !=?`, [config.domain, this.token.userID]))['count(1)'] > 0;
+                                             and user !=?`, [config.domain, this.token!.userID]))['count(1)'] > 0;
         if (checkExists) {
             throw exception.BadRequestError('BAD_REQUEST', 'this domain already on use.', null);
         }
@@ -431,11 +472,11 @@ export class App {
             (await db.execute(`delete
                                from \`${saasConfig.SAAS_NAME}\`.app_config
                                where appName = ${db.escape(config.appName)}
-                                 and user = '${this.token.userID}'`, []));
+                                 and user = '${this.token!.userID}'`, []));
             (await db.execute(`delete
                                from \`${saasConfig.SAAS_NAME}\`.page_config
                                where appName = ${db.escape(config.appName)}
-                                 and userID = '${this.token.userID}'`, []));
+                                 and userID = '${this.token!.userID}'`, []));
             (await db.execute(`delete
                                from \`${saasConfig.SAAS_NAME}\`.private_config
                                where app_name = ${db.escape(config.appName)}
@@ -446,7 +487,7 @@ export class App {
     }
 
 
-    constructor(token: IToken) {
+    constructor(token?: IToken) {
         this.token = token;
     }
 }

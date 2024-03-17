@@ -199,7 +199,6 @@ router.post("/checkout/preview", async (req, resp) => {
             user_info: req.body.user_info,
             code: req.body.code,
             use_rebate: (() => {
-                console.log(`use-rebate-->`, req.body.use_rebate);
                 if (req.body.use_rebate && (typeof req.body.use_rebate === 'number')) {
                     return req.body.use_rebate;
                 }

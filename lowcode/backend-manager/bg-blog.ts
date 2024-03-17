@@ -432,9 +432,7 @@ function editor(cf: {
                     }
                 }
             }),
-            `
-      <h3 style="color: black;font-size: 14px;margin-bottom: 10px;" class="fw-normal mt-2">從您目前的模板主題中指派範本，以打造網誌文章外觀。</h3>
-      `,
+            html`<h3 style="color: black;font-size: 14px;margin-bottom: 10px;" class="fw-normal mt-2">從您目前的模板主題中指派範本，以打造網誌文章外觀。</h3>`,
             EditorElem.select({
                 title: '是否支援網誌索引',
                 gvc: gvc,
@@ -677,3 +675,5 @@ function addArticle(gvc: GVC, callback: (tag: string) => void) {
         </div>
     `;
 }
+
+(window as any).glitter.setModule(import.meta.url, BgBlog)

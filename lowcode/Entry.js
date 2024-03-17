@@ -16,19 +16,14 @@ import { GlobalUser } from "./glitter-base/global/global-user.js";
 export class Entry {
     static onCreate(glitter) {
         var _a;
-        const css = String.raw;
+        Entry.checkIframe(glitter);
         if (glitter.getUrlParameter('appName')) {
             window.appName = glitter.getUrlParameter('appName');
             config.appName = glitter.getUrlParameter('appName');
         }
-        glitter.addStyle(css `@media (prefers-reduced-motion: no-preference) {
-          :root {
-            scroll-behavior: auto !important;
-          }
-        }`);
         window.renderClock = (_a = window.renderClock) !== null && _a !== void 0 ? _a : clockF();
         console.log(`Entry-time:`, window.renderClock.stop());
-        glitter.share.editerVersion = "V_5.3.9";
+        glitter.share.editerVersion = "V_5.4.6";
         glitter.share.start = new Date();
         const vm = {
             appConfig: []
@@ -38,9 +33,260 @@ export class Entry {
             api: ApiPageConfig,
             appConfig: undefined
         };
+        Entry.resourceInitial(glitter, vm, (dd) => __awaiter(this, void 0, void 0, function* () {
+            yield Entry.globalStyle(glitter, dd);
+            if (glitter.getUrlParameter("type") === 'editor') {
+                Entry.toBackendEditor(glitter, () => { });
+            }
+            else if (glitter.getUrlParameter("type") === 'htmlEditor') {
+                Entry.toHtmlEditor(glitter, vm, () => {
+                    Entry.checkIframe(glitter);
+                });
+            }
+            else {
+                Entry.toNormalRender(glitter, vm, () => {
+                    Entry.checkIframe(glitter);
+                });
+            }
+        }));
+    }
+    static checkIframe(glitter) {
+        if (glitter.getUrlParameter('isIframe') === 'true') {
+            glitter.goBack = window.parent.glitter.goBack;
+        }
+    }
+    static toBackendEditor(glitter, callback) {
+        const css = String.raw;
+        glitter.addStyle(css `@media (prefers-reduced-motion: no-preference) {
+          :root {
+            scroll-behavior: auto !important;
+          }
+        }`);
+        glitter.share.EditorMode = true;
+        glitter.share.evalPlace = ((evals) => {
+            return eval(evals);
+        });
+        function running() {
+            return __awaiter(this, void 0, void 0, function* () {
+                config.token = GlobalUser.token;
+                glitter.addStyleLink([
+                    'assets/vendor/boxicons/css/boxicons.min.css',
+                    'assets/css/theme.css',
+                    'css/editor.css'
+                ]);
+                yield new Promise((resolve, reject) => {
+                    glitter.addMtScript([
+                        'https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js',
+                        'https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js',
+                        'assets/vendor/smooth-scroll/dist/smooth-scroll.polyfills.min.js',
+                        'assets/vendor/swiper/swiper-bundle.min.js',
+                        'assets/js/theme.min.js',
+                        'https://kit.fontawesome.com/cccedec0f8.js'
+                    ], () => {
+                        resolve(true);
+                    }, () => {
+                        resolve(true);
+                    });
+                });
+                return;
+            });
+        }
+        window.mode = 'light';
+        window.root = document.getElementsByTagName('html')[0];
+        window.root.classList.add('light-mode');
+        function toNext() {
+            running().then(() => __awaiter(this, void 0, void 0, function* () {
+                {
+                    let data = yield ApiPageConfig.getPage({
+                        appName: config.appName,
+                        tag: glitter.getUrlParameter('page')
+                    });
+                    if (data.response.result.length === 0) {
+                        glitter.setUrlParameter('page', data.response.redirect);
+                    }
+                    glitter.ut.frSize({
+                        sm: () => {
+                            glitter.setHome('jspage/main.js', glitter.getUrlParameter('page'), {
+                                appName: config.appName
+                            }, {
+                                backGroundColor: `transparent;`
+                            });
+                        }
+                    }, () => {
+                        glitter.setHome('jspage/nosupport.js', glitter.getUrlParameter('page'), {
+                            appName: config.appName
+                        }, {
+                            backGroundColor: `transparent;`
+                        });
+                    })();
+                }
+            }));
+        }
+        if (glitter.getUrlParameter('account')) {
+            ApiUser.login({
+                "account": glitter.getUrlParameter('account'),
+                "pwd": glitter.getUrlParameter('pwd')
+            }).then((re) => {
+                if (re.result) {
+                    GlobalUser.token = re.response.userData.token;
+                    toNext();
+                }
+                else {
+                    const url = new URL(glitter.location.href);
+                    location.href = `${url.origin}/glitter/?page=signin`;
+                }
+            });
+        }
+        else {
+            if (!GlobalUser.token) {
+                const url = new URL(glitter.location.href);
+                location.href = `${url.origin}/glitter/?page=signin`;
+            }
+            else {
+                BaseApi.create({
+                    "url": config.url + `/api/v1/user/checkToken`,
+                    "type": "GET",
+                    "timeout": 0,
+                    "headers": {
+                        "Content-Type": "application/json",
+                        "Authorization": GlobalUser.token
+                    }
+                }).then((d2) => {
+                    if (!d2.result) {
+                        const url = new URL(glitter.location.href);
+                        location.href = `${url.origin}/glitter/?page=signin`;
+                    }
+                    else {
+                        toNext();
+                    }
+                });
+            }
+        }
+    }
+    static toHtmlEditor(glitter, vm, callback) {
+        var _a;
+        const css = String.raw;
+        glitter.addStyle(css `@media (prefers-reduced-motion: no-preference) {
+          :root {
+            scroll-behavior: auto !important;
+          }
+        }`);
+        console.log('timer');
+        window.parent.glitter.share.editerGlitter = glitter;
+        const clock = glitter.ut.clock();
+        function scrollToItem(element) {
+            if (element) {
+                element.scrollIntoView({
+                    behavior: 'auto',
+                    block: 'center',
+                });
+            }
+        }
+        const interVal = setInterval(() => {
+            if (document.querySelector('.selectComponentHover')) {
+                scrollToItem(document.querySelector('.selectComponentHover'));
+            }
+            if (clock.stop() > 2000) {
+                clearInterval(interVal);
+            }
+        });
+        window.parent.glitter.share.evalPlace = ((evals) => {
+            return eval(evals);
+        });
+        glitter.addMtScript(window.parent.editerData.setting.map((dd) => {
+            return {
+                src: `${glitter.htmlGenerate.configureCDN(glitter.htmlGenerate.resourceHook(dd.js))}`,
+                type: 'module'
+            };
+        }), () => {
+        }, () => {
+        }, [
+            { key: "async", value: "true" }
+        ]);
+        glitter.htmlGenerate.loadScript(glitter, window.parent.editerData.setting.filter((dd) => {
+            return ['widget', 'container', 'code'].indexOf(dd.type) === -1;
+        }).map((dd) => {
+            return {
+                src: `${glitter.htmlGenerate.configureCDN(glitter.htmlGenerate.resourceHook(dd.js))}`,
+                type: 'module'
+            };
+        }));
+        glitter.share.evalPlace = ((evals) => {
+            return eval(evals);
+        });
+        glitter.htmlGenerate.setHome({
+            app_config: vm.appConfig,
+            page_config: (_a = window.parent.page_config) !== null && _a !== void 0 ? _a : {},
+            config: window.parent.editerData.setting,
+            editMode: window.parent.editerData,
+            data: {},
+            tag: window.parent.glitter.getUrlParameter('page')
+        });
+        callback();
+    }
+    static toNormalRender(glitter, vm, callback) {
+        if (glitter.getUrlParameter('token') && glitter.getUrlParameter('return_type') === 'resetPassword') {
+            GlobalUser.token = glitter.getUrlParameter('token');
+            glitter.setUrlParameter('token');
+            glitter.setUrlParameter('return_type');
+        }
+        glitter.share.evalPlace = ((evals) => {
+            return eval(evals);
+        });
+        console.log(`exePlugin-time:`, window.renderClock.stop());
+        window.glitterInitialHelper.getPageData(glitter.getUrlParameter('page'), (data) => {
+            console.log(`getPageData-time:`, window.renderClock.stop());
+            if (data.response.result.length === 0) {
+                const url = new URL("./", location.href);
+                url.searchParams.set('page', data.response.redirect);
+                if (glitter.getUrlParameter('appName')) {
+                    url.searchParams.set('appName', glitter.getUrlParameter('appName'));
+                }
+                location.href = url.href;
+                return;
+            }
+            glitter.htmlGenerate.loadScript(glitter, data.response.result[0].config.filter((dd) => {
+                return ['widget', 'container', 'code'].indexOf(dd.type) === -1;
+            }).map((dd) => {
+                return {
+                    src: `${glitter.htmlGenerate.configureCDN(glitter.htmlGenerate.resourceHook(dd.js))}`,
+                    callback: () => {
+                    }
+                };
+            }));
+            function authPass() {
+                glitter.htmlGenerate.setHome({
+                    app_config: vm.appConfig,
+                    page_config: data.response.result[0].page_config,
+                    config: data.response.result[0].config,
+                    data: {},
+                    tag: glitter.getUrlParameter('page')
+                });
+                callback();
+            }
+            function authError(message) {
+                glitter.addStyleLink([
+                    'assets/vendor/boxicons/css/boxicons.min.css',
+                    'assets/css/theme.css',
+                    'css/editor.css',
+                ]);
+                glitter.setHome('jspage/alert.js', glitter.getUrlParameter('page'), message, {
+                    backGroundColor: `transparent;`
+                });
+            }
+            if ((window.memberType !== 'noLimit') && vm.appConfig.dead_line && (new Date(vm.appConfig.dead_line).getTime()) < new Date().getTime()) {
+                authError('使用權限已過期，請前往後台執行續費。');
+            }
+            else {
+                authPass();
+            }
+        });
+    }
+    static resourceInitial(glitter, vm, callback) {
         window.glitterInitialHelper.getPlugin((dd) => {
-            var _a, _b;
+            var _a, _b, _c;
             console.log(`getPlugin-time:`, window.renderClock.stop());
+            window.saasConfig.appConfig = dd.response.data;
             GlobalUser.language = GlobalUser.language || navigator.language;
             vm.appConfig = dd.response.data;
             glitter.share.appConfigresponse = dd;
@@ -48,6 +294,20 @@ export class Entry {
             glitter.share.globalStyle = {};
             glitter.share.appConfigresponse.response.data.globalValue = (_a = glitter.share.appConfigresponse.response.data.globalValue) !== null && _a !== void 0 ? _a : [];
             glitter.share.appConfigresponse.response.data.globalStyleTag = (_b = glitter.share.appConfigresponse.response.data.globalStyleTag) !== null && _b !== void 0 ? _b : [];
+            if (glitter.getUrlParameter("type") !== 'editor') {
+                ((_c = vm.appConfig.globalStyle) !== null && _c !== void 0 ? _c : []).map((dd) => {
+                    try {
+                        if (dd.data.elem === 'link') {
+                            glitter.addStyleLink(dd.data.attr.find((dd) => {
+                                return dd.attr === 'href';
+                            }).value);
+                        }
+                    }
+                    catch (e) {
+                        return ``;
+                    }
+                });
+            }
             function loopCheckGlobalValue(array, tag) {
                 try {
                     array.map((dd) => {
@@ -81,295 +341,55 @@ export class Entry {
                 loopCheckGlobalValue(glitter.share.appConfigresponse.response.data.globalStyleTag, 'globalStyle');
                 loopCheckGlobalValue(glitter.share.appConfigresponse.response.data.globalValue, 'globalValue');
             }
-            window.saasConfig.appConfig = dd.response.data;
-            (() => __awaiter(this, void 0, void 0, function* () {
-                return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
-                    var _c, _d, _e;
-                    if (glitter.getUrlParameter("type") !== 'editor') {
-                        for (const data of ((_c = dd.response.data.initialStyleSheet) !== null && _c !== void 0 ? _c : [])) {
-                            try {
-                                if (data.type === 'script') {
-                                    glitter.addStyleLink(data.src.link);
-                                }
-                                else {
-                                    glitter.addStyle(data.src.official);
-                                }
-                            }
-                            catch (e) {
-                                console.log(e);
-                            }
-                        }
-                    }
-                    let countI = dd.response.data.initialList.length;
-                    const vm = {
-                        get count() {
-                            return countI;
-                        },
-                        set count(v) {
-                            countI = v;
-                            if (countI === 0) {
-                                resolve(true);
-                            }
-                        }
-                    };
-                    for (const data of ((_d = dd.response.data.initialList) !== null && _d !== void 0 ? _d : [])) {
-                        try {
-                            if (data.type === 'script') {
-                                const url = new URL(glitter.htmlGenerate.configureCDN(glitter.htmlGenerate.resourceHook(data.src.link)));
-                                glitter.share.callBackList = (_e = glitter.share.callBackList) !== null && _e !== void 0 ? _e : {};
-                                const callbackID = glitter.getUUID();
-                                url.searchParams.set('callback', callbackID);
-                                glitter.share.callBackList[callbackID] = (() => {
-                                    vm.count--;
-                                });
-                                glitter.addMtScript([{
-                                        src: url.href, type: 'module'
-                                    }], () => {
-                                    vm.count--;
-                                }, () => {
-                                    vm.count--;
-                                });
-                            }
-                            else {
-                                vm.count--;
-                            }
-                        }
-                        catch (e) {
-                            console.log(e);
-                            vm.count--;
-                        }
-                    }
+            callback(dd);
+        });
+    }
+    static globalStyle(glitter, dd) {
+        return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
+            var _a, _b;
+            let countI = dd.response.data.initialList.length;
+            const vm = {
+                get count() {
+                    return countI;
+                },
+                set count(v) {
+                    countI = v;
                     if (countI === 0) {
                         resolve(true);
                     }
-                }));
-            }))().then(() => {
-                var _a;
-                if (glitter.getUrlParameter("type") === 'editor') {
-                    glitter.share.EditorMode = true;
-                    glitter.share.evalPlace = ((evals) => {
-                        return eval(evals);
-                    });
-                    toBackendEditor(glitter);
                 }
-                else if (glitter.getUrlParameter("type") === 'htmlEditor') {
-                    console.log('timer');
-                    window.parent.glitter.share.editerGlitter = glitter;
-                    let timer = 0;
-                    var bodyElement = document.body;
-                    var observer = new ResizeObserver(function (entries, observer) {
-                        function scrollToItem(element) {
-                            if (element) {
-                                element.scrollIntoView({
-                                    behavior: 'auto',
-                                    block: 'center',
-                                });
-                            }
-                        }
-                        clearInterval(timer);
-                        timer = setTimeout(() => {
-                            const clock = glitter.ut.clock();
-                            const interVal = setInterval(() => {
-                                if (document.querySelector('.selectComponentHover')) {
-                                    scrollToItem(document.querySelector('.selectComponentHover'));
-                                }
-                                if (clock.stop() > 2000) {
-                                    clearInterval(interVal);
-                                }
-                            });
-                        }, 100);
-                    });
-                    observer.observe(bodyElement);
-                    window.parent.glitter.share.evalPlace = ((evals) => {
-                        return eval(evals);
-                    });
-                    glitter.addMtScript(window.parent.editerData.setting.map((dd) => {
-                        return {
-                            src: `${glitter.htmlGenerate.configureCDN(glitter.htmlGenerate.resourceHook(dd.js))}`,
-                            type: 'module'
-                        };
-                    }), () => {
-                    }, () => {
-                    }, [
-                        { key: "async", value: "true" }
-                    ]);
-                    glitter.htmlGenerate.loadScript(glitter, window.parent.editerData.setting.filter((dd) => {
-                        return ['widget', 'container', 'code'].indexOf(dd.type) === -1;
-                    }).map((dd) => {
-                        return {
-                            src: `${glitter.htmlGenerate.configureCDN(glitter.htmlGenerate.resourceHook(dd.js))}`,
-                            type: 'module'
-                        };
-                    }));
-                    glitter.share.evalPlace = ((evals) => {
-                        return eval(evals);
-                    });
-                    glitter.htmlGenerate.setHome({
-                        app_config: vm.appConfig,
-                        page_config: (_a = window.parent.page_config) !== null && _a !== void 0 ? _a : {},
-                        config: window.parent.editerData.setting,
-                        editMode: window.parent.editerData,
-                        data: {},
-                        tag: window.parent.glitter.getUrlParameter('page')
-                    });
-                }
-                else {
-                    if (glitter.getUrlParameter('token') && glitter.getUrlParameter('return_type') === 'resetPassword') {
-                        GlobalUser.token = glitter.getUrlParameter('token');
-                        glitter.setUrlParameter('token');
-                        glitter.setUrlParameter('return_type');
-                    }
-                    glitter.share.evalPlace = ((evals) => {
-                        return eval(evals);
-                    });
-                    console.log(`exePlugin-time:`, window.renderClock.stop());
-                    window.glitterInitialHelper.getPageData(glitter.getUrlParameter('page'), (data) => {
-                        console.log(`getPageData-time:`, window.renderClock.stop());
-                        if (data.response.result.length === 0) {
-                            const url = new URL("./", location.href);
-                            url.searchParams.set('page', data.response.redirect);
-                            if (glitter.getUrlParameter('appName')) {
-                                url.searchParams.set('appName', glitter.getUrlParameter('appName'));
-                            }
-                            location.href = url.href;
-                            return;
-                        }
-                        glitter.htmlGenerate.loadScript(glitter, data.response.result[0].config.filter((dd) => {
-                            return ['widget', 'container', 'code'].indexOf(dd.type) === -1;
-                        }).map((dd) => {
-                            return {
-                                src: `${glitter.htmlGenerate.configureCDN(glitter.htmlGenerate.resourceHook(dd.js))}`,
-                                callback: () => {
-                                }
-                            };
-                        }));
-                        function authPass() {
-                            glitter.htmlGenerate.setHome({
-                                app_config: vm.appConfig,
-                                page_config: data.response.result[0].page_config,
-                                config: data.response.result[0].config,
-                                data: {},
-                                tag: glitter.getUrlParameter('page')
-                            });
-                        }
-                        function authError(message) {
-                            glitter.addStyleLink([
-                                'assets/vendor/boxicons/css/boxicons.min.css',
-                                'assets/css/theme.css',
-                                'css/editor.css',
-                            ]);
-                            glitter.setHome('jspage/alert.js', glitter.getUrlParameter('page'), message, {
-                                backGroundColor: `transparent;`
-                            });
-                        }
-                        if ((window.memberType !== 'noLimit') && vm.appConfig.dead_line && (new Date(vm.appConfig.dead_line).getTime()) < new Date().getTime()) {
-                            authError('使用權限已過期，請前往後台執行續費。');
-                        }
-                        else {
-                            authPass();
-                        }
-                    });
-                }
-            });
-        });
-    }
-}
-function toBackendEditor(glitter) {
-    function running() {
-        return __awaiter(this, void 0, void 0, function* () {
-            config.token = GlobalUser.token;
-            glitter.addStyleLink([
-                'assets/vendor/boxicons/css/boxicons.min.css',
-                'assets/css/theme.css',
-                'css/editor.css'
-            ]);
-            yield new Promise((resolve, reject) => {
-                glitter.addMtScript([
-                    'https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js',
-                    'https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js',
-                    'assets/vendor/smooth-scroll/dist/smooth-scroll.polyfills.min.js',
-                    'assets/vendor/swiper/swiper-bundle.min.js',
-                    'assets/js/theme.min.js',
-                    'https://kit.fontawesome.com/cccedec0f8.js'
-                ], () => {
-                    resolve(true);
-                }, () => {
-                    resolve(true);
-                });
-            });
-            return;
-        });
-    }
-    window.mode = 'light';
-    window.root = document.getElementsByTagName('html')[0];
-    window.root.classList.add('light-mode');
-    function toNext() {
-        running().then(() => __awaiter(this, void 0, void 0, function* () {
-            {
-                let data = yield ApiPageConfig.getPage({
-                    appName: config.appName,
-                    tag: glitter.getUrlParameter('page')
-                });
-                if (data.response.result.length === 0) {
-                    glitter.setUrlParameter('page', data.response.redirect);
-                }
-                glitter.ut.frSize({
-                    sm: () => {
-                        glitter.setHome('jspage/main.js', glitter.getUrlParameter('page'), {
-                            appName: config.appName
-                        }, {
-                            backGroundColor: `transparent;`
+            };
+            for (const data of ((_a = dd.response.data.initialList) !== null && _a !== void 0 ? _a : [])) {
+                try {
+                    if (data.type === 'script') {
+                        const url = new URL(glitter.htmlGenerate.configureCDN(glitter.htmlGenerate.resourceHook(data.src.link)));
+                        glitter.share.callBackList = (_b = glitter.share.callBackList) !== null && _b !== void 0 ? _b : {};
+                        const callbackID = glitter.getUUID();
+                        url.searchParams.set('callback', callbackID);
+                        glitter.share.callBackList[callbackID] = (() => {
+                            vm.count--;
+                        });
+                        glitter.addMtScript([{
+                                src: url.href, type: 'module'
+                            }], () => {
+                            vm.count--;
+                        }, () => {
+                            vm.count--;
                         });
                     }
-                }, () => {
-                    glitter.setHome('jspage/nosupport.js', glitter.getUrlParameter('page'), {
-                        appName: config.appName
-                    }, {
-                        backGroundColor: `transparent;`
-                    });
-                })();
+                    else {
+                        vm.count--;
+                    }
+                }
+                catch (e) {
+                    console.log(e);
+                    vm.count--;
+                }
+            }
+            if (countI === 0) {
+                resolve(true);
             }
         }));
-    }
-    if (glitter.getUrlParameter('account')) {
-        ApiUser.login({
-            "account": glitter.getUrlParameter('account'),
-            "pwd": glitter.getUrlParameter('pwd')
-        }).then((re) => {
-            if (re.result) {
-                GlobalUser.token = re.response.userData.token;
-                toNext();
-            }
-            else {
-                const url = new URL(glitter.location.href);
-                location.href = `${url.origin}/glitter/?page=signin`;
-            }
-        });
-    }
-    else {
-        if (!GlobalUser.token) {
-            const url = new URL(glitter.location.href);
-            location.href = `${url.origin}/glitter/?page=signin`;
-        }
-        else {
-            BaseApi.create({
-                "url": config.url + `/api/v1/user/checkToken`,
-                "type": "GET",
-                "timeout": 0,
-                "headers": {
-                    "Content-Type": "application/json",
-                    "Authorization": GlobalUser.token
-                }
-            }).then((d2) => {
-                if (!d2.result) {
-                    const url = new URL(glitter.location.href);
-                    location.href = `${url.origin}/glitter/?page=signin`;
-                }
-                else {
-                    toNext();
-                }
-            });
-        }
     }
 }
 let clockF = () => {

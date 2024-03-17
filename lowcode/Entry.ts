@@ -5,23 +5,18 @@ import {config} from "./config.js";
 import {ApiPageConfig} from "./api/pageConfig.js";
 import {BaseApi} from "./glitterBundle/api/base.js";
 import {GlobalUser} from "./glitter-base/global/global-user.js";
+import {PageManager} from "./glitterBundle/module/PageManager.js";
 
 export class Entry {
     public static onCreate(glitter: Glitter) {
-        const css = String.raw
+        Entry.checkIframe(glitter)
         if (glitter.getUrlParameter('appName')) {
             (window as any).appName = glitter.getUrlParameter('appName')
             config.appName = glitter.getUrlParameter('appName')
         }
-        glitter.addStyle(css`@media (prefers-reduced-motion: no-preference) {
-          :root {
-            scroll-behavior: auto !important;
-          }
-        }`);
-
         (window as any).renderClock = (window as any).renderClock ?? clockF()
         console.log(`Entry-time:`, (window as any).renderClock.stop())
-        glitter.share.editerVersion = "V_5.3.9"
+        glitter.share.editerVersion = "V_5.4.6"
         glitter.share.start = new Date()
         const vm: {
             appConfig: any
@@ -33,8 +28,300 @@ export class Entry {
             api: ApiPageConfig,
             appConfig: undefined
         };
+        //資源初始化
+        Entry.resourceInitial(glitter, vm, async (dd) => {
+            //加載全域資源
+            await Entry.globalStyle(glitter, dd);
+            if (glitter.getUrlParameter("type") === 'editor') {
+                //頁面編輯器
+                Entry.toBackendEditor(glitter,()=>{})
+            } else if (glitter.getUrlParameter("type") === 'htmlEditor') {
+                //Iframe預覽區塊
+                Entry.toHtmlEditor(glitter, vm,()=>{
+                    Entry.checkIframe(glitter)
+                })
+            } else {
+                //一般頁面
+                Entry.toNormalRender(glitter,vm,()=>{
+                    Entry.checkIframe(glitter)
+                })
+            }
+        });
+    }
+
+    //判斷是否為Iframe來覆寫Glitter代碼
+    public static checkIframe(glitter: Glitter) {
+        if (glitter.getUrlParameter('isIframe') === 'true') {
+            glitter.goBack= (window.parent as any).glitter.goBack;
+            // (window as any).glitterInitialHelper=undefined;
+            // (window as any).glitterInitialHelper=(window.parent as any).glitterInitialHelper;
+            // console.log(`change-->`,(window as any).glitterInitialHelper)
+
+            // glitter.changePage = (window.parent as any).glitter.changePage
+            // glitter.setHome = (window.parent as any).glitter.setHome
+            // glitter.openDiaLog = (window.parent as any).glitter.openDiaLog
+            // glitter.innerDialog = (window.parent as any).glitter.innerDialog
+        }
+    }
+
+    //跳轉至頁面編輯器
+    public static toBackendEditor(glitter: Glitter,callback:()=>void) {
+        const css = String.raw
+        glitter.addStyle(css`@media (prefers-reduced-motion: no-preference) {
+          :root {
+            scroll-behavior: auto !important;
+          }
+        }`);
+        glitter.share.EditorMode = true
+        glitter.share.evalPlace = ((evals: string) => {
+            return eval(evals)
+        })
+
+        async function running() {
+            config.token = GlobalUser.token
+            glitter.addStyleLink([
+                'assets/vendor/boxicons/css/boxicons.min.css',
+                'assets/css/theme.css',
+                'css/editor.css'
+            ]);
+            await new Promise((resolve, reject) => {
+                glitter.addMtScript(
+                    [
+                        'https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js',
+                        'https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js',
+                        'assets/vendor/smooth-scroll/dist/smooth-scroll.polyfills.min.js',
+                        'assets/vendor/swiper/swiper-bundle.min.js',
+                        'assets/js/theme.min.js',
+                        'https://kit.fontawesome.com/cccedec0f8.js'
+                    ],
+                    () => {
+                        resolve(true)
+                    },
+                    () => {
+                        resolve(true)
+                    }
+                );
+            })
+            return
+        }
+
+        (window as any).mode = 'light';
+        (window as any).root = document.getElementsByTagName('html')[0];
+        (window as any).root.classList.add('light-mode');
+
+        function toNext() {
+            running().then(async () => {
+                {
+                    let data = await ApiPageConfig.getPage({
+                        appName: config.appName,
+                        tag: glitter.getUrlParameter('page')
+                    })
+                    if (data.response.result.length === 0) {
+                        glitter.setUrlParameter('page', data.response.redirect)
+                    }
+                    glitter.ut.frSize({
+                        sm: () => {
+                            glitter.setHome('jspage/main.js', glitter.getUrlParameter('page'), {
+                                appName: config.appName
+                            }, {
+                                backGroundColor: `transparent;`
+                            });
+                        }
+                    }, () => {
+                        glitter.setHome('jspage/nosupport.js', glitter.getUrlParameter('page'), {
+                            appName: config.appName
+                        }, {
+                            backGroundColor: `transparent;`
+                        });
+                    })()
+                }
+            })
+        }
+
+        if (glitter.getUrlParameter('account')) {
+            ApiUser.login({
+                "account": glitter.getUrlParameter('account'),
+                "pwd": glitter.getUrlParameter('pwd')
+            }).then((re) => {
+                if (re.result) {
+                    GlobalUser.token = re.response.userData.token
+                    toNext()
+                } else {
+                    const url = new URL(glitter.location.href)
+                    location.href = `${url.origin}/glitter/?page=signin`
+                }
+            })
+        } else {
+            if (!GlobalUser.token) {
+                const url = new URL(glitter.location.href)
+                location.href = `${url.origin}/glitter/?page=signin`
+            } else {
+                BaseApi.create({
+                    "url": config.url + `/api/v1/user/checkToken`,
+                    "type": "GET",
+                    "timeout": 0,
+                    "headers": {
+                        "Content-Type": "application/json",
+                        "Authorization": GlobalUser.token
+                    }
+                }).then((d2) => {
+                    if (!d2.result) {
+                        const url = new URL(glitter.location.href)
+                        location.href = `${url.origin}/glitter/?page=signin`
+                    } else {
+                        toNext()
+                    }
+                })
+
+            }
+        }
+    }
+    //跳轉至頁面編輯器Iframe顯示
+    public static toHtmlEditor(glitter: Glitter, vm: any,callback:()=>void) {
+        const css = String.raw
+        glitter.addStyle(css`@media (prefers-reduced-motion: no-preference) {
+          :root {
+            scroll-behavior: auto !important;
+          }
+        }`);
+        console.log('timer');
+        (window.parent as any).glitter.share.editerGlitter = glitter;
+        const clock = glitter.ut.clock()
+
+        function scrollToItem(element: any) {
+            if (element) {
+                element.scrollIntoView({
+                    behavior: 'auto', // 使用平滑滾動效果
+                    block: 'center', // 將元素置中
+                })
+            }
+        }
+
+        const interVal = setInterval(() => {
+            if (document.querySelector('.selectComponentHover')) {
+                scrollToItem(document.querySelector('.selectComponentHover'))
+            }
+            if (clock.stop() > 2000) {
+                clearInterval(interVal)
+            }
+        });
+        (window.parent as any).glitter.share.evalPlace = ((evals: string) => {
+            return eval(evals)
+        })
+        glitter.addMtScript(
+            (window.parent as any).editerData.setting.map((dd: any) => {
+                return {
+                    src: `${glitter.htmlGenerate.configureCDN(glitter.htmlGenerate.resourceHook(dd.js))}`,
+                    type: 'module'
+                }
+            }),
+            () => {
+
+            },
+            () => {
+            },
+            [
+                {key: "async", value: "true"}
+            ]
+        );
+
+        //Preload page script.
+        glitter.htmlGenerate.loadScript(glitter, (window.parent as any).editerData.setting.filter((dd: any) => {
+            return ['widget', 'container', 'code'].indexOf(dd.type) === -1
+        }).map((dd: any) => {
+            return {
+                src: `${glitter.htmlGenerate.configureCDN(glitter.htmlGenerate.resourceHook(dd.js))}`,
+                type: 'module'
+            }
+        }))
+        glitter.share.evalPlace = ((evals: string) => {
+            return eval(evals)
+        })
+        glitter.htmlGenerate.setHome(
+            {
+                app_config: vm.appConfig,
+                page_config: (window.parent as any).page_config ?? {},
+                config: (window.parent as any).editerData.setting,
+                editMode: (window.parent as any).editerData,
+                data: {},
+                tag: (window.parent as any).glitter.getUrlParameter('page')
+            }
+        );
+        callback()
+    }
+
+    public static toNormalRender(glitter: Glitter, vm: any,callback:()=>void) {
+        if (glitter.getUrlParameter('token') && glitter.getUrlParameter('return_type') === 'resetPassword') {
+            GlobalUser.token = glitter.getUrlParameter('token')
+            glitter.setUrlParameter('token')
+            glitter.setUrlParameter('return_type')
+        }
+        glitter.share.evalPlace = ((evals: string) => {
+            return eval(evals)
+        })
+        console.log(`exePlugin-time:`, (window as any).renderClock.stop());
+        (window as any).glitterInitialHelper.getPageData(glitter.getUrlParameter('page'), (data: any) => {
+            console.log(`getPageData-time:`, (window as any).renderClock.stop())
+            if (data.response.result.length === 0) {
+                const url = new URL("./", location.href)
+                url.searchParams.set('page', data.response.redirect)
+                if (glitter.getUrlParameter('appName')) {
+                    url.searchParams.set('appName', glitter.getUrlParameter('appName'))
+                }
+                location.href = url.href;
+                return
+            }
+            //Preload page script.
+            glitter.htmlGenerate.loadScript(glitter, data.response.result[0].config.filter((dd: any) => {
+                return ['widget', 'container', 'code'].indexOf(dd.type) === -1
+            }).map((dd: any) => {
+                return {
+                    src: `${glitter.htmlGenerate.configureCDN(glitter.htmlGenerate.resourceHook(dd.js))}`,
+                    callback: () => {
+                    }
+                }
+            }))
+
+            function authPass() {
+                glitter.htmlGenerate.setHome(
+                    {
+                        app_config: vm.appConfig,
+                        page_config: data.response.result[0].page_config,
+                        config: data.response.result[0].config,
+                        data: {},
+                        tag: glitter.getUrlParameter('page')
+                    }
+                );
+                callback()
+            }
+
+            function authError(message: string) {
+                glitter.addStyleLink([
+                    'assets/vendor/boxicons/css/boxicons.min.css',
+                    'assets/css/theme.css',
+                    'css/editor.css',
+
+                ]);
+
+                glitter.setHome('jspage/alert.js', glitter.getUrlParameter('page'), message, {
+                    backGroundColor: `transparent;`
+                });
+            }
+
+            //判斷APP是否過期
+            if (((window as any).memberType !== 'noLimit') && vm.appConfig.dead_line && (new Date(vm.appConfig.dead_line).getTime()) < new Date().getTime()) {
+                authError('使用權限已過期，請前往後台執行續費。')
+            } else {
+                authPass()
+            }
+        })
+    }
+
+    //資源初始化
+    public static resourceInitial(glitter: Glitter, vm: any, callback: (data: any) => void) {
         (window as any).glitterInitialHelper.getPlugin((dd: any) => {
-            console.log(`getPlugin-time:`, (window as any).renderClock.stop())
+            console.log(`getPlugin-time:`, (window as any).renderClock.stop());
+            (window as any).saasConfig.appConfig = dd.response.data;
             //設定預設的多國語言
             GlobalUser.language = GlobalUser.language || navigator.language
             vm.appConfig = dd.response.data;
@@ -42,7 +329,20 @@ export class Entry {
             glitter.share.globalValue = {}
             glitter.share.globalStyle = {}
             glitter.share.appConfigresponse.response.data.globalValue = glitter.share.appConfigresponse.response.data.globalValue ?? []
-            glitter.share.appConfigresponse.response.data.globalStyleTag = glitter.share.appConfigresponse.response.data.globalStyleTag ?? []
+            glitter.share.appConfigresponse.response.data.globalStyleTag = glitter.share.appConfigresponse.response.data.globalStyleTag ?? [];
+            if (glitter.getUrlParameter("type") !== 'editor') {
+                (vm.appConfig.globalStyle ?? []).map((dd: any) => {
+                    try {
+                        if (dd.data.elem === 'link') {
+                            glitter.addStyleLink(dd.data.attr.find((dd: any) => {
+                                return dd.attr === 'href'
+                            }).value)
+                        }
+                    } catch (e) {
+                        return ``
+                    }
+                })
+            }
 
             function loopCheckGlobalValue(array: any, tag: string) {
                 try {
@@ -73,318 +373,73 @@ export class Entry {
                 loopCheckGlobalValue(glitter.share.appConfigresponse.response.data.globalStyleTag, 'globalStyle');
                 loopCheckGlobalValue(glitter.share.appConfigresponse.response.data.globalValue, 'globalValue');
             }
-            (window as any).saasConfig.appConfig = dd.response.data;
-            (async () => {
-                return new Promise(async (resolve, reject) => {
-                    //Initial Global style
-                    if (glitter.getUrlParameter("type") !== 'editor') {
-                        for (const data of (dd.response.data.initialStyleSheet ?? [])) {
-                            try {
-                                if (data.type === 'script') {
-                                    glitter.addStyleLink(data.src.link)
-                                } else {
-                                    glitter.addStyle(data.src.official)
-                                }
-                            } catch (e) {
-                                console.log(e)
-                            }
-                        }
-                    }
-                    let countI = dd.response.data.initialList.length
-                    const vm = {
-                        //@ts-ignore
-                        get count() {
-                            return countI
-                        },
-                        set count(v) {
-                            countI = v
-                            if (countI === 0) {
-                                resolve(true)
-                            }
-                        }
-                    }
-                    for (const data of (dd.response.data.initialList ?? [])) {
-                        try {
-                            if (data.type === 'script') {
-                                const url = new URL(glitter.htmlGenerate.configureCDN(glitter.htmlGenerate.resourceHook(data.src.link)))
-                                glitter.share.callBackList = glitter.share.callBackList ?? {}
-                                const callbackID = glitter.getUUID()
-                                url.searchParams.set('callback', callbackID)
-                                glitter.share.callBackList[callbackID] = (() => {
-                                    vm.count--
-                                })
-                                glitter.addMtScript([{
-                                    src: url.href, type: 'module'
-                                }], () => {
-                                    vm.count--
-                                }, () => {
-                                    vm.count--
-                                })
-                            } else {
-                                vm.count--
-                            }
-                        } catch (e) {
-                            console.log(e)
-                            vm.count--
-                        }
-                    }
+            callback(dd)
+        })
+
+    }
+
+    //加載全域資源
+    public static globalStyle(glitter: Glitter, dd: any) {
+        return new Promise(async (resolve, reject) => {
+            //Initial Global style
+            // if (glitter.getUrlParameter("type") !== 'editor') {
+            //     for (const data of (dd.response.data.initialStyleSheet ?? [])) {
+            //         try {
+            //             if (data.type === 'script') {
+            //                 glitter.addStyleLink(data.src.link)
+            //             } else {
+            //                 glitter.addStyle(data.src.official)
+            //             }
+            //         } catch (e) {
+            //             console.log(e)
+            //         }
+            //     }
+            // }
+            let countI = dd.response.data.initialList.length
+            const vm = {
+                //@ts-ignore
+                get count() {
+                    return countI
+                },
+                set count(v) {
+                    countI = v
                     if (countI === 0) {
                         resolve(true)
                     }
-                })
-            })().then(() => {
-                if (glitter.getUrlParameter("type") === 'editor') {
-                    glitter.share.EditorMode = true
-                    glitter.share.evalPlace = ((evals: string) => {
-                        return eval(evals)
-                    })
-                    toBackendEditor(glitter)
-                } else if (glitter.getUrlParameter("type") === 'htmlEditor') {
-                    console.log('timer');
-                    (window.parent as any).glitter.share.editerGlitter = glitter;
-                    let timer: any = 0
-                    // 获取<body>元素
-                    var bodyElement = document.body;
-                    // 创建一个ResizeObserver实例
-                    var observer = new ResizeObserver(function (entries, observer) {
-                        function scrollToItem(element: any) {
-                            if (element) {
-                                element.scrollIntoView({
-                                    behavior: 'auto', // 使用平滑滾動效果
-                                    block: 'center', // 將元素置中
-                                })
-                            }
-                        }
-
-                        clearInterval(timer)
-                        timer = setTimeout(() => {
-                            const clock = glitter.ut.clock()
-                            const interVal = setInterval(() => {
-                                if (document.querySelector('.selectComponentHover')) {
-                                    scrollToItem(document.querySelector('.selectComponentHover'))
-                                }
-                                if (clock.stop() > 2000) {
-                                    clearInterval(interVal)
-                                }
-                            })
-                        }, 100)
-                    });
-                    // 启动观察器并开始监听<body>元素的大小变化
-                    observer.observe(bodyElement);
-                    (window.parent as any).glitter.share.evalPlace = ((evals: string) => {
-                        return eval(evals)
-                    })
-                    glitter.addMtScript(
-                        (window.parent as any).editerData.setting.map((dd: any) => {
-                            return {
-                                src: `${glitter.htmlGenerate.configureCDN(glitter.htmlGenerate.resourceHook(dd.js))}`,
-                                type: 'module'
-                            }
-                        }),
-                        () => {
-
-                        },
-                        () => {
-                        },
-                        [
-                            {key: "async", value: "true"}
-                        ]
-                    );
-
-                    //Preload page script.
-                    glitter.htmlGenerate.loadScript(glitter, (window.parent as any).editerData.setting.filter((dd: any) => {
-                        return ['widget', 'container', 'code'].indexOf(dd.type) === -1
-                    }).map((dd: any) => {
-                        return {
-                            src: `${glitter.htmlGenerate.configureCDN(glitter.htmlGenerate.resourceHook(dd.js))}`,
-                            type: 'module'
-                        }
-                    }))
-                    glitter.share.evalPlace = ((evals: string) => {
-                        return eval(evals)
-                    })
-                    glitter.htmlGenerate.setHome(
-                        {
-                            app_config: vm.appConfig,
-                            page_config: (window.parent as any).page_config ?? {},
-                            config: (window.parent as any).editerData.setting,
-                            editMode: (window.parent as any).editerData,
-                            data: {},
-                            tag: (window.parent as any).glitter.getUrlParameter('page')
-                        }
-                    );
-                } else {
-                    if (glitter.getUrlParameter('token') && glitter.getUrlParameter('return_type') === 'resetPassword') {
-                        GlobalUser.token = glitter.getUrlParameter('token')
-                        glitter.setUrlParameter('token')
-                        glitter.setUrlParameter('return_type')
-                    }
-                    glitter.share.evalPlace = ((evals: string) => {
-                        return eval(evals)
-                    })
-                    console.log(`exePlugin-time:`, (window as any).renderClock.stop());
-                    (window as any).glitterInitialHelper.getPageData(glitter.getUrlParameter('page'), (data: any) => {
-                        console.log(`getPageData-time:`, (window as any).renderClock.stop())
-                        if (data.response.result.length === 0) {
-                            const url = new URL("./", location.href)
-                            url.searchParams.set('page', data.response.redirect)
-                            if (glitter.getUrlParameter('appName')) {
-                                url.searchParams.set('appName', glitter.getUrlParameter('appName'))
-                            }
-                            location.href = url.href;
-                            return
-                        }
-                        //Preload page script.
-                        glitter.htmlGenerate.loadScript(glitter, data.response.result[0].config.filter((dd: any) => {
-                            return ['widget', 'container', 'code'].indexOf(dd.type) === -1
-                        }).map((dd: any) => {
-                            return {
-                                src: `${glitter.htmlGenerate.configureCDN(glitter.htmlGenerate.resourceHook(dd.js))}`,
-                                callback: () => {
-                                }
-                            }
-                        }))
-
-                        function authPass() {
-                            glitter.htmlGenerate.setHome(
-                                {
-                                    app_config: vm.appConfig,
-                                    page_config: data.response.result[0].page_config,
-                                    config: data.response.result[0].config,
-                                    data: {},
-                                    tag: glitter.getUrlParameter('page')
-                                }
-                            );
-                        }
-
-                        function authError(message: string) {
-                            glitter.addStyleLink([
-                                'assets/vendor/boxicons/css/boxicons.min.css',
-                                'assets/css/theme.css',
-                                'css/editor.css',
-
-                            ]);
-
-                            glitter.setHome('jspage/alert.js', glitter.getUrlParameter('page'), message, {
-                                backGroundColor: `transparent;`
-                            });
-                        }
-
-                        //判斷APP是否過期
-                        if (((window as any).memberType !== 'noLimit') && vm.appConfig.dead_line && (new Date(vm.appConfig.dead_line).getTime()) < new Date().getTime()) {
-                            authError('使用權限已過期，請前往後台執行續費。')
-                        } else {
-                            authPass()
-                        }
-                    })
                 }
-            });
+            }
+            for (const data of (dd.response.data.initialList ?? [])) {
+                try {
+                    if (data.type === 'script') {
+                        const url = new URL(glitter.htmlGenerate.configureCDN(glitter.htmlGenerate.resourceHook(data.src.link)))
+                        glitter.share.callBackList = glitter.share.callBackList ?? {}
+                        const callbackID = glitter.getUUID()
+                        url.searchParams.set('callback', callbackID)
+                        glitter.share.callBackList[callbackID] = (() => {
+                            vm.count--
+                        })
+                        glitter.addMtScript([{
+                            src: url.href, type: 'module'
+                        }], () => {
+                            vm.count--
+                        }, () => {
+                            vm.count--
+                        })
+                    } else {
+                        vm.count--
+                    }
+                } catch (e) {
+                    console.log(e)
+                    vm.count--
+                }
+            }
+            if (countI === 0) {
+                resolve(true)
+            }
         })
     }
 }
 
-
-//跳轉至頁面編輯器
-function toBackendEditor(glitter: Glitter) {
-    async function running() {
-        config.token = GlobalUser.token
-        glitter.addStyleLink([
-            'assets/vendor/boxicons/css/boxicons.min.css',
-            'assets/css/theme.css',
-            'css/editor.css'
-        ]);
-        await new Promise((resolve, reject) => {
-            glitter.addMtScript(
-                [
-                    'https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js',
-                    'https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js',
-                    'assets/vendor/smooth-scroll/dist/smooth-scroll.polyfills.min.js',
-                    'assets/vendor/swiper/swiper-bundle.min.js',
-                    'assets/js/theme.min.js',
-                    'https://kit.fontawesome.com/cccedec0f8.js'
-                ],
-                () => {
-                    resolve(true)
-                },
-                () => {
-                    resolve(true)
-                }
-            );
-        })
-        return
-    }
-
-    (window as any).mode = 'light';
-    (window as any).root = document.getElementsByTagName('html')[0];
-    (window as any).root.classList.add('light-mode');
-
-    function toNext() {
-        running().then(async () => {
-            {
-                let data = await ApiPageConfig.getPage({
-                    appName: config.appName,
-                    tag: glitter.getUrlParameter('page')
-                })
-                if (data.response.result.length === 0) {
-                    glitter.setUrlParameter('page', data.response.redirect)
-                }
-                glitter.ut.frSize({
-                    sm: () => {
-                        glitter.setHome('jspage/main.js', glitter.getUrlParameter('page'), {
-                            appName: config.appName
-                        }, {
-                            backGroundColor: `transparent;`
-                        });
-                    }
-                }, () => {
-                    glitter.setHome('jspage/nosupport.js', glitter.getUrlParameter('page'), {
-                        appName: config.appName
-                    }, {
-                        backGroundColor: `transparent;`
-                    });
-                })()
-            }
-        })
-    }
-
-    if (glitter.getUrlParameter('account')) {
-        ApiUser.login({
-            "account": glitter.getUrlParameter('account'),
-            "pwd": glitter.getUrlParameter('pwd')
-        }).then((re) => {
-            if (re.result) {
-                GlobalUser.token = re.response.userData.token
-                toNext()
-            } else {
-                const url = new URL(glitter.location.href)
-                location.href = `${url.origin}/glitter/?page=signin`
-            }
-        })
-    } else {
-        if (!GlobalUser.token) {
-            const url = new URL(glitter.location.href)
-            location.href = `${url.origin}/glitter/?page=signin`
-        } else {
-            BaseApi.create({
-                "url": config.url + `/api/v1/user/checkToken`,
-                "type": "GET",
-                "timeout": 0,
-                "headers": {
-                    "Content-Type": "application/json",
-                    "Authorization": GlobalUser.token
-                }
-            }).then((d2) => {
-                if (!d2.result) {
-                    const url = new URL(glitter.location.href)
-                    location.href = `${url.origin}/glitter/?page=signin`
-                } else {
-                    toNext()
-                }
-            })
-
-        }
-    }
-}
 
 let clockF = () => {
     return {

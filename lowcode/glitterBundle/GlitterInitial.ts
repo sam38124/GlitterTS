@@ -84,12 +84,13 @@ function traverseHTML(element: any,document:any) {
                     glitter.elementCallback[element.getAttribute('gvc-id') as string].rendered = true
                     if(!(document.querySelector(`[gvc-id="${id}"]`) as any).wasRender){
                         let view = glitter.elementCallback[id].getView()
+
                         if (typeof view === 'string') {
-                            element.innerHTML=glitter.renderView.replaceGlobalValue(view)
+                            $(`[gvc-id="${id}"]`).html(glitter.renderView.replaceGlobalValue(view))
                             notifyLifeCycle()
                         } else {
                             view.then((data) => {
-                                element.innerHTML=glitter.renderView.replaceGlobalValue(data)
+                                $(`[gvc-id="${id}"]`).html(glitter.renderView.replaceGlobalValue(data))
                                 notifyLifeCycle()
                             })
                         }
@@ -108,11 +109,6 @@ function traverseHTML(element: any,document:any) {
             } catch (e) {
                 glitter.deBugMessage(e)
             }
-        }
-        glitter.elementCallback[element.getAttribute('gvc-id') as string].document=document
-        glitter.elementCallback[element.getAttribute('gvc-id') as string].recreateView=()=>{
-            (document.querySelector(`[gvc-id="${id}"]`) as any).wasRender=false
-            renderBindView()
         }
         renderBindView()
     }else{
@@ -175,7 +171,6 @@ function glitterInitial() {
 glitterInitial();
 (window as any).glitter.share.postMessageCallback=[]
 window.addEventListener('message',(event: any)=>{
-    console.log(`linsMessage`);
     (window as any).glitter.share.postMessageCallback=(window as any).glitter.share.postMessageCallback.filter(function(obj:any, index:number, array:any) {
         // 使用 indexOf 来检查当前对象的 ID 在数组中的第一个索引位置
         return array.findIndex((item:any) => item.id === obj.id) === index;

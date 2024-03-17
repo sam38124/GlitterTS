@@ -735,7 +735,7 @@ export class PageEditor {
 
                 },
                 divCreate: {
-                    class: `d-flex flex-column ${(child) ? `` : ``} position-relative border-bottom position-relative ps-0 m-0`,
+                    class: `d-flex flex-column ${(child) ? `` : ``} position-relative  position-relative ps-0 m-0`,
                     elem: 'ul',
                     style: 'overflow-x: hidden;',
                     option: [
@@ -743,7 +743,6 @@ export class PageEditor {
                     ]
                 },
                 onCreate: () => {
-                    console.log(`sort_on_create`)
                     if (this.vid === 'MainEditorLeft') {
                         const leftItem = document.querySelectorAll('.selectLeftItem')
                         leftItem[leftItem.length - 1].scrollIntoView({

@@ -184,7 +184,8 @@ export class ApiPageConfig {
         "page_config"?: any,
         "copy"?: string,
         copyApp?:string,
-        page_type?:string
+        page_type?:string,
+        replace?:boolean
     }) {
 
         return BaseApi.create({

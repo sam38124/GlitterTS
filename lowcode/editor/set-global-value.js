@@ -45,11 +45,6 @@ export class SetGlobalValue {
                                     icon: '<i class="fa-regular fa-folder"></i>'
                                 },
                                 {
-                                    key: 'domain',
-                                    label: "網域設定",
-                                    icon: '<i class="fa-sharp fa-regular fa-globe-pointer"></i>'
-                                },
-                                {
                                     key: 'plugin',
                                     label: "模塊插件",
                                     icon: '<i class="fa-solid fa-puzzle-piece-simple"></i>'
@@ -517,12 +512,7 @@ ${(() => {
         });
     }
     static domainSetting(gvc) {
-        let searchText = '';
-        let searchInterval = 0;
         const id = gvc.glitter.getUUID();
-        const vm = {
-            select: "seo"
-        };
         const html = String.raw;
         return html `
             <div class="bg-white rounded" style="max-height:90vh;">

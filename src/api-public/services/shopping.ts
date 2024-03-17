@@ -44,9 +44,9 @@ interface VoucherData {
 
 export class Shopping {
     public app: string
-    public token: IToken
+    public token?: IToken
 
-    constructor(app: string, token: IToken) {
+    constructor(app: string, token?: IToken) {
         this.app = app
         this.token = token
     }
@@ -703,7 +703,7 @@ export class Shopping {
                             SET ?`, [
                 {
                     content: JSON.stringify(a),
-                    userID: this.token.userID
+                    userID: this.token!.userID
                 }
             ]);
         }

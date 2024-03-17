@@ -1,17 +1,8 @@
 import {GVC} from "../../glitterBundle/GVController.js";
-import {pageManager} from "../../setting/pageManager.js";
-import {appCreate, appSetting, fileManager} from "../../setting/appSetting.js";
 import {ShareDialog} from "../../dialog/ShareDialog.js";
 import {EditorElem} from "../../glitterBundle/plugins/editor-elem.js";
-import {BgShopping} from "../../backend-manager/bg-shopping.js";
-import {BgWidget} from "../../backend-manager/bg-widget.js";
-import {ApiShop} from "../../glitter-base/route/shopping.js";
-import {BgProject} from "../../backend-manager/bg-project.js";
-import {GlobalUser} from "../../glitter-base/global/global-user.js";
-import {BgNotify} from "../../backend-manager/bg-notify.js";
-import {BgWallet} from "../../backend-manager/bg-wallet.js";
-import {BgBlog} from "../../backend-manager/bg-blog.js";
-import {BgSeo} from "../../backend-manager/bg-seo.js";
+import {SetGlobalValue} from "../../editor/set-global-value.js";
+import {PageSettingView} from "../../editor/page-setting-view.js";
 
 export class Setting_editor {
     public static pluginUrl = ''
@@ -58,7 +49,15 @@ ${(!itemList.find((dd: any) => {
                                     gvc.recreateView()
                                 }
                                 if (glitter.getUrlParameter('router') === `${title}/${dd.title}`) {
-                                    $('#editerCenter').html(dd.view(gvc))
+                                    const data = dd.view(gvc)
+                                    if (typeof data === 'string') {
+                                        $('#editerCenter').html(data)
+                                    } else {
+                                        data.then((res: string) => {
+                                            $('#editerCenter').html(res)
+                                        })
+                                    }
+
                                 }
                                 return {
                                     title: dd.title,
@@ -120,162 +119,291 @@ ${(!itemList.find((dd: any) => {
                                          style="white-space: normal;word-break: break-all;">
                                         已下為官方提供的後台開發管理工具，能為您解決基本的系統開發需求。
                                     </div>
-                                    ${setBackendEditor(`fa-regular fa-user me-1`, `用戶相關`, [
-                                        {
-                                            title: `登入設定`,
-                                            view: (gvc: GVC) => {
-                                                return BgProject.setLoginConfig(gvc)
-                                            }
-                                        },
-                                        {
-                                            title: `用戶列表`,
-                                            view: (gvc: GVC) => {
-                                                return BgProject.userManager(gvc, 'list')
-                                            }
-                                        }
-                                    ], id)}
-                                    ${setBackendEditor(`fa-regular fa-shop me-1`, `電子商務`, [
-                                        {
-                                            title: `金流 / 物流 / 發票`,
-                                            view: (gvc: GVC) => {
-                                                return BgShopping.setFinanceWay(gvc) + BgShopping.logistics_setting(gvc) + BgShopping.invoice_setting(gvc)
-                                            }
-                                        },
-                                        {
-                                            title: `商品管理`,
-                                            view: (gvc: GVC) => {
-                                                return BgShopping.productManager(gvc)
-                                            }
-                                        },
-                                        {
-                                            title: `商品系列`,
-                                            view: (gvc: GVC) => {
-                                                return BgShopping.collectionManager({
-                                                    gvc: gvc
-                                                })
-                                            }
-                                        },
-                                        {
-                                            title: `訂單管理`,
-                                            view: (gvc: GVC) => {
-                                                return BgShopping.orderManager(gvc)
-                                            }
-                                        },
-                                        {
-                                            title: `折扣管理`,
-                                            view: (gvc: GVC) => {
-                                                return BgShopping.voucherManager(gvc)
-                                            }
-                                        },
-                                        {
-                                            title: `運費設定`,
-                                            view: (gvc: GVC) => {
-                                                return BgShopping.setShipment(gvc)
-                                            }
-                                        },
-                                        {
-                                            title: `回饋金`,
-                                            view: (gvc: GVC) => {
-                                                return BgWallet.rebateList(gvc)
-                                            }
-                                        }
-                                    ], id)}
-                                    ${setBackendEditor(`fa-regular fa-blog me-1`, `Blog / 網誌`, [
-                                        {
-                                            title: `內容管理`,
-                                            view: (gvc: GVC) => {
-                                                return BgBlog.contentManager(gvc, 'list')
-                                            }
-                                        }
-                                    ], id)}
-                                    ${setBackendEditor(`fa-regular fa-wallet me-1`, `電子錢包`, [
-                                        {
-                                            title: `增減紀錄`,
-                                            view: (gvc: GVC) => {
-                                                return BgWallet.walletList(gvc)
-                                            }
-                                        },
-                                        {
-                                            title: `提領請求`,
-                                            view: (gvc: GVC) => {
-                                                return BgWallet.withdrawRequest(gvc)
-                                            }
-                                        }
-                                    ], id)}
-                                    ${setBackendEditor(`fa-regular fa-envelopes-bulk`, `信件群發`, [
-                                        ...(() => {
-                                            let cCat = []
-                                            cCat.push({
-                                                title: `已訂閱郵件`,
+                                    ${[
+                                        setBackendEditor(`fa-regular fa-globe me-1`, `網站設定`, [
+                                            {
+                                                title: `SEO管理`,
                                                 view: (gvc: GVC) => {
-                                                    return BgNotify.email(gvc)
+                                                    return new Promise((resolve, reject) => {
+                                                        glitter.getModule(new URL('../../backend-manager/bg-project.js', import.meta.url).href, (BgProject) => {
+                                                            resolve(html`
+                                                                <div class="w-100 d-flex  justify-content-center pt-4"
+                                                                     style="min-height: calc(100vh - 60px);">
+                                                                    <div style="width:600px;background-color:#f3f6ff !important;" class="border pt-2">
+                                                                        ${PageSettingView.seoSetting({
+                                                                            gvc: gvc,
+                                                                            id: glitter.getUUID(),
+                                                                            vid: '',
+                                                                            viewModel: {
+                                                                                get selectItem() {
+                                                                                    return viewModel.data
+                                                                                }
+                                                                            },
+                                                                            page_select:true
+                                                                        })}
+                                                                    </div>
+                                                                </div>
+                                                            `);
+                                                        });
+                                                    });
                                                 }
-                                            })
-                                            cCat.push({
-                                                title: `群發設定`,
+                                            },
+                                            {
+                                                title: `網域設定`,
                                                 view: (gvc: GVC) => {
-                                                    return BgNotify.emailSetting(gvc)
+                                                    return new Promise((resolve, reject) => {
+                                                        resolve(html`
+                                                            <div class="w-100 d-flex align-items-center justify-content-center"
+                                                                 style="min-height: calc(100vh - 60px);">
+                                                                <div style="width:600px;" class="border">
+                                                                    ${SetGlobalValue.domainSetting(gvc)}
+                                                                </div>
+                                                            </div>`)
+                                                    });
                                                 }
-                                            })
-                                            return cCat
-                                        })()
-                                    ], id)}
-                                    ${setBackendEditor(`fa-regular fa-paper-plane`, `雲消息傳遞`, [
-                                        ...(() => {
-                                            let cCat = []
-                                            cCat.push({
-                                                title: `訂閱裝置管理`,
-                                                view: (gvc: GVC) => {
-                                                    return BgNotify.fcmDevice(gvc)
-                                                }
-                                            })
-                                            cCat.push({
-                                                title: `推播訊息管理`,
-                                                view: (gvc: GVC) => {
-                                                    return BgNotify.fcmSetting(gvc)
-                                                }
-                                            })
-                                            return cCat
-                                        })()
-                                    ], id)}
-                                    ${setBackendEditor(`fa-regular fa-messages-question`, `客服回饋`, [
-                                        ...(() => {
-                                            let cCat = []
-                                            cCat.push({
-                                                title: `回饋信件`,
-                                                view: (gvc: GVC) => {
-                                                    return BgNotify.rebackMessage(gvc)
-                                                }
-                                            })
-                                            cCat.push({
-                                                title: `客服訊息`,
-                                                view: (gvc: GVC) => {
-                                                    return BgNotify.customerMessage(gvc)
-                                                }
-                                            })
-                                            return cCat
-                                        })()
-                                    ], id)}
-                                    ${setBackendEditor(`fa-sharp fa-regular fa-cloud-arrow-up`, `應用發佈`, [
-                                        {
-                                            title: `模板發佈`,
-                                            view: (gvc: GVC) => {
-                                                return BgProject.templateReleaseForm(gvc)
                                             }
-                                        },
-                                        {
-                                            title: `蘋果商城`,
-                                            view: (gvc: GVC) => {
-                                                return BgProject.appRelease(gvc, 'apple_release')
+                                        ], id),
+                                        setBackendEditor(`fa-regular fa-user me-1`, `用戶相關`, [
+                                            {
+                                                title: `登入設定`,
+                                                view: (gvc: GVC) => {
+                                                    return new Promise((resolve, reject) => {
+                                                        glitter.getModule(new URL('../../backend-manager/bg-project.js', import.meta.url).href, (BgProject) => {
+                                                            resolve(BgProject.setLoginConfig(gvc));
+                                                        });
+                                                    });
+                                                }
+                                            },
+                                            {
+                                                title: `用戶列表`,
+                                                view: (gvc: GVC) => {
+                                                    return new Promise((resolve, reject) => {
+                                                        glitter.getModule(new URL('../../backend-manager/bg-project.js', import.meta.url).href, (BgProject) => {
+                                                            resolve(BgProject.userManager(gvc, 'list'));
+                                                        });
+                                                    });
+                                                }
                                             }
-                                        },
-                                        {
-                                            title: `安卓商城`,
-                                            view: (gvc: GVC) => {
-                                                return BgProject.appRelease(gvc, 'android_release')
+                                        ], id),
+                                        setBackendEditor(`fa-regular fa-shop me-1`, `電子商務`, [
+                                            {
+                                                title: `金流 / 物流 / 發票`,
+                                                view: (gvc: GVC) => {
+                                                    return new Promise((resolve, reject) => {
+                                                        glitter.getModule(new URL('../../backend-manager/bg-shopping.js', import.meta.url).href, (BgShopping) => {
+                                                            resolve(BgShopping.setFinanceWay(gvc) + BgShopping.logistics_setting(gvc) + BgShopping.invoice_setting(gvc));
+                                                        });
+                                                    });
+                                                }
+                                            },
+                                            {
+                                                title: `商品管理`,
+                                                view: (gvc: GVC) => {
+                                                    return new Promise((resolve, reject) => {
+                                                        glitter.getModule(new URL('../../backend-manager/bg-shopping.js', import.meta.url).href, (BgShopping) => {
+                                                            resolve(BgShopping.productManager(gvc));
+                                                        });
+                                                    });
+                                                }
+                                            },
+                                            {
+                                                title: `商品系列`,
+                                                view: (gvc: GVC) => {
+                                                    return new Promise((resolve, reject) => {
+                                                        glitter.getModule(new URL('../../backend-manager/bg-shopping.js', import.meta.url).href, (BgShopping) => {
+                                                            resolve(BgShopping.collectionManager({
+                                                                gvc: gvc
+                                                            }));
+                                                        });
+                                                    });
+                                                }
+                                            },
+                                            {
+                                                title: `訂單管理`,
+                                                view: (gvc: GVC) => {
+                                                    return new Promise((resolve, reject) => {
+                                                        glitter.getModule(new URL('../../backend-manager/bg-shopping.js', import.meta.url).href, (BgShopping) => {
+                                                            resolve(BgShopping.orderManager(gvc));
+                                                        });
+                                                    });
+                                                }
+                                            },
+                                            {
+                                                title: `折扣管理`,
+                                                view: (gvc: GVC) => {
+                                                    return new Promise((resolve, reject) => {
+                                                        glitter.getModule(new URL('../../backend-manager/bg-shopping.js', import.meta.url).href, (BgShopping) => {
+                                                            resolve(BgShopping.voucherManager(gvc));
+                                                        });
+                                                    });
+                                                }
+                                            },
+                                            {
+                                                title: `運費設定`,
+                                                view: (gvc: GVC) => {
+                                                    return new Promise((resolve, reject) => {
+                                                        glitter.getModule(new URL('../../backend-manager/bg-shopping.js', import.meta.url).href, (BgShopping) => {
+                                                            resolve(BgShopping.setShipment(gvc));
+                                                        });
+                                                    });
+                                                }
+                                            },
+                                            {
+                                                title: `回饋金`,
+                                                view: (gvc: GVC) => {
+                                                    return new Promise((resolve, reject) => {
+                                                        glitter.getModule(new URL('../../backend-manager/bg-wallet.js', import.meta.url).href, (BgWallet) => {
+                                                            resolve(BgWallet.rebateList(gvc));
+                                                        });
+                                                    });
+                                                }
                                             }
-                                        }
-                                    ], id)}
+                                        ], id),
+                                        setBackendEditor(`fa-regular fa-blog me-1`, `Blog / 網誌`, [
+                                            {
+                                                title: `內容管理`,
+                                                view: (gvc: GVC) => {
+                                                    return new Promise((resolve, reject) => {
+                                                        glitter.getModule(new URL('../../backend-manager/bg-blog.js', import.meta.url).href, (BgBlog) => {
+                                                            resolve(BgBlog.contentManager(gvc, 'list'));
+                                                        });
+                                                    });
+                                                }
+                                            }
+                                        ], id),
+                                        // setBackendEditor(`fa-regular fa-wallet me-1`, `電子錢包`, [
+                                        //     {
+                                        //         title: `增減紀錄`,
+                                        //         view: (gvc:GVC) => {
+                                        //             return new Promise((resolve, reject) => {
+                                        //                 glitter.getModule(new URL('../../backend-manager/bg-wallet.js', import.meta.url).href, (BgWallet) => {
+                                        //                     resolve(BgWallet.walletList(gvc));
+                                        //                 });
+                                        //             });
+                                        //         }
+                                        //     },
+                                        //     {
+                                        //         title: `提領請求`,
+                                        //         view: (gvc:GVC) => {
+                                        //             return new Promise((resolve, reject) => {
+                                        //                 glitter.getModule(new URL('../../backend-manager/bg-wallet.js', import.meta.url).href, (BgWallet) => {
+                                        //                     resolve(BgWallet.withdrawRequest(gvc));
+                                        //                 });
+                                        //             });
+                                        //         }
+                                        //     }
+                                        // ], id),
+                                        setBackendEditor(`fa-regular fa-envelopes-bulk`, `信件群發`, [
+                                            ...(() => {
+                                                let cCat = [];
+                                                cCat.push({
+                                                    title: `已訂閱郵件`,
+                                                    view: (gvc: GVC) => {
+                                                        return new Promise((resolve, reject) => {
+                                                            glitter.getModule(new URL('../../backend-manager/bg-notify.js', import.meta.url).href, (BgNotify) => {
+                                                                resolve(BgNotify.email(gvc));
+                                                            });
+                                                        });
+                                                    }
+                                                });
+                                                cCat.push({
+                                                    title: `群發設定`,
+                                                    view: (gvc: GVC) => {
+                                                        return new Promise((resolve, reject) => {
+                                                            glitter.getModule(new URL('../../backend-manager/bg-notify.js', import.meta.url).href, (BgNotify) => {
+                                                                resolve(BgNotify.emailSetting(gvc));
+                                                            });
+                                                        });
+                                                    }
+                                                });
+                                                return cCat;
+                                            })()
+                                        ], id),
+                                        setBackendEditor(`fa-regular fa-paper-plane`, `雲消息傳遞`, [
+                                            ...(() => {
+                                                let cCat = [];
+                                                cCat.push({
+                                                    title: `訂閱裝置管理`,
+                                                    view: (gvc: GVC) => {
+                                                        return new Promise((resolve, reject) => {
+                                                            glitter.getModule(new URL('../../backend-manager/bg-notify.js', import.meta.url).href, (BgNotify) => {
+                                                                resolve(BgNotify.fcmDevice(gvc));
+                                                            });
+                                                        });
+                                                    }
+                                                });
+                                                cCat.push({
+                                                    title: `推播訊息管理`,
+                                                    view: (gvc: GVC) => {
+                                                        return new Promise((resolve, reject) => {
+                                                            glitter.getModule(new URL('../../backend-manager/bg-notify.js', import.meta.url).href, (BgNotify) => {
+                                                                resolve(BgNotify.fcmSetting(gvc));
+                                                            });
+                                                        });
+                                                    }
+                                                });
+                                                return cCat;
+                                            })()
+                                        ], id),
+                                        setBackendEditor(`fa-regular fa-messages-question`, `客服回饋`, [
+                                            ...(() => {
+                                                let cCat = [];
+                                                cCat.push({
+                                                    title: `回饋信件`,
+                                                    view: (gvc: GVC) => {
+                                                        return new Promise((resolve, reject) => {
+                                                            glitter.getModule(new URL('../../backend-manager/bg-notify.js', import.meta.url).href, (BgNotify) => {
+                                                                resolve(BgNotify.rebackMessage(gvc));
+                                                            });
+                                                        });
+                                                    }
+                                                });
+                                                cCat.push({
+                                                    title: `客服訊息`,
+                                                    view: (gvc: GVC) => {
+                                                        return new Promise((resolve, reject) => {
+                                                            glitter.getModule(new URL('../../backend-manager/bg-notify.js', import.meta.url).href, (BgNotify) => {
+                                                                resolve(BgNotify.customerMessage(gvc));
+                                                            });
+                                                        });
+                                                    }
+                                                });
+                                                return cCat;
+                                            })()
+                                        ], id),
+                                        setBackendEditor(`fa-sharp fa-regular fa-cloud-arrow-up`, `應用發佈`, [
+                                            {
+                                                title: `模板發佈`,
+                                                view: (gvc: GVC) => {
+                                                    return new Promise((resolve, reject) => {
+                                                        glitter.getModule(new URL('../../backend-manager/bg-project.js', import.meta.url).href, (BgProject) => {
+                                                            resolve(BgProject.templateReleaseForm(gvc));
+                                                        });
+                                                    });
+                                                }
+                                            },
+                                            {
+                                                title: `蘋果商城`,
+                                                view: (gvc: GVC) => {
+                                                    return new Promise((resolve, reject) => {
+                                                        glitter.getModule(new URL('../../backend-manager/bg-project.js', import.meta.url).href, (BgProject) => {
+                                                            resolve(BgProject.appRelease(gvc, 'apple_release'));
+                                                        });
+                                                    });
+                                                }
+                                            },
+                                            {
+                                                title: `安卓商城`,
+                                                view: (gvc: GVC) => {
+                                                    return new Promise((resolve, reject) => {
+                                                        glitter.getModule(new URL('../../backend-manager/bg-project.js', import.meta.url).href, (BgProject) => {
+                                                            resolve(BgProject.appRelease(gvc, 'android_release'));
+                                                        });
+                                                    });
+                                                }
+                                            }
+                                        ], id)
+                                    ].join('')}
 
                                     ${((window as any).memberType === 'noLimit') ? setBackendEditor(`fa-solid fa-code`, `自訂代碼事件`, [
                                         ...(() => {
@@ -283,13 +411,21 @@ ${(!itemList.find((dd: any) => {
                                             cCat.push({
                                                 title: `登入事件`,
                                                 view: (gvc: GVC) => {
-                                                    return BgProject.loginHook(gvc)
+                                                    return new Promise((resolve, reject) => {
+                                                        glitter.getModule(new URL('../../backend-manager/bg-project.js', import.meta.url).href, (BgProject) => {
+                                                            resolve(BgProject.loginHook(gvc))
+                                                        })
+                                                    })
                                                 }
                                             });
                                             cCat.push({
                                                 title: `購物事件`,
                                                 view: (gvc: GVC) => {
-                                                    return BgProject.checkoutHook(gvc)
+                                                    return new Promise((resolve, reject) => {
+                                                        glitter.getModule(new URL('../../backend-manager/bg-project.js', import.meta.url).href, (BgProject) => {
+                                                            resolve(BgProject.checkoutHook(gvc))
+                                                        })
+                                                    })
                                                 }
                                             });
                                             return cCat
@@ -330,8 +466,10 @@ ${(!itemList.find((dd: any) => {
                                             if (vm.loading) {
                                                 return ``
                                             }
-                                            return html`<div class="alert alert-info m-2 p-3" style="white-space: normal;word-break: break-all;">
-                                                透過官方或第三方平台取得相關後台套件，來達成所有客製化系統開發。
+                                            return html`
+                                                <div class="alert alert-info m-2 p-3"
+                                                     style="white-space: normal;word-break: break-all;">
+                                                    透過官方或第三方平台取得相關後台套件，來達成所有客製化系統開發。
                                                 </div>
                                                 <div class="w-100"
                                                      style="border-bottom: 1px solid #e2e5f1 !important;"></div>

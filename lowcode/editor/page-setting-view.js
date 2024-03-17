@@ -10,6 +10,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 import { EditorElem } from "../glitterBundle/plugins/editor-elem.js";
 import { ShareDialog } from "../glitterBundle/dialog/ShareDialog.js";
 import { ApiPageConfig } from "../api/pageConfig.js";
+import { PageEditor } from "./page-editor.js";
+import { BgWidget } from "../backend-manager/bg-widget.js";
 import { Storage } from "../helper/storage.js";
 export class PageSettingView {
     static leftNav(gvc) {
@@ -548,7 +550,7 @@ ${PageSettingView.seoSetting({
                      style="">
                     ${[
             (() => {
-                var _a;
+                var _a, _b, _c;
                 let view = [
                     EditorElem.h3('頁面類型'),
                     `<div class="d-flex flex-wrap px-1">
@@ -564,10 +566,6 @@ ${[
                         {
                             title: "樣板",
                             value: 'article'
-                        },
-                        {
-                            title: "網誌",
-                            value: 'blog'
                         }
                     ].map((dd) => {
                         return `<div class="form-check form-check-inline">
@@ -590,7 +588,7 @@ ${[
                         case 'module':
                             return '模塊';
                         case 'article':
-                            return '模板';
+                            return '樣板';
                         case 'blog':
                             return '網誌';
                     }
@@ -618,6 +616,26 @@ ${[
                         gvc.notifyDataChange(docID);
                     }
                 }));
+                if (editData.page_type === 'article') {
+                    editData.page_config.template_type = (_b = editData.page_config.template_type) !== null && _b !== void 0 ? _b : 'blog';
+                    view.push(EditorElem.select({
+                        title: "樣板類型",
+                        gvc: gvc,
+                        def: (['blog', 'product'].indexOf(editData.page_config.template_type) === -1) ? `tag` : editData.page_config.template_type,
+                        array: [{
+                                title: "網誌頁面",
+                                value: 'blog'
+                            }, {
+                                title: "商品頁面",
+                                value: 'product'
+                            }
+                        ],
+                        callback: (text) => {
+                            editData.page_config.template_type = text;
+                            gvc.notifyDataChange(docID);
+                        }
+                    }));
+                }
                 view.push(EditorElem.editeInput({
                     gvc: gvc,
                     title: `${title}標籤`,
@@ -655,6 +673,24 @@ ${[
                     },
                     placeHolder: `請輸入${title}分類`
                 }));
+                editData.page_config.resource_from = (_c = editData.page_config.resource_from) !== null && _c !== void 0 ? _c : 'global';
+                if (editData.page_type === 'module') {
+                    view.push(EditorElem.select({
+                        title: '執行環境',
+                        gvc: gvc,
+                        def: editData.page_config.resource_from,
+                        callback: (text) => {
+                            editData.page_config.resource_from = text;
+                        },
+                        array: [{
+                                title: '全局',
+                                value: 'global'
+                            }, {
+                                title: `獨立-Iframe`,
+                                value: 'own'
+                            }],
+                    }));
+                }
                 return view.join('');
             })(),
             html `
@@ -742,9 +778,12 @@ ${[
                 favorite: viewModel.selectItem.favorite,
             }).then((api) => {
                 gvc.glitter.setUrlParameter('page', viewModel.selectItem.tag);
-                location.reload();
+                gvc.glitter.htmlGenerate.saveEvent(false, () => {
+                    location.reload();
+                });
             });
         }
+        const desc = (document.querySelector(`[name="description"]`) && document.querySelector(`[name="description"]`).getAttribute('content')) || '尚未設定描述';
         PageSettingView.checkFinish = (callback) => {
             if (JSON.stringify(viewModel.selectItem) !== JSON.stringify(gvc.glitter.share.editorViewModel.data)) {
                 dialog.checkYesOrNot({
@@ -769,15 +808,103 @@ ${[
                 callback();
             }
         };
-        return [` <div class="mt-n2 position-relative bgf6 d-flex align-items-center justify-content-between  p-2 border-bottom shadow">
-                    <span class="fs-6 fw-bold " style="color:black;">SEO設定</span>
-                    <button class="btn btn-primary-c "
-                            style="height: 28px;width:40px;font-size:14px;"
-                            onclick="${gvc.event(() => {
+        return [html `
+            <div class="mt-n2 position-relative bgf6 d-flex align-items-center justify-content-between  p-2 py-3 border-bottom shadow">
+                <span class="fs-6 fw-bold " style="color:black;">SEO設定</span>
+                <button class="btn btn-primary-c "
+                        style="height: 28px;width:40px;font-size:14px;"
+                        onclick="${gvc.event(() => {
                 save();
             })}">儲存
-                    </button>
-                </div>`, obj.gvc.bindView(() => {
+                </button>
+            </div>`,
+            (obj.page_select) ? gvc.bindView(() => {
+                const menuID = gvc.glitter.getUUID();
+                let visible = false;
+                return {
+                    bind: menuID,
+                    view: () => {
+                        return html `
+                            <div class="">${EditorElem.h3('選擇頁面')}</div>
+                            <div class="d-flex align-items-center">
+                                <div class="btn-group ms-0" style="max-width: 400px;min-width: 250px;">
+                                    <button type="button" class="btn btn-outline-secondary rounded  bg-white"
+                                            onclick="${gvc.event(() => {
+                            visible = !visible;
+                            gvc.notifyDataChange(menuID);
+                        })}">
+                                        <span style="max-width: 180px;overflow: hidden;text-overflow: ellipsis;">${gvc.glitter.share.editorViewModel.data.name}</span>
+                                        <i class="fa-sharp fa-solid fa-caret-down position-absolute translate-middle-y"
+                                           style="top: 50%;right: 20px;"></i>
+                                    </button>
+                                    ${gvc.bindView(() => {
+                            const id = gvc.glitter.getUUID();
+                            return {
+                                bind: id,
+                                view: () => {
+                                    return html `
+                                                            <ul class="list-group list-group-flush ">
+                                                                ${(() => {
+                                        return gvc.bindView(() => {
+                                            const pdID = gvc.glitter.getUUID();
+                                            return {
+                                                bind: pdID,
+                                                view: () => {
+                                                    return new Promise((resolve, reject) => {
+                                                        PageEditor.pageSelctor(gvc, (d3) => {
+                                                            glitter.setUrlParameter('page', d3.tag);
+                                                            glitter.share.reloadEditor();
+                                                        }, {
+                                                            filter: (data) => {
+                                                                return (data.page_type != 'module') && (data.page_type != 'article');
+                                                            }
+                                                        }).then((data) => {
+                                                            resolve(data.left);
+                                                        });
+                                                    });
+                                                },
+                                                divCreate: {}
+                                            };
+                                        });
+                                    })()}
+                                                            </ul>`;
+                                },
+                                divCreate: {
+                                    class: `dropdown-menu ${(visible) ? `show` : ''}`,
+                                    style: 'margin-top: 45px;max-height: calc(100vh - 100px);width:300px;overflow-y: scroll;',
+                                    option: [
+                                        { key: 'id', value: 'topd' }
+                                    ]
+                                },
+                                onCreate: () => {
+                                    $('.tooltip').remove();
+                                    $('[data-bs-toggle="tooltip"]').tooltip();
+                                }
+                            };
+                        })}
+                                </div>
+                                <div class="d-flex align-items-center justify-content-center hoverBtn ms-1 me-2 border bg-white
+${(glitter.share.editorViewModel.homePage === glitter.getUrlParameter('page')) ? `d-none` : ``}
+"
+                                     style="height:43px;width:43px;border-radius:10px;cursor:pointer;color:#151515;"
+                                     data-bs-toggle="tooltip" data-bs-placement="top"
+                                     data-bs-custom-class="custom-tooltip" data-bs-title="前往首頁"
+                                     onclick="${gvc.event(() => {
+                            const url = new URL(location.href);
+                            url.searchParams.set('page', glitter.share.editorViewModel.homePage);
+                            location.href = url.href;
+                        })}">
+                                    <i class="fa-regular fa-house"></i>
+                                </div>
+                            </div>
+                        `;
+                    },
+                    divCreate: {
+                        class: 'mx-3'
+                    }
+                };
+            }) : ``,
+            obj.gvc.bindView(() => {
                 return {
                     bind: obj.id,
                     view: () => {
@@ -791,24 +918,59 @@ ${[
                                     editData.page_config.seo = (_a = editData.page_config.seo) !== null && _a !== void 0 ? _a : {};
                                     const seo = editData.page_config.seo;
                                     seo.type = (_b = seo.type) !== null && _b !== void 0 ? _b : "def";
-                                    if (editData.tag === viewModel.homePage) {
+                                    if (editData.tag === gvc.glitter.share.editorViewModel.homePage) {
                                         seo.type = 'custom';
                                     }
                                     return html `
-                                    ${(editData.tag === viewModel.homePage) ? `` : EditorElem.h3('SEO參照')}
-                                    <select class="mt-2 form-select form-control ${(editData.tag === viewModel.homePage) && 'd-none'}"
-                                            onchange="${gvc.event((e) => {
+                                        ${BgWidget.card([`<div class="fs-sm fw-500 d-flex align-items-center justify-content-between mb-2 ">搜尋引擎預覽
+</div>`,
+                                        `<div class="fs-6 fw-500" style="color:#1a0dab;white-space: normal;">${document.title || '尚未設定'}</div>`,
+                                        `<div class="fs-sm fw-500" style="color:#006621;white-space: normal;">${(() => {
+                                            const url = new URL("", (glitter.share.editorViewModel.domain) ? `https://${glitter.share.editorViewModel.domain}/` : location.href);
+                                            url.search = '';
+                                            url.searchParams.set("page", glitter.getUrlParameter("page"));
+                                            if (!gvc.glitter.share.editorViewModel.domain) {
+                                                url.searchParams.set('appName', window.appName);
+                                            }
+                                            return url.href;
+                                        })()}</div>`,
+                                        `<div class="fs-sm fw-500" style="color:#545454;white-space: normal;">${desc}</div>`].join(''), `p-3 bg-white rounded-3 shadow border  mt-2`)}
+                                        ${((editData.page_type === 'page') || (editData.page_type === 'blog')) ? (EditorElem.select({
+                                        title: "設為首頁",
+                                        gvc: gvc,
+                                        def: (gvc.glitter.share.editorViewModel.homePage === editData.tag) ? `true` : `false`,
+                                        array: [{
+                                                title: "是",
+                                                value: 'true'
+                                            }, {
+                                                title: "否",
+                                                value: 'false'
+                                            }],
+                                        callback: (text) => {
+                                            if (text === 'true') {
+                                                gvc.glitter.share.editorViewModel.homePage = editData.tag;
+                                                seo.type = 'custom';
+                                            }
+                                            else {
+                                                gvc.glitter.share.editorViewModel.homePage = undefined;
+                                            }
+                                            gvc.notifyDataChange(docID);
+                                        }
+                                    })) : ''}
+                                        ${(editData.tag === gvc.glitter.share.editorViewModel.homePage) ? `` : EditorElem.h3('SEO參照')}
+                                        <select class="mt-2 form-select form-control ${(editData.tag === gvc.glitter.share.editorViewModel.homePage) && 'd-none'}"
+                                                onchange="${gvc.event((e) => {
                                         seo.type = e.value;
                                         gvc.notifyDataChange(id);
                                     })}">
-                                        <option value="def" ${(seo.type === "def") ? `selected` : ``}>
-                                            依照首頁
-                                        </option>
-                                        <option value="custom"
-                                                ${(seo.type === "custom") ? `selected` : ``}>自定義
-                                        </option>
-                                    </select>
-                                    ${(seo.type === "def") ? `` : gvc.map([uploadImage({
+                                            <option value="def" ${(seo.type === "def") ? `selected` : ``}>
+                                                依照首頁
+                                            </option>
+                                            <option value="custom"
+                                                    ${(seo.type === "custom") ? `selected` : ``}>自定義
+                                            </option>
+                                        </select>
+                                        ${(seo.type === "def") ? `` : gvc.map([uploadImage({
                                             gvc: gvc,
                                             title: `網頁logo`,
                                             def: (_c = seo.logo) !== null && _c !== void 0 ? _c : "",
@@ -862,10 +1024,10 @@ ${[
                                             height: 200
                                         })
                                     ])}
-                                `;
+                                    `;
                                 },
                                 divCreate: {
-                                    style: `max-height:calc(100vh - 170px);overflow-y:auto;overflow-x:hidden;`,
+                                    style: `${obj.page_select ? `overflow-y:hidden;padding-bottom:50px;` : `max-height:calc(100vh - 170px);overflow-y:auto;`}overflow-x:hidden;`,
                                     class: `px-2`
                                 }
                             };

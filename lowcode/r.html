@@ -23,7 +23,7 @@
 
             // 添加 HTML 模板
             this.shadowRoot.innerHTML = `
-        <button id="copyButton">Copy to Web Component</button>
+        <button id="copyButton" style="white-space: normal">Copy to Web Component</button>
       `;
 
             // 监听复制按钮的点击事件
@@ -45,7 +45,7 @@
 
     setInterval(()=>{
         document.getElementById=()=>{
-            console.log('hello')
+            console.log('hello  ')
         }
         document.getElementById('originalElement').innerHTML=new Date().getTime()
     },1000)

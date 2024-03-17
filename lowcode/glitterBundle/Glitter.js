@@ -28,6 +28,7 @@ export class Glitter {
             }
         });
         this.htmlGenerate = HtmlGenerate;
+        this.config = {};
         this.webUrl = '';
         this.goBackStack = [];
         this.parameter = { styleList: [], styleLinks: [] };
@@ -969,7 +970,6 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
             const document = doc !== null && doc !== void 0 ? doc : (window.document);
             const glitter = this;
             const head = document.head || document;
-            console.log(`head-->`, head);
             function add(filePath) {
                 const id = glitter.getUUID();
                 let allLinks = document.querySelectorAll("link");

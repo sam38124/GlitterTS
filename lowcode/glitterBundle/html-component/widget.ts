@@ -100,7 +100,7 @@ export const widgetComponent = {
                                 clickEvent: widget.data.onCreateEvent,
                                 subData: subData,
                                 element:{
-                                    e:gvc.getBindViewElem(id),
+                                    e:gvc.getBindViewElem(id).get(0),
                                     event:{}
                                 }
                             })
@@ -213,19 +213,20 @@ export const widgetComponent = {
                         },
                         divCreate: getCreateOption,
                         onCreate: () => {
+
                             TriggerEvent.trigger({
                                 gvc: gvc,
                                 widget: widget,
                                 clickEvent: widget.data.onCreateEvent,
                                 subData: subData,
                                 element:{
-                                    e:gvc.getBindViewElem(id),
+                                    e:gvc.getBindViewElem(id).get(0),
                                     event:{}
                                 }
                             })
                             glitter.elementCallback[gvc.id(id)].updateAttribute()
                             if (widget.data.elem.toLowerCase() === 'textarea') {
-                                autosize(gvc.getBindViewElem(id))
+                                autosize(gvc.getBindViewElem(id).get(0))
                             }
                         },
                         onInitial: () => {

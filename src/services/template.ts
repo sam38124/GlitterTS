@@ -7,20 +7,20 @@ import process from "process";
 import {UtDatabase} from "../api-public/utils/ut-database.js";
 
 export class Template {
-    public token: IToken;
+    public token?: IToken;
 
     public async verifyPermission(appName: string) {
         const count = await db.execute(`
             select count(1)
             from \`${saasConfig.SAAS_NAME}\`.app_config
-            where (user = ${this.token.userID} and appName = ${db.escape(appName)})
+            where (user = ${this.token!.userID} and appName = ${db.escape(appName)})
         `, [])
         return count[0]["count(1)"] === 1
     }
 
     public async createPage(config: {
         appName: string, tag: string, group: string, name: string, config: any, page_config: any, copy: any, page_type: string,
-        copyApp: string
+        copyApp: string,replace?:boolean
     }) {
         if (!(await this.verifyPermission(config.appName))) {
             throw exception.BadRequestError("Forbidden", "No Permission.", null);
@@ -39,11 +39,11 @@ export class Template {
         }
         try {
             await db.execute(`
-                insert into \`${saasConfig.SAAS_NAME}\`.page_config (userID, appName, tag, \`group\`, \`name\`, config,
+                ${(config.replace) ? `replace`:'insert'} into \`${saasConfig.SAAS_NAME}\`.page_config (userID, appName, tag, \`group\`, \`name\`, config,
                                                                      page_config, page_type)
                 values (?, ?, ?, ?, ?, ?, ?, ?);
             `, [
-                this.token.userID,
+                this.token!.userID,
                 config.appName,
                 config.tag,
                 config.group,
@@ -130,7 +130,7 @@ export class Template {
     }) {
         try {
             const sql = []
-            query.template_from === 'me' && sql.push(`user = '${this.token.userID}'`);
+            query.template_from === 'me' && sql.push(`user = '${this.token!.userID}'`);
             query.template_from === 'me' && sql.push(`template_type in (3,2)`);
             query.template_from === 'all' && sql.push(`template_type = 2`);
             const data = await new UtDatabase(saasConfig.SAAS_NAME as string, `page_config`).querySql(sql, query as any, `
@@ -150,7 +150,7 @@ export class Template {
             let template_type = '0'
             if (config.data.post_to === 'all') {
                 let officialAccount = (process.env.OFFICIAL_ACCOUNT ?? '').split(',')
-                if (officialAccount.indexOf(`${this.token.userID}`) !== -1) {
+                if (officialAccount.indexOf(`${this.token!.userID}`) !== -1) {
                     template_type = '2'
                 } else {
                     template_type = '1'
@@ -174,7 +174,7 @@ export class Template {
     }) {
 
         try {
-            let sql = `select ${(config.tag) ? `*` : `id,userID,tag,\`group\`,name,page_type,preview_image,appName`}
+            let sql = `select ${(config.tag) ? `*` : `id,userID,tag,\`group\`,name,page_type,preview_image,appName,page_config`}
                        from \`${saasConfig.SAAS_NAME}\`.page_config
                        where ${
                                      (() => {
@@ -192,7 +192,7 @@ export class Template {
                                              query.push(`favorite=1`)
                                          }
                                          if (config.me === 'true') {
-                                             query.push(`userID = ${this.token.userID}`)
+                                             query.push(`userID = ${this.token!.userID}`)
                                          } else {
                                              // let officialAccount=(process.env.OFFICIAL_ACCOUNT ?? '').split(',')
                                              // query.push(`userID in (${officialAccount.map((dd)=>{
@@ -216,7 +216,7 @@ export class Template {
         }
     }
 
-    constructor(token: IToken) {
+    constructor(token?: IToken) {
         this.token = token
     }
 }

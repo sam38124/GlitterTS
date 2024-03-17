@@ -41,6 +41,11 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                     gvc: gvc, widget: widget, clickEvent: object.scrollBT, subData: subData, element: element
                                 });
                             }
+                            else if (targetElement.scrollTop === 0) {
+                                TriggerEvent.trigger({
+                                    gvc: gvc, widget: widget, clickEvent: object.scrollTOP, subData: subData, element: element
+                                });
+                            }
                         };
                         targetElement.addEventListener('scroll', targetElement.scrollWatch);
                         resolve(true);

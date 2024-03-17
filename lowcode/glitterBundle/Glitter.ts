@@ -25,6 +25,7 @@ export class Glitter {
     /*Parameter*/
     public htmlGenerate = HtmlGenerate
     public window: Window;
+    public config:any={};
     public $: any;
     public document: any;
     public webUrl: string = '';
@@ -532,7 +533,6 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
         const document=doc ?? (window.document)
         const glitter = this;
         const head = document.head || document;
-        console.log(`head-->`,head)
         function add(filePath: string) {
             const id = glitter.getUUID()
             // 获取所有<a>标签

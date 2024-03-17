@@ -1967,12 +1967,19 @@ ${EditorElem.editeInput({
             collection: [],
             preview_image: [],
             specs: [],
-            variants: []
+            variants: [],
+            seo: {
+                title: '',
+                content: ''
+            },
+            template: ''
         };
         if (obj.type === 'replace') {
             postMD = obj.defData;
         }
         const html = String.raw;
+        const gvc = obj.gvc;
+        const seoID = gvc.glitter.getUUID();
         return html `
             <div class="d-flex">
                 ${BgWidget.container(`<div class="d-flex w-100 align-items-center mb-3 ">
@@ -1992,7 +1999,7 @@ ${EditorElem.editeInput({
         })}">${(obj.type === 'replace') ? `儲存並更改` : `儲存並新增`}</button>
         </div>
      <div class="d-flex flex-column flex-column-reverse  flex-md-row" style="gap:10px;">
-     <div style="width:900px;max-width:100%;">  ${BgWidget.card([
+     <div style="width:800px;max-width:100%;">  ${BgWidget.card([
             EditorElem.editeInput({
                 gvc: obj.gvc,
                 title: '商品標題',
@@ -2220,7 +2227,7 @@ ${EditorElem.editeInput({
             return {
                 bind: id,
                 view: () => {
-                    const wi = `calc(100% / 7);`;
+                    const wi = `calc(100% / 7 - 10px);`;
                     return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
                         let shipmentSetting = {
                             basic_fee: 0,
@@ -2234,12 +2241,12 @@ ${EditorElem.editeInput({
                         resolve([
                             `<div class="w-100 bgf6 d-flex" >
 <div style=" width:calc(100% / 7 - 90px);"></div>
-<div style=" width:${wi};padding-left:20px; ">子類</div>
+<div style=" width:${wi};padding-left:10px; ">子類</div>
 <div style=" width:${wi}; ">販售價格</div>
 <div style=" width:${wi}; ">比較價格</div>
 <div style=" width:${wi}; ">存貨數量</div>
-<div style=" width:${wi};margin-left:-20px;">存貨單位(SKU)</div>
-<div style=" width:${wi};padding-left:-20px;">運費權重</div>
+<div style=" width:${wi};">存貨單位(SKU)</div>
+<div style=" width:${wi};margin-left: 20px;">運費權重</div>
 <div style=" width:${wi}; "></div>
 </div>`,
                             EditorElem.arrayItem({
@@ -2481,9 +2488,66 @@ ${EditorElem.editeInput({
                     class: `mx-n3`
                 }
             };
-        }))}</div>
-         <div style="width:280px;max-width:100%;">
-${BgWidget.card(EditorElem.select({
+        }))}
+          <div class="my-2"></div>
+         ${BgWidget.card(obj.gvc.bindView(() => {
+            var _a;
+            postMD.seo = (_a = postMD.seo) !== null && _a !== void 0 ? _a : {
+                title: '',
+                content: ''
+            };
+            const id = seoID;
+            let toggle = false;
+            return {
+                bind: id,
+                view: () => {
+                    let view = [`<div class="fs-sm fw-500 d-flex align-items-center justify-content-between mb-2">搜尋引擎列表
+<div class="fw-500 fs-sm ${(toggle) ? `d-none` : ``}" style="cursor: pointer;color:rgba(0, 91, 211, 1);" onclick="${obj.gvc.event(() => {
+                            toggle = !toggle;
+                            obj.gvc.notifyDataChange(id);
+                        })}">編輯</div>
+</div>`,
+                        `<div class="fs-6 fw-500" style="color:#1a0dab;">${postMD.seo.title || '尚未設定'}</div>`,
+                        `<div class="fs-sm fw-500" style="color:#006621;">${(() => {
+                            const url = new URL("", (gvc.glitter.share.editorViewModel.domain) ? `https://${gvc.glitter.share.editorViewModel.domain}/` : location.href);
+                            url.search = '';
+                            url.searchParams.set("page", postMD.template);
+                            url.searchParams.set('product_id', postMD.id || '');
+                            if (!gvc.glitter.share.editorViewModel.domain) {
+                                url.searchParams.set('appName', window.appName);
+                            }
+                            return url.href;
+                        })()}</div>`,
+                        `<div class="fs-sm fw-500" style="color:#545454;white-space: normal;">${postMD.seo.content || '尚未設定'}</div>`];
+                    if (toggle) {
+                        view = view.concat([
+                            EditorElem.editeInput({
+                                gvc: obj.gvc,
+                                title: '頁面標題',
+                                default: postMD.seo.title,
+                                placeHolder: `請輸入頁面標題`,
+                                callback: (text) => {
+                                    postMD.seo.title = text;
+                                }
+                            }),
+                            EditorElem.editeText({
+                                gvc: obj.gvc,
+                                title: '中繼描述',
+                                default: postMD.seo.content,
+                                placeHolder: `請輸入中繼描述`,
+                                callback: (text) => {
+                                    postMD.seo.content = text;
+                                }
+                            })
+                        ]);
+                    }
+                    return view.join('');
+                }
+            };
+        }))}
+         </div>
+         <div style="width:300px;max-width:100%;">
+         ${BgWidget.card(EditorElem.select({
             gvc: obj.gvc,
             title: '商品狀態',
             def: postMD.status,
@@ -2491,6 +2555,27 @@ ${BgWidget.card(EditorElem.select({
             callback: (text) => {
                 postMD.status = text;
             }
+        }))}
+<div class="mt-2"></div>
+${BgWidget.card(gvc.bindView(() => {
+            const id = gvc.glitter.getUUID();
+            return {
+                bind: id,
+                view: () => {
+                    var _a;
+                    return EditorElem.pageSelect(gvc, '選擇佈景主題', (_a = postMD.template) !== null && _a !== void 0 ? _a : "", (data) => {
+                        postMD.template = data;
+                    }, (dd) => {
+                        console.log(`dd.page_config`, dd.page_config);
+                        const filter_result = dd.group !== 'glitter-article' && dd.page_type === 'article' && dd.page_config.template_type === 'product';
+                        if (filter_result && !postMD.template) {
+                            postMD.template = dd.tag;
+                            gvc.notifyDataChange([seoID, id]);
+                        }
+                        return filter_result;
+                    });
+                }
+            };
         }))}
 <div class="mt-2"></div>
          ${BgWidget.card(obj.gvc.bindView(() => {
@@ -2644,8 +2729,9 @@ ${BgWidget.card(EditorElem.select({
         })}">刪除商品</button>
 </div>
          </div>
+         <div></div>
 </div>
-`, 1200)}
+`, 1100)}
             </div>`;
     }
     static postEvent(postMD, gvc, vm) {
@@ -3158,3 +3244,4 @@ ${BgWidget.card(EditorElem.select({
         `, 900);
     }
 }
+window.glitter.setModule(import.meta.url, BgShopping);

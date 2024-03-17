@@ -47,6 +47,7 @@ TriggerEvent.createSingleEvent(import.meta.url, (glitter) => {
                         const latestID = await TriggerEvent.trigger({
                             gvc: gvc, widget: widget, clickEvent: object.latestID
                         })
+
                         resolve((await Chat.getMessage({
                             limit:limit as any,
                             page:page as any,

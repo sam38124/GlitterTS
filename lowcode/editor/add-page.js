@@ -48,11 +48,6 @@ export class AddPage {
                                     icon: `fa-regular fa-file-dashed-line`,
                                     title: "樣板",
                                     desc: '用來決定頁面的統一外觀樣式。'
-                                }, {
-                                    type: 'blog',
-                                    icon: `fa-solid fa-blog`,
-                                    title: "網誌",
-                                    desc: '關於我們 / 隱私權政策 / 服務條款 / 退款政策...等。'
                                 }];
                             return list.map((dd) => {
                                 return `<div class="d-flex align-items-center justify-content-center hoverBtn  border"

@@ -71,12 +71,12 @@ function traverseHTML(element, document) {
                     if (!document.querySelector(`[gvc-id="${id}"]`).wasRender) {
                         let view = glitter.elementCallback[id].getView();
                         if (typeof view === 'string') {
-                            element.innerHTML = glitter.renderView.replaceGlobalValue(view);
+                            $(`[gvc-id="${id}"]`).html(glitter.renderView.replaceGlobalValue(view));
                             notifyLifeCycle();
                         }
                         else {
                             view.then((data) => {
-                                element.innerHTML = glitter.renderView.replaceGlobalValue(data);
+                                $(`[gvc-id="${id}"]`).html(glitter.renderView.replaceGlobalValue(data));
                                 notifyLifeCycle();
                             });
                         }
@@ -97,11 +97,6 @@ function traverseHTML(element, document) {
                 glitter.deBugMessage(e);
             }
         }
-        glitter.elementCallback[element.getAttribute('gvc-id')].document = document;
-        glitter.elementCallback[element.getAttribute('gvc-id')].recreateView = () => {
-            document.querySelector(`[gvc-id="${id}"]`).wasRender = false;
-            renderBindView();
-        };
         renderBindView();
     }
     else {
@@ -159,7 +154,6 @@ function glitterInitial() {
 glitterInitial();
 window.glitter.share.postMessageCallback = [];
 window.addEventListener('message', (event) => {
-    console.log(`linsMessage`);
     window.glitter.share.postMessageCallback = window.glitter.share.postMessageCallback.filter(function (obj, index, array) {
         return array.findIndex((item) => item.id === obj.id) === index;
     });

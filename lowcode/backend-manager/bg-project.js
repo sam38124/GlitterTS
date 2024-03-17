@@ -1698,3 +1698,4 @@ ${BgWidget.card([`<div class="fw-bold fs-7">電子錢包</div>
         `, 900);
     }
 }
+window.glitter.setModule(import.meta.url, BgProject);

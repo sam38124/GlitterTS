@@ -28,6 +28,7 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                     return new Promise(async (resolve, reject) => {
                         // 取得要監聽的元素
                         let targetElement = element?.e;
+
                         if(targetElement.scrollWatch){
                             targetElement.removeEventListener('scroll',targetElement.scrollWatch)
                         }
@@ -37,6 +38,10 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                 // 在這裡執行相應的操作或加載更多內容的程式碼
                                 TriggerEvent.trigger({
                                     gvc: gvc, widget: widget, clickEvent: object.scrollBT, subData: subData, element: element
+                                })
+                            }else if(targetElement.scrollTop===0){
+                                TriggerEvent.trigger({
+                                    gvc: gvc, widget: widget, clickEvent: object.scrollTOP, subData: subData, element: element
                                 })
                             }
 

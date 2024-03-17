@@ -36,7 +36,7 @@ class Template {
         }
         try {
             await database_1.default.execute(`
-                insert into \`${config_1.saasConfig.SAAS_NAME}\`.page_config (userID, appName, tag, \`group\`, \`name\`, config,
+                ${(config.replace) ? `replace` : 'insert'} into \`${config_1.saasConfig.SAAS_NAME}\`.page_config (userID, appName, tag, \`group\`, \`name\`, config,
                                                                      page_config, page_type)
                 values (?, ?, ?, ?, ?, ?, ?, ?);
             `, [
@@ -160,7 +160,7 @@ class Template {
     }
     async getPage(config) {
         try {
-            let sql = `select ${(config.tag) ? `*` : `id,userID,tag,\`group\`,name,page_type,preview_image,appName`}
+            let sql = `select ${(config.tag) ? `*` : `id,userID,tag,\`group\`,name,page_type,preview_image,appName,page_config`}
                        from \`${config_1.saasConfig.SAAS_NAME}\`.page_config
                        where ${(() => {
                 let query = [`1 = 1`];
