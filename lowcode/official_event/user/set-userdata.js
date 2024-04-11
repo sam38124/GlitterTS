@@ -8,6 +8,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 import { TriggerEvent } from '../../glitterBundle/plugins/trigger-event.js';
+import { GlobalUser } from "../../glitter-base/global/global-user.js";
 import { ApiUser } from "../../glitter-base/route/user.js";
 TriggerEvent.createSingleEvent(import.meta.url, () => {
     return {
@@ -82,14 +83,23 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                     resolve(false);
                                 }
                                 else if (r.result) {
-                                    yield TriggerEvent.trigger({
-                                        gvc: gvc,
-                                        widget: widget,
-                                        clickEvent: object.success,
-                                        subData: subData,
-                                        element: element
-                                    });
-                                    resolve(true);
+                                    ApiUser.getUserData(GlobalUser.token, 'me').then((r) => __awaiter(void 0, void 0, void 0, function* () {
+                                        try {
+                                            GlobalUser.userInfo = r.response;
+                                            GlobalUser.updateUserData = JSON.parse(JSON.stringify(r.response));
+                                            yield TriggerEvent.trigger({
+                                                gvc: gvc,
+                                                widget: widget,
+                                                clickEvent: object.success,
+                                                subData: subData,
+                                                element: element
+                                            });
+                                            resolve(true);
+                                        }
+                                        catch (e) {
+                                            resolve(false);
+                                        }
+                                    }));
                                 }
                                 else {
                                     yield TriggerEvent.trigger({

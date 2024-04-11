@@ -11,6 +11,7 @@ export declare class User {
     }>;
     updateAccount(account: string, userID: string): Promise<any>;
     login(account: string, pwd: string): Promise<any>;
+    loginWithFb(token: string): Promise<any>;
     getUserData(query: string, type?: 'userID' | 'account'): Promise<any>;
     getUserList(query: {
         page?: number;

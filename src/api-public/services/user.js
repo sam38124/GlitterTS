@@ -39,6 +39,7 @@ const tool_js_1 = __importDefault(require("../../modules/tool.js"));
 const process_1 = __importDefault(require("process"));
 const ut_database_js_1 = require("../utils/ut-database.js");
 const custom_code_js_1 = require("./custom-code.js");
+const axios_1 = __importDefault(require("axios"));
 class User {
     async createUser(account, pwd, userData, req) {
         var _a, _b, _c;
@@ -148,16 +149,12 @@ class User {
                                                  from \`${this.app}\`.t_user
                                                  where account = ?
                                                    and status = 1`, [account]))[0];
-            console.log(`select *
-                         from \`${this.app}\`.t_user
-                         where account = ${database_1.default.escape(account)}
-                           and status = 1`);
             if (await tool_1.default.compareHash(pwd, data.pwd)) {
                 data.pwd = undefined;
                 data.token = await UserUtil_1.default.generateToken({
                     user_id: data["userID"],
                     account: data["account"],
-                    userData: data
+                    userData: {}
                 });
                 return data;
             }
@@ -168,6 +165,51 @@ class User {
         catch (e) {
             throw exception_1.default.BadRequestError('BAD_REQUEST', 'Login Error:' + e, null);
         }
+    }
+    async loginWithFb(token) {
+        let config = {
+            method: 'get',
+            maxBodyLength: Infinity,
+            url: `https://graph.facebook.com/v19.0/me?access_token=${token}&__cppo=1&debug=all&fields=id%2Cname%2Cemail&format=json&method=get&origin_graph_explorer=1&pretty=0&suppress_http_code=1&transport=cors`,
+            headers: {
+                'Cookie': 'sb=UysEY1hZJvSZxgxk_g316pK-'
+            }
+        };
+        const fbResponse = await new Promise((resolve, reject) => {
+            axios_1.default.request(config)
+                .then((response) => {
+                resolve(response.data);
+            })
+                .catch((error) => {
+                throw exception_1.default.BadRequestError('BAD_REQUEST', 'Login Error:' + error, null);
+            });
+        });
+        if ((await database_1.default.query(`select count(1) from \`${this.app}\`.t_user where account = ?`, [fbResponse.email]))[0]["count(1)"] == 0) {
+            const userID = generateUserID();
+            await database_1.default.execute(`INSERT INTO \`${this.app}\`.\`t_user\` (\`userID\`, \`account\`, \`pwd\`, \`userData\`, \`status\`)
+                              VALUES (?, ?, ?, ?, ?);`, [
+                userID,
+                fbResponse.email,
+                await tool_1.default.hashPwd(generateUserID()),
+                {
+                    name: fbResponse.name,
+                    fb_id: fbResponse.id,
+                    email: fbResponse.email
+                },
+                1
+            ]);
+        }
+        const data = (await database_1.default.execute(`select *
+                                             from \`${this.app}\`.t_user
+                                             where account = ?
+                                               and status = 1`, [fbResponse.email]))[0];
+        data.pwd = undefined;
+        data.token = await UserUtil_1.default.generateToken({
+            user_id: data["userID"],
+            account: data["account"],
+            userData: {}
+        });
+        return data;
     }
     async getUserData(query, type = 'userID') {
         try {
@@ -287,7 +329,9 @@ class User {
             ].join(` || `));
             const data = await new ut_database_js_1.UtDatabase(this.app, `t_fcm`).querySql(querySql, query);
             for (const b of data.data) {
-                let userData = (await database_1.default.query(`select userData from \`${this.app}\`.t_user where userID=?`, [b.userID]))[0];
+                let userData = (await database_1.default.query(`select userData
+                                                from \`${this.app}\`.t_user
+                                                where userID = ?`, [b.userID]))[0];
                 b.userData = (userData) && userData.userData;
             }
             return data;
@@ -473,8 +517,10 @@ class User {
     }
     async getConfig(config) {
         try {
-            return await database_1.default.execute(`select * from \`${this.app}\`.t_user_public_config where \`key\`=${database_1.default.escape(config.key)}
-            and user_id=${database_1.default.escape(config.user_id)}
+            return await database_1.default.execute(`select *
+                                     from \`${this.app}\`.t_user_public_config
+                                     where \`key\` = ${database_1.default.escape(config.key)}
+                                       and user_id = ${database_1.default.escape(config.user_id)}
             `, []);
         }
         catch (e) {

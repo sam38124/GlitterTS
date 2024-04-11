@@ -24,6 +24,7 @@ export class ApiPost {
         })
     }
 
+
     public static sqlAPI(json: {
         "router":string,
         "data":any
@@ -74,6 +75,22 @@ export class ApiPost {
                 "Content-Type": "application/json",
                 "g-app": getConfig().config.appName,
                 "Authorization": GlobalUser.token
+            }
+        })
+    }
+    public static getV2(json: {
+        page: number,
+        limit:number,
+        search:string,
+        type?:"user"|'manager'
+    }) {
+
+        return BaseApi.create({
+            "url": getBaseUrl() + `/api-public/v1/post/${json.type ?? 'user'}?page=${json.page}&limit=${json.limit}&search=${json.search}`,
+            "type": "GET",
+            "headers": {
+                "Content-Type": "application/json",
+                "g-app": getConfig().config.appName
             }
         })
     }

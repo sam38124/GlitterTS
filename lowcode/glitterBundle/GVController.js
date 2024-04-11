@@ -65,32 +65,7 @@ export class GVC {
         const gvc = this;
         try {
             const refresh = (id) => {
-                var _a;
-                if (gvc.getBindViewElem(id).length === 0) {
-                    return;
-                }
-                gvc.parameter.bindViewList[id].divCreate = (_a = gvc.parameter.bindViewList[id].divCreate) !== null && _a !== void 0 ? _a : {};
-                function notifyLifeCycle() {
-                    if (gvc.parameter.bindViewList[id].onCreate) {
-                        gvc.parameter.bindViewList[id].onCreate();
-                    }
-                }
-                function refreshView() {
-                    const view = gvc.glitter.elementCallback[gvc.id(id)].getView();
-                    if (typeof view === 'string') {
-                        $(`[gvc-id="${gvc.id(id)}"]`).html(view);
-                        gvc.glitter.elementCallback[gvc.id(id)].updateAttribute();
-                        notifyLifeCycle();
-                    }
-                    else {
-                        view.then((resolve) => {
-                            $(`[gvc-id="${gvc.id(id)}"]`).html(resolve);
-                            gvc.glitter.elementCallback[gvc.id(id)].updateAttribute();
-                            notifyLifeCycle();
-                        });
-                    }
-                }
-                refreshView();
+                gvc.glitter.elementCallback[gvc.id(id)] && gvc.glitter.elementCallback[gvc.id(id)].element && gvc.glitter.elementCallback[gvc.id(id)].element.recreateView && gvc.glitter.elementCallback[gvc.id(id)].element.recreateView();
             };
             const convID = function () {
                 if (typeof id === 'object') {
@@ -114,7 +89,7 @@ export class GVC {
     }
     getBindViewElem(id) {
         const gvc = this;
-        return $(`[gvc-id="${gvc.id(id)}"]`);
+        return $(gvc.glitter.elementCallback[gvc.id(id)].element);
     }
     addObserver(obj, callback, viewBind) {
         const gvc = this;
@@ -403,11 +378,15 @@ export class GVC {
         return html;
     }
 }
+GVC.initial = true;
 export function init(metaURL, fun) {
     var _a;
     GVC.glitter.share.GVControllerList = (_a = GVC.glitter.share.GVControllerList) !== null && _a !== void 0 ? _a : {};
     GVC.glitter.share.GVControllerList[metaURL] = (cf) => {
         var _a, _b, _c, _d, _e, _f;
+        if (window.glitter.pageConfig.length - 2 >= 0) {
+            window.glitter.pageConfig[window.glitter.pageConfig.length - 2].scrollTop = window.scrollY;
+        }
         const gvc = new GVC();
         gvc.parameter.pageConfig = cf.pageConfig;
         window.clickMap = (_a = window.clickMap) !== null && _a !== void 0 ? _a : {};
@@ -449,13 +428,13 @@ export function init(metaURL, fun) {
         };
         if (cf.pageConfig.type === GVCType.Page) {
             $('#glitterPage').append(`<page-box id="page${cf.pageConfig.id}" style="min-width: 100vw;min-height: 100vh;left: 0;top: 0;width:100vw;
-background: ${cf.pageConfig.backGroundColor};z-index: 9999;overflow: hidden;display:none;">
+background: ${cf.pageConfig.backGroundColor};z-index: 9999;overflow: hidden;display:none;" class="page-box">
 ${lifeCycle.onCreateView()}
 </page-box>`);
         }
         else {
             $('#glitterPage').append(`<page-box id="page${cf.pageConfig.id}" style="min-width: 100vw;min-height: 100vh;left: 0;top: 0;
-background: ${cf.pageConfig.backGroundColor};display: none;z-index:99999;overflow: hidden;position: fixed;width:100vw;height: 100vh;">
+background: ${cf.pageConfig.backGroundColor};display: none;z-index:99999;overflow: hidden;position: fixed;width:100vw;height: 100vh;" class="page-box">
 ${lifeCycle.onCreateView()}
 </page-box>`);
         }

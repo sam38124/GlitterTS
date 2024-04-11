@@ -408,8 +408,10 @@ ${obj.initial ?? ""}
     public static richText(obj: {
         gvc: GVC,
         def: string,
-        callback: (text: string) => void
+        callback: (text: string) => void,
+        style?: string
     }) {
+
         return obj.gvc.bindView(() => {
             const id = obj.gvc.glitter.getUUID()
             const richID = obj.gvc.glitter.getUUID()
@@ -425,7 +427,7 @@ ${obj.initial ?? ""}
                     return `<div style="" class="" id="${richID}">${obj.def}</div>`
                 },
                 divCreate: {
-                    style: `max-height:500px;overflow-y: auto;`
+                    style: obj.style || `max-height:500px;overflow-y: auto;`
                 },
                 onCreate: () => {
                     const interval = setInterval(() => {
@@ -488,6 +490,84 @@ ${obj.initial ?? ""}
                 }
             }
         })
+        // return obj.gvc.bindView(() => {
+        //     const id = obj.gvc.glitter.getUUID()
+        //     const richID = obj.gvc.glitter.getUUID()
+        //     obj.gvc.glitter.addMtScript([{
+        //         src: new URL('../../jslib/froala.js', import.meta.url)
+        //     }], () => {
+        //     }, () => {
+        //     })
+        //     obj.gvc.addStyleLink(['https://cdn.jsdelivr.net/npm/froala-editor@latest/css/froala_editor.pkgd.min.css'])
+        //     return {
+        //         bind: id,
+        //         view: () => {
+        //             return `<div style="" class="" id="${richID}">${obj.def}</div>`
+        //         },
+        //         divCreate: {
+        //             style: `max-height:500px;overflow-y: auto;`
+        //         },
+        //         onCreate: () => {
+        //             const interval = setInterval(() => {
+        //                 if ((window as any).FroalaEditor) {
+        //                     //@ts-ignore
+        //                     var editor = new FroalaEditor('#' + richID, {
+        //                         language: 'zh_tw',
+        //                         content: `<span>test</span>`,
+        //                         events: {
+        //                             'contentChanged': function () {
+        //                                 // Do something here.
+        //                                 // this is the editor instance.
+        //                                 obj.callback(editor.html.get());
+        //                             },
+        //                             'image.beforeUpload': function (e: any, images: any) {
+        //                                 console.log(e[0])
+        //
+        //                                 EditorElem.uploadFileFunction({
+        //                                     gvc: obj.gvc,
+        //                                     callback: (text) => {
+        //                                         editor.html.insert(`<img src="${text}">`)
+        //                                     },
+        //                                     file: e[0]
+        //                                 })
+        //                                 // 在图片上传之前执行的自定义逻辑
+        //                                 // images 参数是要上传的图片文件数组
+        //
+        //                                 // 在此处执行上传逻辑
+        //                                 // 可以使用 AJAX 或其他方式将图片上传到指定的服务器端
+        //
+        //                                 // 如果使用 AJAX，可以如下示例：
+        //                                 // $.ajax({
+        //                                 //   type: 'POST',
+        //                                 //   url: '/upload-image',
+        //                                 //   data: formData,
+        //                                 //   processData: false,
+        //                                 //   contentType: false,
+        //                                 //   success: function (data) {
+        //                                 //     // 处理上传成功后的逻辑
+        //                                 //     // data 包含了服务器响应的信息
+        //                                 //   },
+        //                                 //   error: function (error) {
+        //                                 //     // 处理上传失败时的逻辑
+        //                                 //   }
+        //                                 // });
+        //
+        //                                 // 阻止默认上传行为
+        //                                 return false;
+        //                             }
+        //                         }
+        //                     });
+        //
+        //                     console.log(`rich--`, ('#' + richID))
+        //
+        //                     clearInterval(interval)
+        //                 }
+        //             }, 200)
+        //
+        //
+        //         }
+        //     }
+        // })
     }
 
     public static pageSelect(gvc: GVC, title: string, def: any, callback: (tag: string) => void) {

@@ -38,6 +38,15 @@ router.get('/message', async (req, resp) => {
         return response_js_1.default.fail(resp, e);
     }
 });
+router.get('/unread', async (req, resp) => {
+    try {
+        const chat = new chat_1.Chat(req.get('g-app'), req.body.token);
+        return response_js_1.default.succ(resp, await chat.unReadMessage(req.query.user_id));
+    }
+    catch (e) {
+        return response_js_1.default.fail(resp, e);
+    }
+});
 router.get('/', async (req, resp) => {
     try {
         const chat = new chat_1.Chat(req.get('g-app'), req.body.token);
@@ -45,7 +54,7 @@ router.get('/', async (req, resp) => {
             return response_js_1.default.succ(resp, await chat.getChatRoom(req.query, req.query.user_id));
         }
         else {
-            return response_js_1.default.succ(resp, await chat.getChatRoom(req.query, req.body.token.userID));
+            return response_js_1.default.succ(resp, await chat.getChatRoom(req.query, req.query.user_id || req.body.token.userID));
         }
     }
     catch (e) {

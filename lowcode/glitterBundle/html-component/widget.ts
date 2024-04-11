@@ -2,26 +2,30 @@ import {HtmlJson, Plugin} from "../plugins/plugin-creater.js";
 import {Glitter} from "../Glitter.js";
 import {GVC} from "../GVController.js";
 import {TriggerEvent} from "../plugins/trigger-event.js";
-import {Editor} from "./editor.js";
 import {EditorElem} from "../plugins/editor-elem.js";
 //@ts-ignore
 import autosize from "../plugins/autosize.js";
 import {ShareDialog} from "../dialog/ShareDialog.js";
+import {Storage} from "../helper/storage.js";
 
 export const widgetComponent = {
-    render: (gvc: GVC, widget: HtmlJson, setting: any, hoverID: string[], sub: any, htmlGenerate: any,document?:any) => {
-        const glitter = gvc.glitter
+    render: (gvc: GVC, widget: HtmlJson, setting: any, hoverID: string[], sub: any, htmlGenerate: any, document?: any) => {
+        const glitter = gvc.glitter;
+        if(widget.data.onCreateEvent){
+            (widget as any).onCreateEvent=widget.data.onCreateEvent;
+            widget.data.onCreateEvent=undefined;
+        }
         widget.data.elem = widget.data.elem ?? "div"
         widget.data.inner = widget.data.inner ?? ""
         widget.data.attr = widget.data.attr ?? []
-        widget.data.onCreateEvent = widget.data.onCreateEvent ?? {}
         const id = htmlGenerate.widgetComponentID
-        const subData = sub ?? {} ;
+        const subData = sub ?? {};
         let formData = subData;
 
         return {
             view: () => {
                 let innerText = widget.data.inner
+
                 function getCreateOption() {
                     let option = widget.data.attr.map((dd: any) => {
                         if (dd.type === 'par') {
@@ -48,7 +52,9 @@ export const widgetComponent = {
                                         clickEvent: dd,
                                         subData: subData
                                     }).then((data) => {
-                                        if (data) {resolve(dd.attr)}
+                                        if (data) {
+                                            resolve(dd.attr)
+                                        }
                                     })
                                 })), value: ''
                             }
@@ -62,7 +68,8 @@ export const widgetComponent = {
                                         clickEvent: dd,
                                         element: {e, event},
                                         subData: subData
-                                    }).then((data) => {})
+                                    }).then((data) => {
+                                    })
                                 })
                             }
                         }
@@ -77,9 +84,9 @@ export const widgetComponent = {
                     } else if (widget.data.elem === 'input') {
                         option.push({key: 'value', value: innerText})
                     }
-                    let classList=[glitter.htmlGenerate.styleEditor(widget.data, gvc, widget as any, subData).class()]
+                    let classList = [glitter.htmlGenerate.styleEditor(widget.data, gvc, widget as any, subData).class()]
                     widget.hashTag && classList.push(`glitterTag${widget.hashTag}`);
-                    (hoverID.indexOf(widget.id) !== -1) && classList.push(`selectComponentHover`);
+                    (hoverID.indexOf(widget.id) !== -1) && ((window.parent as any).editerData !== undefined) && classList.push(`selectComponentHover`);
                     return {
                         elem: widget.data.elem,
                         class: classList.join(' '),
@@ -87,28 +94,69 @@ export const widgetComponent = {
                         option: option.concat(htmlGenerate.option),
                     }
                 }
+
                 if (widget.type === 'container') {
                     const glitter = (window as any).glitter
                     widget.data.setting.formData = widget.formData;
-                    const htmlGenerate = new glitter.htmlGenerate(widget.data.setting, hoverID, subData);
-                    innerText = ''
-                    return htmlGenerate.render(gvc, {
-                        containerID: id, onCreate: () => {
-                            TriggerEvent.trigger({
-                                gvc: gvc,
-                                widget: widget,
-                                clickEvent: widget.data.onCreateEvent,
-                                subData: subData,
-                                element:{
-                                    e:gvc.getBindViewElem(id).get(0),
-                                    event:{}
+
+                    function getView() {
+                        const htmlGenerate = new glitter.htmlGenerate(widget.data.setting, hoverID, subData);
+                        innerText = ''
+                        return htmlGenerate.render(gvc, {
+                            containerID: id, onCreate: () => {
+                                TriggerEvent.trigger({
+                                    gvc,
+                                    widget: widget as any,
+                                    clickEvent: (widget as any).onCreateEvent,
+                                    subData: subData
+                                })
+                                gvc.glitter.document.querySelector(`[gvc-id="${gvc.id(id)}"]`).onResumeEvent = () => {
+                                    TriggerEvent.trigger({
+                                        gvc,
+                                        widget: widget as any,
+                                        clickEvent: (widget as any).onResumtEvent,
+                                        subData: subData
+                                    })
                                 }
-                            })
-                        },
-                        app_config: widget.global.appConfig,
-                        page_config: widget.global.pageConfig,
-                        document:document
-                    }, getCreateOption())
+                            },
+                            onDestroy:()=>{
+                                TriggerEvent.trigger({
+                                    gvc,
+                                    widget: widget as any,
+                                    clickEvent: (widget as any).onDestoryEvent,
+                                    subData: subData
+                                })
+                            },
+                            onInitial:()=>{
+                                TriggerEvent.trigger({
+                                    gvc,
+                                    widget: widget as any,
+                                    clickEvent: (widget as any).onInitialEvent,
+                                    subData: subData
+                                })
+                            },
+                            app_config: widget.global.appConfig,
+                            page_config: widget.global.pageConfig,
+                            document: document,
+                        }, getCreateOption())
+                    }
+
+                    widget.data.setting.refresh = (() => {
+                        try {
+                            hoverID = [Storage.lastSelect];
+                            gvc.glitter.document.querySelector('.selectComponentHover') && gvc.glitter.document.querySelector('.selectComponentHover').classList.remove("selectComponentHover");
+                            gvc.glitter.document.querySelector(`[gvc-id="${gvc.id(id)}"]`).outerHTML = getView()
+                            setTimeout(() => {
+                                gvc.glitter.document.querySelector('.selectComponentHover').scrollIntoView({
+                                    behavior: 'auto', // 使用平滑滾動效果
+                                    block: 'center', // 將元素置中
+                                })
+                            }, 10)
+                        }catch (e) {
+
+                        }
+                    });
+                    return getView()
                 }
                 if ((widget.data.dataFrom === "code")) {
                     if (widget.data.elem !== 'select') {
@@ -127,6 +175,21 @@ export const widgetComponent = {
                         innerText = data || ''
                         gvc.notifyDataChange(id)
                     })
+                }else if(widget.data.dataFrom === "code_text"){
+                    const inner=(eval(`(() => {
+                                ${widget.data.inner}
+                            })()`))
+
+                    if(inner && inner.then){
+
+                        inner.then((data:any)=>{
+                            innerText = data || ''
+                            gvc.notifyDataChange(id)
+                        })
+                    }else{
+                        innerText=inner
+                        gvc.notifyDataChange(id)
+                    }
                 }
                 return gvc.bindView(() => {
                     return {
@@ -213,23 +276,40 @@ export const widgetComponent = {
                         },
                         divCreate: getCreateOption,
                         onCreate: () => {
-
-                            TriggerEvent.trigger({
-                                gvc: gvc,
-                                widget: widget,
-                                clickEvent: widget.data.onCreateEvent,
-                                subData: subData,
-                                element:{
-                                    e:gvc.getBindViewElem(id).get(0),
-                                    event:{}
-                                }
-                            })
                             glitter.elementCallback[gvc.id(id)].updateAttribute()
                             if (widget.data.elem.toLowerCase() === 'textarea') {
                                 autosize(gvc.getBindViewElem(id).get(0))
                             }
+                            TriggerEvent.trigger({
+                                gvc,
+                                widget: widget as any,
+                                clickEvent: (widget as any).onCreateEvent,
+                                subData: subData
+                            })
+                            gvc.glitter.document.querySelector(`[gvc-id="${gvc.id(id)}"]`).onResumeEvent = () => {
+                                TriggerEvent.trigger({
+                                    gvc,
+                                    widget: widget as any,
+                                    clickEvent: (widget as any).onResumtEvent,
+                                    subData: subData
+                                })
+                            }
+                        },
+                        onDestroy:()=>{
+                            TriggerEvent.trigger({
+                                gvc,
+                                widget: widget as any,
+                                clickEvent: (widget as any).onDestoryEvent,
+                                subData: subData
+                            })
                         },
                         onInitial: () => {
+                            TriggerEvent.trigger({
+                                gvc,
+                                widget: widget as any,
+                                clickEvent: (widget as any).onInitialEvent,
+                                subData: subData
+                            })
                         }
                     }
                 })
@@ -335,7 +415,7 @@ export const widgetComponent = {
                                                     widget.data.selectList = widget.data.selectList ?? []
                                                     widget.data.selectType = widget.data.selectType ?? 'manual'
                                                     const list = widget.data.selectList
-                                                    let html = Editor.select({
+                                                    let html = EditorElem.select({
                                                         title: '資料來源',
                                                         gvc: gvc,
                                                         def: widget.data.selectType,
@@ -352,59 +432,64 @@ export const widgetComponent = {
                                                         }
                                                     })
                                                     if (widget.data.selectType === 'manual') {
-                                                        html += (Editor.arrayItem({
+                                                        widget.data.selectList = widget.data.selectList ?? []
+                                                        html += `<div class="mx-n2 my-2">${(EditorElem.arrayItem({
                                                             gvc: gvc,
                                                             title: "選項集合",
                                                             originalArray: widget.data.selectList,
-                                                            array: widget.data.selectList.map((dd: any, index: number) => {
-                                                                dd.visible = dd.visible ?? 'visible'
-                                                                return {
-                                                                    title: dd.name || `區塊:${index + 1}`,
-                                                                    expand: dd,
-                                                                    innerHtml:
-                                                                        glitter.htmlGenerate.editeInput({
-                                                                            gvc: gvc,
-                                                                            title: `參數標題`,
-                                                                            default: dd.name,
-                                                                            placeHolder: "輸入參數標題",
-                                                                            callback: (text) => {
-                                                                                dd.name = text
-                                                                                widget.refreshComponent()
-                                                                            }
-                                                                        }) +
-                                                                        glitter.htmlGenerate.editeInput({
-                                                                            gvc: gvc,
-                                                                            title: `Value`,
-                                                                            default: dd.value,
-                                                                            placeHolder: "輸入參數值",
-                                                                            callback: (text) => {
-                                                                                dd.value = text
-                                                                                widget.refreshComponent()
-                                                                            }
-                                                                        }) +
-                                                                        `${Editor.select({
-                                                                            title: "參數可見度",
-                                                                            gvc: gvc,
-                                                                            def: dd.visible ?? 'visible',
-                                                                            array: [
-                                                                                {title: '隱藏', value: "invisible"},
-                                                                                {title: '可選', value: "visible"}
-                                                                            ],
-                                                                            callback: (text) => {
-                                                                                dd.visible = text
-                                                                                widget.refreshComponent()
-                                                                            }
-                                                                        })}`
-                                                                    ,
-                                                                    minus: gvc.event(() => {
-                                                                        list.splice(index, 1)
-                                                                        widget.refreshComponent()
-                                                                    })
-                                                                }
+                                                            array: (()=>{
+                                                                return widget.data.selectList.map((dd: any, index: number) => {
+                                                                    dd.visible = dd.visible ?? 'visible'
+                                                                    return {
+                                                                        title: dd.name || `區塊:${index + 1}`,
+                                                                        expand: dd,
+                                                                        innerHtml: () => {
+                                                                            return [glitter.htmlGenerate.editeInput({
+                                                                                gvc: gvc,
+                                                                                title: `參數標題`,
+                                                                                default: dd.name,
+                                                                                placeHolder: "輸入參數標題",
+                                                                                callback: (text) => {
+                                                                                    dd.name = text
+                                                                                    widget.refreshComponent()
+                                                                                }
+                                                                            }),
+                                                                                glitter.htmlGenerate.editeInput({
+                                                                                    gvc: gvc,
+                                                                                    title: `Value`,
+                                                                                    default: dd.value,
+                                                                                    placeHolder: "輸入參數值",
+                                                                                    callback: (text) => {
+                                                                                        dd.value = text
+                                                                                        widget.refreshComponent()
+                                                                                    }
+                                                                                }),
+                                                                                EditorElem.select({
+                                                                                    title: "參數可見度",
+                                                                                    gvc: gvc,
+                                                                                    def: dd.visible ?? 'visible',
+                                                                                    array: [
+                                                                                        {title: '隱藏', value: "invisible"},
+                                                                                        {title: '可選', value: "visible"}
+                                                                                    ],
+                                                                                    callback: (text) => {
+                                                                                        dd.visible = text
+                                                                                        widget.refreshComponent()
+                                                                                    }
+                                                                                })].join('')
+                                                                        }
+
+                                                                        ,
+                                                                        minus: gvc.event(() => {
+                                                                            list.splice(index, 1)
+                                                                            widget.refreshComponent()
+                                                                        })
+                                                                    }
+                                                                })
                                                             }),
                                                             expand: widget.data,
                                                             plus: {
-                                                                title: "添加區塊",
+                                                                title: "添加選項",
                                                                 event: gvc.event(() => {
                                                                     widget.data.selectList.push({
                                                                         name: "名稱", value: "", key: "default"
@@ -415,11 +500,12 @@ export const widgetComponent = {
                                                             refreshComponent: () => {
                                                                 widget.refreshComponent()
                                                             }
-                                                        }) + (() => {
+                                                        }))}</div>
+${(() => {
                                                             widget.data.dataFrom = widget.data.dataFrom ?? "static"
                                                             widget.data.innerEvenet = widget.data.innerEvenet ?? {}
                                                             return gvc.map([
-                                                                Editor.select({
+                                                                EditorElem.select({
                                                                     title: '預設值',
                                                                     gvc: gvc,
                                                                     def: widget.data.dataFrom,
@@ -456,7 +542,7 @@ export const widgetComponent = {
                                                                     }
                                                                 })()
                                                             ])
-                                                        })())
+                                                        })()}`
                                                     } else if (widget.data.selectType === 'trigger') {
                                                         widget.data.selectTrigger = widget.data.selectTrigger ?? {}
                                                         widget.data.selectItem = widget.data.selectItem ?? {}
@@ -484,15 +570,15 @@ export const widgetComponent = {
                                                     widget.data.dataFrom = widget.data.dataFrom ?? "static"
                                                     widget.data.innerEvenet = widget.data.innerEvenet ?? {}
                                                     return gvc.map([
-                                                        Editor.select({
+                                                        EditorElem.select({
                                                             title: '內容取得',
                                                             gvc: gvc,
                                                             def: widget.data.dataFrom,
                                                             array: [{
-                                                                title: "靜態",
+                                                                title: "文字",
                                                                 value: "static"
                                                             }, {
-                                                                title: "程式碼",
+                                                                title: "觸發事件",
                                                                 value: "code"
                                                             }],
                                                             callback: (text) => {
@@ -502,7 +588,7 @@ export const widgetComponent = {
                                                         }),
                                                         (() => {
                                                             if (widget.data.dataFrom === 'static') {
-                                                                return Editor.uploadImage({
+                                                                return EditorElem.uploadImage({
                                                                     title: '選擇圖片',
                                                                     gvc: gvc,
                                                                     def: widget.data.inner ?? "",
@@ -525,10 +611,10 @@ export const widgetComponent = {
                                                     widget.data.innerEvenet = widget.data.innerEvenet ?? {}
                                                     return gvc.map([
                                                         (() => {
-                                                            if (['link'].indexOf(widget.data.elem) !== -1) {
+                                                            if (['link', 'style'].indexOf(widget.data.elem) !== -1) {
                                                                 return ``
                                                             } else {
-                                                                return Editor.select({
+                                                                return EditorElem.select({
                                                                     title: '內容取得',
                                                                     gvc: gvc,
                                                                     def: widget.data.dataFrom,
@@ -537,7 +623,15 @@ export const widgetComponent = {
                                                                         value: "static"
                                                                     }, {
                                                                         title: "程式碼",
-                                                                        value: "code"
+                                                                        value: "code_text"
+                                                                    },
+                                                                        {
+                                                                            title: "觸發事件",
+                                                                            value: "code"
+                                                                        },
+                                                                        {
+                                                                        title: "HTML代碼",
+                                                                        value: "static_code"
                                                                     }],
                                                                     callback: (text) => {
                                                                         widget.data.dataFrom = text;
@@ -575,7 +669,28 @@ export const widgetComponent = {
                                                                             }
                                                                         })
                                                                     }
-                                                                } else {
+                                                                } else if (widget.data.dataFrom === 'static_code') {
+                                                                    return EditorElem.customCodeEditor({
+                                                                        gvc: gvc,
+                                                                        title: '複製的代碼內容',
+                                                                        height: 300,
+                                                                        initial: widget.data.inner,
+                                                                        language: 'html',
+                                                                        callback: (text) => {
+                                                                            widget.data.inner = text;
+                                                                        }
+                                                                    })
+                                                                } else if (widget.data.dataFrom === 'code_text'){
+                                                                    return EditorElem.codeEditor({
+                                                                        gvc: gvc,
+                                                                        height: 200,
+                                                                        initial: widget.data.inner,
+                                                                        title: "代碼區塊",
+                                                                        callback: (text) => {
+                                                                            widget.data.inner = text
+                                                                        }
+                                                                    })
+                                                                }else{
                                                                     return `<div class="mt-2"></div>` + TriggerEvent.editer(gvc, widget, widget.data.innerEvenet, {
                                                                         option: [],
                                                                         hover: false,
@@ -587,14 +702,7 @@ export const widgetComponent = {
                                                         })()
                                                     ])
                                             }
-                                        })(),
-
-                                        `<div class="my-2"></div>`,
-                                        TriggerEvent.editer(gvc, widget, widget.data.onCreateEvent, {
-                                            hover: false,
-                                            option: [],
-                                            title: "[onCreate]建立事件"
-                                        })
+                                        })()
                                     ]),
                                 `<div class="mx-n2 mt-2">${
                                     EditorElem.arrayItem({
@@ -612,7 +720,7 @@ export const widgetComponent = {
                                                     expand: dd,
                                                     innerHtml: ((gvc: GVC) => {
                                                         return gvc.map([
-                                                            Editor.select({
+                                                            EditorElem.select({
                                                                 title: "特徵類型",
                                                                 gvc: gvc,
                                                                 def: dd.type,
@@ -627,24 +735,24 @@ export const widgetComponent = {
                                                                 callback: (text) => {
                                                                     dd.type = text
                                                                     gvc.recreateView()
-                                                                    widget.refreshComponent()
+                                                                    
                                                                 }
                                                             }),
                                                             (() => {
                                                                 if (dd.type === 'par') {
                                                                     return gvc.map([
-                                                                        Editor.searchInput({
+                                                                        EditorElem.searchInput({
                                                                             title: '特徵標籤',
                                                                             gvc: gvc,
                                                                             def: dd.attr,
                                                                             array: ['src', 'placeholder', 'href'],
                                                                             callback: (text: string) => {
                                                                                 dd.attr = text
-                                                                                widget.refreshComponent()
+                                                                                
                                                                             },
                                                                             placeHolder: "請輸入特徵標籤"
                                                                         }),
-                                                                        Editor.select({
+                                                                        EditorElem.select({
                                                                             title: '特徵類型',
                                                                             gvc: gvc,
                                                                             def: dd.attrType,
@@ -654,19 +762,19 @@ export const widgetComponent = {
                                                                             callback: (text: string) => {
                                                                                 dd.attrType = text
                                                                                 gvc.recreateView()
-                                                                                widget.refreshComponent()
+                                                                                
                                                                             }
                                                                         })
                                                                     ])
                                                                 } else {
-                                                                    return Editor.searchInput({
+                                                                    return EditorElem.searchInput({
                                                                         title: '特徵標籤',
                                                                         gvc: gvc,
                                                                         def: dd.attr,
-                                                                        array: ['onclick', 'oninput', 'onchange', 'ondrag','onmouseover','onmouseout'],
+                                                                        array: ['onclick', 'oninput', 'onchange', 'ondrag', 'onmouseover', 'onmouseout'],
                                                                         callback: (text: string) => {
                                                                             dd.attr = text
-                                                                            widget.refreshComponent()
+                                                                            
                                                                         },
                                                                         placeHolder: "請輸入特徵標籤"
                                                                     })
@@ -675,14 +783,14 @@ export const widgetComponent = {
                                                             (() => {
                                                                 if (dd.type === 'par') {
                                                                     if ((['script', 'img'].indexOf(widget.data.elem) !== -1 && (dd.attr === 'src')) || dd.attrType === 'link') {
-                                                                        return Editor.uploadFile({
+                                                                        return EditorElem.uploadFile({
                                                                             title: "資源路徑",
                                                                             gvc: gvc,
                                                                             def: dd.value ?? '',
                                                                             callback: (text) => {
                                                                                 dd.value = text
                                                                                 gvc.recreateView()
-                                                                                widget.refreshComponent()
+                                                                                
                                                                             }
                                                                         })
                                                                     } else {
@@ -700,7 +808,7 @@ export const widgetComponent = {
                                                                                 callback: (text) => {
                                                                                     dd.valueFrom = text
                                                                                     gvc.recreateView()
-                                                                                    widget.refreshComponent()
+                                                                                    
                                                                                 }
                                                                             }),
                                                                             (() => {
@@ -712,7 +820,7 @@ export const widgetComponent = {
                                                                                         title: '程式碼',
                                                                                         callback: (data) => {
                                                                                             dd.value = data
-                                                                                            widget.refreshComponent()
+                                                                                            
                                                                                         }
                                                                                     })
                                                                                 } else {
@@ -723,7 +831,7 @@ export const widgetComponent = {
                                                                                         placeHolder: `請輸入參數內容`,
                                                                                         callback: (text) => {
                                                                                             dd.value = text
-                                                                                            widget.refreshComponent()
+                                                                                            
                                                                                         }
                                                                                     })
                                                                                 }
@@ -747,6 +855,9 @@ export const widgetComponent = {
                                                             })()
                                                         ])
                                                     }),
+                                                    saveEvent:()=>{
+                                                        widget.refreshComponent();
+                                                    },
                                                     minus: gvc.event(() => {
                                                         widget.data.attr.splice(index, 1);
                                                         widget.refreshComponent();
@@ -768,6 +879,12 @@ export const widgetComponent = {
                                     })
                                 }</div>`
                             ].join('')
+                        },
+                        onCreate:()=>{
+                           setTimeout(()=>{
+                               gvc.glitter.document.querySelector('.right_scroll')!.scrollTop=glitter.share.lastRightScrollTop
+                               console.log(`lastRightScrollTop-->`,glitter.share.lastRightScrollTop)
+                           })
                         }
                     }
                 });

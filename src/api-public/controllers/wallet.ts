@@ -4,7 +4,7 @@ import exception from "../../modules/exception";
 import {UtPermission} from "../utils/ut-permission.js";
 import {Firebase} from "../../modules/firebase";
 import {Private_config} from "../../services/private_config.js";
-import FinancialService, {EzPay} from "../services/financial-service.js";
+import FinancialService, {EcPay, EzPay} from "../services/financial-service.js";
 import {Wallet} from "../services/wallet.js";
 import multer from "multer";
 import db from "../../modules/database.js";
@@ -12,6 +12,8 @@ import {CustomCode} from "../services/custom-code.js";
 import {User} from "../services/user.js";
 import {Invoice} from "../services/invoice.js";
 import {UtDatabase} from "../utils/ut-database.js";
+import crypto from "crypto";
+import redis from "../../modules/redis.js";
 
 const router: express.Router = express.Router();
 
@@ -59,6 +61,7 @@ router.get('/sum', async (req: express.Request, resp: express.Response) => {
 router.post('/', async (req: express.Request, resp: express.Response) => {
     try {
         const app = req.get('g-app') as string
+
         return response.succ(resp, (await new Wallet(app, req.body.token).store({
                 return_url: req.body.return_url,
                 total: req.body.total,
@@ -85,9 +88,9 @@ router.put('/withdraw', async (req: express.Request, resp: express.Response) => 
         const app = req.get('g-app') as string
         if (await UtPermission.isManager(req)) {
             (await new Wallet(app, req.body.token).putWithdraw({
-                    id:req.body.id,
-                    status:req.body.status,
-                    note:req.body.note
+                    id: req.body.id,
+                    status: req.body.status,
+                    note: req.body.note
                 })
             )
             return response.succ(resp, {
@@ -190,15 +193,41 @@ router.post('/notify', upload.single('file'), async (req: express.Request, resp:
             appName: appName, key: 'glitter_finance'
         }))[0].value
         const url = new URL(`https://covert?${req.body.toString()}`)
-        const decodeData: any = JSON.parse(await new EzPay(appName, {
-            "HASH_IV": keyData.HASH_IV,
-            "HASH_KEY": keyData.HASH_KEY,
-            "ActionURL": keyData.ActionURL,
-            "NotifyURL": ``,
-            "ReturnURL": ``,
-            "MERCHANT_ID": keyData.MERCHANT_ID,
-            TYPE:keyData.TYPE
-        }).decode(url.searchParams.get('TradeInfo') as string));
+        let decodeData: any = undefined;
+        if (keyData.TYPE === 'ecPay') {
+            let params: any = {}
+            for (const b of url.searchParams.keys()) {
+                params[b] = url.searchParams.get(b)
+            }
+            let od: any = (Object.keys(params).sort(function (a, b) {
+                return a.toLowerCase().localeCompare(b.toLowerCase());
+            })).filter((dd) => {
+                return dd !== 'CheckMacValue'
+            }).map((dd) => {
+                return `${dd.toLowerCase()}=${(params as any)[dd]}`
+            });
+            let raw: any = od.join('&');
+            raw = EcPay.urlEncode_dot_net(`HashKey=${keyData.HASH_KEY}&${raw.toLowerCase()}&HashIV=${keyData.HASH_IV}`);
+            const chkSum = crypto.createHash('sha256').update(raw.toLowerCase()).digest('hex');
+            decodeData = {
+                Status: (url.searchParams.get('RtnCode') === '1' && url.searchParams.get('CheckMacValue')!.toLowerCase() === chkSum
+                ) ? `SUCCESS` : `ERROR`,
+                Result: {
+                    MerchantOrderNo: url.searchParams.get('MerchantTradeNo'),
+                    CheckMacValue: url.searchParams.get('CheckMacValue')
+                }
+            }
+        } else if (keyData.TYPE === 'newWebPay') {
+            decodeData = JSON.parse(await new EzPay(appName, {
+                "HASH_IV": keyData.HASH_IV,
+                "HASH_KEY": keyData.HASH_KEY,
+                "ActionURL": keyData.ActionURL,
+                "NotifyURL": ``,
+                "ReturnURL": ``,
+                "MERCHANT_ID": keyData.MERCHANT_ID,
+                TYPE: keyData.TYPE
+            }).decode(url.searchParams.get('TradeInfo') as string));
+        }
         if (decodeData['Status'] === 'SUCCESS') {
             await db.execute(`update \`${appName}\`.t_wallet
                               set status=?

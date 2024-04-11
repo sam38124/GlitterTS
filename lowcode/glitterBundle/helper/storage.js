@@ -59,5 +59,17 @@ export const Storage = {
     },
     set select_global_editor_tab(value) {
         localStorage.setItem('select_global_editor_tab', value);
+    },
+    get code_set_select() {
+        return (localStorage.getItem('code_set_select') || 'style');
+    },
+    set code_set_select(value) {
+        localStorage.setItem('code_set_select', value);
+    },
+    get select_bg_btn() {
+        return (localStorage.getItem('select_bg_btn') || 'official');
+    },
+    set select_bg_btn(value) {
+        localStorage.setItem('select_bg_btn', value);
     }
 };

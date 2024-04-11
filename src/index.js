@@ -53,6 +53,7 @@ const firebase_js_1 = require("./modules/firebase.js");
 const glitter_util_js_1 = require("./helper/glitter-util.js");
 const seo_js_1 = require("./services/seo.js");
 const shopping_js_1 = require("./api-public/services/shopping.js");
+const web_socket_js_1 = require("./services/web-socket.js");
 exports.app = (0, express_1.default)();
 const logger = new logger_1.default();
 exports.app.options('/*', (req, res) => {
@@ -84,6 +85,7 @@ async function initial(serverPort) {
         if (process.env.firebase) {
             await firebase_js_1.Firebase.initial();
         }
+        web_socket_js_1.WebSocket.start();
         logger.info('[Init]', `Server is listening on port: ${serverPort}`);
         console.log('Starting up the server now.');
     })();

@@ -273,6 +273,19 @@ export class ApiPublic {
   KEY \`index3\` (\`product_id\`)
 ) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 `
+                },
+                {
+                    scheme: appName,
+                    table: 't_chat_last_read',
+                    sql: `(
+  \`id\` int NOT NULL AUTO_INCREMENT,
+  \`user_id\` varchar(45) COLLATE utf8mb4_unicode_ci NOT NULL,
+  \`chat_id\` varchar(45) COLLATE utf8mb4_unicode_ci NOT NULL,
+  \`last_read\` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (\`id\`),
+  UNIQUE KEY \`index2\` (\`user_id\`,\`chat_id\`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+`
                 }
             ];
             for (const b of chunkArray(sqlArray, groupSize)) {

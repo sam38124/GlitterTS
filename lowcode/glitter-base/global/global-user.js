@@ -7,6 +7,9 @@ export class GlobalUser {
             return `${window.appName}${GlobalUser.tagId}${tag}`;
         }
     }
+    static get saas_token() {
+        return window.glitter.getCookieByName(`${window.glitterBase}${GlobalUser.tagId}token`);
+    }
     static get token() {
         return window.glitter.getCookieByName(GlobalUser.getTag('token'));
     }

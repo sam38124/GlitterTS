@@ -45,7 +45,7 @@ export class Glitter {
     public pageConfig: PageConfig[] = []
     public nowPageConfig?: PageConfig
     public waitChangePage = false
-    public elementCallback: { [name: string]: { onCreate: () => void, onInitial: () => void, notifyDataChange: () => void, getView: () => string | Promise<string>, updateAttribute: () => void, onDestroy: () => void, rendered: boolean,recreateView:()=>void ,document:any} } = {}
+    public elementCallback: { [name: string]: { onCreate: () => void, onInitial: () => void, notifyDataChange: () => void, getView: () => string | Promise<string>, updateAttribute: () => void, onDestroy: () => void, rendered: boolean,recreateView:()=>void ,element:any} } = {}
     public html = String.raw
     public promiseValueMap: any = {}
     /*Getter*/
@@ -171,19 +171,6 @@ export class Glitter {
                     if (data) {
                         callBack(data)
                     }
-                } else {
-                    glitter.$.ajax({
-                        type: "POST",
-                        url: glitter.webUrl + "/RunJsInterFace",
-                        data: JSON.stringify(map),
-                        timeout: 60 * 1000,
-                        success: function (data: any) {
-                            callBack(JSON.parse(data));
-                        },
-                        error: function (data: any) {
-                            callBack(data);
-                        }
-                    });
                 }
                 return;
             }
@@ -516,7 +503,7 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
         if (!glitter.parameter.styleList.find((dd: any) => {
             return dd.style === style
         })) {
-            var css = document.createElement('style');
+            const css = document.createElement('style');
             css.type = 'text/css';
             css.id = sl.id
             if ((css as any).styleSheet)
@@ -533,39 +520,49 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
         const document=doc ?? (window.document)
         const glitter = this;
         const head = document.head || document;
-        function add(filePath: string) {
-            const id = glitter.getUUID()
-            // 获取所有<a>标签
-            let allLinks:any = document.querySelectorAll("link");
-            let pass=true
-            // 遍历所有<a>标签并输出其href属性值
-            for (let i = 0; i < allLinks.length; i++) {
-                const hrefValue = allLinks[i].getAttribute("href");
-                if(hrefValue===filePath){
-                    pass=false
-                    break
-                }
-            }
-            if (pass) {
-                let link = (window.document).createElement("link");
-                link.type = "text/css";
-                link.rel = "stylesheet";
-                link.href = filePath;
-                link.id = id;
-                glitter.parameter.styleLinks.push({
-                    id: id,
-                    src: filePath
-                })
-                head.appendChild(link);
-            }
+        async function add(filePath: string) {
+           return new Promise((resolve, reject)=>{
+               const id = glitter.getUUID()
+               // 获取所有<a>标签
+               let allLinks:any = document.querySelectorAll("link");
+               let pass=true
+               // 遍历所有<a>标签并输出其href属性值
+               for (let i = 0; i < allLinks.length; i++) {
+                   const hrefValue = allLinks[i].getAttribute("href");
+                   if(hrefValue===filePath){
+                       pass=false
+                       break
+                   }
+               }
+               if (pass) {
+                   let link = (window.document).createElement("link");
+                   link.type = "text/css";
+                   link.rel = "stylesheet";
+                   link.href = filePath;
+                   link.id = id;
+                   link.onload = function() {
+                       resolve(true); // 样式表加载完毕
+                   };
+                   link.onerror=function (){
+                       resolve(false)
+                   }
+                   glitter.parameter.styleLinks.push({
+                       id: id,
+                       src: filePath
+                   })
+                   head.appendChild(link);
+               }else{
+                   resolve(true)
+               }
+           })
         }
 
         if (typeof data == "string") {
-            add(data)
+            await add(data)
         } else {
-            data.map((d3) => {
-                add(d3)
-            })
+            for (const d3 of data){
+                await  add(d3)
+            }
         }
     }
 

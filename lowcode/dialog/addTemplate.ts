@@ -3,7 +3,7 @@ import {ApiPageConfig} from "../api/pageConfig.js";
 import {ShareDialog} from "./ShareDialog.js";
 import {config} from "../config.js";
 import {EditorElem} from "../glitterBundle/plugins/editor-elem.js";
-import {Storage} from "../helper/storage.js";
+import {Storage} from "../glitterBundle/helper/storage.js";
 import Add_item_dia from "../glitterBundle/plugins/add_item_dia.js";
 
 init(import.meta.url, (gvc, glitter, gBundle) => {

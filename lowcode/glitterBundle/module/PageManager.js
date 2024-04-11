@@ -1,4 +1,5 @@
 import { Glitter } from '../Glitter.js';
+import { GVC } from "../GVController.js";
 export class DefaultSetting {
     constructor(obj) {
         this.pageLoading = () => {
@@ -87,9 +88,11 @@ export class PageManager {
             glitter.pageConfig[index].createResource();
             glitter.setUrlParameter('page', glitter.pageConfig[index].tag);
             if (glitter.pageConfig[index].type === GVCType.Page) {
-                window.scrollTo({
-                    top: glitter.pageConfig[index].scrollTop,
-                    behavior: 'auto'
+                setTimeout(() => {
+                    window.scrollTo({
+                        top: glitter.pageConfig[index].scrollTop,
+                        behavior: 'auto'
+                    });
                 });
             }
         }
@@ -188,13 +191,6 @@ export class PageManager {
         page.getElement().addClass(`position-fixed`);
         page.getElement().show();
         glitter.defaultSetting.pageLoadingFinish();
-        let lastPage = glitter.pageConfig.filter((a) => {
-            return a.type !== GVCType.Dialog;
-        });
-        lastPage = lastPage[lastPage.length - 2];
-        if (lastPage) {
-            lastPage.scrollTop = window.scrollY;
-        }
         page.animation.inView(page, () => {
             closePreviousPage();
             page.getElement().removeClass('position-fixed');
@@ -213,14 +209,19 @@ export class PageManager {
         const glitter = Glitter.glitter;
         const search = glitter.setSearchParam(glitter.removeSearchParam(glitter.window.location.search, 'page'), 'page', tag);
         try {
-            glitter.window.history.pushState({}, glitter.document.title, search);
+            if (GVC.initial) {
+                GVC.initial = false;
+            }
+            else {
+                glitter.window.history.pushState({}, glitter.document.title, search);
+            }
         }
         catch (e) {
         }
         glitter.setUrlParameter('page', tag);
     }
     static changePage(url, tag, goBack, obj, option = {}) {
-        var _a, _b, _c;
+        var _a, _b;
         const glitter = Glitter.glitter;
         console.log(`changePage-time:`, window.renderClock.stop());
         const pageConfig = new PageConfig({
@@ -235,8 +236,8 @@ export class PageManager {
             },
             backGroundColor: (_a = option.backGroundColor) !== null && _a !== void 0 ? _a : 'white',
             type: GVCType.Page,
-            animation: (_b = option.animation) !== null && _b !== void 0 ? _b : glitter.animation.none,
-            dismiss: (_c = option.dismiss) !== null && _c !== void 0 ? _c : (() => {
+            animation: option.animation || glitter.defaultSetting.pageAnimation || glitter.animation.none,
+            dismiss: (_b = option.dismiss) !== null && _b !== void 0 ? _b : (() => {
             }),
             renderFinish: () => {
             }

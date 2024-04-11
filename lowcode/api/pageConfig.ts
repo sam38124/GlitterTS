@@ -103,7 +103,7 @@ export class ApiPageConfig {
         template_from: 'all' | 'me',
         page?: string,
         limit?: string,
-        type?:'page' | 'module' | 'article' | 'blog',
+        type?:'page' | 'module' | 'article' | 'blog' | 'backend',
         tag?:string,
         search?:string
     }){
@@ -130,7 +130,7 @@ export class ApiPageConfig {
     }
 
     public static getTagList(request:{
-        type:'page' | 'module' | 'article' | 'blog',
+        type:'page' | 'module' | 'article' | 'blog' | 'backend',
         template_from:string
     }){
         return BaseApi.create({

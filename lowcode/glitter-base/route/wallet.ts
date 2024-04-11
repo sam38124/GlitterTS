@@ -34,6 +34,18 @@ export class ApiWallet{
             data: JSON.stringify(json)
         })
     }
+
+    public static getWallet() {
+        return BaseApi.create({
+            "url": getBaseUrl() + `/api-public/v1/wallet/sum`,
+            "type": "GET",
+            "headers": {
+                "Content-Type": "application/json",
+                "g-app": getConfig().config.appName,
+                "Authorization": GlobalUser.token
+            }
+        })
+    }
     public static withdrawPut(json: {
         "id": number,
         "status": number,

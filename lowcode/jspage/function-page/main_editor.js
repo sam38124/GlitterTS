@@ -12,7 +12,7 @@ import { EditorElem } from "../../glitterBundle/plugins/editor-elem.js";
 import { PageEditor } from "../../editor/page-editor.js";
 import { ShareDialog } from "../../dialog/ShareDialog.js";
 import { ApiPageConfig } from "../../api/pageConfig.js";
-import { Storage } from "../../helper/storage.js";
+import { Storage } from "../../glitterBundle/helper/storage.js";
 import { AddComponent } from "../../editor/add-component.js";
 var ViewType;
 (function (ViewType) {
@@ -196,7 +196,12 @@ export class Main_editor {
             });
         }
         return [html `
-            <div class=" " style="overflow-y:auto;height:calc(100vh - 150px)">
+            <div class="right_scroll" style="overflow-y:auto;height:calc(100vh - 150px)" onscroll="${gvc.event(() => {
+                if (document.querySelector('.right_scroll').scrollTop > 0) {
+                    glitter.share.lastRightScrollTop = document.querySelector('.right_scroll').scrollTop;
+                }
+                console.log(`lastRightScrollTopChange-->`, glitter.share.lastRightScrollTop);
+            })}">
                 ${gvc.bindView(() => {
                 return {
                     bind: `htmlGenerate`,
@@ -246,10 +251,6 @@ export class Main_editor {
                         class: `p-2`
                     },
                     onCreate: () => {
-                        setTimeout(() => {
-                            var _a;
-                            $('#jumpToNav').scrollTop((_a = parseInt(glitter.getCookieByName('jumpToNavScroll'), 10)) !== null && _a !== void 0 ? _a : 0);
-                        }, 1000);
                     }
                 };
             })}
@@ -279,7 +280,10 @@ export class Main_editor {
                                         }
                                     }
                                     viewModel.selectItem = undefined;
-                                    gvc.notifyDataChange(['HtmlEditorContainer']);
+                                    if (document.querySelector('#editerCenter iframe').contentWindow.document.querySelector('.selectComponentHover')) {
+                                        document.querySelector('#editerCenter iframe').contentWindow.document.querySelector('.selectComponentHover').remove();
+                                    }
+                                    gvc.notifyDataChange(['right_NAV', 'MainEditorLeft']);
                                 }
                                 if (viewModel.selectItem.type === 'component') {
                                     dialog.checkYesOrNot({
@@ -380,16 +384,6 @@ export class Main_editor {
                                                 title: '頁面內容',
                                                 value: 'layout',
                                                 icon: 'fa-regular fa-memo'
-                                            },
-                                            {
-                                                title: '樣式設計',
-                                                value: 'style',
-                                                icon: 'fa-regular fa-regular fa-pen-swirl'
-                                            },
-                                            {
-                                                title: '觸發事件',
-                                                value: 'script',
-                                                icon: 'fa-regular fa-file-code'
                                             },
                                             {
                                                 title: '區段編輯',

@@ -36,6 +36,8 @@ export class Chat {
                     `chat_id=${json.chat_id}`
                 ];
                 json.latestID && par.push(`after_id=${json.latestID}`);
+                json.olderID && par.push(`befor_id=${json.olderID}`);
+                json.user_id && par.push(`user_id=${json.user_id}`);
                 return par.join('&');
             })()}`,
             "type": "GET",
@@ -54,9 +56,21 @@ export class Chat {
                     `limit=${json.limit}`,
                     `page=${json.page}`
                 ];
+                json.chat_id && par.push(`chat_id=${json.chat_id}`);
                 json.user_id && par.push(`user_id=${json.user_id}`);
                 return par.join('&');
             })()}`,
+            "type": "GET",
+            "headers": {
+                "Content-Type": "application/json",
+                "g-app": getConfig().config.appName,
+                "Authorization": (json.user_id) ? getConfig().config.token : GlobalUser.token
+            }
+        });
+    }
+    static getUnRead(json) {
+        return BaseApi.create({
+            "url": getBaseUrl() + `/api-public/v1/chat/unread?user_id=${json.user_id}`,
             "type": "GET",
             "headers": {
                 "Content-Type": "application/json",

@@ -122,10 +122,13 @@ export class PageManager {
             glitter.pageConfig[index].createResource();
             glitter.setUrlParameter('page', glitter.pageConfig[index].tag);
             if (glitter.pageConfig[index].type === GVCType.Page) {
-                window.scrollTo({
-                    top: glitter.pageConfig[index].scrollTop,
-                    behavior: 'auto' // 'auto' 表示无滚动动画
-                });
+                setTimeout(()=>{
+                    window.scrollTo({
+                        top: glitter.pageConfig[index].scrollTop,
+                        behavior: 'auto' // 'auto' 表示无滚动动画
+                    });
+                })
+
             }
         } catch (e) {
         }
@@ -230,15 +233,6 @@ export class PageManager {
         page.getElement().addClass(`position-fixed`);
         page.getElement().show();
         glitter.defaultSetting.pageLoadingFinish();
-        // page.scrollTop = window.scrollY;
-        let lastPage: any = glitter.pageConfig.filter((a) => {
-            return a.type !== GVCType.Dialog
-        });
-        lastPage = lastPage[lastPage.length - 2]
-        if (lastPage) {
-            lastPage.scrollTop = window.scrollY;
-        }
-
         page.animation.inView(page, () => {
             closePreviousPage();
             page.getElement().removeClass('position-fixed');
@@ -268,7 +262,11 @@ export class PageManager {
         const glitter = Glitter.glitter;
         const search = glitter.setSearchParam(glitter.removeSearchParam(glitter.window.location.search, 'page'), 'page', tag);
         try {
-            glitter.window.history.pushState({}, glitter.document.title, search);
+            if(GVC.initial){
+                GVC.initial=false
+            }else{
+                glitter.window.history.pushState({}, glitter.document.title, search);
+            }
         } catch (e) {
         }
         glitter.setUrlParameter('page', tag);
@@ -288,7 +286,7 @@ export class PageManager {
             },
             backGroundColor: option.backGroundColor ?? 'white',
             type: GVCType.Page,
-            animation: option.animation ?? glitter.animation.none,
+            animation: option.animation || glitter.defaultSetting.pageAnimation || glitter.animation.none,
             dismiss: option.dismiss ?? (() => {
             }),
             renderFinish:()=>{

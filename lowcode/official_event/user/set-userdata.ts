@@ -75,14 +75,22 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                     })
                                     resolve(false)
                                 }else if(r.result){
-                                    await TriggerEvent.trigger({
-                                        gvc:gvc,
-                                        widget:widget,
-                                        clickEvent:object.success,
-                                        subData:subData,
-                                        element:element
+                                    ApiUser.getUserData(GlobalUser.token,'me').then(async (r) => {
+                                        try {
+                                            GlobalUser.userInfo = r.response
+                                            GlobalUser.updateUserData = JSON.parse(JSON.stringify(r.response))
+                                            await TriggerEvent.trigger({
+                                                gvc:gvc,
+                                                widget:widget,
+                                                clickEvent:object.success,
+                                                subData:subData,
+                                                element:element
+                                            })
+                                            resolve(true)
+                                        } catch (e) {
+                                            resolve(false)
+                                        }
                                     })
-                                    resolve(true)
                                 }else{
                                     await TriggerEvent.trigger({
                                         gvc:gvc,

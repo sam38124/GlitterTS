@@ -12,11 +12,12 @@ import { Chat } from "../../glitter-base/route/chat.js";
 TriggerEvent.createSingleEvent(import.meta.url, (glitter) => {
     return {
         fun: (gvc, widget, object, subData, element) => {
-            var _a, _b, _c, _d;
+            var _a, _b, _c, _d, _e;
             object.chatID = (_a = object.chatID) !== null && _a !== void 0 ? _a : {};
             object.page = (_b = object.page) !== null && _b !== void 0 ? _b : {};
             object.limit = (_c = object.limit) !== null && _c !== void 0 ? _c : {};
             object.latestID = (_d = object.latestID) !== null && _d !== void 0 ? _d : {};
+            object.olderID = (_e = object.olderID) !== null && _e !== void 0 ? _e : {};
             return {
                 editor: () => {
                     return [
@@ -39,6 +40,11 @@ TriggerEvent.createSingleEvent(import.meta.url, (glitter) => {
                             hover: false,
                             option: [],
                             title: "最新訊息[返回最後一筆資料ID]"
+                        }),
+                        TriggerEvent.editer(gvc, widget, object.olderID, {
+                            hover: false,
+                            option: [],
+                            title: "先前訊息[返回第一筆資料ID]"
                         })
                     ].join('<div class="my-2"></div>');
                 },
@@ -56,11 +62,16 @@ TriggerEvent.createSingleEvent(import.meta.url, (glitter) => {
                         const latestID = yield TriggerEvent.trigger({
                             gvc: gvc, widget: widget, clickEvent: object.latestID
                         });
+                        const olderID = yield TriggerEvent.trigger({
+                            gvc: gvc, widget: widget, clickEvent: object.olderID
+                        });
                         resolve((yield Chat.getMessage({
                             limit: limit,
                             page: page,
                             chat_id: chatID,
-                            latestID: latestID
+                            latestID: latestID,
+                            olderID: olderID,
+                            user_id: ''
                         })).response);
                     }));
                 }

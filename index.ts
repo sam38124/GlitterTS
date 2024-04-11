@@ -3,7 +3,6 @@ import express from 'express';
 import * as fs from "fs";
 import {initial, app} from "./src/index";
 import {ConfigSetting} from "./src/config";
-import path from "path";
 import {Post} from "./src/api-public/services/post";
 import db from './src/modules/database'
 import config from "./src/config";

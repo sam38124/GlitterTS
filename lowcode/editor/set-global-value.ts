@@ -1,5 +1,5 @@
 import {GVC} from "../glitterBundle/GVController.js";
-import {Storage} from "../helper/storage.js";
+import {Storage} from "../glitterBundle/helper/storage.js";
 import {PageEditor} from "./page-editor.js";
 import {DialogInterface} from "../dialog/dialog-interface.js";
 import {EditorElem} from "../glitterBundle/plugins/editor-elem.js";
@@ -21,7 +21,7 @@ export class SetGlobalValue {
         const html = String.raw
 
         let vm: {
-            select: "domain" | 'plugin' | 'resource' | 'event'
+            select: "domain" | 'plugin' | 'resource' | 'event' | 'style' | 'code'
         } = {
             select: Storage.global_select
         }
@@ -118,7 +118,6 @@ ${(() => {
                  onclick="${gvc.event(() => {
                      SetGlobalValue.toggle(false)
                  })}"></div>
-
             <div id="setGlobalView"
                  class="position-fixed left-0 top-0 h-100 bg-white shadow-lg "
                  style="width:600px;z-index: 99999;left: -100%;">

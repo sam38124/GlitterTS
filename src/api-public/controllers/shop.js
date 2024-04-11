@@ -17,6 +17,7 @@ const custom_code_js_1 = require("../services/custom-code.js");
 const ut_database_js_1 = require("../utils/ut-database.js");
 const post_js_1 = require("../services/post.js");
 const crypto_1 = __importDefault(require("crypto"));
+const redis_js_1 = __importDefault(require("../../modules/redis.js"));
 const router = express_1.default.Router();
 router.get('/rebate/sum', async (req, resp) => {
     try {
@@ -307,7 +308,7 @@ router.delete('/voucher', async (req, resp) => {
 });
 router.post('/redirect', async (req, resp) => {
     try {
-        let return_url = new URL(req.query.return.replace(/\*R\*/g, '&'));
+        let return_url = new URL(await redis_js_1.default.getValue(req.query.return));
         return resp.send(`<!DOCTYPE html>
 <html lang="en">
 <head>

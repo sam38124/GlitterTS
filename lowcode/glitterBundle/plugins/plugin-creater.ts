@@ -10,6 +10,7 @@ export interface HtmlJson {
     rout: string,
     type: string,
     id: string,
+    storage:any,
     label: string,
     data: any,
     js: string,

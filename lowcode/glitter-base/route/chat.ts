@@ -46,7 +46,9 @@ export class Chat {
         limit: number,
         page: number,
         chat_id: string,
-        latestID?:string
+        latestID?:string,
+        olderID?:string,
+        user_id:string
     }) {
         return BaseApi.create({
             "url": getBaseUrl() + `/api-public/v1/chat/message?${(() => {
@@ -56,6 +58,8 @@ export class Chat {
                     `chat_id=${json.chat_id}`
                 ]
                 json.latestID&&par.push(`after_id=${json.latestID}`)
+                json.olderID&&par.push(`befor_id=${json.olderID}`)
+                json.user_id&&par.push(`user_id=${json.user_id}`)
                 return par.join('&')
             })()}`,
             "type": "GET",
@@ -70,7 +74,8 @@ export class Chat {
     public static getChatRoom(json: {
         limit: number,
         page: number,
-        user_id?:string
+        user_id?:string,
+        chat_id?:string
     }) {
         return BaseApi.create({
             "url": getBaseUrl() + `/api-public/v1/chat?${(() => {
@@ -78,6 +83,7 @@ export class Chat {
                     `limit=${json.limit}`,
                     `page=${json.page}`
                 ]
+                json.chat_id&&par.push(`chat_id=${json.chat_id}`)
                 json.user_id&&par.push(`user_id=${json.user_id}`)
                 return par.join('&')
             })()}`,
@@ -89,7 +95,19 @@ export class Chat {
             }
         })
     }
-
+    public static getUnRead(json: {
+        user_id:string
+    }) {
+        return BaseApi.create({
+            "url": getBaseUrl() + `/api-public/v1/chat/unread?user_id=${json.user_id}`,
+            "type": "GET",
+            "headers": {
+                "Content-Type": "application/json",
+                "g-app": getConfig().config.appName,
+                "Authorization": (json.user_id) ? getConfig().config.token: GlobalUser.token
+            }
+        })
+    }
     public static deleteChatRoom(json: {
         id: string,
         token?:string

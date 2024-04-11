@@ -12,12 +12,14 @@ import {EditorElem} from "../glitterBundle/plugins/editor-elem.js";
 import {StoreHelper} from "../helper/store-helper.js";
 import {GlobalUser} from "../glitter-base/global/global-user.js";
 import {DialogInterface} from "../dialog/dialog-interface.js";
-import {Storage} from "../helper/storage.js";
+import {Storage} from "../glitterBundle/helper/storage.js";
 import {ServerEditor} from "./function-page/server-editor/server-editor.js";
 import {AddComponent} from "../editor/add-component.js";
 import {PageSettingView} from "../editor/page-setting-view.js";
 import {AddPage} from "../editor/add-page.js";
 import {SetGlobalValue} from "../editor/set-global-value.js";
+import {BgCustomerMessage} from "../backend-manager/bg-customer-message.js";
+import {PageCodeSetting} from "../editor/page-code-setting.js";
 
 const html = String.raw
 //
@@ -82,8 +84,10 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
         appName: string,
         originalData: any,
         domain: string,
-        originalDomain: string
+        originalDomain: string,
+        saveArray: any
     } = {
+        saveArray: {},
         appName: gBundle.appName,
         appConfig: undefined,
         originalConfig: undefined,
@@ -120,7 +124,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
 
     //加載頁面資料
     async function lod() {
-        swal.loading('加載中...');
+        await swal.loading('加載中...');
         const waitGetData = [
             (async () => {
                 return await new Promise(async (resolve, reject) => {
@@ -144,6 +148,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                         appName: gBundle.appName,
                         tag: glitter.getUrlParameter('page')
                     })).response.result[0];
+                    console.log(`page-seo-original--->`,viewModel.data.page_config.seo)
                     Storage.select_page_type = viewModel.data.page_type
                     if (data.result) {
                         data.response.result.map((dd: any) => {
@@ -240,12 +245,16 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
 
     lod().then(() => {
         //設定儲存事件
-        glitter.htmlGenerate.saveEvent = (refresh: boolean = true,callback?:()=>void) => {
+        glitter.htmlGenerate.saveEvent = (refresh: boolean = true, callback?: () => void) => {
             glitter.closeDiaLog()
             glitter.setCookie("jumpToNavScroll", $(`#jumpToNav`).scrollTop())
             swal.loading('更新中...');
 
             async function saveEvent() {
+                for (const b of Object.keys(glitter.share.editorViewModel.saveArray)) {
+                    await (glitter.share.editorViewModel.saveArray[b] as any)()
+                }
+                glitter.share.editorViewModel.saveArray = {}
                 const waitSave = [
                     (async () => {
                         let haveID: string[] = [];
@@ -258,7 +267,8 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                                 dd.subData = undefined;
                                 dd.appConfig = undefined;
                                 dd.storage = undefined;
-                                dd.editorEvent = undefined;
+                                dd.bundle = undefined;
+                                // dd.editorEvent = undefined;
                                 dd.share = undefined;
                                 if (haveID.indexOf(dd.id) !== -1) {
                                     dd.id = glitter.getUUID();
@@ -342,12 +352,12 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                                                  class="h-100 border-end d-flex flex-column align-items-center">
                                                 ${[
                                                     {
-                                                        src: `fa-table-layout`,
+                                                        src: `fa-regular fa-table-layout`,
                                                         index: 'page-editor',
                                                         hint: '頁面編輯'
                                                     },
                                                     {
-                                                        src: `fa-solid fa-list-check`,
+                                                        src: `fa-regular fa-solid fa-list-check`,
                                                         index: 'backend-manger',
                                                         hint: '後台系統'
                                                     },
@@ -356,21 +366,28 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                                                     //     index: 'server-manager',
                                                     //     hint: '伺服器設定'
                                                     // },
-                                                    // {src: `fa-sharp fa-regular fa-file-dashed-line`, index: Page_editor.index},
+                                                    // {
+                                                    //     src: `fa-sharp fa-regular fa-cloud-arrow-up`,
+                                                    //     index: 'app-upload',
+                                                    //     hint: '應用發佈'
+                                                    // },
                                                 ].map((da: any) => {
-
                                                     return html`<i
-                                                            class="fa-regular ${da.src} fs-5 fw-bold ${(Storage.select_function === `${da.index}`) ? `text-primary` : ``}  p-2 rounded"
+                                                            class=" ${da.src} fs-5 fw-bold ${(Storage.select_function === `${da.index}`) ? `text-primary` : ``}  p-2 rounded"
                                                             data-bs-toggle="tooltip"
                                                             data-bs-placement="top"
                                                             data-bs-custom-class="custom-tooltip"
                                                             data-bs-title="${da.hint}"
                                                             style="cursor:pointer;${(Storage.select_function === `${da.index}`) ? `background-color: rgba(10,83,190,0.1);` : ``}"
                                                             onclick="${gvc.event(() => {
-                                                                viewModel.waitCopy = undefined
-                                                                viewModel.selectItem = undefined
-                                                                Storage.select_function = da.index
-                                                                gvc.notifyDataChange(editorContainerID)
+                                                                if (da.index === 'chat-message') {
+                                                                    BgCustomerMessage.toggle(true, gvc)
+                                                                } else {
+                                                                    viewModel.waitCopy = undefined
+                                                                    viewModel.selectItem = undefined
+                                                                    Storage.select_function = da.index
+                                                                    gvc.notifyDataChange(editorContainerID)
+                                                                }
                                                             })}"></i>`
                                                 }).join('')}
                                             </div>
@@ -389,6 +406,8 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                                                 ${PageSettingView.leftNav(gvc)}
                                                 ${AddPage.leftNav(gvc)}
                                                 ${SetGlobalValue.leftNav(gvc)}
+                                                ${BgCustomerMessage.leftNav(gvc)}
+                                                ${PageCodeSetting.leftNav(gvc)}
                                                 <div class="h-100" style="">
                                                     ${gvc.bindView(() => {
                                                         return {
@@ -480,7 +499,7 @@ function initialEditor(gvc: GVC, viewModel: any) {
             }, 'error');
             return
         }
-        var copy = JSON.parse(glitter.share.copycomponent)
+        let copy = JSON.parse(glitter.share.copycomponent)
 
         function checkId(dd: any) {
             dd.id = glitter.getUUID()
@@ -492,10 +511,11 @@ function initialEditor(gvc: GVC, viewModel: any) {
         }
 
         checkId(copy)
-        glitter.setCookie('lastSelect', copy.id);
-        viewModel.selectContainer.splice(0, 0, copy)
-        viewModel.selectItem = undefined;
-        gvc.notifyDataChange(editorContainerID)
+        glitter.share.addComponent(copy)
+        // glitter.setCookie('lastSelect', copy.id);
+        // viewModel.selectContainer.splice(0, 0, copy)
+        // viewModel.selectItem = undefined;
+        // gvc.notifyDataChange(editorContainerID)
     }
     //清除選項
     glitter.share.clearSelectItem = () => {
@@ -515,8 +535,14 @@ function initialEditor(gvc: GVC, viewModel: any) {
         url.search = ''
         data.js = data.js.replace(url.href, './')
         viewModel.selectContainer.push(data);
-        glitter.setCookie('lastSelect', data.id);
-        gvc.notifyDataChange(editorContainerID)
+        Storage.lastSelect = data.id
+        if (viewModel.selectContainer.refresh) {
+            viewModel.selectContainer.refresh()
+            gvc.notifyDataChange(['right_NAV', 'MainEditorLeft']);
+            AddComponent.toggle(false)
+        } else {
+            gvc.recreateView()
+        }
     }
     //部落格編輯模式
     if (glitter.getUrlParameter('blogEditor') === 'true') {

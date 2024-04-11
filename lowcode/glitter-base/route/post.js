@@ -53,6 +53,17 @@ export class ApiPost {
             }
         });
     }
+    static getV2(json) {
+        var _a;
+        return BaseApi.create({
+            "url": getBaseUrl() + `/api-public/v1/post/${(_a = json.type) !== null && _a !== void 0 ? _a : 'user'}?page=${json.page}&limit=${json.limit}&search=${json.search}`,
+            "type": "GET",
+            "headers": {
+                "Content-Type": "application/json",
+                "g-app": getConfig().config.appName
+            }
+        });
+    }
     static getManagerPost(json) {
         return BaseApi.create({
             "url": getBaseUrl() + `/api-public/v1/post/manager?${(() => {

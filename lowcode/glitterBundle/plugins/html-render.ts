@@ -11,6 +11,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
         mainView: ''
     };
     console.log(`waitCreateView-time:`, (window as any).renderClock.stop())
+
     async function load() {
         await (new Promise(async (resolve, reject) => {
             for (const b of gBundle.app_config.initialList ?? []) {
@@ -60,25 +61,58 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
             }
         })
     };
-
+    if(!gBundle.data){
+        gBundle.data={}
+    }
     return {
         onCreateView: () => {
             console.log(`onCreateView-time:`, (window as any).renderClock.stop())
             const mainId = glitter.getUUID()
-            return new glitter.htmlGenerate(gBundle.app_config.globalScript ?? [], [], undefined, true).render(gvc, {
-                class: ``,
-                style: ``,
-                jsFinish: () => {
-                    console.log(`jsFinish-time:`, (window as any).renderClock.stop())
-                    load().then(() => {
-                        if (vm.loading) {
-                            vm.loading = false
-                            gvc.notifyDataChange(mainId)
-                        }
+            let map = [];
+            if (gBundle.page_config.resource_from !== 'own') {
+                map.push(new glitter.htmlGenerate(gBundle.app_config.globalScript ?? [], [], gBundle.data, true).render(gvc, {
+                    class: ``,
+                    style: ``,
+                    jsFinish: () => {
+                        console.log(`jsFinish-time:`, (window as any).renderClock.stop())
+                        load().then(() => {
+                            if (vm.loading) {
+                                vm.loading = false
+                                gvc.notifyDataChange(mainId)
+                            }
 
-                    })
-                }
-            }) + gvc.bindView({
+                        })
+                    }
+                }));
+                let globalStyleLink = (gBundle.app_config.globalStyle ?? []).filter((dd: any) => {
+                    return dd.data.elem === 'link'
+                });
+                let check = globalStyleLink.length;
+                globalStyleLink.map((dd: any) => {
+                    try {
+                        $('#glitterPage').hide()
+                        glitter.addStyleLink(dd.data.attr.find((dd: any) => {
+                            return dd.attr === 'href'
+                        }).value).then(() => {
+                            check--
+                            if (check === 0) {
+                                $('#glitterPage').show()
+                            }
+                        })
+                    } catch (e) {
+                        return ``
+                    }
+                });
+                map.push(new glitter.htmlGenerate(gBundle.app_config.globalStyle, [], gBundle.data, true).render(gvc, {
+                    class: ``,
+                    style: ``,
+                    app_config: gBundle.app_config,
+                    page_config: gBundle.page_config
+                }))
+            } else {
+                vm.loading = false
+            }
+            map.push(gvc.bindView({
                 bind: mainId,
                 view: () => {
                     if (vm.loading) {
@@ -86,27 +120,30 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                     }
                     return new Promise(async (resolve, reject) => {
                         console.log(`Render-time:`, (window as any).renderClock.stop());
-                        console.log(`gBundle.page_config.template-->`, gBundle.config);
+                        console.log(`gBundle`, gBundle)
+                        console.log(`gBundle.config-->`, gBundle.config);
+                        console.log(`gBundle.page_config-->`, gBundle.page_config);
                         (gBundle.config.formData = gBundle.page_config.formData)
                         if (gBundle.page_config.template) {
                             (window as any).glitterInitialHelper.getPageData(gBundle.page_config.template, (data: any) => {
                                 const template_config = JSON.parse(JSON.stringify(data.response.result[0].config))
+
                                 function findContainer(set: any) {
                                     set.map((dd: any, index: number) => {
                                         if (dd.type === 'glitter_article') {
                                             if (gBundle.page_config.meta_article.view_type === "rich_text") {
                                                 set[index].type = 'widget'
-                                                set[index].data.inner=gBundle.page_config.meta_article.content
+                                                set[index].data.inner = gBundle.page_config.meta_article.content
                                             } else {
-                                                if(gBundle.editMode){
+                                                if (gBundle.editMode) {
                                                     set[index].type = 'widget'
-                                                    set[index].data.inner=(gBundle.editMode && gBundle.editMode.render(gvc, {
+                                                    set[index].data.inner = (gBundle.editMode && gBundle.editMode.render(gvc, {
                                                         class: ``,
                                                         style: ``,
                                                         app_config: gBundle.app_config,
                                                         page_config: gBundle.page_config
                                                     }))
-                                                }else{
+                                                } else {
                                                     set[index].type = 'container'
                                                     set[index].data = {
                                                         "setting": gBundle.config,
@@ -119,52 +156,56 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                                                     }
                                                 }
 
-                                                function loopFormData(dd:any){
-                                                    dd.formData=gBundle.page_config.formData;
-                                                    if (dd.type === 'container'){
+                                                function loopFormData(dd: any) {
+                                                    dd.formData = gBundle.page_config.formData;
+                                                    if (dd.type === 'container') {
                                                         loopFormData(dd.data.setting)
                                                     }
                                                 }
+
                                                 loopFormData(set[index]);
                                             }
                                         } else if (dd.type === 'container') {
                                             dd.data.setting = dd.data.setting ?? [];
-                                            dd.formData=data.response.result[0].page_config.formData;
+                                            dd.formData = data.response.result[0].page_config.formData;
                                             findContainer(dd.data.setting);
                                         }
                                     });
                                 }
 
                                 findContainer(template_config);
-                                resolve(new glitter.htmlGenerate(gBundle.app_config.globalStyle, [], undefined, true).render(gvc, {
-                                    class: ``,
-                                    style: ``,
-                                    app_config: gBundle.app_config,
-                                    page_config: gBundle.page_config
-                                }) + (
-                                      new glitter.htmlGenerate(template_config, [], undefined, true).render(gvc, {
-                                        class: ``,
-                                        style: ``,
-                                        app_config: gBundle.app_config,
-                                        page_config: gBundle.page_config
-                                    })
-                                ))
-                            })
-                        } else {
-                            resolve(new glitter.htmlGenerate(gBundle.app_config.globalStyle, [], undefined, true).render(gvc, {
-                                class: ``,
-                                style: ``,
-                                app_config: gBundle.app_config,
-                                page_config: gBundle.page_config
-                            }) + (
-                                (gBundle.editMode && gBundle.editMode.render(gvc, {
+                                resolve(new glitter.htmlGenerate(template_config, [], gBundle.data, true).render(gvc, {
                                     class: ``,
                                     style: ``,
                                     app_config: gBundle.app_config,
                                     page_config: gBundle.page_config
                                 }))
+                            })
+                        } else {
+                            function editorView() {
+                                return gBundle.editMode.render(gvc, {
+                                    class: ``,
+                                    style: ``,
+                                    containerID: `MainView`,
+                                    app_config: gBundle.app_config,
+                                    page_config: gBundle.page_config
+                                })
+                            }
+
+                            gBundle.config.refresh = (() => {
+                                gBundle.editMode.initialFunction();
+                                gvc.glitter.document.querySelector(`[gvc-id="${gvc.id('MainView')}"]`).outerHTML = editorView()
+                                setTimeout(() => {
+                                    gvc.glitter.document.querySelector('.selectComponentHover').scrollIntoView({
+                                        behavior: 'auto', // 使用平滑滾動效果
+                                        block: 'center', // 將元素置中
+                                    })
+                                }, 10)
+                            })
+                            resolve((
+                                (gBundle.editMode && editorView())
                                 ||
-                                new glitter.htmlGenerate(gBundle.config, [], undefined, true).render(gvc, {
+                                new glitter.htmlGenerate(gBundle.config, [], gBundle.data, true).render(gvc, {
                                     class: ``,
                                     style: ``,
                                     app_config: gBundle.app_config,
@@ -191,7 +232,8 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                         }
                     })
                 }
-            });
+            }))
+            return map.join('');
 
         }
     };

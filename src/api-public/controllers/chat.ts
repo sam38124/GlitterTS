@@ -37,13 +37,24 @@ router.get('/message', async (req: express.Request, resp: express.Response) => {
     }
 })
 
+router.get('/unread', async (req: express.Request, resp: express.Response) => {
+    try {
+        const chat=new Chat(req.get('g-app') as string,req.body.token)
+        return response.succ(resp, await chat.unReadMessage(req.query.user_id as string));
+    } catch (e) {
+        return response.fail(resp, e);
+    }
+})
+
+
+
 router.get('/', async (req: express.Request, resp: express.Response) => {
     try {
         const chat=new Chat(req.get('g-app') as string,req.body.token)
         if(await UtPermission.isManager(req)){
             return response.succ(resp, await chat.getChatRoom(req.query,req.query.user_id as any));
         }else{
-            return response.succ(resp, await chat.getChatRoom(req.query,req.body.token.userID));
+            return response.succ(resp, await chat.getChatRoom(req.query,req.query.user_id || req.body.token.userID));
         }
 
     } catch (e) {

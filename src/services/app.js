@@ -342,8 +342,10 @@ class App {
                         appName: appName,
                         tag: dd.data.tag
                     })))[0];
-                    preloadData.component.push(pageData);
-                    await loop((_a = pageData.config) !== null && _a !== void 0 ? _a : []);
+                    if (pageData && pageData.config) {
+                        preloadData.component.push(pageData);
+                        await loop((_a = pageData.config) !== null && _a !== void 0 ? _a : []);
+                    }
                 }
             }
         }

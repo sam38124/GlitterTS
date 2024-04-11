@@ -8,6 +8,9 @@
 
 </head>
 <style>
+    html,body{
+        height: auto !important;
+    }
     .selectComponentHover {
         border: 4px solid dodgerblue !important;
         border-radius: 5px !important;
@@ -203,8 +206,6 @@
                 if (!window.glitterInitialHelper.share[tag].isRunning) {
                     window.glitterInitialHelper.share[tag].isRunning = true
                     fun((response) => {
-                        console.log(tag)
-                        console.log(window.glitterInitialHelper.share[tag].callback)
                         window.glitterInitialHelper.share[tag].callback.map((callback) => {
                             callback && callback((() => {
                                 try {

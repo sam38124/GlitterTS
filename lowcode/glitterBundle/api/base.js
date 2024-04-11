@@ -23,10 +23,10 @@ export class BaseApi {
                 .then((response) => __awaiter(this, void 0, void 0, function* () {
                 try {
                     const json = yield response.json();
-                    resolve({ result: true, response: json });
+                    resolve({ result: response.status === 200, response: json });
                 }
                 catch (e) {
-                    resolve({ result: true, response: '' });
+                    resolve({ result: response.status === 200, response: '' });
                 }
             })).catch(error => {
                 console.log(error);

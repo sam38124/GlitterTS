@@ -17,12 +17,14 @@ import { Setting_editor } from "./function-page/setting_editor.js";
 import * as triggerBridge from "../editor-bridge/trigger-event.js";
 import { TriggerEvent } from "../glitterBundle/plugins/trigger-event.js";
 import { StoreHelper } from "../helper/store-helper.js";
-import { Storage } from "../helper/storage.js";
+import { Storage } from "../glitterBundle/helper/storage.js";
 import { ServerEditor } from "./function-page/server-editor/server-editor.js";
 import { AddComponent } from "../editor/add-component.js";
 import { PageSettingView } from "../editor/page-setting-view.js";
 import { AddPage } from "../editor/add-page.js";
 import { SetGlobalValue } from "../editor/set-global-value.js";
+import { BgCustomerMessage } from "../backend-manager/bg-customer-message.js";
+import { PageCodeSetting } from "../editor/page-code-setting.js";
 const html = String.raw;
 const editorContainerID = `HtmlEditorContainer`;
 init(import.meta.url, (gvc, glitter, gBundle) => {
@@ -60,6 +62,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
     `);
     const swal = new Swal(gvc);
     const viewModel = {
+        saveArray: {},
         appName: gBundle.appName,
         appConfig: undefined,
         originalConfig: undefined,
@@ -95,7 +98,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
     };
     function lod() {
         return __awaiter(this, void 0, void 0, function* () {
-            swal.loading('加載中...');
+            yield swal.loading('加載中...');
             const waitGetData = [
                 (() => __awaiter(this, void 0, void 0, function* () {
                     return yield new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
@@ -119,6 +122,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                             appName: gBundle.appName,
                             tag: glitter.getUrlParameter('page')
                         })).response.result[0];
+                        console.log(`page-seo-original--->`, viewModel.data.page_config.seo);
                         Storage.select_page_type = viewModel.data.page_type;
                         if (data.result) {
                             data.response.result.map((dd) => {
@@ -225,6 +229,10 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
             swal.loading('更新中...');
             function saveEvent() {
                 return __awaiter(this, void 0, void 0, function* () {
+                    for (const b of Object.keys(glitter.share.editorViewModel.saveArray)) {
+                        yield glitter.share.editorViewModel.saveArray[b]();
+                    }
+                    glitter.share.editorViewModel.saveArray = {};
                     const waitSave = [
                         (() => __awaiter(this, void 0, void 0, function* () {
                             let haveID = [];
@@ -237,7 +245,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                                     dd.subData = undefined;
                                     dd.appConfig = undefined;
                                     dd.storage = undefined;
-                                    dd.editorEvent = undefined;
+                                    dd.bundle = undefined;
                                     dd.share = undefined;
                                     if (haveID.indexOf(dd.id) !== -1) {
                                         dd.id = glitter.getUUID();
@@ -320,28 +328,33 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                                                  class="h-100 border-end d-flex flex-column align-items-center">
                                                 ${[
                                 {
-                                    src: `fa-table-layout`,
+                                    src: `fa-regular fa-table-layout`,
                                     index: 'page-editor',
                                     hint: '頁面編輯'
                                 },
                                 {
-                                    src: `fa-solid fa-list-check`,
+                                    src: `fa-regular fa-solid fa-list-check`,
                                     index: 'backend-manger',
                                     hint: '後台系統'
                                 },
                             ].map((da) => {
                                 return html `<i
-                                                            class="fa-regular ${da.src} fs-5 fw-bold ${(Storage.select_function === `${da.index}`) ? `text-primary` : ``}  p-2 rounded"
+                                                            class=" ${da.src} fs-5 fw-bold ${(Storage.select_function === `${da.index}`) ? `text-primary` : ``}  p-2 rounded"
                                                             data-bs-toggle="tooltip"
                                                             data-bs-placement="top"
                                                             data-bs-custom-class="custom-tooltip"
                                                             data-bs-title="${da.hint}"
                                                             style="cursor:pointer;${(Storage.select_function === `${da.index}`) ? `background-color: rgba(10,83,190,0.1);` : ``}"
                                                             onclick="${gvc.event(() => {
-                                    viewModel.waitCopy = undefined;
-                                    viewModel.selectItem = undefined;
-                                    Storage.select_function = da.index;
-                                    gvc.notifyDataChange(editorContainerID);
+                                    if (da.index === 'chat-message') {
+                                        BgCustomerMessage.toggle(true, gvc);
+                                    }
+                                    else {
+                                        viewModel.waitCopy = undefined;
+                                        viewModel.selectItem = undefined;
+                                        Storage.select_function = da.index;
+                                        gvc.notifyDataChange(editorContainerID);
+                                    }
                                 })}"></i>`;
                             }).join('')}
                                             </div>
@@ -360,6 +373,8 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                                                 ${PageSettingView.leftNav(gvc)}
                                                 ${AddPage.leftNav(gvc)}
                                                 ${SetGlobalValue.leftNav(gvc)}
+                                                ${BgCustomerMessage.leftNav(gvc)}
+                                                ${PageCodeSetting.leftNav(gvc)}
                                                 <div class="h-100" style="">
                                                     ${gvc.bindView(() => {
                                 return {
@@ -439,7 +454,7 @@ function initialEditor(gvc, viewModel) {
             }, 'error');
             return;
         }
-        var copy = JSON.parse(glitter.share.copycomponent);
+        let copy = JSON.parse(glitter.share.copycomponent);
         function checkId(dd) {
             dd.id = glitter.getUUID();
             if (dd.type === 'container') {
@@ -449,10 +464,7 @@ function initialEditor(gvc, viewModel) {
             }
         }
         checkId(copy);
-        glitter.setCookie('lastSelect', copy.id);
-        viewModel.selectContainer.splice(0, 0, copy);
-        viewModel.selectItem = undefined;
-        gvc.notifyDataChange(editorContainerID);
+        glitter.share.addComponent(copy);
     };
     glitter.share.clearSelectItem = () => {
         viewModel.selectItem = undefined;
@@ -467,8 +479,15 @@ function initialEditor(gvc, viewModel) {
         url.search = '';
         data.js = data.js.replace(url.href, './');
         viewModel.selectContainer.push(data);
-        glitter.setCookie('lastSelect', data.id);
-        gvc.notifyDataChange(editorContainerID);
+        Storage.lastSelect = data.id;
+        if (viewModel.selectContainer.refresh) {
+            viewModel.selectContainer.refresh();
+            gvc.notifyDataChange(['right_NAV', 'MainEditorLeft']);
+            AddComponent.toggle(false);
+        }
+        else {
+            gvc.recreateView();
+        }
     };
     if (glitter.getUrlParameter('blogEditor') === 'true') {
         glitter.share.blogEditor = true;

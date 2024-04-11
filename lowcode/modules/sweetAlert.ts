@@ -33,9 +33,17 @@ export class Swal {
     constructor(gvc: GVC) {
         const editor = new Editor(gvc);
         const funnel = new Funnel(gvc);
-        let sw: any;
+        let sw: any = (window as any).Swal;
         this.init = (callback: () => void) => {
-            gvc.addMtScript(
+            if ((window as any).Swal){
+                (sw = (window as any).Swal);
+                setTimeout(()=>{
+                    callback()
+                },100)
+
+                return
+            }
+                gvc.glitter.addMtScript(
                 [{src: 'https://cdn.jsdelivr.net/npm/sweetalert2@11.6.5/dist/sweetalert2.all.min.js'}],
                 () => {
                     const interval = setInterval(() => {
@@ -89,14 +97,18 @@ export class Swal {
         };
 
         this.loading = (text: string) => {
-            this.init(() => {
-                const loading = sw.mixin({
-                    title: text,
-                    allowOutsideClick: false,
-                    didOpen: () => sw.showLoading(),
+            return new Promise((resolve, reject)=>{
+                this.init(() => {
+                    const loading = sw.mixin({
+                        title: text,
+                        allowOutsideClick: false,
+                        didOpen: () => sw.showLoading(),
+                    });
+                    loading.fire();
+                    resolve(true)
                 });
-                loading.fire();
-            });
+            })
+
         };
 
         this.toast = (data: { icon: icons; title: string }) => {

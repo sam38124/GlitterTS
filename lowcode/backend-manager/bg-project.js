@@ -8,7 +8,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 import { EditorElem } from "../glitterBundle/plugins/editor-elem.js";
-import { ShareDialog } from "../dialog/ShareDialog.js";
+import { ShareDialog } from "../glitterBundle/dialog/ShareDialog.js";
 import { BgWidget } from "./bg-widget.js";
 import { ApiShop } from "../glitter-base/route/shopping.js";
 import { ApiUser } from "../glitter-base/route/user.js";
@@ -638,21 +638,28 @@ export class BgProject {
         const gvc = cf.gvc;
         const id = gvc.glitter.getUUID();
         const vm = {
-            data: undefined
+            data: undefined,
+            loading: true
         };
         (ApiUser.getPublicUserData(cf.userID)).then((dd) => {
             vm.data = dd.response;
+            vm.loading = false;
             gvc.notifyDataChange(id);
         });
         return gvc.bindView(() => {
             return {
                 bind: id,
                 view: () => {
+                    var _a, _b;
+                    if (vm.loading) {
+                        return `<div class="w-100 d-flex align-items-center"><div class="spinner-border"></div></div>`;
+                    }
+                    vm.data.userData = (_a = vm.data.userData) !== null && _a !== void 0 ? _a : {};
                     return BgWidget.container([
                         `<div class="d-flex w-100 align-items-center mb-3 ">
                 ${BgWidget.goBack(gvc.event(() => {
                             cf.callback();
-                        }))} ${BgWidget.title(vm.data.userData.name)}
+                        }))} ${BgWidget.title((_b = vm.data.userData.name) !== null && _b !== void 0 ? _b : "匿名用戶")}
                 <div class="flex-fill"></div>
                 <button class="btn hoverBtn me-2 px-3 ${(cf.type === 'readonly') ? `d-none` : ``}" style="height:35px !important;font-size: 14px;color:black;border:1px solid black;" onclick="${gvc.event(() => {
                             BgProject.setUserForm(gvc, () => {
@@ -796,7 +803,9 @@ ${BgWidget.card([`<div class="fw-bold fs-7">電子錢包</div>
                                     gvc: gvc,
                                     array: data,
                                     refresh: () => {
-                                        gvc.notifyDataChange(id);
+                                        setTimeout(() => {
+                                            gvc.notifyDataChange(id);
+                                        }, 100);
                                     },
                                     title: '',
                                     styleSetting: false,
@@ -843,6 +852,15 @@ ${BgWidget.card([`<div class="fw-bold fs-7">電子錢包</div>
 </div>`
                 ].join('');
             }, () => {
+                return new Promise((resolve, reject) => {
+                    const dialog = new ShareDialog(gvc.glitter);
+                    dialog.checkYesOrNot({
+                        text: '是否取消除儲存?',
+                        callback: (response) => {
+                            resolve(response);
+                        }
+                    });
+                });
             }, 500, '自訂表單');
         }));
     }

@@ -24,6 +24,8 @@ import {Firebase} from "./modules/firebase.js";
 import {GlitterUtil} from "./helper/glitter-util.js";
 import {Seo} from "./services/seo.js";
 import {Shopping} from "./api-public/services/shopping.js";
+import {WebSocket} from "./services/web-socket.js";
+
 
 export const app = express();
 const logger = new Logger();
@@ -60,6 +62,7 @@ export async function initial(serverPort: number) {
         if (process.env.firebase) {
             await Firebase.initial();
         }
+        WebSocket.start()
         logger.info('[Init]', `Server is listening on port: ${serverPort}`);
         console.log('Starting up the server now.');
     })();
@@ -269,4 +272,5 @@ window.preloadData=${JSON.stringify(preload)};
         },
     ]);
 }
+
 

@@ -30,14 +30,7 @@ export default class FinancialService {
         total: number;
         userID: number;
         note: any;
-    }): Promise<{
-        actionURL: string;
-        MerchantOrderNo: number;
-        MerchantID: string;
-        TradeInfo: string;
-        TradeSha: string;
-        Version: string;
-    }>;
+    }): Promise<string>;
     generateUniqueOrderNumber(): string;
     static JsonToQueryString(data: {
         [key: string]: string | string[] | number;
@@ -62,6 +55,11 @@ export declare class EzPay {
         shipment_fee: number;
         orderID: string;
     }): Promise<string>;
+    saveMoney(orderData: {
+        total: number;
+        userID: number;
+        note: string;
+    }): Promise<string>;
 }
 export declare class EcPay {
     keyData: KeyData;
@@ -79,6 +77,11 @@ export declare class EcPay {
         email: string;
         shipment_fee: number;
         orderID: string;
+    }): Promise<string>;
+    saveMoney(orderData: {
+        total: number;
+        userID: number;
+        note: string;
     }): Promise<string>;
     static urlEncode_dot_net(raw_data: string, case_tr?: string): string;
 }

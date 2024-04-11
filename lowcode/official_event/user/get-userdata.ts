@@ -23,8 +23,9 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                         if(GlobalUser.userInfo){
                             resolve(GlobalUser.userInfo)
                         }else{
-
-                            ApiUser.getUserData(GlobalUser.token,'me').then(async (r) => {
+                            (window as any).glitterInitialHelper.setQueue(`api-get-user_data`, async (callback:any) => {
+                                callback(await ApiUser.getUserData(GlobalUser.token,'me'))
+                            }, ( (r:any) => {
                                 try {
                                     if (!r.result) {
                                         GlobalUser.token = ''
@@ -37,7 +38,8 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                 } catch (e) {
                                     resolve(false)
                                 }
-                            })
+                            }));
+
                         }
                     })
                 },

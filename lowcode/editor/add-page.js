@@ -7,14 +7,22 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import { Storage } from "../helper/storage.js";
+import { Storage } from "../glitterBundle/helper/storage.js";
 import { AddComponent } from "./add-component.js";
+import { EditorElem } from "../glitterBundle/plugins/editor-elem.js";
+import { EditorConfig } from "../editor-config.js";
 export class AddPage {
     static view(gvc) {
         const html = String.raw;
         const containerID = gvc.glitter.getUUID();
+        const tabID = gvc.glitter.getUUID();
         let vm = {
-            type: Storage.select_page_type
+            get type() {
+                return Storage.select_page_type;
+            }
+        };
+        AddPage.refresh = () => {
+            gvc.notifyDataChange([containerID, tabID]);
         };
         return [
             html `
@@ -27,53 +35,19 @@ export class AddPage {
             })}"><i class="fa-sharp fa-regular fa-circle-xmark" style="color:black;"></i></div>
                 </div>
             `,
-            gvc.bindView(() => {
-                const tabID = gvc.glitter.getUUID();
-                return {
-                    bind: tabID,
-                    view: () => {
-                        return (() => {
-                            let list = [{
-                                    icon: `fa-sharp fa-regular fa-memo`,
-                                    title: "網頁",
-                                    type: 'page',
-                                    desc: '首頁 / Landing page / 登入頁面 / 註冊頁面...等。'
-                                }, {
-                                    type: 'module',
-                                    icon: `fa-regular fa-block`,
-                                    title: "模塊",
-                                    desc: 'Header / Footer / 輪播圖 / 廣告區塊...等。'
-                                }, {
-                                    type: 'article',
-                                    icon: `fa-regular fa-file-dashed-line`,
-                                    title: "樣板",
-                                    desc: '用來決定頁面的統一外觀樣式。'
-                                }];
-                            return list.map((dd) => {
-                                return `<div class="d-flex align-items-center justify-content-center hoverBtn  border"
-                                 style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;
-                                 ${(vm.type === dd.type) ? `background:linear-gradient(135deg, #667eea 0%, #764ba2 100%);background:-webkit-linear-gradient(135deg, #667eea 0%, #764ba2 100%);color:white;` : ``}
-                                 "
-                                 data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="custom-tooltip"
-                                 data-bs-title="${dd.title}" onclick="${gvc.event(() => {
-                                    vm.type = dd.type;
-                                    gvc.notifyDataChange(containerID);
-                                    gvc.notifyDataChange(tabID);
-                                })}">
-                              <i class="${dd.icon}" ></i>
-                            </div>`;
-                            }).join('');
-                        })();
-                    },
-                    divCreate: {
-                        class: `d-flex  py-2 px-2 bg-white align-items-center w-100 justify-content-around border-bottom`
-                    },
-                    onCreate: () => {
-                        $('.tooltip').remove();
-                        $('[data-bs-toggle="tooltip"]').tooltip();
-                    }
-                };
-            }),
+            ` <div class="px-2 my-2">
+                               ${EditorElem.select({
+                title: '',
+                gvc: gvc,
+                def: Storage.select_page_type || 'page',
+                array: EditorConfig.page_type_list,
+                callback: (text) => {
+                    Storage.select_page_type = text;
+                    gvc.notifyDataChange(containerID);
+                    gvc.notifyDataChange(tabID);
+                }
+            })}
+                           </div>`,
             gvc.bindView(() => {
                 return {
                     bind: containerID,
@@ -113,6 +87,7 @@ export class AddPage {
             $('#addPageViewHover').removeClass('d-none');
             $('#addPageView').removeClass('scroll-out');
             $('#addPageView').addClass('scroll-in');
+            AddPage.refresh();
         }
         else {
             $('#addPageViewHover').addClass('d-none');
@@ -121,3 +96,5 @@ export class AddPage {
         }
     }
 }
+AddPage.refresh = () => {
+};

@@ -11,7 +11,7 @@ import autosize from "./autosize.js";
 import {component_group_key} from "./group_key.js";
 import {ApiPageConfig} from "../../api/pageConfig.js";
 import {GlobalUser} from "../../glitter-base/global/global-user.js";
-import {Storage} from "../../helper/storage.js";
+import {Storage} from "../helper/storage.js";
 
 const html = String.raw
 
@@ -974,16 +974,24 @@ class Add_item_dia {
                     check: false
                 }
             ];
+
             resolve({
-                left: html`<!-- Your code -->
-                <div class="position-relative bgf6 d-flex align-items-center justify-content-between  p-2 border-bottom shadow">
+                left: gvc.bindView(()=>{
+                    const id=gvc.glitter.getUUID()
+                    return {
+                        bind:id,
+                        view:()=>{
+                            return `<div class="position-relative bgf6 d-flex align-items-center justify-content-between  p-2 border-bottom shadow">
                     <span class="fs-6 fw-bold " style="color:black;">代碼轉換</span>
                     <button class="btn btn-primary-c "
                             style="height: 28px;width:80px;font-size:14px;"
                             onclick="${gvc.event(() => {
                                 const html = document.createElement('body');
                                 html.innerHTML = code;
-                                saveHTML(traverseHTML(html), relativePath, gvc, copyElem);
+                                saveHTML(traverseHTML(html), relativePath, gvc, copyElem).then(()=>{
+                                    code=''
+                                    gvc.notifyDataChange(id)
+                                });
                             })}">轉換代碼
                     </button>
                 </div>
@@ -991,63 +999,65 @@ class Add_item_dia {
                     ${EditorElem.h3('勾選複製項目')}
                     <div class="pb-2 px-2 border-bottom">
                         ${gvc.bindView(() => {
-                            const id = glitter.getUUID();
-                            return {
-                                bind: id,
-                                view: () => {
-                                    return copyElem.map((dd) => {
-                                        return `<div class="d-flex align-items-center" style="gap:10px;cursor:pointer;" onclick="${gvc.event(() => {
-                                            if ((dd.elem === 'all')) {
-                                                copyElem.map((dd) => {
-                                                    dd.check = false;
-                                                });
-                                            }
-                                            copyElem.find((dd) => {
-                                                return dd.elem === 'all';
-                                            })!.check = false;
-                                            if (copyElem.filter((dd) => {
-                                                return dd.check;
-                                            }).length > 1) {
-                                                dd.check = !dd.check;
-                                            } else {
-                                                dd.check = true;
-                                            }
-                                            gvc.notifyDataChange(id);
-                                        })}">
+                                const id = glitter.getUUID();
+                                return {
+                                    bind: id,
+                                    view: () => {
+                                        return copyElem.map((dd) => {
+                                            return `<div class="d-flex align-items-center" style="gap:10px;cursor:pointer;" onclick="${gvc.event(() => {
+                                                if ((dd.elem === 'all')) {
+                                                    copyElem.map((dd) => {
+                                                        dd.check = false;
+                                                    });
+                                                }
+                                                copyElem.find((dd) => {
+                                                    return dd.elem === 'all';
+                                                })!.check = false;
+                                                if (copyElem.filter((dd) => {
+                                                    return dd.check;
+                                                }).length > 1) {
+                                                    dd.check = !dd.check;
+                                                } else {
+                                                    dd.check = true;
+                                                }
+                                                gvc.notifyDataChange(id);
+                                            })}">
   <i class="${(dd.check) ? `fa-solid fa-square-check` : `fa-regular fa-square`}" style="font-size:15px;${(dd.check) ? `color:rgb(41, 94, 209);` : ``}"></i>
   <span class="form-check-label " style="font-size:15px;color:#5e5e5e;font-weight: 400!important;" >${dd.title}</span>
 </div>`;
-                                    }).join('');
-                                },
-                                divCreate: {class: `d-flex flex-wrap my-1 mt-1`, style: 'gap:10px;cursor:pointer;'}
-                            };
-                        })}
+                                        }).join('');
+                                    },
+                                    divCreate: {class: `d-flex flex-wrap my-1 mt-1`, style: 'gap:10px;cursor:pointer;'}
+                                };
+                            })}
                     </div>
                     <div class="my-2"></div>
                     ${EditorElem.h3('資源相對路徑')}
                     ${glitter.htmlGenerate.editeInput({
-                        gvc: gvc,
-                        title: ``,
-                        default: relativePath,
-                        placeHolder: `請輸入資源相對路徑-[為空則以當前網址作為相對路徑]`,
-                        callback: (text) => {
-                            relativePath = text;
-                        }
-                    })}
+                                gvc: gvc,
+                                title: ``,
+                                default: relativePath,
+                                placeHolder: `請輸入資源相對路徑-[為空則以當前網址作為相對路徑]`,
+                                callback: (text) => {
+                                    relativePath = text;
+                                }
+                            })}
                     <div class="mt-3 mb-2 border-bottom"></div>
                     ${EditorElem.customCodeEditor({
-                        gvc: gvc,
-                        title: '複製的代碼內容',
-                        height: 550,
-                        initial: code,
-                        language: 'html',
-                        callback: (text) => {
-                            console.log(`change--`, text)
-                            code = text;
+                                gvc: gvc,
+                                title: '複製的代碼內容',
+                                height: 550,
+                                initial: code,
+                                language: 'html',
+                                callback: (text) => {
+                                    console.log(`change--`, text)
+                                    code = text;
+                                }
+                            })}
+                </div>`
                         }
-                    })}
-                </div>
-                `,
+                    }
+                }),
                 right: ``
             });
         })
@@ -1200,6 +1210,8 @@ class Add_item_dia {
                 for (let c = 0; c < copyCount; c++) {
                     glitter.share.pastEvent()
                 }
+                configText=''
+                gvc.notifyDataChange(textID)
                 gvc.closeDialog()
             }
 

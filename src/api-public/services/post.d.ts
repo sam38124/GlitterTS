@@ -8,6 +8,15 @@ export declare class Post {
     sqlApi(router: string, datasource: any): Promise<void>;
     lambda(query: any, router: string, datasource: any, type: string): Promise<any>;
     putContent(content: any, tb?: string): Promise<any>;
+    getContentV2(query: any, manager: boolean): Promise<{
+        data: any;
+        result: boolean;
+        total?: undefined;
+    } | {
+        data: any;
+        total: any;
+        result?: undefined;
+    }>;
     getContent(content: any): Promise<any>;
     constructor(app: string, token: IToken);
 }

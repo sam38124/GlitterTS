@@ -626,20 +626,6 @@ export class Glitter {
                         callBack(data);
                     }
                 }
-                else {
-                    glitter.$.ajax({
-                        type: "POST",
-                        url: glitter.webUrl + "/RunJsInterFace",
-                        data: JSON.stringify(map),
-                        timeout: 60 * 1000,
-                        success: function (data) {
-                            callBack(JSON.parse(data));
-                        },
-                        error: function (data) {
-                            callBack(data);
-                        }
-                    });
-                }
                 return;
             }
             case glitter.deviceTypeEnum.Android: {
@@ -954,7 +940,7 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
         if (!glitter.parameter.styleList.find((dd) => {
             return dd.style === style;
         })) {
-            var css = document.createElement('style');
+            const css = document.createElement('style');
             css.type = 'text/css';
             css.id = sl.id;
             if (css.styleSheet)
@@ -971,36 +957,49 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
             const glitter = this;
             const head = document.head || document;
             function add(filePath) {
-                const id = glitter.getUUID();
-                let allLinks = document.querySelectorAll("link");
-                let pass = true;
-                for (let i = 0; i < allLinks.length; i++) {
-                    const hrefValue = allLinks[i].getAttribute("href");
-                    if (hrefValue === filePath) {
-                        pass = false;
-                        break;
-                    }
-                }
-                if (pass) {
-                    let link = (window.document).createElement("link");
-                    link.type = "text/css";
-                    link.rel = "stylesheet";
-                    link.href = filePath;
-                    link.id = id;
-                    glitter.parameter.styleLinks.push({
-                        id: id,
-                        src: filePath
+                return __awaiter(this, void 0, void 0, function* () {
+                    return new Promise((resolve, reject) => {
+                        const id = glitter.getUUID();
+                        let allLinks = document.querySelectorAll("link");
+                        let pass = true;
+                        for (let i = 0; i < allLinks.length; i++) {
+                            const hrefValue = allLinks[i].getAttribute("href");
+                            if (hrefValue === filePath) {
+                                pass = false;
+                                break;
+                            }
+                        }
+                        if (pass) {
+                            let link = (window.document).createElement("link");
+                            link.type = "text/css";
+                            link.rel = "stylesheet";
+                            link.href = filePath;
+                            link.id = id;
+                            link.onload = function () {
+                                resolve(true);
+                            };
+                            link.onerror = function () {
+                                resolve(false);
+                            };
+                            glitter.parameter.styleLinks.push({
+                                id: id,
+                                src: filePath
+                            });
+                            head.appendChild(link);
+                        }
+                        else {
+                            resolve(true);
+                        }
                     });
-                    head.appendChild(link);
-                }
+                });
             }
             if (typeof data == "string") {
-                add(data);
+                yield add(data);
             }
             else {
-                data.map((d3) => {
-                    add(d3);
-                });
+                for (const d3 of data) {
+                    yield add(d3);
+                }
             }
         });
     }

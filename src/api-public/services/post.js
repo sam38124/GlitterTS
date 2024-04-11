@@ -32,6 +32,7 @@ const exception_1 = __importDefault(require("../../modules/exception"));
 const app_js_1 = require("../../services/app.js");
 const message_js_1 = require("../../firebase/message.js");
 const shopping_js_1 = require("./shopping.js");
+const ut_database_js_1 = require("../utils/ut-database.js");
 class Post {
     static addPostObserver(callback) {
         Post.postObserverList.push(callback);
@@ -151,7 +152,8 @@ class Post {
             }
             const data = await database_1.default.query(`update \`${this.app}\`.\`${tb}\`
                                          SET ?
-                                         where 1 = 1
+                                         where 1 = 1 
+                                           and userID = ${this.token.userID}
                                            and id = ${reContent.id}`, [
                 content
             ]);
@@ -159,6 +161,22 @@ class Post {
         }
         catch (e) {
             throw exception_1.default.BadRequestError('BAD_REQUEST', 'PostContent Error:' + e, null);
+        }
+    }
+    async getContentV2(query, manager) {
+        var _a, _b;
+        try {
+            query.page = (_a = query.page) !== null && _a !== void 0 ? _a : 0;
+            query.limit = (_b = query.limit) !== null && _b !== void 0 ? _b : 10;
+            let querySql = [];
+            query.search && query.search.split(',').map((dd) => {
+                const qu = dd.split('->');
+                querySql.push(`(content->>'$.${qu[0]}'='${qu[1]}')`);
+            });
+            return await new ut_database_js_1.UtDatabase(this.app, (manager) ? `t_manager_post` : `t_post`).querySql(querySql, query);
+        }
+        catch (e) {
+            throw exception_1.default.BadRequestError('BAD_REQUEST', 'GetContentV2 Error:' + e, null);
         }
     }
     async getContent(content) {

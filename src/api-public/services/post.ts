@@ -6,6 +6,7 @@ import {IToken} from "../models/Auth.js";
 import {App} from "../../services/app.js";
 import {sendMessage} from "../../firebase/message.js";
 import {Shopping} from "./shopping.js";
+import {UtDatabase} from "../utils/ut-database.js";
 
 export class Post {
     public app: string
@@ -21,7 +22,7 @@ export class Post {
             const data = await db.query(`INSERT INTO \`${this.app}\`.\`${tb}\`
                                          SET ?`, [content])
             const reContent = JSON.parse(content.content)
-            if (reContent.type === 'product' && tb==='t_manager_post') {
+            if (reContent.type === 'product' && tb === 't_manager_post') {
                 await new Shopping(this.app, this.token).postVariantsAndPriceValue(reContent)
             }
             reContent.id = data.insertId
@@ -136,19 +137,35 @@ export class Post {
         try {
 
             const reContent = JSON.parse(content.content)
-            if (reContent.type === 'product' && tb==='t_manager_post') {
+            if (reContent.type === 'product' && tb === 't_manager_post') {
                 await new Shopping(this.app, this.token).postVariantsAndPriceValue(reContent)
-                content.content=JSON.stringify(reContent)
+                content.content = JSON.stringify(reContent)
             }
             const data = await db.query(`update \`${this.app}\`.\`${tb}\`
                                          SET ?
-                                         where 1 = 1
+                                         where 1 = 1 
+                                           and userID = ${this.token.userID}
                                            and id = ${reContent.id}`, [
                 content
             ])
             return data
         } catch (e) {
             throw exception.BadRequestError('BAD_REQUEST', 'PostContent Error:' + e, null);
+        }
+    }
+
+    public async getContentV2(query: any, manager: boolean) {
+        try {
+            query.page = query.page ?? 0
+            query.limit = query.limit ?? 10
+            let querySql: any = []
+            query.search && query.search.split(',').map((dd: any) => {
+                const qu = dd.split('->')
+                querySql.push(`(content->>'$.${qu[0]}'='${qu[1]}')`)
+            })
+            return await new UtDatabase(this.app, (manager) ? `t_manager_post` : `t_post`).querySql(querySql, query);
+        } catch (e) {
+            throw exception.BadRequestError('BAD_REQUEST', 'GetContentV2 Error:' + e, null);
         }
     }
 
@@ -300,7 +317,6 @@ export class Post {
         this.app = app
         this.token = token
     }
-
 
 
 }

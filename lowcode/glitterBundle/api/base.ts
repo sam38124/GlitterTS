@@ -14,11 +14,12 @@ export class BaseApi {
             }
             fetch(config.url, requestOptions)
                 .then(async (response) => {
+
                     try {
                         const json=await response.json()
-                        resolve({result: true,response:json})
+                        resolve({result:  response.status===200,response:json})
                     }catch (e){
-                        resolve({result: true,response:''})
+                        resolve({result:  response.status===200,response:''})
                     }
 
                 }).catch(error => {

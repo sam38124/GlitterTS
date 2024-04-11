@@ -2671,16 +2671,19 @@ ${EditorElem.editeInput({
                             })}">編輯</div>
 </div>`,
                                 `<div class="fs-6 fw-500" style="color:#1a0dab;">${postMD.seo.title || '尚未設定'}</div>`,
-                                `<div class="fs-sm fw-500" style="color:#006621;">${(()=>{
-                                    const url = new URL("", (gvc.glitter.share.editorViewModel.domain) ? `https://${gvc.glitter.share.editorViewModel.domain}/` : location.href)
-                                    url.search = ''
-                                    url.searchParams.set("page", postMD.template)
-                                    url.searchParams.set('product_id',postMD.id||'')
-                                    if(!gvc.glitter.share.editorViewModel.domain){
-                                        url.searchParams.set('appName',(window as any).appName)
-                                    }
-                                    return url.href
-                                })()}</div>`,
+                                    (()=>{
+                                        const href=(()=>{
+                                            const url = new URL("", (gvc.glitter.share.editorViewModel.domain) ? `https://${gvc.glitter.share.editorViewModel.domain}/` : location.href)
+                                            url.search = ''
+                                            url.searchParams.set("page", postMD.template)
+                                            url.searchParams.set('product_id',postMD.id||'')
+                                            if(!gvc.glitter.share.editorViewModel.domain){
+                                                url.searchParams.set('appName',(window as any).appName)
+                                            }
+                                            return url.href
+                                        })()
+                                        return`<a class="fs-sm fw-500" style="color:#006621;cursor: pointer;" href="${href}">${href}</a>`
+                                    })(),
                                 `<div class="fs-sm fw-500" style="color:#545454;white-space: normal;">${postMD.seo.content || '尚未設定'}</div>`
                             ]
                             if (toggle) {
@@ -2711,7 +2714,13 @@ ${EditorElem.editeInput({
                 }))}
          </div>
          <div style="width:300px;max-width:100%;">
-         ${BgWidget.card(EditorElem.select({
+       
+         ${BgWidget.card(
+             `  ${postMD.id ? `
+         ${EditorElem.h3('商品ID')}
+         ${postMD.id}
+         `:``}`+
+             EditorElem.select({
                     gvc: obj.gvc,
                     title: '商品狀態',
                     def: postMD.status,
@@ -2729,7 +2738,6 @@ ${BgWidget.card(gvc.bindView(() => {
                             return EditorElem.pageSelect(gvc, '選擇佈景主題', postMD.template ?? "", (data) => {
                                 postMD.template = data
                             }, (dd) => {
-                                console.log(`dd.page_config`,dd.page_config);
                                 const filter_result = dd.group !== 'glitter-article' && dd.page_type === 'article' && dd.page_config.template_type==='product'
                                 if (filter_result && !postMD.template ) {
                                     postMD.template  = dd.tag
@@ -2937,8 +2945,7 @@ ${BgWidget.card(gvc.bindView(() => {
         }).then((re) => {
             dialog.dataLoading({visible: false})
             if (re.result) {
-                vm.status = 'list'
-                dialog.successMessage({text: `上傳成功...`})
+                dialog.successMessage({text: `更改成功...`})
             } else {
                 dialog.errorMessage({text: `上傳失敗...`})
             }

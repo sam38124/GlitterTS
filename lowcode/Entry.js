@@ -16,6 +16,11 @@ import { GlobalUser } from "./glitter-base/global/global-user.js";
 export class Entry {
     static onCreate(glitter) {
         var _a;
+        glitter.addStyle(`@media (prefers-reduced-motion: no-preference) {
+          :root {
+            scroll-behavior: auto !important;
+          }
+        }`);
         Entry.checkIframe(glitter);
         if (glitter.getUrlParameter('appName')) {
             window.appName = glitter.getUrlParameter('appName');
@@ -23,8 +28,8 @@ export class Entry {
         }
         window.renderClock = (_a = window.renderClock) !== null && _a !== void 0 ? _a : clockF();
         console.log(`Entry-time:`, window.renderClock.stop());
-        glitter.share.editerVersion = "V_5.4.6";
-        glitter.share.start = new Date();
+        glitter.share.editerVersion = "V_6.0.3";
+        glitter.share.start = (new Date());
         const vm = {
             appConfig: []
         };
@@ -33,10 +38,12 @@ export class Entry {
             api: ApiPageConfig,
             appConfig: undefined
         };
+        config.token = GlobalUser.saas_token;
         Entry.resourceInitial(glitter, vm, (dd) => __awaiter(this, void 0, void 0, function* () {
             yield Entry.globalStyle(glitter, dd);
             if (glitter.getUrlParameter("type") === 'editor') {
-                Entry.toBackendEditor(glitter, () => { });
+                Entry.toBackendEditor(glitter, () => {
+                });
             }
             else if (glitter.getUrlParameter("type") === 'htmlEditor') {
                 Entry.toHtmlEditor(glitter, vm, () => {
@@ -61,14 +68,19 @@ export class Entry {
           :root {
             scroll-behavior: auto !important;
           }
-        }`);
+        }
+
+          ::-webkit-scrollbar {
+            width: 0px !important; /* 滚动条宽度 */
+            height: 0px !important;
+          }
+        `);
         glitter.share.EditorMode = true;
         glitter.share.evalPlace = ((evals) => {
             return eval(evals);
         });
         function running() {
             return __awaiter(this, void 0, void 0, function* () {
-                config.token = GlobalUser.token;
                 glitter.addStyleLink([
                     'assets/vendor/boxicons/css/boxicons.min.css',
                     'assets/css/theme.css',
@@ -284,7 +296,7 @@ export class Entry {
     }
     static resourceInitial(glitter, vm, callback) {
         window.glitterInitialHelper.getPlugin((dd) => {
-            var _a, _b, _c;
+            var _a, _b;
             console.log(`getPlugin-time:`, window.renderClock.stop());
             window.saasConfig.appConfig = dd.response.data;
             GlobalUser.language = GlobalUser.language || navigator.language;
@@ -294,20 +306,6 @@ export class Entry {
             glitter.share.globalStyle = {};
             glitter.share.appConfigresponse.response.data.globalValue = (_a = glitter.share.appConfigresponse.response.data.globalValue) !== null && _a !== void 0 ? _a : [];
             glitter.share.appConfigresponse.response.data.globalStyleTag = (_b = glitter.share.appConfigresponse.response.data.globalStyleTag) !== null && _b !== void 0 ? _b : [];
-            if (glitter.getUrlParameter("type") !== 'editor') {
-                ((_c = vm.appConfig.globalStyle) !== null && _c !== void 0 ? _c : []).map((dd) => {
-                    try {
-                        if (dd.data.elem === 'link') {
-                            glitter.addStyleLink(dd.data.attr.find((dd) => {
-                                return dd.attr === 'href';
-                            }).value);
-                        }
-                    }
-                    catch (e) {
-                        return ``;
-                    }
-                });
-            }
             function loopCheckGlobalValue(array, tag) {
                 try {
                     array.map((dd) => {

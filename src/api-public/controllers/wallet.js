@@ -12,6 +12,7 @@ const wallet_js_1 = require("../services/wallet.js");
 const multer_1 = __importDefault(require("multer"));
 const database_js_1 = __importDefault(require("../../modules/database.js"));
 const ut_database_js_1 = require("../utils/ut-database.js");
+const crypto_1 = __importDefault(require("crypto"));
 const router = express_1.default.Router();
 router.get('/', async (req, resp) => {
     try {
@@ -191,15 +192,41 @@ router.post('/notify', upload.single('file'), async (req, resp) => {
             appName: appName, key: 'glitter_finance'
         }))[0].value;
         const url = new URL(`https://covert?${req.body.toString()}`);
-        const decodeData = JSON.parse(await new financial_service_js_1.EzPay(appName, {
-            "HASH_IV": keyData.HASH_IV,
-            "HASH_KEY": keyData.HASH_KEY,
-            "ActionURL": keyData.ActionURL,
-            "NotifyURL": ``,
-            "ReturnURL": ``,
-            "MERCHANT_ID": keyData.MERCHANT_ID,
-            TYPE: keyData.TYPE
-        }).decode(url.searchParams.get('TradeInfo')));
+        let decodeData = undefined;
+        if (keyData.TYPE === 'ecPay') {
+            let params = {};
+            for (const b of url.searchParams.keys()) {
+                params[b] = url.searchParams.get(b);
+            }
+            let od = (Object.keys(params).sort(function (a, b) {
+                return a.toLowerCase().localeCompare(b.toLowerCase());
+            })).filter((dd) => {
+                return dd !== 'CheckMacValue';
+            }).map((dd) => {
+                return `${dd.toLowerCase()}=${params[dd]}`;
+            });
+            let raw = od.join('&');
+            raw = financial_service_js_1.EcPay.urlEncode_dot_net(`HashKey=${keyData.HASH_KEY}&${raw.toLowerCase()}&HashIV=${keyData.HASH_IV}`);
+            const chkSum = crypto_1.default.createHash('sha256').update(raw.toLowerCase()).digest('hex');
+            decodeData = {
+                Status: (url.searchParams.get('RtnCode') === '1' && url.searchParams.get('CheckMacValue').toLowerCase() === chkSum) ? `SUCCESS` : `ERROR`,
+                Result: {
+                    MerchantOrderNo: url.searchParams.get('MerchantTradeNo'),
+                    CheckMacValue: url.searchParams.get('CheckMacValue')
+                }
+            };
+        }
+        else if (keyData.TYPE === 'newWebPay') {
+            decodeData = JSON.parse(await new financial_service_js_1.EzPay(appName, {
+                "HASH_IV": keyData.HASH_IV,
+                "HASH_KEY": keyData.HASH_KEY,
+                "ActionURL": keyData.ActionURL,
+                "NotifyURL": ``,
+                "ReturnURL": ``,
+                "MERCHANT_ID": keyData.MERCHANT_ID,
+                TYPE: keyData.TYPE
+            }).decode(url.searchParams.get('TradeInfo')));
+        }
         if (decodeData['Status'] === 'SUCCESS') {
             await database_js_1.default.execute(`update \`${appName}\`.t_wallet
                               set status=?

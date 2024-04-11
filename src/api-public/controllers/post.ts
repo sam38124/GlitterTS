@@ -23,11 +23,11 @@ router.post('/', async (req: express.Request, resp: express.Response) => {
         ) {
             return response.fail(resp, exception.BadRequestError('BAD_REQUEST', 'No permission.', null));
         }
-        (await post.postContent({
+        const data=(await post.postContent({
             userID: postData.userID,
             content: JSON.stringify(postData),
         }, req.body.type === 'manager' ? `t_manager_post` : `t_post`))
-        return response.succ(resp, {result: true});
+        return response.succ(resp, {result: true,id:data.insertId});
     } catch (err) {
         return response.fail(resp, err);
     }
@@ -38,6 +38,26 @@ router.get('/', async (req: express.Request, resp: express.Response) => {
         const post = new Post(req.get('g-app') as string, req.body.token);
         const data = (await post.getContent(req.query)) as any
         data.result = true
+        return response.succ(resp, data);
+    } catch (err) {
+        return response.fail(resp, err);
+    }
+});
+
+router.get('/user', async (req: express.Request, resp: express.Response) => {
+    try {
+        const post = new Post(req.get('g-app') as string, req.body.token);
+        const data = (await post.getContentV2(req.query,false)) as any
+        return response.succ(resp, data);
+    } catch (err) {
+        return response.fail(resp, err);
+    }
+});
+
+router.get('/manager', async (req: express.Request, resp: express.Response) => {
+    try {
+        const post = new Post(req.get('g-app') as string, req.body.token);
+        const data = (await post.getContentV2(req.query,true)) as any
         return response.succ(resp, data);
     } catch (err) {
         return response.fail(resp, err);

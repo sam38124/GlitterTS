@@ -8,7 +8,9 @@ const exception_js_1 = __importDefault(require("../../modules/exception.js"));
 const database_js_1 = __importDefault(require("../../modules/database.js"));
 const financial_service_js_1 = __importDefault(require("./financial-service.js"));
 const private_config_js_1 = require("../../services/private_config.js");
+const redis_js_1 = __importDefault(require("../../modules/redis.js"));
 const user_js_1 = require("./user.js");
+const tool_js_1 = __importDefault(require("../../modules/tool.js"));
 class Shopping {
     constructor(app, token) {
         this.app = app;
@@ -277,7 +279,19 @@ class Shopping {
                         note: '使用回饋金購物'
                     })
                 ]);
+                const sum = (await database_js_1.default.query(`SELECT sum(money)
+                                                 FROM \`${this.app}\`.t_wallet
+                                                 where status in (1, 2)
+                                                   and userID = ?`, [userData.userID]))[0]['sum(money)'] || 0;
+                if (sum < carData.total) {
+                    data.use_wallet = sum;
+                }
+                else {
+                    data.use_wallet = carData.total;
+                }
             }
+            const id = 'redirect_' + tool_js_1.default.randomString(6);
+            await redis_js_1.default.setValue(id, data.return_url);
             const keyData = (await private_config_js_1.Private_config.getConfig({
                 appName: this.app, key: 'glitter_finance'
             }))[0].value;
@@ -286,7 +300,7 @@ class Shopping {
                 "HASH_KEY": keyData.HASH_KEY,
                 "ActionURL": keyData.ActionURL,
                 "NotifyURL": `${process.env.DOMAIN}/api-public/v1/ec/notify?g-app=${this.app}`,
-                "ReturnURL": `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&return=${data.return_url.replace(/&/g, '*R*')}`,
+                "ReturnURL": `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&return=${id}`,
                 "MERCHANT_ID": keyData.MERCHANT_ID,
                 TYPE: keyData.TYPE
             }).createOrderPage(carData));

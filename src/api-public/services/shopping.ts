@@ -7,6 +7,7 @@ import {Private_config} from "../../services/private_config.js";
 import redis from "../../modules/redis.js";
 import {User} from "./user.js";
 import {Post} from "./post.js";
+import Tool from "../../modules/tool.js";
 
 interface VoucherData {
     title: string,
@@ -219,7 +220,8 @@ export class Shopping {
         "return_url": string,
         "user_info": any,
         "code"?: string,
-        "use_rebate"?: number
+        "use_rebate"?: number,
+        "use_wallet"?:number
     }, type: 'add' | 'preview' = 'add') {
         try {
             if (!data.email && type !== 'preview') {
@@ -244,6 +246,7 @@ export class Shopping {
                     data.use_rebate = 0
                 }
             }
+
             //運費設定
             const shipment: {
                 basic_fee: number;
@@ -384,8 +387,20 @@ export class Shopping {
                         note: '使用回饋金購物'
                     })
                 ])
+                //判斷錢包是否有餘額
+                const sum = (await db.query(`SELECT sum(money)
+                                                 FROM \`${this.app}\`.t_wallet
+                                                 where status in (1, 2)
+                                                   and userID = ?`, [userData.userID]))[0]['sum(money)'] || 0
+                if (sum<carData.total) {
+                    data.use_wallet=sum
+                }else{
+                    data.use_wallet=carData.total
+                }
             }
 
+            const id='redirect_'+Tool.randomString(6)
+            await redis.setValue(id,data.return_url)
             const keyData = (await Private_config.getConfig({
                 appName: this.app, key: 'glitter_finance'
             }))[0].value
@@ -394,7 +409,7 @@ export class Shopping {
                 "HASH_KEY": keyData.HASH_KEY,
                 "ActionURL": keyData.ActionURL,
                 "NotifyURL": `${process.env.DOMAIN}/api-public/v1/ec/notify?g-app=${this.app}`,
-                "ReturnURL": `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&return=${data.return_url.replace(/&/g, '*R*')}`,
+                "ReturnURL": `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&return=${id}`,
                 "MERCHANT_ID": keyData.MERCHANT_ID,
                 TYPE: keyData.TYPE
             }).createOrderPage(carData));

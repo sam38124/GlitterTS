@@ -8,7 +8,9 @@ export class GlobalUser {
             return `${(window as any).appName}${GlobalUser.tagId}${tag}`
         }
     }
-    //@ts-ignore
+    public static get saas_token(){
+        return  (window as any).glitter.getCookieByName(`${(window as any).glitterBase}${GlobalUser.tagId}token`)
+    }
     public static get token() {
         return (window as any).glitter.getCookieByName(GlobalUser.getTag('token'))
     }

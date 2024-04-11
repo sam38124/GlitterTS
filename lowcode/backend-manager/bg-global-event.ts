@@ -6,19 +6,41 @@ import {ShareDialog} from "../dialog/ShareDialog.js";
 import {ApiPageConfig} from "../api/pageConfig.js";
 import {StoreHelper} from "../helper/store-helper.js";
 import {TriggerEvent} from "../glitterBundle/plugins/trigger-event.js";
-import {GlobalEvent} from "../api/global-event.js";
+import {GlobalEvent} from "../glitterBundle/api/global-event.js";
 import {BaseApi} from "../glitterBundle/api/base.js";
 
 const html = String.raw
 
 export class BgGlobalEvent {
     public static selectTag?: string = undefined
-    public static saveEvent=()=>{}
+    public static saveEvent = () => {
+    }
+    public static refresh=()=>{}
+
+    public static eventEditorView(gvc: GVC) {
+        return html`
+            <div class="d-flex w-100  px-2   hi fw-bold d-flex align-items-center border-bottom bgf6"
+                 style="color:#151515;font-size:16px;gap:0px;height:48px;">
+                事件編輯
+                <div class="flex-fill"></div>
+                <button class="btn btn-primary" style="height:28px;width:60px;" onclick="${gvc.event(() => {
+                    BgGlobalEvent.saveEvent()
+                })}">儲存
+                </button>
+            </div>
+            <div class="p-2">${BgGlobalEvent.editor({
+                gvc: gvc,
+                tag: BgGlobalEvent.selectTag as any,
+                type: (BgGlobalEvent.selectTag) ? "put" : "post"
+            })}
+            </div>`
+    }
+
     public static mainPage(gvc: GVC) {
         const rightID = gvc.glitter.getUUID()
         return `<div class="d-flex w-100">
-                <div style="width:250px;" class="">
-                    ${BgGlobalEvent.leftBar(gvc, (tag: string) => {
+                <div style="width:300px;" class="">
+                    ${BgGlobalEvent.leftBar(gvc, (tag?: string) => {
             BgGlobalEvent.selectTag = tag
             gvc.notifyDataChange(rightID)
         })}
@@ -30,55 +52,51 @@ ${gvc.bindView(() => {
                 view: () => {
                     return new Promise(async (resolve, reject) => {
                         if (BgGlobalEvent.selectTag !== undefined) {
-                            resolve(`<div class="d-flex w-100  px-2   hi fw-bold d-flex align-items-center border-bottom bgf6" style="color:#151515;font-size:16px;gap:0px;height:48px;">
-                                                    事件編輯
-                                                    <div class="flex-fill"></div>
-                                              <button class="btn btn-primary" style="height:28px;width:60px;" onclick="${gvc.event(() => {
-                                BgGlobalEvent.saveEvent()
-                            })}">儲存</button>
-                                                </div>
-<div class="p-2">${BgGlobalEvent.editor({
-                                gvc: gvc,
-                                tag: BgGlobalEvent.selectTag,
-                                type: (BgGlobalEvent.selectTag) ? "put" : "post"
-                            })}</div>
-`)
+                            resolve(BgGlobalEvent.eventEditorView(gvc))
                         } else {
                             resolve(html`
-                                <div class="d-flex p-2      hi fw-bold d-flex align-items-center border-bottom bgf6" style="color:#151515;font-size:16px;gap:0px;height:48px;">
+                                <div class="d-flex p-2      hi fw-bold d-flex align-items-center border-bottom bgf6"
+                                     style="color:#151515;font-size:16px;gap:0px;height:48px;">
                                     事件編輯
                                     <div class="flex-fill"></div>
                                 </div>
-                                            <div class="d-flex flex-column w-100 align-items-center justify-content-center"
-                                                 style="height:calc(100% - 48px);">
-                                                <lottie-player src="lottie/animation_code.json" class="mx-auto my-n4"
-                                                               speed="1"
-                                                               style="max-width: 100%;width: 100%;height:300px;" loop
-                                                               autoplay></lottie-player>
-                                                <h3 class=" text-center px-4" style="font-size:18px;">
-                                                    透過設定事件集，來管理程式碼事件。
-                                                </h3>
-                                            </div>`)
+                                <div class="d-flex flex-column w-100 align-items-center justify-content-center"
+                                     style="height:calc(100% - 48px);">
+                                    <lottie-player src="lottie/animation_code.json" class="mx-auto my-n4"
+                                                   speed="1"
+                                                   style="max-width: 100%;width: 100%;height:300px;" loop
+                                                   autoplay></lottie-player>
+                                    <h3 class="text-center px-4" style="font-size:18px;">
+                                        透過設定事件集，來管理程式碼事件。
+                                    </h3>
+                                </div>`)
                         }
 
                     })
                 },
                 divCreate: {
-                    style:`height:calc(100vh - 120px);overflow-y:auto;`,class:``
+                    style: `height:calc(100vh - 120px);overflow-y:auto;`, class: ``
                 }
             }
         })}</div>
             </div>`
     }
-    public static leftBar(gvc: GVC, callback: (tag: string) => void) {
+
+    public static leftBar(gvc: GVC, callback: (tag?: string) => void) {
         const vid = gvc.glitter.getUUID()
 
         return gvc.bindView(() => {
             let res: any = {}
-            GlobalEvent.getGlobalEvent({}).then((dd) => {
-                res = dd
-                gvc.notifyDataChange(vid)
-            });
+            function getData() {
+                GlobalEvent.getGlobalEvent({}).then((dd) => {
+                    res = dd
+                    gvc.notifyDataChange(vid)
+                });
+            }
+            BgGlobalEvent.refresh=()=>{
+                getData()
+            }
+            getData()
             return {
                 bind: vid,
                 view: () => {
@@ -109,6 +127,7 @@ ${gvc.bindView(() => {
                                             const fd = {
                                                 type: 'container',
                                                 label: d2,
+                                                tag: gvc.glitter.getUUID(),
                                                 data: {setting: []}
                                             }
                                             nowFolder.push(fd)
@@ -121,32 +140,50 @@ ${gvc.bindView(() => {
                                     nowFolder.push(data)
                                 }
                             })
-
-                            resolve(`
-<div class="d-flex w-100  ps-2   hi fw-bold d-flex align-items-center border-bottom bgf6" style="color:#151515;font-size:16px;gap:0px;height:48px;">
-                                                    事件集列表
-                                                    <div class="flex-fill"></div>
-                                                    <div class="hoverBtn d-flex align-items-center justify-content-center   border ms-auto me-2" style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;"
-                                onclick="${gvc.event(() => {
-                                callback('')
-                            })}">
-                                    <i class="fa-regular fa-circle-plus" aria-hidden="true"></i>
+                            resolve([html`
+                                <div class="d-flex w-100  ps-2   hi fw-bold d-flex align-items-center border-bottom bgf6"
+                                     style="color:#151515;font-size:16px;gap:0px;height:48px;">
+                                    事件集列表
+                                    <div class="flex-fill"></div>
+                                    <div class="hoverBtn d-flex align-items-center justify-content-center   border ms-auto me-2"
+                                         style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;"
+                                         onclick="${gvc.event(() => {
+                                             gvc.glitter.closeDiaLog()
+                                             BgGlobalEvent.selectTag=undefined;
+                                             EditorElem.openEditorDialog(gvc, (gvc) => {
+                                                 return BgGlobalEvent.eventEditorView(gvc)
+                                             }, () => {
+                                                 getData()
+                                                 callback(BgGlobalEvent.selectTag)
+                                             }, 400)
+                                             callback('')
+                                         })}">
+                                        <i class="fa-regular fa-circle-plus" aria-hidden="true"></i>
+                                    </div>
                                 </div>
-                                                </div>
-                           
-                            ` + new PageEditor(gvc, vid, '').renderLineItem(mapData, false, mapData, {
-                                copyType: 'directly',
-                                readonly: true,
-                                selectEvent: (dd) => {
-                                    BgGlobalEvent.selectTag = dd.tag;
-                                    gvc.notifyDataChange(vid)
-                                    callback(dd.tag)
-                                },
-                                justFolder: true,
-                                selectEv: (dd) => {
-                                    return dd.tag === BgGlobalEvent.selectTag
-                                }
-                            }))
+
+                            `,
+                                new PageEditor(gvc, vid, '').renderLineItem(mapData, false, mapData, {
+                                    copyType: 'directly',
+                                    readonly: true,
+                                    selectEvent: (dd) => {
+                                        if (!dd) {
+                                            BgGlobalEvent.selectTag = undefined;
+                                            gvc.notifyDataChange(vid);
+                                            callback(undefined)
+                                        } else {
+                                            BgGlobalEvent.selectTag = dd.tag;
+                                            gvc.notifyDataChange(vid)
+                                            callback(dd.tag)
+                                        }
+
+                                    },
+                                    justFolder: true,
+                                    selectEv: (dd) => {
+                                        console.log(`selectEV:`, dd)
+                                        return dd.tag === BgGlobalEvent.selectTag
+                                    }
+                                })].join(''))
                         } else {
                             resolve('')
                         }
@@ -154,11 +191,12 @@ ${gvc.bindView(() => {
 
                 },
                 divCreate: {
-                    style:`height:calc(100vh - 120px);overflow-y:auto;`,class:`border-end`
+                    style: `height:calc(100vh - 120px);overflow-y:auto;`, class: `border-end`
                 }
             }
         })
     }
+
     public static editor(obj: {
         gvc: GVC,
         tag: string,
@@ -194,7 +232,7 @@ ${gvc.bindView(() => {
             return {
                 bind: id,
                 view: () => {
-                    BgGlobalEvent.saveEvent=()=>{
+                    BgGlobalEvent.saveEvent = () => {
                         if (!vm.data.tag || !vm.data.name) {
                             dialog.errorMessage({text: "標題與標籤不得為空!"})
                             return
@@ -277,7 +315,7 @@ ${gvc.bindView(() => {
                                                     text: "刪除成功!"
                                                 })
                                                 BgGlobalEvent.selectTag = undefined;
-                                                obj.gvc.recreateView()
+                                                BgGlobalEvent.refresh();
                                             })
                                         }
                                     },

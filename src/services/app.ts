@@ -325,12 +325,14 @@ export class App {
                         appName:appName,
                         tag:dd.data.tag
                     })))[0]
-                    preloadData.component.push(pageData)
-                    await loop(pageData.config ?? [])
+                    if(pageData&&pageData.config){
+                        preloadData.component.push(pageData)
+                        await loop(pageData.config ?? [])
+                    }
                 }
             }
         }
-        ( await loop(pageData.config));
+        (await loop(pageData.config));
         let mapPush:any={}
         mapPush['getPlugin']={callback:[],data:{response:{data:preloadData.appConfig,result:true}},isRunning:true}
         preloadData.component.map((dd:any)=>{

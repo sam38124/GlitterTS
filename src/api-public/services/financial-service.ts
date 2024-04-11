@@ -39,9 +39,9 @@ export default class FinancialService {
             return await (new EzPay(this.appName, this.keyData).createOrderPage(orderData))
         } else if (this.keyData.TYPE === 'ecPay') {
             return await (new EcPay(this.appName, this.keyData).createOrderPage(orderData))
-        }else{
+        } else {
             return await db.execute(`insert into \`${this.appName}\`.t_checkout (cart_token, status, email, orderData)
-                          values (?, ?, ?, ?)`, [
+                                     values (?, ?, ?, ?)`, [
                 new Date().getTime(),
                 0,
                 orderData.email,
@@ -55,53 +55,15 @@ export default class FinancialService {
         total: number,
         userID: number,
         note: any
-    }) {
-        // 1. 建立請求的參數
-        const params = {
-            MerchantID: this.keyData.MERCHANT_ID,
-            RespondType: 'JSON',
-            TimeStamp: Math.floor(Date.now() / 1000),
-            Version: '2.0',
-            MerchantOrderNo: new Date().getTime(),
-            Amt: orderData.total,
-            ItemDesc: '加值服務',
-            NotifyURL: this.keyData.NotifyURL,
-            ReturnURL: this.keyData.ReturnURL,
-        };
+    }):Promise<string>{
+        if (this.keyData.TYPE === 'newWebPay') {
+            return (await  (new EzPay(this.appName, this.keyData).saveMoney(orderData)));
+        } else if (this.keyData.TYPE === 'ecPay') {
+            return await (new EcPay(this.appName, this.keyData).saveMoney(orderData))
+        } else {
+            return ``
+        }
 
-        const appName = this.appName;
-        await db.execute(`insert into \`${appName}\`.t_wallet (orderID, userID, money, status, note)
-                          values (?, ?, ?, ?, ?)`, [
-            params.MerchantOrderNo,
-            orderData.userID,
-            orderData.total,
-            0,
-            orderData.note
-        ]);
-
-        // 2. 產生 Query String
-        const qs = FinancialService.JsonToQueryString(params);
-        // 3. 開始加密
-        // { method: 'aes-256-cbc', inputEndcoding: 'utf-8', outputEndcoding: 'hex' };
-        // createCipheriv 方法中，key 要滿 32 字元、iv 要滿 16 字元，請之後測試多注意這點
-        const tradeInfo = FinancialService.aesEncrypt(qs, this.keyData.HASH_KEY, this.keyData.HASH_IV);
-
-        // 4. 產生檢查碼
-        const tradeSha = crypto
-            .createHash('sha256')
-            .update(`HashKey=${this.keyData.HASH_KEY}&${tradeInfo}&HashIV=${this.keyData.HASH_IV}`)
-            .digest('hex')
-            .toUpperCase();
-
-        // 5. 回傳物件
-        return {
-            actionURL: this.keyData.ActionURL,
-            MerchantOrderNo: params.MerchantOrderNo,
-            MerchantID: this.keyData.MERCHANT_ID,
-            TradeInfo: tradeInfo,
-            TradeSha: tradeSha,
-            Version: params.Version,
-        };
     }
 
 
@@ -111,7 +73,6 @@ export default class FinancialService {
         const orderNumber = `${timestamp}${randomSuffix}`; // 结合时间戳和随机数后缀
         return orderNumber;
     }
-
 
 
     public static JsonToQueryString(data: { [key: string]: string | string[] | number }): string {
@@ -150,7 +111,6 @@ export default class FinancialService {
     }
 
 
-
 }
 
 //藍新金流
@@ -163,9 +123,11 @@ export class EzPay {
         this.keyData = keyData;
         this.appName = appName
     }
+
     async decode(data: string) {
         return EzPay.aesDecrypt(data, this.keyData.HASH_KEY, this.keyData.HASH_IV);
     }
+
     // AES 解密
     public static aesDecrypt = (
         data: string,
@@ -190,6 +152,7 @@ export class EzPay {
         }
         return decrypted;
     };
+
     async createOrderPage(orderData: {
         lineItems: {
             "id": string,
@@ -254,6 +217,72 @@ export class EzPay {
                             ></button>
                         </form>`
     }
+
+    async saveMoney(orderData: {
+        total: number,
+        userID: number,
+        note: string
+    }) {
+        // 1. 建立請求的參數
+        const params = {
+            MerchantID: this.keyData.MERCHANT_ID,
+            RespondType: 'JSON',
+            TimeStamp: Math.floor(Date.now() / 1000),
+            Version: '2.0',
+            MerchantOrderNo: new Date().getTime(),
+            Amt: orderData.total,
+            ItemDesc: '加值服務',
+            NotifyURL: this.keyData.NotifyURL,
+            ReturnURL: this.keyData.ReturnURL,
+        };
+
+        const appName = this.appName;
+        await db.execute(`insert into \`${appName}\`.t_wallet (orderID, userID, money, status, note)
+                          values (?, ?, ?, ?, ?)`, [
+            params.MerchantOrderNo,
+            orderData.userID,
+            orderData.total,
+            0,
+            orderData.note
+        ]);
+
+        // 2. 產生 Query String
+        const qs = FinancialService.JsonToQueryString(params);
+        // 3. 開始加密
+        // { method: 'aes-256-cbc', inputEndcoding: 'utf-8', outputEndcoding: 'hex' };
+        // createCipheriv 方法中，key 要滿 32 字元、iv 要滿 16 字元，請之後測試多注意這點
+        const tradeInfo = FinancialService.aesEncrypt(qs, this.keyData.HASH_KEY, this.keyData.HASH_IV);
+
+        // 4. 產生檢查碼
+        const tradeSha = crypto
+            .createHash('sha256')
+            .update(`HashKey=${this.keyData.HASH_KEY}&${tradeInfo}&HashIV=${this.keyData.HASH_IV}`)
+            .digest('hex')
+            .toUpperCase();
+        const subMitData = {
+            actionURL: this.keyData.ActionURL,
+            MerchantOrderNo: params.MerchantOrderNo,
+            MerchantID: this.keyData.MERCHANT_ID,
+            TradeInfo: tradeInfo,
+            TradeSha: tradeSha,
+            Version: params.Version,
+        }
+
+        // 5. 回傳物件
+        return `<form name="Newebpay" action="${subMitData.actionURL}" method="POST" class="payment">
+                            <input type="hidden" name="MerchantID" value="${subMitData.MerchantID}" />
+                            <input type="hidden" name="TradeInfo" value="${subMitData.TradeInfo}" />
+                            <input type="hidden" name="TradeSha" value="${subMitData.TradeSha}" />
+                            <input type="hidden" name="Version" value="${subMitData.Version}" />
+                            <input type="hidden" name="MerchantOrderNo" value="${subMitData.MerchantOrderNo}" />
+                            <button
+                                type="submit"
+                                class="btn btn-secondary custom-btn beside-btn"
+                                id="submit"
+                                hidden
+                            ></button>
+                        </form>`;
+    }
 }
 
 //綠界金流
@@ -297,31 +326,32 @@ export class EcPay {
             DeviceSource: '',
             EncryptType: '1',
             PaymentType: 'aio',
-            OrderResultURL:this.keyData.ReturnURL
+            OrderResultURL: this.keyData.ReturnURL
         }
         const appName = this.appName;
         let od: any = (Object.keys(params).sort(function (a, b) {
             return a.toLowerCase().localeCompare(b.toLowerCase());
-        })).map((dd)=>{
+        })).map((dd) => {
             return `${dd.toLowerCase()}=${(params as any)[dd]}`
         });
         let raw: any = od.join('&');
         raw = EcPay.urlEncode_dot_net(`HashKey=${this.keyData.HASH_KEY}&${raw.toLowerCase()}&HashIV=${this.keyData.HASH_IV}`);
         const chkSum = crypto.createHash('sha256').update(raw.toLowerCase()).digest('hex');
-        (orderData as any)['CheckMacValue']=chkSum;
-            await db.execute(`insert into \`${appName}\`.t_checkout (cart_token, status, email, orderData)
+        (orderData as any)['CheckMacValue'] = chkSum;
+        await db.execute(`insert into \`${appName}\`.t_checkout (cart_token, status, email, orderData)
                           values (?, ?, ?, ?)`, [
-                params.MerchantTradeNo,
-                0,
-                orderData.email,
-                orderData
-            ]);
+            params.MerchantTradeNo,
+            0,
+            orderData.email,
+            orderData
+        ]);
         const html = String.raw
         // 5. 回傳物件
         return html`
             <form id="_form_aiochk" action="${this.keyData.ActionURL}" method="post">
                 <input type="hidden" name="MerchantTradeNo" id="MerchantTradeNo" value="${params.MerchantTradeNo}"/>
-                <input type="hidden" name="MerchantTradeDate" id="MerchantTradeDate" value="${params.MerchantTradeDate}"/>
+                <input type="hidden" name="MerchantTradeDate" id="MerchantTradeDate"
+                       value="${params.MerchantTradeDate}"/>
                 <input type="hidden" name="TotalAmount" id="TotalAmount" value="${params.TotalAmount}"/>
                 <input type="hidden" name="TradeDesc" id="TradeDesc" value="${params.TradeDesc}"/>
                 <input type="hidden" name="ItemName" id="ItemName" value="${params.ItemName}"/>
@@ -335,16 +365,87 @@ export class EcPay {
                 <input type="hidden" name="EncryptType" id="EncryptType" value="${params.EncryptType}"/>
                 <input type="hidden" name="PaymentType" id="PaymentType" value="${params.PaymentType}"/>
                 <input type="hidden" name="OrderResultURL" id="OrderResultURL" value="${params.OrderResultURL}"/>
-                
+
                 <input type="hidden" name="CheckMacValue" id="CheckMacValue" value="${chkSum}"/>
                 <button
                         type="submit"
                         class="btn btn-secondary custom-btn beside-btn d-none"
-                        id="submit" hidden ></button>
+                        id="submit" hidden></button>
             </form>
-           `
+        `
     }
 
+    async saveMoney(orderData: {
+        total: number,
+        userID: number,
+        note: string
+    }) {
+        // 1. 建立請求的參數
+        const params = {
+            MerchantTradeNo: new Date().getTime(),
+            MerchantTradeDate: moment().tz('Asia/Taipei').format('YYYY/MM/DD HH:mm:ss'),
+            TotalAmount: orderData.total,
+            TradeDesc: '商品資訊',
+            ItemName: '加值服務',
+            ReturnURL: this.keyData.NotifyURL,
+            ChoosePayment: 'ALL',
+            PlatformID: '',
+            MerchantID: this.keyData.MERCHANT_ID,
+            InvoiceMark: 'N',
+            IgnorePayment: '',
+            DeviceSource: '',
+            EncryptType: '1',
+            PaymentType: 'aio',
+            OrderResultURL: this.keyData.ReturnURL
+        }
+        const appName = this.appName;
+        let od: any = (Object.keys(params).sort(function (a, b) {
+            return a.toLowerCase().localeCompare(b.toLowerCase());
+        })).map((dd) => {
+            return `${dd.toLowerCase()}=${(params as any)[dd]}`
+        });
+        let raw: any = od.join('&');
+        raw = EcPay.urlEncode_dot_net(`HashKey=${this.keyData.HASH_KEY}&${raw.toLowerCase()}&HashIV=${this.keyData.HASH_IV}`);
+        const chkSum = crypto.createHash('sha256').update(raw.toLowerCase()).digest('hex');
+        (orderData as any)['CheckMacValue'] = chkSum;
+        await db.execute(`insert into \`${appName}\`.t_wallet (orderID, userID, money, status, note)
+                          values (?, ?, ?, ?, ?)`, [
+            params.MerchantTradeNo,
+            orderData.userID,
+            orderData.total,
+            0,
+            orderData.note
+        ]);
+
+        const html = String.raw
+        // 5. 回傳物件
+        return html`
+            <form id="_form_aiochk" action="${this.keyData.ActionURL}" method="post">
+                <input type="hidden" name="MerchantTradeNo" id="MerchantTradeNo" value="${params.MerchantTradeNo}"/>
+                <input type="hidden" name="MerchantTradeDate" id="MerchantTradeDate"
+                       value="${params.MerchantTradeDate}"/>
+                <input type="hidden" name="TotalAmount" id="TotalAmount" value="${params.TotalAmount}"/>
+                <input type="hidden" name="TradeDesc" id="TradeDesc" value="${params.TradeDesc}"/>
+                <input type="hidden" name="ItemName" id="ItemName" value="${params.ItemName}"/>
+                <input type="hidden" name="ReturnURL" id="ReturnURL" value="${params.ReturnURL}"/>
+                <input name="ChoosePayment" id="ChoosePayment" value="${params.ChoosePayment}"/>
+                <input type="hidden" name="PlatformID" id="PlatformID" value="${params.PlatformID}"/>
+                <input type="hidden" name="MerchantID" id="MerchantID" value="${params.MerchantID}"/>
+                <input type="hidden" name="InvoiceMark" id="InvoiceMark" value="${params.InvoiceMark}"/>
+                <input type="hidden" name="IgnorePayment" id="IgnorePayment" value="${params.IgnorePayment}"/>
+                <input type="hidden" name="DeviceSource" id="DeviceSource" value="${params.DeviceSource}"/>
+                <input type="hidden" name="EncryptType" id="EncryptType" value="${params.EncryptType}"/>
+                <input type="hidden" name="PaymentType" id="PaymentType" value="${params.PaymentType}"/>
+                <input type="hidden" name="OrderResultURL" id="OrderResultURL" value="${params.OrderResultURL}"/>
+
+                <input type="hidden" name="CheckMacValue" id="CheckMacValue" value="${chkSum}"/>
+                <button
+                        type="submit"
+                        class="btn btn-secondary custom-btn beside-btn d-none"
+                        id="submit" hidden></button>
+            </form>
+        `
+    }
     public static urlEncode_dot_net(raw_data: string, case_tr = 'DOWN') {
         if (typeof raw_data === 'string') {
             let encode_data = encodeURIComponent(raw_data);

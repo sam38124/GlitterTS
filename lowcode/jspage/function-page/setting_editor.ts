@@ -3,6 +3,7 @@ import {ShareDialog} from "../../dialog/ShareDialog.js";
 import {EditorElem} from "../../glitterBundle/plugins/editor-elem.js";
 import {SetGlobalValue} from "../../editor/set-global-value.js";
 import {PageSettingView} from "../../editor/page-setting-view.js";
+import {Storage} from "../../glitterBundle/helper/storage.js";
 
 export class Setting_editor {
     public static pluginUrl = ''
@@ -10,9 +11,6 @@ export class Setting_editor {
     public static left(gvc: GVC, viewModel: any, createID: string, gBundle: any) {
         const html = String.raw
         const glitter = gvc.glitter;
-        let vm = {
-            select: `official`,
-        }
 
         function setBackendEditor(fontawsome: string, title: string, itemList: any, id: string) {
             return html`
@@ -104,15 +102,16 @@ ${(!itemList.find((dd: any) => {
                                     label: "客製化後台套件"
                                 }
                             ].map((dd: { key: string, label: string }) => {
-                                return `<div class="add_item_button ${(dd.key === vm.select) ? `add_item_button_active` : ``}" onclick="${
+                                
+                                return `<div class="add_item_button ${(dd.key === Storage.select_bg_btn) ? `add_item_button_active` : ``}" onclick="${
                                         gvc.event((e, event) => {
-                                            vm.select = dd.key
+                                            Storage.select_bg_btn = dd.key as any
                                             gvc.notifyDataChange(id)
                                         })
                                 }" style="font-size:14px;">${dd.label}</div>`
                             }).join('')}
                         </div>` + (() => {
-                        switch (vm.select) {
+                        switch (Storage.select_bg_btn) {
                             case "official":
                                 return html`
                                     <div class="alert alert-info m-2 p-3 d-none"
@@ -271,28 +270,28 @@ ${(!itemList.find((dd: any) => {
                                                 }
                                             }
                                         ], id),
-                                        // setBackendEditor(`fa-regular fa-wallet me-1`, `電子錢包`, [
-                                        //     {
-                                        //         title: `增減紀錄`,
-                                        //         view: (gvc:GVC) => {
-                                        //             return new Promise((resolve, reject) => {
-                                        //                 glitter.getModule(new URL('../../backend-manager/bg-wallet.js', import.meta.url).href, (BgWallet) => {
-                                        //                     resolve(BgWallet.walletList(gvc));
-                                        //                 });
-                                        //             });
-                                        //         }
-                                        //     },
-                                        //     {
-                                        //         title: `提領請求`,
-                                        //         view: (gvc:GVC) => {
-                                        //             return new Promise((resolve, reject) => {
-                                        //                 glitter.getModule(new URL('../../backend-manager/bg-wallet.js', import.meta.url).href, (BgWallet) => {
-                                        //                     resolve(BgWallet.withdrawRequest(gvc));
-                                        //                 });
-                                        //             });
-                                        //         }
-                                        //     }
-                                        // ], id),
+                                        setBackendEditor(`fa-regular fa-wallet me-1`, `電子錢包`, [
+                                            {
+                                                title: `增減紀錄`,
+                                                view: (gvc:GVC) => {
+                                                    return new Promise((resolve, reject) => {
+                                                        glitter.getModule(new URL('../../backend-manager/bg-wallet.js', import.meta.url).href, (BgWallet) => {
+                                                            resolve(BgWallet.walletList(gvc));
+                                                        });
+                                                    });
+                                                }
+                                            },
+                                            {
+                                                title: `提領請求`,
+                                                view: (gvc:GVC) => {
+                                                    return new Promise((resolve, reject) => {
+                                                        glitter.getModule(new URL('../../backend-manager/bg-wallet.js', import.meta.url).href, (BgWallet) => {
+                                                            resolve(BgWallet.withdrawRequest(gvc));
+                                                        });
+                                                    });
+                                                }
+                                            }
+                                        ], id),
                                         setBackendEditor(`fa-regular fa-envelopes-bulk`, `信件群發`, [
                                             ...(() => {
                                                 let cCat = [];
@@ -338,32 +337,6 @@ ${(!itemList.find((dd: any) => {
                                                         return new Promise((resolve, reject) => {
                                                             glitter.getModule(new URL('../../backend-manager/bg-notify.js', import.meta.url).href, (BgNotify) => {
                                                                 resolve(BgNotify.fcmSetting(gvc));
-                                                            });
-                                                        });
-                                                    }
-                                                });
-                                                return cCat;
-                                            })()
-                                        ], id),
-                                        setBackendEditor(`fa-regular fa-messages-question`, `客服回饋`, [
-                                            ...(() => {
-                                                let cCat = [];
-                                                cCat.push({
-                                                    title: `回饋信件`,
-                                                    view: (gvc: GVC) => {
-                                                        return new Promise((resolve, reject) => {
-                                                            glitter.getModule(new URL('../../backend-manager/bg-notify.js', import.meta.url).href, (BgNotify) => {
-                                                                resolve(BgNotify.rebackMessage(gvc));
-                                                            });
-                                                        });
-                                                    }
-                                                });
-                                                cCat.push({
-                                                    title: `客服訊息`,
-                                                    view: (gvc: GVC) => {
-                                                        return new Promise((resolve, reject) => {
-                                                            glitter.getModule(new URL('../../backend-manager/bg-notify.js', import.meta.url).href, (BgNotify) => {
-                                                                resolve(BgNotify.customerMessage(gvc));
                                                             });
                                                         });
                                                     }
@@ -467,12 +440,10 @@ ${(!itemList.find((dd: any) => {
                                                 return ``
                                             }
                                             return html`
-                                                <div class="alert alert-info m-2 p-3"
+                                                <div class="alert alert-info m-2 p-2 fw-500 fs-6"
                                                      style="white-space: normal;word-break: break-all;">
                                                     透過官方或第三方平台取得相關後台套件，來達成所有客製化系統開發。
                                                 </div>
-                                                <div class="w-100"
-                                                     style="border-bottom: 1px solid #e2e5f1 !important;"></div>
                                             ` + EditorElem.arrayItem({
                                                 gvc: gvc,
                                                 title: `<div class="d-flex w-100">選項列表<div class="flex-fill"></div>
@@ -486,49 +457,28 @@ ${(!itemList.find((dd: any) => {
 </div>`,
                                                 array: () => {
                                                     return vm.data.array.map((dd: any) => {
-                                                        return {
+                                                        const res={
                                                             title: dd.title,
                                                             innerHtml: (gvc: GVC) => {
-                                                                return gvc.bindView(() => {
-                                                                    glitter.share.backendPlugins = glitter.share.backendPlugins ?? {}
-                                                                    const vid = glitter.getUUID()
-                                                                    const id = Setting_editor.pluginUrl
-                                                                    let route = `${dd.route}?callback=${id}`
-                                                                    glitter.share.backeng_callback = glitter.share.backeng_callback ?? {}
-                                                                    glitter.share.backeng_callback[id] = () => {
-                                                                        gvc.notifyDataChange(vid)
-                                                                    }
-                                                                    if (!glitter.share.backendPlugins[route]) {
-                                                                        glitter.addMtScript([{
-                                                                            src: route,
-                                                                            type: 'module'
-                                                                        }], () => {
-                                                                        }, () => {
-                                                                        })
-                                                                    }
 
-                                                                    return {
-                                                                        bind: vid,
-                                                                        view: () => {
-                                                                            if (glitter.share.backendPlugins[route]) {
-                                                                                return glitter.share.backendPlugins[route](gvc)
-                                                                            } else {
-                                                                                return `<div class="w-100 d-flex align-items-center justify-content-center pb-4">
-<div class="spinner-border"></div>
-</div>`
-                                                                            }
-
-                                                                        },
-                                                                        divCreate: {
-                                                                            class: ``
-                                                                        }
-                                                                    }
-                                                                })
+                                                                glitter.setUrlParameter('router', dd.title);
+                                                                (window as any).editerData=undefined;
+                                                                const url = new URL((glitter.share.editorViewModel.domain) ? `https://${glitter.share.editorViewModel.domain}/?page=index` : location.href)
+                                                                url.searchParams.set("page", dd.page)
+                                                                url.searchParams.delete("type")
+                                                                url.searchParams.set("cms", 'true')
+                                                                $('#editerCenter').html(`<iframe src="${url.href}" style="border: none;height: calc(100vh - 70px);"></iframe>`)
                                                             },
                                                             editTitle: dd.title,
                                                             width: 'auto',
                                                             saveAble: false
                                                         }
+                                                        if(glitter.getUrlParameter('router')===dd.title){
+                                                            setTimeout(()=>{
+                                                                res.innerHtml(gvc)
+                                                            },10)
+                                                        }
+                                                        return res
                                                     });
                                                 },
                                                 originalArray: vm.data.array,
@@ -536,6 +486,7 @@ ${(!itemList.find((dd: any) => {
                                                 refreshComponent: () => {
                                                     gvc.notifyDataChange(id)
                                                 },
+                                                customEditor:true,
                                                 plus: {
                                                     title: "新增套件",
                                                     event: gvc.event(() => {
@@ -600,7 +551,7 @@ ${(!itemList.find((dd: any) => {
                         })}"></i>
 </div>    
 
-<div class="mt-2 border border-white p-2">
+<div class="mt-2 border border-white p-2 fw-500 fs-6">
 <div class="alert alert-info " style="white-space:normal;">
 您可以透過添加插件來拓展你的後台系統應用．
 </div>
@@ -650,18 +601,16 @@ ${(() => {
                                                                                         obj.title = text
                                                                                     }
                                                                                 }),
-                                                                                EditorElem.editeInput({
-                                                                                    gvc: gvc,
-                                                                                    title: "插件路徑",
-                                                                                    default: obj.route ?? "",
-                                                                                    placeHolder: "請輸入插件路徑",
-                                                                                    callback: (text) => {
-                                                                                        obj.route = text
-                                                                                    }
+                                                                                EditorElem.pageSelect(gvc, '選擇頁面', obj.page ?? "", (data) => {
+                                                                                    obj.page = data
+                                                                                }, (dd) => {
+                                                                                    return dd.page_type === 'backend'
                                                                                 })
                                                                             ].join('')
                                                                         },
-                                                                        divCreate: {}
+                                                                        divCreate: {
+                                                                            class:`mb-2`
+                                                                        }
                                                                     }
                                                                 })
                                                             },

@@ -75,7 +75,7 @@ ${obj.gvc.bindView(() => {
                 ></i>`;
                 },
                 divCreate: {
-                    class: `d-flex align-items-center mb-3`
+                    class: `d-flex align-items-center mb-2`
                 }
             };
         })}
@@ -233,6 +233,7 @@ background: 50%/cover url('${dd}');
                 const id = obj.gvc.glitter.getUUID();
                 idlist.push(id);
                 const frameID = obj.gvc.glitter.getUUID();
+                console.log(`frameID-->`, frameID);
                 const domain = 'https://sam38124.github.io/code_component';
                 let listener = function (event) {
                     if (event.data.type === 'initial') {
@@ -279,6 +280,9 @@ ${addNewlineAfterSemicolon(obj.initial)}
                         });
                     },
                     onCreate: () => {
+                        gvc.glitter.share.postMessageCallback = gvc.glitter.share.postMessageCallback.filter((dd) => {
+                            return dd.id === frameID;
+                        });
                         gvc.glitter.share.postMessageCallback.push({
                             fun: listener,
                             id: frameID
@@ -339,6 +343,9 @@ ${addNewlineAfterSemicolon(obj.initial)}
                         });
                     },
                     onCreate: () => {
+                        gvc.glitter.share.postMessageCallback = gvc.glitter.share.postMessageCallback.filter((dd) => {
+                            return dd.id === frameID;
+                        });
                         gvc.glitter.share.postMessageCallback.push({
                             fun: listener,
                             id: frameID
@@ -427,6 +434,9 @@ ${(obj.structEnd) ? obj.structEnd : "})()"}`,
                         });
                     },
                     onCreate: () => {
+                        gvc.glitter.share.postMessageCallback = gvc.glitter.share.postMessageCallback.filter((dd) => {
+                            return dd.id === frameID;
+                        });
                         gvc.glitter.share.postMessageCallback.push({
                             fun: listener,
                             id: frameID
@@ -480,6 +490,9 @@ ${(obj.structEnd) ? obj.structEnd : "})()"}`,
                         });
                     },
                     onCreate: () => {
+                        gvc.glitter.share.postMessageCallback = gvc.glitter.share.postMessageCallback.filter((dd) => {
+                            return dd.id === frameID;
+                        });
                         gvc.glitter.share.postMessageCallback.push({
                             fun: (event) => {
                                 var _a;
@@ -521,6 +534,7 @@ ${(obj.structEnd) ? obj.structEnd : "})()"}`,
         ` + getComponent(obj.gvc, obj.height);
     }
     static richText(obj) {
+        let quill = undefined;
         return obj.gvc.bindView(() => {
             const id = obj.gvc.glitter.getUUID();
             const richID = obj.gvc.glitter.getUUID();
@@ -648,16 +662,17 @@ ${obj.gvc.bindView(() => {
                 bind: id,
                 view: () => {
                     var _a;
-                    return `   <input
+                    return `<input
                     class="flex-fill form-control "
                     placeholder="請輸入檔案連結"
                     value="${(_a = obj.def) !== null && _a !== void 0 ? _a : ""}"
                     onchange="${obj.gvc.event((e) => {
                         obj.callback(e.value);
                     })}"
+                    ${(obj.readonly) ? `readonly` : ``}
                 />
                 <div class="" style="width: 1px;height: 25px;background-color: white;"></div>
-                <i
+                ${(!obj.readonly) ? `<i
                     class="fa-regular fa-upload  ms-2 fs-5"
                     style="cursor: pointer;color:black;"
                     onclick="${obj.gvc.event(() => {
@@ -697,7 +712,8 @@ ${obj.gvc.bindView(() => {
                             },
                         });
                     })}"
-                ></i>`;
+                ></i>` : ``}
+              `;
                 },
                 divCreate: {
                     class: `d-flex align-items-center mb-2`
@@ -963,6 +979,7 @@ ${obj.gvc.bindView(() => {
         const glitter = window.glitter;
         const gvc = obj.gvc;
         const $ = glitter.$;
+        let changeInterval = undefined;
         return `
             ${(obj.title) ? EditorElem.h3(obj.title) : ``}
             <div class="btn-group dropdown w-100">
@@ -982,21 +999,23 @@ ${obj.gvc.bindView(() => {
                             gvc.getBindViewElem(id).addClass(`show`);
                         })}"
                                         onblur="${gvc.event(() => {
-                            setTimeout(() => {
-                                gvc.getBindViewElem(id).removeClass(`show`);
-                            }, 300);
                         })}"
                                         oninput="${gvc.event((e) => {
                             obj.def = e.value;
                             gvc.notifyDataChange(id);
-                            gvc.getBindViewElem(id).addClass(`show`);
+                            setTimeout(() => {
+                                gvc.getBindViewElem(id).addClass(`show`);
+                            }, 100);
                         })}"
                                         value="${obj.def}"
                                         onchange="${gvc.event((e) => {
-                            obj.def = e.value;
-                            setTimeout(() => {
+                            changeInterval = setTimeout(() => {
+                                obj.def = e.value;
                                 obj.callback(obj.def);
-                            }, 500);
+                                setTimeout(() => {
+                                    gvc.getBindViewElem(id).removeClass(`show`);
+                                }, 100);
+                            }, 200);
                         })}"
                                     />`;
                     },
@@ -1015,9 +1034,13 @@ ${obj.gvc.bindView(() => {
                             return `<button
                                                 class="dropdown-item"
                                                 onclick="${gvc.event(() => {
+                                clearInterval(changeInterval);
                                 obj.def = d3;
                                 gvc.notifyDataChange(id2);
                                 obj.callback(obj.def);
+                                setTimeout(() => {
+                                    gvc.getBindViewElem(id).removeClass(`show`);
+                                }, 100);
                             })}"
                                             >
                                                 ${d3}
@@ -1721,10 +1744,15 @@ ${(obj.def === dd.value && dd.innerHtml) ? `<div class="mt-1">${dd.innerHtml}</d
                     <div class="hoverBtn p-2" data-bs-toggle="dropdown"
                          aria-haspopup="true" aria-expanded="false"
                          style="color:black;font-size:20px;"
-                         onclick="${gvc.event((e, event) => {
-                close();
-                gvc.closeDialog();
-            })}"><i
+                         onclick="${gvc.event((e, event) => __awaiter(this, void 0, void 0, function* () {
+                let wait_promise = close();
+                if (wait_promise && wait_promise.then) {
+                    wait_promise = yield wait_promise;
+                }
+                if ((wait_promise !== false)) {
+                    gvc.closeDialog();
+                }
+            }))}"><i
                             class="fa-sharp fa-regular fa-circle-xmark"></i>
                     </div>
                 </div>

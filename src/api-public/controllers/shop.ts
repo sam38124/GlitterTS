@@ -14,6 +14,7 @@ import {CustomCode} from "../services/custom-code.js";
 import {UtDatabase} from "../utils/ut-database.js";
 import {Post} from "../services/post.js";
 import crypto from "crypto";
+import redis from "../../modules/redis.js";
 
 const router: express.Router = express.Router();
 
@@ -294,8 +295,7 @@ router.delete('/voucher', async (req: express.Request, resp: express.Response) =
 });
 router.post('/redirect', async (req: express.Request, resp: express.Response) => {
     try {
-        let return_url=new URL((req.query.return as string).replace(/\*R\*/g,'&'))
-
+        let return_url=new URL(await redis.getValue((req.query.return as string)) as any)
         return resp.send(`<!DOCTYPE html>
 <html lang="en">
 <head>

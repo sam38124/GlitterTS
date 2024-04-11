@@ -1,3 +1,12 @@
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 import Add_item_dia from "../glitterBundle/plugins/add_item_dia.js";
 import { Swal } from "../modules/sweetAlert.js";
 import { EditorElem } from "../glitterBundle/plugins/editor-elem.js";
@@ -6,8 +15,9 @@ import { TriggerEvent } from "../glitterBundle/plugins/trigger-event.js";
 import { ApiPageConfig } from "../api/pageConfig.js";
 import { HtmlGenerate } from "../glitterBundle/module/html-generate.js";
 import { FormWidget } from "../official_view_component/official/form.js";
-import { Storage } from "../helper/storage.js";
+import { Storage } from "../glitterBundle/helper/storage.js";
 import { AddComponent } from "./add-component.js";
+import { BaseApi } from "../glitterBundle/api/base.js";
 const html = String.raw;
 export class PageEditor {
     constructor(gvc, vid, editorID = '') {
@@ -41,14 +51,16 @@ export class PageEditor {
                                 viewModel.selectItem = dd;
                                 Storage.lastSelect = dd.id;
                                 localStorage.setItem('rightSelect', 'module');
-                                gvc.notifyDataChange(['right_NAV', parId, this.editorID, vid]);
+                                gvc.notifyDataChange(['right_NAV', 'MainEditorLeft', vid]);
                                 setTimeout(() => {
+                                    viewModel.selectContainer.refresh();
                                     const leftItem = document.querySelectorAll('.selectLeftItem');
                                     leftItem[leftItem.length - 1].scrollIntoView({
                                         behavior: 'auto',
                                         block: 'center',
                                     });
                                 }, 200);
+                                console.log(`selectEditEvent-->`);
                                 return true;
                             });
                             let toggle = gvc.event((e, event) => {
@@ -58,6 +70,9 @@ export class PageEditor {
                                 })() && !dd.toggle) {
                                     Storage.lastSelect = '';
                                     viewModel.selectItem = undefined;
+                                }
+                                if (!dd.toggle && option.selectEvent) {
+                                    option.selectEvent(undefined);
                                 }
                                 gvc.notifyDataChange(parId);
                                 event.preventDefault();
@@ -93,17 +108,14 @@ export class PageEditor {
                                 if (option.selectEvent) {
                                     option.selectEvent(dd);
                                 }
-                                else {
+                                else if (dd.selectEditEvent) {
                                     viewModel.selectContainer = original;
                                     viewModel.selectItem = dd;
                                     Storage.lastSelect = dd.id;
                                     localStorage.setItem('rightSelect', 'module');
-                                    if (dd.editorEvent) {
-                                        dd.editorEvent();
-                                    }
-                                    else {
-                                        gvc.notifyDataChange(['htmlGenerate', 'right_NAV', 'showView', vid, this.editorID]);
-                                    }
+                                    setTimeout(() => {
+                                        dd.selectEditEvent();
+                                    }, 100);
                                 }
                             })}">
                                         ${(dd.type === 'container') ? html `
@@ -171,7 +183,13 @@ export class PageEditor {
                                     dd.toggle = false;
                                     resetID(copy);
                                     option.refreshEvent && option.refreshEvent();
-                                    gvc.notifyDataChange([parId, vid, 'showView']);
+                                    Storage.lastSelect = copy.id;
+                                    if (viewModel.selectContainer.refresh) {
+                                        (viewModel.selectContainer.refresh) && (viewModel.selectContainer.refresh());
+                                    }
+                                    else {
+                                        gvc.notifyDataChange([parId, vid, 'showView']);
+                                    }
                                 }
                                 let interval = undefined;
                                 return html `
@@ -310,7 +328,12 @@ export class PageEditor {
                                         onEnd: (evt) => {
                                             swapArr(original, startIndex, evt.newIndex);
                                             option.refreshEvent();
-                                            gvc.notifyDataChange('showView');
+                                            if (viewModel.selectContainer && viewModel.selectContainer.refresh) {
+                                                viewModel.selectContainer.refresh();
+                                            }
+                                            else {
+                                                gvc.notifyDataChange('showView');
+                                            }
                                         },
                                         onStart: function (evt) {
                                             startIndex = evt.oldIndex;
@@ -452,7 +475,7 @@ export class PageEditor {
                     return [
                         html `
                             <div class="d-flex   px-2   hi fw-bold d-flex align-items-center border-bottom"
-                                 style="font-size:14px;color:#da552f;">全域-STYLE
+                                 style="font-size:14px;color:#da552f;">全局-STYLE
                                 <div class="flex-fill"></div>
                                 <li class="btn-group dropleft" onclick="${gvc.event(() => {
                             viewModel.selectContainer = viewModel.globalStyle;
@@ -484,42 +507,26 @@ export class PageEditor {
                         })}">
 
                                     <div type="button" class="bt" style="background:none;"
-                                         data-bs-toggle="dropdown" aria-haspopup="true"
-                                         aria-expanded="false">
+                                         onclick="${gvc.event(() => {
+                            function readClipboardContent() {
+                                return __awaiter(this, void 0, void 0, function* () {
+                                    try {
+                                        const json = yield navigator.clipboard.readText();
+                                        viewModel.globalStyle.push(JSON.parse(json));
+                                        gvc.notifyDataChange(obj.vid);
+                                    }
+                                    catch (error) {
+                                        alert('請貼上JSON格式');
+                                    }
+                                });
+                            }
+                            readClipboardContent();
+                        })}">
                                         <i class="fa-regular fa-paste"></i>
-                                    </div>
-                                    <div class="dropdown-menu mx-1 shadow-lg bgf6"
-                                         style="min-height: 150px;border:1px solid black;">
-                                        <div class="px-2 position-relative" style="width:250px;z-index:2;">
-                                            <i class="fa-sharp fa-regular fa-circle-xmark fs-5 position-absolute"
-                                               style="right:10px;top:-5px;color:black;cursor:pointer;"></i>
-                                            ${(() => {
-                            let json = '';
-                            return ` ${EditorElem.editeInput({
-                                gvc: gvc,
-                                title: "剪貼簿內容",
-                                default: '',
-                                placeHolder: '請貼上JSON資料格式',
-                                callback: (text) => {
-                                    json = text;
-                                }
-                            })}
-                                                       <button class="btn btn-primary-c  w-100 mt-2" onclick="${gvc.event(() => {
-                                try {
-                                    viewModel.globalStyle.push(JSON.parse(json));
-                                    gvc.notifyDataChange(obj.vid);
-                                }
-                                catch (e) {
-                                    alert('請貼上JSON格式');
-                                }
-                            })}">確認新增</button>`;
-                        })()}
-                                        </div>
-
                                     </div>
                                 </div>
                             </div>`,
-                        (viewModel.globalStyle.length === 0) ? ` <div class="alert-info alert p-2 m-2" style="">尚未設定全域樣式</div>` :
+                        (viewModel.globalStyle.length === 0) ? ` <div class="alert-info alert p-2 m-2" style="">尚未設定全局樣式</div>` :
                             EditorElem.arrayItem({
                                 gvc: gvc,
                                 title: '',
@@ -586,43 +593,29 @@ export class PageEditor {
                         })}">
 
                                     <div type="button" class="bt" style="background:none;"
-                                         data-bs-toggle="dropdown" aria-haspopup="true"
-                                         aria-expanded="false">
+                                       onclick="${gvc.event(() => {
+                            function readClipboardContent() {
+                                return __awaiter(this, void 0, void 0, function* () {
+                                    try {
+                                        const json = yield navigator.clipboard.readText();
+                                        pageConfig.push(JSON.parse(json));
+                                        setPageConfig();
+                                        gvc.notifyDataChange(vid);
+                                    }
+                                    catch (error) {
+                                        alert('請貼上JSON格式');
+                                    }
+                                });
+                            }
+                            readClipboardContent();
+                        })}">
                                         <i class="fa-regular fa-paste"></i>
                                     </div>
-                                    <div class="dropdown-menu mx-1 shadow-lg bgf6"
-                                         style="min-height: 150px;border:1px solid black;">
-                                        <div class="px-2 position-relative" style="width:250px;z-index:2;">
-                                            <i class="fa-sharp fa-regular fa-circle-xmark fs-5 position-absolute"
-                                               style="right:10px;top:-5px;color:black;cursor:pointer;"></i>
-                                            ${(() => {
-                            let json = '';
-                            return ` ${EditorElem.editeInput({
-                                gvc: gvc,
-                                title: "剪貼簿內容",
-                                default: '',
-                                placeHolder: '請貼上JSON資料格式',
-                                callback: (text) => {
-                                    json = text;
-                                }
-                            })}
-                                                       <button class="btn btn-primary-c  w-100 mt-2" onclick="${gvc.event(() => {
-                                try {
-                                    viewModel.data.config.push(JSON.parse(json));
-                                    gvc.notifyDataChange(obj.vid);
-                                }
-                                catch (e) {
-                                    alert('請貼上JSON格式');
-                                }
-                            })}">確認新增</button>`;
-                        })()}
-                                        </div>
-
-                                    </div>
+                                 
                                 </div>
                             </div>`,
                         (pageConfig.length === 0) ? `
-                        <div class="alert-info alert p-2 m-2">尚未設定頁面樣式</div>
+                        <div class="alert-info alert p-2 m-2 mt-3 fw-500 fs-base">尚未設定頁面樣式</div>
                         ` : EditorElem.arrayItem({
                             gvc: gvc,
                             title: '',
@@ -748,7 +741,7 @@ export class PageEditor {
                     return [
                         html `
                             <div class="d-flex   px-2   hi fw-bold d-flex align-items-center border-bottom"
-                                 style="font-size:14px;color:#da552f;">全域-事件
+                                 style="font-size:14px;color:#da552f;">全局-事件
                                 <div class="flex-fill"></div>
                                 <li class="btn-group dropleft" onclick="${gvc.event(() => {
                             viewModel.selectContainer = viewModel.globalScript;
@@ -780,42 +773,26 @@ export class PageEditor {
                         })}">
 
                                     <div type="button" class="bt" style="background:none;"
-                                         data-bs-toggle="dropdown" aria-haspopup="true"
-                                         aria-expanded="false">
+                                         onclick="${gvc.event(() => {
+                            function readClipboardContent() {
+                                return __awaiter(this, void 0, void 0, function* () {
+                                    try {
+                                        const json = yield navigator.clipboard.readText();
+                                        viewModel.globalScript.push(JSON.parse(json));
+                                        gvc.notifyDataChange(obj.vid);
+                                    }
+                                    catch (error) {
+                                        alert('請貼上JSON格式');
+                                    }
+                                });
+                            }
+                            readClipboardContent();
+                        })}">
                                         <i class="fa-regular fa-paste"></i>
-                                    </div>
-                                    <div class="dropdown-menu mx-1 shadow-lg bgf6"
-                                         style="min-height: 150px;border:1px solid black;">
-                                        <div class="px-2 position-relative" style="width:250px;z-index:2;">
-                                            <i class="fa-sharp fa-regular fa-circle-xmark fs-5 position-absolute"
-                                               style="right:10px;top:-5px;color:black;cursor:pointer;"></i>
-                                            ${(() => {
-                            let json = '';
-                            return ` ${EditorElem.editeInput({
-                                gvc: gvc,
-                                title: "剪貼簿內容",
-                                default: '',
-                                placeHolder: '請貼上JSON資料格式',
-                                callback: (text) => {
-                                    json = text;
-                                }
-                            })}
-                                                       <button class="btn btn-primary-c  w-100 mt-2" onclick="${gvc.event(() => {
-                                try {
-                                    viewModel.globalScript.push(JSON.parse(json));
-                                    gvc.notifyDataChange(obj.vid);
-                                }
-                                catch (e) {
-                                    alert('請貼上JSON格式');
-                                }
-                            })}">確認新增</button>`;
-                        })()}
-                                        </div>
-
                                     </div>
                                 </div>
                             </div>`,
-                        (viewModel.globalScript.length === 0) ? ` <div class="alert-info alert p-2 m-2">尚未設定全域事件</div>` :
+                        (viewModel.globalScript.length === 0) ? ` <div class="alert-info alert p-2 m-2">尚未設定全局事件</div>` :
                             EditorElem.arrayItem({
                                 gvc: gvc,
                                 title: '',
@@ -882,43 +859,28 @@ export class PageEditor {
                         })}">
 
                                     <div type="button" class="bt" style="background:none;"
-                                         data-bs-toggle="dropdown" aria-haspopup="true"
-                                         aria-expanded="false">
+                                         onclick="${gvc.event(() => {
+                            function readClipboardContent() {
+                                return __awaiter(this, void 0, void 0, function* () {
+                                    try {
+                                        const json = yield navigator.clipboard.readText();
+                                        pageConfig.push(JSON.parse(json));
+                                        setPageConfig();
+                                        gvc.notifyDataChange(vid);
+                                    }
+                                    catch (error) {
+                                        alert('請貼上JSON格式');
+                                    }
+                                });
+                            }
+                            readClipboardContent();
+                        })}">
                                         <i class="fa-regular fa-paste"></i>
-                                    </div>
-                                    <div class="dropdown-menu mx-1 shadow-lg bgf6"
-                                         style="min-height: 150px;border:1px solid black;">
-                                        <div class="px-2 position-relative" style="width:250px;z-index:2;">
-                                            <i class="fa-sharp fa-regular fa-circle-xmark fs-5 position-absolute"
-                                               style="right:10px;top:-5px;color:black;cursor:pointer;"></i>
-                                            ${(() => {
-                            let json = '';
-                            return ` ${EditorElem.editeInput({
-                                gvc: gvc,
-                                title: "剪貼簿內容",
-                                default: '',
-                                placeHolder: '請貼上JSON資料格式',
-                                callback: (text) => {
-                                    json = text;
-                                }
-                            })}
-                                                       <button class="btn btn-primary-c  w-100 mt-2" onclick="${gvc.event(() => {
-                                try {
-                                    pageConfig.push(JSON.parse(json));
-                                    gvc.notifyDataChange(vid);
-                                }
-                                catch (e) {
-                                    alert('請貼上JSON格式');
-                                }
-                            })}">確認新增</button>`;
-                        })()}
-                                        </div>
-
                                     </div>
                                 </div>
                             </div>`,
                         (pageConfig.length === 0) ? `
-                        <div class="alert-info alert p-2 m-2">尚未設定頁面事件</div>
+                        <div class="alert-info alert p-2 m-2 fs-base fw-500">尚未設定頁面事件</div>
                         ` : EditorElem.arrayItem({
                             gvc: gvc,
                             title: '',
@@ -1017,7 +979,7 @@ export class PageEditor {
                             const dd = viewModel.selectItem;
                             if (!dd) {
                                 return html `
-                                 
+
                                     <div class="d-flex ps-2 hi fw-bold d-flex align-items-center border-bottom border-top py-2 bgf6"
                                          style="color:#151515;font-size:16px;gap:0px;height:48px;">
                                         插件說明
@@ -1676,12 +1638,162 @@ export class PageEditor {
         obj.viewModel.page_config.formFormat = (_a = obj.viewModel.page_config.formFormat) !== null && _a !== void 0 ? _a : [];
         obj.viewModel.page_config.formData = (_b = obj.viewModel.page_config.formData) !== null && _b !== void 0 ? _b : {};
         const formFormat = obj.viewModel.page_config.formFormat;
+        function userEditorView() {
+            var _a;
+            glitter.share.editorViewModel.saveArray = (_a = glitter.share.editorViewModel.saveArray) !== null && _a !== void 0 ? _a : {};
+            const saasConfig = window.saasConfig;
+            return gvc.bindView(() => {
+                const id = glitter.getUUID();
+                let selectTag = obj.viewModel.tag;
+                return {
+                    bind: id,
+                    view: () => {
+                        return [
+                            gvc.bindView(() => {
+                                const id = gvc.glitter.getUUID();
+                                const vm = {
+                                    loading: true,
+                                    htmlText: ''
+                                };
+                                new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
+                                    function getPageData(tag) {
+                                        return new Promise((resolve, reject) => {
+                                            BaseApi.create({
+                                                "url": saasConfig.config.url + `/api/v1/template?appName=${saasConfig.config.appName}&tag=${encodeURIComponent(tag)}`,
+                                                "type": "GET",
+                                                "timeout": 0,
+                                                "headers": {
+                                                    "Content-Type": "application/json"
+                                                }
+                                            }).then((res) => {
+                                                resolve(res.response.result[0]);
+                                            });
+                                        });
+                                    }
+                                    const pageData = yield getPageData(selectTag);
+                                    let html = '';
+                                    function appendHtml(pageData, initial) {
+                                        var _a;
+                                        const page_config = pageData.page_config;
+                                        page_config.formData = (_a = page_config.formData) !== null && _a !== void 0 ? _a : {};
+                                        if (page_config.formFormat && page_config.formFormat.length !== 0) {
+                                            const formView = FormWidget.editorView({
+                                                gvc: gvc,
+                                                array: page_config.formFormat,
+                                                refresh: () => {
+                                                    if (gvc.glitter.share.editorViewModel.data.tag === pageData.tag) {
+                                                        gvc.glitter.share.editorViewModel.data.page_config = page_config;
+                                                    }
+                                                    glitter.share.editorViewModel.saveArray[pageData.id] = (() => {
+                                                        return ApiPageConfig.setPage({
+                                                            id: pageData.id,
+                                                            appName: pageData.appName,
+                                                            tag: pageData.tag,
+                                                            page_config: pageData.page_config,
+                                                        });
+                                                    });
+                                                },
+                                                formData: page_config.formData
+                                            });
+                                            if (!initial) {
+                                                html += gvc.bindView(() => {
+                                                    const id = gvc.glitter.getUUID();
+                                                    let toggle = false;
+                                                    return {
+                                                        bind: id,
+                                                        view: () => {
+                                                            return `<div class="mx-0 d-flex mt-2 border-top   mx-n3 px-3 hi fw-bold d-flex align-items-center  border-bottom  py-2 bgf6 "
+                                                                 style="color:black;cursor: pointer;font-size:15px;" onclick="${gvc.event(() => {
+                                                                toggle = !toggle;
+                                                                gvc.notifyDataChange(id);
+                                                            })}">
+                                                                ${pageData.name}
+                                                                <div class="flex-fill"></div>
+                                                                ${toggle ? ` <i class="fa-solid fa-chevron-up d-flex align-items-center justify-content-center me-2"
+                                   style="cursor:pointer;" aria-hidden="true"></i>` : ` <i class="fa-solid  fa-angle-down d-flex align-items-center justify-content-center me-2"
+                                   style="cursor:pointer;" aria-hidden="true"></i>`}
+                                                            </div>${(toggle) ? `<div class="pb-2">${formView}</div>` : ``}`;
+                                                        }
+                                                    };
+                                                });
+                                            }
+                                            else {
+                                                html += formView;
+                                            }
+                                        }
+                                    }
+                                    appendHtml(pageData, true);
+                                    function loop(array) {
+                                        var _a;
+                                        return __awaiter(this, void 0, void 0, function* () {
+                                            for (const dd of array) {
+                                                if (dd.type === 'container') {
+                                                    yield loop(dd.data.setting);
+                                                }
+                                                else if (dd.type === 'component') {
+                                                    const pageData = yield getPageData(dd.data.tag);
+                                                    appendHtml(pageData, false);
+                                                    yield loop((_a = pageData.config) !== null && _a !== void 0 ? _a : []);
+                                                }
+                                            }
+                                        });
+                                    }
+                                    yield loop(pageData.config);
+                                    if (!html) {
+                                        resolve(`
+                                                    <div class="d-flex align-items-center justify-content-center flex-column w-100"
+                                                         style="width:100%;">
+                                                        <lottie-player style="max-width: 100%;width: 200px;"
+                                                                       src="https://assets10.lottiefiles.com/packages/lf20_rc6CDU.json"
+                                                                       speed="1" loop="true"
+                                                                       background="transparent"></lottie-player>
+                                                        <h3 class="text-dark fs-6 mt-n3 px-2  "
+                                                            style="line-height: 200%;text-align: center;">
+                                                            此頁面無可編輯內容。</h3>
+                                                    </div>`);
+                                    }
+                                    else {
+                                        resolve(html);
+                                    }
+                                })).then((data) => {
+                                    vm.htmlText = data;
+                                    vm.loading = false;
+                                    gvc.notifyDataChange(id);
+                                });
+                                return {
+                                    bind: id,
+                                    view: () => {
+                                        if (vm.loading) {
+                                            return `<div class="w-100 d-flex align-items-center justify-content-center p-3">
+<div class="spinner-border" role="status">
+  <span class="sr-only">Loading...</span>
+</div>
+</div>`;
+                                        }
+                                        else {
+                                            return vm.htmlText;
+                                        }
+                                    }
+                                };
+                            })
+                        ].join('');
+                    },
+                    divCreate: {
+                        class: 'pb-2 mt-n2'
+                    },
+                    onCreate: () => {
+                        $('.tooltip').remove();
+                        $('[data-bs-toggle="tooltip"]').tooltip();
+                    }
+                };
+            });
+        }
         return gvc.bindView(() => {
             return {
                 bind: docID,
                 view: () => {
                     return html `
-                        <div class="d-flex  px-2 hi fw-bold d-flex align-items-center border-bottom border-top  bgf6"
+                        <div class="d-flex  px-2 hi fw-bold d-flex align-items-center border-bottom border-top  bgf6 d-none"
                              style="color:#151515;font-size:16px;gap:0px;height:48px;">
                             編輯頁面內容
                             <button class="btn ms-2 btn-primary-c ms-auto" style="height: 30px;width: 80px;"
@@ -1696,22 +1808,14 @@ export class PageEditor {
                                 title: ''
                             });
                         }, () => {
-                            gvc.notifyDataChange(docID);
+                            glitter.htmlGenerate.saveEvent(true);
                         }, 400);
                     })}">表單設置
                             </button>
                         </div>
-                        <div class="p-2" style="max-height: calc(100vh - 160px);overflow-y:auto;">
-                            ${FormWidget.editorView({
-                        gvc: gvc,
-                        array: formFormat,
-                        refresh: () => {
-                            setTimeout(() => {
-                                gvc.notifyDataChange([docID, 'showView']);
-                            }, 100);
-                        },
-                        formData: obj.viewModel.page_config.formData
-                    })}
+                        <div class="p-2" style="max-height: calc(100vh - 110px);overflow-y:auto;overflow-x: hidden;">
+                            ${userEditorView()}
+
                         </div>
                     `;
                 }
@@ -1780,7 +1884,9 @@ export class PageEditor {
                                 copyType: 'directly',
                                 readonly: true,
                                 selectEvent: (dd) => {
-                                    callBack(dd);
+                                    if (dd) {
+                                        callBack(dd);
+                                    }
                                 },
                                 justFolder: true,
                                 selectEv: option && option.checkSelect

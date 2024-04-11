@@ -5,10 +5,6 @@ import {GVC} from "../GVController.js";
 //@ts-ignore
 import autosize from "./autosize.js";
 import {BaseApi} from "../api/base.js";
-import {TriggerEvent} from "./trigger-event.js";
-import Add_item_dia from "./add_item_dia.js";
-import {config} from "../../config.js";
-import {GlobalUser} from "../../glitter-base/global/global-user.js";
 
 
 export class EditorElem {
@@ -57,13 +53,13 @@ ${
                                             headers: {
                                                 "Content-Type": data1.type
                                             }
-                                        }).then((res)=>{
-                                            if(res.result){
+                                        }).then((res) => {
+                                            if (res.result) {
                                                 dialog.dataLoading({visible: false});
                                                 obj.callback(data1.fullUrl);
                                                 obj.def = data1.fullUrl;
                                                 obj.gvc.notifyDataChange(id)
-                                            }else{
+                                            } else {
                                                 dialog.dataLoading({visible: false});
                                                 dialog.errorMessage({text: '上傳失敗'});
                                             }
@@ -75,7 +71,7 @@ ${
                 ></i>`
                     },
                     divCreate: {
-                        class: `d-flex align-items-center mb-3`
+                        class: `d-flex align-items-center mb-2`
                     }
                 }
             })
@@ -104,11 +100,11 @@ ${
                         headers: {
                             "Content-Type": data1.type
                         }
-                    }).then((res)=>{
-                        if(res.result){
+                    }).then((res) => {
+                        if (res.result) {
                             dialog.dataLoading({visible: false});
                             callback(data1.fullUrl);
-                        }else{
+                        } else {
                             dialog.dataLoading({visible: false});
                             dialog.errorMessage({text: '上傳失敗'});
                         }
@@ -251,6 +247,7 @@ background: 50%/cover url('${dd}');
                 const id = obj.gvc.glitter.getUUID()
                 idlist.push(id)
                 const frameID = obj.gvc.glitter.getUUID()
+                console.log(`frameID-->`, frameID)
                 const domain = 'https://sam38124.github.io/code_component'
                 let listener = function (event: any) {
                     if (event.data.type === 'initial') {
@@ -276,7 +273,6 @@ ${addNewlineAfterSemicolon(obj.initial)}
                             obj.initial = event.data.data.value
                             obj.callback(event.data.data.value)
                         } else {
-
                             const array = event.data.data.value.split('\n')
                             const cb = array.filter((dd: any, index: number) => {
                                 return index !== 0 && index !== (array.length - 1)
@@ -295,14 +291,17 @@ ${addNewlineAfterSemicolon(obj.initial)}
                     },
                     divCreate: {class: `w-100 `, style: `height:${height}px;`},
                     onDestroy: () => {
-                        gvc.glitter.share.postMessageCallback=gvc.glitter.share.postMessageCallback.filter((dd:any)=>{
-                            return dd.id===frameID
+                        gvc.glitter.share.postMessageCallback = gvc.glitter.share.postMessageCallback.filter((dd: any) => {
+                            return dd.id === frameID
                         })
                     },
                     onCreate: () => {
-                        gvc.glitter.share.postMessageCallback.push( {
+                        gvc.glitter.share.postMessageCallback = gvc.glitter.share.postMessageCallback.filter((dd: any) => {
+                            return dd.id === frameID
+                        })
+                        gvc.glitter.share.postMessageCallback.push({
                             fun: listener,
-                            id:frameID
+                            id: frameID
                         })
                     }
                 }
@@ -364,14 +363,17 @@ ${addNewlineAfterSemicolon(obj.initial)}
                     },
                     divCreate: {class: `w-100 `, style: `height:${height}px;`},
                     onDestroy: () => {
-                        gvc.glitter.share.postMessageCallback=gvc.glitter.share.postMessageCallback.filter((dd:any)=>{
-                            return dd.id===frameID
+                        gvc.glitter.share.postMessageCallback = gvc.glitter.share.postMessageCallback.filter((dd: any) => {
+                            return dd.id === frameID
                         })
                     },
                     onCreate: () => {
-                        gvc.glitter.share.postMessageCallback.push( {
+                        gvc.glitter.share.postMessageCallback = gvc.glitter.share.postMessageCallback.filter((dd: any) => {
+                            return dd.id === frameID
+                        })
+                        gvc.glitter.share.postMessageCallback.push({
                             fun: listener,
-                            id:frameID
+                            id: frameID
                         })
                     }
                 }
@@ -477,14 +479,17 @@ ${(obj.structEnd) ? obj.structEnd : "})()"}`,
                     },
                     divCreate: {class: `w-100 `, style: `height:${height}px;`},
                     onDestroy: () => {
-                        gvc.glitter.share.postMessageCallback=gvc.glitter.share.postMessageCallback.filter((dd:any)=>{
-                            return dd.id===frameID
+                        gvc.glitter.share.postMessageCallback = gvc.glitter.share.postMessageCallback.filter((dd: any) => {
+                            return dd.id === frameID
                         })
                     },
                     onCreate: () => {
-                        gvc.glitter.share.postMessageCallback.push( {
+                        gvc.glitter.share.postMessageCallback = gvc.glitter.share.postMessageCallback.filter((dd: any) => {
+                            return dd.id === frameID
+                        })
+                        gvc.glitter.share.postMessageCallback.push({
                             fun: listener,
-                            id:frameID
+                            id: frameID
                         })
                     }
                 }
@@ -541,12 +546,15 @@ ${(obj.structEnd) ? obj.structEnd : "})()"}`,
                     },
                     divCreate: {class: `w-100 `, style: `height:${height}px;`},
                     onDestroy: () => {
-                        gvc.glitter.share.postMessageCallback=gvc.glitter.share.postMessageCallback.filter((dd:any)=>{
-                            return dd.id===frameID
+                        gvc.glitter.share.postMessageCallback = gvc.glitter.share.postMessageCallback.filter((dd: any) => {
+                            return dd.id === frameID
                         })
                     },
                     onCreate: () => {
-                        gvc.glitter.share.postMessageCallback.push( {
+                        gvc.glitter.share.postMessageCallback = gvc.glitter.share.postMessageCallback.filter((dd: any) => {
+                            return dd.id === frameID
+                        })
+                        gvc.glitter.share.postMessageCallback.push({
                             fun: (event: any) => {
                                 if (event.data.type === 'initial') {
                                     if ((document.getElementById(frameID)! as any)) {
@@ -564,7 +572,7 @@ ${(obj.structEnd) ? obj.structEnd : "})()"}`,
                                     obj.callback(event.data.data.value)
                                 }
                             },
-                            id:frameID
+                            id: frameID
                         })
                     }
                 }
@@ -593,6 +601,137 @@ ${(obj.structEnd) ? obj.structEnd : "})()"}`,
         callback: (text: string) => void,
         style?: string
     }) {
+        let quill: any = undefined;
+//         return obj.gvc.bindView(() => {
+//             const id = obj.gvc.glitter.getUUID();
+//             const toolBarID = obj.gvc.glitter.getUUID();
+//             return {
+//                 bind: id,
+//                 view: () => {
+//                     return `<div id="${toolBarID}" style="white-space: normal;">
+//   <span class="ql-formats">
+//     <select class="ql-font"></select>
+//     <select class="ql-size"></select>
+//   </span>
+//   <span class="ql-formats">
+//     <button class="ql-bold"></button>
+//     <button class="ql-italic"></button>
+//     <button class="ql-underline"></button>
+//     <button class="ql-strike"></button>
+//   </span>
+//   <span class="ql-formats">
+//     <select class="ql-color"></select>
+//     <select class="ql-background"></select>
+//   </span>
+//   <span class="ql-formats">
+//     <button class="ql-script" value="sub"></button>
+//     <button class="ql-script" value="super"></button>
+//   </span>
+//   <span class="ql-formats">
+//     <button class="ql-header" value="1"></button>
+//     <button class="ql-header" value="2"></button>
+//     <button class="ql-blockquote"></button>
+//     <button class="ql-code-block"></button>
+//   </span>
+//   <span class="ql-formats">
+//     <button class="ql-list" value="ordered"></button>
+//     <button class="ql-list" value="bullet"></button>
+//     <button class="ql-indent" value="-1"></button>
+//     <button class="ql-indent" value="+1"></button>
+//   </span>
+//   <span class="ql-formats">
+//     <button class="ql-direction" value="rtl"></button>
+//     <select class="ql-align"></select>
+//   </span>
+//   <span class="ql-formats">
+//     <button class="ql-link"></button>
+//     <i class="fa-solid fa-image ms-1" style="cursor:pointer;" onclick="${obj.gvc.event(() => {
+//                         EditorElem.fileUploadEvent('image/*', (link: string) => {
+//                             try {
+//                                 var range = ((quill.getSelection) && quill.getSelection().index) || 0;
+//                                 quill.insertEmbed(range, 'image', link);
+//                             } catch {
+//                                 quill.insertEmbed(0, 'image', link);
+//                             }
+//                         })
+//                     })}"></i>
+//   </span>
+//   <span class="ql-formats">
+//     <button class="ql-clean"></button>
+//   </span>
+// </div>
+// <div id="${id}" ></div>`
+//                 },
+//                 divCreate: {
+//                     elem: 'div',
+//                     option: []
+//                 },
+//                 onCreate: () => {
+//                     obj.gvc.glitter.addStyleLink([`https://cdn.jsdelivr.net/npm/quill@2.0.0-rc.5/dist/quill.snow.css`])
+//                     const quill_resize=new URL('../../jslib/quill-resize.js',import.meta.url)
+//                     obj.gvc.addMtScript([
+//                         {
+//                             src: `https://cdn.jsdelivr.net/npm/quill@2.0.0-rc.5/dist/quill.js`
+//                         },
+//                         {
+//                             src: quill_resize.href
+//                         },
+//                         {
+//                             src: `https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js`
+//                         }
+//                     ], () => {
+//                         const interval = setInterval(() => {
+//                             if ((window as any).Quill) {
+//                                 try {
+//                                     (window as any).Quill.register("modules/resize", (window as any).QuillResizeModule);
+//                                     //@ts-ignore
+//                                     quill = new (window as any).Quill('#' + id, {
+//                                         modules: {
+//                                             resize: {
+//                                                 locale: {
+//                                                     altTip: "按住alt键比例缩放",
+//                                                     inputTip: "",
+//                                                     floatLeft: "靠左",
+//                                                     floatRight: "靠右",
+//                                                     center: "居中",
+//                                                     restore: "還原",
+//                                                 },
+//                                             },
+//                                             syntax: false,
+//                                             toolbar: `#` + toolBarID,
+//                                         },
+//                                         placeholder: '請輸入內容...',
+//                                         theme: 'snow',
+//                                     });
+//                                     clearInterval(interval)
+//                                 } catch (e) {
+//                                     clearInterval(interval)
+//                                 }
+//
+//                             }
+//                             quill.container.firstChild.innerHTML=obj.def
+//                             quill.on('text-change', (delta:any, oldDelta:any, source:any) => {
+//                                 obj.callback(quill.container.firstChild.innerHTML)
+//                             });
+//                             // const observer = new MutationObserver(function (mutationsList) {
+//                             //     obj.callback(quill.container.firstChild.innerHTML)
+//                             // });
+//                             // observer.observe(document.querySelector(`#${id}`)!, {childList: true, subtree: true});
+//                             // const editableDiv:any = document.querySelector( `#${id} .ql-editor`);
+//                             //
+//                             // // 添加 input 事件监听器
+//                             // editableDiv.addEventListener('input', function() {
+//                             //     console.log(`change`)
+//                             //     obj.callback(quill.container.firstChild.innerHTML)
+//                             // });
+//
+//                         }, 100)
+//
+//                     }, () => {
+//                     });
+//                 }
+//             }
+//         })
         return obj.gvc.bindView(() => {
             const id = obj.gvc.glitter.getUUID()
             const richID = obj.gvc.glitter.getUUID()
@@ -746,7 +885,7 @@ ${(obj.structEnd) ? obj.structEnd : "})()"}`,
         })
     }
 
-    public static uploadFile(obj: { title: string; gvc: any; def: string; callback: (data: string) => void }) {
+    public static uploadFile(obj: { title: string; gvc: any; def: string; callback: (data: string) => void, readonly?: boolean }) {
         const glitter = (window as any).glitter;
         const $ = glitter.$;
 
@@ -756,16 +895,17 @@ ${obj.gvc.bindView(() => {
             return {
                 bind: id,
                 view: () => {
-                    return `   <input
+                    return `<input
                     class="flex-fill form-control "
                     placeholder="請輸入檔案連結"
                     value="${obj.def ?? ""}"
                     onchange="${obj.gvc.event((e: any) => {
                         obj.callback(e.value);
                     })}"
+                    ${(obj.readonly) ? `readonly` : ``}
                 />
                 <div class="" style="width: 1px;height: 25px;background-color: white;"></div>
-                <i
+                ${(!obj.readonly) ? `<i
                     class="fa-regular fa-upload  ms-2 fs-5"
                     style="cursor: pointer;color:black;"
                     onclick="${obj.gvc.event(() => {
@@ -788,14 +928,14 @@ ${obj.gvc.bindView(() => {
                                         headers: {
                                             "Content-Type": data1.type
                                         }
-                                    }).then((res)=>{
+                                    }).then((res) => {
                                         console.log(res)
-                                        if(res.result){
+                                        if (res.result) {
                                             dialog.dataLoading({visible: false});
                                             obj.def = data1.fullUrl
                                             obj.callback(data1.fullUrl);
                                             obj.gvc.notifyDataChange(id)
-                                        }else{
+                                        } else {
                                             dialog.dataLoading({visible: false});
                                             dialog.errorMessage({text: '上傳失敗'});
                                         }
@@ -804,7 +944,8 @@ ${obj.gvc.bindView(() => {
                             },
                         });
                     })}"
-                ></i>`
+                ></i>` : ``}
+              `
                 },
                 divCreate: {
                     class: `d-flex align-items-center mb-2`
@@ -837,11 +978,11 @@ ${obj.gvc.bindView(() => {
                     headers: {
                         "Content-Type": data1.type
                     }
-                }).then((res)=>{
-                    if(res.result){
+                }).then((res) => {
+                    if (res.result) {
                         dialog.dataLoading({visible: false});
                         obj.callback(data1.fullUrl);
-                    }else{
+                    } else {
                         dialog.dataLoading({visible: false});
                         dialog.errorMessage({text: '上傳失敗'});
                     }
@@ -896,11 +1037,11 @@ ${obj.gvc.bindView(() => {
                             headers: {
                                 "Content-Type": data1.type
                             }
-                        }).then((res)=>{
-                            if(res.result){
+                        }).then((res) => {
+                            if (res.result) {
                                 dialog.dataLoading({visible: false});
                                 obj.callback(data1.fullUrl);
-                            }else{
+                            } else {
                                 dialog.dataLoading({visible: false});
                                 dialog.errorMessage({text: '上傳失敗'});
                             }
@@ -958,11 +1099,11 @@ ${obj.gvc.bindView(() => {
                             headers: {
                                 "Content-Type": data1.type
                             }
-                        }).then((res)=>{
-                            if(res.result){
+                        }).then((res) => {
+                            if (res.result) {
                                 dialog.dataLoading({visible: false});
                                 obj.callback(data1.fullUrl);
-                            }else{
+                            } else {
                                 dialog.dataLoading({visible: false});
                                 dialog.errorMessage({text: '上傳失敗'});
                             }
@@ -1094,6 +1235,7 @@ ${obj.gvc.bindView(() => {
         const glitter = (window as any).glitter;
         const gvc = obj.gvc;
         const $ = glitter.$;
+        let changeInterval: any = undefined
         return /*html*/ `
             ${(obj.title) ? EditorElem.h3(obj.title) : ``}
             <div class="btn-group dropdown w-100">
@@ -1113,21 +1255,26 @@ ${obj.gvc.bindView(() => {
                             gvc.getBindViewElem(id).addClass(`show`);
                         })}"
                                         onblur="${gvc.event(() => {
-                            setTimeout(() => {
-                                gvc.getBindViewElem(id).removeClass(`show`);
-                            }, 300);
+
                         })}"
                                         oninput="${gvc.event((e: any) => {
                             obj.def = e.value;
                             gvc.notifyDataChange(id);
-                            gvc.getBindViewElem(id).addClass(`show`);
+                            setTimeout(() => {
+                                gvc.getBindViewElem(id).addClass(`show`);
+                            }, 100)
+
                         })}"
                                         value="${obj.def}"
                                         onchange="${gvc.event((e: any) => {
-                            obj.def = e.value;
-                            setTimeout(() => {
+                            changeInterval = setTimeout(() => {
+                                obj.def = e.value;
                                 obj.callback(obj.def);
-                            }, 500);
+                                setTimeout(() => {
+                                    gvc.getBindViewElem(id).removeClass(`show`);
+                                }, 100)
+                            }, 200)
+
                         })}"
                                     />`;
                     },
@@ -1146,9 +1293,13 @@ ${obj.gvc.bindView(() => {
                                 return /*html*/ `<button
                                                 class="dropdown-item"
                                                 onclick="${gvc.event(() => {
+                                    clearInterval(changeInterval)
                                     obj.def = d3;
                                     gvc.notifyDataChange(id2)
                                     obj.callback(obj.def);
+                                    setTimeout(() => {
+                                        gvc.getBindViewElem(id).removeClass(`show`);
+                                    }, 100)
                                 })}"
                                             >
                                                 ${d3}
@@ -1930,7 +2081,7 @@ ${(obj.def === dd.value && dd.innerHtml) ? `<div class="mt-1">${dd.innerHtml}</d
                     min-height:45px;border:1px solid black;color:#151515;" onclick="${event}">${title}</button>`
     }
 
-    public static openEditorDialog(gvc: GVC, inner: (gvc: GVC) => string, close: () => void, width?: number, title?: string, tag?: string) {
+    public static openEditorDialog(gvc: GVC, inner: (gvc: GVC) => string, close: () => any, width?: number, title?: string, tag?: string) {
         return gvc.glitter.innerDialog((gvc: GVC) => {
             return gvc.glitter.html`
             <div class="dropdown-menu mx-0 position-fixed pb-0 border p-0 show "
@@ -1951,9 +2102,14 @@ ${(obj.def === dd.value && dd.innerHtml) ? `<div class="mt-1">${dd.innerHtml}</d
                     <div class="hoverBtn p-2" data-bs-toggle="dropdown"
                          aria-haspopup="true" aria-expanded="false"
                          style="color:black;font-size:20px;"
-                         onclick="${gvc.event((e: any, event: any) => {
-                close()
-                gvc.closeDialog()
+                         onclick="${gvc.event(async (e: any, event: any) => {
+                let wait_promise = close()
+                if (wait_promise && wait_promise.then) {
+                    wait_promise = await wait_promise
+                }
+                if ((wait_promise !== false)) {
+                    gvc.closeDialog()
+                }
             })}"><i
                             class="fa-sharp fa-regular fa-circle-xmark"></i>
                     </div>

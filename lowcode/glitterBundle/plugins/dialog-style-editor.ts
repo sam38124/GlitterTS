@@ -5,7 +5,7 @@ import Add_item_dia from "./add_item_dia.js";
 import {Swal} from "../../modules/sweetAlert.js";
 import {TriggerEvent} from "./trigger-event.js";
 import {ShareDialog} from "../dialog/ShareDialog.js";
-import {Storage} from "../../helper/storage.js";
+import {Storage} from "../helper/storage.js";
 
 const html = String.raw
 
@@ -454,7 +454,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                                             },
                                             divCreate: {
                                                 class: ``,
-                                                style: `max-height:calc(90vh - 150px);overflow-y:auto;`
+                                                style: `max-height:calc(90vh - 150px);overflow-y:auto;overflow-x:hidden;`
                                             }
                                         }
                                     })}
@@ -801,11 +801,11 @@ border-radius: 0px 10px 10px 0px;" data-bs-toggle="tooltip" data-bs-placement="t
                                         value: 'style',
                                         icon: 'fa-solid fa-s'
                                     },
-                                    {
-                                        title: '檔案上傳',
-                                        value: 'file',
-                                        icon: 'fa-solid fa-upload'
-                                    },
+                                    // {
+                                    //     title: '檔案上傳',
+                                    //     value: 'file',
+                                    //     icon: 'fa-solid fa-upload'
+                                    // },
                                 ].map((dd) => {
                                     return html`
                                         <div class=" d-flex align-items-center justify-content-center ${(dd.value === vm.select) ? `border` : ``} rounded-3"

@@ -16,7 +16,7 @@ export class PageSplit {
 
             let vm = {
                 id: glitter.getUUID(),
-                loading: true,
+                loading: false,
                 dataList: <any>[],
             };
 
@@ -24,7 +24,9 @@ export class PageSplit {
                 bind: vm.id,
                 view: () => {
                     if (vm.loading) {
-                        return 'basic.loadingView()';
+                        return `<div class="w-100 d-flex align-items-center justify-content-center p-3">
+<div class="spinner-border"></div>
+</div`;
                     } else {
                         return html`
                             <nav class="d-flex my-3 justify-content-center">
@@ -109,7 +111,8 @@ export class PageSplit {
                 divCreate: {},
                 onCreate: () => {
                     if (vm.loading) {
-                        (vm.loading = false), gvc.notifyDataChange(vm.id);
+                        (vm.loading = false);
+                        gvc.notifyDataChange(vm.id);
                     } else {
                         $(`#gotoPage`).on('keydown', function (e: any) {
                             ['e', 'E', '+', '-'].includes(e.key) && e.preventDefault();

@@ -1,26 +1,28 @@
-import {ViewType} from "../jspage/editor.js";
-
 export const Storage:{
     //編輯模式
     editor_mode:'user'|'dev',
     //選擇的頁面類型
-    select_page_type:'page'|'article'|'module'|'blog',
+    select_page_type:'page'|'article'|'module'|'blog' | 'backend',
     //上次選擇的區段
     lastSelect:string,
     //編輯器顯示範圍
-    view_type:ViewType,
+    view_type:'mobile'|'desktop'|'col3'|'fullScreen',
     //上次選擇的頁面添加按鈕,
     select_add_btn:'me' | 'official' | "view" | 'code' | 'ai' | "template" | 'copy',
     //左側的選擇功能
     select_function:'page-editor' | 'backend-manger' | 'server-manager'
     //選擇的頁面編輯功能
-    page_set_select:'normal' | 'seo' | 'module' | 'code'
+    page_set_select:'normal' | 'seo' | 'module' | 'code' | 'form'
     //開發者模式
     develop_mode:'false' | 'true'
     //全域設定選項
-    global_select:"domain" | 'plugin' | 'resource' | 'event'
+    global_select:"domain" | 'plugin' | 'resource' | 'event' | 'style' | 'code'
     //選擇的模塊編輯選項
-    select_global_editor_tab:'view'|'event'
+    select_global_editor_tab:'view'|'event',
+    //選擇的編輯開發功能
+    code_set_select:'style' | 'script' | 'code',
+    //後台點擊按鈕
+    select_bg_btn:'official'|'custom'
 }={
     get editor_mode(){
         return 'dev' as any
@@ -82,5 +84,18 @@ export const Storage:{
     },
     set select_global_editor_tab(value){
         localStorage.setItem('select_global_editor_tab',value)
+    },
+    get code_set_select(){
+        return (localStorage.getItem('code_set_select') || 'style') as any
+    },
+    set code_set_select(value){
+        localStorage.setItem('code_set_select',value)
+    },
+    get select_bg_btn(){
+        return (localStorage.getItem('select_bg_btn') || 'official') as any
+    },
+    set select_bg_btn(value){
+        localStorage.setItem('select_bg_btn',value)
     }
 }
+

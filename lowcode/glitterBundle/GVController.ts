@@ -29,6 +29,8 @@ class LifeCycle {
 }
 
 export class GVC {
+    public static initial = true
+
     public get glitter() {
         return (window as any).glitter as Glitter
     }
@@ -64,41 +66,13 @@ export class GVC {
         return this.parameter.pageConfig?.obj
     }
 
-    public share:any = {}
+    public share: any = {}
 
     public notifyDataChange(id: any) {
         const gvc = this
         try {
             const refresh = (id: string) => {
-                if (gvc.getBindViewElem(id).length === 0) {
-                    return
-                }
-                gvc.parameter.bindViewList[id].divCreate = gvc.parameter.bindViewList[id].divCreate ?? {}
-
-                function notifyLifeCycle() {
-                    if (gvc.parameter.bindViewList[id].onCreate) {
-                        gvc.parameter.bindViewList[id].onCreate()
-                    }
-                }
-
-                function refreshView() {
-                    const view = gvc.glitter.elementCallback[gvc.id(id)].getView()
-                    if (typeof view === 'string') {
-                        $(`[gvc-id="${gvc.id(id)}"]`).html(view)
-                        gvc.glitter.elementCallback[gvc.id(id)].updateAttribute()
-                        notifyLifeCycle()
-
-                    } else {
-                        view.then((resolve: string) => {
-                            $(`[gvc-id="${gvc.id(id)}"]`).html(resolve)
-                            gvc.glitter.elementCallback[gvc.id(id)].updateAttribute()
-                            notifyLifeCycle()
-                        })
-                    }
-                }
-
-                refreshView()
-
+                gvc.glitter.elementCallback[gvc.id(id)] && gvc.glitter.elementCallback[gvc.id(id)].element && gvc.glitter.elementCallback[gvc.id(id)].element.recreateView && gvc.glitter.elementCallback[gvc.id(id)].element.recreateView()
             };
 
             const convID = function () {
@@ -124,7 +98,7 @@ export class GVC {
 
     public getBindViewElem(id: string) {
         const gvc = this
-        return $(`[gvc-id="${gvc.id(id)}"]`)
+        return $(gvc.glitter.elementCallback[gvc.id(id)].element)
     }
 
     public recreateView = () => {
@@ -438,10 +412,14 @@ export function init(metaURL: string, fun: (gvc: GVC, glitter: Glitter, gBundle:
     GVC.glitter.share.GVControllerList[metaURL] = (cf: {
         pageConfig: PageConfig
     }) => {
+        if ((window as any).glitter.pageConfig.length - 2 >= 0) {
+            (window as any).glitter.pageConfig[(window as any).glitter.pageConfig.length - 2].scrollTop = window.scrollY
+        }
+
         const gvc = new GVC()
         gvc.parameter.pageConfig = cf.pageConfig;
-        (window as any).clickMap =(window as any).clickMap ?? {};
-        (window as any).clickMap[cf.pageConfig.id]=gvc.parameter.clickMap;
+        (window as any).clickMap = (window as any).clickMap ?? {};
+        (window as any).clickMap[cf.pageConfig.id] = gvc.parameter.clickMap;
         const lifeCycle: LifeCycle = new LifeCycle()
         const pageData = fun(gvc, GVC.glitter, cf.pageConfig.obj)
         lifeCycle.onResume = pageData.onResume ?? lifeCycle.onResume;
@@ -457,7 +435,7 @@ export function init(metaURL: string, fun: (gvc: GVC, glitter: Glitter, gBundle:
             $('.page-loading').remove();
         }
         cf.pageConfig.createResource = () => {
-            (window as any).clickMap[cf.pageConfig.id]=gvc.parameter.clickMap
+            (window as any).clickMap[cf.pageConfig.id] = gvc.parameter.clickMap
             lifeCycle.onResume()
             lifeCycle.onCreate()
         }
@@ -479,19 +457,20 @@ export function init(metaURL: string, fun: (gvc: GVC, glitter: Glitter, gBundle:
         }
         if (cf.pageConfig.type === GVCType.Page) {
             $('#glitterPage').append(`<page-box id="page${cf.pageConfig.id}" style="min-width: 100vw;min-height: 100vh;left: 0;top: 0;width:100vw;
-background: ${cf.pageConfig!.backGroundColor};z-index: 9999;overflow: hidden;display:none;">
+background: ${cf.pageConfig!.backGroundColor};z-index: 9999;overflow: hidden;display:none;" class="page-box">
 ${lifeCycle.onCreateView()}
 </page-box>`)
         } else {
 
             $('#glitterPage').append(`<page-box id="page${cf.pageConfig.id}" style="min-width: 100vw;min-height: 100vh;left: 0;top: 0;
-background: ${cf.pageConfig!.backGroundColor};display: none;z-index:99999;overflow: hidden;position: fixed;width:100vw;height: 100vh;">
+background: ${cf.pageConfig!.backGroundColor};display: none;z-index:99999;overflow: hidden;position: fixed;width:100vw;height: 100vh;" class="page-box">
 ${lifeCycle.onCreateView()}
 </page-box>`)
         }
         gvc.glitter.setAnimation(cf.pageConfig)
         lifeCycle.onCreate()
         gvc.glitter.defaultSetting.pageLoadingFinish()
+
         PageManager.setHistory(GVC.glitter.getUrlParameter('page'))
     }
 }

@@ -299,7 +299,7 @@ export class BgNotify {
                             <div class="d-flex w-100 align-items-center mb-3 ">
                                 ${BgWidget.title('信件設定')}
                                 <div class="flex-fill"></div>
-                                <button class="btn btn-primary-c " style="height:45px;font-size: 14px;"
+                                <button class="btn btn-primary-c btn-sm " style="height:45px;font-size: 14px;"
                                         onclick="${gvc.event(() => {
                                             vm.data = undefined
                                             vm.type = "add"

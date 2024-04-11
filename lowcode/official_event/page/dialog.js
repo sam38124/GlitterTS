@@ -11,6 +11,7 @@ import { TriggerEvent } from '../../glitterBundle/plugins/trigger-event.js';
 import { GlobalData } from "../event.js";
 import { component } from "../../official_view_component/official/component.js";
 import { EditorElem } from "../../glitterBundle/plugins/editor-elem.js";
+import { EditorConfig } from "../../editor-config.js";
 TriggerEvent.createSingleEvent(import.meta.url, () => {
     return {
         fun: (gvc, widget, object, subData, element) => {
@@ -38,20 +39,23 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                         return {
                             bind: id,
                             view: () => {
-                                return [`<select
-                                            class="form-select form-control mt-2"
-                                            onchange="${gvc.event((e) => {
-                                        object.link = window.$(e).val();
-                                    })}"
-                                        >
-                                            ${GlobalData.data.pageList.map((dd) => {
-                                        var _a;
-                                        object.link = (_a = object.link) !== null && _a !== void 0 ? _a : dd.tag;
-                                        return `<option value="${dd.tag}" ${object.link === dd.tag ? `selected` : ``}>
-                                                    ${dd.group}-${dd.name}
-                                                </option>`;
-                                    })}
-                                        </select>`, TriggerEvent.editer(gvc, widget, object.coverData, {
+                                object.select_page_type = object.select_page_type || 'page';
+                                return [
+                                    EditorElem.select({
+                                        title: '嵌入類型',
+                                        gvc: gvc,
+                                        def: '',
+                                        array: EditorConfig.page_type_list,
+                                        callback: (text) => {
+                                            object.select_page_type = text;
+                                            gvc.notifyDataChange(id);
+                                        }
+                                    }),
+                                    EditorElem.pageSelect(gvc, '', object.link, (tag) => {
+                                        object.link = tag;
+                                    }, (data) => {
+                                        return data.page_type === object.select_page_type;
+                                    }), TriggerEvent.editer(gvc, widget, object.coverData, {
                                         hover: true,
                                         option: [],
                                         title: "夾帶資料"
@@ -79,7 +83,8 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                             object.waitType = text;
                                             gvc.notifyDataChange(id);
                                         }
-                                    })].join('<div class="my-2"></div>');
+                                    })
+                                ].join('<div class="my-2"></div>');
                             },
                             divCreate: {}
                         };
@@ -97,7 +102,7 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                         gvc.glitter.innerDialog((gvc) => {
                             gvc.getBundle().carryData = data;
                             return new Promise((resolve, reject) => __awaiter(void 0, void 0, void 0, function* () {
-                                const view = yield component.render(gvc, {
+                                const view = component.render(gvc, {
                                     data: {
                                         tag: object.link
                                     }

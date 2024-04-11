@@ -1,5 +1,5 @@
 import {TriggerEvent} from "../../glitterBundle/plugins/trigger-event.js";
-import {GlobalEvent} from "../../api/global-event.js";
+import {GlobalEvent} from "../../glitterBundle/api/global-event.js";
 import {EditorElem} from "../../glitterBundle/plugins/editor-elem.js";
 
 

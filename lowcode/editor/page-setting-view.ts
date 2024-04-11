@@ -4,7 +4,10 @@ import {ShareDialog} from "../glitterBundle/dialog/ShareDialog.js";
 import {ApiPageConfig} from "../api/pageConfig.js";
 import {PageEditor} from "./page-editor.js";
 import {BgWidget} from "../backend-manager/bg-widget.js";
-import {Storage} from "../helper/storage.js";
+import {Storage} from "../glitterBundle/helper/storage.js";
+import {FormWidget} from "../official_view_component/official/form.js";
+import {StoreHelper} from "../helper/store-helper.js";
+import {EditorConfig} from "../editor-config.js";
 
 export class PageSettingView {
     public static leftNav(gvc: GVC) {
@@ -19,7 +22,7 @@ export class PageSettingView {
 
             <div id="pageSettingView"
                  class="position-fixed left-0 top-0 h-100 bg-white shadow-lg "
-                 style="width:350px;z-index: 99999;left: -100%;">
+                 style="width:400px;z-index: 99999;left: -100%;">
                 ${PageSettingView.view(gvc)}
             </div>`
     }
@@ -42,8 +45,7 @@ export class PageSettingView {
                     return [
                         html`
                             <div class="w-100 d-flex align-items-center p-3 border-bottom">
-                                <h5 class=" offcanvas-title  " style="">
-                                    畫面設定</h5>
+                                <h5 class="offcanvas-title" style="">頁面編輯</h5>
                                 <div class="flex-fill"></div>
                                 <div class="fs-5 text-black" style="cursor: pointer;" onclick="${gvc.event(() => {
                                     PageSettingView.toggle(false)
@@ -68,12 +70,12 @@ export class PageSettingView {
                                     icon: '<i class="fa-regular fa-cloud-arrow-up"></i>'
                                 },
                                 {
-                                    key: 'code',
-                                    label: "頁面配置檔",
-                                    icon: '<i class="fa-regular fa-regular fa-code"></i>'
+                                    key: 'form',
+                                    label: "內容編輯表單",
+                                    icon: '  <i class="fa-regular fa-square-list"></i>'
                                 }
-
                             ]
+
                             if (['page', 'blog'].indexOf(glitter.share.editorViewModel.data.page_type) === -1) {
                                 if (Storage.page_set_select === 'seo') {
                                     Storage.page_set_select = 'normal'
@@ -184,6 +186,8 @@ ${PageSettingView.seoSetting({
 </div>`
                                         case "normal":
                                             return PageSettingView.basicSetting(gvc, editData, docID, viewModel)
+                                        case 'form':
+                                            return PageSettingView.formSetting(gvc)
                                     }
                                 },
                                 divCreate: () => {
@@ -206,6 +210,73 @@ ${PageSettingView.seoSetting({
                 }
             }
         })
+    }
+
+    public static formSetting(gvc: GVC) {
+        gvc.glitter.share.editorViewModel.data.page_config.formFormat=gvc.glitter.share.editorViewModel.data.page_config.formFormat??[];
+        const dialog=new ShareDialog(gvc.glitter)
+        const html = String.raw
+        const formFormat=JSON.parse(JSON.stringify(gvc.glitter.share.editorViewModel.data.page_config.formFormat))
+        function save(){
+            gvc.glitter.share.editorViewModel.data.page_config.formFormat=formFormat
+            gvc.glitter.htmlGenerate.saveEvent(true)
+        }
+        PageSettingView.checkFinish = (callback: () => void) => {
+            if (
+                JSON.stringify(formFormat) !== JSON.stringify(gvc.glitter.share.editorViewModel.data.page_config.formFormat)
+            ) {
+                dialog.checkYesOrNot({
+                    callback: (response) => {
+                        if (!response) {
+                            PageSettingView.checkFinish = (callback) => {
+                                callback()
+                            }
+                            callback()
+                        } else {
+                            save()
+                        }
+                    },
+                    text: '內容已變更，是否儲存?'
+                })
+            } else {
+                PageSettingView.checkFinish = (callback) => {
+                    callback()
+                }
+                callback()
+            }
+        }
+        return html`
+            <div class="position-relative bgf6 d-flex align-items-center justify-content-between m-n2 p-2 border-bottom shadow">
+                <span class="fs-6 fw-bold " style="color:black;">頁面編輯表單設定</span>
+                <button class="btn btn-primary-c "
+                        style="height: 28px;width:40px;font-size:14px;"
+                        onclick="${gvc.event(() => {
+                           save()
+                        })}">儲存
+                </button>
+            </div>
+            ${
+            gvc.bindView(()=>{
+                const id=gvc.glitter.getUUID()
+                return {
+                    bind:id,
+                    view:()=>{
+                      return    FormWidget.settingView({
+                          gvc: gvc,
+                          array: formFormat,
+                          refresh: () => {
+                              gvc.notifyDataChange(id)
+                          },
+                          title: ''
+                      })
+                    },
+                    divCreate:{
+                        class:`my-2`
+                    }
+                }
+            })
+            }
+        `
     }
 
     public static toggle(visible: boolean) {
@@ -518,7 +589,9 @@ ${PageSettingView.seoSetting({
 
     public static basicSetting(gvc: GVC, editData: any, docID: string, viewModel: any) {
         const dialog = new ShareDialog(gvc.glitter)
-
+        gvc.glitter.share.editorViewModel.data.page_config.resource_from=gvc.glitter.share.editorViewModel.data.page_config.resource_from ?? 'global'
+        gvc.glitter.share.editorViewModel.data.page_config.list=gvc.glitter.share.editorViewModel.data.page_config.list??[];
+        gvc.glitter.share.editorViewModel.data.page_config.version=gvc.glitter.share.editorViewModel.data.page_config.version ?? 'v2'
         function save() {
             ApiPageConfig.setPage({
                 id: (viewModel.data! as any).id,
@@ -531,7 +604,9 @@ ${PageSettingView.seoSetting({
                 page_type: (viewModel.data! as any).page_type,
                 preview_image: (viewModel.data! as any).preview_image,
                 favorite: (viewModel.data! as any).favorite,
-            }).then((api) => {
+            }).then(async (api) => {
+                viewModel.appConfig.homePage=viewModel.homePage;
+                await StoreHelper.setPlugin(viewModel.originalConfig, viewModel.appConfig)
                 gvc.glitter.setUrlParameter('page', (viewModel.data! as any).tag)
                 location.reload()
             })
@@ -580,46 +655,22 @@ ${PageSettingView.seoSetting({
                                 (() => {
                                     let view: any = [
                                         EditorElem.h3('頁面類型'),
-                                        `<div class="d-flex flex-wrap px-1">
-${[
-                                            {
-                                                title: "網頁",
-                                                value: 'page'
-                                            },
-                                            {
-                                                title: "模塊",
-                                                value: 'module'
-                                            },
-                                            {
-                                                title: "樣板",
-                                                value: 'article'
-                                            }
-                                        ].map((dd) => {
-                                            return `<div class="form-check form-check-inline">
-  <input class="form-check-input" type="checkbox" id="ch-${dd.value}" ${(dd.value === editData.page_type) ? `checked` : ``} onchange="${gvc.event((e, event) => {
-                                                if (e.checked) {
-                                                    editData.page_type = dd.value
+                                            ` <div class="">
+                               ${EditorElem.select({
+                                                title:'',
+                                                gvc:gvc,
+                                                def:editData.page_type,
+                                                array:EditorConfig.page_type_list,
+                                                callback:(text:string)=>{
+                                                    editData.page_type = text as any
+                                                    gvc.notifyDataChange(docID)
                                                 }
-                                                gvc.notifyDataChange(docID)
-                                            })}">
-  <label class="form-check-label" for="ch-${dd.value}" style="color:#5e5e5e;">${dd.title}</label>
-</div>
-                                                        `
-                                        }).join('')}
-</div>`
+                                            })}
+                           </div>`
                                     ]
-                                    const title = (() => {
-                                        switch (editData.page_type) {
-                                            case 'page':
-                                                return '頁面'
-                                            case 'module':
-                                                return '模塊'
-                                            case 'article':
-                                                return '樣板'
-                                            case 'blog':
-                                                return '網誌'
-                                        }
-                                    })()
+                                    const title = EditorConfig.page_type_list.find((dd)=>{
+                                        return editData.page_type===dd.value
+                                    })!.title;
                                     editData.page_type = editData.page_type ?? 'page';
                                     ((editData.page_type === 'page') || (editData.page_type === 'blog')) && view.push(EditorElem.select({
                                         title: "設為首頁",
@@ -699,24 +750,22 @@ ${[
                                         },
                                         placeHolder: `請輸入${title}分類`
                                     }))
-                                    editData.page_config.resource_from=editData.page_config.resource_from ?? 'global'
-                                    if(editData.page_type==='module'){
-                                        view.push(EditorElem.select({
-                                            title: '執行環境',
-                                            gvc: gvc,
-                                            def: editData.page_config.resource_from,
-                                            callback: (text: string) => {
-                                                editData.page_config.resource_from=text;
-                                            },
-                                            array: [{
-                                                title:'全局',
-                                                value:'global'
-                                            },{
-                                                title:`獨立-Iframe`,
-                                                value:'own'
-                                            }],
-                                        }))  
-                                    }
+                                    editData.page_config.resource_from = editData.page_config.resource_from ?? 'global'
+                                    view.push(EditorElem.select({
+                                        title: '渲染模式',
+                                        gvc: gvc,
+                                        def: editData.page_config.resource_from,
+                                        callback: (text: string) => {
+                                            editData.page_config.resource_from = text;
+                                        },
+                                        array: [{
+                                            title: '導入全局樣式',
+                                            value: 'global'
+                                        }, {
+                                            title: `獨立渲染`,
+                                            value: 'own'
+                                        }],
+                                    }))
                                     return view.join('')
                                 })(),
                                 html`
@@ -801,7 +850,7 @@ ${[
         const docID = obj.id
         const glitter = gvc.glitter;
         const dialog = new ShareDialog(gvc.glitter)
-
+        gvc.glitter.share.editorViewModel.data.page_config.seo= gvc.glitter.share.editorViewModel.data.page_config.seo ?? {"type":"def"}
         function save() {
             ApiPageConfig.setPage({
                 id: viewModel.selectItem.id,
@@ -816,10 +865,7 @@ ${[
                 favorite: viewModel.selectItem.favorite,
             }).then((api) => {
                 gvc.glitter.setUrlParameter('page', viewModel.selectItem.tag)
-                gvc.glitter.htmlGenerate.saveEvent(false, () => {
-                    location.reload()
-                })
-
+                location.reload()
             })
         }
 
@@ -970,8 +1016,8 @@ ${(glitter.share.editorViewModel.homePage === glitter.getUrlParameter('page')) ?
                                                 const url = new URL("", (glitter.share.editorViewModel.domain) ? `https://${glitter.share.editorViewModel.domain}/` : location.href)
                                                 url.search = ''
                                                 url.searchParams.set("page", glitter.getUrlParameter("page"))
-                                                if(!gvc.glitter.share.editorViewModel.domain){
-                                                    url.searchParams.set('appName',(window as any).appName)
+                                                if (!gvc.glitter.share.editorViewModel.domain) {
+                                                    url.searchParams.set('appName', (window as any).appName)
                                                 }
                                                 return url.href
                                             })()}</div>`,
@@ -1193,6 +1239,8 @@ function deepEqual(obj1: any, obj2: any) {
     for (let key of keys1) {
         // 递归比较嵌套对象
         if (!deepEqual(obj1[key], obj2[key])) {
+            console.log(`obj1[key]-`,obj1[key])
+            console.log(`obj2[key]-`,obj2[key])
             console.log(`內容不同-${key}:${obj1[key]}-${obj2[key]}`,)
             return false;
         }

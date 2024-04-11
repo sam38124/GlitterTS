@@ -100,6 +100,7 @@ export declare class Shopping {
         "user_info": any;
         "code"?: string;
         "use_rebate"?: number;
+        "use_wallet"?: number;
     }, type?: 'add' | 'preview'): Promise<{
         data: {
             lineItems: {

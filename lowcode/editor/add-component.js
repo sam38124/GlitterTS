@@ -7,13 +7,14 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import { Storage } from "../helper/storage.js";
+import { Storage } from "../glitterBundle/helper/storage.js";
 import { ApiPageConfig } from "../api/pageConfig.js";
 import { EditorElem } from "../glitterBundle/plugins/editor-elem.js";
 import { ShareDialog } from "../dialog/ShareDialog.js";
 import Add_item_dia from "../glitterBundle/plugins/add_item_dia.js";
 import { PageEditor } from "./page-editor.js";
 import { BaseApi } from "../glitterBundle/api/base.js";
+import { EditorConfig } from "../editor-config.js";
 export class AddComponent {
     static view(gvc) {
         return gvc.bindView(() => {
@@ -127,7 +128,7 @@ export class AddComponent {
                                                     "type": "component",
                                                     "class": "",
                                                     "index": 0,
-                                                    "label": "標頭區塊",
+                                                    "label": d3.name,
                                                     "style": "",
                                                     "bundle": {},
                                                     "global": [],
@@ -303,7 +304,7 @@ export class AddComponent {
                                 template_from: vm.template_from
                             });
                             resolve(html `
-                            <div class="p-2 border-bottom " style="background: whitesmoke;">
+                            <div class="p-2 border-bottom border-top" style="background: whitesmoke;">
                                 <div class="input-group">
                                     <input class="form-control input-sm" placeholder="關鍵字或標籤名稱"
                                            onchange="${gvc.event((e, event) => {
@@ -408,26 +409,17 @@ export class AddComponent {
                                 tag: vm.query_tag.join(','),
                                 search: vm.search
                             });
-                            const title = (() => {
-                                switch (type) {
-                                    case 'page':
-                                        return '頁面';
-                                    case 'module':
-                                        return '模塊';
-                                    case 'article':
-                                        return '樣板';
-                                    case 'blog':
-                                        return '網誌';
-                                }
-                            })();
+                            const title = EditorConfig.page_type_list.find((dd) => {
+                                return type === dd.value;
+                            }).title;
                             if (withEmpty) {
                                 data.response.result.data = [{
                                         template_config: {
                                             image: ['https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1709282671899-BLANK PAGE.jpg'],
                                             tag: ['頁面設計'],
-                                            name: '空白' + title
+                                            name: '空白-' + title
                                         },
-                                        name: '空白' + title
+                                        name: '空白-' + title
                                     }].concat(data.response.result.data);
                             }
                             resolve((() => {
@@ -504,6 +496,7 @@ export class AddComponent {
                                                     copyApp: dd.appName
                                                 }).then((res) => __awaiter(this, void 0, void 0, function* () {
                                                     function next() {
+                                                        var _a, _b;
                                                         return __awaiter(this, void 0, void 0, function* () {
                                                             for (const dd of res.copy_component) {
                                                                 if (dd.execute !== 'ignore') {
@@ -517,6 +510,10 @@ export class AddComponent {
                                                                         page_config: dd.page_config,
                                                                         replace: dd.execute === 'replace'
                                                                     };
+                                                                    if ((dd.page_config.resource_from !== 'own')) {
+                                                                        data.config = data.config.concat((_a = res.global_style) !== null && _a !== void 0 ? _a : []);
+                                                                        data.config = data.config.concat((_b = res.global_script) !== null && _b !== void 0 ? _b : []);
+                                                                    }
                                                                     yield new Promise((resolve, reject) => {
                                                                         ApiPageConfig.addPage(data).then((it) => {
                                                                             resolve(true);
@@ -538,8 +535,6 @@ export class AddComponent {
                                                             });
                                                         });
                                                     }
-                                                    gvc.glitter.share.editorViewModel.globalStyle = gvc.glitter.share.editorViewModel.globalStyle.concat(res.global_style);
-                                                    gvc.glitter.share.editorViewModel.globalScript = gvc.glitter.share.editorViewModel.globalScript.concat(res.global_script);
                                                     if (gvc.glitter.share.editorViewModel.dataList.find((dd) => {
                                                         return res.copy_component.find((d2) => {
                                                             return d2.tag === dd.tag;
@@ -637,11 +632,13 @@ ${[
                                                                             return d1.changeTag === dd.tag;
                                                                         });
                                                                     })) {
-                                                                        dialog.errorMessage({ text: `此標籤名稱已重複:${conflict.find((d1) => {
+                                                                        dialog.errorMessage({
+                                                                            text: `此標籤名稱已重複:${conflict.find((d1) => {
                                                                                 return (d1.execute === 'tag') && gvc.glitter.share.editorViewModel.dataList.find((dd) => {
                                                                                     return d1.changeTag === dd.tag;
                                                                                 });
-                                                                            }).changeTag}` });
+                                                                            }).changeTag}`
+                                                                        });
                                                                     }
                                                                     else {
                                                                         function loop(array, tag, replace) {
@@ -725,18 +722,9 @@ ${[
     }
     static redefinePage(gvc, callback, type) {
         const html = String.raw;
-        const title = (() => {
-            switch (type) {
-                case 'page':
-                    return '頁面';
-                case 'module':
-                    return '模塊';
-                case 'article':
-                    return '樣板';
-                case 'blog':
-                    return '網誌';
-            }
-        })();
+        const title = EditorConfig.page_type_list.find((dd) => {
+            return dd.value === type;
+        }).title;
         EditorElem.openEditorDialog(gvc, (gvc) => {
             const tdata = {
                 "tag": "",
@@ -772,7 +760,7 @@ ${[
                     array: (() => {
                         let group = [];
                         gvc.glitter.share.editorViewModel.dataList.map((dd) => {
-                            if (group.indexOf(dd.group) === -1 && dd.page_type === 'module') {
+                            if (group.indexOf(dd.group) === -1 && dd.page_type === type) {
                                 group.push(dd.group);
                             }
                         });
@@ -841,18 +829,10 @@ ${[
             })).config);
             const plugin = yield getPlugin();
             plugin.globalStyle.map((dd) => {
-                if (!gvc.glitter.share.editorViewModel.globalStyle.find((d2) => {
-                    return d2.id === dd.id;
-                })) {
-                    response.global_style.push(dd);
-                }
+                response.global_style.push(dd);
             });
             plugin.globalScript.map((dd) => {
-                if (!gvc.glitter.share.editorViewModel.globalScript.find((d2) => {
-                    return d2.id === dd.id;
-                })) {
-                    response.global_script.push(dd);
-                }
+                response.global_script.push(dd);
             });
             return response;
         });

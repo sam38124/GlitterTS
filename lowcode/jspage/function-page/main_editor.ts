@@ -10,7 +10,7 @@ import {Setting_editor} from "./setting_editor.js";
 import {HtmlGenerate} from "../../glitterBundle/module/html-generate.js";
 import {TriggerEvent} from "../../glitterBundle/plugins/trigger-event.js";
 import {ApiPageConfig} from "../../api/pageConfig.js";
-import {Storage} from "../../helper/storage.js";
+import {Storage} from "../../glitterBundle/helper/storage.js";
 import {AddComponent} from "../../editor/add-component.js";
 
 
@@ -210,9 +210,14 @@ Storage.lastSelect
                 }
             })
         }
-
         return [html`
-            <div class=" " style="overflow-y:auto;height:calc(100vh - 150px)">
+            <div class="right_scroll" style="overflow-y:auto;height:calc(100vh - 150px)" onscroll="${gvc.event(()=>{
+                if(document.querySelector('.right_scroll')!.scrollTop>0){
+                    glitter.share.lastRightScrollTop=document.querySelector('.right_scroll')!.scrollTop;
+                }
+             
+                console.log(`lastRightScrollTopChange-->`,glitter.share.lastRightScrollTop)
+            })}">
                 ${gvc.bindView(() => {
                     return {
                         bind: `htmlGenerate`,
@@ -262,9 +267,7 @@ Storage.lastSelect
                             class: `p-2`
                         },
                         onCreate: () => {
-                            setTimeout(() => {
-                                $('#jumpToNav').scrollTop(parseInt(glitter.getCookieByName('jumpToNavScroll'), 10) ?? 0)
-                            }, 1000)
+                         
                         }
                     };
                 })}
@@ -294,8 +297,13 @@ Storage.lastSelect
                                             viewModel.selectContainer.splice(a, 1)
                                         }
                                     }
-                                    viewModel.selectItem = undefined
-                                    gvc.notifyDataChange(['HtmlEditorContainer']);
+                                    // selectComponentHover
+                                    viewModel.selectItem = undefined;
+                                    if( (document.querySelector('#editerCenter iframe') as any).contentWindow.document.querySelector('.selectComponentHover')){
+                                        (document.querySelector('#editerCenter iframe') as any).contentWindow.document.querySelector('.selectComponentHover').remove()
+                                    }
+                                    // $('#editerCenter iframe').get(0)
+                                    gvc.notifyDataChange(['right_NAV','MainEditorLeft']);
                                 }
 
                                 if (viewModel.selectItem.type === 'component') {
@@ -404,16 +412,6 @@ Storage.lastSelect
                                                                 title: '頁面內容',
                                                                 value: 'layout',
                                                                 icon: 'fa-regular fa-memo'
-                                                            },
-                                                            {
-                                                                title: '樣式設計',
-                                                                value: 'style',
-                                                                icon: 'fa-regular fa-regular fa-pen-swirl'
-                                                            },
-                                                            {
-                                                                title: '觸發事件',
-                                                                value: 'script',
-                                                                icon: 'fa-regular fa-file-code'
                                                             },
                                                             {
                                                                 title: '區段編輯',

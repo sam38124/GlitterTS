@@ -7,7 +7,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import { Storage } from "../helper/storage.js";
+import { Storage } from "../glitterBundle/helper/storage.js";
 import { PageEditor } from "./page-editor.js";
 import { EditorElem } from "../glitterBundle/plugins/editor-elem.js";
 import { BgGlobalEvent } from "../backend-manager/bg-global-event.js";
@@ -109,7 +109,6 @@ ${(() => {
                  onclick="${gvc.event(() => {
             SetGlobalValue.toggle(false);
         })}"></div>
-
             <div id="setGlobalView"
                  class="position-fixed left-0 top-0 h-100 bg-white shadow-lg "
                  style="width:600px;z-index: 99999;left: -100%;">

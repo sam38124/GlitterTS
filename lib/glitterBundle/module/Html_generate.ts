@@ -633,6 +633,7 @@ ${obj.gvc.bindView({
                                                 return ``
                                             }
                                             if (['code'].indexOf(dd.type) === -1) {
+                                                console.log(`setonResumeEvent`)
                                                 if ((dd.type === 'widget') || (dd.type === 'container')) {
                                                     dd.refreshComponentParameter!.view1 = () => {
                                                         gvc.notifyDataChange(container)
@@ -711,6 +712,10 @@ ${obj.gvc.bindView({
                                                                 option: option
                                                             },
                                                             onCreate: () => {
+
+                                                                gvc.glitter.document.querySelector(`[gvc-id="${component}"]`).onResumeEvent=()=>{
+                                                                    alert('ss')
+                                                                }
                                                             },
                                                         }
                                                     })

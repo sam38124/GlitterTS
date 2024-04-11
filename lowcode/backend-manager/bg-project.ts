@@ -1,8 +1,6 @@
 import {GVC} from "../glitterBundle/GVController.js";
 import {EditorElem} from "../glitterBundle/plugins/editor-elem.js";
-import {ShareDialog} from "../dialog/ShareDialog.js";
-import {BgShopping} from "./bg-shopping.js";
-import {PageEditor} from "../editor/page-editor.js";
+import {ShareDialog} from "../glitterBundle/dialog/ShareDialog.js";
 import {BgWidget} from "./bg-widget.js";
 import {ApiShop} from "../glitter-base/route/shopping.js";
 import {ApiUser} from "../glitter-base/route/user.js";
@@ -10,11 +8,8 @@ import {ApiPost} from "../glitter-base/route/post.js";
 import {GlobalUser} from "../glitter-base/global/global-user.js";
 import {ApiApp} from "../glitter-base/route/app.js";
 import {FormWidget} from "../official_view_component/official/form.js";
-import {BgWallet} from "./bg-wallet.js";
 import {ApiWallet} from "../glitter-base/route/wallet.js";
-import {StoreHelper} from "../helper/store-helper.js";
 import {ApiPageConfig} from "../api/pageConfig.js";
-import {BackendServer} from "../api/backend-server.js";
 
 
 const html = String.raw
@@ -667,24 +662,32 @@ export class BgProject {
         callback: () => void,
         type?: 'readonly' | 'write'
     }) {
+
         const gvc = cf.gvc
         const id = gvc.glitter.getUUID()
         const vm: any = {
-            data: undefined
+            data: undefined,
+            loading:true
         };
+
         (ApiUser.getPublicUserData(cf.userID)).then((dd) => {
             vm.data = dd.response;
+            vm.loading=false;
             gvc.notifyDataChange(id)
         })
         return gvc.bindView(() => {
             return {
                 bind: id,
                 view: () => {
+                  if(vm.loading){
+                      return `<div class="w-100 d-flex align-items-center"><div class="spinner-border"></div></div>`
+                  }
+                    vm.data.userData=vm.data.userData??{}
                     return BgWidget.container([
                         `<div class="d-flex w-100 align-items-center mb-3 ">
                 ${BgWidget.goBack(gvc.event(() => {
                             cf.callback()
-                        }))} ${BgWidget.title(vm.data.userData.name)}
+                        }))} ${BgWidget.title(vm.data.userData.name ?? "匿名用戶")}
                 <div class="flex-fill"></div>
                 <button class="btn hoverBtn me-2 px-3 ${(cf.type === 'readonly') ? `d-none` : ``}" style="height:35px !important;font-size: 14px;color:black;border:1px solid black;" onclick="${
                             gvc.event(() => {
@@ -845,7 +848,10 @@ ${BgWidget.card([`<div class="fw-bold fs-7">電子錢包</div>
                                     gvc: gvc,
                                     array: data,
                                     refresh: () => {
-                                        gvc.notifyDataChange(id)
+                                        setTimeout(()=>{
+                                            gvc.notifyDataChange(id)
+                                        },100)
+
                                     },
                                     title: '',
                                     styleSetting: false,
@@ -890,7 +896,15 @@ ${BgWidget.card([`<div class="fw-bold fs-7">電子錢包</div>
 </div>`
                 ].join('')
             }, () => {
-
+                return new Promise((resolve, reject)=>{
+                    const dialog=new ShareDialog(gvc.glitter)
+                    dialog.checkYesOrNot({
+                        text:'是否取消除儲存?',
+                        callback:(response)=>{
+                            resolve(response)
+                        }
+                    })
+                })
             }, 500, '自訂表單')
         })
 

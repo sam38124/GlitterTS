@@ -81,24 +81,60 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
         });
     }
     ;
+    if (!gBundle.data) {
+        gBundle.data = {};
+    }
     return {
         onCreateView: () => {
-            var _a;
+            var _a, _b;
             console.log(`onCreateView-time:`, window.renderClock.stop());
             const mainId = glitter.getUUID();
-            return new glitter.htmlGenerate((_a = gBundle.app_config.globalScript) !== null && _a !== void 0 ? _a : [], [], undefined, true).render(gvc, {
-                class: ``,
-                style: ``,
-                jsFinish: () => {
-                    console.log(`jsFinish-time:`, window.renderClock.stop());
-                    load().then(() => {
-                        if (vm.loading) {
-                            vm.loading = false;
-                            gvc.notifyDataChange(mainId);
-                        }
-                    });
-                }
-            }) + gvc.bindView({
+            let map = [];
+            if (gBundle.page_config.resource_from !== 'own') {
+                map.push(new glitter.htmlGenerate((_a = gBundle.app_config.globalScript) !== null && _a !== void 0 ? _a : [], [], gBundle.data, true).render(gvc, {
+                    class: ``,
+                    style: ``,
+                    jsFinish: () => {
+                        console.log(`jsFinish-time:`, window.renderClock.stop());
+                        load().then(() => {
+                            if (vm.loading) {
+                                vm.loading = false;
+                                gvc.notifyDataChange(mainId);
+                            }
+                        });
+                    }
+                }));
+                let globalStyleLink = ((_b = gBundle.app_config.globalStyle) !== null && _b !== void 0 ? _b : []).filter((dd) => {
+                    return dd.data.elem === 'link';
+                });
+                let check = globalStyleLink.length;
+                globalStyleLink.map((dd) => {
+                    try {
+                        $('#glitterPage').hide();
+                        glitter.addStyleLink(dd.data.attr.find((dd) => {
+                            return dd.attr === 'href';
+                        }).value).then(() => {
+                            check--;
+                            if (check === 0) {
+                                $('#glitterPage').show();
+                            }
+                        });
+                    }
+                    catch (e) {
+                        return ``;
+                    }
+                });
+                map.push(new glitter.htmlGenerate(gBundle.app_config.globalStyle, [], gBundle.data, true).render(gvc, {
+                    class: ``,
+                    style: ``,
+                    app_config: gBundle.app_config,
+                    page_config: gBundle.page_config
+                }));
+            }
+            else {
+                vm.loading = false;
+            }
+            map.push(gvc.bindView({
                 bind: mainId,
                 view: () => {
                     if (vm.loading) {
@@ -106,7 +142,9 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                     }
                     return new Promise((resolve, reject) => __awaiter(void 0, void 0, void 0, function* () {
                         console.log(`Render-time:`, window.renderClock.stop());
-                        console.log(`gBundle.page_config.template-->`, gBundle.config);
+                        console.log(`gBundle`, gBundle);
+                        console.log(`gBundle.config-->`, gBundle.config);
+                        console.log(`gBundle.page_config-->`, gBundle.page_config);
                         (gBundle.config.formData = gBundle.page_config.formData);
                         if (gBundle.page_config.template) {
                             window.glitterInitialHelper.getPageData(gBundle.page_config.template, (data) => {
@@ -158,33 +196,37 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                                     });
                                 }
                                 findContainer(template_config);
-                                resolve(new glitter.htmlGenerate(gBundle.app_config.globalStyle, [], undefined, true).render(gvc, {
+                                resolve(new glitter.htmlGenerate(template_config, [], gBundle.data, true).render(gvc, {
                                     class: ``,
                                     style: ``,
                                     app_config: gBundle.app_config,
                                     page_config: gBundle.page_config
-                                }) + (new glitter.htmlGenerate(template_config, [], undefined, true).render(gvc, {
-                                    class: ``,
-                                    style: ``,
-                                    app_config: gBundle.app_config,
-                                    page_config: gBundle.page_config
-                                })));
+                                }));
                             });
                         }
                         else {
-                            resolve(new glitter.htmlGenerate(gBundle.app_config.globalStyle, [], undefined, true).render(gvc, {
-                                class: ``,
-                                style: ``,
-                                app_config: gBundle.app_config,
-                                page_config: gBundle.page_config
-                            }) + ((gBundle.editMode && gBundle.editMode.render(gvc, {
-                                class: ``,
-                                style: ``,
-                                app_config: gBundle.app_config,
-                                page_config: gBundle.page_config
-                            }))
+                            function editorView() {
+                                return gBundle.editMode.render(gvc, {
+                                    class: ``,
+                                    style: ``,
+                                    containerID: `MainView`,
+                                    app_config: gBundle.app_config,
+                                    page_config: gBundle.page_config
+                                });
+                            }
+                            gBundle.config.refresh = (() => {
+                                gBundle.editMode.initialFunction();
+                                gvc.glitter.document.querySelector(`[gvc-id="${gvc.id('MainView')}"]`).outerHTML = editorView();
+                                setTimeout(() => {
+                                    gvc.glitter.document.querySelector('.selectComponentHover').scrollIntoView({
+                                        behavior: 'auto',
+                                        block: 'center',
+                                    });
+                                }, 10);
+                            });
+                            resolve(((gBundle.editMode && editorView())
                                 ||
-                                    new glitter.htmlGenerate(gBundle.config, [], undefined, true).render(gvc, {
+                                    new glitter.htmlGenerate(gBundle.config, [], gBundle.data, true).render(gvc, {
                                         class: ``,
                                         style: ``,
                                         app_config: gBundle.app_config,
@@ -209,7 +251,8 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                         }
                     });
                 }
-            });
+            }));
+            return map.join('');
         }
     };
 });

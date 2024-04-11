@@ -8,6 +8,7 @@ TriggerEvent.createSingleEvent(import.meta.url, (glitter) => {
             object.page = object.page ?? {}
             object.limit = object.limit ?? {}
             object.latestID=object.latestID ?? {}
+            object.olderID=object.olderID ?? {}
             return {
                 editor: () => {
                     return [
@@ -30,6 +31,11 @@ TriggerEvent.createSingleEvent(import.meta.url, (glitter) => {
                             hover: false,
                             option: [],
                             title: "最新訊息[返回最後一筆資料ID]"
+                        }),
+                        TriggerEvent.editer(gvc, widget, object.olderID, {
+                            hover: false,
+                            option: [],
+                            title: "先前訊息[返回第一筆資料ID]"
                         })
                     ].join('<div class="my-2"></div>')
                 },
@@ -48,11 +54,16 @@ TriggerEvent.createSingleEvent(import.meta.url, (glitter) => {
                             gvc: gvc, widget: widget, clickEvent: object.latestID
                         })
 
+                        const olderID=await TriggerEvent.trigger({
+                            gvc: gvc, widget: widget, clickEvent: object.olderID
+                        })
                         resolve((await Chat.getMessage({
                             limit:limit as any,
                             page:page as any,
                             chat_id:chatID as string,
-                            latestID:latestID as string
+                            latestID:latestID as string,
+                            olderID:olderID as string,
+                            user_id:''
                         })).response)
                     })
                 }

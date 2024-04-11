@@ -5,19 +5,25 @@ import {config} from "./config.js";
 import {ApiPageConfig} from "./api/pageConfig.js";
 import {BaseApi} from "./glitterBundle/api/base.js";
 import {GlobalUser} from "./glitter-base/global/global-user.js";
-import {PageManager} from "./glitterBundle/module/PageManager.js";
+import {Animation} from "./glitterBundle/module/Animation.js";
 
 export class Entry {
     public static onCreate(glitter: Glitter) {
+        glitter.addStyle(`@media (prefers-reduced-motion: no-preference) {
+          :root {
+            scroll-behavior: auto !important;
+          }
+        }`)
         Entry.checkIframe(glitter)
         if (glitter.getUrlParameter('appName')) {
             (window as any).appName = glitter.getUrlParameter('appName')
             config.appName = glitter.getUrlParameter('appName')
         }
-        (window as any).renderClock = (window as any).renderClock ?? clockF()
-        console.log(`Entry-time:`, (window as any).renderClock.stop())
-        glitter.share.editerVersion = "V_5.4.6"
-        glitter.share.start = new Date()
+
+        (window as any).renderClock = (window as any).renderClock ?? clockF();
+        console.log(`Entry-time:`, (window as any).renderClock.stop());
+        glitter.share.editerVersion = "V_6.0.3";
+        glitter.share.start = (new Date());
         const vm: {
             appConfig: any
         } = {
@@ -28,21 +34,24 @@ export class Entry {
             api: ApiPageConfig,
             appConfig: undefined
         };
+        //設定SAAS管理員請求API
+        config.token = GlobalUser.saas_token;
         //資源初始化
         Entry.resourceInitial(glitter, vm, async (dd) => {
             //加載全域資源
             await Entry.globalStyle(glitter, dd);
             if (glitter.getUrlParameter("type") === 'editor') {
                 //頁面編輯器
-                Entry.toBackendEditor(glitter,()=>{})
+                Entry.toBackendEditor(glitter, () => {
+                })
             } else if (glitter.getUrlParameter("type") === 'htmlEditor') {
                 //Iframe預覽區塊
-                Entry.toHtmlEditor(glitter, vm,()=>{
+                Entry.toHtmlEditor(glitter, vm, () => {
                     Entry.checkIframe(glitter)
                 })
             } else {
                 //一般頁面
-                Entry.toNormalRender(glitter,vm,()=>{
+                Entry.toNormalRender(glitter, vm, () => {
                     Entry.checkIframe(glitter)
                 })
             }
@@ -52,7 +61,7 @@ export class Entry {
     //判斷是否為Iframe來覆寫Glitter代碼
     public static checkIframe(glitter: Glitter) {
         if (glitter.getUrlParameter('isIframe') === 'true') {
-            glitter.goBack= (window.parent as any).glitter.goBack;
+            glitter.goBack = (window.parent as any).glitter.goBack;
             // (window as any).glitterInitialHelper=undefined;
             // (window as any).glitterInitialHelper=(window.parent as any).glitterInitialHelper;
             // console.log(`change-->`,(window as any).glitterInitialHelper)
@@ -65,20 +74,25 @@ export class Entry {
     }
 
     //跳轉至頁面編輯器
-    public static toBackendEditor(glitter: Glitter,callback:()=>void) {
+    public static toBackendEditor(glitter: Glitter, callback: () => void) {
         const css = String.raw
         glitter.addStyle(css`@media (prefers-reduced-motion: no-preference) {
           :root {
             scroll-behavior: auto !important;
           }
-        }`);
+        }
+
+          ::-webkit-scrollbar {
+            width: 0px !important; /* 滚动条宽度 */
+            height: 0px !important;
+          }
+        `);
         glitter.share.EditorMode = true
         glitter.share.evalPlace = ((evals: string) => {
             return eval(evals)
         })
 
         async function running() {
-            config.token = GlobalUser.token
             glitter.addStyleLink([
                 'assets/vendor/boxicons/css/boxicons.min.css',
                 'assets/css/theme.css',
@@ -176,8 +190,9 @@ export class Entry {
             }
         }
     }
+
     //跳轉至頁面編輯器Iframe顯示
-    public static toHtmlEditor(glitter: Glitter, vm: any,callback:()=>void) {
+    public static toHtmlEditor(glitter: Glitter, vm: any, callback: () => void) {
         const css = String.raw
         glitter.addStyle(css`@media (prefers-reduced-motion: no-preference) {
           :root {
@@ -237,6 +252,7 @@ export class Entry {
         glitter.share.evalPlace = ((evals: string) => {
             return eval(evals)
         })
+
         glitter.htmlGenerate.setHome(
             {
                 app_config: vm.appConfig,
@@ -250,7 +266,7 @@ export class Entry {
         callback()
     }
 
-    public static toNormalRender(glitter: Glitter, vm: any,callback:()=>void) {
+    public static toNormalRender(glitter: Glitter, vm: any, callback: () => void) {
         if (glitter.getUrlParameter('token') && glitter.getUrlParameter('return_type') === 'resetPassword') {
             GlobalUser.token = glitter.getUrlParameter('token')
             glitter.setUrlParameter('token')
@@ -330,19 +346,6 @@ export class Entry {
             glitter.share.globalStyle = {}
             glitter.share.appConfigresponse.response.data.globalValue = glitter.share.appConfigresponse.response.data.globalValue ?? []
             glitter.share.appConfigresponse.response.data.globalStyleTag = glitter.share.appConfigresponse.response.data.globalStyleTag ?? [];
-            if (glitter.getUrlParameter("type") !== 'editor') {
-                (vm.appConfig.globalStyle ?? []).map((dd: any) => {
-                    try {
-                        if (dd.data.elem === 'link') {
-                            glitter.addStyleLink(dd.data.attr.find((dd: any) => {
-                                return dd.attr === 'href'
-                            }).value)
-                        }
-                    } catch (e) {
-                        return ``
-                    }
-                })
-            }
 
             function loopCheckGlobalValue(array: any, tag: string) {
                 try {

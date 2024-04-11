@@ -325,7 +325,7 @@ TriggerEvent.create(import.meta.url, {
                                         element: element
                                     });
                                     resolve(response);
-                                    break;
+                                    return;
                                 }
                             }
                             resolve(true);
@@ -635,6 +635,22 @@ TriggerEvent.create(import.meta.url, {
             };
         }
     },
+    api_data_get: {
+        title: "官方事件 / API / 內容取得",
+        fun: TriggerEvent.setEventRouter(import.meta.url, './api/api-data-get.js')
+    },
+    api_data_post: {
+        title: "官方事件 / API / 內容上傳",
+        fun: TriggerEvent.setEventRouter(import.meta.url, './api/api-data-post.js')
+    },
+    api_data_put: {
+        title: "官方事件 / API / 內容更新",
+        fun: TriggerEvent.setEventRouter(import.meta.url, './api/api-data-put.js')
+    },
+    upload_file: {
+        title: "官方事件 / API / 檔案上傳",
+        fun: TriggerEvent.setEventRouter(import.meta.url, './api/api-file-upload.js')
+    },
     getProduct: {
         title: '電子商務 / 選擇商品',
         fun: TriggerEvent.setEventRouter(import.meta.url, './e-commerce/getProduct.js'),
@@ -730,6 +746,10 @@ TriggerEvent.create(import.meta.url, {
     withdraw: {
         title: '電子錢包 / 提領金額',
         fun: TriggerEvent.setEventRouter(import.meta.url, './wallet/withdraw.js'),
+    },
+    getWalletSum: {
+        title: '電子錢包 / 取得總金額',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './wallet/get-sum.js'),
     },
     login: {
         title: '用戶相關 / 用戶登入',

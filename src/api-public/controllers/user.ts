@@ -231,7 +231,11 @@ router.post('/forget', async (req: express.Request, resp: express.Response) => {
 router.post('/login', async (req: express.Request, resp: express.Response) => {
     try {
         const user = new User(req.get('g-app') as string);
-        return response.succ(resp, (await user.login(req.body.account, req.body.pwd)));
+        if(req.body.login_type==='fb'){
+            return response.succ(resp, (await user.loginWithFb(req.body.fb_token)));
+        }else{
+            return response.succ(resp, (await user.login(req.body.account, req.body.pwd)));
+        }
     } catch (err) {
         return response.fail(resp, err);
     }

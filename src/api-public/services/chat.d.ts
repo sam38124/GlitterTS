@@ -27,6 +27,8 @@ export declare class Chat {
         result?: undefined;
     }>;
     addMessage(room: ChatMessage): Promise<void>;
+    updateLastRead(userID: string, chat_id: string): Promise<void>;
+    getLastRead(chat_id: string): Promise<any>;
     templateWithCustomerMessage(subject: string, title: string, message: string): string;
     getMessage(qu: any): Promise<{
         data: any;
@@ -37,5 +39,6 @@ export declare class Chat {
         total: any;
         result?: undefined;
     }>;
+    unReadMessage(user_id: string): Promise<any>;
     constructor(app: string, token: IToken);
 }

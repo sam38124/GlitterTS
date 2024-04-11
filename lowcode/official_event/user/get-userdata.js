@@ -28,7 +28,9 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                             resolve(GlobalUser.userInfo);
                         }
                         else {
-                            ApiUser.getUserData(GlobalUser.token, 'me').then((r) => __awaiter(void 0, void 0, void 0, function* () {
+                            window.glitterInitialHelper.setQueue(`api-get-user_data`, (callback) => __awaiter(void 0, void 0, void 0, function* () {
+                                callback(yield ApiUser.getUserData(GlobalUser.token, 'me'));
+                            }), ((r) => {
                                 try {
                                     if (!r.result) {
                                         GlobalUser.token = '';

@@ -7,6 +7,7 @@ import {UtDatabase} from "../utils/ut-database.js";
 import {User} from "./user.js";
 import {sendmail} from "../../services/ses.js";
 import {App} from "../../services/app.js";
+import {WebSocket} from "../../services/web-socket.js";
 
 export interface ChatRoom {
     chat_id: string,
@@ -72,22 +73,26 @@ export class Chat {
             let query: string[] = []
             qu.befor_id && query.push(`id<${qu.befor_id}`)
             qu.after_id && query.push(`id>${qu.after_id}`)
+            qu.chat_id && query.push(`chat_id=${db.escape(qu.chat_id)}`)
             query.push(`chat_id in (SELECT chat_id FROM \`${this.app}\`.t_chat_participants where user_id=${db.escape(userID)})`)
             const data = await new UtDatabase(this.app, `t_chat_list`).querySql(query, qu)
             for (const b of data.data) {
                 if (b.type === 'user') {
                     const user = b.chat_id.split('-').find((dd: any) => {
                         return dd !== userID
-                    })
-                    b.topMessage = ((await db.query(`SELECT message
+                    });
+                    b.topMessage = ((await db.query(`SELECT message, created_time
                                                      FROM \`${this.app}\`.t_chat_detail
                                                      where chat_id = ${db.escape(b.chat_id)}
-                                                     order by id desc limit 0,1;`, []))[0])
-                    b.topMessage = b.topMessage && b.topMessage.message
+                                                     order by id desc limit 0,1;`, []))[0]);
+                    if (b.topMessage) {
+                        b.topMessage.message.created_time = b.topMessage.created_time
+                        b.topMessage = b.topMessage && b.topMessage.message
+                    }
                     b.who = user
                     if (user) {
                         try {
-                            b.user_data = await new User(this.app).getUserData(user, 'userID');
+                            b.user_data = ((await new User(this.app).getUserData(user, 'userID')) ?? {}).userData ?? {};
                         } catch (e) {
 
                         }
@@ -98,8 +103,8 @@ export class Chat {
         } catch (e: any) {
             throw exception.BadRequestError(e.code ?? 'BAD_REQUEST', 'GetChatRoom Error:' + e!.message, null);
         }
-
     }
+
 
     public async addMessage(room: ChatMessage) {
         try {
@@ -118,17 +123,39 @@ export class Chat {
             const particpant = await db.query(`SELECT *
                                                FROM \`${this.app}\`.t_chat_participants
                                                where chat_id = ?`, [room.chat_id]);
-            await db.query(`
+            const insert = await db.query(`
                 insert into \`${this.app}\`.\`t_chat_detail\`
                 set ?
             `, [
                 {
                     chat_id: room.chat_id,
                     user_id: room.user_id,
-                    message: JSON.stringify(room.message)
+                    message: JSON.stringify(room.message),
+                    created_time:new Date()
                 }
-            ])
-
+            ]);
+            for (const dd of (WebSocket.chatMemory[room.chat_id] ?? [])) {
+                await this.updateLastRead(dd.user_id, room.chat_id);
+                const userData = (await db.query(`select userData
+                                                  from \`${this.app}\`.t_user
+                                                  where userID = ?`, [room.user_id]))[0];
+                dd.callback({
+                    id: insert.insertId,
+                    chat_id: room.chat_id,
+                    user_id: room.user_id,
+                    message: room.message,
+                    created_time: new Date(),
+                    user_data: (userData && userData.userData) || {},
+                    type: "message"
+                })
+            }
+            const lastRead = await this.getLastRead(room.chat_id);
+            for (const dd of (WebSocket.chatMemory[room.chat_id] ?? [])) {
+                dd.callback({
+                    type: 'update_read_count',
+                    data: lastRead
+                })
+            }
             for (const b of particpant) {
                 //發送通知
                 if (b.user_id !== room.user_id) {
@@ -140,7 +167,7 @@ export class Chat {
                     if (robot.question) {
                         for (const d of robot.question) {
                             if (d.ask === room.message.text) {
-                                await db.query(`
+                                const insert = await db.query(`
                                     insert into \`${this.app}\`.\`t_chat_detail\`
                                     set ?
                                 `, [
@@ -149,9 +176,34 @@ export class Chat {
                                         user_id: b.user_id,
                                         message: JSON.stringify({
                                             text: d.response
-                                        })
+                                        }),
+                                        created_time:new Date()
                                     }
-                                ])
+                                ]);
+                                for (const dd of WebSocket.chatMemory[room.chat_id] ?? []) {
+                                    const userData = (await db.query(`select userData
+                                                                      from \`${this.app}\`.t_user
+                                                                      where userID = ?`, [b.user_id]))[0];
+                                    await this.updateLastRead(dd.user_id, room.chat_id);
+                                    dd.callback({
+                                        id: insert.insertId,
+                                        chat_id: room.chat_id,
+                                        user_id: b.user_id,
+                                        message: {
+                                            text: d.response
+                                        },
+                                        created_time: new Date(),
+                                        user_data: (userData && userData.userData) || {},
+                                        type: "message"
+                                    })
+                                }
+                                const lastRead = await this.getLastRead(room.chat_id);
+                                for (const dd of WebSocket.chatMemory[room.chat_id] ?? []) {
+                                    dd.callback({
+                                        type: 'update_read_count',
+                                        data: lastRead
+                                    })
+                                }
                                 break
                             }
                         }
@@ -179,11 +231,11 @@ export class Chat {
                         if (room.message.text) {
                             if (user) {
                                 await sendmail(`service@ncdesign.info`, dd.userData.email, `${user.userData.name}:傳送訊息給您`, this.templateWithCustomerMessage(
-                                    `收到訊息`,
-                                    `${user.userData.name}傳送訊息給您:`,
-                                    room.message.text
+                                        `收到訊息`,
+                                        `${user.userData.name}傳送訊息給您:`,
+                                        room.message.text
+                                    )
                                 )
-                            )
                             } else if (room.user_id === 'manager') {
                                 await sendmail(`service@ncdesign.info`, dd.userData.email, `官方客服訊息`, this.templateWithCustomerMessage(
                                     '客服訊息',
@@ -227,7 +279,26 @@ export class Chat {
         }
 
     }
-    public templateWithCustomerMessage(subject:string,title: string, message: string) {
+
+    public async updateLastRead(userID: string, chat_id: string) {
+        await db.query(`replace
+        into  \`${this.app}\`.t_chat_last_read (user_id,chat_id,last_read) values (?,?,?);`, [
+            userID,
+            chat_id,
+            new Date()
+        ]);
+
+    }
+
+    public async getLastRead(chat_id: string) {
+        return await db.query(`select *
+                               from \`${this.app}\`.t_chat_last_read
+                               where chat_id = ?;`, [
+            chat_id
+        ]);
+    }
+
+    public templateWithCustomerMessage(subject: string, title: string, message: string) {
         return `<div id=":14y" class="ii gt adO" jslog="20277; u014N:xr6bB; 1:WyIjdGhyZWFkLWY6MTcyNTcxNjU2NTQ4OTk2MTY3OSJd; 4:WyIjbXNnLWY6MTcyNTcxNjY3NDU2Njc0OTY2MyJd"><div id=":14x" class="a3s aiL "><div id="m_-852875620297719051MailSample1"><div class="adM">
             </div><div style="clear:left;float:left;width:500px;background-color:#999999;border:10px solid #999999;margin-bottom:5px;font-size:1.2em;text-align:center;color:#ffffff">${subject}</div>
             <div style="clear:left;float:left;width:500px;border:10px solid #999999;padding-bottom:30px">
@@ -243,6 +314,7 @@ export class Chat {
         
 </div></div></div></div>`
     }
+
     public async getMessage(qu: any) {
         try {
             let query: string[] = [
@@ -250,11 +322,50 @@ export class Chat {
             ]
             qu.befor_id && query.push(`id<${qu.befor_id}`)
             qu.after_id && query.push(`id>${qu.after_id}`)
-            return await new UtDatabase(this.app, `t_chat_detail`).querySql(query, qu)
+
+            await db.query(`replace
+            into  \`${this.app}\`.t_chat_last_read (user_id,chat_id,last_read) values (?,?,?);`, [
+                qu.user_id,
+                qu.chat_id,
+                new Date()
+            ])
+            if(!qu.befor_id){
+                const lastRead = await this.getLastRead(qu.chat_id);
+                for (const dd of WebSocket.chatMemory[qu.chat_id] ?? []) {
+                    dd.callback({
+                        type: 'update_read_count',
+                        data: lastRead
+                    })
+                }
+            }
+            const res = await new UtDatabase(this.app, `t_chat_detail`).querySql(query, qu)
+            const userID: any[] = []
+            res.data.map((dd: any) => {
+                if (userID.indexOf(dd.user_id) === -1) {
+                    userID.push(dd.user_id)
+                }
+            })
+            let userDataStorage: any = {}
+            for (const b of userID) {
+                userDataStorage[b] = (await db.query(`select userData
+                                                      from \`${this.app}\`.t_user
+                                                      where userID = ?`, [b]))[0];
+                userDataStorage[b] = userDataStorage[b] && userDataStorage[b].userData
+            }
+            res.data.map((dd: any) => {
+                dd.user_data = userDataStorage[dd.user_id] ?? {}
+            });
+            (res as any).lastRead = await this.getLastRead(qu.chat_id)
+            return res
         } catch (e: any) {
             throw exception.BadRequestError(e.code ?? 'BAD_REQUEST', 'GetMessage Error:' + e!.message, null);
         }
 
+    }
+
+    public async unReadMessage(user_id:string){
+        return await db.query(`SELECT \`${this.app}\`.t_chat_detail.* FROM \`${this.app}\`.t_chat_detail,\`${this.app}\`.t_chat_last_read where t_chat_detail.chat_id in (SELECT chat_id FROM \`${this.app}\`.t_chat_participants where user_id=${db.escape(user_id)})
+            and (t_chat_detail.chat_id != 'manager-preview') and t_chat_detail.user_id!=${db.escape(user_id)} and t_chat_detail.chat_id=t_chat_last_read.chat_id and t_chat_last_read.last_read < created_time order by id desc`,[])
     }
 
     constructor(app: string, token: IToken) {
