@@ -33,13 +33,31 @@ export class Seo{
                                                           where \`${saasConfig.SAAS_NAME}\`.page_config.appName = ${db.escape(appName)} limit 0,1
                             `, []))[0]['tag']
         }
+        let data = await Seo.getPageInfo(appName,redirect);
         if (req.query.type) {
             redirect += `&type=${req.query.type}`
         }
         if (req.query.appName) {
             redirect += `&appName=${req.query.appName}`
         }
-        return `<script>
+
+        return `
+${(() => {
+            data.page_config = data.page_config ?? {}
+            const d = data.page_config.seo ?? {}
+            return `<title>${d.title ?? "尚未設定標題"}</title>
+    <link rel="canonical" href="./?page=${data.tag}">
+    <meta name="keywords" content="${d.keywords ?? "尚未設定關鍵字"}" />
+    <link id="appImage" rel="shortcut icon" href="${d.logo ?? ""}" type="image/x-icon">
+    <link rel="icon" href="${d.logo ?? ""}" type="image/png" sizes="128x128">
+    <meta property="og:image" content="${d.image ?? ""}">
+    <meta property="og:title" content="${(d.title ?? "").replace(/\n/g,'')}">
+    <meta name="description" content="${(d.content ?? "").replace(/\n/g,'')}">
+    <meta name="og:description" content="${(d.content ?? "").replace(/\n/g,'')}">
+     ${d.code ?? ''}
+`
+        })()}
+<script>
 window.location.href='?page=${redirect}';
 </script>`
     }

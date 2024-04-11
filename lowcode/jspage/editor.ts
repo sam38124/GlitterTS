@@ -81,7 +81,7 @@ export class Editor {
                             data-scroll-header
                             style="height: 56px;">
                         <div class="container-fluid pe-lg-4">
-                            <div class="navbar-brand text-dark d-none d-lg-flex py-0 h-100">
+                            <div class="navbar-brand text-dark d-none d-lg-flex py-0 h-100" style="width:280px;">
                                 <div class="d-flex align-items-center justify-content-center border-end "
                                      style="width:50px;height: 56px;">
                                     <i class="fa-regular fa-arrow-left-from-arc hoverBtn" style="cursor:pointer;"
