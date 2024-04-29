@@ -88,8 +88,7 @@ export class ApiShop {
             "type": "GET",
             "headers": {
                 "Content-Type": "application/json",
-                "g-app": encodeURIComponent(getConfig().config.appName),
-                "Authorization": GlobalUser.token
+                "g-app": encodeURIComponent(getConfig().config.appName)
             }
         });
     }
@@ -326,7 +325,7 @@ ApiShop.rebateID = 'asko323';
 ApiShop.voucherID = "voucxasw";
 ApiShop.cartID = "lemnoas";
 function getConfig() {
-    const saasConfig = window.saasConfig;
+    const saasConfig = window.parent.saasConfig;
     return saasConfig;
 }
 function getBaseUrl() {

@@ -112,10 +112,10 @@ export class Plugin {
                                             const target = document.querySelector(`[gvc-id="${gvc.id(tempView)}"]`)
                                             const view = dd.render(gvc, widget, setting, hoverID, subData, htmlGenerate).view()
                                             if (typeof view === 'string') {
-                                                target!.outerHTML = view;
+                                                target && (target!.outerHTML = view);
                                             } else {
                                                 view.then((dd: any) => {
-                                                    target!.outerHTML = dd;
+                                                    target &&  (target!.outerHTML = dd);
                                                 })
                                             }
                                         }
@@ -253,6 +253,7 @@ export class Plugin {
                                 class: ``
                             },
                             onCreate: () => {
+
                                 glitter.htmlGenerate.loadScript(glitter, [
                                     {
                                         src: url.href,

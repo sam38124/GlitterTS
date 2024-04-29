@@ -134,9 +134,7 @@ function traverseHTML(element: any, document: any) {
             }
         }
         if (!wasRecreate) {
-            setTimeout(() => {
-                renderBindView()
-            })
+            renderBindView()
         } else {
             element.wasRecreate = true;
             renderBindView()

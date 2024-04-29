@@ -388,6 +388,7 @@ export function init(metaURL, fun) {
             window.glitter.pageConfig[window.glitter.pageConfig.length - 2].scrollTop = window.scrollY;
         }
         const gvc = new GVC();
+        cf.pageConfig.gvc = gvc;
         gvc.parameter.pageConfig = cf.pageConfig;
         window.clickMap = (_a = window.clickMap) !== null && _a !== void 0 ? _a : {};
         window.clickMap[cf.pageConfig.id] = gvc.parameter.clickMap;

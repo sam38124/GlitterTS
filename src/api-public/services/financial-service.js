@@ -217,6 +217,9 @@ class EcPay {
             PaymentType: 'aio',
             OrderResultURL: this.keyData.ReturnURL
         };
+        console.log(`ItemsName-->`, orderData.lineItems.map((dd) => {
+            return dd.title + (dd.spec.join('-') && ('-' + dd.spec.join('-')));
+        }).join('#'));
         const appName = this.appName;
         let od = (Object.keys(params).sort(function (a, b) {
             return a.toLowerCase().localeCompare(b.toLowerCase());

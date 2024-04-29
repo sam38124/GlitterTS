@@ -4,14 +4,13 @@ export class ApiPost {
     constructor() {
     }
     static post(json) {
-        var _a;
         return BaseApi.create({
             "url": getBaseUrl() + `/api-public/v1/post`,
             "type": "POST",
             "headers": {
                 "Content-Type": "application/json",
                 "g-app": getConfig().config.appName,
-                "Authorization": (_a = json.token) !== null && _a !== void 0 ? _a : GlobalUser.token
+                "Authorization": json.token || ((json.type === 'manager') ? getConfig().config.token : GlobalUser.token)
             },
             data: JSON.stringify(json)
         });
@@ -35,7 +34,7 @@ export class ApiPost {
             "headers": {
                 "Content-Type": "application/json",
                 "g-app": getConfig().config.appName,
-                "Authorization": json.token || GlobalUser.token
+                "Authorization": json.token || ((json.type === 'manager') ? getConfig().config.token : GlobalUser.token)
             },
             data: JSON.stringify(json)
         });
@@ -69,10 +68,13 @@ export class ApiPost {
             "url": getBaseUrl() + `/api-public/v1/post/manager?${(() => {
                 let par = [
                     `limit=${json.limit}`,
-                    `page=${json.page}`,
-                    `type=${json.type}`
+                    `page=${json.page}`
                 ];
-                json.search && par.push(`search=${json.search}`);
+                const search = [`type->${json.type}`];
+                json.search && json.search.map((dd) => {
+                    search.push(dd);
+                });
+                par.push(`search=${search.join(',')}`);
                 json.id && par.push(`id=${json.id}`);
                 return par.join('&');
             })()}`,
@@ -128,7 +130,7 @@ export class ApiPost {
     }
 }
 function getConfig() {
-    const saasConfig = window.saasConfig;
+    const saasConfig = window.parent.saasConfig;
     return saasConfig;
 }
 function getBaseUrl() {

@@ -18,6 +18,7 @@ import { FormWidget } from "../official_view_component/official/form.js";
 import { Storage } from "../glitterBundle/helper/storage.js";
 import { AddComponent } from "./add-component.js";
 import { BaseApi } from "../glitterBundle/api/base.js";
+import { NormalPageEditor } from "./normal-page-editor.js";
 const html = String.raw;
 export class PageEditor {
     constructor(gvc, vid, editorID = '') {
@@ -108,14 +109,14 @@ export class PageEditor {
                                 if (option.selectEvent) {
                                     option.selectEvent(dd);
                                 }
-                                else if (dd.selectEditEvent) {
-                                    viewModel.selectContainer = original;
-                                    viewModel.selectItem = dd;
+                                else if (dd.editorEvent) {
+                                    dd.editorEvent();
+                                }
+                                else {
+                                    document.querySelector('#editerCenter iframe').contentWindow.$('.editorItemActive').removeClass('editorItemActive');
+                                    window.parent.glitter.share.editorViewModel.selectItem = dd;
                                     Storage.lastSelect = dd.id;
-                                    localStorage.setItem('rightSelect', 'module');
-                                    setTimeout(() => {
-                                        dd.selectEditEvent();
-                                    }, 100);
+                                    window.parent.glitter.share.selectEditorItem();
                                 }
                             })}">
                                         ${(dd.type === 'container') ? html `
@@ -1351,7 +1352,6 @@ export class PageEditor {
                                 let addView = html `
                                     <button class="btn btn-primary-c" style="height: 40px;width: 100px;"
                                             onclick="${gvc.event(() => {
-                                    gvc.closeDialog();
                                     callback(vm.selectValue);
                                 })}">
                                         <i class="fa-light fa-circle-plus me-2"></i>插入事件
@@ -1439,7 +1439,7 @@ export class PageEditor {
                         },
                         divCreate: () => {
                             return {
-                                class: ` h-100 p-2 d-flex flex-column`, style: `width:350px;`
+                                class: `p-2 d-flex flex-column`, style: `width:350px;`
                             };
                         },
                         onCreate: () => {
@@ -1656,10 +1656,10 @@ export class PageEditor {
                                     htmlText: ''
                                 };
                                 new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
-                                    function getPageData(tag) {
+                                    function getPageData(tag, appName) {
                                         return new Promise((resolve, reject) => {
                                             BaseApi.create({
-                                                "url": saasConfig.config.url + `/api/v1/template?appName=${saasConfig.config.appName}&tag=${encodeURIComponent(tag)}`,
+                                                "url": saasConfig.config.url + `/api/v1/template?appName=${appName}&tag=${encodeURIComponent(tag)}`,
                                                 "type": "GET",
                                                 "timeout": 0,
                                                 "headers": {
@@ -1670,30 +1670,42 @@ export class PageEditor {
                                             });
                                         });
                                     }
-                                    const pageData = yield getPageData(selectTag);
+                                    const pageData = yield getPageData(selectTag, saasConfig.config.appName);
+                                    if (gvc.glitter.share.editorViewModel.data.tag === pageData.tag) {
+                                        gvc.glitter.share.editorViewModel.data.page_config = pageData.page_config;
+                                    }
+                                    glitter.share.editorViewModel.saveArray[pageData.id] = (() => {
+                                        return ApiPageConfig.setPage({
+                                            id: pageData.id,
+                                            appName: pageData.appName,
+                                            tag: pageData.tag,
+                                            page_config: pageData.page_config,
+                                        });
+                                    });
                                     let html = '';
                                     function appendHtml(pageData, initial) {
                                         var _a;
+                                        if (!pageData) {
+                                            return ``;
+                                        }
                                         const page_config = pageData.page_config;
                                         page_config.formData = (_a = page_config.formData) !== null && _a !== void 0 ? _a : {};
                                         if (page_config.formFormat && page_config.formFormat.length !== 0) {
-                                            const formView = FormWidget.editorView({
-                                                gvc: gvc,
-                                                array: page_config.formFormat,
-                                                refresh: () => {
-                                                    if (gvc.glitter.share.editorViewModel.data.tag === pageData.tag) {
-                                                        gvc.glitter.share.editorViewModel.data.page_config = page_config;
-                                                    }
-                                                    glitter.share.editorViewModel.saveArray[pageData.id] = (() => {
-                                                        return ApiPageConfig.setPage({
-                                                            id: pageData.id,
-                                                            appName: pageData.appName,
-                                                            tag: pageData.tag,
-                                                            page_config: pageData.page_config,
+                                            const formView = gvc.bindView(() => {
+                                                const id = gvc.glitter.getUUID();
+                                                return {
+                                                    bind: id,
+                                                    view: () => {
+                                                        return FormWidget.editorView({
+                                                            gvc: gvc,
+                                                            array: page_config.formFormat,
+                                                            refresh: () => {
+                                                                gvc.notifyDataChange(id);
+                                                            },
+                                                            formData: page_config.formData
                                                         });
-                                                    });
-                                                },
-                                                formData: page_config.formData
+                                                    }
+                                                };
                                             });
                                             if (!initial) {
                                                 html += gvc.bindView(() => {
@@ -1731,9 +1743,11 @@ export class PageEditor {
                                                     yield loop(dd.data.setting);
                                                 }
                                                 else if (dd.type === 'component') {
-                                                    const pageData = yield getPageData(dd.data.tag);
-                                                    appendHtml(pageData, false);
-                                                    yield loop((_a = pageData.config) !== null && _a !== void 0 ? _a : []);
+                                                    const pageData = yield getPageData(dd.data.tag, dd.data.refer_app || window.appName);
+                                                    if (pageData) {
+                                                        appendHtml(pageData, false);
+                                                        yield loop((_a = pageData.config) !== null && _a !== void 0 ? _a : []);
+                                                    }
                                                 }
                                             }
                                         });
@@ -1813,7 +1827,7 @@ export class PageEditor {
                     })}">表單設置
                             </button>
                         </div>
-                        <div class="p-2" style="max-height: calc(100vh - 110px);overflow-y:auto;overflow-x: hidden;">
+                        <div class="p-2" style="height: calc(100vh - 110px);overflow-y:auto;overflow-x: hidden;">
                             ${userEditorView()}
 
                         </div>
@@ -2100,7 +2114,8 @@ export class PageEditor {
         const glitter = gvc.glitter;
         const docID = glitter.getUUID();
         const vid = glitter.getUUID();
-        const viewModel = gvc.glitter.share.editorViewModel;
+        const config = window.parent.config;
+        const viewModel = (window.parent.glitter || window.glitter).share.editorViewModel;
         return new Promise((resolve, reject) => {
             resolve({
                 left: gvc.bindView(() => {
@@ -2140,7 +2155,11 @@ DNS設定至少需要10分鐘到72小時才會生效，如設定失敗可以稍�
 onclick="${gvc.event(() => {
                                         const dialog = new ShareDialog(glitter);
                                         dialog.dataLoading({ text: '', visible: true });
-                                        ApiPageConfig.setDomain(viewModel.domain).then((response) => {
+                                        ApiPageConfig.setDomain({
+                                            domain: viewModel.domain,
+                                            app_name: config.appName,
+                                            token: config.token
+                                        }).then((response) => {
                                             dialog.dataLoading({ text: '', visible: false });
                                             if (response.result) {
                                                 gvc.closeDialog();
@@ -2283,182 +2302,143 @@ PageEditor.openDialog = {
         }, "EditItem");
     },
     event_config: (gvc, eventSelect) => {
-        gvc.glitter.innerDialog((gvc) => {
-            const id = gvc.glitter.getUUID();
-            const vm = {
-                select: "official"
-            };
-            return html `
-                    <div class="bg-white rounded" style="max-height:90vh;">
-                        <div class="d-flex w-100 border-bottom align-items-center" style="height:50px;">
-                            <h3 style="font-size:15px;font-weight:500;" class="m-0 ps-3">
-                                選擇觸發事件</h3>
-                            <div class="flex-fill"></div>
-                            <div class="hoverBtn p-2 me-2" style="color:black;font-size:20px;"
-                                 onclick="${gvc.event(() => {
-                gvc.closeDialog();
-            })}"
-                            ><i class="fa-sharp fa-regular fa-circle-xmark"></i>
-                            </div>
-                        </div>
+        NormalPageEditor.toggle({
+            visible: true,
+            title: `添加事件`,
+            view: (() => {
+                const id = gvc.glitter.getUUID();
+                const vm = {
+                    select: "official"
+                };
+                return html `
                         <div class="d-flex " style="">
                             <div>
                                 ${gvc.bindView(() => {
-                return {
-                    bind: id,
-                    view: () => {
-                        const contentVM = {
-                            loading: true,
-                            leftID: gvc.glitter.getUUID(),
-                            rightID: gvc.glitter.getUUID(),
-                            leftBar: '',
-                            rightBar: ''
-                        };
-                        switch (vm.select) {
-                            case "official":
-                                PageEditor.eventEditor(gvc, eventSelect).then((data) => {
-                                    contentVM.loading = false;
-                                    contentVM.leftBar = data.left;
-                                    contentVM.rightBar = data.right;
-                                    gvc.notifyDataChange([contentVM.leftID, contentVM.rightID]);
-                                });
-                                break;
-                            case "custom":
-                                PageEditor.eventEditor(gvc, eventSelect, 'custom').then((data) => {
-                                    contentVM.loading = false;
-                                    contentVM.leftBar = data.left;
-                                    contentVM.rightBar = data.right;
-                                    gvc.notifyDataChange([contentVM.leftID, contentVM.rightID]);
-                                });
-                                break;
-                            default:
-                                break;
-                        }
-                        return html `
+                    return {
+                        bind: id,
+                        view: () => {
+                            const contentVM = {
+                                loading: true,
+                                leftID: gvc.glitter.getUUID(),
+                                rightID: gvc.glitter.getUUID(),
+                                leftBar: '',
+                                rightBar: ''
+                            };
+                            switch (vm.select) {
+                                case "official":
+                                    PageEditor.eventEditor(gvc, eventSelect).then((data) => {
+                                        contentVM.loading = false;
+                                        contentVM.leftBar = data.left;
+                                        contentVM.rightBar = data.right;
+                                        gvc.notifyDataChange([contentVM.leftID, contentVM.rightID]);
+                                    });
+                                    break;
+                                case "custom":
+                                    PageEditor.eventEditor(gvc, eventSelect, 'custom').then((data) => {
+                                        contentVM.loading = false;
+                                        contentVM.leftBar = data.left;
+                                        contentVM.rightBar = data.right;
+                                        gvc.notifyDataChange([contentVM.leftID, contentVM.rightID]);
+                                    });
+                                    break;
+                                default:
+                                    break;
+                            }
+                            return html `
                                                 <div class="d-flex">
                                                     <div style="width:300px;" class="border-end">
                                                         <div class="d-flex border-bottom ">
                                                             ${[
-                            {
-                                key: 'official',
-                                label: "官方事件"
-                            },
-                            {
-                                key: 'custom',
-                                label: "客製插件"
-                            }
-                        ].map((dd) => {
-                            return `<div class="add_item_button ${(dd.key === vm.select) ? `add_item_button_active` : ``}" onclick="${gvc.event((e, event) => {
-                                vm.select = dd.key;
-                                gvc.notifyDataChange(id);
-                            })}">${dd.label}</div>`;
-                        }).join('')}
+                                {
+                                    key: 'official',
+                                    label: "官方事件"
+                                },
+                                {
+                                    key: 'custom',
+                                    label: "客製插件"
+                                }
+                            ].map((dd) => {
+                                return `<div class="add_item_button ${(dd.key === vm.select) ? `add_item_button_active` : ``}" onclick="${gvc.event((e, event) => {
+                                    vm.select = dd.key;
+                                    gvc.notifyDataChange(id);
+                                })}">${dd.label}</div>`;
+                            }).join('')}
                                                         </div>
                                                         ${gvc.bindView(() => {
-                            return {
-                                bind: contentVM.leftID,
-                                view: () => {
-                                    return contentVM.leftBar;
-                                },
-                                divCreate: {
-                                    class: ``,
-                                    style: `max-height:calc(90vh - 150px);height:490px;overflow-y:auto;`
-                                }
-                            };
-                        })}
+                                return {
+                                    bind: contentVM.leftID,
+                                    view: () => {
+                                        return contentVM.leftBar;
+                                    },
+                                    divCreate: {
+                                        class: ``,
+                                        style: `min-height:100vh;overflow-y:auto;`
+                                    }
+                                };
+                            })}
                                                     </div>
                                                     ${gvc.bindView(() => {
-                            return {
-                                bind: contentVM.rightID,
-                                view: () => {
-                                    return contentVM.rightBar;
-                                },
-                                divCreate: {}
-                            };
-                        })}
+                                return {
+                                    bind: contentVM.rightID,
+                                    view: () => {
+                                        return contentVM.rightBar;
+                                    },
+                                    divCreate: {}
+                                };
+                            })}
                                                 </div>`;
-                    },
-                    divCreate: {
-                        style: `overflow-y:auto;`
-                    },
-                    onCreate: () => {
-                    }
-                };
-            })}
+                        },
+                        divCreate: {
+                            style: `overflow-y:auto;`, class: `pb-3`
+                        },
+                        onCreate: () => {
+                        }
+                    };
+                })}
                             </div>
                         </div>
-                    </div>
                 `;
-        }, "event_config");
+            })(),
+            width: 650
+        });
     },
-    event_trigger_list: (gvc, left, right) => {
+    event_trigger_list: (gvc, left, right, title) => {
         const viewModel = gvc.glitter.share.editorViewModel;
         viewModel.selectItem = undefined;
-        gvc.glitter.innerDialog((gvc) => {
-            let searchText = '';
-            let searchInterval = 0;
-            const id = gvc.glitter.getUUID();
-            const vm = {
-                select: "official"
-            };
-            return html `
-                    <div class="bg-white rounded" style="max-height:90vh;">
-                        <div class="d-flex w-100 border-bottom align-items-center" style="height:50px;">
-                            <h3 style="font-size:15px;font-weight:500;" class="m-0 ps-3">
-                                事件叢集設定</h3>
-                            <div class="flex-fill"></div>
-                            <div class="hoverBtn p-2 me-2" style="color:black;font-size:20px;"
-                                 onclick="${gvc.event(() => {
-                gvc.closeDialog();
-            })}"
-                            ><i class="fa-sharp fa-regular fa-circle-xmark"></i>
-                            </div>
-                        </div>
-                        <div class="d-flex " style="">
-                            <div>
-                                ${gvc.bindView(() => {
-                return {
-                    bind: id,
-                    view: () => {
-                        return html `
-                                                <div class="d-flex">
-                                                    <div style="width:350px;" class="border-end">
-                                                        ${gvc.bindView(() => {
-                            return {
-                                bind: gvc.glitter.getUUID(),
-                                view: () => {
-                                    return left;
-                                },
-                                divCreate: {
-                                    class: ``,
-                                    style: `max-height:calc(90vh - 150px);height:490px;overflow-y:auto;`
-                                }
-                            };
-                        })}
-                                                    </div>
-                                                    ${gvc.bindView(() => {
-                            return {
-                                bind: gvc.glitter.getUUID(),
-                                view: () => {
-                                    return right;
-                                },
-                                divCreate: {}
-                            };
-                        })}
-                                                </div>`;
-                    },
-                    divCreate: {
-                        style: `overflow-y:auto;`
-                    },
-                    onCreate: () => {
-                    }
-                };
-            })}
-                            </div>
-                        </div>
-                    </div>
-                `;
-        }, gvc.glitter.getUUID());
+        NormalPageEditor.toggle({
+            visible: true,
+            title: title,
+            view: (() => {
+                const id = gvc.glitter.getUUID();
+                return `<div class="d-flex" style="">${[
+                    gvc.bindView(() => {
+                        return {
+                            bind: gvc.glitter.getUUID(),
+                            view: () => {
+                                return left;
+                            },
+                            divCreate: {
+                                class: `border-end vh-100`,
+                                style: `width:350px;`
+                            }
+                        };
+                    }),
+                    gvc.bindView(() => {
+                        return {
+                            bind: gvc.glitter.getUUID(),
+                            view: () => {
+                                return right;
+                            },
+                            divCreate: {
+                                class: ``,
+                                style: `width:400px;`
+                            }
+                        };
+                    })
+                ].join('')}</div>`;
+            })(),
+            width: 750
+        });
     },
     seo_with_domain: (gvc) => {
         const viewModel = gvc.glitter.share.editorViewModel;

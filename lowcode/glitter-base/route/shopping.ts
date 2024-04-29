@@ -115,8 +115,7 @@ export class ApiShop {
             "type": "GET",
             "headers": {
                 "Content-Type": "application/json",
-                "g-app": encodeURIComponent(getConfig().config.appName),
-                "Authorization": GlobalUser.token
+                "g-app": encodeURIComponent(getConfig().config.appName)
             }
         })
     }
@@ -428,7 +427,7 @@ export class ApiShop {
 }
 
 function getConfig() {
-    const saasConfig: { config: any; api: any } = (window as any).saasConfig;
+    const saasConfig: { config: any; api: any } = (window.parent as any).saasConfig;
     return saasConfig
 }
 

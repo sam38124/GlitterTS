@@ -5,6 +5,7 @@ import {TriggerEvent} from "../glitterBundle/plugins/trigger-event.js";
 import {EditorElem} from "../glitterBundle/plugins/editor-elem.js";
 import {component} from "../official_view_component/official/component.js";
 import {ApiUser} from "../glitter-base/route/user.js";
+import {NormalPageEditor} from "../editor/normal-page-editor.js";
 
 export class GlobalData {
     public static data = {
@@ -194,7 +195,8 @@ TriggerEvent.create(import.meta.url, {
                                 title: "代碼區塊",
                                 callback: (text) => {
                                     object.code = text
-                                }
+                                },
+                                structStart:`((gvc,widget,object,subData,element)=>{`
                             })}
                         </div>`
                 },
@@ -244,30 +246,41 @@ TriggerEvent.create(import.meta.url, {
                                                 return {
                                                     title: dd.title || `事件:${index + 1}`,
                                                     expand: dd,
-                                                    innerHtml: ((gvc: GVC) => {
-                                                        return [
-                                                            gvc.glitter.htmlGenerate.editeInput({
-                                                                gvc: gvc,
-                                                                title: '事件標題',
-                                                                default: dd.title ?? "",
-                                                                placeHolder: '請輸入事件標題',
-                                                                callback: (text: string) => {
-                                                                    dd.title = text;
-                                                                    gvc.notifyDataChange(id)
-                                                                },
-                                                            }),
-                                                            TriggerEvent.editer(gvc, widget, dd.yesEvent, {
-                                                                hover: true,
-                                                                option: [],
-                                                                title: "判斷式-返回true則執行事件"
-                                                            }),
-                                                            `<div class="mt-2"></div>`,
-                                                            TriggerEvent.editer(gvc, widget, dd.trigger, {
-                                                                hover: true,
-                                                                option: [],
-                                                                title: "執行事件"
-                                                            })
-                                                        ].join('')
+                                                    innerHtml: (() => {
+                                                         NormalPageEditor.toggle({
+                                                             visible:true,
+                                                             view:gvc.bindView(()=>{
+                                                                 return {
+                                                                     bind:gvc.glitter.getUUID(),
+                                                                     view:()=>{
+                                                                         return `<div class="p-2">${[
+                                                                             gvc.glitter.htmlGenerate.editeInput({
+                                                                                 gvc: gvc,
+                                                                                 title: '事件標題',
+                                                                                 default: dd.title ?? "",
+                                                                                 placeHolder: '請輸入事件標題',
+                                                                                 callback: (text: string) => {
+                                                                                     dd.title = text;
+                                                                                     // gvc.notifyDataChange(id)
+                                                                                 },
+                                                                             }),
+                                                                             TriggerEvent.editer(gvc, widget, dd.yesEvent, {
+                                                                                 hover: true,
+                                                                                 option: [],
+                                                                                 title: "判斷式-返回true則執行事件"
+                                                                             }),
+                                                                             `<div class="mt-2"></div>`,
+                                                                             TriggerEvent.editer(gvc, widget, dd.trigger, {
+                                                                                 hover: true,
+                                                                                 option: [],
+                                                                                 title: "執行事件"
+                                                                             })
+                                                                         ].join('')}</div>`
+                                                                     }
+                                                                 }
+                                                             }),
+                                                             title:'設定事件'
+                                                         })
                                                     }),
                                                     minus: gvc.event(() => {
                                                         object.eventList.splice(index, 1);
@@ -287,7 +300,7 @@ TriggerEvent.create(import.meta.url, {
                                         refreshComponent: () => {
                                             gvc.notifyDataChange(id)
                                         },
-                                        customEditor: false
+                                        customEditor: true
                                     })
                                 } catch (e) {
                                     return ``
@@ -478,149 +491,153 @@ TriggerEvent.create(import.meta.url, {
         title: '官方事件 / 推播 / 信箱註冊',
         fun: TriggerEvent.setEventRouter(import.meta.url, './user/email-subscription.js')
     },
-    api: {
-        title: "官方事件 / API / Glitter-Lambda",
-        fun: (gvc, widget, object, subData, element) => {
-            object.postEvent = object.postEvent ?? {}
-            object.postType = object.postType ?? "POST"
-            object.queryParameters = object.queryParameters ?? []
-            object.queryExpand = object.queryExpand ?? {}
-            return {
-                editor: () => {
-                    return gvc.bindView(() => {
-                        const id = gvc.glitter.getUUID()
-                        return {
-                            bind: id,
-                            view: () => {
-                                return gvc.map([
-                                    EditorElem.select({
-                                        title: "方法",
-                                        gvc: gvc,
-                                        def: object.postType,
-                                        array: ['GET', 'POST', 'PUT', 'DELETE'],
-                                        callback: (text) => {
-                                            object.postType = text
-                                            gvc.notifyDataChange(id)
-                                        }
-                                    }),
-                                    gvc.glitter.htmlGenerate.editeInput({
-                                        gvc: gvc,
-                                        title: "Router路徑",
-                                        default: object.router ?? "",
-                                        placeHolder: "",
-                                        callback: (text) => {
-                                            object.router = text
-                                            gvc.notifyDataChange(id)
-                                        }
-                                    }),
-                                    TriggerEvent.editer(gvc, widget, object.postEvent, {
-                                        hover: false,
-                                        option: [],
-                                        title: "傳送給API的資料"
-                                    }),
-                                    EditorElem.arrayItem({
-                                        originalArray: object.queryParameters,
-                                        gvc: gvc,
-                                        title: "Query參數",
-                                        array: object.queryParameters.map((rowData: any, rowIndex: number) => {
-                                            return {
-                                                title: `第${rowIndex + 1}列參數`,
-                                                expand: rowData,
-                                                innerHtml: gvc.map([
-                                                    gvc.glitter.htmlGenerate.editeInput({
-                                                        gvc: gvc,
-                                                        title: "Key值",
-                                                        default: rowData.key ?? '',
-                                                        placeHolder: '請輸入搜索Key值',
-                                                        callback: (text) => {
-                                                            rowData.key = text
-                                                            gvc.notifyDataChange(id)
-                                                        }
-                                                    }),
-                                                    TriggerEvent.editer(gvc, widget, rowData, {
-                                                        hover: false,
-                                                        option: [],
-                                                        title: "參數取得"
-                                                    })
-                                                ]),
-                                                minus: gvc.event(() => {
-                                                    object.queryParameters.splice(rowIndex, 1);
-                                                    gvc.notifyDataChange(id)
-                                                }),
-                                            };
-                                        }),
-                                        expand: object.queryExpand,
-                                        plus: {
-                                            title: '添加參數',
-                                            event: gvc.event(() => {
-                                                object.queryParameters.push({key: '', value: ""});
-                                                gvc.notifyDataChange(id)
-                                            }),
-                                        },
-                                        refreshComponent: () => {
-                                            gvc.notifyDataChange(id)
-                                        }
-                                    })
-                                ])
-                            }
-                        }
-                    })
-                },
-                event: () => {
-                    return new Promise(async (resolve, reject) => {
-                        const data = await TriggerEvent.trigger({
-                            gvc: gvc,
-                            widget: widget,
-                            clickEvent: object.postEvent,
-                            subData: subData,
-                            element: element
-                        })
-                        let query: any = [];
-                        for (const b of object.queryParameters) {
-                            query.push({
-                                key: b.key,
-                                value: (await TriggerEvent.trigger({
-                                    gvc: gvc,
-                                    widget: widget,
-                                    clickEvent: b,
-                                    subData: subData,
-                                    element: element
-                                }))
-                            })
-                        }
-                        let queryString = ""
-                        if (query.length > 0) {
-                            queryString = '&'
-                        }
-
-                        queryString += query.map((dd: any) => {
-                            return `${dd.key}=${dd.value}`
-                        }).join('&')
-                        BaseApi.create({
-                            "url": (object.postType === 'GET') ? `${getBaseUrl()}/api-public/v1/lambda?data=${(typeof data === 'object') ? JSON.stringify(data) : data}&router=${object.router}${queryString}` :
-                                `${getBaseUrl()}/api-public/v1/lambda?1=1${queryString}`,
-                            "type": object.postType,
-                            "timeout": 0,
-                            "headers": {
-                                "g-app": getConfig().config.appName,
-                                "Content-Type": "application/json",
-                                "Authorization": GlobalUser.token
-                            },
-                            "data": (object.postType === 'GET') ? undefined : JSON.stringify({
-                                "router": object.router,
-                                "data": data
-                            }),
-                        }).then((res) => {
-                            if (res.result) {
-                                resolve(res.response)
-                            } else {
-                                resolve(undefined)
-                            }
-                        })
-                    })
-                }
-            }
-        }
+    // api: {
+    //     title: "官方事件 / API / Glitter-Lambda",
+    //     fun: (gvc, widget, object, subData, element) => {
+    //         object.postEvent = object.postEvent ?? {}
+    //         object.postType = object.postType ?? "POST"
+    //         object.queryParameters = object.queryParameters ?? []
+    //         object.queryExpand = object.queryExpand ?? {}
+    //         return {
+    //             editor: () => {
+    //                 return gvc.bindView(() => {
+    //                     const id = gvc.glitter.getUUID()
+    //                     return {
+    //                         bind: id,
+    //                         view: () => {
+    //                             return gvc.map([
+    //                                 EditorElem.select({
+    //                                     title: "方法",
+    //                                     gvc: gvc,
+    //                                     def: object.postType,
+    //                                     array: ['GET', 'POST', 'PUT', 'DELETE'],
+    //                                     callback: (text) => {
+    //                                         object.postType = text
+    //                                         gvc.notifyDataChange(id)
+    //                                     }
+    //                                 }),
+    //                                 gvc.glitter.htmlGenerate.editeInput({
+    //                                     gvc: gvc,
+    //                                     title: "Router路徑",
+    //                                     default: object.router ?? "",
+    //                                     placeHolder: "",
+    //                                     callback: (text) => {
+    //                                         object.router = text
+    //                                         gvc.notifyDataChange(id)
+    //                                     }
+    //                                 }),
+    //                                 TriggerEvent.editer(gvc, widget, object.postEvent, {
+    //                                     hover: false,
+    //                                     option: [],
+    //                                     title: "傳送給API的資料"
+    //                                 }),
+    //                                 EditorElem.arrayItem({
+    //                                     originalArray: object.queryParameters,
+    //                                     gvc: gvc,
+    //                                     title: "Query參數",
+    //                                     array: object.queryParameters.map((rowData: any, rowIndex: number) => {
+    //                                         return {
+    //                                             title: `第${rowIndex + 1}列參數`,
+    //                                             expand: rowData,
+    //                                             innerHtml: gvc.map([
+    //                                                 gvc.glitter.htmlGenerate.editeInput({
+    //                                                     gvc: gvc,
+    //                                                     title: "Key值",
+    //                                                     default: rowData.key ?? '',
+    //                                                     placeHolder: '請輸入搜索Key值',
+    //                                                     callback: (text) => {
+    //                                                         rowData.key = text
+    //                                                         gvc.notifyDataChange(id)
+    //                                                     }
+    //                                                 }),
+    //                                                 TriggerEvent.editer(gvc, widget, rowData, {
+    //                                                     hover: false,
+    //                                                     option: [],
+    //                                                     title: "參數取得"
+    //                                                 })
+    //                                             ]),
+    //                                             minus: gvc.event(() => {
+    //                                                 object.queryParameters.splice(rowIndex, 1);
+    //                                                 gvc.notifyDataChange(id)
+    //                                             }),
+    //                                         };
+    //                                     }),
+    //                                     expand: object.queryExpand,
+    //                                     plus: {
+    //                                         title: '添加參數',
+    //                                         event: gvc.event(() => {
+    //                                             object.queryParameters.push({key: '', value: ""});
+    //                                             gvc.notifyDataChange(id)
+    //                                         }),
+    //                                     },
+    //                                     refreshComponent: () => {
+    //                                         gvc.notifyDataChange(id)
+    //                                     }
+    //                                 })
+    //                             ])
+    //                         }
+    //                     }
+    //                 })
+    //             },
+    //             event: () => {
+    //                 return new Promise(async (resolve, reject) => {
+    //                     const data = await TriggerEvent.trigger({
+    //                         gvc: gvc,
+    //                         widget: widget,
+    //                         clickEvent: object.postEvent,
+    //                         subData: subData,
+    //                         element: element
+    //                     })
+    //                     let query: any = [];
+    //                     for (const b of object.queryParameters) {
+    //                         query.push({
+    //                             key: b.key,
+    //                             value: (await TriggerEvent.trigger({
+    //                                 gvc: gvc,
+    //                                 widget: widget,
+    //                                 clickEvent: b,
+    //                                 subData: subData,
+    //                                 element: element
+    //                             }))
+    //                         })
+    //                     }
+    //                     let queryString = ""
+    //                     if (query.length > 0) {
+    //                         queryString = '&'
+    //                     }
+    //
+    //                     queryString += query.map((dd: any) => {
+    //                         return `${dd.key}=${dd.value}`
+    //                     }).join('&')
+    //                     BaseApi.create({
+    //                         "url": (object.postType === 'GET') ? `${getBaseUrl()}/api-public/v1/lambda?data=${(typeof data === 'object') ? JSON.stringify(data) : data}&router=${object.router}${queryString}` :
+    //                             `${getBaseUrl()}/api-public/v1/lambda?1=1${queryString}`,
+    //                         "type": object.postType,
+    //                         "timeout": 0,
+    //                         "headers": {
+    //                             "g-app": getConfig().config.appName,
+    //                             "Content-Type": "application/json",
+    //                             "Authorization": GlobalUser.token
+    //                         },
+    //                         "data": (object.postType === 'GET') ? undefined : JSON.stringify({
+    //                             "router": object.router,
+    //                             "data": data
+    //                         }),
+    //                     }).then((res) => {
+    //                         if (res.result) {
+    //                             resolve(res.response)
+    //                         } else {
+    //                             resolve(undefined)
+    //                         }
+    //                     })
+    //                 })
+    //             }
+    //         }
+    //     }
+    // },
+    api_graph:{
+        title: "官方事件 / API / Graph-API",
+        fun: TriggerEvent.setEventRouter(import.meta.url, './api/api-graph.js')
     },
     api_data_get:{
         title: "官方事件 / API / 內容取得",
@@ -633,6 +650,10 @@ TriggerEvent.create(import.meta.url, {
     api_data_put:{
         title: "官方事件 / API / 內容更新",
         fun: TriggerEvent.setEventRouter(import.meta.url, './api/api-data-put.js')
+    },
+    api_data_delete:{
+        title: "官方事件 / API / 內容移除",
+        fun: TriggerEvent.setEventRouter(import.meta.url, './api/api-data-delete.js')
     },
     upload_file: {
         title: "官方事件 / API / 檔案上傳",
@@ -674,6 +695,7 @@ TriggerEvent.create(import.meta.url, {
         title: '電子商務 / 取得回饋金金額',
         fun: TriggerEvent.setEventRouter(import.meta.url, './e-commerce/get-rebate.js'),
     },
+
     getCount: {
         title: '電子商務 / 取得購物車數量',
         fun: TriggerEvent.setEventRouter(import.meta.url, './e-commerce/get-count.js'),
@@ -759,8 +781,12 @@ TriggerEvent.create(import.meta.url, {
         fun: TriggerEvent.setEventRouter(import.meta.url, './user/check_login.js')
     },
     get_user_data: {
-        title: '用戶相關 / 取得用戶資料',
+        title: '用戶相關 / 取得個人檔案資料',
         fun: TriggerEvent.setEventRouter(import.meta.url, './user/get-userdata.js')
+    },
+    get_user_info: {
+        title: '用戶相關 / 取得某用戶資料',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './user/get-users-data.js')
     },
     set_user_data: {
         title: '用戶相關 / 設定用戶資料',
@@ -781,6 +807,10 @@ TriggerEvent.create(import.meta.url, {
     getToken: {
         title: '用戶相關 / 取得TOKEN',
         fun: TriggerEvent.setEventRouter(import.meta.url, './user/token.js')
+    },
+    get_chat_room:{
+        title:'訊息相關 / 取得已建立聊天室',
+        fun:  TriggerEvent.setEventRouter(import.meta.url, './chat/get-chat-room.js'),
     },
     addChatRoom: {
         title: '訊息相關 / 建立聊天室',

@@ -312,7 +312,7 @@ export class BgNotify {
                                     ApiPost.getManagerPost({
                                         page: vmi.page - 1,
                                         limit: 20,
-                                        search: vm.query || undefined,
+                                        search: vm.query ? [`title->${vm.query}`]: undefined,
                                         type: 'notify-email-config'
                                     }).then((data) => {
                                         vmi.pageSize = Math.ceil(data.response.total / 20)
@@ -354,7 +354,7 @@ export class BgNotify {
                                                     },
                                                     {
                                                         key: '信件內文',
-                                                        value: `<span class="fs-7">${dd.content.content.replace(/<[^>]*>/g, '').substring(0, 60)}...</span>`
+                                                        value: `<span class="fs-7">${(dd.content.content && dd.content.content.replace(/<[^>]*>/g, '').substring(0, 60)) || ''}...</span>`
                                                     },
                                                     {
                                                         key: '發送信件',
@@ -551,7 +551,7 @@ export class BgNotify {
                                 dialog.dataLoading({text: '變更信件', visible: true})
                                 ApiPost.put({
                                     postData: postData,
-                                    token: GlobalUser.token,
+                                    token: (window.parent as any).saasConfig.config.token,
                                     type: 'manager'
                                 }).then((re) => {
                                     dialog.dataLoading({visible: false})
@@ -566,7 +566,7 @@ export class BgNotify {
                                 dialog.dataLoading({text: '新增信件', visible: true})
                                 ApiPost.post({
                                     postData: postData,
-                                    token: GlobalUser.token,
+                                    token: (window.parent as any).saasConfig.config.token,
                                     type: 'manager'
                                 }).then((re) => {
                                     dialog.dataLoading({visible: false})
@@ -725,7 +725,7 @@ export class BgNotify {
                                 dialog.dataLoading({text: '變更信件', visible: true})
                                 ApiPost.put({
                                     postData: postData,
-                                    token: GlobalUser.token,
+                                    token: (window.parent as any).saasConfig.config.token,
                                     type: 'manager'
                                 }).then((re) => {
                                     dialog.dataLoading({visible: false})
@@ -740,7 +740,7 @@ export class BgNotify {
                                 dialog.dataLoading({text: '新增信件', visible: true})
                                 ApiPost.post({
                                     postData: postData,
-                                    token: GlobalUser.token,
+                                    token: (window.parent as any).saasConfig.config.token,
                                     type: 'manager'
                                 }).then((re) => {
                                     dialog.dataLoading({visible: false})
@@ -1065,7 +1065,7 @@ export class BgNotify {
                                     ApiPost.getManagerPost({
                                         page: vmi.page - 1,
                                         limit: 20,
-                                        search: vm.query || undefined,
+                                        search: vm.query ? [`title->${vm.query}`]: undefined,
                                         type: 'notify-message-config'
                                     }).then((data) => {
                                         vmi.pageSize = Math.ceil(data.response.total / 20)

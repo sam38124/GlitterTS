@@ -160,12 +160,13 @@ class Template {
     }
     async getPage(config) {
         try {
-            let sql = `select ${(config.tag) ? `*` : `id,userID,tag,\`group\`,name,page_type,preview_image,appName,page_config`}
+            let sql = `select ${(config.tag || config.id) ? `*` : `id,userID,tag,\`group\`,name,page_type,preview_image,appName,page_config`}
                        from \`${config_1.saasConfig.SAAS_NAME}\`.page_config
                        where ${(() => {
                 let query = [`1 = 1`];
                 (config.user_id) && query.push(`userID=${config.user_id}`);
                 (config.appName) && query.push(`appName=${database_1.default.escape(config.appName)}`);
+                (config.id) && query.push(`id=${database_1.default.escape(config.id)}`);
                 (config.tag) && query.push(` tag in (${config.tag.split(',').map((dd) => {
                     return database_1.default.escape(dd);
                 }).join(',')})`);

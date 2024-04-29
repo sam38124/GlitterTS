@@ -415,8 +415,8 @@ export function init(metaURL: string, fun: (gvc: GVC, glitter: Glitter, gBundle:
         if ((window as any).glitter.pageConfig.length - 2 >= 0) {
             (window as any).glitter.pageConfig[(window as any).glitter.pageConfig.length - 2].scrollTop = window.scrollY
         }
-
         const gvc = new GVC()
+        cf.pageConfig.gvc=gvc;
         gvc.parameter.pageConfig = cf.pageConfig;
         (window as any).clickMap = (window as any).clickMap ?? {};
         (window as any).clickMap[cf.pageConfig.id] = gvc.parameter.clickMap;

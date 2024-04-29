@@ -13,6 +13,7 @@ import { TriggerEvent } from "../../glitterBundle/plugins/trigger-event.js";
 import { EditorElem } from "../../glitterBundle/plugins/editor-elem.js";
 import { FormWidget } from "./form.js";
 import { ApiPageConfig } from "../../api/pageConfig.js";
+import { Storage } from "../../glitterBundle/helper/storage.js";
 export const component = Plugin.createComponent(import.meta.url, (glitter, editMode) => {
     return {
         render: (gvc, widget, setting, hoverID, subData, htmlGenerate) => {
@@ -30,7 +31,7 @@ export const component = Plugin.createComponent(import.meta.url, (glitter, editM
                 const saasConfig = window.saasConfig;
                 function getData() {
                     BaseApi.create({
-                        "url": saasConfig.config.url + `/api/v1/template?appName=${saasConfig.config.appName}&page_type=module`,
+                        "url": saasConfig.config.url + `/api/v1/template?appName=${widget.data.refer_app || saasConfig.config.appName}&page_type=module`,
                         "type": "GET",
                         "timeout": 0,
                         "headers": {
@@ -108,16 +109,7 @@ export const component = Plugin.createComponent(import.meta.url, (glitter, editM
                                     EditorElem.editerDialog({
                                         gvc: gvc,
                                         dialog: (gvc) => {
-                                            return setPage(widget.data) + `<div class="d-flex w-100 p-2 border-top ">
-                                                             <div class="flex-fill"></div>
-                                                             <div class="btn btn-primary-c ms-2"
-                                                                  style="height:40px;width:80px;"
-                                                                  onclick="${gvc.event(() => {
-                                                gvc.closeDialog();
-                                                widget.refreshComponent();
-                                            })}"><i class="fa-solid fa-floppy-disk me-2"></i>儲存
-                                                             </div>
-                                                         </div>`;
+                                            return setPage(widget.data);
                                         },
                                         editTitle: `預設嵌入頁面`
                                     }),
@@ -213,17 +205,7 @@ export const component = Plugin.createComponent(import.meta.url, (glitter, editM
                                                     },
                                                     divCreate: {}
                                                 };
-                                            }) + html `
-                                                <div class="d-flex w-100 p-2 border-top ">
-                                                    <div class="flex-fill"></div>
-                                                    <div class="btn btn-primary-c ms-2"
-                                                         style="height:40px;width:80px;"
-                                                         onclick="${gvc.event(() => {
-                                                widget.refreshAll();
-                                                gvc.closeDialog();
-                                            })}"><i class="fa-solid fa-floppy-disk me-2"></i>儲存
-                                                    </div>
-                                                </div>`;
+                                            });
                                         },
                                         width: "400px",
                                         editTitle: `判斷式頁面嵌入`
@@ -260,7 +242,7 @@ export const component = Plugin.createComponent(import.meta.url, (glitter, editM
                         data: {}
                     };
                     BaseApi.create({
-                        "url": saasConfig.config.url + `/api/v1/template?appName=${saasConfig.config.appName}`,
+                        "url": saasConfig.config.url + `/api/v1/template?appName=${widget.data.refer_app || saasConfig.config.appName}`,
                         "type": "GET",
                         "timeout": 0,
                         "headers": {
@@ -300,11 +282,14 @@ export const component = Plugin.createComponent(import.meta.url, (glitter, editM
                                 valueArray.map((dd) => {
                                     selectTag = selectTag || dd.tag;
                                 });
+                                if (widget.data.refer_app) {
+                                    selectTag = widget.data.tag;
+                                }
                                 let interVal = 0;
                                 const html = String.raw;
                                 return [
                                     html `
-                                        <div class="d-flex align-items-center mt-2 mb-2">
+                                        <div class="d-flex align-items-center mt-2 mb-2 ${Storage.select_function === 'user-editor' ? `d-none` : ``}">
                                             <select class="form-control form-select"
                                                     style="border-top-right-radius: 0;border-bottom-right-radius: 0;"
                                                     onchange="${gvc.event((e, event) => {
@@ -313,7 +298,7 @@ export const component = Plugin.createComponent(import.meta.url, (glitter, editM
                                     })}">${valueArray.map((dd) => {
                                         return `<option value="${dd.tag}" ${(dd.tag === selectTag) ? `selected` : ''} >${dd.title}</option>`;
                                     })}</select>
-                                            <div class="hoverBtn ms-auto d-flex align-items-center justify-content-center   border"
+                                            <div class="hoverBtn ms-auto d-flex align-items-center justify-content-center   border "
                                                  style="height:44px;width:44px;cursor:pointer;color:#151515;border-left: none;border-radius: 0px 10px 10px 0px;"
                                                  data-bs-toggle="tooltip" data-bs-placement="top"
                                                  data-bs-custom-class="custom-tooltip"
@@ -331,67 +316,110 @@ export const component = Plugin.createComponent(import.meta.url, (glitter, editM
                                             bind: id,
                                             view: () => {
                                                 return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
-                                                    function getPageData(tag) {
+                                                    function getPageData(cf) {
+                                                        let tag = cf;
+                                                        let appName = window.appName;
+                                                        if (typeof cf === 'object') {
+                                                            tag = cf.tag;
+                                                            appName = cf.appName;
+                                                        }
                                                         return new Promise((resolve, reject) => {
-                                                            BaseApi.create({
-                                                                "url": saasConfig.config.url + `/api/v1/template?appName=${saasConfig.config.appName}&tag=${encodeURIComponent(tag)}`,
-                                                                "type": "GET",
-                                                                "timeout": 0,
-                                                                "headers": {
-                                                                    "Content-Type": "application/json"
-                                                                }
-                                                            }).then((res) => {
-                                                                resolve(res.response.result[0]);
+                                                            (window.glitterInitialHelper).getPageData({
+                                                                tag: tag,
+                                                                appName: appName
+                                                            }, (d2) => {
+                                                                resolve(d2.response.result[0]);
                                                             });
                                                         });
                                                     }
-                                                    const pageData = yield getPageData(selectTag);
+                                                    const pageData = yield getPageData(widget.data.refer_app ? {
+                                                        tag: selectTag,
+                                                        appName: widget.data.refer_app
+                                                    } : selectTag);
                                                     let html = '';
-                                                    function appendHtml(pageData, initial) {
+                                                    let spiltCount = 0;
+                                                    function appendHtml(pageData, widget, initial, id, parent_array) {
                                                         const page_config = pageData.page_config;
                                                         if (page_config.formFormat && page_config.formFormat.length !== 0) {
-                                                            if (!initial) {
+                                                            if (!initial && (spiltCount++ > 1)) {
                                                                 html += `<div class="d-flex align-items-center justify-content-center mt-2" style="gap:7px;">
 <div class="flex-fill border"></div>
 <span class="fw-500" style="color:black;">${pageData.name}</span>
 <div class="flex-fill border"></div>
 </div>`;
                                                             }
+                                                            const refer_form = ((widget.data.refer_app)) ? (widget.data.refer_form_data || page_config.formData) : page_config.formData;
                                                             html += FormWidget.editorView({
                                                                 gvc: gvc,
                                                                 array: page_config.formFormat,
                                                                 refresh: () => {
-                                                                    widget.storage.updatePageConfig(page_config.formData);
-                                                                    glitter.share.editorViewModel.saveArray[pageData.id] = (() => {
-                                                                        return ApiPageConfig.setPage({
-                                                                            id: pageData.id,
-                                                                            appName: pageData.appName,
-                                                                            tag: pageData.tag,
-                                                                            page_config: pageData.page_config,
+                                                                    if (widget.data.refer_app) {
+                                                                        widget.data.refer_form_data = refer_form;
+                                                                        if (pageData.id !== id) {
+                                                                            glitter.share.editorViewModel.saveArray[pageData.id] = (() => {
+                                                                                return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
+                                                                                    yield ApiPageConfig.setPage({
+                                                                                        id: id,
+                                                                                        appName: window.appName,
+                                                                                        tag: (parent_array).tag,
+                                                                                        config: parent_array
+                                                                                    });
+                                                                                    resolve(true);
+                                                                                }));
+                                                                            });
+                                                                            window.glitterInitialHelper.share[`getPageData-${parent_array.tag}`].data.response.result[0].config = parent_array;
+                                                                        }
+                                                                        if (!widget.storage) {
+                                                                            const doc = (document.querySelector('#editerCenter iframe').contentWindow.document).querySelectorAll(`.${widget.data.refer_app}_${widget.data.tag}`);
+                                                                            console.log(doc);
+                                                                            if (doc) {
+                                                                                for (const b of doc) {
+                                                                                    b.updatePageConfig(refer_form);
+                                                                                }
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                    else {
+                                                                        glitter.share.editorViewModel.saveArray[pageData.id] = (() => {
+                                                                            return ApiPageConfig.setPage({
+                                                                                id: pageData.id,
+                                                                                appName: pageData.appName,
+                                                                                tag: pageData.tag,
+                                                                                page_config: pageData.page_config,
+                                                                            });
                                                                         });
-                                                                    });
+                                                                        window.glitterInitialHelper.share[`getPageData-${pageData.tag}`].data.response.result[0].page_config = pageData.page_config;
+                                                                    }
+                                                                    widget.storage && widget.storage.updatePageConfig && widget.storage.updatePageConfig(refer_form);
                                                                 },
-                                                                formData: page_config.formData
+                                                                formData: refer_form
                                                             });
                                                         }
                                                     }
-                                                    appendHtml(pageData, true);
-                                                    function loop(array) {
+                                                    pageData.config.tag = pageData.tag;
+                                                    appendHtml(pageData, widget, true, pageData.id, pageData.config);
+                                                    function loop(array, id, parent_config) {
                                                         var _a;
                                                         return __awaiter(this, void 0, void 0, function* () {
                                                             for (const dd of array) {
                                                                 if (dd.type === 'container') {
-                                                                    yield loop(dd.data.setting);
+                                                                    yield loop(dd.data.setting, id, parent_config);
                                                                 }
                                                                 else if (dd.type === 'component') {
-                                                                    const pageData = yield getPageData(dd.data.tag);
-                                                                    appendHtml(pageData, false);
-                                                                    yield loop((_a = pageData.config) !== null && _a !== void 0 ? _a : []);
+                                                                    const pageData = yield getPageData(dd.data.refer_app ? {
+                                                                        tag: dd.data.tag,
+                                                                        appName: dd.data.refer_app
+                                                                    } : dd.data.tag);
+                                                                    appendHtml(pageData, dd, false, (dd.data.refer_app) ? id : pageData.id, parent_config);
+                                                                    if (!dd.data.refer_app) {
+                                                                        pageData.config.tag = pageData.tag;
+                                                                        yield loop((_a = pageData.config) !== null && _a !== void 0 ? _a : [], pageData.id, pageData.config);
+                                                                    }
                                                                 }
                                                             }
                                                         });
                                                     }
-                                                    yield loop(pageData.config);
+                                                    yield loop(pageData.config, pageData.id, pageData.config);
                                                     if (!html) {
                                                         resolve(`<div class="d-flex align-items-center justify-content-center flex-column w-100"
                                          style="width:100%;">
@@ -476,7 +504,7 @@ export const component = Plugin.createComponent(import.meta.url, (glitter, editM
                                     catch (e) {
                                     }
                                 }
-                                let sub = JSON.parse(JSON.stringify(subData));
+                                let sub = subData;
                                 try {
                                     sub.carryData = yield TriggerEvent.trigger({
                                         gvc: gvc,
@@ -491,7 +519,14 @@ export const component = Plugin.createComponent(import.meta.url, (glitter, editM
                                     resolve(``);
                                 }
                                 else {
-                                    (window.glitterInitialHelper).getPageData(tag, (d2) => {
+                                    const page_request_config = widget.data.refer_app ? {
+                                        tag: tag,
+                                        appName: widget.data.refer_app
+                                    } : {
+                                        tag: tag,
+                                        appName: window.appName
+                                    };
+                                    (window.glitterInitialHelper).getPageData(page_request_config, (d2) => {
                                         var _a, _b, _c, _d, _e;
                                         data = d2.response.result[0];
                                         data.config = (_a = data.config) !== null && _a !== void 0 ? _a : [];
@@ -500,69 +535,33 @@ export const component = Plugin.createComponent(import.meta.url, (glitter, editM
                                         });
                                         if (data.page_config.resource_from === 'own') {
                                             const url = new URL("", location.href);
+                                            const id = gvc.glitter.getUUID();
                                             url.search = '';
                                             url.searchParams.set("page", data.tag);
                                             url.searchParams.set('appName', window.appName);
                                             url.searchParams.set('isIframe', 'true');
-                                            const id = gvc.glitter.getUUID();
+                                            url.searchParams.set('iframe_id', `${id}`);
                                             gvc.glitter.config.frameHeight = (_b = gvc.glitter.config.frameHeight) !== null && _b !== void 0 ? _b : {};
                                             gvc.glitter.config.frameHeight[url.href] = (_c = gvc.glitter.config.frameHeight[url.href]) !== null && _c !== void 0 ? _c : 0;
                                             function iframeView() {
+                                                var _a;
                                                 return __awaiter(this, void 0, void 0, function* () {
                                                     let rendered = false;
-                                                    return `<iframe id="${id}" style="border:none;${(editMode) ? `pointer-events: none;` : ''}
- background-color: transparent; " src="${url.href}" class="w-100 h-100" onload="${gvc.event(() => {
-                                                        if (rendered) {
-                                                            return;
+                                                    glitter.share.iframeHeightChange = (_a = glitter.share.iframeHeightChange) !== null && _a !== void 0 ? _a : {};
+                                                    let lastHeight = 0;
+                                                    glitter.share.iframeHeightChange[id] = (newHeight) => {
+                                                        if (lastHeight != newHeight) {
+                                                            lastHeight = newHeight;
+                                                            let iframe = document.getElementById(id);
+                                                            iframe.style.height = `${newHeight}px`;
+                                                            iframe.style.minHeight = `${newHeight}px`;
+                                                            $(`#${id}`).parent().height(`${newHeight}px`);
                                                         }
-                                                        rendered = true;
-                                                        let iframe = document.getElementById(id);
-                                                        iframe.contentWindow.addEventListener('beforeunload', function (event) {
-                                                            if (!editMode) {
-                                                                $('#glitterPage').hide();
-                                                                $('body').append(html `
-                                                            <div class="flex-fill vw-100 vh-100 position-fixed top-0 start-0">
-                                                                <div class="page-loading active">
-                                                                    <div class="page-loading-inner">
-                                                                        <div class="page-spinner" style=""></div>
-                                                                    </div>
-                                                                </div>
-                                                            </div>`);
-                                                            }
-                                                        });
-                                                        iframe.addEventListener('load', function () {
-                                                            const iUrl = new URL(iframe.contentWindow.location.href);
-                                                            if (!editMode && iUrl.href !== url.href && (iUrl.searchParams.get('isIframe')) !== 'true') {
-                                                                location.href = iframe.contentWindow.location.href;
-                                                            }
-                                                            else if (editMode && iUrl.href !== url.href) {
-                                                                iframeView().then((dd) => {
-                                                                    iframe.outerHTML = dd;
-                                                                });
-                                                            }
-                                                        });
-                                                        const body = iframe.contentWindow.document.body;
-                                                        body.style.overflowY = 'hidden';
-                                                        const observer = new MutationObserver(function (mutations) {
-                                                            mutations.forEach(function (mutation) {
-                                                                if (mutation.type === 'childList' || mutation.type === 'characterData') {
-                                                                    let newHeight = body.scrollHeight;
-                                                                    iframe.style.height = `${newHeight + 1}px`;
-                                                                    gvc.glitter.config.frameHeight[url.href] = newHeight;
-                                                                }
-                                                            });
-                                                        });
-                                                        observer.observe(body, { childList: true, subtree: true });
-                                                        const clock = gvc.glitter.ut.clock();
-                                                        const interval = setInterval(() => {
-                                                            let newHeight = body.scrollHeight;
-                                                            iframe.style.height = `${newHeight + 1}px`;
-                                                            gvc.glitter.config.frameHeight[url.href] = newHeight;
-                                                            if (clock.stop() > 1000) {
-                                                                clearInterval(interval);
-                                                            }
-                                                        }, 100);
-                                                    })}" ></iframe>`;
+                                                    };
+                                                    return `<iframe id="${id}" style="border:none !important;${(editMode) ? `pointer-events: none;` : ''}
+  border: none;
+    margin:!important;
+    padding: !important;" src="${url.href}" class="w-100 h-100"  ></iframe>`;
                                                 });
                                             }
                                             iframeView().then((dd) => {
@@ -572,7 +571,11 @@ export const component = Plugin.createComponent(import.meta.url, (glitter, editM
                                         else {
                                             let createOption = (_d = (htmlGenerate !== null && htmlGenerate !== void 0 ? htmlGenerate : {}).createOption) !== null && _d !== void 0 ? _d : {};
                                             createOption.option = (_e = createOption.option) !== null && _e !== void 0 ? _e : [];
+                                            createOption.class = createOption.class || ``;
                                             createOption.childContainer = true;
+                                            if ((widget.data.refer_app)) {
+                                                data.page_config.formData = (widget.data.refer_form_data || data.page_config.formData);
+                                            }
                                             data.config.formData = data.page_config.formData;
                                             viewConfig = data.config;
                                             const id = gvc.glitter.getUUID();
@@ -587,6 +590,7 @@ export const component = Plugin.createComponent(import.meta.url, (glitter, editM
                                                     });
                                                 }
                                                 loop(viewConfig);
+                                                createOption.class += ` ${(glitter.htmlGenerate.isEditMode()) ? `${page_request_config.appName}_${page_request_config.tag}` : ``}`;
                                                 return new glitter.htmlGenerate(viewConfig, [], sub).render(gvc, {
                                                     class: ``,
                                                     style: ``,
@@ -594,6 +598,12 @@ export const component = Plugin.createComponent(import.meta.url, (glitter, editM
                                                     jsFinish: () => {
                                                     },
                                                     onCreate: () => {
+                                                        if (glitter.htmlGenerate.isEditMode()) {
+                                                            gvc.getBindViewElem(id).get(0).updatePageConfig = (formData) => {
+                                                                viewConfig.formData = formData;
+                                                                document.querySelector(`[gvc-id="${gvc.id(id)}"]`).outerHTML = getView();
+                                                            };
+                                                        }
                                                     },
                                                     document: document
                                                 }, createOption !== null && createOption !== void 0 ? createOption : {});
@@ -666,22 +676,24 @@ export const component = Plugin.createComponent(import.meta.url, (glitter, editM
                             return {
                                 bind: id,
                                 view: () => {
-                                    return `<div class="mx-0 d-flex  px-3 hi fw-bold d-flex align-items-center shadow border-bottom  py-2 bgf6 "
-                                 style="color:black;cursor: pointer;font-size:15px;" onclick="${gvc.event(() => {
+                                    return html `
+                                        <div class="${Storage.select_function === 'user-editor' ? `d-none` : ``} mx-0 d-flex  px-3 hi fw-bold d-flex align-items-center shadow border-bottom  py-2 bgf6 "
+                                             style="color:black;cursor: pointer;font-size:15px;"
+                                             onclick="${gvc.event(() => {
                                         toggle = !toggle;
                                         gvc.notifyDataChange(id);
                                     })}">
-                                內容編輯
-                                <div class="flex-fill"></div>
-                                ${toggle ? ` <i class="fa-solid fa-chevron-up d-flex align-items-center justify-content-center me-2"
+                                            內容編輯
+                                            <div class="flex-fill"></div>
+                                            ${toggle ? ` <i class="fa-solid fa-chevron-up d-flex align-items-center justify-content-center me-2"
                                    style="cursor:pointer;" aria-hidden="true"></i>` : ` <i class="fa-solid  fa-angle-down d-flex align-items-center justify-content-center me-2"
                                    style="cursor:pointer;" aria-hidden="true"></i>`}
-                            </div>
-<div class="p-2">
-${(toggle) ? userEditorView() : ``}
-<div style="height:10px;"></div>
-</div>
-`;
+                                        </div>
+                                        <div class="p-2">
+                                            ${(toggle) ? userEditorView() : ``}
+                                            <div style="height:10px;"></div>
+                                        </div>
+                                    `;
                                 },
                                 divCreate: {
                                     class: `mx-n2 mt-n2`, style: ``
@@ -694,22 +706,24 @@ ${(toggle) ? userEditorView() : ``}
                             return {
                                 bind: id,
                                 view: () => {
-                                    return `<div class="mx-0 d-flex   border-top px-3 hi fw-bold d-flex align-items-center shadow border-bottom  py-2 bgf6"
-                                 style="color:black;cursor: pointer;font-size:15px;" onclick="${gvc.event(() => {
+                                    return html `
+                                        <div class="${Storage.select_function === 'user-editor' ? `d-none` : ``} mx-0 d-flex   border-top px-3 hi fw-bold d-flex align-items-center shadow border-bottom  py-2 bgf6"
+                                             style="color:black;cursor: pointer;font-size:15px;"
+                                             onclick="${gvc.event(() => {
                                         toggle = !toggle;
                                         gvc.notifyDataChange(id);
                                     })}">
-                                模塊進階設定
-                                <div class="flex-fill"></div>
-                                ${toggle ? ` <i class="fa-solid fa-chevron-up d-flex align-items-center justify-content-center me-2"
+                                            模塊進階設定
+                                            <div class="flex-fill"></div>
+                                            ${toggle ? ` <i class="fa-solid fa-chevron-up d-flex align-items-center justify-content-center me-2"
                                    style="cursor:pointer;" aria-hidden="true"></i>` : ` <i class="fa-solid  fa-angle-down d-flex align-items-center justify-content-center me-2"
                                    style="cursor:pointer;" aria-hidden="true"></i>`}
-                            </div>
-                            ${(toggle) ? `<div class="p-2 border-bottom">
+                                        </div>
+                                        ${(toggle) ? `<div class="p-2 border-bottom">
 ${devEditorView()}
 </div>` : ``}
 
-`;
+                                    `;
                                 },
                                 divCreate: {
                                     class: `mx-n2 mt-n3`, style: ``

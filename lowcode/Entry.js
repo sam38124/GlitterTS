@@ -16,19 +16,19 @@ import { GlobalUser } from "./glitter-base/global/global-user.js";
 export class Entry {
     static onCreate(glitter) {
         var _a;
+        glitter.share.logID = glitter.getUUID();
         glitter.addStyle(`@media (prefers-reduced-motion: no-preference) {
           :root {
             scroll-behavior: auto !important;
           }
         }`);
-        Entry.checkIframe(glitter);
         if (glitter.getUrlParameter('appName')) {
             window.appName = glitter.getUrlParameter('appName');
             config.appName = glitter.getUrlParameter('appName');
         }
         window.renderClock = (_a = window.renderClock) !== null && _a !== void 0 ? _a : clockF();
         console.log(`Entry-time:`, window.renderClock.stop());
-        glitter.share.editerVersion = "V_6.0.4";
+        glitter.share.editerVersion = "V_6.2.7";
         glitter.share.start = (new Date());
         const vm = {
             appConfig: []
@@ -40,6 +40,55 @@ export class Entry {
         };
         config.token = GlobalUser.saas_token;
         Entry.resourceInitial(glitter, vm, (dd) => __awaiter(this, void 0, void 0, function* () {
+            glitter.addStyle(`  /* 隐藏子元素 */
+          .editorParent .editorChild {
+            display: none;
+          }
+          .editorChild::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index:99999;
+          }
+
+          /* 当父元素悬停时显示子元素 */
+         
+          .editorParent:hover > .editorChild {
+            display: block;
+            border: 2px dashed  #FFB400 ;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+          }
+          
+          .editorItemActive{
+            display: block !important;
+            border: 2px solid #FFB400 !important;
+            z-index:99999;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            background: linear-gradient(143deg, rgba(255, 180, 0, 0.20) -22.7%, rgba(255, 108, 2, 0.20) 114.57%);
+          }
+
+          .editorItemActive > .badge_it{
+            display:flex;
+          }
+          .badge_it{
+            display:none;
+          }
+          .relativePosition{
+            position: relative;
+          }`);
             yield Entry.globalStyle(glitter, dd);
             if (glitter.getUrlParameter("type") === 'editor') {
                 Entry.toBackendEditor(glitter, () => {
@@ -59,7 +108,20 @@ export class Entry {
     }
     static checkIframe(glitter) {
         if (glitter.getUrlParameter('isIframe') === 'true') {
+            console.log('checkIframe' + glitter.share.logID);
             glitter.goBack = window.parent.glitter.goBack;
+            setInterval(() => {
+                window.parent.glitter.share.iframeHeightChange[glitter.getUrlParameter('iframe_id')](document.body.scrollHeight);
+                $(`body`).height(`${document.body.scrollHeight}px`);
+            }, 100);
+            glitter.addStyle(`html,body{
+            overflow:hidden !important;
+            }`);
+        }
+        else {
+            glitter.addStyle(`html,body{
+        height: 100vh !important;
+    }`);
         }
     }
     static toBackendEditor(glitter, callback) {
@@ -89,11 +151,11 @@ export class Entry {
                 yield new Promise((resolve, reject) => {
                     glitter.addMtScript([
                         'https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js',
-                        'https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js',
                         'assets/vendor/smooth-scroll/dist/smooth-scroll.polyfills.min.js',
                         'assets/vendor/swiper/swiper-bundle.min.js',
                         'assets/js/theme.min.js',
-                        'https://kit.fontawesome.com/cccedec0f8.js'
+                        'https://kit.fontawesome.com/cccedec0f8.js',
+                        'https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js',
                     ], () => {
                         resolve(true);
                     }, () => {
@@ -182,7 +244,9 @@ export class Entry {
           :root {
             scroll-behavior: auto !important;
           }
-        }`);
+        }
+        
+        `);
         console.log('timer');
         window.parent.glitter.share.editerGlitter = glitter;
         const clock = glitter.ut.clock();
@@ -195,8 +259,8 @@ export class Entry {
             }
         }
         const interVal = setInterval(() => {
-            if (document.querySelector('.selectComponentHover')) {
-                scrollToItem(document.querySelector('.selectComponentHover'));
+            if (document.querySelector('.editorItemActive')) {
+                scrollToItem(document.querySelector('.editorItemActive'));
             }
             if (clock.stop() > 2000) {
                 clearInterval(interVal);

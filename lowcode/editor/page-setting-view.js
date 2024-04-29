@@ -47,7 +47,7 @@ export class PageSettingView {
                     return [
                         html `
                             <div class="w-100 d-flex align-items-center p-3 border-bottom">
-                                <h5 class="offcanvas-title" style="">頁面編輯</h5>
+                                <h5 class="offcanvas-title" style="">頁面設定</h5>
                                 <div class="flex-fill"></div>
                                 <div class="fs-5 text-black" style="cursor: pointer;" onclick="${gvc.event(() => {
                             PageSettingView.toggle(false);
@@ -71,11 +71,6 @@ export class PageSettingView {
                                     label: "模板發佈",
                                     icon: '<i class="fa-regular fa-cloud-arrow-up"></i>'
                                 },
-                                {
-                                    key: 'form',
-                                    label: "內容編輯表單",
-                                    icon: '  <i class="fa-regular fa-square-list"></i>'
-                                }
                             ];
                             if (['page', 'blog'].indexOf(glitter.share.editorViewModel.data.page_type) === -1) {
                                 if (Storage.page_set_select === 'seo') {
@@ -217,7 +212,7 @@ ${PageSettingView.seoSetting({
         gvc.glitter.share.editorViewModel.data.page_config.formFormat = (_a = gvc.glitter.share.editorViewModel.data.page_config.formFormat) !== null && _a !== void 0 ? _a : [];
         const dialog = new ShareDialog(gvc.glitter);
         const html = String.raw;
-        const formFormat = JSON.parse(JSON.stringify(gvc.glitter.share.editorViewModel.data.page_config.formFormat));
+        const formFormat = gvc.glitter.share.editorViewModel.data.page_config.formFormat;
         function save() {
             gvc.glitter.share.editorViewModel.data.page_config.formFormat = formFormat;
             gvc.glitter.htmlGenerate.saveEvent(true);
@@ -305,7 +300,7 @@ ${PageSettingView.seoSetting({
             version: '1.0',
             tag: []
         };
-        if (postMD.post_to !== 'all' && postMD.post_to !== 'me') {
+        if (postMD.post_to !== 'all' && postMD.post_to !== 'me' && postMD.post_to !== 'project') {
             postMD.post_to = 'all';
         }
         if ((gvc.glitter.share.editorViewModel.data.template_type === 2) || (gvc.glitter.share.editorViewModel.data.template_type === 3)) {
@@ -335,16 +330,9 @@ ${PageSettingView.seoSetting({
             });
         }
         const title = (() => {
-            switch (gvc.glitter.share.editorViewModel.data.page_type) {
-                case 'page':
-                    return '頁面';
-                case 'module':
-                    return '模塊';
-                case 'article':
-                    return '模板';
-                case 'blog':
-                    return '網誌';
-            }
+            return EditorConfig.page_type_list.find((dd) => {
+                return dd.value === gvc.glitter.share.editorViewModel.data.page_type;
+            }).title;
         })();
         const html = String.raw;
         return html `
@@ -425,6 +413,10 @@ ${PageSettingView.seoSetting({
                                                 {
                                                     title: '個人模板庫',
                                                     value: 'me'
+                                                },
+                                                {
+                                                    title: '專案資料夾',
+                                                    value: 'project'
                                                 }
                                             ],
                                             callback: (text) => {
@@ -639,7 +631,21 @@ ${PageSettingView.seoSetting({
                             gvc.notifyDataChange(docID);
                         }
                     })}
-                           </div>`
+                           </div>`,
+                    EditorElem.h3('是否開放內容編輯'),
+                    EditorElem.select({
+                        title: '',
+                        gvc: gvc,
+                        def: editData.page_config.support_editor || 'false',
+                        array: [
+                            { title: '是', value: 'true' },
+                            { title: '否', value: 'false' }
+                        ],
+                        callback: (text) => {
+                            editData.page_config.support_editor = text;
+                            gvc.notifyDataChange(docID);
+                        }
+                    })
                 ];
                 const title = EditorConfig.page_type_list.find((dd) => {
                     return editData.page_type === dd.value;
@@ -736,9 +742,9 @@ ${PageSettingView.seoSetting({
                             title: '導入全局樣式',
                             value: 'global'
                         }, {
-                            title: `獨立渲染`,
+                            title: `Iframe`,
                             value: 'own'
-                        }],
+                        }]
                 }));
                 return view.join('');
             })(),
@@ -807,14 +813,12 @@ ${PageSettingView.seoSetting({
             </div>`;
     }
     static seoSetting(obj) {
-        var _a;
         const html = String.raw;
         const gvc = obj.gvc;
         const viewModel = obj.viewModel;
         const docID = obj.id;
         const glitter = gvc.glitter;
         const dialog = new ShareDialog(gvc.glitter);
-        gvc.glitter.share.editorViewModel.data.page_config.seo = (_a = gvc.glitter.share.editorViewModel.data.page_config.seo) !== null && _a !== void 0 ? _a : { "type": "def" };
         function save() {
             ApiPageConfig.setPage({
                 id: viewModel.selectItem.id,
@@ -1198,3 +1202,4 @@ function deepEqual(obj1, obj2) {
     }
     return true;
 }
+window.glitter.setModule(import.meta.url, PageSettingView);

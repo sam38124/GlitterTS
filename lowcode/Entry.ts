@@ -5,24 +5,23 @@ import {config} from "./config.js";
 import {ApiPageConfig} from "./api/pageConfig.js";
 import {BaseApi} from "./glitterBundle/api/base.js";
 import {GlobalUser} from "./glitter-base/global/global-user.js";
-import {Animation} from "./glitterBundle/module/Animation.js";
+import {toJSON} from "./modules/toJSON.js";
 
 export class Entry {
     public static onCreate(glitter: Glitter) {
+        glitter.share.logID = glitter.getUUID()
         glitter.addStyle(`@media (prefers-reduced-motion: no-preference) {
           :root {
             scroll-behavior: auto !important;
           }
         }`)
-        Entry.checkIframe(glitter)
         if (glitter.getUrlParameter('appName')) {
             (window as any).appName = glitter.getUrlParameter('appName')
             config.appName = glitter.getUrlParameter('appName')
         }
-
         (window as any).renderClock = (window as any).renderClock ?? clockF();
         console.log(`Entry-time:`, (window as any).renderClock.stop());
-        glitter.share.editerVersion = "V_6.0.4";
+        glitter.share.editerVersion = "V_6.2.7";
         glitter.share.start = (new Date());
         const vm: {
             appConfig: any
@@ -38,6 +37,55 @@ export class Entry {
         config.token = GlobalUser.saas_token;
         //資源初始化
         Entry.resourceInitial(glitter, vm, async (dd) => {
+            glitter.addStyle(`  /* 隐藏子元素 */
+          .editorParent .editorChild {
+            display: none;
+          }
+          .editorChild::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index:99999;
+          }
+
+          /* 当父元素悬停时显示子元素 */
+         
+          .editorParent:hover > .editorChild {
+            display: block;
+            border: 2px dashed  #FFB400 ;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+          }
+          
+          .editorItemActive{
+            display: block !important;
+            border: 2px solid #FFB400 !important;
+            z-index:99999;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            background: linear-gradient(143deg, rgba(255, 180, 0, 0.20) -22.7%, rgba(255, 108, 2, 0.20) 114.57%);
+          }
+
+          .editorItemActive > .badge_it{
+            display:flex;
+          }
+          .badge_it{
+            display:none;
+          }
+          .relativePosition{
+            position: relative;
+          }`)
             //加載全域資源
             await Entry.globalStyle(glitter, dd);
             if (glitter.getUrlParameter("type") === 'editor') {
@@ -61,15 +109,20 @@ export class Entry {
     //判斷是否為Iframe來覆寫Glitter代碼
     public static checkIframe(glitter: Glitter) {
         if (glitter.getUrlParameter('isIframe') === 'true') {
+            console.log('checkIframe' + glitter.share.logID)
             glitter.goBack = (window.parent as any).glitter.goBack;
-            // (window as any).glitterInitialHelper=undefined;
-            // (window as any).glitterInitialHelper=(window.parent as any).glitterInitialHelper;
-            // console.log(`change-->`,(window as any).glitterInitialHelper)
-
-            // glitter.changePage = (window.parent as any).glitter.changePage
-            // glitter.setHome = (window.parent as any).glitter.setHome
-            // glitter.openDiaLog = (window.parent as any).glitter.openDiaLog
-            // glitter.innerDialog = (window.parent as any).glitter.innerDialog
+            // 创建一个 MutationObserver 实例
+            setInterval(() => {
+                (window.parent as any).glitter.share.iframeHeightChange[glitter.getUrlParameter('iframe_id')](document.body.scrollHeight)
+                $(`body`).height(`${document.body.scrollHeight}px`)
+            }, 100);
+            glitter.addStyle(`html,body{
+            overflow:hidden !important;
+            }`)
+        } else {
+            glitter.addStyle(`html,body{
+        height: 100vh !important;
+    }`)
         }
     }
 
@@ -102,11 +155,11 @@ export class Entry {
                 glitter.addMtScript(
                     [
                         'https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js',
-                        'https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js',
                         'assets/vendor/smooth-scroll/dist/smooth-scroll.polyfills.min.js',
                         'assets/vendor/swiper/swiper-bundle.min.js',
                         'assets/js/theme.min.js',
-                        'https://kit.fontawesome.com/cccedec0f8.js'
+                        'https://kit.fontawesome.com/cccedec0f8.js',
+                        'https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js',
                     ],
                     () => {
                         resolve(true)
@@ -198,7 +251,9 @@ export class Entry {
           :root {
             scroll-behavior: auto !important;
           }
-        }`);
+        }
+        
+        `);
         console.log('timer');
         (window.parent as any).glitter.share.editerGlitter = glitter;
         const clock = glitter.ut.clock()
@@ -213,8 +268,8 @@ export class Entry {
         }
 
         const interVal = setInterval(() => {
-            if (document.querySelector('.selectComponentHover')) {
-                scrollToItem(document.querySelector('.selectComponentHover'))
+            if (document.querySelector('.editorItemActive')) {
+                scrollToItem(document.querySelector('.editorItemActive'))
             }
             if (clock.stop() > 2000) {
                 clearInterval(interVal)

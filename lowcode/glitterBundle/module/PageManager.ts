@@ -51,6 +51,7 @@ export class PageConfig {
         return Glitter.glitter.$(`#page${this.id}`);
     }
 
+    public gvc?:GVC
     constructor(par: {
         id: string, obj: any, goBack: boolean, src: string, tag: string, createResource: () => void, deleteResource: (destroy: boolean) => void,
         type: GVCType, animation: AnimationConfig, backGroundColor: string, dismiss: () => void,renderFinish:()=>void

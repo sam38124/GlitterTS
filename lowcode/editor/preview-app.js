@@ -14,7 +14,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                 gvc.closeDialog();
                 gvc.glitter.goBack();
             })}">
-                                <i class="fa-regular fa-arrow-left-from-arc hoverBtn" style="cursor:pointer;"
+                                <i class="fa-solid fa-left-to-bracket hoverBtn" style="cursor:pointer;"
                                    aria-hidden="true">
                                 </i>
                             </div>

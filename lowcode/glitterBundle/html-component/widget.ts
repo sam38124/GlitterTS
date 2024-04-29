@@ -7,13 +7,15 @@ import {EditorElem} from "../plugins/editor-elem.js";
 import autosize from "../plugins/autosize.js";
 import {ShareDialog} from "../dialog/ShareDialog.js";
 import {Storage} from "../helper/storage.js";
+import {NormalPageEditor} from "../../editor/normal-page-editor.js";
 
 export const widgetComponent = {
     render: (gvc: GVC, widget: HtmlJson, setting: any, hoverID: string[], sub: any, htmlGenerate: any, document?: any) => {
+        const rootHtmlGenerate = htmlGenerate;
         const glitter = gvc.glitter;
-        if(widget.data.onCreateEvent){
-            (widget as any).onCreateEvent=widget.data.onCreateEvent;
-            widget.data.onCreateEvent=undefined;
+        if (widget.data.onCreateEvent) {
+            (widget as any).onCreateEvent = widget.data.onCreateEvent;
+            widget.data.onCreateEvent = undefined;
         }
         widget.data.elem = widget.data.elem ?? "div"
         widget.data.inner = widget.data.inner ?? ""
@@ -84,13 +86,19 @@ export const widgetComponent = {
                     } else if (widget.data.elem === 'input') {
                         option.push({key: 'value', value: innerText})
                     }
-                    let classList = [glitter.htmlGenerate.styleEditor(widget.data, gvc, widget as any, subData).class()]
+                    let classList = []
+                    if ((window.parent as any).editerData !== undefined && htmlGenerate.root) {
+                        classList.push(`editorParent`)
+                        classList.push(`relativePosition`)
+                    }
+
+                    classList.push(glitter.htmlGenerate.styleEditor(widget.data, gvc, widget as any, subData).class())
                     widget.hashTag && classList.push(`glitterTag${widget.hashTag}`);
-                    (hoverID.indexOf(widget.id) !== -1) && ((window.parent as any).editerData !== undefined) && classList.push(`selectComponentHover`);
+
                     return {
                         elem: widget.data.elem,
                         class: classList.join(' '),
-                        style: glitter.htmlGenerate.styleEditor(widget.data, gvc, widget as any, subData).style(),
+                        style: glitter.htmlGenerate.styleEditor(widget.data, gvc, widget as any, subData).style()+` ${((window.parent as any).editerData !== undefined) ? `${((widget as any).visible===false) ? `display:none;`:``}`:``}`,
                         option: option.concat(htmlGenerate.option),
                     }
                 }
@@ -100,10 +108,11 @@ export const widgetComponent = {
                     widget.data.setting.formData = widget.formData;
 
                     function getView() {
-                        const htmlGenerate = new glitter.htmlGenerate(widget.data.setting, hoverID, subData);
+                        const htmlGenerate = new glitter.htmlGenerate(widget.data.setting, hoverID, subData, rootHtmlGenerate.root);
                         innerText = ''
                         return htmlGenerate.render(gvc, {
-                            containerID: id, onCreate: () => {
+                            containerID: id,
+                            onCreate: () => {
                                 TriggerEvent.trigger({
                                     gvc,
                                     widget: widget as any,
@@ -119,7 +128,7 @@ export const widgetComponent = {
                                     })
                                 }
                             },
-                            onDestroy:()=>{
+                            onDestroy: () => {
                                 TriggerEvent.trigger({
                                     gvc,
                                     widget: widget as any,
@@ -127,7 +136,7 @@ export const widgetComponent = {
                                     subData: subData
                                 })
                             },
-                            onInitial:()=>{
+                            onInitial: () => {
                                 TriggerEvent.trigger({
                                     gvc,
                                     widget: widget as any,
@@ -138,6 +147,7 @@ export const widgetComponent = {
                             app_config: widget.global.appConfig,
                             page_config: widget.global.pageConfig,
                             document: document,
+                            editorSection:widget.id
                         }, getCreateOption())
                     }
 
@@ -152,7 +162,7 @@ export const widgetComponent = {
                                     block: 'center', // 將元素置中
                                 })
                             }, 10)
-                        }catch (e) {
+                        } catch (e) {
 
                         }
                     });
@@ -175,19 +185,19 @@ export const widgetComponent = {
                         innerText = data || ''
                         gvc.notifyDataChange(id)
                     })
-                }else if(widget.data.dataFrom === "code_text"){
-                    const inner=(eval(`(() => {
-                                ${widget.data.inner}
-                            })()`))
+                } else if (widget.data.dataFrom === "code_text") {
+                    const inner = (eval(`(() => {
+                        ${widget.data.inner}
+                    })()`))
 
-                    if(inner && inner.then){
+                    if (inner && inner.then) {
 
-                        inner.then((data:any)=>{
+                        inner.then((data: any) => {
                             innerText = data || ''
                             gvc.notifyDataChange(id)
                         })
-                    }else{
-                        innerText=inner
+                    } else {
+                        innerText = inner
                         gvc.notifyDataChange(id)
                     }
                 }
@@ -196,82 +206,99 @@ export const widgetComponent = {
                         bind: id,
                         view: () => {
                             return new Promise(async (resolve, reject) => {
-                                const vm: {
-                                    callback: () => void,
-                                    data: any
-                                } = {
-                                    callback: () => {
+                                const html = String.raw;
+                                let view = [
+                                    await new Promise(async (resolve, reject) => {
+                                        const vm: {
+                                            callback: () => void,
+                                            data: any
+                                        } = {
+                                            callback: () => {
 
-                                    },
-                                    data: []
-                                }
-                                await new Promise((resolve, reject) => {
-                                    if (widget.data.elem === 'select' && widget.data.selectType === 'api') {
-                                        widget.data.selectAPI = widget.data.selectAPI ?? {}
-                                        vm.callback = () => {
-                                            resolve(true)
+                                            },
+                                            data: []
                                         }
-                                        TriggerEvent.trigger({
-                                            gvc: gvc, widget: widget, clickEvent: widget.data.selectAPI, subData: vm
-                                        })
-                                    } else {
-                                        resolve(true)
-                                    }
-                                })
-                                switch (widget.data.elem) {
-                                    case 'select':
-                                        formData[widget.data.key] = innerText
-                                        if (widget.data.selectType === 'api') {
-                                            resolve(vm.data.map((dd: any) => {
-                                                formData[widget.data.key] = formData[widget.data.key] ?? dd.value
-                                                if (dd.visible === 'invisible' && (dd.value !== formData[widget.data.key])) {
-                                                    return ``
+                                        await new Promise((resolve, reject) => {
+                                            if (widget.data.elem === 'select' && widget.data.selectType === 'api') {
+                                                widget.data.selectAPI = widget.data.selectAPI ?? {}
+                                                vm.callback = () => {
+                                                    resolve(true)
                                                 }
-                                                return glitter.html`<option class="" value="${dd.value}" ${`${dd.value}` === `${formData[widget.data.key]}` ? `selected` : ``}>
+                                                TriggerEvent.trigger({
+                                                    gvc: gvc,
+                                                    widget: widget,
+                                                    clickEvent: widget.data.selectAPI,
+                                                    subData: vm
+                                                })
+                                            } else {
+                                                resolve(true)
+                                            }
+                                        })
+                                        switch (widget.data.elem) {
+                                            case 'select':
+                                                formData[widget.data.key] = innerText
+                                                if (widget.data.selectType === 'api') {
+                                                    resolve(vm.data.map((dd: any) => {
+                                                        formData[widget.data.key] = formData[widget.data.key] ?? dd.value
+                                                        if (dd.visible === 'invisible' && (dd.value !== formData[widget.data.key])) {
+                                                            return ``
+                                                        }
+                                                        return glitter.html`<option class="" value="${dd.value}" ${`${dd.value}` === `${formData[widget.data.key]}` ? `selected` : ``}>
                                 ${dd.key}
                             </option>`;
-                                            }).join('') + `<option value="" ${formData[widget.data.key] === '' ? `selected` : ``}>
+                                                    }).join('') + `<option value="" ${formData[widget.data.key] === '' ? `selected` : ``}>
                                 選擇${widget.data.label}
                             </option>`)
-                                        } else if (widget.data.selectType === 'trigger') {
-                                            const data = await TriggerEvent.trigger({
-                                                gvc: gvc,
-                                                widget: widget,
-                                                clickEvent: widget.data.selectTrigger,
-                                                subData: subData
-                                            })
-                                            const selectItem = await TriggerEvent.trigger({
-                                                gvc: gvc,
-                                                widget: widget,
-                                                clickEvent: widget.data.selectItem,
-                                                subData: subData
-                                            })
+                                                } else if (widget.data.selectType === 'trigger') {
+                                                    const data = await TriggerEvent.trigger({
+                                                        gvc: gvc,
+                                                        widget: widget,
+                                                        clickEvent: widget.data.selectTrigger,
+                                                        subData: subData
+                                                    })
+                                                    const selectItem = await TriggerEvent.trigger({
+                                                        gvc: gvc,
+                                                        widget: widget,
+                                                        clickEvent: widget.data.selectItem,
+                                                        subData: subData
+                                                    })
 
-                                            resolve((data as any).map((dd: any) => {
-                                                return /*html*/ `<option value="${dd.value}" ${`${dd.value}` === `${selectItem}` ? `selected` : ``}>
+                                                    resolve((data as any).map((dd: any) => {
+                                                        return /*html*/ `<option value="${dd.value}" ${`${dd.value}` === `${selectItem}` ? `selected` : ``}>
                                 ${dd.name}
                             </option>`;
-                                            }).join(''))
-                                        } else {
-                                            resolve(widget.data.selectList.map((dd: any) => {
-                                                if (dd.visible === 'invisible' && (dd.value !== formData[widget.data.key])) {
-                                                    return ``
+                                                    }).join(''))
+                                                } else {
+                                                    resolve(widget.data.selectList.map((dd: any) => {
+                                                        if (dd.visible === 'invisible' && (dd.value !== formData[widget.data.key])) {
+                                                            return ``
+                                                        }
+                                                        formData[widget.data.key] = formData[widget.data.key] ?? dd.value
+                                                        return /*html*/ `<option value="${dd.value}" ${dd.value === formData[widget.data.key] ? `selected` : ``}>
+                                ${dd.name}
+                            </option>`;
+                                                    }).join(''))
                                                 }
-                                                formData[widget.data.key] = formData[widget.data.key] ?? dd.value
-                                                return /*html*/ `<option value="${dd.value}" ${dd.value === formData[widget.data.key] ? `selected` : ``}>
-                                ${dd.name}
-                            </option>`;
-                                            }).join(''))
+                                                break
+                                            case 'img':
+                                            case 'input':
+                                                resolve(``)
+                                                break
+                                            default:
+                                                resolve(innerText)
+                                                break
                                         }
-                                        break
-                                    case 'img':
-                                    case 'input':
-                                        resolve(``)
-                                        break
-                                    default:
-                                        resolve(innerText)
-                                        break
+                                    })
+                                ];
+                                if((window.parent as any).editerData !== undefined && htmlGenerate.root){
+                                    view.push(glitter.htmlGenerate.getEditorSelectSection({
+                                        id:widget.id,
+                                        gvc:gvc,
+                                        label:widget.label
+                                    }));
                                 }
+
+                                resolve(view.join(''))
                             })
                         },
                         divCreate: getCreateOption,
@@ -295,7 +322,7 @@ export const widgetComponent = {
                                 })
                             }
                         },
-                        onDestroy:()=>{
+                        onDestroy: () => {
                             TriggerEvent.trigger({
                                 gvc,
                                 widget: widget as any,
@@ -437,7 +464,7 @@ export const widgetComponent = {
                                                             gvc: gvc,
                                                             title: "選項集合",
                                                             originalArray: widget.data.selectList,
-                                                            array: (()=>{
+                                                            array: (() => {
                                                                 return widget.data.selectList.map((dd: any, index: number) => {
                                                                     dd.visible = dd.visible ?? 'visible'
                                                                     return {
@@ -469,8 +496,14 @@ export const widgetComponent = {
                                                                                     gvc: gvc,
                                                                                     def: dd.visible ?? 'visible',
                                                                                     array: [
-                                                                                        {title: '隱藏', value: "invisible"},
-                                                                                        {title: '可選', value: "visible"}
+                                                                                        {
+                                                                                            title: '隱藏',
+                                                                                            value: "invisible"
+                                                                                        },
+                                                                                        {
+                                                                                            title: '可選',
+                                                                                            value: "visible"
+                                                                                        }
                                                                                     ],
                                                                                     callback: (text) => {
                                                                                         dd.visible = text
@@ -630,9 +663,9 @@ ${(() => {
                                                                             value: "code"
                                                                         },
                                                                         {
-                                                                        title: "HTML代碼",
-                                                                        value: "static_code"
-                                                                    }],
+                                                                            title: "HTML代碼",
+                                                                            value: "static_code"
+                                                                        }],
                                                                     callback: (text) => {
                                                                         widget.data.dataFrom = text;
                                                                         widget.refreshComponent();
@@ -680,7 +713,8 @@ ${(() => {
                                                                             widget.data.inner = text;
                                                                         }
                                                                     })
-                                                                } else if (widget.data.dataFrom === 'code_text'){
+
+                                                                } else if (widget.data.dataFrom === 'code_text') {
                                                                     return EditorElem.codeEditor({
                                                                         gvc: gvc,
                                                                         height: 200,
@@ -688,9 +722,10 @@ ${(() => {
                                                                         title: "代碼區塊",
                                                                         callback: (text) => {
                                                                             widget.data.inner = text
-                                                                        }
+                                                                        },
+                                                                        structStart:`((gvc,widget,object,subData,element)=>{`
                                                                     })
-                                                                }else{
+                                                                } else {
                                                                     return `<div class="mt-2"></div>` + TriggerEvent.editer(gvc, widget, widget.data.innerEvenet, {
                                                                         option: [],
                                                                         hover: false,
@@ -711,151 +746,181 @@ ${(() => {
                                         title: '特徵值',
                                         array: () => {
                                             return widget.data.attr.map((dd: any, index: number) => {
-                                                // TriggerEvent.editer(gvc, widget, widget.data)
                                                 dd.type = dd.type ?? 'par'
                                                 dd.attr = dd.attr ?? ""
                                                 dd.attrType = dd.attrType ?? "normal"
                                                 return {
                                                     title: dd.attr,
                                                     expand: dd,
-                                                    innerHtml: ((gvc: GVC) => {
-                                                        return gvc.map([
-                                                            EditorElem.select({
-                                                                title: "特徵類型",
-                                                                gvc: gvc,
-                                                                def: dd.type,
-                                                                array: [{
-                                                                    title: '參數', value: 'par'
-                                                                }, {
-                                                                    title: '事件', value: 'event'
-                                                                }, {
-                                                                    title: '附加值', value: 'append'
-                                                                }
-                                                                ],
-                                                                callback: (text) => {
-                                                                    dd.type = text
-                                                                    gvc.recreateView()
-                                                                    
-                                                                }
-                                                            }),
-                                                            (() => {
-                                                                if (dd.type === 'par') {
-                                                                    return gvc.map([
-                                                                        EditorElem.searchInput({
-                                                                            title: '特徵標籤',
-                                                                            gvc: gvc,
-                                                                            def: dd.attr,
-                                                                            array: ['src', 'placeholder', 'href'],
-                                                                            callback: (text: string) => {
-                                                                                dd.attr = text
-                                                                                
-                                                                            },
-                                                                            placeHolder: "請輸入特徵標籤"
-                                                                        }),
-                                                                        EditorElem.select({
-                                                                            title: '特徵類型',
-                                                                            gvc: gvc,
-                                                                            def: dd.attrType,
-                                                                            array: [
-                                                                                {title: "一般", value: 'normal'},
-                                                                                {title: "檔案連結", value: 'link'}],
-                                                                            callback: (text: string) => {
-                                                                                dd.attrType = text
-                                                                                gvc.recreateView()
-                                                                                
-                                                                            }
-                                                                        })
-                                                                    ])
-                                                                } else {
-                                                                    return EditorElem.searchInput({
-                                                                        title: '特徵標籤',
-                                                                        gvc: gvc,
-                                                                        def: dd.attr,
-                                                                        array: ['onclick', 'oninput', 'onchange', 'ondrag', 'onmouseover', 'onmouseout'],
-                                                                        callback: (text: string) => {
-                                                                            dd.attr = text
-                                                                            
-                                                                        },
-                                                                        placeHolder: "請輸入特徵標籤"
-                                                                    })
-                                                                }
-                                                            })(),
-                                                            (() => {
-                                                                if (dd.type === 'par') {
-                                                                    if ((['script', 'img'].indexOf(widget.data.elem) !== -1 && (dd.attr === 'src')) || dd.attrType === 'link') {
-                                                                        return EditorElem.uploadFile({
-                                                                            title: "資源路徑",
-                                                                            gvc: gvc,
-                                                                            def: dd.value ?? '',
-                                                                            callback: (text) => {
-                                                                                dd.value = text
-                                                                                gvc.recreateView()
-                                                                                
-                                                                            }
-                                                                        })
-                                                                    } else {
-                                                                        dd.valueFrom = dd.valueFrom ?? "manual"
+                                                    innerHtml: (() => {
+                                                        NormalPageEditor.closeEvent = () => {
+                                                            widget.refreshComponent();
+                                                        }
+                                                        NormalPageEditor.toggle({
+                                                            visible: true,
+                                                            title: '編輯特徵值',
+                                                            view: gvc.bindView(() => {
+                                                                const id = gvc.glitter.getUUID()
+                                                                return {
+                                                                    bind: id,
+                                                                    view: () => {
                                                                         return [
-                                                                            EditorElem.h3('參數內容'),
                                                                             EditorElem.select({
-                                                                                title: '',
+                                                                                title: "特徵來源",
                                                                                 gvc: gvc,
-                                                                                def: dd.valueFrom,
-                                                                                array: [
-                                                                                    {title: '帶入值', value: "manual"},
-                                                                                    {title: '程式碼', value: "code"}
+                                                                                def: dd.type,
+                                                                                array: [{
+                                                                                    title: '參數', value: 'par'
+                                                                                }, {
+                                                                                    title: '事件', value: 'event'
+                                                                                }, {
+                                                                                    title: '附加值', value: 'append'
+                                                                                }
                                                                                 ],
                                                                                 callback: (text) => {
-                                                                                    dd.valueFrom = text
-                                                                                    gvc.recreateView()
-                                                                                    
+                                                                                    dd.type = text
+                                                                                    gvc.notifyDataChange(id)
+
                                                                                 }
                                                                             }),
                                                                             (() => {
-                                                                                if (dd.valueFrom === 'code') {
-                                                                                    return EditorElem.codeEditor({
+                                                                                if (dd.type === 'par') {
+                                                                                    let parMap: any = [EditorElem.searchInput({
+                                                                                        title: '特徵標籤',
                                                                                         gvc: gvc,
-                                                                                        height: 200,
-                                                                                        initial: dd.value,
-                                                                                        title: '程式碼',
-                                                                                        callback: (data) => {
-                                                                                            dd.value = data
-                                                                                            
-                                                                                        }
+                                                                                        def: dd.attr,
+                                                                                        array: ['src', 'placeholder', 'href'],
+                                                                                        callback: (text: string) => {
+                                                                                            dd.attr = text
+
+                                                                                        },
+                                                                                        placeHolder: "請輸入特徵標籤"
+                                                                                    })]
+                                                                                    if (!((['script', 'img'].indexOf(widget.data.elem) !== -1 && (dd.attr === 'src')) || dd.attrType === 'link')) {
+                                                                                        parMap.push(EditorElem.select({
+                                                                                            title: '特徵類型',
+                                                                                            gvc: gvc,
+                                                                                            def: dd.attrType,
+                                                                                            array: [
+                                                                                                {
+                                                                                                    title: "一般",
+                                                                                                    value: 'normal'
+                                                                                                },
+                                                                                                {
+                                                                                                    title: "檔案連結",
+                                                                                                    value: 'link'
+                                                                                                }],
+                                                                                            callback: (text: string) => {
+                                                                                                dd.attrType = text
+                                                                                                gvc.notifyDataChange(id)
+
+                                                                                            }
+                                                                                        }))
+                                                                                    }
+                                                                                    return parMap.join('')
+                                                                                } else {
+                                                                                    return EditorElem.searchInput({
+                                                                                        title: '特徵標籤',
+                                                                                        gvc: gvc,
+                                                                                        def: dd.attr,
+                                                                                        array: ['onclick', 'oninput', 'onchange', 'ondrag', 'onmouseover', 'onmouseout'],
+                                                                                        callback: (text: string) => {
+                                                                                            dd.attr = text
+
+                                                                                        },
+                                                                                        placeHolder: "請輸入特徵標籤"
+                                                                                    })
+                                                                                }
+                                                                            })(),
+                                                                            (() => {
+                                                                                if (dd.type === 'par') {
+                                                                                    if ((['script', 'img'].indexOf(widget.data.elem) !== -1 && (dd.attr === 'src')) || dd.attrType === 'link') {
+                                                                                        return EditorElem.uploadFile({
+                                                                                            title: "資源路徑",
+                                                                                            gvc: gvc,
+                                                                                            def: dd.value ?? '',
+                                                                                            callback: (text) => {
+                                                                                                dd.value = text
+                                                                                                gvc.notifyDataChange(id)
+
+                                                                                            }
+                                                                                        })
+                                                                                    } else {
+                                                                                        dd.valueFrom = dd.valueFrom ?? "manual"
+                                                                                        return [
+                                                                                            EditorElem.h3('參數內容'),
+                                                                                            EditorElem.select({
+                                                                                                title: '',
+                                                                                                gvc: gvc,
+                                                                                                def: dd.valueFrom,
+                                                                                                array: [
+                                                                                                    {
+                                                                                                        title: '帶入值',
+                                                                                                        value: "manual"
+                                                                                                    },
+                                                                                                    {
+                                                                                                        title: '程式碼',
+                                                                                                        value: "code"
+                                                                                                    }
+                                                                                                ],
+                                                                                                callback: (text) => {
+                                                                                                    dd.valueFrom = text
+                                                                                                    gvc.notifyDataChange(id)
+
+                                                                                                }
+                                                                                            }),
+                                                                                            (() => {
+                                                                                                if (dd.valueFrom === 'code') {
+                                                                                                    return EditorElem.codeEditor({
+                                                                                                        gvc: gvc,
+                                                                                                        height: 200,
+                                                                                                        initial: dd.value,
+                                                                                                        title: '程式碼',
+                                                                                                        callback: (data) => {
+                                                                                                            dd.value = data
+
+                                                                                                        }
+                                                                                                    })
+                                                                                                } else {
+                                                                                                    return glitter.htmlGenerate.editeText({
+                                                                                                        gvc: gvc,
+                                                                                                        title: '',
+                                                                                                        default: dd.value ?? "",
+                                                                                                        placeHolder: `請輸入參數內容`,
+                                                                                                        callback: (text) => {
+                                                                                                            dd.value = text
+
+                                                                                                        }
+                                                                                                    })
+                                                                                                }
+                                                                                            })()
+                                                                                        ].join('<div class="my-1"></div>');
+
+                                                                                    }
+                                                                                } else if (dd.type === 'append') {
+                                                                                    return `<div class="mt-2"></div>` + TriggerEvent.editer(gvc, widget, dd, {
+                                                                                        option: [],
+                                                                                        hover: false,
+                                                                                        title: "顯示條件[請返回Bool值]"
                                                                                     })
                                                                                 } else {
-                                                                                    return glitter.htmlGenerate.editeText({
-                                                                                        gvc: gvc,
-                                                                                        title: '',
-                                                                                        default: dd.value ?? "",
-                                                                                        placeHolder: `請輸入參數內容`,
-                                                                                        callback: (text) => {
-                                                                                            dd.value = text
-                                                                                            
-                                                                                        }
+                                                                                    return `<div class="mt-2"></div>` + TriggerEvent.editer(gvc, widget, dd, {
+                                                                                        option: [],
+                                                                                        hover: false,
+                                                                                        title: "觸發事件"
                                                                                     })
                                                                                 }
                                                                             })()
-                                                                        ].join('<div class="my-1"></div>');
-
+                                                                        ].join('')
+                                                                    },
+                                                                    divCreate: {
+                                                                        class: `p-2`
                                                                     }
-                                                                } else if (dd.type === 'append') {
-                                                                    return `<div class="mt-2"></div>` + TriggerEvent.editer(gvc, widget, dd, {
-                                                                        option: [],
-                                                                        hover: false,
-                                                                        title: "顯示條件[請返回Bool值]"
-                                                                    })
-                                                                } else {
-                                                                    return `<div class="mt-2"></div>` + TriggerEvent.editer(gvc, widget, dd, {
-                                                                        option: [],
-                                                                        hover: false,
-                                                                        title: "觸發事件"
-                                                                    })
                                                                 }
-                                                            })()
-                                                        ])
+                                                            })
+                                                        })
                                                     }),
-                                                    saveEvent:()=>{
+                                                    saveEvent: () => {
                                                         widget.refreshComponent();
                                                     },
                                                     minus: gvc.event(() => {
@@ -875,16 +940,17 @@ ${(() => {
                                         },
                                         refreshComponent: () => {
                                             widget.refreshComponent();
-                                        }
+                                        },
+                                        customEditor: true
                                     })
                                 }</div>`
                             ].join('')
                         },
-                        onCreate:()=>{
-                           setTimeout(()=>{
-                               gvc.glitter.document.querySelector('.right_scroll')!.scrollTop=glitter.share.lastRightScrollTop
-                               console.log(`lastRightScrollTop-->`,glitter.share.lastRightScrollTop)
-                           })
+                        onCreate: () => {
+                            setTimeout(() => {
+                                gvc.glitter.document.querySelector('.right_scroll')!.scrollTop = glitter.share.lastRightScrollTop
+                                console.log(`lastRightScrollTop-->`, glitter.share.lastRightScrollTop)
+                            })
                         }
                     }
                 });

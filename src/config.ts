@@ -102,7 +102,8 @@ export const config = {
         app:'/app',
         wallet:'/wallet',
         article:'/article',
-        delivery:'/delivery'
+        delivery:'/delivery',
+        graph_api:'/graph_api'
     },
     route: {
         user: "/user",

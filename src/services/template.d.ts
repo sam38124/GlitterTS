@@ -59,6 +59,7 @@ export declare class Template {
         user_id?: string;
         me?: string;
         favorite?: string;
+        id?: string;
     }): Promise<any>;
     constructor(token?: IToken);
 }

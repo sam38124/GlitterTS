@@ -391,7 +391,7 @@ export class BgCustomerMessage {
                                         if (chatRoom.who === 'manager') {
                                             chatRoom.user_data = BgCustomerMessage.config;
                                         }
-                                        resolve(`<div class="navbar  d-flex align-items-center justify-content-between w-100  p-3" style="background: ${BgCustomerMessage.config.color};">
+                                        resolve(`<div class="navbar  d-flex align-items-center justify-content-between w-100  p-3 ${BgCustomerMessage.config.hideBar ? `d-none` : ``}" style="background: ${BgCustomerMessage.config.color};">
                       <div class="d-flex align-items-center pe-3 w-100" style="gap:10px;display: flex;align-items: center;">
                         <i class="fa-solid fa-chevron-left fs-6" style="color:white;cursor: pointer;" onclick="${gvc.event(() => {
                                             if (cf.user_id === 'manager') {
@@ -402,7 +402,7 @@ export class BgCustomerMessage {
                                                 cf.goBack();
                                             }
                                         })}"></i>
-                        <img src="${(chatRoom.type === 'user') ? ((chatRoom.user_data && chatRoom.user_data.head) || 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1704269678588-43.png') : `https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1704269678588-43.png`}" class="rounded-circle border" style="background: white;" width="40" alt="Albert Flores">
+                        <img src="${(chatRoom.type === 'user') ? ((chatRoom.user_data && chatRoom.user_data.head || chatRoom.user_data.head_img) || 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1704269678588-43.png') : `https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1704269678588-43.png`}" class="rounded-circle border" style="background: white;" width="40" alt="Albert Flores">
                         <h6 class="mb-0 px-1 text-white">${(chatRoom.type === 'user') ? ((chatRoom.user_data && chatRoom.user_data.name) || '訪客') : `群組`}</h6>
                         <div class="flex-fill" style="flex: 1;"></div>
                       <i class="fa-regular fa-circle-xmark text-white fs-3 ${(cf.close) ? `` : `d-none`}" onclick="${gvc.event(() => {
@@ -411,7 +411,7 @@ export class BgCustomerMessage {
                       </div>
                     </div>`);
                                     }));
-                                }
+                                },
                             };
                         }),
                         gvc.bindView(() => {
@@ -493,7 +493,7 @@ export class BgCustomerMessage {
                                     }
                                     return html `
                                         <div class="chatContainer p-3"
-                                             style="overflow-y: auto;height: calc(${cf.containerHeight} - 220px);background: white;">
+                                             style="overflow-y: auto;height: calc(${cf.containerHeight} - 220px);background: white;padding-bottom:80px !important;">
                                             ${vm.data.map((dd, index) => {
                                         if (dd.user_id == 'manager') {
                                             dd.user_data = BgCustomerMessage.config;
@@ -538,6 +538,9 @@ export class BgCustomerMessage {
                                                         </div>`;
                                         }
                                     }).join('')}
+                                            ${(vm.data.length === 0) ? `
+                                            <div class="w-100 text-center"><div class="badge bg-secondary">尚未展開對話，於下方輸入訊息並傳送。</div></div>
+                                            ` : ``}
                                         </div>
                                         <div class="card-footer border-top d-flex align-items-center w-100 border-0 pt-3 pb-3 px-4 position-absolute bottom-0 "
                                              style="background: white;">
@@ -823,10 +826,10 @@ position: absolute;right: -15px;top:-5px;font-size:11px;">${unReadCount}</div>
         const gvc = cf.gvc;
         const html = String.raw;
         cf.userID = `${cf.userID}`;
-        const chatID = [cf.userID, 'manager'].sort().join('-');
+        const chatID = [cf.userID, cf.toUser || 'manager'].sort().join('-');
         let open = cf.open || false;
         let vm = {
-            viewType: 'robot'
+            viewType: cf.viewType || 'robot'
         };
         return gvc.bindView(() => {
             const id = gvc.glitter.getUUID();
@@ -845,15 +848,17 @@ position: absolute;right: -15px;top:-5px;font-size:11px;">${unReadCount}</div>
                     style: `z-index:9999;bottom:0px;left:0px;`
                 },
                 onCreate: () => __awaiter(this, void 0, void 0, function* () {
-                    const keyData = ((yield ApiUser.getPublicConfig(`message_setting`, 'manager')).response.value) || {
-                        color: '#FE5541',
-                        head: 'https://liondesign-prd.s3.amazonaws.com/file/252530754/1695093945424-Frame 62 (1).png',
-                        name: '萊恩設計'
-                    };
-                    BgCustomerMessage.config = keyData;
+                    if (!cf.toUser) {
+                        const keyData = ((yield ApiUser.getPublicConfig(`message_setting`, 'manager')).response.value) || {
+                            color: '#FE5541',
+                            head: 'https://liondesign-prd.s3.amazonaws.com/file/252530754/1695093945424-Frame 62 (1).png',
+                            name: '萊恩設計'
+                        };
+                        BgCustomerMessage.config = keyData;
+                    }
                     yield Chat.post({
                         type: 'user',
-                        participant: [cf.userID, 'manager']
+                        participant: [cf.userID, cf.toUser || 'manager']
                     });
                     const css = String.raw;
                     const viewId = gvc.glitter.getUUID();
@@ -1016,13 +1021,88 @@ position: absolute;right: -15px;top:-5px;font-size:11px;">${unReadCount}</div>
             };
         });
     }
+    static userMessage(cf) {
+        const gvc = cf.gvc;
+        const html = String.raw;
+        cf.userID = `${cf.userID}`;
+        const chatID = [cf.userID, cf.toUser].sort().join('-');
+        return gvc.bindView(() => {
+            const id = gvc.glitter.getUUID();
+            return {
+                bind: id,
+                view: () => {
+                    return ``;
+                },
+                divCreate: {
+                    elem: 'web-component', option: [
+                        {
+                            key: 'id', value: id
+                        }
+                    ],
+                    class: `w-100 h-100`,
+                    style: `z-index:9999;bottom:0px;left:0px;`
+                },
+                onCreate: () => __awaiter(this, void 0, void 0, function* () {
+                    BgCustomerMessage.config.hideBar = cf.hideBar;
+                    BgCustomerMessage.config.color = cf.color;
+                    yield Chat.post({
+                        type: 'user',
+                        participant: [cf.userID, cf.toUser]
+                    });
+                    const css = String.raw;
+                    const viewId = gvc.glitter.getUUID();
+                    const chatView = `<div class="w-100 h-100" style="position: relative;">${BgCustomerMessage.detail({
+                        gvc: gvc,
+                        chat: {
+                            "chat_id": chatID,
+                            "type": "user",
+                        },
+                        user_id: cf.userID,
+                        containerHeight: `${cf.height}px`,
+                        document: document.querySelector('#' + id).shadowRoot,
+                        goBack: () => {
+                            gvc.notifyDataChange(viewId);
+                        },
+                        close: gvc.glitter.ut.frSize({
+                            sm: undefined
+                        }, () => {
+                            gvc.notifyDataChange(id);
+                        })
+                    })}</div>`;
+                    const baseUrl = new URL('../', import.meta.url);
+                    document.querySelector('#' + id).addStyleLink(baseUrl.href + `assets/css/theme.css`);
+                    document.querySelector('#' + id).addStyleLink(baseUrl.href + `assets/vendor/boxicons/css/boxicons.min.css`);
+                    document.querySelector('#' + id).addStyleLink(`https://kit.fontawesome.com/cccedec0f8.css`);
+                    document.querySelector('#' + id).addStyle(css `
+                      .btn-white-primary {
+                        border: 2px solid ${BgCustomerMessage.config.color};
+                        justify-content: space-between;
+                        align-items: center;
+                        cursor: pointer;
+                        color: ${BgCustomerMessage.config.color};
+                        gap: 10px;
+                      }
+
+                      .btn-white-primary:hover {
+                        background: ${BgCustomerMessage.config.color};
+                        color: white !important;
+                      }
+                    `);
+                    document.querySelector('#' + id).setView({
+                        gvc: gvc, view: chatView, id: id
+                    });
+                })
+            };
+        });
+    }
 }
 BgCustomerMessage.config = {
     color: 'rgb(254, 85, 65);',
     title: '',
     content: '',
     name: '',
-    head: ''
+    head: '',
+    hideBar: false
 };
 BgCustomerMessage.visible = false;
 BgCustomerMessage.vm = {

@@ -122,16 +122,25 @@ export declare class Shopping {
             use_rebate: number;
             orderID: string;
             shipment_support: string[];
+            use_wallet: number;
         };
+        is_free?: undefined;
+        off_line?: undefined;
+        form?: undefined;
+    } | {
+        is_free: boolean;
+        data?: undefined;
         off_line?: undefined;
         form?: undefined;
     } | {
         off_line: boolean;
         data?: undefined;
+        is_free?: undefined;
         form?: undefined;
     } | {
         form: any;
         data?: undefined;
+        is_free?: undefined;
         off_line?: undefined;
     }>;
     checkVoucher(cart: {

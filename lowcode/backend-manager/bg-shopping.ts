@@ -217,6 +217,7 @@ export class BgShopping {
                             "status": number,
                             "email": string,
                             "orderData": {
+                                use_wallet: number,
                                 "email": string,
                                 "total": number,
                                 discount: number,
@@ -411,7 +412,7 @@ ${orderData.orderData.lineItems.map((dd: any) => {
                                             bind: glitter.getUUID(),
                                             view: () => {
                                                 return new Promise(async (resolve, reject) => {
-                                                    resolve(`<img src="${dd.preview_image}" class="border rounded" style="width:60px;height:60px;">
+                                                    resolve(`<img src="${dd.preview_image || 'https://jmva.or.jp/wp-content/uploads/2018/07/noimage.png'}" class="border rounded" style="width:60px;height:60px;">
 <div class="d-flex flex-column" style="gap:5px;">
 <a class="fw-bold" style="color:#005bd3;">${dd.title}</a>
 <div class="d-flex">${dd.spec.map((dd: any) => {
@@ -495,6 +496,17 @@ ${[
                                                 title: "回饋金",
                                                 description: ``,
                                                 total: `- $${(orderData.orderData.use_rebate).toLocaleString()}`
+                                            }]
+                                        } else {
+                                            return []
+                                        }
+                                    })(),
+                                    ...(() => {
+                                        if (orderData.orderData.use_wallet) {
+                                            return [{
+                                                title: "錢包",
+                                                description: `使用錢包扣款`,
+                                                total: `- $${(orderData.orderData.use_wallet).toLocaleString()}`
                                             }]
                                         } else {
                                             return []
@@ -683,7 +695,7 @@ ${[
                                             case "normal":
                                             default:
                                                 return [`<div class="fw-bold fs-6">配送地址</div>`,
-                                                    `<div class="fw-normal fs-6">${orderData.orderData.user_info.address}</div>`,
+                                                    `<div class="fw-normal fs-6" style="white-space: normal;">${orderData.orderData.user_info.address}</div>`,
                                                     `<div class="my-2 bgf6" style="height: 1px;"></div>`].join('')
                                         }
                                     })()
@@ -1644,7 +1656,7 @@ ${EditorElem.editeInput({
                                                         },
                                                         {
                                                             key: '商品',
-                                                            value: `<img class="rounded border me-4" alt="" src="${dd.content.preview_image[0]}" style="width:40px;height:40px;">` + dd.content.title
+                                                            value: `<img class="rounded border me-4 ${dd.content.preview_image[0] ? `` : `d-none`}" alt="" src="${dd.content.preview_image[0] || 'https://jmva.or.jp/wp-content/uploads/2018/07/noimage.png'}" style="width:40px;height:40px;">` + dd.content.title
                                                         },
                                                         {
                                                             key: '狀態',
@@ -2103,7 +2115,7 @@ ${EditorElem.editeInput({
                 title: string,
                 content: string,
             },
-            template:string
+            template: string
         } = {
             title: '',
             content: '',
@@ -2116,14 +2128,14 @@ ${EditorElem.editeInput({
                 title: '',
                 content: ''
             },
-            template:''
+            template: ''
         }
         if (obj.type === 'replace') {
             postMD = obj.defData
         }
         const html = String.raw
         const gvc = obj.gvc
-        const seoID=gvc.glitter.getUUID()
+        const seoID = gvc.glitter.getUUID()
         return html`
             <div class="d-flex">
                 ${BgWidget.container(`<div class="d-flex w-100 align-items-center mb-3 ">
@@ -2671,19 +2683,19 @@ ${EditorElem.editeInput({
                             })}">編輯</div>
 </div>`,
                                 `<div class="fs-6 fw-500" style="color:#1a0dab;">${postMD.seo.title || '尚未設定'}</div>`,
-                                    (()=>{
-                                        const href=(()=>{
-                                            const url = new URL("", (gvc.glitter.share.editorViewModel.domain) ? `https://${gvc.glitter.share.editorViewModel.domain}/` : location.href)
-                                            url.search = ''
-                                            url.searchParams.set("page", postMD.template)
-                                            url.searchParams.set('product_id',postMD.id||'')
-                                            if(!gvc.glitter.share.editorViewModel.domain){
-                                                url.searchParams.set('appName',(window as any).appName)
-                                            }
-                                            return url.href
-                                        })()
-                                        return`<a class="fs-sm fw-500" style="color:#006621;cursor: pointer;" href="${href}">${href}</a>`
-                                    })(),
+                                (() => {
+                                    const href = (() => {
+                                        const url = new URL("", (gvc.glitter.share.editorViewModel.domain) ? `https://${gvc.glitter.share.editorViewModel.domain}/` : location.href)
+                                        url.search = ''
+                                        url.searchParams.set("page", postMD.template)
+                                        url.searchParams.set('product_id', postMD.id || '')
+                                        if (!gvc.glitter.share.editorViewModel.domain) {
+                                            url.searchParams.set('appName', (window as any).appName)
+                                        }
+                                        return url.href
+                                    })()
+                                    return `<a class="fs-sm fw-500" style="color:#006621;cursor: pointer;" href="${href}">${href}</a>`
+                                })(),
                                 `<div class="fs-sm fw-500" style="color:#545454;white-space: normal;">${postMD.seo.content || '尚未設定'}</div>`
                             ]
                             if (toggle) {
@@ -2716,19 +2728,19 @@ ${EditorElem.editeInput({
          <div style="width:300px;max-width:100%;">
        
          ${BgWidget.card(
-             `  ${postMD.id ? `
+                        `  ${postMD.id ? `
          ${EditorElem.h3('商品ID')}
          ${postMD.id}
-         `:``}`+
-             EditorElem.select({
-                    gvc: obj.gvc,
-                    title: '商品狀態',
-                    def: postMD.status,
-                    array: [{title: '啟用', value: 'active'}, {title: '草稿', value: 'draft'}],
-                    callback: (text: any) => {
-                        postMD.status = text
-                    }
-                }))}
+         ` : ``}` +
+                        EditorElem.select({
+                            gvc: obj.gvc,
+                            title: '商品狀態',
+                            def: postMD.status,
+                            array: [{title: '啟用', value: 'active'}, {title: '草稿', value: 'draft'}],
+                            callback: (text: any) => {
+                                postMD.status = text
+                            }
+                        }))}
 <div class="mt-2"></div>
 ${BgWidget.card(gvc.bindView(() => {
                     const id = gvc.glitter.getUUID()
@@ -2738,10 +2750,10 @@ ${BgWidget.card(gvc.bindView(() => {
                             return EditorElem.pageSelect(gvc, '選擇佈景主題', postMD.template ?? "", (data) => {
                                 postMD.template = data
                             }, (dd) => {
-                                const filter_result = dd.group !== 'glitter-article' && dd.page_type === 'article' && dd.page_config.template_type==='product'
-                                if (filter_result && !postMD.template ) {
-                                    postMD.template  = dd.tag
-                                    gvc.notifyDataChange([seoID,id])
+                                const filter_result = dd.group !== 'glitter-article' && dd.page_type === 'article' && dd.page_config.template_type === 'product'
+                                if (filter_result && !postMD.template) {
+                                    postMD.template = dd.tag
+                                    gvc.notifyDataChange([seoID, id])
                                 }
                                 return filter_result
                             })

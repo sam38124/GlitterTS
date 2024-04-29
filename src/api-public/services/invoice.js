@@ -18,9 +18,6 @@ class Invoice {
             const config = await app_js_1.default.getAdConfig(this.appName, "invoice_setting");
             switch (config.fincial) {
                 case "ezpay":
-                    if (!Invoice.checkWhiteList(config, cf.invoice_data)) {
-                        throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'PostInvoice Error:白名單驗證未通過', null);
-                    }
                     return await invoice_js_1.EzInvoice.postInvoice({
                         hashKey: config.hashkey,
                         hash_IV: config.hashiv,
@@ -45,6 +42,43 @@ class Invoice {
     async postCheckoutInvoice(orderID) {
         const order = (await database_js_1.default.query(`SELECT * FROM \`${this.appName}\`.t_checkout where cart_token=?`, [orderID]))[0]['orderData'];
         const config = await app_js_1.default.getAdConfig(this.appName, "invoice_setting");
+        order.total = order.total += (order.use_wallet || 0);
+        const line_item = order.lineItems.map((dd) => {
+            return {
+                ItemName: dd.title + (dd.spec.join('-') ? `/${dd.spec.join('-')}` : ``),
+                ItemUnit: '件',
+                ItemCount: dd.count,
+                ItemPrice: dd.sale_price,
+                ItemAmt: dd.sale_price * dd.count,
+            };
+        });
+        if (order.use_rebate) {
+            line_item.push({
+                ItemName: '回饋金',
+                ItemUnit: '-',
+                ItemCount: 1,
+                ItemPrice: order.use_rebate * -1,
+                ItemAmt: order.use_rebate,
+            });
+        }
+        if (order.discount) {
+            line_item.push({
+                ItemName: '折扣',
+                ItemUnit: '-',
+                ItemCount: 1,
+                ItemPrice: order.discount * -1,
+                ItemAmt: order.discount,
+            });
+        }
+        if (order.shipment_fee) {
+            line_item.push({
+                ItemName: '運費',
+                ItemUnit: '趟',
+                ItemCount: 1,
+                ItemPrice: order.shipment_fee,
+                ItemAmt: order.shipment_fee,
+            });
+        }
         if (config.fincial === 'ezpay') {
             const timeStamp = '' + new Date().getTime();
             const json = {
@@ -65,12 +99,12 @@ class Invoice {
                 TotalAmt: order.total,
                 Amt: Math.round(order.total / (1 + 5 / 100)),
                 TaxAmt: Math.round(order.total - order.total / (1 + 5 / 100)),
-                ItemName: order.lineItems.map((dd) => [dd.title].concat(dd.spec).join('-')).join('|'),
-                ItemUnit: order.lineItems.map((dd) => '件').join('|'),
-                ItemPrice: order.lineItems.map((dd) => dd.sale_price).join('|'),
-                ItemCount: order.lineItems.map((dd) => dd.count).join('|'),
-                ItemAmt: order.lineItems.map((dd) => dd.sale_price * dd.count).join('|'),
-                ItemTaxType: order.lineItems.map(() => '1').join('|'),
+                ItemName: line_item.map((dd) => dd.ItemName || dd.name).join('|'),
+                ItemUnit: line_item.map((dd) => dd.ItemUnit || '件').join('|'),
+                ItemPrice: line_item.map((dd) => dd.ItemPrice || dd.price).join('|'),
+                ItemCount: line_item.map((dd) => dd.ItemCount || dd.quantity).join('|'),
+                ItemAmt: line_item.map((dd) => dd.ItemAmt || dd.price * dd.quantity).join('|'),
+                ItemTaxType: line_item.map(() => '1').join('|'),
             };
             return await (this.postInvoice({
                 invoice_data: json
@@ -92,15 +126,15 @@ class Invoice {
                 TaxType: '1',
                 SalesAmount: order.total,
                 InvType: '07',
-                Items: order.lineItems.map((dd, index) => {
+                Items: line_item.map((dd, index) => {
                     return {
                         "ItemSeq": index + 1,
-                        "ItemName": dd.title + (dd.spec.join(' / ') && ` - ${dd.spec.join(' / ')}`),
-                        "ItemCount": dd.count,
-                        "ItemWord": "件",
-                        "ItemPrice": dd.sale_price,
+                        "ItemName": dd.ItemName,
+                        "ItemCount": dd.ItemCount,
+                        "ItemWord": dd.ItemUnit,
+                        "ItemPrice": dd.ItemPrice,
                         "ItemTaxType": "1",
-                        "ItemAmount": dd.sale_price * dd.count,
+                        "ItemAmount": dd.ItemAmt,
                         "ItemRemark": ""
                     };
                 })

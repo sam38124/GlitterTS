@@ -11,6 +11,7 @@ const private_config_js_1 = require("../../services/private_config.js");
 const redis_js_1 = __importDefault(require("../../modules/redis.js"));
 const user_js_1 = require("./user.js");
 const tool_js_1 = __importDefault(require("../../modules/tool.js"));
+const invoice_js_1 = require("./invoice.js");
 class Shopping {
     constructor(app, token) {
         this.app = app;
@@ -60,7 +61,7 @@ class Shopping {
                     return dd.id;
                 }).join(',')})
                                                       and order_id = cart_token
-                                                      and dead_line<?;`, [
+                                                      and dead_line < ?;`, [
                     new Date()
                 ])));
                 const trans = await database_js_1.default.Transaction.build();
@@ -101,7 +102,8 @@ class Shopping {
                    where ${querySql.join(' & ')} ${query.order_by || `order by id desc`}
         `;
         if (query.id) {
-            const data = (await database_js_1.default.query(`SELECT * FROM (${sql}) as subqyery limit ${query.page * query.limit}, ${query.limit}`, []))[0];
+            const data = (await database_js_1.default.query(`SELECT *
+                                          FROM (${sql}) as subqyery limit ${query.page * query.limit}, ${query.limit}`, []))[0];
             return {
                 data: data,
                 result: !!(data)
@@ -190,7 +192,6 @@ class Shopping {
                 }
                 ;
             });
-            console.log(`shipment_setting.support-->`, shipment_setting);
             const carData = {
                 lineItems: [],
                 total: 0,
@@ -200,7 +201,8 @@ class Shopping {
                 rebate: 0,
                 use_rebate: data.use_rebate || 0,
                 orderID: `${new Date().getTime()}`,
-                shipment_support: shipment_setting
+                shipment_support: shipment_setting,
+                use_wallet: 0
             };
             for (const b of data.lineItems) {
                 try {
@@ -267,8 +269,8 @@ class Shopping {
                     data: carData
                 };
             }
+            const userData = await (new user_js_1.User(this.app).getUserData(data.email || data.user_info.email, 'account'));
             if (carData.use_rebate) {
-                const userData = await (new user_js_1.User(this.app).getUserData(data.email || data.user_info.email, 'account'));
                 await database_js_1.default.query(`insert into \`${this.app}\`.t_rebate (orderID, userID, money, status, note)
                                 values (?, ?, ?, ?, ?);`, [
                     carData.orderID,
@@ -279,39 +281,67 @@ class Shopping {
                         note: '使用回饋金購物'
                     })
                 ]);
-                const sum = (await database_js_1.default.query(`SELECT sum(money)
-                                                 FROM \`${this.app}\`.t_wallet
-                                                 where status in (1, 2)
-                                                   and userID = ?`, [userData.userID]))[0]['sum(money)'] || 0;
-                if (sum < carData.total) {
-                    data.use_wallet = sum;
-                }
-                else {
-                    data.use_wallet = carData.total;
-                }
             }
-            const id = 'redirect_' + tool_js_1.default.randomString(6);
-            await redis_js_1.default.setValue(id, data.return_url);
-            const keyData = (await private_config_js_1.Private_config.getConfig({
-                appName: this.app, key: 'glitter_finance'
-            }))[0].value;
-            const subMitData = await (new financial_service_js_1.default(this.app, {
-                "HASH_IV": keyData.HASH_IV,
-                "HASH_KEY": keyData.HASH_KEY,
-                "ActionURL": keyData.ActionURL,
-                "NotifyURL": `${process.env.DOMAIN}/api-public/v1/ec/notify?g-app=${this.app}`,
-                "ReturnURL": `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&return=${id}`,
-                "MERCHANT_ID": keyData.MERCHANT_ID,
-                TYPE: keyData.TYPE
-            }).createOrderPage(carData));
-            if (keyData.TYPE === 'off_line') {
+            const sum = (await database_js_1.default.query(`SELECT sum(money)
+                                         FROM \`${this.app}\`.t_wallet
+                                         where status in (1, 2)
+                                           and userID = ?`, [userData.userID]))[0]['sum(money)'] || 0;
+            if (sum < carData.total) {
+                carData.use_wallet = sum;
+            }
+            else {
+                carData.use_wallet = carData.total;
+            }
+            carData.total -= carData.use_wallet;
+            if (carData.total === 0) {
+                await database_js_1.default.query(`insert into \`${this.app}\`.t_wallet (orderID, userID, money, status, note)
+                                values (?, ?, ?, ?, ?);`, [
+                    carData.orderID,
+                    userData.userID,
+                    carData.use_wallet * -1,
+                    1,
+                    JSON.stringify({
+                        note: '使用錢包購物'
+                    })
+                ]);
+                await database_js_1.default.execute(`insert into \`${this.app}\`.t_checkout (cart_token, status, email, orderData)
+                                  values (?, ?, ?, ?)`, [
+                    carData.orderID,
+                    1,
+                    carData.email,
+                    carData
+                ]);
+                if (carData.use_wallet > 0) {
+                    new invoice_js_1.Invoice(this.app).postCheckoutInvoice(carData.orderID);
+                }
                 return {
-                    off_line: true
+                    is_free: true
                 };
             }
-            return {
-                form: subMitData
-            };
+            else {
+                const id = 'redirect_' + tool_js_1.default.randomString(6);
+                await redis_js_1.default.setValue(id, data.return_url);
+                const keyData = (await private_config_js_1.Private_config.getConfig({
+                    appName: this.app, key: 'glitter_finance'
+                }))[0].value;
+                const subMitData = await (new financial_service_js_1.default(this.app, {
+                    "HASH_IV": keyData.HASH_IV,
+                    "HASH_KEY": keyData.HASH_KEY,
+                    "ActionURL": keyData.ActionURL,
+                    "NotifyURL": `${process.env.DOMAIN}/api-public/v1/ec/notify?g-app=${this.app}`,
+                    "ReturnURL": `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&return=${id}`,
+                    "MERCHANT_ID": keyData.MERCHANT_ID,
+                    TYPE: keyData.TYPE
+                }).createOrderPage(carData));
+                if (keyData.TYPE === 'off_line') {
+                    return {
+                        off_line: true
+                    };
+                }
+                return {
+                    form: subMitData
+                };
+            }
         }
         catch (e) {
             console.log(e);

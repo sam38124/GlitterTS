@@ -434,7 +434,7 @@ function userMode(gvc, id, searchText, type) {
                                                                             <div class="position-absolute w-100 h-100 d-flex align-items-center justify-content-center"
                                                                                  style="overflow: hidden;">
                                                                                 <img class="w-100 "
-                                                                                     src="${(_a = dd.preview_image) !== null && _a !== void 0 ? _a : 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1708434247510-未命名設計 (1).jpg'}"></img>
+                                                                                     src="${(_a = dd.preview_image) !== null && _a !== void 0 ? _a : 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713445383494-未命名(1080x1080像素).jpg'}"></img>
                                                                             </div>
 
                                                                             <div class="position-absolute w-100 h-100  align-items-center justify-content-center rounded "

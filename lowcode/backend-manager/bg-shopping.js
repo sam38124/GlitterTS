@@ -353,7 +353,7 @@ ${orderData.orderData.lineItems.map((dd) => {
                                         view: () => {
                                             return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
                                                 var _a;
-                                                resolve(`<img src="${dd.preview_image}" class="border rounded" style="width:60px;height:60px;">
+                                                resolve(`<img src="${dd.preview_image || 'https://jmva.or.jp/wp-content/uploads/2018/07/noimage.png'}" class="border rounded" style="width:60px;height:60px;">
 <div class="d-flex flex-column" style="gap:5px;">
 <a class="fw-bold" style="color:#005bd3;">${dd.title}</a>
 <div class="d-flex">${dd.spec.map((dd) => {
@@ -438,6 +438,18 @@ ${[
                                             title: "回饋金",
                                             description: ``,
                                             total: `- $${(orderData.orderData.use_rebate).toLocaleString()}`
+                                        }];
+                                }
+                                else {
+                                    return [];
+                                }
+                            })(),
+                            ...(() => {
+                                if (orderData.orderData.use_wallet) {
+                                    return [{
+                                            title: "錢包",
+                                            description: `使用錢包扣款`,
+                                            total: `- $${(orderData.orderData.use_wallet).toLocaleString()}`
                                         }];
                                 }
                                 else {
@@ -620,7 +632,7 @@ ${[
                                     case "normal":
                                     default:
                                         return [`<div class="fw-bold fs-6">配送地址</div>`,
-                                            `<div class="fw-normal fs-6">${orderData.orderData.user_info.address}</div>`,
+                                            `<div class="fw-normal fs-6" style="white-space: normal;">${orderData.orderData.user_info.address}</div>`,
                                             `<div class="my-2 bgf6" style="height: 1px;"></div>`].join('');
                                 }
                             })()
@@ -1529,7 +1541,7 @@ ${EditorElem.editeInput({
                                                     },
                                                     {
                                                         key: '商品',
-                                                        value: `<img class="rounded border me-4" alt="" src="${dd.content.preview_image[0]}" style="width:40px;height:40px;">` + dd.content.title
+                                                        value: `<img class="rounded border me-4 ${dd.content.preview_image[0] ? `` : `d-none`}" alt="" src="${dd.content.preview_image[0] || 'https://jmva.or.jp/wp-content/uploads/2018/07/noimage.png'}" style="width:40px;height:40px;">` + dd.content.title
                                                     },
                                                     {
                                                         key: '狀態',

@@ -45,6 +45,7 @@ export declare const config: {
         wallet: string;
         article: string;
         delivery: string;
+        graph_api: string;
     };
     route: {
         user: string;

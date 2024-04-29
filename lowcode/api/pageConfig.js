@@ -51,18 +51,18 @@ export class ApiPageConfig {
             })
         });
     }
-    static setDomain(domain) {
+    static setDomain(cf) {
         return BaseApi.create({
             "url": config.url + `/api/v1/app/domain`,
             "type": "PUT",
             "timeout": 0,
             "headers": {
                 "Content-Type": "application/json",
-                "Authorization": config.token
+                "Authorization": cf.token || config.token
             },
             data: JSON.stringify({
-                app_name: config.appName,
-                domain: domain
+                app_name: cf.app_name || config.appName,
+                domain: cf.domain
             })
         });
     }
@@ -84,7 +84,7 @@ export class ApiPageConfig {
             "timeout": 0,
             "headers": {
                 "Content-Type": "application/json",
-                "Authorization": config.token
+                "Authorization": request.token || config.token
             }
         });
     }
@@ -230,9 +230,34 @@ export class ApiPageConfig {
             })
         });
     }
+    static setPrivateConfigV2(cf) {
+        return BaseApi.create({
+            "url": config.url + `/api/v1/private`,
+            "type": "POST",
+            "headers": {
+                "Content-Type": "application/json",
+                "Authorization": config.token
+            },
+            data: JSON.stringify({
+                appName: cf.appName || config.appName,
+                key: cf.key,
+                value: cf.value
+            })
+        });
+    }
     static getPrivateConfig(appName, key) {
         return BaseApi.create({
             "url": config.url + `/api/v1/private?appName=${appName}&key=${key}`,
+            "type": "GET",
+            "headers": {
+                "Content-Type": "application/json",
+                "Authorization": config.token
+            }
+        });
+    }
+    static getPrivateConfigV2(key) {
+        return BaseApi.create({
+            "url": config.url + `/api/v1/private?appName=${config.appName}&key=${key}`,
             "type": "GET",
             "headers": {
                 "Content-Type": "application/json",

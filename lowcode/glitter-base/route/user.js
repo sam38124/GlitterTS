@@ -25,6 +25,17 @@ export class ApiUser {
             }
         });
     }
+    static getUsersData(userID) {
+        return BaseApi.create({
+            "url": getBaseUrl() + `/api-public/v1/user/userdata?userID=${userID}`,
+            "type": "GET",
+            "headers": {
+                "g-app": getConfig().config.appName,
+                "Content-Type": "application/json",
+                "Authorization": getConfig().config.token || GlobalUser.token
+            }
+        });
+    }
     static subScribe(email, tag) {
         return BaseApi.create({
             "url": getBaseUrl() + `/api-public/v1/user/subscribe`,
@@ -275,7 +286,7 @@ export class ApiUser {
     }
 }
 function getConfig() {
-    const saasConfig = window.saasConfig;
+    const saasConfig = window.parent.saasConfig;
     return saasConfig;
 }
 function getBaseUrl() {

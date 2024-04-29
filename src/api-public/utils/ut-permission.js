@@ -21,9 +21,14 @@ class UtPermission {
     }
     static isAppUser(req) {
         return new Promise(async (resolve, reject) => {
-            resolve((await database_js_1.default.query(`SELECT count(1)
+            try {
+                resolve((await database_js_1.default.query(`SELECT count(1)
                              FROM \`${req.get('g-app')}\`.t_user
                              where userID = ?`, [req.body.token.userID]))[0]['count(1)'] == 1);
+            }
+            catch (e) {
+                resolve(false);
+            }
         });
     }
 }

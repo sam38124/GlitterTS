@@ -159,9 +159,15 @@ export class Post {
             query.page = query.page ?? 0
             query.limit = query.limit ?? 10
             let querySql: any = []
+            query.id && querySql.push(`id=${query.id}`)
             query.search && query.search.split(',').map((dd: any) => {
-                const qu = dd.split('->')
-                querySql.push(`(content->>'$.${qu[0]}'='${qu[1]}')`)
+                if(dd.includes('->')){
+                    const qu = dd.split('->')
+                    querySql.push(`(content->>'$.${qu[0]}'='${qu[1]}')`)
+                }else  if(dd.includes('-|>')){
+                    const qu = dd.split('-|>')
+                    querySql.push(`(content->>'$.${qu[0]}' like '%${qu[1]}%')`)
+                }
             })
             return await new UtDatabase(this.app, (manager) ? `t_manager_post` : `t_post`).querySql(querySql, query);
         } catch (e) {

@@ -272,7 +272,7 @@ export class HtmlGenerate {
 <div type="button" class="btn  w-100 " style="background:white;width:calc(100%);border-radius:8px;
                     min-height:45px;border:1px solid black;color:#151515;" onclick="${
                     gvc.event(() => {
-                        glitter.openDiaLog("glitterBundle/plugins/dialog-style-editor.js", "dialog-style-editor", {
+                        glitter.openDiaLog("glitterBundle/plugins/style-editor.js", "dialog-style-editor", {
                             callback: () => {
                                 if (typeof widget === 'function') {
                                     widget()

@@ -1,5 +1,4 @@
 import { BaseApi } from "../../glitterBundle/api/base.js";
-import { GlobalUser } from "../global/global-user.js";
 export class ApiApp {
     constructor() {
     }
@@ -19,7 +18,7 @@ export class ApiApp {
             "headers": {
                 "Content-Type": "application/json",
                 "g-app": getConfig().config.appName,
-                "Authorization": GlobalUser.token
+                "Authorization": getConfig().config.token
             }
         });
     }
@@ -30,7 +29,7 @@ export class ApiApp {
             "headers": {
                 "Content-Type": "application/json",
                 "g-app": getConfig().config.appName,
-                "Authorization": GlobalUser.token
+                "Authorization": getConfig().config.token
             },
             data: JSON.stringify(json)
         });
@@ -42,14 +41,14 @@ export class ApiApp {
             "headers": {
                 "Content-Type": "application/json",
                 "g-app": getConfig().config.appName,
-                "Authorization": GlobalUser.token
+                "Authorization": getConfig().config.token
             },
             data: JSON.stringify(json)
         });
     }
 }
 function getConfig() {
-    const saasConfig = window.saasConfig;
+    const saasConfig = window.parent.saasConfig;
     return saasConfig;
 }
 function getBaseUrl() {

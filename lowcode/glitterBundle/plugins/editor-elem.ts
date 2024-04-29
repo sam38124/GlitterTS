@@ -5,6 +5,7 @@ import {GVC} from "../GVController.js";
 //@ts-ignore
 import autosize from "./autosize.js";
 import {BaseApi} from "../api/base.js";
+import {NormalPageEditor} from "../../editor/normal-page-editor.js";
 
 
 export class EditorElem {
@@ -458,7 +459,9 @@ ${addNewlineAfterSemicolon(obj.initial)}
 ${obj.initial ?? ""}
 ${(obj.structEnd) ? obj.structEnd : "})()"}`,
                             language: 'javascript',
-                            refactor: true
+                            refactor: true,
+                            structStart:obj.structStart,
+                            structEnd:obj.structEnd
                         }, domain);
                     } else if (event.data.data.callbackID === id) {
                         const array = event.data.data.value.split('\n')
@@ -1265,7 +1268,7 @@ ${obj.gvc.bindView(() => {
                             }, 100)
 
                         })}"
-                                        value="${obj.def}"
+                                        value="${obj.def.replace(/"/g,"'")}"
                                         onchange="${gvc.event((e: any) => {
                             changeInterval = setTimeout(() => {
                                 obj.def = e.value;
@@ -1583,34 +1586,16 @@ ${(obj.def === dd.value && dd.innerHtml) ? `<div class="mt-1">${dd.innerHtml}</d
     }) {
         const html = String.raw
         return `<button type="button" class="btn btn-primary-c  w-100" style="" onclick="${par.gvc.event(() => {
-            par.gvc.glitter.innerDialog((gvc: GVC) => {
-                return html`
-                    <div class="dropdown-menu mx-0 position-fixed pb-0 border p-0 show "
-                         style="z-index:999999;${(par.width) ? `width:${par.width + ';'}` : ``}"
-                         onclick="${gvc.event((e: any, event: any) => {
-                             event.preventDefault()
-                             event.stopPropagation()
-                         })}">
-                        <div class="d-flex align-items-center px-2 border-bottom"
-                             style="height:50px;min-width:400px;">
-                            <h3 style="font-size:15px;font-weight:500;" class="m-0">
-                                ${par.editTitle ? par.editTitle : `編輯內容`}</h3>
-                            <div class="flex-fill"></div>
-                            <div class="hoverBtn p-2" data-bs-toggle="dropdown"
-                                 aria-haspopup="true" aria-expanded="false"
-                                 style="color:black;font-size:20px;"
-                                 onclick="${gvc.event((e: any, event: any) => {
-                                     gvc.closeDialog()
-                                 })}"><i
-                                    class="fa-sharp fa-regular fa-circle-xmark"></i>
-                            </div>
-                        </div>
-                        <div class="px-2 pb-2 pt-2"
-                             style="max-height:calc(100vh - 150px);overflow-y:auto;">
+            const gvc=par.gvc
+            NormalPageEditor.toggle({
+                visible:true,
+                view:`
+                    <div class="p-2"
+                             style="overflow-y:auto;">
                             ${par.dialog(gvc)}
-                        </div>
-                    </div>`
-            }, par.gvc.glitter.getUUID())
+                        </div>`,
+                title:par.editTitle || ''
+            })
         })}">${par.editTitle}</button>`
     }
 
@@ -1658,6 +1643,9 @@ ${(obj.def === dd.value && dd.innerHtml) ? `<div class="mt-1">${dd.innerHtml}</d
                                 <div class="editor_item d-flex   px-2 my-0 hi me-n1  ${(dd.toggle || childSelect || obj.isOptionSelected(dd)) ? `active` : ``}"
                                      style=""
                                      onclick="${gvc.event(() => {
+                                         if(dd.type === 'container'){
+                                             dd.toggle = !dd.toggle
+                                         }
                                          obj.onOptionSelected(dd)
                                          gvc.notifyDataChange(parId)
                                      })}">
@@ -2043,8 +2031,8 @@ ${(obj.def === dd.value && dd.innerHtml) ? `<div class="mt-1">${dd.innerHtml}</d
                 </l1>` : ``)
         }
 
-        return (obj.title ? `<div class="d-flex  px-2 hi fw-bold d-flex align-items-center border-bottom border-top py-2 bgf6"
-                             style="color:#151515;font-size:16px;gap:0px;">
+        return (obj.title ? `<div class="d-flex  px-2 hi fw-bold d-flex align-items-center border-bottom  py-2 border-top bgf6"
+                             style="color:#151515;font-size:16px;gap:0px;height:48px;">
                             ${obj.title}
                             <div class="flex-fill"></div>
                           ${(obj.copyable !== false) ? `

@@ -8,6 +8,7 @@ import redis from "../../modules/redis.js";
 import {User} from "./user.js";
 import {Post} from "./post.js";
 import Tool from "../../modules/tool.js";
+import {Invoice} from "./invoice.js";
 
 interface VoucherData {
     title: string,
@@ -114,7 +115,7 @@ export class Shopping {
                                                         return dd.id
                                                     }).join(',')})
                                                       and order_id = cart_token
-                                                      and dead_line<?;`, [
+                                                      and dead_line < ?;`, [
                     new Date()
                 ])))
                 const trans = await db.Transaction.build();
@@ -158,7 +159,8 @@ export class Shopping {
                    where ${querySql.join(' & ')} ${query.order_by || `order by id desc`}
         `
         if (query.id) {
-            const data = (await db.query(`SELECT * FROM (${sql}) as subqyery limit ${query.page * query.limit}, ${query.limit}`, []))[0]
+            const data = (await db.query(`SELECT *
+                                          FROM (${sql}) as subqyery limit ${query.page * query.limit}, ${query.limit}`, []))[0]
             return {
                 data: data,
                 result: !!(data)
@@ -221,7 +223,7 @@ export class Shopping {
         "user_info": any,
         "code"?: string,
         "use_rebate"?: number,
-        "use_wallet"?:number
+        "use_wallet"?: number
     }, type: 'add' | 'preview' = 'add') {
         try {
             if (!data.email && type !== 'preview') {
@@ -258,20 +260,20 @@ export class Shopping {
                 weight: 0
             }])[0].value
             //物流設定
-            const shipment_setting:string[] = await new Promise(async (resolve, reject)=>{
-                try{
-                    resolve( ((await Private_config.getConfig({
+            const shipment_setting: string[] = await new Promise(async (resolve, reject) => {
+                try {
+                    resolve(((await Private_config.getConfig({
                         appName: this.app, key: 'logistics_setting'
                     })) ?? [{
-                        value:{
-                            support:[]
+                        value: {
+                            support: []
                         }
                     }])[0].value.support)
-                }catch (e) {
+                } catch (e) {
                     resolve([]);
-                };
+                }
+                ;
             })
-            console.log(`shipment_setting.support-->`,shipment_setting)
             //購物車資料
             const carData: {
                 lineItems: {
@@ -292,7 +294,8 @@ export class Shopping {
                 rebate: number,
                 use_rebate: number,
                 orderID: string,
-                shipment_support:string[]
+                shipment_support: string[],
+                use_wallet: number
             } = {
                 lineItems: [],
                 total: 0,
@@ -302,11 +305,12 @@ export class Shopping {
                 rebate: 0,
                 use_rebate: data.use_rebate || 0,
                 orderID: `${new Date().getTime()}`,
-                shipment_support:shipment_setting as any
+                shipment_support: shipment_setting as any,
+                use_wallet: 0
             }
             for (const b of data.lineItems) {
                 try {
-                 const pdDqlData = (await this.getProduct({
+                    const pdDqlData = (await this.getProduct({
                         page: 0, limit: 50, id: b.id,
                         status: 'active'
                     })).data
@@ -375,8 +379,8 @@ export class Shopping {
                     data: carData
                 }
             }
+            const userData = await (new User(this.app).getUserData(data.email! || data.user_info.email, 'account'));
             if (carData.use_rebate) {
-                const userData = await (new User(this.app).getUserData(data.email! || data.user_info.email, 'account'));
                 await db.query(`insert into \`${this.app}\`.t_rebate (orderID, userID, money, status, note)
                                 values (?, ?, ?, ?, ?);`, [
                     carData.orderID,
@@ -387,41 +391,71 @@ export class Shopping {
                         note: '使用回饋金購物'
                     })
                 ])
-                //判斷錢包是否有餘額
-                const sum = (await db.query(`SELECT sum(money)
-                                                 FROM \`${this.app}\`.t_wallet
-                                                 where status in (1, 2)
-                                                   and userID = ?`, [userData.userID]))[0]['sum(money)'] || 0
-                if (sum<carData.total) {
-                    data.use_wallet=sum
-                }else{
-                    data.use_wallet=carData.total
+            }
+            //判斷錢包是否有餘額
+            const sum = (await db.query(`SELECT sum(money)
+                                         FROM \`${this.app}\`.t_wallet
+                                         where status in (1, 2)
+                                           and userID = ?`, [userData.userID]))[0]['sum(money)'] || 0;
+
+            if (sum < carData.total) {
+                carData.use_wallet = sum
+            } else {
+                carData.use_wallet = carData.total
+            }
+
+            carData.total -= carData.use_wallet
+            //當不需付款時直接寫入，並開發票
+            if (carData.total === 0) {
+                await db.query(`insert into \`${this.app}\`.t_wallet (orderID, userID, money, status, note)
+                                values (?, ?, ?, ?, ?);`, [
+                    carData.orderID,
+                    userData.userID,
+                    carData.use_wallet * -1,
+                    1,
+                    JSON.stringify({
+                        note: '使用錢包購物'
+                    })
+                ])
+                await db.execute(`insert into \`${this.app}\`.t_checkout (cart_token, status, email, orderData)
+                                  values (?, ?, ?, ?)`, [
+                    carData.orderID,
+                    1,
+                    carData.email,
+                    carData
+                ]);
+                if (carData.use_wallet > 0) {
+                    new Invoice(this.app).postCheckoutInvoice(carData.orderID)
+                }
+                return {
+                    is_free: true
+                }
+            } else {
+                const id = 'redirect_' + Tool.randomString(6)
+                await redis.setValue(id, data.return_url)
+                const keyData = (await Private_config.getConfig({
+                    appName: this.app, key: 'glitter_finance'
+                }))[0].value
+                const subMitData = await (new FinancialService(this.app, {
+                    "HASH_IV": keyData.HASH_IV,
+                    "HASH_KEY": keyData.HASH_KEY,
+                    "ActionURL": keyData.ActionURL,
+                    "NotifyURL": `${process.env.DOMAIN}/api-public/v1/ec/notify?g-app=${this.app}`,
+                    "ReturnURL": `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&return=${id}`,
+                    "MERCHANT_ID": keyData.MERCHANT_ID,
+                    TYPE: keyData.TYPE
+                }).createOrderPage(carData));
+                //線下付款
+                if (keyData.TYPE === 'off_line') {
+                    return {
+                        off_line: true
+                    }
+                }
+                return {
+                    form: subMitData
                 }
             }
 
-            const id='redirect_'+Tool.randomString(6)
-            await redis.setValue(id,data.return_url)
-            const keyData = (await Private_config.getConfig({
-                appName: this.app, key: 'glitter_finance'
-            }))[0].value
-            const subMitData = await (new FinancialService(this.app, {
-                "HASH_IV": keyData.HASH_IV,
-                "HASH_KEY": keyData.HASH_KEY,
-                "ActionURL": keyData.ActionURL,
-                "NotifyURL": `${process.env.DOMAIN}/api-public/v1/ec/notify?g-app=${this.app}`,
-                "ReturnURL": `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&return=${id}`,
-                "MERCHANT_ID": keyData.MERCHANT_ID,
-                TYPE: keyData.TYPE
-            }).createOrderPage(carData));
-            //線下付款
-            if(keyData.TYPE==='off_line'){
-                return {
-                    off_line:true
-                }
-            }
-            return {
-                form: subMitData
-            }
         } catch (e) {
             console.log(e);
             throw exception.BadRequestError('BAD_REQUEST', 'ToCheckout Error:' + e, null);

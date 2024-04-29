@@ -31,7 +31,7 @@ export class ApiApp {
             "headers": {
                 "Content-Type": "application/json",
                 "g-app": getConfig().config.appName,
-                "Authorization": GlobalUser.token
+                "Authorization": getConfig().config.token
             }
         })
     }
@@ -46,7 +46,7 @@ export class ApiApp {
             "headers": {
                 "Content-Type": "application/json",
                 "g-app": getConfig().config.appName,
-                "Authorization": GlobalUser.token
+                "Authorization": getConfig().config.token
             },
             data: JSON.stringify(json)
         })
@@ -62,7 +62,7 @@ export class ApiApp {
             "headers": {
                 "Content-Type": "application/json",
                 "g-app": getConfig().config.appName,
-                "Authorization": GlobalUser.token
+                "Authorization": getConfig().config.token
             },
             data: JSON.stringify(json)
         })
@@ -72,7 +72,7 @@ export class ApiApp {
 }
 
 function getConfig() {
-    const saasConfig: { config: any; api: any } = (window as any).saasConfig;
+    const saasConfig: { config: any; api: any } = (window.parent as any).saasConfig;
     return saasConfig
 }
 

@@ -1,6 +1,7 @@
 import {HtmlJson, Plugin} from "../../glitterBundle/plugins/plugin-creater.js";
 import {Glitter} from "../../glitterBundle/Glitter.js";
 import {GVC} from "../../glitterBundle/GVController.js";
+import {TriggerEvent} from "../../glitterBundle/plugins/trigger-event.js";
 
 export const article = Plugin.createComponent(import.meta.url, (glitter: Glitter, editMode: boolean) => {
     return {

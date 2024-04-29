@@ -5,13 +5,9 @@ import {Swal} from '../modules/sweetAlert.js';
 import {Main_editor} from "./function-page/main_editor.js";
 import {Page_editor} from "./function-page/page_editor.js";
 import {Setting_editor} from "./function-page/setting_editor.js";
-import {Plugin_editor} from "./function-page/plugin_editor.js";
 import * as triggerBridge from "../editor-bridge/trigger-event.js";
 import {TriggerEvent} from "../glitterBundle/plugins/trigger-event.js";
-import {EditorElem} from "../glitterBundle/plugins/editor-elem.js";
 import {StoreHelper} from "../helper/store-helper.js";
-import {GlobalUser} from "../glitter-base/global/global-user.js";
-import {DialogInterface} from "../dialog/dialog-interface.js";
 import {Storage} from "../glitterBundle/helper/storage.js";
 import {ServerEditor} from "./function-page/server-editor/server-editor.js";
 import {AddComponent} from "../editor/add-component.js";
@@ -20,6 +16,8 @@ import {AddPage} from "../editor/add-page.js";
 import {SetGlobalValue} from "../editor/set-global-value.js";
 import {BgCustomerMessage} from "../backend-manager/bg-customer-message.js";
 import {PageCodeSetting} from "../editor/page-code-setting.js";
+import {NormalPageEditor} from "../editor/normal-page-editor.js";
+import {EditorConfig} from "../editor-config.js";
 
 const html = String.raw
 //
@@ -148,7 +146,6 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                         appName: gBundle.appName,
                         tag: glitter.getUrlParameter('page')
                     })).response.result[0];
-                    console.log(`page-seo-original--->`,viewModel.data.page_config.seo)
                     Storage.select_page_type = viewModel.data.page_type
                     if (data.result) {
                         data.response.result.map((dd: any) => {
@@ -330,6 +327,15 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                 callback && callback()
             });
         };
+
+        glitter.share.selectEditorItem = () => {
+            localStorage.setItem('rightSelect', 'module')
+            glitter.share.selectEditorItemTimer && clearInterval(glitter.share.selectEditorItemTimer)
+            glitter.share.selectEditorItemTimer = setTimeout(() => {
+                gvc.notifyDataChange(['MainEditorLeft', 'right_NAV'])
+            }, 10)
+            // gvc.notifyDataChange('htmlGenerate')
+        }
         glitter.share.reloadEditor = () => {
             viewModel.selectItem = undefined
             viewModel.selectContainer = undefined
@@ -353,13 +359,18 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                                                 ${[
                                                     {
                                                         src: `fa-regular fa-table-layout`,
-                                                        index: 'page-editor',
+                                                        index: 'user-editor',
                                                         hint: '頁面編輯'
                                                     },
                                                     {
                                                         src: `fa-regular fa-solid fa-list-check`,
                                                         index: 'backend-manger',
                                                         hint: '後台系統'
+                                                    },
+                                                    {
+                                                        src: `fa-solid fa-code`,
+                                                        index: 'page-editor',
+                                                        hint: '開發者模式'
                                                     },
                                                     // {
                                                     //     src: `fa-duotone fa-server`,
@@ -373,12 +384,15 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                                                     // },
                                                 ].map((da: any) => {
                                                     return html`<i
-                                                            class=" ${da.src} fs-5 fw-bold ${(Storage.select_function === `${da.index}`) ? `text-primary` : ``}  p-2 rounded"
+                                                            class=" ${da.src} fs-5 fw-bold   p-2 rounded"
                                                             data-bs-toggle="tooltip"
                                                             data-bs-placement="top"
                                                             data-bs-custom-class="custom-tooltip"
                                                             data-bs-title="${da.hint}"
-                                                            style="cursor:pointer;${(Storage.select_function === `${da.index}`) ? `background-color: rgba(10,83,190,0.1);` : ``}"
+                                                            style="cursor:pointer;
+${(Storage.select_function === `${da.index}`) ? `background-color: rgba(10,83,190,0.1);` : ``};
+${(Storage.select_function === `${da.index}`) ? `background:${EditorConfig.editor_layout.btn_background};color:white;` : ``}
+"
                                                             onclick="${gvc.event(() => {
                                                                 if (da.index === 'chat-message') {
                                                                     BgCustomerMessage.toggle(true, gvc)
@@ -386,6 +400,11 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                                                                     viewModel.waitCopy = undefined
                                                                     viewModel.selectItem = undefined
                                                                     Storage.select_function = da.index
+                                                                    if (da.index === 'page-editor') {
+                                                                        Storage.view_type = 'col3'
+                                                                    } else if (da.index === 'user-editor') {
+                                                                        Storage.view_type = 'desktop'
+                                                                    }
                                                                     gvc.notifyDataChange(editorContainerID)
                                                                 }
                                                             })}"></i>`
@@ -408,6 +427,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                                                 ${SetGlobalValue.leftNav(gvc)}
                                                 ${BgCustomerMessage.leftNav(gvc)}
                                                 ${PageCodeSetting.leftNav(gvc)}
+                                                ${NormalPageEditor.leftNav(gvc)}
                                                 <div class="h-100" style="">
                                                     ${gvc.bindView(() => {
                                                         return {
@@ -419,6 +439,20 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                                                                     case 'server-manager':
                                                                         return ServerEditor.left(gvc)
                                                                     case 'page-editor':
+                                                                    case 'user-editor':
+                                                                        //內容編輯模式不允許特定頁面，自動重導向。
+                                                                        if (Storage.select_function === 'user-editor') {
+                                                                            if (!viewModel.data.page_config || viewModel.data.page_config.support_editor !== 'true') {
+                                                                                const redirect = viewModel.dataList.find((dd: any) => {
+                                                                                    return dd.page_config && dd.page_config.support_editor==='true'
+                                                                                })
+                                                                                if(redirect){
+                                                                                    const url=new URL(location.href)
+                                                                                    url.searchParams.set('page',redirect.tag);
+                                                                                    location.href=url.href
+                                                                                }
+                                                                            }
+                                                                        }
                                                                         return Main_editor.left(gvc, viewModel, editorContainerID, gBundle)
                                                                     default:
                                                                         return Page_editor.left(gvc, viewModel, editorContainerID, gBundle)
@@ -521,6 +555,8 @@ function initialEditor(gvc: GVC, viewModel: any) {
     glitter.share.clearSelectItem = () => {
         viewModel.selectItem = undefined;
     }
+    //提供給編輯器使用
+    glitter.share.NormalPageEditor = NormalPageEditor
     //物件是否可選
     glitter.share.inspect = glitter.share.inspect ?? true
     //觸發事件橋接

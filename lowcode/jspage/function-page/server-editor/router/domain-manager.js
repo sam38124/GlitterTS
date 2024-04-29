@@ -17,6 +17,7 @@ window.glitter.setModule(import.meta.url, (gvc) => {
     return gvc.bindView(() => {
         const html = String.raw;
         const id = gvc.glitter.getUUID();
+        const config = window.parent.config;
         const vm = {
             type: 'list',
             data: {},
@@ -114,7 +115,9 @@ DNS設定至少需要10分鐘到72小時才會生效，如設定失敗可以稍�
 onclick="${gvc.event(() => {
                                                     const dialog = new ShareDialog(glitter);
                                                     dialog.dataLoading({ text: '', visible: true });
-                                                    ApiPageConfig.setDomain(viewModel.domain).then((response) => {
+                                                    ApiPageConfig.setDomain({
+                                                        domain: viewModel.domain
+                                                    }).then((response) => {
                                                         dialog.dataLoading({ text: '', visible: false });
                                                         if (response.result) {
                                                             gvc.closeDialog();

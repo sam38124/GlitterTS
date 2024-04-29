@@ -10,7 +10,7 @@ export const Storage:{
     //上次選擇的頁面添加按鈕,
     select_add_btn:'me' | 'official' | "view" | 'code' | 'ai' | "template" | 'copy',
     //左側的選擇功能
-    select_function:'page-editor' | 'backend-manger' | 'server-manager'
+    select_function:'page-editor' | 'backend-manger' | 'server-manager' | 'user-editor'
     //選擇的頁面編輯功能
     page_set_select:'normal' | 'seo' | 'module' | 'code' | 'form'
     //開發者模式
@@ -20,9 +20,11 @@ export const Storage:{
     //選擇的模塊編輯選項
     select_global_editor_tab:'view'|'event',
     //選擇的編輯開發功能
-    code_set_select:'style' | 'script' | 'code',
+    code_set_select:'style' | 'script' | 'code' | 'form',
     //後台點擊按鈕
-    select_bg_btn:'official'|'custom'
+    select_bg_btn:'official'|'custom',
+    //後台點擊選項
+    select_item:any
 }={
     get editor_mode(){
         return 'dev' as any
@@ -43,7 +45,11 @@ export const Storage:{
         localStorage.setItem('lastSelect',value)
     },
     get view_type(){
-        return localStorage.getItem('ViewType') as any
+        let response=localStorage.getItem('ViewType') as any
+        if(response==='col3' && Storage.select_function==='user-editor'){
+            response='desktop'
+        }
+        return response;
     },
     set view_type(value){
         localStorage.setItem('ViewType',value)
@@ -96,6 +102,12 @@ export const Storage:{
     },
     set select_bg_btn(value){
         localStorage.setItem('select_bg_btn',value)
+    },
+    get select_item(){
+        return (localStorage.getItem('select_item') || '0') as any
+    },
+    set select_item(value){
+        localStorage.setItem('select_item',value)
     }
 }
 

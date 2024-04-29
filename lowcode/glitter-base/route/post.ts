@@ -18,7 +18,7 @@ export class ApiPost {
             "headers": {
                 "Content-Type": "application/json",
                 "g-app": getConfig().config.appName,
-                "Authorization": json.token ?? GlobalUser.token
+                "Authorization": json.token || ((json.type === 'manager') ? getConfig().config.token :  GlobalUser.token)
             },
             data: JSON.stringify(json)
         })
@@ -52,7 +52,7 @@ export class ApiPost {
             "headers": {
                 "Content-Type": "application/json",
                 "g-app": getConfig().config.appName,
-                "Authorization": json.token || GlobalUser.token
+                "Authorization": json.token || ((json.type === 'manager') ? getConfig().config.token :  GlobalUser.token)
             },
             data: JSON.stringify(json)
         })
@@ -98,7 +98,7 @@ export class ApiPost {
         limit: number,
         page: number,
         type:string,
-        search?: string,
+        search?: string[],
         id?: string
     }) {
         return BaseApi.create({
@@ -106,10 +106,13 @@ export class ApiPost {
                 (() => {
                     let par = [
                         `limit=${json.limit}`,
-                        `page=${json.page}`,
-                        `type=${json.type}`
+                        `page=${json.page}`
                     ]
-                    json.search && par.push(`search=${json.search}`);
+                    const search:any=[`type->${json.type}`];
+                    json.search&&json.search.map((dd)=>{
+                        search.push(dd)
+                    })
+                    par.push(`search=${search.join(',')}`);
                     json.id && par.push(`id=${json.id}`);
                     return par.join('&')
                 })()
@@ -180,7 +183,7 @@ export class ApiPost {
 }
 
 function getConfig() {
-    const saasConfig: { config: any; api: any } = (window as any).saasConfig;
+    const saasConfig: { config: any; api: any } = (window.parent as any).saasConfig;
     return saasConfig
 }
 

@@ -346,7 +346,6 @@ router.post('/notify', upload.single('file'), async (req, resp) => {
             appName: appName, key: 'glitter_finance'
         }))[0].value;
         const url = new URL(`https://covert?${req.body.toString()}`);
-        console.log(req.body.toString());
         let decodeData = undefined;
         if (keyData.TYPE === 'ecPay') {
             let params = {};

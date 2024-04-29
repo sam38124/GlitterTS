@@ -1,6 +1,5 @@
 import express from "express";
 import response from "../../modules/response";
-import {Post} from "../services/post";
 import {EzInvoice} from "../services/ezpay/invoice";
 import app from "../../app";
 import {Invoice} from "../services/invoice.js";

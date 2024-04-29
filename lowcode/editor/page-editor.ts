@@ -1,9 +1,7 @@
 import {GVC} from "../glitterBundle/GVController.js";
 import Add_item_dia from "../glitterBundle/plugins/add_item_dia.js";
 import {Swal} from "../modules/sweetAlert.js";
-import {Main_editor} from "../jspage/function-page/main_editor.js";
 import {EditorElem} from "../glitterBundle/plugins/editor-elem.js";
-import {Dialog} from "../dialog/dialog-mobile.js";
 import {ShareDialog} from "../glitterBundle/dialog/ShareDialog.js";
 import {TriggerEvent} from "../glitterBundle/plugins/trigger-event.js";
 import {ApiPageConfig} from "../api/pageConfig.js";
@@ -11,8 +9,8 @@ import {HtmlGenerate} from "../glitterBundle/module/html-generate.js";
 import {FormWidget} from "../official_view_component/official/form.js";
 import {Storage} from "../glitterBundle/helper/storage.js";
 import {AddComponent} from "./add-component.js";
-import {SetGlobalValue} from "./set-global-value.js";
 import {BaseApi} from "../glitterBundle/api/base.js";
+import {NormalPageEditor} from "./normal-page-editor.js";
 
 
 const html = String.raw
@@ -160,26 +158,17 @@ export class PageEditor {
         },
         //選擇事件設定
         event_config: (gvc: GVC, eventSelect: (data: any) => void) => {
-            gvc.glitter.innerDialog((gvc: GVC) => {
-                const id = gvc.glitter.getUUID()
-                const vm: {
-                    select: 'official' | 'custom'
-                } = {
-                    select: "official"
-                }
-                return html`
-                    <div class="bg-white rounded" style="max-height:90vh;">
-                        <div class="d-flex w-100 border-bottom align-items-center" style="height:50px;">
-                            <h3 style="font-size:15px;font-weight:500;" class="m-0 ps-3">
-                                選擇觸發事件</h3>
-                            <div class="flex-fill"></div>
-                            <div class="hoverBtn p-2 me-2" style="color:black;font-size:20px;"
-                                 onclick="${gvc.event(() => {
-                                     gvc.closeDialog()
-                                 })}"
-                            ><i class="fa-sharp fa-regular fa-circle-xmark"></i>
-                            </div>
-                        </div>
+            NormalPageEditor.toggle({
+                visible:true,
+                title:`添加事件`,
+                view:(()=>{
+                    const id = gvc.glitter.getUUID()
+                    const vm: {
+                        select: 'official' | 'custom'
+                    } = {
+                        select: "official"
+                    }
+                    return html`
                         <div class="d-flex " style="">
                             <div>
                                 ${gvc.bindView(() => {
@@ -227,49 +216,49 @@ export class PageEditor {
                                                     <div style="width:300px;" class="border-end">
                                                         <div class="d-flex border-bottom ">
                                                             ${[
-                                                                {
-                                                                    key: 'official',
-                                                                    label: "官方事件"
-                                                                }
-                                                                , {
-                                                                    key: 'custom',
-                                                                    label: "客製插件"
-                                                                }
-                                                            ].map((dd: { key: string, label: string }) => {
-                                                                return `<div class="add_item_button ${(dd.key === vm.select) ? `add_item_button_active` : ``}" onclick="${
-                                                                        gvc.event((e, event) => {
-                                                                            (vm as any).select = dd.key
-                                                                            gvc.notifyDataChange(id)
-                                                                        })
-                                                                }">${dd.label}</div>`
-                                                            }).join('')}
+                                                {
+                                                    key: 'official',
+                                                    label: "官方事件"
+                                                }
+                                                , {
+                                                    key: 'custom',
+                                                    label: "客製插件"
+                                                }
+                                            ].map((dd: { key: string, label: string }) => {
+                                                return `<div class="add_item_button ${(dd.key === vm.select) ? `add_item_button_active` : ``}" onclick="${
+                                                        gvc.event((e, event) => {
+                                                            (vm as any).select = dd.key
+                                                            gvc.notifyDataChange(id)
+                                                        })
+                                                }">${dd.label}</div>`
+                                            }).join('')}
                                                         </div>
                                                         ${gvc.bindView(() => {
-                                                            return {
-                                                                bind: contentVM.leftID,
-                                                                view: () => {
-                                                                    return contentVM.leftBar
-                                                                },
-                                                                divCreate: {
-                                                                    class: ``,
-                                                                    style: `max-height:calc(90vh - 150px);height:490px;overflow-y:auto;`
-                                                                }
-                                                            }
-                                                        })}
+                                                return {
+                                                    bind: contentVM.leftID,
+                                                    view: () => {
+                                                        return contentVM.leftBar
+                                                    },
+                                                    divCreate: {
+                                                        class: ``,
+                                                        style: `min-height:100vh;overflow-y:auto;`
+                                                    }
+                                                }
+                                            })}
                                                     </div>
                                                     ${gvc.bindView(() => {
-                                                        return {
-                                                            bind: contentVM.rightID,
-                                                            view: () => {
-                                                                return contentVM.rightBar
-                                                            },
-                                                            divCreate: {}
-                                                        }
-                                                    })}
+                                                return {
+                                                    bind: contentVM.rightID,
+                                                    view: () => {
+                                                        return contentVM.rightBar
+                                                    },
+                                                    divCreate: {}
+                                                }
+                                            })}
                                                 </div>`
                                         },
                                         divCreate: {
-                                            style: `overflow-y:auto;`
+                                            style: `overflow-y:auto;`,class:`pb-3`
                                         },
                                         onCreate: () => {
 
@@ -278,83 +267,51 @@ export class PageEditor {
                                 })}
                             </div>
                         </div>
-                    </div>
                 `
-            }, "event_config")
+                })(),
+                width:650
+            })
         },
         //事件集設定
-        event_trigger_list: (gvc: GVC, left: string, right: string) => {
+        event_trigger_list: (gvc: GVC, left: string, right: string,title:string) => {
             const viewModel = gvc.glitter.share.editorViewModel
             viewModel.selectItem = undefined
-            gvc.glitter.innerDialog((gvc: GVC) => {
-                let searchText = ''
-                let searchInterval: any = 0
-                const id = gvc.glitter.getUUID()
-                const vm: {
-                    select: 'official' | 'custom'
-                } = {
-                    select: "official"
-                }
-                return html`
-                    <div class="bg-white rounded" style="max-height:90vh;">
-                        <div class="d-flex w-100 border-bottom align-items-center" style="height:50px;">
-                            <h3 style="font-size:15px;font-weight:500;" class="m-0 ps-3">
-                                事件叢集設定</h3>
-                            <div class="flex-fill"></div>
-                            <div class="hoverBtn p-2 me-2" style="color:black;font-size:20px;"
-                                 onclick="${gvc.event(() => {
-                                     gvc.closeDialog()
-
-                                 })}"
-                            ><i class="fa-sharp fa-regular fa-circle-xmark"></i>
-                            </div>
-                        </div>
-                        <div class="d-flex " style="">
-                            <div>
-                                ${gvc.bindView(() => {
-                                    return {
-                                        bind: id,
-                                        view: () => {
-                                            return html`
-                                                <div class="d-flex">
-                                                    <div style="width:350px;" class="border-end">
-                                                        ${gvc.bindView(() => {
-                                                            return {
-                                                                bind: gvc.glitter.getUUID(),
-                                                                view: () => {
-                                                                    return left
-                                                                },
-                                                                divCreate: {
-                                                                    class: ``,
-                                                                    style: `max-height:calc(90vh - 150px);height:490px;overflow-y:auto;`
-                                                                }
-                                                            }
-                                                        })}
-                                                    </div>
-                                                    ${gvc.bindView(() => {
-                                                        return {
-                                                            bind: gvc.glitter.getUUID(),
-                                                            view: () => {
-                                                                return right
-                                                            },
-                                                            divCreate: {}
-                                                        }
-                                                    })}
-                                                </div>`
-                                        },
-                                        divCreate: {
-                                            style: `overflow-y:auto;`
-                                        },
-                                        onCreate: () => {
-
-                                        }
+            NormalPageEditor.toggle({
+                visible:true,
+                title:title,
+                view:(()=>{
+                    const id = gvc.glitter.getUUID()
+                    return  `<div class="d-flex" style="">${
+                        [
+                            gvc.bindView(() => {
+                                return {
+                                    bind: gvc.glitter.getUUID(),
+                                    view: () => {
+                                        return left
+                                    },
+                                    divCreate: {
+                                        class: `border-end vh-100`,
+                                        style: `width:350px;`
                                     }
-                                })}
-                            </div>
-                        </div>
-                    </div>
-                `
-            }, gvc.glitter.getUUID())
+                                }
+                            }),
+                            gvc.bindView(() => {
+                                return {
+                                    bind: gvc.glitter.getUUID(),
+                                    view: () => {
+                                        return right
+                                    },
+                                    divCreate: {
+                                        class: ``,
+                                        style: `width:400px;`
+                                    }
+                                }
+                            })
+                        ].join('')
+                    }</div>`
+                })(),
+                width:750
+            })
         },
         //SEO和DOMAIN設定
         seo_with_domain: (gvc: GVC) => {
@@ -553,18 +510,25 @@ console.log(`selectEditEvent-->`)
                                                  eval(toggle)
                                                  return
                                              }
+                                             // alert(dd.active)
                                              if (option.selectEvent) {
                                                  option.selectEvent(dd)
-                                             } else if (dd.selectEditEvent) {
-                                                 viewModel.selectContainer = original
-                                                 viewModel.selectItem = dd
-                                                 Storage.lastSelect = dd.id;
-                                                 localStorage.setItem('rightSelect', 'module')
-                                                 // dd.selectEditEvent()
-                                                 setTimeout(() => {
-                                                     dd.selectEditEvent()
-                                                 }, 100)
+                                             } else if (dd.editorEvent) {
+                                                 dd.editorEvent()
+                                                 // viewModel.selectContainer = original
+                                                 // viewModel.selectItem = dd
+                                                 // Storage.lastSelect = dd.id;
+                                                 // localStorage.setItem('rightSelect', 'module')
+                                                 // // dd.selectEditEvent()
+                                                 // setTimeout(() => {
+                                                 //     dd.selectEditEvent()
+                                                 // }, 100)
 
+                                             }else{
+                                                 (document.querySelector('#editerCenter iframe') as any).contentWindow.$('.editorItemActive').removeClass('editorItemActive');
+                                                 (window.parent as any).glitter.share.editorViewModel.selectItem = dd;
+                                                 Storage.lastSelect = dd.id;
+                                                 (window.parent as any).glitter.share.selectEditorItem();
                                              }
 
                                          })}">
@@ -1887,7 +1851,6 @@ console.log(`selectEditEvent-->`)
                                 let addView = html`
                                     <button class="btn btn-primary-c" style="height: 40px;width: 100px;"
                                             onclick="${gvc.event(() => {
-                                                gvc.closeDialog()
                                                 callback(vm.selectValue)
                                             })}">
                                         <i class="fa-light fa-circle-plus me-2"></i>插入事件
@@ -1972,7 +1935,7 @@ console.log(`selectEditEvent-->`)
                         },
                         divCreate: () => {
                             return {
-                                class: ` h-100 p-2 d-flex flex-column`, style: `width:350px;`
+                                class: `p-2 d-flex flex-column`, style: `width:350px;`
                             }
                         },
                         onCreate: () => {
@@ -2192,7 +2155,7 @@ console.log(`selectEditEvent-->`)
             const saasConfig = (window as any).saasConfig
             return gvc.bindView(() => {
                 const id = glitter.getUUID()
-                let selectTag = obj.viewModel.tag;
+                let selectTag = obj.viewModel.tag
                 return {
                     bind: id,
                     view: () => {
@@ -2207,10 +2170,10 @@ console.log(`selectEditEvent-->`)
                                     htmlText: ''
                                 }
                                 new Promise(async (resolve, reject) => {
-                                    function getPageData(tag: string) {
+                                    function getPageData(tag: string,appName:string) {
                                         return new Promise((resolve, reject) => {
                                             BaseApi.create({
-                                                "url": saasConfig.config.url + `/api/v1/template?appName=${saasConfig.config.appName}&tag=${encodeURIComponent(tag)}`,
+                                                "url": saasConfig.config.url + `/api/v1/template?appName=${appName}&tag=${encodeURIComponent(tag)}`,
                                                 "type": "GET",
                                                 "timeout": 0,
                                                 "headers": {
@@ -2222,30 +2185,41 @@ console.log(`selectEditEvent-->`)
                                         })
                                     }
 
-                                    const pageData: any = await getPageData(selectTag);
+                                    const pageData: any = await getPageData(selectTag,saasConfig.config.appName);
+                                    if(gvc.glitter.share.editorViewModel.data.tag===pageData.tag){
+                                        gvc.glitter.share.editorViewModel.data.page_config=pageData.page_config;
+                                    }
+                                    glitter.share.editorViewModel.saveArray[pageData.id] = (() => {
+                                        return ApiPageConfig.setPage({
+                                            id: pageData.id,
+                                            appName: pageData.appName,
+                                            tag: pageData.tag,
+                                            page_config: pageData.page_config,
+                                        })
+                                    })
                                     let html = ''
-
                                     function appendHtml(pageData: any, initial: boolean) {
+                                        if(!pageData){
+                                            return ``
+                                        }
                                         const page_config = pageData.page_config
                                         page_config.formData=page_config.formData??{}
                                         if (page_config.formFormat && page_config.formFormat.length !== 0) {
-                                            const formView = FormWidget.editorView({
-                                                gvc: gvc,
-                                                array: page_config.formFormat,
-                                                refresh: () => {
-                                                    if(gvc.glitter.share.editorViewModel.data.tag===pageData.tag){
-                                                        gvc.glitter.share.editorViewModel.data.page_config=page_config;
-                                                    }
-                                                    glitter.share.editorViewModel.saveArray[pageData.id] = (() => {
-                                                        return ApiPageConfig.setPage({
-                                                            id: pageData.id,
-                                                            appName: pageData.appName,
-                                                            tag: pageData.tag,
-                                                            page_config: pageData.page_config,
+                                            const formView = gvc.bindView(()=>{
+                                                const id=gvc.glitter.getUUID()
+                                                return {
+                                                    bind:id,
+                                                    view:()=>{
+                                                        return FormWidget.editorView({
+                                                            gvc: gvc,
+                                                            array: page_config.formFormat,
+                                                            refresh: () => {
+                                                                gvc.notifyDataChange(id)
+                                                            },
+                                                            formData: page_config.formData
                                                         })
-                                                    })
-                                                },
-                                                formData: page_config.formData
+                                                    }
+                                                }
                                             })
                                             if (!initial) {
                                                 html += gvc.bindView(() => {
@@ -2281,9 +2255,12 @@ console.log(`selectEditEvent-->`)
                                             if (dd.type === 'container') {
                                                 await loop(dd.data.setting)
                                             } else if (dd.type === 'component') {
-                                                const pageData: any = await getPageData(dd.data.tag);
-                                                appendHtml(pageData, false)
-                                                await loop(pageData.config ?? [])
+                                                const pageData: any = await getPageData(dd.data.tag,dd.data.refer_app || (window as any).appName);
+                                                if(pageData){
+                                                    appendHtml(pageData, false)
+                                                    await loop(pageData.config ?? [])
+                                                }
+
                                             }
                                         }
                                     }
@@ -2363,7 +2340,7 @@ console.log(`selectEditEvent-->`)
                                     })}">表單設置
                             </button>
                         </div>
-                        <div class="p-2" style="max-height: calc(100vh - 110px);overflow-y:auto;overflow-x: hidden;">
+                        <div class="p-2" style="height: calc(100vh - 110px);overflow-y:auto;overflow-x: hidden;">
                             ${
                                     userEditorView()
                             }
@@ -2663,8 +2640,8 @@ console.log(`selectEditEvent-->`)
         const glitter = gvc.glitter
         const docID = glitter.getUUID()
         const vid = glitter.getUUID()
-        const viewModel = gvc.glitter.share.editorViewModel
-
+        const config = (window.parent as any).config
+        const viewModel = ((window.parent as any).glitter || (window as any).glitter).share.editorViewModel;
         return new Promise<{ left: string, right: string }>((resolve, reject) => {
             resolve({
                 left: gvc.bindView(() => {
@@ -2705,7 +2682,11 @@ DNS設定至少需要10分鐘到72小時才會生效，如設定失敗可以稍�
 onclick="${gvc.event(() => {
                                         const dialog = new ShareDialog(glitter);
                                         dialog.dataLoading({text: '', visible: true});
-                                        ApiPageConfig.setDomain(viewModel.domain).then((response) => {
+                                        ApiPageConfig.setDomain({
+                                            domain:viewModel.domain,
+                                            app_name:config.appName,
+                                            token:config.token
+                                        }).then((response) => {
                                             dialog.dataLoading({text: '', visible: false});
                                             if (response.result) {
                                                 gvc.closeDialog()

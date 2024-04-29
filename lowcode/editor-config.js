@@ -1,4 +1,18 @@
 export class EditorConfig {
+    static get editor_layout() {
+        switch ((window.glitterBase)) {
+            case 'shopnex':
+                return {
+                    main_color: '#FFB400',
+                    btn_background: 'linear-gradient(143deg, #FFB400 -22.7%, #FF6C02 114.57%);'
+                };
+            default:
+                return {
+                    main_color: '#295ed1',
+                    btn_background: '#295ed1',
+                };
+        }
+    }
 }
 EditorConfig.page_type_list = [
     {

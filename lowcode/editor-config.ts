@@ -1,4 +1,21 @@
 export class EditorConfig{
+    public static get   editor_layout():{
+        main_color:string,
+        btn_background:string
+    }{
+        switch (((window as any).glitterBase)){
+            case 'shopnex':
+                return {
+                    main_color:'#FFB400',
+                    btn_background:'linear-gradient(143deg, #FFB400 -22.7%, #FF6C02 114.57%);'
+                }
+            default:
+                return  {
+                    main_color:'#295ed1',
+                    btn_background:'#295ed1',
+                }
+        }
+    }
     public static page_type_list=[
         {
             title:'網站頁面',
@@ -17,4 +34,6 @@ export class EditorConfig{
             value:'form_plugin'
         }
     ]
+
+
 }

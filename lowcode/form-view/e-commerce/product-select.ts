@@ -16,58 +16,59 @@ CreateForm.setFormModule(import.meta.url,(bundle:{
         function refresh(){
             bundle.gvc.notifyDataChange(id)
         }
+        const vm={
+            title:''
+        }
+        ApiShop.getProduct({
+            page: 0,
+            limit: 50,
+            id: bundle.formData[bundle.key]
+        }).then((data) => {
+            if (data.result && data.response.result) {
+                vm.title=(data.response.data.content.title)
+            } else {
+                vm.title=('')
+            }
+            bundle.gvc.notifyDataChange(id)
+        })
         return {
             bind:id,
             view:()=>{
-                return new Promise(async (resolve, reject) => {
-                    const title = await new Promise((resolve, reject) => {
-                        ApiShop.getProduct({
-                            page: 0,
-                            limit: 50,
-                            id: bundle.formData[bundle.key]
-                        }).then((data) => {
-                            if (data.result && data.response.result) {
-                                resolve(data.response.data.content.title)
-                            } else {
-                                resolve('')
-                            }
-                        })
-                    })
-                    resolve(EditorElem.searchInputDynamic({
-                        title: '搜尋商品',
-                        gvc: bundle.gvc,
-                        def: title as string,
-                        search: (text, callback) => {
-                            clearInterval(interval)
-                            interval = setTimeout(() => {
-                                ApiShop.getProduct({
-                                    page: 0,
-                                    limit: 50,
-                                    search: ''
-                                }).then((data) => {
-                                    callback(data.response.data.map((dd: any) => {
-                                        return dd.content.title
-                                    }))
-                                })
-                            }, 100)
-                        },
-                        callback: (text) => {
+                return EditorElem.searchInputDynamic({
+                    title: '搜尋商品',
+                    gvc: bundle.gvc,
+                    def: vm.title,
+                    search: (text, callback) => {
+                        clearInterval(interval)
+                        interval = setTimeout(() => {
                             ApiShop.getProduct({
                                 page: 0,
                                 limit: 50,
-                                search: text
+                                search: ''
                             }).then((data) => {
-                                bundle.formData[bundle.key] = data.response.data.find((dd: any) => {
-                                    return dd.content.title === text
-                                }).id
+                                callback(data.response.data.map((dd: any) => {
+                                    return dd.content.title
+                                }))
                             })
-                        },
-                        placeHolder: '請輸入商品名稱'
-                    }))
+                        }, 100)
+                    },
+                    callback: (text) => {
+                        ApiShop.getProduct({
+                            page: 0,
+                            limit: 50,
+                            search: text
+                        }).then((data) => {
+                            bundle.formData['product_title'] =  text;
+                            bundle.formData[bundle.key] = data.response.data.find((dd: any) => {
+                                return dd.content.title === text
+                            }).id
+                        })
+                    },
+                    placeHolder: '請輸入商品名稱'
                 })
             },
             divCreate:{
-                style:'min-height:200px;'
+                style:''
             }
         }
     })

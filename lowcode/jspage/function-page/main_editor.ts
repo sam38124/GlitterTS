@@ -12,6 +12,7 @@ import {TriggerEvent} from "../../glitterBundle/plugins/trigger-event.js";
 import {ApiPageConfig} from "../../api/pageConfig.js";
 import {Storage} from "../../glitterBundle/helper/storage.js";
 import {AddComponent} from "../../editor/add-component.js";
+import {NormalPageEditor} from "../../editor/normal-page-editor.js";
 
 
 enum ViewType {
@@ -44,18 +45,245 @@ export class Main_editor {
                         })
                     }
 
-                    checkSelect((viewModel.data! as any).config)
-Storage.lastSelect
-
+                    checkSelect((viewModel.data! as any).config);
                     if ((Storage.view_type === ViewType.col3) || (Storage.view_type === ViewType.mobile)) {
                         gvc.notifyDataChange('right_NAV')
                     }
-                    if (viewModel.selectItem && (Storage.view_type !== ViewType.col3) && (Storage.view_type !== ViewType.mobile) &&
-                        (viewModel.selectItem.type !== 'code') && (viewModel.selectItem.type !== 'widget' || (viewModel.selectItem.data.elem !== 'style' && viewModel.selectItem.data.elem !== 'link' && viewModel.selectItem.data.elem !== 'script'))) {
+                    if (viewModel.selectItem && viewModel.selectItem.type && (((Storage.view_type !== ViewType.col3) && (Storage.view_type !== ViewType.mobile)) || (Storage.select_function === 'user-editor')) &&
+                        (viewModel.selectItem.type !== 'code') && (viewModel.selectItem.type !== 'widget' || (viewModel.selectItem.data.elem !== 'style' && viewModel.selectItem.data.elem !== 'link' && viewModel.selectItem.data.elem !== 'script'))
+
+                    ) {
+                        console.log(`viewModel.selectItem-is->`, viewModel.selectItem)
                         return Main_editor.pageAndComponent({
                             gvc: gvc,
                             data: viewModel
                         })
+                    } else if (Storage.select_function === 'user-editor') {
+                        return [
+                            html`
+                                <div class="px-3   border-bottom pb-3 fw-bold mt-2 pt-2"
+                                     style="cursor: pointer;color:#393939;" onclick="${gvc.event(() => {
+                                    Storage.lastSelect = '';
+                                    (window.parent as any).glitter.share.editorViewModel.selectItem = undefined;
+                                    (window.parent as any).glitter.share.selectEditorItem();
+                                })}">
+                                    <span>${viewModel.data.name}</span>
+                                </div>
+                            `,
+                            `    ${(() => {
+                                return gvc.map([
+                                    (() => {
+                                        let pageConfig = ((viewModel.data! as any).config.filter((dd: any, index: number) => {
+                                            return (dd.type !== 'code') && (dd.type !== 'widget' || (dd.data.elem !== 'style' && dd.data.elem !== 'link' && dd.data.elem !== 'script'))
+                                        }));
+
+                                        function setPageConfig() {
+                                            (viewModel.data! as any).config = pageConfig.concat(((viewModel.data! as any).config.filter((dd: any, index: number) => {
+                                                    return !((dd.type !== 'code') && (dd.type !== 'widget' || (dd.data.elem !== 'style' && dd.data.elem !== 'link' && dd.data.elem !== 'script')))
+                                                })
+                                            ));
+                                            try {
+                                                viewModel.dataList.find((dd: any) => {
+                                                    return dd.tag === viewModel.data.tag
+                                                }).config = (viewModel.data! as any).config;
+                                                pageConfig = (viewModel.data! as any).config
+                                            } catch (e) {
+                                            }
+                                            gvc.notifyDataChange(vid)
+                                        }
+
+                                        const list: any = [];
+
+                                        function loop(array: any, list: any) {
+                                            array.map((dd: any) => {
+                                                if (dd.type === 'container') {
+                                                    let child: any = [];
+                                                    loop(dd.data.setting, child);
+                                                    list.push({
+                                                        "type": "container",
+                                                        "title": dd.label || '容器',
+                                                        "child": child,
+                                                        "info": dd,
+                                                        "array": dd.data.setting,
+                                                        "toggle": dd.toggle ?? false
+                                                    })
+
+                                                } else {
+                                                    list.push({
+                                                        "title": dd.label || '元件',
+                                                        "index": 0,
+                                                        "info": dd,
+                                                        "array": array,
+                                                        "toggle": dd.toggle ?? false
+                                                    })
+                                                }
+                                            })
+                                        }
+
+                                        loop(pageConfig, list);
+
+                                      
+                                        function renderItems(list: any, og_array: any) {
+                                            return gvc.bindView(() => {
+                                                const id = gvc.glitter.getUUID()
+                                                return {
+                                                    bind: id,
+                                                    view: () => {
+                                                        let lastClick=gvc.glitter.ut.clock()
+                                                        return list.map((dd: any, index: any) => {
+                                                            og_array[index].visible=og_array[index].visible ?? true;
+                                                            return html`
+                                                                <li>
+                                                                    <div class="w-100 fw-500 d-flex align-items-center  fs-6 hoverBtn h_item  rounded px-2 hoverF2 mb-1"
+                                                                         style="gap:5px;color:#393939;${(dd.toggle && dd.type==='container') ? `border-radius: 5px;background: #F2F2F2;` : ``}"
+                                                                         onclick="${gvc.event(() => {
+                                                                             if(lastClick.stop()>0.1){
+                                                                                 dd.toggle = !dd.toggle;
+                                                                                 dd.info && (dd.info.toggle = !dd.info.toggle);
+                                                                                 gvc.notifyDataChange(id)
+                                                                                 dd.info.editorEvent()
+                                                                             }
+                                                                           
+                                                                         })}"
+                                                                    >
+                                                                        ${(dd.type === 'container') ? `
+                                                                          <div class="hoverBtn p-1"
+                                                                             onclick="${gvc.event((e, event) => {
+                                                                            lastClick.zeroing()
+                                                                            event.preventDefault();
+                                                                            event.stopPropagation();
+                                                                            dd.toggle = !dd.toggle;
+                                                                            dd.info && (dd.info.toggle = !dd.info.toggle);
+                                                                            gvc.notifyDataChange(id)
+                                                                        })}">
+                                                                               ${((!dd.toggle) ? `
+                                            <i class="fa-regular fa-angle-right hoverBtn me-1" aria-hidden="true"></i>
+                                            ` : `<i class="fa-regular fa-angle-down hoverBtn me-1" aria-hidden="true"></i>`) }
+                                                                        </div>
+                                                                        `:``}
+                                                                        ${dd.icon ? `<img src="${dd.icon}" style="width:18px;height:18px;">` : ``}
+                                                                        <span>${dd.title}</span>
+                                                                        <div class="flex-fill"></div>
+                                                                        <div class="hoverBtn p-1"
+                                                                             onclick="${gvc.event((e, event) => {
+                                                                                 lastClick.zeroing()
+                                                                                 event.stopPropagation();
+                                                                                 function deleteBlock() {
+                                                                                     viewModel.selectItem = undefined;
+                                                                                     if ((document.querySelector('#editerCenter iframe') as any).contentWindow.document.querySelector(`.editor_it_${og_array[index].id}`)) {
+                                                                                         (document.querySelector('#editerCenter iframe') as any).contentWindow.glitter.$(`.editor_it_${og_array[index].id}`).parent().remove()
+                                                                                     }
+                                                                                     og_array.splice(index,1)
+                                                                                     gvc.notifyDataChange('MainEditorLeft');
+                                                                                     
+                                                                                 }
+                                                                                 deleteBlock()
+                                                                             })}">
+                                                                            <i class="fa-regular fa-trash d-flex align-items-center justify-content-center "></i>
+                                                                        </div>
+                                                                        <div class="hoverBtn p-1"
+                                                                             onclick="${gvc.event((e, event) => {
+                                                                                 lastClick.zeroing()
+                                                                                 event.stopPropagation();
+                                                                                 og_array[index].visible=!og_array[index].visible
+                                                                                 setPageConfig()
+                                                                                 if(og_array[index].visible){
+                                                                                     (document.querySelector('#editerCenter iframe')! as any).contentWindow.glitter.$(`.editor_it_${og_array[index].id}`).parent().show();
+                                                                                 }else{
+                                                                                     (document.querySelector('#editerCenter iframe')! as any).contentWindow.glitter.$(`.editor_it_${og_array[index].id}`).parent().hide();
+                                                                                 }
+                                                                             })}">
+                                                                            <i class="${(og_array[index].visible) ? `fa-regular fa-eye`:`fa-solid fa-eye-slash`} d-flex align-items-center justify-content-center " style="width:15px;height:15px;"
+                                                                               aria-hidden="true"></i>
+                                                                        </div>
+                                                                        <div class="hoverBtn p-1 dragItem"
+                                                                             >
+                                                                            <i class="fa-solid fa-grip-dots-vertical d-flex align-items-center justify-content-center  "
+                                                                               style="width:15px;height:15px;"
+                                                                               aria-hidden="true"></i>
+                                                                        </div>
+                                                                    </div>
+                                                                    ${(dd.type === 'container' ? `<div class="ps-2  pb-2 ${dd.toggle ? `` : `d-none`}">${renderItems(dd.child, dd.array)}</div>` : ``)}
+                                                                </li>
+                                                            `
+                                                        }).join('')
+                                                    },
+                                                    divCreate: {
+                                                        elem: 'ul',
+                                                        class: `m-0 `,
+                                                        option: [
+                                                            {
+                                                                key: 'id', value: id
+                                                            }
+                                                        ]
+                                                    },
+                                                    onCreate: () => {
+                                                        gvc.glitter.addMtScript([{
+                                                            src: `https://raw.githack.com/SortableJS/Sortable/master/Sortable.js`
+                                                        }], () => {
+                                                        }, () => {
+                                                        })
+                                                        const interval = setInterval(() => {
+                                                            if ((window as any).Sortable) {
+                                                                try {
+                                                                    gvc.addStyle(`ul {
+  list-style: none;
+  padding: 0;
+}`)
+
+                                                                    function swapArr(arr: any, index1: number, index2: number) {
+                                                                        const data = arr[index1];
+                                                                        arr.splice(index1, 1);
+                                                                        arr.splice(index2, 0, data);
+                                                                    }
+
+                                                                    let startIndex = 0
+                                                                    //@ts-ignore
+                                                                    Sortable.create(document.getElementById(id), {
+                                                                        group: gvc.glitter.getUUID(),
+                                                                        animation: 100,
+                                                                        handle: '.dragItem',
+                                                                        // Called when dragging element changes position
+                                                                        onChange: function (evt: any) {
+                                                                            swapArr(og_array, startIndex, evt.newIndex);
+                                                                            startIndex = evt.newIndex
+                                                                        },
+                                                                        onEnd: (evt: any) => {
+                                                                            setPageConfig();
+                                                                            swapArr(og_array, startIndex, evt.newIndex);
+                                                                            gvc.notifyDataChange('showView')
+                                                                        },
+                                                                        onStart: function (evt: any) {
+                                                                            startIndex = evt.oldIndex
+                                                                        }
+                                                                    });
+                                                                } catch (e) {
+                                                                }
+                                                                clearInterval(interval)
+                                                            }
+                                                        }, 100)
+                                                    }
+                                                }
+                                            })
+                                        }
+
+                                        return html`
+                                            <div class="p-2">
+                                                ${renderItems(list, pageConfig)}
+                                            </div>`
+                                        return new PageEditor(gvc, 'MainEditorLeft', 'MainEditorRight').renderLineItem(pageConfig, false, pageConfig, {
+                                            selectEv: (dd) => {
+                                                return dd.id === Storage.lastSelect
+                                            },
+                                            refreshEvent: () => {
+                                                setPageConfig()
+                                            }
+                                        })
+                                    })()
+
+                                ])
+                            })()}`
+                        ].join('')
                     } else {
                         return html`
                             <li class="w-100 align-items-center  d-flex editor_item_title  start-0 bg-white z-index-9"
@@ -69,7 +297,7 @@ Storage.lastSelect
                                      style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;"
                                      onclick="${gvc.event(() => {
                                          glitter.share.editorViewModel.selectContainer = glitter.share.editorViewModel.data.config
-                                        AddComponent.toggle(true)
+                                         AddComponent.toggle(true)
                                      })}">
                                     <i class="fa-regular fa-circle-plus"></i>
                                 </div>
@@ -121,12 +349,12 @@ Storage.lastSelect
                     const htmlGenerate = new gvc.glitter.htmlGenerate((viewModel.data! as any).config, [Storage.lastSelect], undefined, true);
                     (window as any).editerData = htmlGenerate;
                     (window as any).page_config = (viewModel.data! as any).page_config
-                    setTimeout(()=>{
+                    setTimeout(() => {
                         document.querySelector('.selectLeftItem')!.scrollIntoView({
                             behavior: 'auto', // 使用平滑滾動效果
                             block: 'center', // 將元素置中
                         })
-                    },1000)
+                    }, 1000)
                 }
             }
         })
@@ -210,21 +438,22 @@ Storage.lastSelect
                 }
             })
         }
+
         return [html`
-            <div class="right_scroll" style="overflow-y:auto;height:calc(100vh - 150px)" onscroll="${gvc.event(()=>{
-                if(document.querySelector('.right_scroll')!.scrollTop>0){
-                    glitter.share.lastRightScrollTop=document.querySelector('.right_scroll')!.scrollTop;
-                }
-             
-                console.log(`lastRightScrollTopChange-->`,glitter.share.lastRightScrollTop)
-            })}">
+            <div class="right_scroll"
+                 style="overflow-y:auto;${(Storage.select_function === 'user-editor') ? `height:calc(100vh - 50px)` : `height:calc(100vh - 150px);`}"
+                 onscroll="${gvc.event(() => {
+                     if (document.querySelector('.right_scroll')!.scrollTop > 0) {
+                         glitter.share.lastRightScrollTop = document.querySelector('.right_scroll')!.scrollTop;
+                     }
+                 })}">
                 ${gvc.bindView(() => {
                     return {
                         bind: `htmlGenerate`,
                         view: () => {
                             gvc.notifyDataChange('editFooter')
                             checkSelect((viewModel.data! as any).config)
-                            if (viewModel.selectItem === undefined || viewModel.selectItem.js === undefined) {
+                            if ((viewModel.selectItem === undefined || viewModel.selectItem.js === undefined) && Storage.select_function !== 'user-editor') {
                                 return `<div class="position-absolute w-100 top-50 d-flex align-items-center justify-content-center flex-column translate-middle-y">
 <img class="border" src="https://liondesign-prd.s3.amazonaws.com/file/252530754/1692927479829-Screenshot 2023-08-25 at 9.36.15 AM.png"  >
 <lottie-player src="https://lottie.host/23df5e29-6a51-428a-b112-ff6901c4650e/yxNS0Bw8mk.json" class="position-relative" background="transparent" speed="1" style="margin-top:-70px;" loop  autoplay direction="1" mode="normal"></lottie-player>
@@ -245,7 +474,17 @@ Storage.lastSelect
                                 dd.refreshAllParameter = undefined;
                                 dd.refreshComponentParameter = undefined;
                             });
-                            return htmlGenerate.editor(gvc, {
+                            return ((Storage.select_function === 'user-editor') ? html`
+                                <div class="px-3 mx-n2  border-bottom pb-3 fw-bold mt-2"
+                                     style="cursor: pointer;color:#393939;" onclick="${gvc.event(() => {
+                                    Storage.lastSelect = '';
+                                    (window.parent as any).glitter.share.editorViewModel.selectItem = undefined;
+                                    (window.parent as any).glitter.share.selectEditorItem();
+                                })}">
+                                    <i class="fa-solid fa-chevron-left"></i>
+                                    <span>${viewModel.selectItem.label}</span>
+                                </div>
+                            ` : ``) + htmlGenerate.editor(gvc, {
                                 return_: false,
                                 refreshAll: () => {
                                     if (viewModel.selectItem) {
@@ -267,7 +506,7 @@ Storage.lastSelect
                             class: `p-2`
                         },
                         onCreate: () => {
-                         
+
                         }
                     };
                 })}
@@ -281,74 +520,74 @@ Storage.lastSelect
                         if (viewModel.selectItem === undefined || viewModel.selectItem.js === undefined) {
                             return ``
                         }
-                        return `
-<div style="height:100px;"></div>
-<div class="w-100  position-absolute bottom-0 border-top d-flex align-items-center ps-3"
-                     style="height:50px;background:#f6f6f6;font-size:14px;">
-                    <div class="hoverBtn fw-bold" style="color:#8e1f0b;cursor:pointer;"
-                         onclick="${gvc.event(() => {
-                            checkSelect((viewModel.data! as any).config)
-                            try {
-                                const dialog = new ShareDialog(gvc.glitter)
+                        return html`
+                            <div style="height:100px;"></div>
+                            <div class="w-100  position-absolute bottom-0 border-top d-flex align-items-center ps-3 ${Storage.select_function === 'user-editor' ? `d-none` : ``}"
+                                 style="height:50px;background:#f6f6f6;font-size:14px;">
+                                <div class="hoverBtn fw-bold" style="color:#8e1f0b;cursor:pointer;"
+                                     onclick="${gvc.event(() => {
+                                         checkSelect((viewModel.data! as any).config)
+                                         try {
+                                             const dialog = new ShareDialog(gvc.glitter)
 
-                                function deleteBlock() {
-                                    for (let a = 0; a < viewModel.selectContainer.length; a++) {
-                                        if (viewModel.selectContainer[a] == viewModel.selectItem) {
-                                            viewModel.selectContainer.splice(a, 1)
-                                        }
-                                    }
-                                    // selectComponentHover
-                                    viewModel.selectItem = undefined;
-                                    if( (document.querySelector('#editerCenter iframe') as any).contentWindow.document.querySelector('.selectComponentHover')){
-                                        (document.querySelector('#editerCenter iframe') as any).contentWindow.document.querySelector('.selectComponentHover').remove()
-                                    }
-                                    // $('#editerCenter iframe').get(0)
-                                    gvc.notifyDataChange(['right_NAV','MainEditorLeft']);
-                                }
+                                             function deleteBlock() {
+                                                 for (let a = 0; a < viewModel.selectContainer.length; a++) {
+                                                     if (viewModel.selectContainer[a] == viewModel.selectItem) {
+                                                         viewModel.selectContainer.splice(a, 1)
+                                                     }
+                                                 }
+                                                 // selectComponentHover
+                                                 viewModel.selectItem = undefined;
+                                                 if ((document.querySelector('#editerCenter iframe') as any).contentWindow.document.querySelector('.selectComponentHover')) {
+                                                     (document.querySelector('#editerCenter iframe') as any).contentWindow.document.querySelector('.selectComponentHover').remove()
+                                                 }
+                                                 // $('#editerCenter iframe').get(0)
+                                                 gvc.notifyDataChange(['right_NAV', 'MainEditorLeft']);
+                                             }
 
-                                if (viewModel.selectItem.type === 'component') {
-                                    dialog.checkYesOrNot({
-                                        text: '是否連同模塊一同刪除?',
-                                        callback: (response) => {
-                                            if (response) {
-                                                new Promise(async (resolve, reject) => {
-                                                    dialog.dataLoading({visible: true})
-                                                    let deleteArray: string[] = [viewModel.selectItem.tag]
-                                                    viewModel.selectItem.list && viewModel.selectItem.list.map((dd: any) => {
-                                                        deleteArray.push(dd.tag)
-                                                    })
-                                                    for (const b of deleteArray) {
-                                                        await new Promise((resolve, reject) => {
-                                                            ApiPageConfig.deletePage({
-                                                                "appName": (window as any).appName,
-                                                                tag: b
-                                                            }).then((data) => {
-                                                                resolve(true)
-                                                            })
-                                                        })
-                                                    }
-                                                    deleteBlock()
-                                                    dialog.dataLoading({visible: false})
-                                                    glitter.htmlGenerate.saveEvent(true)
-                                                })
+                                             if (viewModel.selectItem.type === 'component') {
+                                                 dialog.checkYesOrNot({
+                                                     text: '是否連同模塊一同刪除?',
+                                                     callback: (response) => {
+                                                         if (response) {
+                                                             new Promise(async (resolve, reject) => {
+                                                                 dialog.dataLoading({visible: true})
+                                                                 let deleteArray: string[] = [viewModel.selectItem.tag]
+                                                                 viewModel.selectItem.list && viewModel.selectItem.list.map((dd: any) => {
+                                                                     deleteArray.push(dd.tag)
+                                                                 })
+                                                                 for (const b of deleteArray) {
+                                                                     await new Promise((resolve, reject) => {
+                                                                         ApiPageConfig.deletePage({
+                                                                             "appName": (window as any).appName,
+                                                                             tag: b
+                                                                         }).then((data) => {
+                                                                             resolve(true)
+                                                                         })
+                                                                     })
+                                                                 }
+                                                                 deleteBlock()
+                                                                 dialog.dataLoading({visible: false})
+                                                                 glitter.htmlGenerate.saveEvent(true)
+                                                             })
 
-                                            } else {
-                                                deleteBlock()
-                                            }
-                                        }
-                                    })
-                                } else {
-                                    deleteBlock()
-                                }
-                            } catch (e) {
-                                alert(e)
-                            }
+                                                         } else {
+                                                             deleteBlock()
+                                                         }
+                                                     }
+                                                 })
+                                             } else {
+                                                 deleteBlock()
+                                             }
+                                         } catch (e) {
+                                             alert(e)
+                                         }
 
 
-                        })}">
-                        <i class="fa-solid fa-trash-can me-2"></i>移除區塊
-                    </div>
-                </div>`
+                                     })}">
+                                    <i class="fa-solid fa-trash-can me-2"></i>移除區塊
+                                </div>
+                            </div>`
                     }
                 }
             })
@@ -358,10 +597,10 @@ Storage.lastSelect
     public static center(viewModel: any, gvc: GVC) {
 
         return html`
-            <div class="${(viewModel.type === ViewType.mobile && Storage.select_function==='page-editor') ? `d-flex align-items-center justify-content-center flex-column mx-auto` : `d-flex align-items-center justify-content-center flex-column`}"
-                 style="${(viewModel.type === ViewType.mobile && Storage.select_function==='page-editor') ? `width: 414px;height: calc(100vh - 50px);padding-top: 20px;` : `width: calc(100% - 20px);margin-left:10px;height: calc(100vh - 50px);padding-top: 20px;"`}">
+            <div class="${(viewModel.type === ViewType.mobile && (Storage.select_function === 'page-editor' || Storage.select_function === 'user-editor')) ? `d-flex align-items-center justify-content-center flex-column mx-auto` : `d-flex align-items-center justify-content-center flex-column`}"
+                 style="${(viewModel.type === ViewType.mobile && (Storage.select_function === 'page-editor' || Storage.select_function === 'user-editor')) ? `width: 414px;height: calc(100vh - 56px);` : `width: calc(100%);margin-left:10px;height: calc(100vh - 50px);"`}">
                 <div class="" style="width:100%;height: calc(100%);" id="editerCenter">
-                    <iframe class="w-100 h-100 rounded bg-white"
+                    <iframe class="w-100 h-100  bg-white"
                             src="index.html?type=htmlEditor&page=${gvc.glitter.getUrlParameter('page')}&appName=${gvc.glitter.getUrlParameter('appName')}"></iframe>
                 </div>
             </div>`
@@ -401,11 +640,12 @@ Storage.lastSelect
                                 }
                                 let array = [];
                                 if (!vm.selectItem) {
+
                                     array.push(html`
-                                        <div class="d-flex bg-white w-100 border-bottom">
+                                        <div class="d-flex bg-white w-100 border-bottom ${Storage.select_function === 'user-editor' ? `d-none` : ``}">
                                             <div class="w-100" style="">
                                                 <div style=""
-                                                     class="d-flex align-items-center justify-content-around  w-100 p-2">
+                                                     class="d-flex align-items-center justify-content-around  w-100 p-2 ">
                                                     ${(() => {
                                                         const items = [
                                                             {
@@ -430,10 +670,10 @@ Storage.lastSelect
                                                                 return true
                                                             }
                                                         })
-                                                        if(!items.find((dd)=>{
-                                                            return dd.value===vm.select
-                                                        })){
-                                                            vm.select=items[0].value
+                                                        if (!items.find((dd) => {
+                                                            return dd.value === vm.select
+                                                        })) {
+                                                            vm.select = items[0].value
                                                         }
 
                                                         return items.map((dd) => {
@@ -525,6 +765,7 @@ ${(dd.value === vm.select) ? `background:linear-gradient(135deg, #667eea 0%, #76
                                         },
                                         docID: '',
                                         selectBack: (dd) => {
+
                                             EditorElem.openEditorDialog(gvc, (gvc: GVC) => {
                                                 return PageEditor.scriptRenderEditor({
                                                     gvc: gvc,

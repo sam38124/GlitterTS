@@ -169,9 +169,16 @@ class Post {
             query.page = (_a = query.page) !== null && _a !== void 0 ? _a : 0;
             query.limit = (_b = query.limit) !== null && _b !== void 0 ? _b : 10;
             let querySql = [];
+            query.id && querySql.push(`id=${query.id}`);
             query.search && query.search.split(',').map((dd) => {
-                const qu = dd.split('->');
-                querySql.push(`(content->>'$.${qu[0]}'='${qu[1]}')`);
+                if (dd.includes('->')) {
+                    const qu = dd.split('->');
+                    querySql.push(`(content->>'$.${qu[0]}'='${qu[1]}')`);
+                }
+                else if (dd.includes('-|>')) {
+                    const qu = dd.split('-|>');
+                    querySql.push(`(content->>'$.${qu[0]}' like '%${qu[1]}%')`);
+                }
             });
             return await new ut_database_js_1.UtDatabase(this.app, (manager) ? `t_manager_post` : `t_post`).querySql(querySql, query);
         }

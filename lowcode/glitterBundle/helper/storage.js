@@ -18,7 +18,11 @@ export const Storage = {
         localStorage.setItem('lastSelect', value);
     },
     get view_type() {
-        return localStorage.getItem('ViewType');
+        let response = localStorage.getItem('ViewType');
+        if (response === 'col3' && Storage.select_function === 'user-editor') {
+            response = 'desktop';
+        }
+        return response;
     },
     set view_type(value) {
         localStorage.setItem('ViewType', value);
@@ -71,5 +75,11 @@ export const Storage = {
     },
     set select_bg_btn(value) {
         localStorage.setItem('select_bg_btn', value);
+    },
+    get select_item() {
+        return (localStorage.getItem('select_item') || '0');
+    },
+    set select_item(value) {
+        localStorage.setItem('select_item', value);
     }
 };

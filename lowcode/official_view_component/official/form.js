@@ -1,8 +1,20 @@
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 import { Plugin } from "../../glitterBundle/plugins/plugin-creater.js";
 import { TriggerEvent } from "../../glitterBundle/plugins/trigger-event.js";
 import { EditorElem } from "../../glitterBundle/plugins/editor-elem.js";
 import { getInitialData } from "../initial_data.js";
 import autosize from "../../glitterBundle/plugins/autosize.js";
+import { ApiPageConfig } from "../../api/pageConfig.js";
+import { NormalPageEditor } from "../../editor/normal-page-editor.js";
+import { AddComponent } from "../../editor/add-component.js";
 export class FormWidget {
     static settingView(obj) {
         var _a;
@@ -17,319 +29,154 @@ export class FormWidget {
                     var _a;
                     return {
                         title: (_a = dd.title) !== null && _a !== void 0 ? _a : `選項.${index + 1}`,
-                        innerHtml: (gvc) => {
-                            const labelCSS = glitter.htmlGenerate.editor_component(dd.style_data.label, gvc, obj.widget, obj.subData);
-                            const inputCSS = glitter.htmlGenerate.editor_component(dd.style_data.input, gvc, obj.widget, obj.subData);
-                            const containerCss = glitter.htmlGenerate.editor_component(dd.style_data.container, gvc, obj.widget, obj.subData);
-                            return [
-                                EditorElem.editeInput({
-                                    gvc: gvc,
-                                    title: 'Label名稱',
-                                    placeHolder: `請輸入Label名稱`,
-                                    default: dd.title,
-                                    callback: (text) => {
-                                        dd.title = text;
-                                        obj.refresh();
-                                    }
-                                }),
-                                EditorElem.select({
-                                    title: "元件類型",
-                                    gvc: gvc,
-                                    def: dd.type,
-                                    array: [
-                                        { title: '文字', value: 'text' },
-                                        { title: '信箱', value: 'email' },
-                                        { title: '電話', value: 'phone' },
-                                        { title: '顏色', value: 'color' },
-                                        { title: '數字', value: 'number' },
-                                        { title: '名稱', value: 'name' },
-                                        { title: '日期', value: 'date' },
-                                        { title: '時間', value: 'time' },
-                                        { title: 'ICON選擇', value: 'fontawesome' },
-                                        { title: '多行文字區塊', value: 'textArea' },
-                                        { title: '地址', value: 'address' },
-                                        { title: '密碼', value: 'password' },
-                                        { title: '多項列表元件', value: 'array' },
-                                        { title: '檔案上傳', value: 'file' },
-                                        { title: '選擇器', value: 'select' },
-                                        { title: '頁面選擇器', value: 'page_select' },
-                                        { title: '表單插件', value: 'form_plugin_v2' },
-                                    ],
-                                    callback: (text) => {
-                                        dd.type = text;
-                                        gvc.recreateView();
-                                        obj.refresh();
-                                    }
-                                }),
-                                EditorElem.editeInput({
-                                    gvc: gvc,
-                                    title: 'Key標籤',
-                                    placeHolder: `請輸入Key標籤`,
-                                    default: dd.key,
-                                    callback: (text) => {
-                                        dd.key = text;
-                                        obj.refresh();
-                                    }
-                                }),
-                                EditorElem.editeInput({
-                                    gvc: gvc,
-                                    title: '設定群組',
-                                    placeHolder: `為空則不設定`,
-                                    default: dd.group,
-                                    callback: (text) => {
-                                        dd.group = text;
-                                        obj.refresh();
-                                    }
-                                }),
-                                ...(() => {
-                                    var _a;
-                                    if (dd.type === 'form_plugin') {
-                                        return [
-                                            EditorElem.editeInput({
-                                                gvc: gvc,
-                                                title: '插件路徑',
-                                                placeHolder: `請輸入插件路徑`,
-                                                default: dd.route,
-                                                callback: (text) => {
-                                                    dd.route = text;
-                                                    obj.refresh();
-                                                }
-                                            })
-                                        ];
-                                    }
-                                    else if (dd.type === 'form_plugin_v2') {
-                                        dd.formFormat = (_a = dd.formFormat) !== null && _a !== void 0 ? _a : '';
-                                        return [EditorElem.pageSelect(gvc, '選擇表單插件', dd.page, (data) => {
-                                                dd.page = data;
-                                            }, (dd) => {
-                                                return dd.page_type === 'form_plugin';
-                                            }), EditorElem.customCodeEditor({
-                                                gvc: gvc,
-                                                height: 400,
-                                                initial: dd.formFormat,
-                                                title: 'Config配置檔',
-                                                callback: (data) => {
-                                                    dd.formFormat = data;
-                                                },
-                                                language: 'json'
-                                            })];
-                                    }
-                                    else {
-                                        return [
-                                            EditorElem.select({
-                                                title: "顯示狀態",
-                                                gvc: gvc,
-                                                def: dd.readonly,
-                                                array: [
-                                                    { title: '唯獨', value: 'read' },
-                                                    { title: '可寫', value: 'write' },
-                                                    { title: '隱藏', value: 'block' },
-                                                ],
-                                                callback: (text) => {
-                                                    dd.readonly = text;
-                                                    obj.refresh();
-                                                }
-                                            }),
-                                            EditorElem.select({
-                                                title: "是否必填",
-                                                gvc: gvc,
-                                                def: dd.require,
-                                                array: [
-                                                    { title: '是', value: 'true' },
-                                                    { title: '否', value: 'false' }
-                                                ],
-                                                callback: (text) => {
-                                                    dd.require = text;
-                                                    obj.refresh();
-                                                }
-                                            }),
-                                            ...(() => {
-                                                var _a, _b;
-                                                if (dd.type === 'array') {
-                                                    return [];
-                                                }
-                                                else {
-                                                    return [
-                                                        EditorElem.editeInput({
-                                                            gvc: gvc,
-                                                            title: '設定預設值',
-                                                            placeHolder: `請輸入預設值`,
-                                                            default: (_a = dd.def) !== null && _a !== void 0 ? _a : '',
-                                                            callback: (text) => {
-                                                                dd.def = text;
-                                                                obj.refresh();
-                                                            }
-                                                        }),
-                                                        EditorElem.editeInput({
-                                                            gvc: gvc,
-                                                            title: '設定Placeholder',
-                                                            placeHolder: `請輸入Placeholder`,
-                                                            default: (_b = dd.placeHolder) !== null && _b !== void 0 ? _b : '',
-                                                            callback: (text) => {
-                                                                dd.placeHolder = text;
-                                                                obj.refresh();
-                                                            }
-                                                        })
-                                                    ];
-                                                }
-                                            })(),
-                                            ...(() => {
-                                                if (dd.type === 'array') {
-                                                    return [
-                                                        EditorElem.editeInput({
-                                                            gvc: gvc,
-                                                            title: '選項標題參照',
-                                                            placeHolder: `請輸入選項標題參照`,
-                                                            default: dd.referTitile,
-                                                            callback: (text) => {
-                                                                dd.referTitile = text;
-                                                                obj.refresh();
-                                                            }
-                                                        }),
-                                                        EditorElem.editeInput({
-                                                            gvc: gvc,
-                                                            title: '添加按鈕標題',
-                                                            placeHolder: `請輸入添加按鈕標題`,
-                                                            default: dd.plusBtn,
-                                                            callback: (text) => {
-                                                                dd.plusBtn = text;
-                                                                obj.refresh();
-                                                            }
-                                                        }),
-                                                        EditorElem.editerDialog({
-                                                            gvc: gvc,
-                                                            dialog: (gvc) => {
-                                                                var _a;
-                                                                dd.formList = (_a = dd.formList) !== null && _a !== void 0 ? _a : [];
-                                                                return `<div class="m-n2">${FormWidget.settingView({
-                                                                    gvc: gvc,
-                                                                    array: dd.formList,
-                                                                    refresh: () => {
-                                                                        gvc.recreateView();
-                                                                    },
-                                                                    widget: obj.widget,
-                                                                    subData: obj.subData,
-                                                                })}</div>`;
-                                                            },
-                                                            width: '400px',
-                                                            editTitle: "編輯多項列表"
-                                                        })
-                                                    ];
-                                                }
-                                                else if (dd.type === 'select') {
-                                                    return [
-                                                        EditorElem.editerDialog({
-                                                            gvc: gvc,
-                                                            dialog: (gvc) => {
-                                                                var _a;
-                                                                dd.formList = (_a = dd.formList) !== null && _a !== void 0 ? _a : [];
-                                                                return gvc.bindView(() => {
-                                                                    const id = glitter.getUUID();
-                                                                    return {
-                                                                        bind: id,
-                                                                        view: () => {
-                                                                            return EditorElem.arrayItem({
-                                                                                gvc: gvc,
-                                                                                title: '',
-                                                                                array: () => {
-                                                                                    return dd.formList.map((dd, index) => {
-                                                                                        return {
-                                                                                            title: dd.title || `選項 : ${index + 1}`,
-                                                                                            innerHtml: (gvc) => {
-                                                                                                return [
-                                                                                                    EditorElem.editeInput({
-                                                                                                        gvc: gvc,
-                                                                                                        title: '選項標題',
-                                                                                                        placeHolder: `選項標題`,
-                                                                                                        default: dd.title,
-                                                                                                        callback: (text) => {
-                                                                                                            dd.title = text;
-                                                                                                            obj.refresh();
-                                                                                                        }
-                                                                                                    }),
-                                                                                                    EditorElem.editeInput({
-                                                                                                        gvc: gvc,
-                                                                                                        title: 'Key',
-                                                                                                        placeHolder: `請輸入選項索引`,
-                                                                                                        default: dd.key,
-                                                                                                        callback: (text) => {
-                                                                                                            dd.key = text;
-                                                                                                            obj.refresh();
-                                                                                                        }
-                                                                                                    }),
-                                                                                                ].join(`<div class="my-2"></div>`);
-                                                                                            }
-                                                                                        };
-                                                                                    });
-                                                                                },
-                                                                                originalArray: dd.formList,
-                                                                                expand: {},
-                                                                                refreshComponent: () => {
-                                                                                    gvc.notifyDataChange(id);
-                                                                                },
-                                                                                plus: {
-                                                                                    title: "新增選項",
-                                                                                    event: gvc.event(() => {
-                                                                                        dd.formList.push({});
+                        innerHtml: () => {
+                            const editor_refer = window.parent.glitter.share.NormalPageEditor || NormalPageEditor;
+                            const gvc = window.parent.glitter.pageConfig[window.parent.glitter.pageConfig.length - 1].gvc;
+                            editor_refer.closeEvent = () => {
+                                obj.widget && obj.widget.refreshComponent();
+                                obj.refresh();
+                            };
+                            editor_refer.toggle({
+                                visible: true,
+                                title: obj.title || '表單項目',
+                                view: (() => {
+                                    dd.type = dd.type || 'form_plugin_v2';
+                                    return gvc.bindView(() => {
+                                        const id = gvc.glitter.getUUID();
+                                        return {
+                                            bind: id,
+                                            view: () => {
+                                                return `${[
+                                                    `<div class="position-relative bgf6 d-flex align-items-center justify-content-between mx-n2 mt-n2 p-2 border-bottom shadow">
+                <span class="fs-6 fw-bold " style="color:black;">表單插件設定</span>
+            </div>`,
+                                                    EditorElem.editeInput({
+                                                        gvc: gvc,
+                                                        title: 'Label名稱',
+                                                        placeHolder: `請輸入Label名稱`,
+                                                        default: dd.title,
+                                                        callback: (text) => {
+                                                            dd.title = text;
+                                                            obj.refresh();
+                                                        }
+                                                    }),
+                                                    ...(() => {
+                                                        var _a;
+                                                        dd.formFormat = (_a = dd.formFormat) !== null && _a !== void 0 ? _a : '{}';
+                                                        return [
+                                                            EditorElem.buttonPrimary(dd.moduleName || '選擇表單插件', gvc.event(() => {
+                                                                editor_refer.toggle({
+                                                                    visible: true,
+                                                                    view: gvc.bindView(() => {
+                                                                        return {
+                                                                            bind: gvc.glitter.getUUID(),
+                                                                            view: () => {
+                                                                                return new Promise((resolve, reject) => {
+                                                                                    resolve(AddComponent.addModuleView(gvc, 'form_plugin', (tData) => {
+                                                                                        dd.appName = tData.copyApp;
+                                                                                        dd.page = tData.copy;
+                                                                                        dd.moduleName = tData.title;
+                                                                                        editor_refer.back();
                                                                                         gvc.notifyDataChange(id);
-                                                                                    })
-                                                                                }
-                                                                            });
-                                                                        },
-                                                                        divCreate: {
-                                                                            class: `m-n2`
-                                                                        }
-                                                                    };
+                                                                                    }, false, true));
+                                                                                });
+                                                                            }
+                                                                        };
+                                                                    }),
+                                                                    title: '選擇插件'
                                                                 });
-                                                            },
-                                                            width: '400px',
-                                                            editTitle: "編輯多項列表"
-                                                        })
-                                                    ];
-                                                }
-                                                else {
-                                                    return [];
-                                                }
-                                            })(),
-                                            ...(() => {
-                                                if (obj.styleSetting === false) {
-                                                    return [];
-                                                }
-                                                if (dd.type === 'array') {
-                                                    return [
-                                                        containerCss.editor(gvc, () => {
-                                                            obj.refresh();
-                                                        }, '容器樣式'),
-                                                        inputCSS.editor(gvc, () => {
-                                                            obj.refresh();
-                                                        }, '添加按鈕樣式'),
-                                                        containerCss.editor(gvc, () => {
-                                                            obj.refresh();
-                                                        }, '容器樣式')
-                                                    ];
-                                                }
-                                                else {
-                                                    return [
-                                                        labelCSS.editor(gvc, () => {
-                                                            obj.refresh();
-                                                        }, 'Label樣式'),
-                                                        inputCSS.editor(gvc, () => {
-                                                            obj.refresh();
-                                                        }, '輸入框樣式'),
-                                                        containerCss.editor(gvc, () => {
-                                                            obj.refresh();
-                                                        }, '容器樣式')
-                                                    ];
-                                                }
-                                            })(),
-                                            ...(() => {
-                                                var _a;
-                                                return (_a = (obj.concat && obj.concat(dd))) !== null && _a !== void 0 ? _a : [];
-                                            })()
-                                        ];
-                                    }
-                                })()
-                            ].join('<div class="my-2"></div>') + `<div class="my-2"></div>`;
+                                                            })),
+                                                            `<div class="position-relative bgf6 d-flex align-items-center justify-content-between mx-n2 border-top p-2 border-bottom shadow">
+                <span class="fs-6 fw-bold " style="color:black;">進階設定</span>
+            </div>`,
+                                                            EditorElem.editeInput({
+                                                                gvc: gvc,
+                                                                title: 'Key標籤',
+                                                                placeHolder: `請輸入Key標籤`,
+                                                                default: dd.key,
+                                                                callback: (text) => {
+                                                                    dd.key = text;
+                                                                    obj.refresh();
+                                                                }
+                                                            }),
+                                                            EditorElem.buttonPrimary('隱藏條件', gvc.event(() => {
+                                                                editor_refer.toggle({
+                                                                    visible: true,
+                                                                    view: `<div class="p-2">${gvc.bindView(() => {
+                                                                        return {
+                                                                            bind: gvc.glitter.getUUID(),
+                                                                            view: () => {
+                                                                                return new Promise((resolve, reject) => {
+                                                                                    resolve(EditorElem.codeEditor({
+                                                                                        gvc: gvc,
+                                                                                        height: 500,
+                                                                                        initial: dd.hidden_code || '',
+                                                                                        title: "代碼區塊",
+                                                                                        callback: (text) => {
+                                                                                            dd.hidden_code = text;
+                                                                                        },
+                                                                                        structStart: `((form_data,form_key)=>{`
+                                                                                    }));
+                                                                                });
+                                                                            }
+                                                                        };
+                                                                    })}</div>`,
+                                                                    title: '選擇插件'
+                                                                });
+                                                            })),
+                                                            gvc.bindView(() => {
+                                                                return {
+                                                                    bind: gvc.glitter.getUUID(),
+                                                                    view: () => {
+                                                                        return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
+                                                                            if (!dd.page) {
+                                                                                resolve('');
+                                                                            }
+                                                                            let formFormat = (yield ApiPageConfig.getPage({
+                                                                                appName: dd.appName,
+                                                                                tag: dd.page
+                                                                            })).response.result[0].page_config.formFormat;
+                                                                            if (formFormat && formFormat.length > 0) {
+                                                                                dd.form_config = dd.form_config || {};
+                                                                                resolve(`<div class="position-relative bgf6 d-flex align-items-center justify-content-between mx-n2 border-top p-2 border-bottom shadow">
+                <span class="fs-6 fw-bold " style="color:black;">插件內容編輯</span>
+            </div>` + FormWidget.editorView({
+                                                                                    gvc: gvc,
+                                                                                    array: formFormat,
+                                                                                    refresh: (key) => {
+                                                                                    },
+                                                                                    formData: dd.form_config
+                                                                                }));
+                                                                            }
+                                                                            else {
+                                                                                resolve(EditorElem.customCodeEditor({
+                                                                                    gvc: gvc,
+                                                                                    height: 400,
+                                                                                    initial: dd.formFormat,
+                                                                                    title: 'Config配置檔',
+                                                                                    callback: (data) => {
+                                                                                        dd.form_config = undefined;
+                                                                                        dd.formFormat = data;
+                                                                                    },
+                                                                                    language: 'json'
+                                                                                }));
+                                                                            }
+                                                                        }));
+                                                                    }
+                                                                };
+                                                            })
+                                                        ];
+                                                    })(),
+                                                ].join('<div class="my-2"></div>')}`;
+                                            },
+                                            divCreate: {
+                                                class: `p-2`
+                                            }
+                                        };
+                                    });
+                                })(),
+                                width: 400
+                            });
                         },
                         expand: dd,
                         minus: gvc.event(() => {
@@ -345,24 +192,40 @@ export class FormWidget {
                 title: "新增選項",
                 event: gvc.event((e, event) => {
                     array.push({
-                        title: '標題',
-                        key: '',
-                        readonly: 'write',
-                        type: 'text',
-                        require: 'true',
-                        style_data: {
-                            label: {
-                                class: `form-label fs-base `,
-                                style: ``
+                        "key": 'r_' + new Date().getTime(),
+                        "page": "input",
+                        "type": "form_plugin_v2",
+                        "group": "",
+                        "title": "標題",
+                        "appName": "cms_system",
+                        "require": "true",
+                        "readonly": "write",
+                        "formFormat": "{}",
+                        "moduleName": "輸入框",
+                        "style_data": {
+                            "input": {
+                                "list": [],
+                                "class": "",
+                                "style": "",
+                                "version": "v2"
                             },
-                            input: {
-                                class: ``,
-                                style: ``
+                            "label": {
+                                "list": [],
+                                "class": "form-label fs-base ",
+                                "style": "",
+                                "version": "v2"
                             },
-                            container: {
-                                class: ``,
-                                style: ``
+                            "container": {
+                                "list": [],
+                                "class": "",
+                                "style": "",
+                                "version": "v2"
                             }
+                        },
+                        "form_config": {
+                            "type": "name",
+                            "title": "",
+                            "place_holder": ""
                         }
                     });
                     obj.refresh();
@@ -370,7 +233,8 @@ export class FormWidget {
             },
             refreshComponent: () => {
                 obj.refresh();
-            }
+            },
+            customEditor: true
         });
     }
     static editorView(obj) {
@@ -400,9 +264,9 @@ export class FormWidget {
                     case "textArea":
                         const textID = gvc.glitter.getUUID();
                         return html `
-                        <div class="${containerClass}" style="${containerStyle}">
-                            ${label}
-                            ${obj.gvc.bindView({
+                            <div class="${containerClass}" style="${containerStyle}">
+                                ${label}
+                                ${obj.gvc.bindView({
                             bind: textID,
                             view: () => {
                                 var _a;
@@ -434,7 +298,7 @@ export class FormWidget {
                                 autosize(obj.gvc.getBindViewElem(textID));
                             }
                         })}
-                        </div>`;
+                            </div>`;
                     case "array":
                         formData[dd.key] = Array.isArray(formData[dd.key]) ? formData[dd.key] : [];
                         return gvc.bindView(() => {
@@ -443,9 +307,9 @@ export class FormWidget {
                                 bind: arrayViewID,
                                 view: () => {
                                     return html `
-                                    <div class="${containerClass} mt-2" style="${containerStyle}">
-                                        ${label}
-                                        ${EditorElem.arrayItem({
+                                        <div class="${containerClass} mt-2" style="${containerStyle}">
+                                            ${label}
+                                            ${EditorElem.arrayItem({
                                         gvc: gvc,
                                         title: '',
                                         array: () => {
@@ -483,7 +347,7 @@ export class FormWidget {
                                             })
                                         }
                                     })}
-                                    </div>`;
+                                        </div>`;
                                 }
                             };
                         });
@@ -560,17 +424,29 @@ export class FormWidget {
                             };
                         });
                     case "form_plugin_v2":
+                        const form_data = formData;
+                        const form_key = dd.key;
+                        if (dd.hidden_code && dd.hidden_code.trim() && eval(`(() => {
+                            ${dd.hidden_code}
+                        })()`)) {
+                            return ``;
+                        }
                         return gvc.bindView(() => {
                             const tempView = gvc.glitter.getUUID();
                             return {
                                 bind: tempView,
-                                view: () => { return ``; },
+                                view: () => {
+                                    return ``;
+                                },
                                 divCreate: {},
                                 onCreate: () => {
                                 },
                                 onInitial: () => {
-                                    const target = document.querySelector(`[gvc-id="${gvc.id(tempView)}"]`);
-                                    (window.glitterInitialHelper).getPageData(dd.page, (d2) => {
+                                    const target = gvc.glitter.document.querySelector(`[gvc-id="${gvc.id(tempView)}"]`);
+                                    (window.glitterInitialHelper).getPageData({
+                                        tag: dd.page,
+                                        appName: dd.appName || window.appName
+                                    }, (d2) => {
                                         var _a, _b;
                                         let data = d2.response.result[0];
                                         data.config = (_a = data.config) !== null && _a !== void 0 ? _a : [];
@@ -597,8 +473,11 @@ export class FormWidget {
                                             return new glitter.htmlGenerate(viewConfig, [], {
                                                 form_data: formData,
                                                 form_key: dd.key,
-                                                form_config: JSON.parse(dd.formFormat || '{}'),
-                                                form_title: dd.title
+                                                form_config: dd.form_config || JSON.parse(dd.formFormat || '{}'),
+                                                form_title: dd.title,
+                                                refresh: () => {
+                                                    obj.refresh(dd.key);
+                                                }
                                             }).render(gvc, {
                                                 class: ``,
                                                 style: ``,
@@ -621,19 +500,19 @@ export class FormWidget {
                     default:
                 }
                 return html `
-                <div class="${containerClass}" style="${containerStyle}">
-                    ${label}
-                    <input type="${dd.type}" value="${(_f = formData[dd.key]) !== null && _f !== void 0 ? _f : ""}"
-                           class="${inputClass}"
-                           style="${inputStyle}" onchange="${gvc.event((e, event) => {
+                    <div class="${containerClass}" style="${containerStyle}">
+                        ${label}
+                        <input type="${dd.type}" value="${(_f = formData[dd.key]) !== null && _f !== void 0 ? _f : ""}"
+                               class="${inputClass}"
+                               style="${inputStyle}" onchange="${gvc.event((e, event) => {
                     formData[dd.key] = e.value;
                     obj.refresh(dd.key);
                 })}"
-                           placeholder="${(_g = dd.placeHolder) !== null && _g !== void 0 ? _g : ''}"
-                           ${readonly ? `readonly` : ``}
-                    >
-                </div>
-            `;
+                               placeholder="${(_g = dd.placeHolder) !== null && _g !== void 0 ? _g : ''}"
+                               ${readonly ? `readonly` : ``}
+                        >
+                    </div>
+                `;
             }).join('');
         }
         let groupList = {};
@@ -668,25 +547,7 @@ Plugin.createComponent(import.meta.url, (glitter, editMode) => {
                 obj: widget.data,
                 key: 'layout',
                 def: {
-                    array: [
-                        {
-                            title: '標題', key: '', readonly: 'read', type: 'text', require: "true",
-                            style_data: {
-                                label: {
-                                    class: `form-label fs-base `,
-                                    style: ``
-                                },
-                                input: {
-                                    class: ``,
-                                    style: ``
-                                },
-                                container: {
-                                    class: ``,
-                                    style: ``
-                                }
-                            }
-                        }
-                    ],
+                    array: [],
                     style: {},
                     formID: 'formID',
                     getFormData: {},
@@ -753,6 +614,7 @@ Plugin.createComponent(import.meta.url, (glitter, editMode) => {
                                     gvc: gvc,
                                     array: config.array,
                                     refresh: (key) => {
+                                        console.log(JSON.stringify(formData));
                                         gvc.notifyDataChange(id);
                                     },
                                     widget: widget,
@@ -783,3 +645,4 @@ Plugin.createComponent(import.meta.url, (glitter, editMode) => {
         },
     };
 });
+window.glitter.setModule(import.meta.url, FormWidget);

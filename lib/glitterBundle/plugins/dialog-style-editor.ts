@@ -783,7 +783,7 @@ class Render{
                                 return false
                             }
                             viewModel.selectContainer = original
-                            viewModel.selectItem = dd
+                            viewModel.selectItem = dd;
                             Storage.lastSelect=dd.id;
                             gvc.notifyDataChange([vid, this.editorID])
                             return true

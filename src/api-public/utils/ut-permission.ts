@@ -17,9 +17,13 @@ export class UtPermission{
 
     public static isAppUser(req: express.Request){
         return new Promise(async (resolve, reject)=>{
-            resolve((await db.query(`SELECT count(1)
+            try {
+                resolve((await db.query(`SELECT count(1)
                              FROM \`${req.get('g-app')}\`.t_user
                              where userID = ?`, [req.body.token.userID]))[0]['count(1)'] == 1)
+            }catch (e) {
+                resolve(false)
+            }
         })
     }
 }

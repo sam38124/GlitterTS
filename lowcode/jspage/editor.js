@@ -88,7 +88,7 @@ export class Editor {
                             <div class="navbar-brand text-dark d-none d-lg-flex py-0 h-100" style="width:280px;">
                                 <div class="d-flex align-items-center justify-content-center border-end "
                                      style="width:50px;height: 56px;">
-                                    <i class="fa-regular fa-arrow-left-from-arc hoverBtn" style="cursor:pointer;"
+                                    <i class="fa-solid fa-left-to-bracket hoverBtn" style="cursor:pointer;"
                                        onclick="${gvc.event(() => {
                 if (window.parent && window.parent.glitter) {
                     window.parent.glitter.closeDiaLog();
@@ -100,8 +100,8 @@ export class Editor {
 
                                     </i>
                                 </div>
-                                ${(glitter.share.blogEditor) ? `
-                                        <span class="ms-3 fw-500" style="  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                                ${(glitter.share.blogEditor) ? html `
+                                            <span class="ms-3 fw-500" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
    background: -webkit-linear-gradient(135deg, #667eea 0%, #764ba2 100%);
    background-clip: text;
    -webkit-background-clip: text;
@@ -114,24 +114,25 @@ export class Editor {
                                         `}
                             </div>
                             <div style="width:${(glitter.getUrlParameter('blogEditor')) ? `100px` : `20px`};"></div>
-                            
-                            <div class="d-flex align-items-center flex-fill ${(Storage.select_function === 'page-editor') ? `` : `d-none`}" style="">
-                                ${gvc.bindView(() => {
+                            <div class="d-flex align-items-center flex-fill ${(Storage.select_function === 'page-editor' || Storage.select_function === 'user-editor') ? `` : `d-none`}"
+                                 style="">
+                                ${Storage.select_function === 'user-editor' ? `` : gvc.bindView(() => {
                 const id = gvc.glitter.getUUID();
                 return {
                     bind: id,
                     view: () => {
-                        return `  <div class="hoverBtn  d-flex align-items-center justify-content-center   border"
-                                     style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;"
-                                     onclick="${gvc.event(() => {
+                        return html `
+                                                <div class="hoverBtn  d-flex align-items-center justify-content-center   border"
+                                                     style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;"
+                                                     onclick="${gvc.event(() => {
                             SetGlobalValue.toggle(true);
                         })}"
-                                     data-bs-toggle="tooltip" data-bs-placement="top"
-                                     data-bs-custom-class="custom-tooltip"
-                                     data-bs-title="全域設置"
-                                >
-                                    <i class="fa-solid fa-bars"></i>
-                                </div>`;
+                                                     data-bs-toggle="tooltip" data-bs-placement="top"
+                                                     data-bs-custom-class="custom-tooltip"
+                                                     data-bs-title="全域設置"
+                                                >
+                                                    <i class="fa-solid fa-bars"></i>
+                                                </div>`;
                     },
                     onCreate: () => {
                         $('.tooltip').remove();
@@ -140,44 +141,45 @@ export class Editor {
                 };
             })}
                                 <div class="flex-fill"></div>
-                               <div class="d-flex align-items-center" style="position: absolute;transform: translateX(-50%);left: calc(50% + 15px);">
-                                <div class="d-flex align-items-center justify-content-center hoverBtn  border"
-                                     style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;"
-                                     data-bs-toggle="tooltip" data-bs-placement="top"
-                                     data-bs-custom-class="custom-tooltip"
-                                     data-bs-title="頁面代碼"
-                                     onclick="${gvc.event(() => {
-                PageCodeSetting.toggle(true);
+                                <div class="d-flex align-items-center"
+                                     style="position: absolute;transform: translateX(-50%);left: calc(50% + 15px);">
+                                    <div class="d-flex align-items-center justify-content-center hoverBtn  border ${Storage.select_function === 'user-editor' ? `d-none` : ``}"
+                                         style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;"
+                                         data-bs-toggle="tooltip" data-bs-placement="top"
+                                         data-bs-custom-class="custom-tooltip"
+                                         data-bs-title="頁面代碼"
+                                         onclick="${gvc.event(() => {
+                PageCodeSetting.toggle(true, gvc);
             })}">
-                                    <i class="fa-sharp fa-regular fa-square-code"></i>
-                                </div>
-                                <div class="d-flex align-items-center justify-content-center hoverBtn ms-1 me-1 border"
-                                     style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;"
-                                     data-bs-toggle="tooltip" data-bs-placement="top"
-                                     data-bs-custom-class="custom-tooltip"
-                                     data-bs-title="頁面編輯"
-                                     onclick="${gvc.event(() => {
+                                        <i class="fa-sharp fa-regular fa-square-code"></i>
+                                    </div>
+                                    <div class="d-flex align-items-center justify-content-center hoverBtn ms-1 me-1 border ${Storage.select_function === 'user-editor' ? `d-none` : ``}"
+                                         style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;"
+                                         data-bs-toggle="tooltip" data-bs-placement="top"
+                                         data-bs-custom-class="custom-tooltip"
+                                         data-bs-title="頁面編輯"
+                                         onclick="${gvc.event(() => {
                 PageSettingView.toggle(true);
             })}">
-                                    <i class="fa-regular fa-gear"></i>
-                                </div>
-                                <div class="btn-group ms-1" style="max-width: 350px;min-width: 250px;">
-                                    <button type="button" class="btn btn-outline-secondary rounded px-2"
-                                            onclick="${gvc.event(() => {
+                                        <i class="fa-regular fa-gear"></i>
+                                    </div>
+                                    <div class="btn-group ms-1" style="max-width: 350px;min-width: 250px;">
+                                        <button type="button" class="btn btn-outline-secondary rounded px-2"
+                                                onclick="${gvc.event(() => {
                 $('#topd').toggle();
             })}">
-                                        <span style="max-width: 180px;overflow: hidden;text-overflow: ellipsis;">${data.data.name}</span>
-                                        <i class="fa-sharp fa-solid fa-caret-down position-absolute translate-middle-y"
-                                           style="top: 50%;right: 20px;"></i>
-                                    </button>
-                                    ${gvc.bindView(() => {
+                                            <span style="max-width: 180px;overflow: hidden;text-overflow: ellipsis;">${data.data.name}</span>
+                                            <i class="fa-sharp fa-solid fa-caret-down position-absolute translate-middle-y"
+                                               style="top: 50%;right: 20px;"></i>
+                                        </button>
+                                        ${gvc.bindView(() => {
                 const id = gvc.glitter.getUUID();
                 return {
                     bind: id,
                     view: () => {
                         return html `
-                           <div class="px-2">
-                               ${EditorElem.select({
+                                                                <div class="px-2 ${(Storage.select_function === 'user-editor') ? `d-none` : ``}">
+                                                                    ${EditorElem.select({
                             title: '',
                             gvc: gvc,
                             def: Storage.select_page_type || 'page',
@@ -190,10 +192,10 @@ export class Editor {
                                 });
                             }
                         })}
-                           </div>
-                                <div class="w-100 border-bottom mt-2"></div>
-                                                            <ul class="list-group list-group-flush  mt-2">
-                                                                ${(() => {
+                                                                </div>
+                                                                <div class="w-100 border-bottom mt-2 ${(Storage.select_function === 'user-editor') ? `d-none` : ``}"></div>
+                                                                <ul class="list-group list-group-flush mt-2">
+                                                                    ${(() => {
                             return gvc.bindView(() => {
                                 const id = glitter.getUUID();
                                 return {
@@ -208,7 +210,12 @@ export class Editor {
                                                 glitter.share.reloadEditor();
                                             }, {
                                                 filter: (data) => {
-                                                    return data.page_type == Storage.select_page_type;
+                                                    if ((Storage.select_function === 'user-editor')) {
+                                                        return data.page_config && data.page_config.support_editor === 'true';
+                                                    }
+                                                    else {
+                                                        return data.page_type == Storage.select_page_type;
+                                                    }
                                                 }
                                             }).then((data) => {
                                                 resolve(data.left);
@@ -221,7 +228,7 @@ export class Editor {
                                 };
                             });
                         })()}
-                                                            </ul>`;
+                                                                </ul>`;
                     },
                     divCreate: {
                         class: 'dropdown-menu',
@@ -236,13 +243,13 @@ export class Editor {
                     }
                 };
             })}
-                                </div>
-                                <div class="d-flex align-items-center justify-content-center hoverBtn ms-2 me-1 border"
-                                     style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;"
-                                     data-bs-toggle="tooltip" data-bs-placement="top"
-                                     data-bs-custom-class="custom-tooltip"
-                                     data-bs-title="複製當前頁面"
-                                     onclick="${gvc.event(() => {
+                                    </div>
+                                    <div class="d-flex align-items-center justify-content-center hoverBtn ms-2 me-1 border ${Storage.select_function === 'user-editor' ? `d-none` : ``}"
+                                         style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;"
+                                         data-bs-toggle="tooltip" data-bs-placement="top"
+                                         data-bs-custom-class="custom-tooltip"
+                                         data-bs-title="複製當前頁面"
+                                         onclick="${gvc.event(() => {
                 EditorElem.openEditorDialog(gvc, (gvc) => {
                     const tdata = {
                         "appName": config.appName,
@@ -307,21 +314,22 @@ ${gvc.bindView(() => {
                     })}">確認新增</button>
 </div>
             `;
-                }, () => { }, 300, '複製頁面');
+                }, () => {
+                }, 300, '複製頁面');
             })}">
-                                    <i class="fa-regular fa-copy"></i>
-                                </div>
-                                <div class="d-flex align-items-center justify-content-center hoverBtn  me-1 border"
-                                     style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;"
-                                     data-bs-toggle="tooltip" data-bs-placement="top"
-                                     data-bs-custom-class="custom-tooltip"
-                                     data-bs-title="添加頁面"
-                                     onclick="${gvc.event(() => {
+                                        <i class="fa-regular fa-copy"></i>
+                                    </div>
+                                    <div class="d-flex align-items-center justify-content-center hoverBtn  me-1 border ${Storage.select_function === 'user-editor' ? `d-none` : ``}"
+                                         style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;"
+                                         data-bs-toggle="tooltip" data-bs-placement="top"
+                                         data-bs-custom-class="custom-tooltip"
+                                         data-bs-title="添加頁面"
+                                         onclick="${gvc.event(() => {
                 AddPage.toggle(true);
             })}">
-                                    <i class="fa-regular fa-circle-plus"></i>
+                                        <i class="fa-regular fa-circle-plus"></i>
+                                    </div>
                                 </div>
-                               </div>
                                 <div class="flex-fill"></div>
                                 ${(() => {
                 if (glitter.share.blogEditor) {
@@ -387,7 +395,20 @@ ${(glitter.share.editorViewModel.homePage === glitter.getUrlParameter('page')) ?
                                             <div style="background:#f1f1f1;border-radius:10px;"
                                                  class="d-flex align-items-center justify-content-center p-1 ">
                                                 ${[
-                        { icon: 'fa-regular fa-columns-3', type: ViewType.col3 },
+                        ...((() => {
+                            if (Storage.select_function === 'user-editor') {
+                                if (viewModel.type === ViewType.col3) {
+                                    viewModel.type = ViewType.desktop;
+                                }
+                                return [];
+                            }
+                            else {
+                                return [{
+                                        icon: 'fa-regular fa-columns-3',
+                                        type: ViewType.col3
+                                    }];
+                            }
+                        })()),
                         { icon: 'fa-regular fa-desktop', type: ViewType.desktop },
                         { icon: 'fa-regular fa-mobile', type: ViewType.mobile },
                         { icon: 'fa-solid fa-expand', type: ViewType.fullScreen }
@@ -417,8 +438,16 @@ ${(glitter.share.editorViewModel.homePage === glitter.getUrlParameter('page')) ?
                 },
                 divCreate: {}
             })}
-                                <button class=" btn ms-2 btn-primary-c ${(glitter.getUrlParameter('editorPosition') === '2') ? `d-none` : ``}"
-                                        style="height: 30px;width: 60px;"
+                                <button class=" btn ms-2  ${(glitter.getUrlParameter('editorPosition') === '2') ? `d-none` : ``}"
+                                        style="height: 42px;display: inline-flex;
+padding: 10px 22px 10px 23px;
+justify-content: center;
+align-items: center;
+border-radius: 12px;
+border:none;
+background: ${EditorConfig.editor_layout.btn_background};
+color:white;
+"
                                         onclick="${gvc.event(() => {
                 glitter.htmlGenerate.saveEvent();
             })}">儲存
@@ -430,21 +459,20 @@ ${(glitter.share.editorViewModel.homePage === glitter.getUrlParameter('page')) ?
                     <aside
                             id="componentsNav"
                             class="${(viewModel.type === ViewType.fullScreen) ? `d-none` : ``} offcanvas offcanvas-start offcanvas-expand-lg position-fixed top-0 start-0 vh-100 bg-light border-end-lg overflow-hidden"
-                            style="width: 20rem;"
+                            style="${(Storage.select_function === 'user-editor') ? `width: 365px;` : `width: 20rem;`}"
                     >
                         <div class="offcanvas-header d-none d-lg-flex justify-content-start border-bottom px-0"
                              style="height: 56px;">
                             <div class="navbar-brand text-dark d-none d-lg-flex py-0 h-100">
                                 <div class="d-flex align-items-center justify-content-center border-end "
                                      style="width:50px;height: 56px;">
-                                    <i class="fa-regular fa-arrow-left-from-arc hoverBtn" style="cursor:pointer;"
+                                    <i class="fa-solid fa-left-to-bracket hoverBtn" style="cursor:pointer;"
                                        onclick="${gvc.event(() => {
-                if (window.parent && window.parent.glitter) {
-                    window.parent.glitter.closeDiaLog();
-                }
-                else {
-                    location.href = 'index.html';
-                }
+                const url = new URL(location.href);
+                url.searchParams.delete('appName');
+                url.searchParams.delete('type');
+                url.searchParams.set('page', 'backend_manager');
+                location.href = url.href;
             })}">
 
                                     </i>
@@ -461,8 +489,11 @@ ${(glitter.share.editorViewModel.homePage === glitter.getUrlParameter('page')) ?
                     </aside>
                     <!-- Page container -->
                     <main class="docs-container"
-                          style="padding-top: 40px;padding-right:${((viewModel.type === ViewType.col3 || viewModel.type === ViewType.mobile) && Storage.select_function !== 'backend-manger' && Storage.select_function !== 'server-manager') ? `290` : `0`}px;${(viewModel.type === ViewType.fullScreen) ? `padding-left:0px;` : `
-                          padding-left:20rem;
+                          style="padding-top: 56px;
+
+                          padding-right:${((viewModel.type === ViewType.col3 || viewModel.type === ViewType.mobile) && Storage.select_function !== 'backend-manger' && Storage.select_function !== 'server-manager') ? `290` : `0`}px;${(viewModel.type === ViewType.fullScreen) ? `padding-left:0px;` : `
+                          padding-left:${Storage.select_function === 'user-editor' ? `355px;overflow:hidden;` : `calc(20rem - 20px);`}
+                          ${Storage.select_function === 'page-editor' ? `overflow:hidden;` : ``}
                           `}">
                         ${gvc.bindView({
                 dataList: [{ obj: viewModel, key: "type" }],
@@ -479,7 +510,8 @@ ${(glitter.share.editorViewModel.homePage === glitter.getUrlParameter('page')) ?
             })}
                     </main>
                     ${(() => {
-                if (((viewModel.type === ViewType.col3 || (viewModel.type === ViewType.mobile)) && Storage.select_function !== 'backend-manger' && Storage.select_function !== 'server-manager')) {
+                if (((viewModel.type === ViewType.col3 || (viewModel.type === ViewType.mobile)) && Storage.select_function !== 'backend-manger' && Storage.select_function !== 'server-manager'
+                    && Storage.select_function !== 'user-editor')) {
                     return Main_editor.pageAndComponent({
                         gvc: gvc,
                         data: data,

@@ -35,6 +35,8 @@ export class Page {
                 }
             } else if (config.data.post_to === 'me') {
                 template_type = '3'
+            }else if (config.data.post_to === 'project') {
+                template_type = '4'
             }
             const data= (await db.execute(`update \`${saasConfig.SAAS_NAME}\`.page_config
                                       set template_config = ?,
@@ -62,7 +64,7 @@ export class Page {
         }
     }
     public async getTemplate(query: {
-        template_from: 'all' | 'me',
+        template_from: 'all' | 'me' | 'project',
         type:'page' | 'module' | 'article' | 'blog',
         page?: string,
         limit?: string,
@@ -73,6 +75,7 @@ export class Page {
             const sql = []
             query.template_from === 'me' && sql.push(`userID = '${this.token.userID}'`);
             query.template_from === 'me' && sql.push(`template_type in (3,2)`);
+            query.template_from === 'project' && sql.push(`template_type = 4`);
             query.template_from === 'all' && sql.push(`template_type = 2`);
             query.type && sql.push(`page_type = ${db.escape(query.type)}`)
             query.tag && sql.push(`id in (SELECT bind FROM  \`${saasConfig.SAAS_NAME}\`.t_template_tag where type='page' and tag in (${query.tag.split(',').map((dd)=>{

@@ -453,7 +453,7 @@ function userMode(gvc: GVC, id: string, searchText: string, type: "page" | 'modu
                                                                             <div class="position-absolute w-100 h-100 d-flex align-items-center justify-content-center"
                                                                                  style="overflow: hidden;">
                                                                                 <img class="w-100 "
-                                                                                     src="${dd.preview_image ?? 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1708434247510-未命名設計 (1).jpg'}"></img>
+                                                                                     src="${dd.preview_image ?? 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713445383494-未命名(1080x1080像素).jpg'}"></img>
                                                                             </div>
 
                                                                             <div class="position-absolute w-100 h-100  align-items-center justify-content-center rounded "

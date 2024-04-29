@@ -715,7 +715,7 @@ ${BgWidget.card([
 
 `);
                                         map.push(gvc.bindView(() => {
-                                            const saasConfig = window.saasConfig;
+                                            const saasConfig = window.parent.saasConfig;
                                             const id = gvc.glitter.getUUID();
                                             return {
                                                 bind: id,
@@ -889,7 +889,7 @@ ${BgWidget.card([`<div class="fw-bold fs-7">電子錢包</div>
                                 <div class="d-flex w-100 align-items-center mb-3">
                                     ${BgWidget.title((type === 'android_release') ? 'Google Play應用商城' : 'APPLE應用商城')}
                                     <div class="flex-fill"></div>
-                                    <button class="btn btn-primary-c" style="height:45px;font-size: 14px;"
+                                    <button class="btn btn-primary-c" style="height:38px;font-size: 14px;"
                                             onclick="${gvc.event(() => {
                                 vm.status = 'add';
                             })}">新增送審項目
@@ -1067,9 +1067,9 @@ ${BgWidget.card([`<div class="fw-bold fs-7">電子錢包</div>
     }
     static templateReleaseForm(gvc) {
         var _a, _b;
-        const saasConfig = window.saasConfig;
+        const saasConfig = window.parent.saasConfig;
         const html = String.raw;
-        const postMD = (_a = gvc.glitter.share.editorViewModel.appConfig.template_config) !== null && _a !== void 0 ? _a : {
+        const postMD = (_a = window.parent.glitter.share.editorViewModel.appConfig.template_config) !== null && _a !== void 0 ? _a : {
             preview_img: '',
             image: [],
             desc: '',
@@ -1080,13 +1080,13 @@ ${BgWidget.card([`<div class="fw-bold fs-7">電子錢包</div>
             version: '1.0',
             tag: []
         };
-        if ((gvc.glitter.share.editorViewModel.appConfig.template_type === 2) || (gvc.glitter.share.editorViewModel.appConfig.template_type === 3)) {
+        if ((window.parent.glitter.share.editorViewModel.appConfig.template_type === 2) || (window.parent.glitter.share.editorViewModel.appConfig.template_type === 3)) {
             postMD.status = 'finish';
         }
-        else if (gvc.glitter.share.editorViewModel.appConfig.template_type === -1) {
+        else if (window.parent.glitter.share.editorViewModel.appConfig.template_type === -1) {
             postMD.status = 'error';
         }
-        else if (gvc.glitter.share.editorViewModel.appConfig.template_type === 0) {
+        else if (window.parent.glitter.share.editorViewModel.appConfig.template_type === 0) {
             postMD.status = 'no';
         }
         postMD.tag = (_b = postMD.tag) !== null && _b !== void 0 ? _b : [];

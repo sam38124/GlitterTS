@@ -142,23 +142,24 @@ export class ApiPublic {
                 , {
                     scheme: appName,
                     table: 't_user',
-                    sql: `(
+                    sql: ` (
   \`id\` int NOT NULL AUTO_INCREMENT,
   \`userID\` int NOT NULL,
   \`account\` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   \`pwd\` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   \`userData\` json DEFAULT NULL,
   \`created_time\` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-\`role\` int NOT NULL DEFAULT '0' COMMENT '角色權限定義',
-  \`company\` varchar(200) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-      \`status\` int NOT NULL DEFAULT '1',
-    KEY \`index5\` (\`company\`),
-  KEY \`index6\` (\`role\`),
+  \`role\` int NOT NULL DEFAULT '0' COMMENT '角色權限定義',
+  \`company\` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  \`status\` int NOT NULL DEFAULT '1',
+  \`online_time\` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (\`id\`,\`userID\`,\`account\`),
   UNIQUE KEY \`account_UNIQUE\` (\`account\`),
   UNIQUE KEY \`userID_UNIQUE\` (\`userID\`),
+  KEY \`index5\` (\`company\`),
+  KEY \`index6\` (\`role\`),
   KEY \`index4\` (\`status\`)
-) ENGINE=InnoDB AUTO_INCREMENT=57 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`
+) ENGINE=InnoDB AUTO_INCREMENT=78 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`
                 },
                 {
                     scheme: appName,
@@ -285,6 +286,19 @@ export class ApiPublic {
   PRIMARY KEY (\`id\`),
   UNIQUE KEY \`index2\` (\`user_id\`,\`chat_id\`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+`
+                },
+                {
+                    scheme: appName,
+                    table: 't_graph_api',
+                    sql: `(
+  \`id\` INT NOT NULL AUTO_INCREMENT,
+  \`route\` VARCHAR(200) NOT NULL,
+  \`method\` VARCHAR(45) NOT NULL,
+  \`info\` JSON NULL,
+  \`created_time\` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (\`id\`),
+  UNIQUE INDEX \`index2\` (\`route\` ASC, \`method\` ASC) VISIBLE);
 `
                 }
             ];

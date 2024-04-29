@@ -170,17 +170,19 @@ export class Template {
     }
 
     public async getPage(config: {
-        appName?: string, tag?: string, group?: string, type?: string, page_type?: string, user_id?: string, me?: string, favorite?: string
+        appName?: string, tag?: string, group?: string, type?: string, page_type?: string, user_id?: string, me?: string, favorite?: string,
+        id?:string
     }) {
 
         try {
-            let sql = `select ${(config.tag) ? `*` : `id,userID,tag,\`group\`,name,page_type,preview_image,appName,page_config`}
+            let sql = `select ${(config.tag || config.id) ? `*` : `id,userID,tag,\`group\`,name,page_type,preview_image,appName,page_config`}
                        from \`${saasConfig.SAAS_NAME}\`.page_config
                        where ${
                                      (() => {
                                          let query: string[] = [`1 = 1`];
                                          (config.user_id) && query.push(`userID=${config.user_id}`);
                                          (config.appName) && query.push(`appName=${db.escape(config.appName)}`);
+                                         (config.id) && query.push(`id=${db.escape(config.id)}`);
                                          (config.tag) && query.push(` tag in (${config.tag.split(',').map((dd) => {
                                              return db.escape(dd)
                                          }).join(',')})`);

@@ -753,7 +753,7 @@ ${
                                                 const saasConfig: {
                                                     config: any,
                                                     api: any
-                                                } = (window as any).saasConfig
+                                                } = (window.parent as any).saasConfig
                                                 const id = gvc.glitter.getUUID()
 
                                                 return {
@@ -941,7 +941,7 @@ ${BgWidget.card([`<div class="fw-bold fs-7">電子錢包</div>
                                 <div class="d-flex w-100 align-items-center mb-3">
                                     ${BgWidget.title((type === 'android_release') ? 'Google Play應用商城' : 'APPLE應用商城')}
                                     <div class="flex-fill"></div>
-                                    <button class="btn btn-primary-c" style="height:45px;font-size: 14px;"
+                                    <button class="btn btn-primary-c" style="height:38px;font-size: 14px;"
                                             onclick="${gvc.event(() => {
                                                 vm.status = 'add'
                                             })}">新增送審項目
@@ -1153,7 +1153,7 @@ ${BgWidget.card([`<div class="fw-bold fs-7">電子錢包</div>
         const saasConfig: {
             config: any,
             api: any
-        } = (window as any).saasConfig
+        } = (window.parent as any).saasConfig
         const html = String.raw
         const postMD: {
             preview_img: string,
@@ -1165,7 +1165,7 @@ ${BgWidget.card([`<div class="fw-bold fs-7">電子錢包</div>
             status: "finish" | 'error' | 'wait' | 'no',
             post_to: 'all' | 'me' | 'cancel',
             tag: string []
-        } = gvc.glitter.share.editorViewModel.appConfig.template_config ?? {
+        } = (window.parent as any).glitter.share.editorViewModel.appConfig.template_config ?? {
             preview_img: '',
             image: [],
             desc: '',
@@ -1177,11 +1177,11 @@ ${BgWidget.card([`<div class="fw-bold fs-7">電子錢包</div>
             tag: []
         }
 
-        if ((gvc.glitter.share.editorViewModel.appConfig.template_type === 2) || (gvc.glitter.share.editorViewModel.appConfig.template_type === 3)) {
+        if (((window.parent as any).glitter.share.editorViewModel.appConfig.template_type === 2) || ((window.parent as any).glitter.share.editorViewModel.appConfig.template_type === 3)) {
             postMD.status = 'finish'
-        } else if (gvc.glitter.share.editorViewModel.appConfig.template_type === -1) {
+        } else if ((window.parent as any).glitter.share.editorViewModel.appConfig.template_type === -1) {
             postMD.status = 'error'
-        }else if(gvc.glitter.share.editorViewModel.appConfig.template_type===0){
+        }else if((window.parent as any).glitter.share.editorViewModel.appConfig.template_type===0){
             postMD.status = 'no'
         }
         postMD.tag = postMD.tag ?? []

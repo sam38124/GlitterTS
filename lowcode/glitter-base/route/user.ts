@@ -29,6 +29,17 @@ export class ApiUser {
             }
         })
     }
+    public static getUsersData(userID:string) {
+        return BaseApi.create({
+            "url": getBaseUrl() + `/api-public/v1/user/userdata?userID=${userID}`,
+            "type": "GET",
+            "headers": {
+                "g-app": getConfig().config.appName,
+                "Content-Type": "application/json",
+                "Authorization": getConfig().config.token || GlobalUser.token
+            }
+        })
+    }
 
     public static subScribe(email: string, tag: string) {
         return BaseApi.create({
@@ -327,7 +338,7 @@ export class ApiUser {
 }
 
 function getConfig() {
-    const saasConfig: { config: any; api: any } = (window as any).saasConfig;
+    const saasConfig: { config: any; api: any } = (window.parent as any).saasConfig;
     return saasConfig
 }
 

@@ -72,13 +72,14 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                 event: () => {
                     return new Promise(async (resolve, reject) => {
                         if(object.valueFrom==='manual'){
+                           
                             gvc.glitter.setUrlParameter(object.key, object.value)
                             resolve(true)
                         }else{
                             const formData : any = (await TriggerEvent.trigger({
                                 gvc: gvc, widget: widget, clickEvent: object.valueData, subData: subData,element:element
                             }))
-                            gvc.glitter.setUrlParameter(object.key, formData)
+                            gvc.glitter.setUrlParameter(object.key, formData || undefined)
                             resolve(true)
                         }
                     })

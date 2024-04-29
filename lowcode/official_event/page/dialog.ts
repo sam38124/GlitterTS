@@ -11,6 +11,7 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
             object.coverData = object.coverData ?? {}
             object.dialogTag = object.dialogTag ?? {}
             object.waitType = object.waitType ?? 'block'
+            object.tag_from=object.tag_from??"static"
             return {
                 editor: () => {
                     const id = gvc.glitter.getUUID()
@@ -34,26 +35,47 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                             bind: id,
                             view: () => {
                                 object.select_page_type=object.select_page_type||'page'
+
                                 return [
                                     EditorElem.select({
-                                        title: '嵌入類型',
+                                        title: '標籤來源',
                                         gvc: gvc,
-                                        def: '',
-                                        array: EditorConfig.page_type_list,
+                                        def: object.tag_from,
+                                        array: [{title:'靜態',value:'static'},{title:'程式碼',value:'code'}],
                                         callback: (text) => {
-                                            object.select_page_type=text
+                                            object.tag_from=text
                                             gvc.notifyDataChange(id)
                                         }
                                     }),
-                                    EditorElem.pageSelect(gvc, '', object.link, (tag) => {
-                                        object.link = tag
-                                    }, (data) => {
-                                        return data.page_type===object.select_page_type
-                                    }), TriggerEvent.editer(gvc, widget, object.coverData, {
-                                        hover: true,
-                                        option: [],
-                                        title: "夾帶資料"
-                                    }),
+                                    (()=>{
+                                        if(object.tag_from==='static'){
+                                            return [EditorElem.select({
+                                                title: '嵌入類型',
+                                                gvc: gvc,
+                                                def: '',
+                                                array: EditorConfig.page_type_list,
+                                                callback: (text) => {
+                                                    object.select_page_type=text
+                                                    gvc.notifyDataChange(id)
+                                                }
+                                            }),EditorElem.pageSelect(gvc, '', object.link, (tag) => {
+                                                object.link = tag
+                                            }, (data) => {
+                                                return data.page_type===object.select_page_type
+                                            }), TriggerEvent.editer(gvc, widget, object.coverData, {
+                                                hover: true,
+                                                option: [],
+                                                title: "夾帶資料"
+                                            })].join(`<div class="my-2"></div>`)
+                                        }else{
+                                            object.get_page_tag=object.get_page_tag??{}
+                                            return  TriggerEvent.editer(gvc, widget, object.get_page_tag, {
+                                                hover: true,
+                                                option: [],
+                                                title: "取得頁面標籤連結"
+                                            })
+                                        }
+                                    })(),
                                     TriggerEvent.editer(gvc, widget, object.dialogTag, {
                                         hover: true,
                                         option: [],
@@ -89,7 +111,9 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                     subData = subData ?? {}
 
                     return new Promise(async (resolve, reject) => {
-
+                        let link=(object.tag_from==='code') ? (await TriggerEvent.trigger({
+                            gvc, widget, clickEvent: object.get_page_tag, subData
+                        })) : object.link;
                         const data = await TriggerEvent.trigger({
                             gvc, widget, clickEvent: object.coverData, subData
                         })
@@ -102,7 +126,7 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                             return new Promise<string>(async (resolve, reject) => {
                                 const view = component.render(gvc, ({
                                     data: {
-                                        tag: object.link
+                                        tag: link
                                     }
                                 } as any), ([] as any), [], subData).view()
 

@@ -55,7 +55,7 @@ export class ApiWallet {
             "headers": {
                 "Content-Type": "application/json",
                 "g-app": getConfig().config.appName,
-                "Authorization": GlobalUser.token
+                "Authorization": getConfig().config.token
             },
             data: JSON.stringify(json)
         });
@@ -67,7 +67,7 @@ export class ApiWallet {
             "headers": {
                 "Content-Type": "application/json",
                 "g-app": getConfig().config.appName,
-                "Authorization": GlobalUser.token
+                "Authorization": getConfig().config.token
             },
             data: JSON.stringify(json)
         });
@@ -197,7 +197,7 @@ export class ApiWallet {
     }
 }
 function getConfig() {
-    const saasConfig = window.saasConfig;
+    const saasConfig = window.parent.saasConfig;
     return saasConfig;
 }
 function getBaseUrl() {

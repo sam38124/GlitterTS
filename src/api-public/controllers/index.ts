@@ -43,6 +43,7 @@ router.use(config.getRoute(config.public_route.fcm, 'public'), fcm);
 router.use(config.getRoute(config.public_route.wallet, 'public'), wallet);
 router.use(config.getRoute(config.public_route.article, 'public'), article);
 router.use(config.getRoute(config.public_route.delivery, 'public'), delivery);
+router.use(config.getRoute(config.public_route.graph_api, 'public'), require('./graph-api'));
 /******************************/
 const whiteList: {}[] = [
     {url: config.getRoute(config.public_route.chat, 'public'), method: 'POST'},
@@ -81,7 +82,12 @@ const whiteList: {}[] = [
     {url: config.getRoute(config.public_route.manager+"/config", 'public'), method: 'GET'},
     {url: config.getRoute(config.public_route.article, 'public'), method: 'GET'},
     {url: config.getRoute(config.public_route.delivery+'/c2cMap', 'public'), method: 'POST'},
-    {url: config.getRoute(config.public_route.delivery+'/c2cRedirect', 'public'), method: 'POST'}
+    {url: config.getRoute(config.public_route.delivery+'/c2cRedirect', 'public'), method: 'POST'},
+    {url: config.getRoute(config.public_route.graph_api, 'public'), method: 'GET'},
+    {url: config.getRoute(config.public_route.graph_api, 'public'), method: 'POST'},
+    {url: config.getRoute(config.public_route.graph_api, 'public'), method: 'PUT'},
+    {url: config.getRoute(config.public_route.graph_api, 'public'), method: 'DELETE'},
+    {url: config.getRoute(config.public_route.graph_api, 'public'), method: 'PATCH'},
 ];
 
 async function doAuthAction(req: express.Request, resp: express.Response, next: express.NextFunction) {
@@ -93,7 +99,6 @@ async function doAuthAction(req: express.Request, resp: express.Response, next: 
     const logger = new Logger();
     const TAG = '[DoAuthAction]';
     const url = req.baseUrl;
-    console.log(`url-->`,url)
     const matches = _.where(whiteList, {url: url, method: req.method});
     const token = req.get('Authorization')?.replace('Bearer ', '') as string;
     if (
@@ -101,6 +106,11 @@ async function doAuthAction(req: express.Request, resp: express.Response, next: 
     ) {
         try {
             req.body.token = jwt.verify(token, config.SECRET_KEY) as IToken;
+            if(req.body.token){
+                await db.execute(`update \`${req.get('g-app') as any ?? req.query['g-app']}\`.t_user set online_time=NOW() where userID=?`,[
+                    req.body.token.userID || '-1'
+                ]);
+            }
         }catch (e) {
             console.log('matchTokenError',e)
         }
@@ -110,6 +120,11 @@ async function doAuthAction(req: express.Request, resp: express.Response, next: 
 
     try {
         req.body.token = jwt.verify(token, config.SECRET_KEY) as IToken;
+        if(req.body.token){
+            await db.execute(`update \`${req.get('g-app') as any ?? req.query['g-app']}\`.t_user set online_time=NOW() where userID=?`,[
+                req.body.token.userID || '-1'
+            ]);
+        }
         const redisToken = await redis.getValue(token);
         if (!redisToken) {
             const tokenCheck=await db.query(`select count(1)  from  \`${saasConfig.SAAS_NAME}\`.user where editor_token=?`,[token])

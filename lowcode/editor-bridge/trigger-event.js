@@ -1,6 +1,7 @@
 import { EditorElem } from "../glitterBundle/plugins/editor-elem.js";
 import { PageEditor } from "../editor/page-editor.js";
 import { TriggerEvent } from "../glitterBundle/plugins/trigger-event.js";
+import { NormalPageEditor } from "../editor/normal-page-editor.js";
 class TriggerEventBridge {
     static editer(gvc, widget, obj, option = { hover: false, option: [] }) {
         var _a;
@@ -8,7 +9,7 @@ class TriggerEventBridge {
         return `
 <div class="w-100">
 <button class="btn btn-primary-c  w-100 " onclick="${gvc.event(() => {
-            var _a;
+            var _a, _b;
             const tag = gvc.glitter.getUUID();
             gvc.glitter.share.clickEvent = (_a = gvc.glitter.share.clickEvent) !== null && _a !== void 0 ? _a : {};
             const glitter = gvc.glitter;
@@ -24,7 +25,7 @@ class TriggerEventBridge {
                 rightID: glitter.getUUID(),
                 right: html `
                     <div class="d-flex  px-2 hi fw-bold d-flex align-items-center border-bottom border-top py-2 bgf6"
-                         style="color:#151515;font-size:16px;gap:0px;height:44px;">
+                         style="color:#151515;font-size:16px;gap:0px;height:48px;">
                         操作說明
                     </div>
                     <div class="d-flex flex-column w-100 align-items-center justify-content-center"
@@ -53,11 +54,11 @@ class TriggerEventBridge {
             function setSelection(obj) {
                 const selectID = glitter.getUUID();
                 vm.right = `  <div class="d-flex  px-2 hi fw-bold d-flex align-items-center border-bottom border-top py-2 bgf6 "
-                                                                 style="color:#151515;font-size:16px;gap:0px;height:44px;">
+                                                                 style="color:#151515;font-size:16px;gap:0px;height:48px;">
                                                                 ${getEventTitle(obj)}
                                                             </div>` + gvc.bindView(() => {
                     const vm = {
-                        type: 'list'
+                        type: 'detail'
                     };
                     return {
                         bind: selectID,
@@ -72,8 +73,8 @@ class TriggerEventBridge {
                             }
                             if (vm.type === 'detail') {
                                 return html `
-                                                                <div class="d-flex align-items-center bg-white w-100 p-2">
-                                                                    <div class="d-flex align-items-center justify-content-center  me-2 border bg-white"
+                                                                <div class="d-flex align-items-center bg-white w-100 p-2 d-none">
+                                                                    <div class="d-none align-items-center justify-content-center  me-2 border bg-white"
                                                                          style="height:36px;width:36px;border-radius:10px;cursor:pointer;" onclick="${gvc.event(() => {
                                     vm.type = 'list';
                                     gvc.notifyDataChange(selectID);
@@ -180,7 +181,7 @@ class TriggerEventBridge {
                         },
                         divCreate: {
                             class: `bg-secondary`,
-                            style: `max-height:660px;overflow-y:auto;min-height:450px;`
+                            style: `overflow-y:auto;min-height:calc(100vh);`
                         }
                     };
                 });
@@ -196,7 +197,7 @@ class TriggerEventBridge {
                         return EditorElem.arrayItem({
                             originalArray: arrayEvent,
                             gvc: gvc,
-                            title: '編輯列表',
+                            title: '事件列表',
                             array: () => {
                                 return arrayEvent.map((obj, index) => {
                                     return {
@@ -218,14 +219,17 @@ class TriggerEventBridge {
                                 title: '添加事件',
                                 event: gvc.event(() => {
                                     PageEditor.openDialog.event_config(gvc, (data) => {
-                                        console.log(`add--`, JSON.stringify(data));
                                         arrayEvent.push({
                                             clickEvent: {
                                                 src: data.src,
                                                 route: data.key
                                             }
                                         });
-                                        gvc.notifyDataChange(did);
+                                        const min = NormalPageEditor.viewArray.length - 1;
+                                        NormalPageEditor.viewArray = NormalPageEditor.viewArray.filter((dd, index) => {
+                                            return index < min;
+                                        });
+                                        NormalPageEditor.refresh();
                                     });
                                 }),
                             },
@@ -242,9 +246,9 @@ class TriggerEventBridge {
                     view: () => {
                         return vm.right;
                     },
-                    divCreate: { style: `width:350px;height:100%;`, class: `` }
+                    divCreate: { style: `width:400px;height:100%;`, class: `` }
                 };
-            }));
+            }), (_b = option.title) !== null && _b !== void 0 ? _b : "觸發事件");
         })}">${(_a = option.title) !== null && _a !== void 0 ? _a : "觸發事件"}</button>
 </div>
 

@@ -15,15 +15,18 @@ import { TriggerEvent } from "../plugins/trigger-event.js";
 import { EditorElem } from "../plugins/editor-elem.js";
 import { Storage } from "../helper/storage.js";
 import { GlobalEvent } from "../api/global-event.js";
+import { NormalPageEditor } from "../../editor/normal-page-editor.js";
+import { StyleEditor } from "../plugins/style-editor.js";
+const html = String.raw;
 export class HtmlGenerate {
-    constructor(setting, hover = [], subData, root) {
+    constructor(setting, hoverInitial = [], subData, root) {
         this.initialFunction = () => {
         };
         const editContainer = window.glitter.getUUID();
         this.setting = setting;
         this.initialFunction = () => {
             var _a;
-            hover = [Storage.lastSelect];
+            HtmlGenerate.hover_items = [Storage.lastSelect];
             const formData = setting.formData;
             subData = subData !== null && subData !== void 0 ? subData : {};
             let share = {};
@@ -143,413 +146,411 @@ export class HtmlGenerate {
                 return {
                     bind: container,
                     view: () => {
-                        return new Promise((resolve, reject) => {
-                            let waitAddScript = [];
-                            gvc.glitter.defaultSetting.pageLoading();
-                            function startRender() {
-                                const start = new Date().getTime();
-                                new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
-                                    function initialComponent(set) {
-                                        let waitAdd = [];
-                                        for (const a of set) {
-                                            if (['code'].indexOf(a.type) === -1) {
-                                                if ((a.type !== 'widget') && (a.type !== 'container') && !gvc.glitter.share.htmlExtension[gvc.glitter.htmlGenerate.configureCDN(gvc.glitter.htmlGenerate.configureCDN(gvc.glitter.htmlGenerate.resourceHook(a.js)))]) {
-                                                    waitAdd.push({
-                                                        src: `${gvc.glitter.htmlGenerate.configureCDN(gvc.glitter.htmlGenerate.resourceHook(a.js))}`,
-                                                        type: 'module'
+                        return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
+                            const view = [yield new Promise((resolve, reject) => {
+                                    let waitAddScript = [];
+                                    gvc.glitter.defaultSetting.pageLoading();
+                                    function startRender() {
+                                        const start = new Date().getTime();
+                                        new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
+                                            function initialComponent(set) {
+                                                let waitAdd = [];
+                                                for (const a of set) {
+                                                    if (['code'].indexOf(a.type) === -1) {
+                                                        if ((a.type !== 'widget') && (a.type !== 'container') && !gvc.glitter.share.htmlExtension[gvc.glitter.htmlGenerate.configureCDN(gvc.glitter.htmlGenerate.configureCDN(gvc.glitter.htmlGenerate.resourceHook(a.js)))]) {
+                                                            waitAdd.push({
+                                                                src: `${gvc.glitter.htmlGenerate.configureCDN(gvc.glitter.htmlGenerate.resourceHook(a.js))}`,
+                                                                type: 'module'
+                                                            });
+                                                        }
+                                                        if (a.type === 'container') {
+                                                            waitAdd = waitAdd.concat(initialComponent(a.data.setting));
+                                                        }
+                                                    }
+                                                }
+                                                return waitAdd;
+                                            }
+                                            gvc.glitter.htmlGenerate.loadScript(gvc.glitter, initialComponent(setting));
+                                            function initialScript() {
+                                                return __awaiter(this, void 0, void 0, function* () {
+                                                    for (const script of setting.filter((dd) => {
+                                                        return dd.type === 'code' && dd.data.triggerTime === 'async';
+                                                    })) {
+                                                        codeComponent.render(gvc, script, setting, [], subData).view();
+                                                    }
+                                                    for (const script of setting.filter((dd) => {
+                                                        return dd.type === 'code' && dd.data.triggerTime === 'first';
+                                                    })) {
+                                                        yield codeComponent.render(gvc, script, setting, [], subData).view();
+                                                    }
+                                                });
+                                            }
+                                            yield initialScript();
+                                            for (const b of setting) {
+                                                if (b.preloadEvenet) {
+                                                    yield TriggerEvent.trigger({
+                                                        gvc,
+                                                        widget: b,
+                                                        clickEvent: b.preloadEvenet
                                                     });
                                                 }
-                                                if (a.type === 'container') {
-                                                    waitAdd = waitAdd.concat(initialComponent(a.data.setting));
+                                                if (b.hiddenEvent) {
+                                                    const hidden = yield TriggerEvent.trigger({
+                                                        gvc,
+                                                        widget: b,
+                                                        clickEvent: b.hiddenEvent,
+                                                        subData: subData
+                                                    });
+                                                    if (hidden) {
+                                                        const formData = setting.formData;
+                                                        setting = setting.filter((dd) => {
+                                                            return dd !== b;
+                                                        });
+                                                        setting.formData = formData;
+                                                    }
                                                 }
                                             }
-                                        }
-                                        return waitAdd;
-                                    }
-                                    gvc.glitter.htmlGenerate.loadScript(gvc.glitter, initialComponent(setting));
-                                    function initialScript() {
-                                        return __awaiter(this, void 0, void 0, function* () {
-                                            for (const script of setting.filter((dd) => {
-                                                return dd.type === 'code' && dd.data.triggerTime === 'async';
-                                            })) {
-                                                codeComponent.render(gvc, script, setting, [], subData).view();
-                                            }
-                                            for (const script of setting.filter((dd) => {
-                                                return dd.type === 'code' && dd.data.triggerTime === 'first';
-                                            })) {
-                                                yield codeComponent.render(gvc, script, setting, [], subData).view();
-                                            }
-                                        });
-                                    }
-                                    yield initialScript();
-                                    for (const b of setting) {
-                                        if (b.preloadEvenet) {
-                                            yield TriggerEvent.trigger({
-                                                gvc,
-                                                widget: b,
-                                                clickEvent: b.preloadEvenet
-                                            });
-                                        }
-                                        if (b.hiddenEvent) {
-                                            const hidden = yield TriggerEvent.trigger({
-                                                gvc,
-                                                widget: b,
-                                                clickEvent: b.hiddenEvent,
-                                                subData: subData
-                                            });
-                                            if (hidden) {
-                                                const formData = setting.formData;
-                                                setting = setting.filter((dd) => {
-                                                    return dd !== b;
-                                                });
-                                                setting.formData = formData;
-                                            }
-                                        }
-                                    }
-                                    const html = setting.map((dd) => {
-                                        var _a;
-                                        dd.formData = dd.formData || setting.formData;
-                                        dd.global = (_a = dd.global) !== null && _a !== void 0 ? _a : [];
-                                        dd.global.gvc = gvc;
-                                        dd.global.pageConfig = option.page_config;
-                                        dd.global.appConfig = option.app_config;
-                                        dd.refreshAllParameter.view1 = () => {
-                                            gvc.notifyDataChange(container);
-                                        };
-                                        function loadResource() {
-                                            if ((dd.data.elem === 'link') && (dd.data.attr.find((dd) => {
-                                                return dd.attr === 'rel' && dd.value === 'stylesheet';
-                                            }))) {
-                                                gvc.glitter.addStyleLink(dd.data.attr.find((dd) => {
-                                                    return dd.attr === 'href';
-                                                }).value, document);
-                                            }
-                                            else if (((dd.data.elem === 'script')) && dd.data.attr.find((dd) => {
-                                                return dd.attr === 'src';
-                                            })) {
-                                                waitAddScript.push(dd.data.attr.find((dd) => {
-                                                    return dd.attr === 'src';
-                                                }).value);
-                                            }
-                                        }
-                                        loadResource();
-                                        function getHtml() {
-                                            if (((dd.data.elem === 'link') && (dd.data.attr.find((dd) => {
-                                                return dd.attr === 'rel' && dd.value === 'stylesheet';
-                                            }))) || (((dd.data.elem === 'script')) && dd.data.attr.find((dd) => {
-                                                return dd.attr === 'src';
-                                            }))) {
-                                                return ``;
-                                            }
-                                            if (['code'].indexOf(dd.type) === -1) {
-                                                if ((dd.type === 'widget') || (dd.type === 'container')) {
-                                                    return gvc.bindView(() => {
-                                                        const tempView = gvc.glitter.getUUID();
-                                                        return {
-                                                            bind: tempView,
-                                                            view: () => {
-                                                                return ``;
-                                                            },
-                                                            divCreate: {
-                                                                class: ``
-                                                            },
-                                                            onCreate: () => {
-                                                                dd.refreshComponentParameter.view1 = () => {
-                                                                    gvc.notifyDataChange(container);
-                                                                };
-                                                                function addCreateOption(option, widgetComponentID) {
-                                                                    if (isEditMode() && !childContainer) {
-                                                                        option.push({
-                                                                            key: "onclick", value: (() => {
-                                                                                function selectEvent(event) {
-                                                                                    try {
-                                                                                        if (dd.selectEditEvent && dd.selectEditEvent()) {
-                                                                                            gvc.glitter.$('.selectComponentHover').removeClass('selectComponentHover');
-                                                                                            gvc.glitter.$(`[gvc-id="${gvc.id(widgetComponentID)}"]`).addClass('selectComponentHover');
-                                                                                            hover = [dd.id];
-                                                                                            scrollToHover(gvc.glitter.window.document.querySelector('.selectComponentHover'));
-                                                                                            event && event.stopPropagation && event.stopPropagation();
-                                                                                        }
-                                                                                    }
-                                                                                    catch (e) {
-                                                                                        console.log(e);
-                                                                                    }
-                                                                                }
-                                                                                dd.editorEvent = () => {
-                                                                                    selectEvent(document.querySelector(`[gvc-id="${gvc.id(widgetComponentID)}"]`));
-                                                                                };
-                                                                                return gvc.editorEvent((e, event) => {
-                                                                                    selectEvent(event);
+                                            const html = setting.map((dd) => {
+                                                var _a;
+                                                dd.formData = dd.formData || setting.formData;
+                                                dd.global = (_a = dd.global) !== null && _a !== void 0 ? _a : [];
+                                                dd.global.gvc = gvc;
+                                                dd.global.pageConfig = option.page_config;
+                                                dd.global.appConfig = option.app_config;
+                                                dd.refreshAllParameter.view1 = () => {
+                                                    gvc.notifyDataChange(container);
+                                                };
+                                                function loadResource() {
+                                                    if ((dd.data.elem === 'link') && (dd.data.attr.find((dd) => {
+                                                        return dd.attr === 'rel' && dd.value === 'stylesheet';
+                                                    }))) {
+                                                        gvc.glitter.addStyleLink(dd.data.attr.find((dd) => {
+                                                            return dd.attr === 'href';
+                                                        }).value, document);
+                                                    }
+                                                    else if (((dd.data.elem === 'script')) && dd.data.attr.find((dd) => {
+                                                        return dd.attr === 'src';
+                                                    })) {
+                                                        waitAddScript.push(dd.data.attr.find((dd) => {
+                                                            return dd.attr === 'src';
+                                                        }).value);
+                                                    }
+                                                }
+                                                loadResource();
+                                                function getHtml() {
+                                                    if (((dd.data.elem === 'link') && (dd.data.attr.find((dd) => {
+                                                        return dd.attr === 'rel' && dd.value === 'stylesheet';
+                                                    }))) || (((dd.data.elem === 'script')) && dd.data.attr.find((dd) => {
+                                                        return dd.attr === 'src';
+                                                    }))) {
+                                                        return ``;
+                                                    }
+                                                    if (!isEditMode() && (dd.visible === false)) {
+                                                        return ``;
+                                                    }
+                                                    else if (['code'].indexOf(dd.type) === -1) {
+                                                        if ((dd.type === 'widget') || (dd.type === 'container')) {
+                                                            return gvc.bindView(() => {
+                                                                const tempView = gvc.glitter.getUUID();
+                                                                return {
+                                                                    bind: tempView,
+                                                                    view: () => {
+                                                                        return ``;
+                                                                    },
+                                                                    divCreate: {
+                                                                        class: ``
+                                                                    },
+                                                                    onCreate: () => {
+                                                                        dd.refreshComponentParameter.view1 = () => {
+                                                                            gvc.notifyDataChange(container);
+                                                                        };
+                                                                        function addCreateOption(option, widgetComponentID) {
+                                                                            if (isEditMode() && !childContainer && root) {
+                                                                                option.push({
+                                                                                    key: "onclick", value: (() => {
+                                                                                        dd.editorEvent = () => {
+                                                                                            HtmlGenerate.selectWidget({
+                                                                                                gvc: gvc,
+                                                                                                dd: dd,
+                                                                                                root: root,
+                                                                                                widgetComponentID: dd.id,
+                                                                                                event: document.querySelector(`[gvc-id="${gvc.id(dd.id)}"]`)
+                                                                                            });
+                                                                                            scrollToHover(gvc.glitter.$(`.editor_it_${dd.id}`).get(0));
+                                                                                        };
+                                                                                        return gvc.editorEvent((e, event) => {
+                                                                                            HtmlGenerate.selectWidget({
+                                                                                                gvc: gvc,
+                                                                                                dd: dd,
+                                                                                                root: root,
+                                                                                                widgetComponentID: dd.id,
+                                                                                                event: event
+                                                                                            });
+                                                                                        });
+                                                                                    })()
                                                                                 });
-                                                                            })()
-                                                                        });
-                                                                    }
-                                                                }
-                                                                const target = document.querySelector(`[gvc-id="${gvc.id(tempView)}"]`);
-                                                                if (dd.gCount === 'multiple') {
-                                                                    new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
-                                                                        let data = (yield TriggerEvent.trigger({
-                                                                            gvc,
-                                                                            widget: dd,
-                                                                            clickEvent: dd.arrayData,
-                                                                            subData: subData
-                                                                        }));
-                                                                        if (!Array.isArray(data) && data) {
-                                                                            data = [data];
+                                                                            }
                                                                         }
-                                                                        if (!data) {
-                                                                            data = [];
+                                                                        const target = document.querySelector(`[gvc-id="${gvc.id(tempView)}"]`);
+                                                                        if (dd.gCount === 'multiple') {
+                                                                            new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
+                                                                                let data = (yield TriggerEvent.trigger({
+                                                                                    gvc,
+                                                                                    widget: dd,
+                                                                                    clickEvent: dd.arrayData,
+                                                                                    subData: subData
+                                                                                }));
+                                                                                if (!Array.isArray(data) && data) {
+                                                                                    data = [data];
+                                                                                }
+                                                                                if (!data) {
+                                                                                    data = [];
+                                                                                }
+                                                                                target.outerHTML = data.map((subData) => {
+                                                                                    let option = [];
+                                                                                    const widgetComponentID = gvc.glitter.getUUID();
+                                                                                    addCreateOption(option, widgetComponentID);
+                                                                                    return widgetComponent.render(gvc, dd, setting, HtmlGenerate.hover_items, subData, {
+                                                                                        option: option,
+                                                                                        widgetComponentID: widgetComponentID,
+                                                                                        root: root
+                                                                                    }, document)
+                                                                                        .view();
+                                                                                }).join('');
+                                                                            }));
                                                                         }
-                                                                        target.outerHTML = data.map((subData) => {
+                                                                        else {
                                                                             let option = [];
                                                                             const widgetComponentID = gvc.glitter.getUUID();
                                                                             addCreateOption(option, widgetComponentID);
-                                                                            return widgetComponent.render(gvc, dd, setting, hover, subData, {
+                                                                            target.outerHTML = widgetComponent.render(gvc, dd, setting, HtmlGenerate.hover_items, dd.subData || subData, {
                                                                                 option: option,
-                                                                                widgetComponentID: widgetComponentID
+                                                                                widgetComponentID: widgetComponentID,
+                                                                                root: root
                                                                             }, document)
                                                                                 .view();
-                                                                        }).join('');
-                                                                    }));
-                                                                }
-                                                                else {
-                                                                    let option = [];
-                                                                    const widgetComponentID = gvc.glitter.getUUID();
-                                                                    addCreateOption(option, widgetComponentID);
-                                                                    target.outerHTML = widgetComponent.render(gvc, dd, setting, hover, dd.subData || subData, {
-                                                                        option: option,
-                                                                        widgetComponentID: widgetComponentID
-                                                                    }, document)
-                                                                        .view();
-                                                                }
-                                                            },
-                                                            onDestroy: () => {
-                                                            },
-                                                        };
-                                                    });
-                                                }
-                                                else {
-                                                    return gvc.bindView(() => {
-                                                        const tempView = gvc.glitter.getUUID();
-                                                        return {
-                                                            bind: tempView,
-                                                            view: () => {
-                                                                return ``;
-                                                            },
-                                                            divCreate: {
-                                                                class: ``
-                                                            },
-                                                            onCreate: () => {
-                                                                dd.refreshComponentParameter.view1 = () => {
-                                                                    gvc.notifyDataChange(container);
+                                                                        }
+                                                                    },
+                                                                    onDestroy: () => {
+                                                                    },
                                                                 };
-                                                                const option = [];
-                                                                if (isEditMode() && !childContainer) {
-                                                                    option.push({
-                                                                        key: "onclick", value: (() => {
-                                                                            function selectEvent(event) {
-                                                                                try {
-                                                                                    if (dd.selectEditEvent && dd.selectEditEvent()) {
-                                                                                        gvc.glitter.$('.selectComponentHover').removeClass('selectComponentHover');
-                                                                                        gvc.glitter.$(`[gvc-id="${gvc.id(dd.id)}"]`).addClass('selectComponentHover');
-                                                                                        hover = [dd.id];
-                                                                                        scrollToHover(gvc.glitter.window.document.querySelector('.selectComponentHover'));
-                                                                                        event && event.stopPropagation && event.stopPropagation();
-                                                                                    }
-                                                                                }
-                                                                                catch (e) {
-                                                                                    console.log(e);
-                                                                                }
-                                                                            }
-                                                                            dd.editorEvent = () => {
-                                                                                selectEvent(document.querySelector(`[gvc-id="${gvc.id(dd.id)}"]`));
-                                                                            };
-                                                                            return gvc.editorEvent((e, event) => {
-                                                                                selectEvent(event);
-                                                                            });
-                                                                        })()
-                                                                    });
-                                                                }
-                                                                const target = document.querySelector(`[gvc-id="${gvc.id(tempView)}"]`);
-                                                                function render(subData) {
-                                                                    return gvc.bindView(() => {
-                                                                        var _a;
-                                                                        const component = gvc.glitter.getUUID();
+                                                            });
+                                                        }
+                                                        else {
+                                                            return gvc.bindView(() => {
+                                                                const tempView = gvc.glitter.getUUID();
+                                                                return {
+                                                                    bind: tempView,
+                                                                    view: () => {
+                                                                        return ``;
+                                                                    },
+                                                                    divCreate: {
+                                                                        class: ``
+                                                                    },
+                                                                    onCreate: () => {
                                                                         dd.refreshComponentParameter.view1 = () => {
-                                                                            gvc.notifyDataChange(component);
+                                                                            gvc.notifyDataChange(container);
                                                                         };
-                                                                        let option = [];
-                                                                        if (isEditMode() && !childContainer) {
-                                                                            option.push({
-                                                                                key: "onclick", value: (() => {
-                                                                                    function selectEvent(event) {
-                                                                                        try {
-                                                                                            if (dd.selectEditEvent && dd.selectEditEvent()) {
-                                                                                                gvc.glitter.$('.selectComponentHover').removeClass('selectComponentHover');
-                                                                                                gvc.glitter.$(`[gvc-id="${gvc.id(component)}"]`).addClass('selectComponentHover');
-                                                                                                hover = [dd.id];
-                                                                                                scrollToHover(gvc.glitter.window.document.querySelector('.selectComponentHover'));
-                                                                                                event && event.stopPropagation && event.stopPropagation();
-                                                                                            }
-                                                                                        }
-                                                                                        catch (e) {
-                                                                                            console.log(e);
-                                                                                        }
-                                                                                    }
-                                                                                    dd.editorEvent = () => {
-                                                                                        selectEvent(document.querySelector(`[gvc-id="${gvc.id(component)}"]`));
-                                                                                    };
-                                                                                    return gvc.editorEvent((e, event) => {
-                                                                                        selectEvent(event);
+                                                                        const target = document.querySelector(`[gvc-id="${gvc.id(tempView)}"]`);
+                                                                        function render(subData) {
+                                                                            return gvc.bindView(() => {
+                                                                                var _a;
+                                                                                const component = gvc.glitter.getUUID();
+                                                                                dd.refreshComponentParameter.view1 = () => {
+                                                                                    gvc.notifyDataChange(component);
+                                                                                };
+                                                                                let option = [];
+                                                                                if (isEditMode() && !childContainer && root) {
+                                                                                    option.push({
+                                                                                        key: "onclick", value: (() => {
+                                                                                            dd.editorEvent = () => {
+                                                                                                HtmlGenerate.selectWidget({
+                                                                                                    gvc: gvc,
+                                                                                                    dd: dd,
+                                                                                                    widgetComponentID: dd.id,
+                                                                                                    event: document.querySelector(`[gvc-id="${gvc.id(component)}"]`),
+                                                                                                    root: root
+                                                                                                });
+                                                                                                scrollToHover(gvc.glitter.$(`.editor_it_${dd.id}`).get(0));
+                                                                                            };
+                                                                                            return gvc.editorEvent((e, event) => {
+                                                                                                HtmlGenerate.selectWidget({
+                                                                                                    gvc: gvc,
+                                                                                                    dd: dd,
+                                                                                                    widgetComponentID: dd.id,
+                                                                                                    event: event,
+                                                                                                    root: root
+                                                                                                });
+                                                                                            });
+                                                                                        })()
                                                                                     });
-                                                                                })()
+                                                                                }
+                                                                                return {
+                                                                                    bind: component,
+                                                                                    view: () => {
+                                                                                        return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
+                                                                                            const view = [yield new Promise((resolve, reject) => {
+                                                                                                    gvc.glitter.htmlGenerate.loadScript(gvc.glitter, [{
+                                                                                                            src: dd.js,
+                                                                                                            callback: (data) => {
+                                                                                                                if (data[dd.type].render.version === 'v2') {
+                                                                                                                    data = data[dd.type].render({
+                                                                                                                        gvc: gvc,
+                                                                                                                        widget: dd,
+                                                                                                                        widgetList: setting,
+                                                                                                                        hoverID: HtmlGenerate.hover_items,
+                                                                                                                        subData: subData,
+                                                                                                                        formData: dd.formData
+                                                                                                                    })
+                                                                                                                        .view();
+                                                                                                                }
+                                                                                                                else {
+                                                                                                                    data = data[dd.type].render(gvc, dd, setting, HtmlGenerate.hover_items, subData)
+                                                                                                                        .view();
+                                                                                                                }
+                                                                                                                if (typeof data === 'string') {
+                                                                                                                    resolve(data);
+                                                                                                                }
+                                                                                                                else {
+                                                                                                                    data.then((dd) => {
+                                                                                                                        resolve(dd);
+                                                                                                                    });
+                                                                                                                }
+                                                                                                            }
+                                                                                                        }]);
+                                                                                                })];
+                                                                                            if (root && isEditMode()) {
+                                                                                                const html = String.raw;
+                                                                                                view.push(HtmlGenerate.getEditorSelectSection({
+                                                                                                    id: dd.id,
+                                                                                                    gvc: gvc,
+                                                                                                    label: dd.label
+                                                                                                }));
+                                                                                            }
+                                                                                            resolve(view.join(''));
+                                                                                        }));
+                                                                                    },
+                                                                                    divCreate: {
+                                                                                        style: `position: relative;${gvc.glitter.htmlGenerate.styleEditor(dd, gvc, dd, {}).style()};${(dd.visible === false) ? `display:none;` : ``}`,
+                                                                                        class: `${(_a = dd.class) !== null && _a !== void 0 ? _a : ''} ${(dd.hashTag) ? `glitterTag${dd.hashTag}` : ''} 
+                                                                                ${(isEditMode() ? `editorParent` : ``)}
+                                                                ${gvc.glitter.htmlGenerate.styleEditor(dd, gvc, dd, {}).class()}`,
+                                                                                        option: option
+                                                                                    },
+                                                                                    onCreate: () => {
+                                                                                        TriggerEvent.trigger({
+                                                                                            gvc,
+                                                                                            widget: dd,
+                                                                                            clickEvent: dd.onCreateEvent,
+                                                                                            subData: subData
+                                                                                        });
+                                                                                        gvc.glitter.document.querySelector(`[gvc-id="${gvc.id(component)}"]`).onResumeEvent = () => {
+                                                                                            TriggerEvent.trigger({
+                                                                                                gvc,
+                                                                                                widget: dd,
+                                                                                                clickEvent: dd.onResumtEvent,
+                                                                                                subData: subData
+                                                                                            });
+                                                                                            console.log(`onResume`);
+                                                                                        };
+                                                                                    },
+                                                                                    onInitial: () => {
+                                                                                        TriggerEvent.trigger({
+                                                                                            gvc,
+                                                                                            widget: dd,
+                                                                                            clickEvent: dd.onInitialEvent,
+                                                                                            subData: subData
+                                                                                        });
+                                                                                    },
+                                                                                    onDestroy: () => {
+                                                                                        TriggerEvent.trigger({
+                                                                                            gvc,
+                                                                                            widget: dd,
+                                                                                            clickEvent: dd.onDestoryEvent,
+                                                                                            subData: subData
+                                                                                        });
+                                                                                    }
+                                                                                };
                                                                             });
                                                                         }
-                                                                        return {
-                                                                            bind: component,
-                                                                            view: () => {
-                                                                                return new Promise((resolve, reject) => {
-                                                                                    gvc.glitter.htmlGenerate.loadScript(gvc.glitter, [{
-                                                                                            src: dd.js,
-                                                                                            callback: (data) => {
-                                                                                                if (data[dd.type].render.version === 'v2') {
-                                                                                                    data = data[dd.type].render({
-                                                                                                        gvc: gvc,
-                                                                                                        widget: dd,
-                                                                                                        widgetList: setting,
-                                                                                                        hoverID: hover,
-                                                                                                        subData: subData,
-                                                                                                        formData: dd.formData
-                                                                                                    })
-                                                                                                        .view();
-                                                                                                }
-                                                                                                else {
-                                                                                                    data = data[dd.type].render(gvc, dd, setting, hover, subData)
-                                                                                                        .view();
-                                                                                                }
-                                                                                                if (typeof data === 'string') {
-                                                                                                    resolve(data);
-                                                                                                }
-                                                                                                else {
-                                                                                                    data.then((dd) => {
-                                                                                                        resolve(dd);
-                                                                                                    });
-                                                                                                }
-                                                                                            }
-                                                                                        }]);
-                                                                                });
-                                                                            },
-                                                                            divCreate: {
-                                                                                style: `position: relative;${gvc.glitter.htmlGenerate.styleEditor(dd, gvc, dd, {}).style()}`,
-                                                                                class: `${(_a = dd.class) !== null && _a !== void 0 ? _a : ''} ${(dd.hashTag) ? `glitterTag${dd.hashTag}` : ''} ${(hover.indexOf(dd.id) !== -1) && isEditMode() ? ` selectComponentHover` : ``}
-                                                                ${gvc.glitter.htmlGenerate.styleEditor(dd, gvc, dd, {}).class()}`,
-                                                                                option: option
-                                                                            },
-                                                                            onCreate: () => {
-                                                                                TriggerEvent.trigger({
+                                                                        if (dd.gCount === 'multiple') {
+                                                                            new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
+                                                                                let data = (yield TriggerEvent.trigger({
                                                                                     gvc,
                                                                                     widget: dd,
-                                                                                    clickEvent: dd.onCreateEvent,
+                                                                                    clickEvent: dd.arrayData,
                                                                                     subData: subData
-                                                                                });
-                                                                                gvc.glitter.document.querySelector(`[gvc-id="${gvc.id(component)}"]`).onResumeEvent = () => {
-                                                                                    TriggerEvent.trigger({
-                                                                                        gvc,
-                                                                                        widget: dd,
-                                                                                        clickEvent: dd.onResumtEvent,
-                                                                                        subData: subData
-                                                                                    });
-                                                                                    console.log(`onResume`);
-                                                                                };
-                                                                            },
-                                                                            onInitial: () => {
-                                                                                TriggerEvent.trigger({
-                                                                                    gvc,
-                                                                                    widget: dd,
-                                                                                    clickEvent: dd.onInitialEvent,
-                                                                                    subData: subData
-                                                                                });
-                                                                            },
-                                                                            onDestroy: () => {
-                                                                                TriggerEvent.trigger({
-                                                                                    gvc,
-                                                                                    widget: dd,
-                                                                                    clickEvent: dd.onDestoryEvent,
-                                                                                    subData: subData
-                                                                                });
-                                                                            }
-                                                                        };
-                                                                    });
-                                                                }
-                                                                if (dd.gCount === 'multiple') {
-                                                                    new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
-                                                                        let data = (yield TriggerEvent.trigger({
-                                                                            gvc,
-                                                                            widget: dd,
-                                                                            clickEvent: dd.arrayData,
-                                                                            subData: subData
-                                                                        }));
-                                                                        if (!Array.isArray(data) && data) {
-                                                                            data = [data];
+                                                                                }));
+                                                                                if (!Array.isArray(data) && data) {
+                                                                                    data = [data];
+                                                                                }
+                                                                                if (!data) {
+                                                                                    console.log(`isNull`, dd);
+                                                                                    data = [];
+                                                                                }
+                                                                                target.outerHTML = data.map((subData) => {
+                                                                                    return render(subData);
+                                                                                }).join('');
+                                                                            }));
                                                                         }
-                                                                        if (!data) {
-                                                                            console.log(`isNull`, dd);
-                                                                            data = [];
+                                                                        else {
+                                                                            target.outerHTML = render(dd.subData || subData);
                                                                         }
-                                                                        target.outerHTML = data.map((subData) => {
-                                                                            return render(subData);
-                                                                        }).join('');
-                                                                    }));
-                                                                }
-                                                                else {
-                                                                    target.outerHTML = render(dd.subData || subData);
-                                                                }
-                                                            },
-                                                            onDestroy: () => {
-                                                            },
-                                                        };
+                                                                    },
+                                                                    onDestroy: () => {
+                                                                    },
+                                                                };
+                                                            });
+                                                        }
+                                                    }
+                                                    else {
+                                                        return ``;
+                                                    }
+                                                }
+                                                return getHtml();
+                                            }).join('');
+                                            resolve(html);
+                                        })).then((html) => {
+                                            resolve(html);
+                                            new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
+                                                for (const script of setting.filter((dd) => {
+                                                    return dd.type === 'code' && dd.data.triggerTime === 'last';
+                                                })) {
+                                                    yield codeComponent.render(gvc, script, setting, [], subData).view();
+                                                }
+                                                for (const a of waitAddScript) {
+                                                    yield new Promise((resolve, reject) => {
+                                                        gvc.glitter.addMtScript([{
+                                                                src: a
+                                                            }], () => {
+                                                            setTimeout(() => {
+                                                                resolve(true);
+                                                            }, 10);
+                                                        }, () => {
+                                                            resolve(false);
+                                                        });
+                                                        resolve(true);
                                                     });
                                                 }
-                                            }
-                                            else {
-                                                return ``;
-                                            }
-                                        }
-                                        return getHtml();
-                                    }).join('');
-                                    resolve(html);
-                                })).then((html) => {
-                                    resolve(html);
-                                    new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
-                                        for (const script of setting.filter((dd) => {
-                                            return dd.type === 'code' && dd.data.triggerTime === 'last';
-                                        })) {
-                                            yield codeComponent.render(gvc, script, setting, [], subData).view();
-                                        }
-                                        for (const a of waitAddScript) {
-                                            yield new Promise((resolve, reject) => {
-                                                gvc.glitter.addMtScript([{
-                                                        src: a
-                                                    }], () => {
-                                                    setTimeout(() => {
-                                                        resolve(true);
-                                                    }, 10);
-                                                }, () => {
-                                                    resolve(false);
-                                                });
                                                 resolve(true);
+                                            })).then(() => {
+                                                gvc.glitter.consoleLog(`renderFinish-${(new Date().getTime() - start) / 1000}`);
+                                                gvc.glitter.defaultSetting.pageLoadingFinish();
+                                                option.jsFinish && option.jsFinish();
                                             });
-                                        }
-                                        resolve(true);
-                                    })).then(() => {
-                                        gvc.glitter.consoleLog(`renderFinish-${(new Date().getTime() - start) / 1000}`);
-                                        gvc.glitter.defaultSetting.pageLoadingFinish();
-                                        option.jsFinish && option.jsFinish();
-                                    });
-                                });
+                                        });
+                                    }
+                                    startRender();
+                                })];
+                            if (isEditMode() && option && option.editorSection) {
+                                view.push(HtmlGenerate.getEditorSelectSection({
+                                    id: option.editorSection,
+                                    gvc: gvc,
+                                    label: '容器'
+                                }));
                             }
-                            startRender();
-                        });
+                            resolve(view.join(''));
+                        }));
                     },
                     divCreate: createOption !== null && createOption !== void 0 ? createOption : {
                         class: option.class, style: option.style, option: [{
@@ -675,7 +676,7 @@ ${(() => {
                                                                                 gvc: gvc,
                                                                                 widget: dd,
                                                                                 widgetList: setting,
-                                                                                hoverID: hover,
+                                                                                hoverID: HtmlGenerate.hover_items,
                                                                                 subData: subData,
                                                                                 formData: dd.formData
                                                                             }).user_editor) {
@@ -690,7 +691,7 @@ ${(() => {
                                                                                 gvc: gvc,
                                                                                 widget: dd,
                                                                                 widgetList: setting,
-                                                                                hoverID: hover,
+                                                                                hoverID: HtmlGenerate.hover_items,
                                                                                 subData: subData,
                                                                                 formData: dd.formData
                                                                             }).user_editor) {
@@ -719,14 +720,14 @@ ${(() => {
                                                                                         gvc: gvc,
                                                                                         widget: dd,
                                                                                         widgetList: setting,
-                                                                                        hoverID: hover,
+                                                                                        hoverID: HtmlGenerate.hover_items,
                                                                                         subData: subData,
                                                                                         formData: dd.formData
                                                                                     })
                                                                                         .user_editor();
                                                                                 }
                                                                                 else {
-                                                                                    data = data2[dd.type].render(gvc, dd, setting, hover, subData)
+                                                                                    data = data2[dd.type].render(gvc, dd, setting, HtmlGenerate.hover_items, subData)
                                                                                         .user_editor();
                                                                                 }
                                                                                 if (typeof data === 'string') {
@@ -786,7 +787,7 @@ ${e.line}
                                                     }
                                                     else {
                                                         resolve([
-                                                            gvc.bindView(() => {
+                                                            (Storage.select_function === 'user-editor') ? `` : gvc.bindView(() => {
                                                                 const vm = {
                                                                     id: gvc.glitter.getUUID(),
                                                                     type: "preview"
@@ -821,204 +822,212 @@ ${EditorElem.editeInput({
 ${(dd.data.elem === 'script' || dd.data.elem === 'style' || dd.data.elem === 'link' || dd.type === 'code') ? `d-none` : ``}
 " style="height: 30px;width: 70px;gap:5px;"
 onclick="${gvc.event(() => {
-                                                                                EditorElem.openEditorDialog(gvc, (gvc) => {
-                                                                                    const html = String.raw;
-                                                                                    const id = gvc.glitter.getUUID();
-                                                                                    let vm = {
-                                                                                        select: 'info'
-                                                                                    };
-                                                                                    return [
-                                                                                        gvc.bindView(() => {
-                                                                                            const selectID = gvc.glitter.getUUID();
-                                                                                            return {
-                                                                                                bind: selectID,
-                                                                                                view: () => {
-                                                                                                    return html `
-                                                                                                        <div class="w-100 "
-                                                                                                             style="">
-                                                                                                            <div class="d-flex align-items-center justify-content-around w-100 p-2">
-                                                                                                                ${[
-                                                                                                        {
-                                                                                                            title: '模塊資訊',
-                                                                                                            value: 'info',
-                                                                                                            icon: 'fa-solid fa-info'
-                                                                                                        },
-                                                                                                        {
-                                                                                                            title: '加載設定',
-                                                                                                            value: 'loading',
-                                                                                                            icon: 'fa-regular fa-loader'
-                                                                                                        },
-                                                                                                        {
-                                                                                                            title: '生命週期',
-                                                                                                            value: 'lifecycle',
-                                                                                                            icon: 'fa-regular fa-wave-pulse'
-                                                                                                        }
-                                                                                                    ].map((dd) => {
+                                                                                NormalPageEditor.toggle({
+                                                                                    visible: true,
+                                                                                    title: '進階設定',
+                                                                                    view: (() => {
+                                                                                        const html = String.raw;
+                                                                                        const id = gvc.glitter.getUUID();
+                                                                                        let vm = {
+                                                                                            select: 'info'
+                                                                                        };
+                                                                                        return [
+                                                                                            gvc.bindView(() => {
+                                                                                                const selectID = gvc.glitter.getUUID();
+                                                                                                return {
+                                                                                                    bind: selectID,
+                                                                                                    view: () => {
                                                                                                         return html `
-                                                                                                                        <div class=" d-flex align-items-center justify-content-center ${(dd.value === vm.select) ? `border` : ``} rounded-3"
-                                                                                                                             style="height:36px;width:36px;cursor:pointer;
+                                                                                                            <div class="w-100 "
+                                                                                                                 style="">
+                                                                                                                <div class="d-flex align-items-center justify-content-around w-100 p-2">
+                                                                                                                    ${[
+                                                                                                            {
+                                                                                                                title: '模塊資訊',
+                                                                                                                value: 'info',
+                                                                                                                icon: 'fa-solid fa-info'
+                                                                                                            },
+                                                                                                            {
+                                                                                                                title: '加載設定',
+                                                                                                                value: 'loading',
+                                                                                                                icon: 'fa-regular fa-loader'
+                                                                                                            },
+                                                                                                            {
+                                                                                                                title: '生命週期',
+                                                                                                                value: 'lifecycle',
+                                                                                                                icon: 'fa-regular fa-wave-pulse'
+                                                                                                            }
+                                                                                                        ].map((dd) => {
+                                                                                                            return html `
+                                                                                                                            <div class=" d-flex align-items-center justify-content-center ${(dd.value === vm.select) ? `border` : ``} rounded-3"
+                                                                                                                                 style="height:36px;width:36px;cursor:pointer;
 ${(dd.value === vm.select) ? `background:linear-gradient(135deg, #667eea 0%, #764ba2 100%);background:-webkit-linear-gradient(135deg, #667eea 0%, #764ba2 100%);color:white;` : `color:#151515;`}
 "
-                                                                                                                             onclick="${gvc.event(() => {
-                                                                                                            vm.select = dd.value;
-                                                                                                            gvc.notifyDataChange([id, selectID]);
-                                                                                                        })}"
-                                                                                                                             data-bs-toggle="tooltip"
-                                                                                                                             data-bs-placement="top"
-                                                                                                                             data-bs-custom-class="custom-tooltip"
-                                                                                                                             data-bs-title="${dd.title}">
-                                                                                                                            <i class="${dd.icon}"
-                                                                                                                               aria-hidden="true"></i>
-                                                                                                                        </div>`;
-                                                                                                    }).join(``)}
-                                                                                                            </div>
-                                                                                                        </div>`;
-                                                                                                },
-                                                                                                divCreate: {
-                                                                                                    class: `d-flex bg-white mx-n3 border-bottom`,
-                                                                                                },
-                                                                                                onCreate: () => {
-                                                                                                    $('.tooltip').remove();
-                                                                                                    $('[data-bs-toggle="tooltip"]').tooltip();
-                                                                                                }
-                                                                                            };
-                                                                                        }),
-                                                                                        gvc.bindView(() => {
-                                                                                            return {
-                                                                                                bind: id,
-                                                                                                view: () => {
-                                                                                                    var _a, _b, _c, _d;
-                                                                                                    switch (vm.select) {
-                                                                                                        case "info":
-                                                                                                            return html `
-                                                                                                                <div class="alert-warning alert mt-0  p-2 mb-0" 
-                                                                                                                     style="border-bottom-right-radius:8px;border-bottom-left-radius:8px;border:none;max-width: 350px;white-space: normal;">
-                                                                                                                    <h3 class="text-dark  m-1"
-                                                                                                                        style="font-size: 16px;">
-                                                                                                                        模塊路徑</h3>
-                                                                                                                    <h3 class="text-primary  alert-primary m-1 fw-500 rounded p-2"
-                                                                                                                        style="font-size: 14px;color:black;">
-                                                                                                                        ${HtmlGenerate.reDefineJsResource(dd.js)}</h3>
-                                                                                                                    <h3 class="text-dark  m-1 mt-2"
-                                                                                                                        style="font-size: 16px;">
-                                                                                                                        函式路徑</h3>
-                                                                                                                    <h3 class="text-primary  alert-primary m-1 fw-500 rounded p-2"
-                                                                                                                        style="font-size: 14px;">
-                                                                                                                        ${dd.type}</h3>
-                                                                                                                </div>`;
-                                                                                                        case 'loading':
-                                                                                                            return html `<div class="px-2">${(() => {
-                                                                                                                var _a, _b;
-                                                                                                                const array = [];
-                                                                                                                if (dd.data.elem !== 'style' && dd.data.elem !== 'script') {
-                                                                                                                    array.push(EditorElem.select({
-                                                                                                                        title: '生成方式',
-                                                                                                                        gvc: gvc,
-                                                                                                                        def: (_a = dd.gCount) !== null && _a !== void 0 ? _a : 'single',
-                                                                                                                        array: [{
-                                                                                                                                title: '靜態',
-                                                                                                                                value: 'single'
-                                                                                                                            }, {
-                                                                                                                                title: '程式碼',
-                                                                                                                                value: 'multiple'
-                                                                                                                            }],
-                                                                                                                        callback: (text) => {
-                                                                                                                            dd.gCount = text;
-                                                                                                                            gvc.notifyDataChange(id);
-                                                                                                                            gvc.notifyDataChange('HtmlEditorContainer');
-                                                                                                                        }
-                                                                                                                    }));
-                                                                                                                }
-                                                                                                                if (dd.gCount === 'multiple') {
-                                                                                                                    dd.arrayData = (_b = dd.arrayData) !== null && _b !== void 0 ? _b : {};
-                                                                                                                    array.push(TriggerEvent.editer(gvc, dd, dd.arrayData, {
-                                                                                                                        hover: false,
-                                                                                                                        option: [],
-                                                                                                                        title: "設定資料來源"
-                                                                                                                    }));
-                                                                                                                }
-                                                                                                                else {
-                                                                                                                    dd.arrayData = undefined;
-                                                                                                                }
-                                                                                                                return array.join(`<div class="my-2"></div>`);
-                                                                                                            })()}
-                                                                                                                ${gvc.bindView(() => {
-                                                                                                                const uid = gvc.glitter.getUUID();
-                                                                                                                return {
-                                                                                                                    bind: uid,
-                                                                                                                    view: () => {
-                                                                                                                        var _a, _b;
-                                                                                                                        dd.preloadEvenet = (_a = dd.preloadEvenet) !== null && _a !== void 0 ? _a : {};
-                                                                                                                        dd.hiddenEvent = (_b = dd.hiddenEvent) !== null && _b !== void 0 ? _b : {};
-                                                                                                                        let view = [TriggerEvent.editer(gvc, dd, dd.preloadEvenet, {
-                                                                                                                                title: "模塊預載事件",
-                                                                                                                                option: [],
-                                                                                                                                hover: false
-                                                                                                                            }),
-                                                                                                                            TriggerEvent.editer(gvc, dd, dd.hiddenEvent, {
-                                                                                                                                title: "模塊隱藏事件",
-                                                                                                                                option: [],
-                                                                                                                                hover: false
-                                                                                                                            })];
-                                                                                                                        if ((dd.type !== 'widget') && (dd.type !== 'container')) {
-                                                                                                                            view.push(gvc.glitter.htmlGenerate.styleEditor(dd, gvc, dd, {}).editor(gvc, () => {
-                                                                                                                                gvc.notifyDataChange('showView');
-                                                                                                                            }, '模塊容器樣式'));
-                                                                                                                        }
-                                                                                                                        return view.join(`<div class="my-2"></div>`);
-                                                                                                                    },
-                                                                                                                    divCreate: {
-                                                                                                                        class: 'mt-2 mb-2 '
-                                                                                                                    },
-                                                                                                                };
-                                                                                                            })}</div>`;
-                                                                                                        case "lifecycle":
-                                                                                                            if (dd.data && dd.data.onCreateEvent) {
-                                                                                                                dd.onCreateEvent = dd.data.onCreateEvent;
-                                                                                                                dd.data.onCreateEvent = undefined;
-                                                                                                            }
-                                                                                                            dd.onInitialEvent = (_a = dd.onInitialEvent) !== null && _a !== void 0 ? _a : {};
-                                                                                                            dd.onCreateEvent = (_b = dd.onCreateEvent) !== null && _b !== void 0 ? _b : {};
-                                                                                                            dd.onResumtEvent = (_c = dd.onResumtEvent) !== null && _c !== void 0 ? _c : {};
-                                                                                                            dd.onDestoryEvent = (_d = dd.onDestoryEvent) !== null && _d !== void 0 ? _d : {};
-                                                                                                            return `<div class="p-2 pt-1">${[
-                                                                                                                html `<div class="alert alert-warning  p-2   m-n2 border-bottom fw-500" style="border-radius: 0px;color:black !important;">
-                                                                                                                    <strong>onInitial事件:</strong><br>模塊初次加載所執行事件。<br>
-                                                                                                                    <strong>onCreate事件:</strong><br>模塊被建立時所執行事件。<br>
-                                                                                                                    <strong>onResume事件:</strong><br>模塊重新渲染至畫面時所執行事件。<br>
-                                                                                                                    <strong>onDestroy事件:</strong><br>模塊被銷毀所執行的事件。<br>
-</div>`,
-                                                                                                                `<div class="my-4"></div>`,
-                                                                                                                TriggerEvent.editer(gvc, dd, dd.onInitialEvent, {
-                                                                                                                    title: "onInitial事件",
-                                                                                                                    option: [],
-                                                                                                                    hover: false
-                                                                                                                }),
-                                                                                                                TriggerEvent.editer(gvc, dd, dd.onCreateEvent, {
-                                                                                                                    title: "onCreate事件",
-                                                                                                                    option: [],
-                                                                                                                    hover: false
-                                                                                                                }),
-                                                                                                                TriggerEvent.editer(gvc, dd, dd.onResumtEvent, {
-                                                                                                                    title: "onResume事件",
-                                                                                                                    option: [],
-                                                                                                                    hover: false
-                                                                                                                }),
-                                                                                                                TriggerEvent.editer(gvc, dd, dd.onDestoryEvent, {
-                                                                                                                    title: "onDestroy事件",
-                                                                                                                    option: [],
-                                                                                                                    hover: false
-                                                                                                                })
-                                                                                                            ].join(`<div class="my-2"></div>`)}</div>`;
-                                                                                                        default:
-                                                                                                            return ``;
+                                                                                                                                 onclick="${gvc.event(() => {
+                                                                                                                vm.select = dd.value;
+                                                                                                                gvc.notifyDataChange([id, selectID]);
+                                                                                                            })}"
+                                                                                                                                 data-bs-toggle="tooltip"
+                                                                                                                                 data-bs-placement="top"
+                                                                                                                                 data-bs-custom-class="custom-tooltip"
+                                                                                                                                 data-bs-title="${dd.title}">
+                                                                                                                                <i class="${dd.icon}"
+                                                                                                                                   aria-hidden="true"></i>
+                                                                                                                            </div>`;
+                                                                                                        }).join(``)}
+                                                                                                                </div>
+                                                                                                            </div>`;
+                                                                                                    },
+                                                                                                    divCreate: {
+                                                                                                        class: `d-flex bg-white mx-n3 border-bottom`,
+                                                                                                    },
+                                                                                                    onCreate: () => {
+                                                                                                        $('.tooltip').remove();
+                                                                                                        $('[data-bs-toggle="tooltip"]').tooltip();
                                                                                                     }
-                                                                                                },
-                                                                                            };
-                                                                                        })
-                                                                                    ].join('');
-                                                                                }, () => {
-                                                                                }, 350, '進階設定');
+                                                                                                };
+                                                                                            }),
+                                                                                            gvc.bindView(() => {
+                                                                                                return {
+                                                                                                    bind: id,
+                                                                                                    view: () => {
+                                                                                                        var _a, _b, _c, _d;
+                                                                                                        switch (vm.select) {
+                                                                                                            case "info":
+                                                                                                                return html `
+                                                                                                                    <div class="alert-warning alert mt-0  p-2 mb-0"
+                                                                                                                         style="border-bottom-right-radius:8px;border-bottom-left-radius:8px;border:none;max-width: 350px;white-space: normal;">
+                                                                                                                        <h3 class="text-dark  m-1"
+                                                                                                                            style="font-size: 16px;">
+                                                                                                                            模塊路徑</h3>
+                                                                                                                        <h3 class="text-primary  alert-primary m-1 fw-500 rounded p-2"
+                                                                                                                            style="font-size: 14px;color:black;">
+                                                                                                                            ${HtmlGenerate.reDefineJsResource(dd.js)}</h3>
+                                                                                                                        <h3 class="text-dark  m-1 mt-2"
+                                                                                                                            style="font-size: 16px;">
+                                                                                                                            函式路徑</h3>
+                                                                                                                        <h3 class="text-primary  alert-primary m-1 fw-500 rounded p-2"
+                                                                                                                            style="font-size: 14px;">
+                                                                                                                            ${dd.type}</h3>
+                                                                                                                    </div>`;
+                                                                                                            case 'loading':
+                                                                                                                return html `
+                                                                                                                    <div class="px-2">
+                                                                                                                        ${(() => {
+                                                                                                                    var _a, _b;
+                                                                                                                    const array = [];
+                                                                                                                    if (dd.data.elem !== 'style' && dd.data.elem !== 'script') {
+                                                                                                                        array.push(EditorElem.select({
+                                                                                                                            title: '生成方式',
+                                                                                                                            gvc: gvc,
+                                                                                                                            def: (_a = dd.gCount) !== null && _a !== void 0 ? _a : 'single',
+                                                                                                                            array: [{
+                                                                                                                                    title: '靜態',
+                                                                                                                                    value: 'single'
+                                                                                                                                }, {
+                                                                                                                                    title: '程式碼',
+                                                                                                                                    value: 'multiple'
+                                                                                                                                }],
+                                                                                                                            callback: (text) => {
+                                                                                                                                dd.gCount = text;
+                                                                                                                                gvc.notifyDataChange(id);
+                                                                                                                            }
+                                                                                                                        }));
+                                                                                                                    }
+                                                                                                                    if (dd.gCount === 'multiple') {
+                                                                                                                        dd.arrayData = (_b = dd.arrayData) !== null && _b !== void 0 ? _b : {};
+                                                                                                                        array.push(TriggerEvent.editer(gvc, dd, dd.arrayData, {
+                                                                                                                            hover: false,
+                                                                                                                            option: [],
+                                                                                                                            title: "設定資料來源"
+                                                                                                                        }));
+                                                                                                                    }
+                                                                                                                    else {
+                                                                                                                        dd.arrayData = undefined;
+                                                                                                                    }
+                                                                                                                    return array.join(`<div class="my-2"></div>`);
+                                                                                                                })()}
+                                                                                                                        ${gvc.bindView(() => {
+                                                                                                                    const uid = gvc.glitter.getUUID();
+                                                                                                                    return {
+                                                                                                                        bind: uid,
+                                                                                                                        view: () => {
+                                                                                                                            var _a, _b;
+                                                                                                                            dd.preloadEvenet = (_a = dd.preloadEvenet) !== null && _a !== void 0 ? _a : {};
+                                                                                                                            dd.hiddenEvent = (_b = dd.hiddenEvent) !== null && _b !== void 0 ? _b : {};
+                                                                                                                            let view = [TriggerEvent.editer(gvc, dd, dd.preloadEvenet, {
+                                                                                                                                    title: "模塊預載事件",
+                                                                                                                                    option: [],
+                                                                                                                                    hover: false
+                                                                                                                                }),
+                                                                                                                                TriggerEvent.editer(gvc, dd, dd.hiddenEvent, {
+                                                                                                                                    title: "模塊隱藏事件",
+                                                                                                                                    option: [],
+                                                                                                                                    hover: false
+                                                                                                                                })];
+                                                                                                                            if ((dd.type !== 'widget') && (dd.type !== 'container')) {
+                                                                                                                                view.push(gvc.glitter.htmlGenerate.styleEditor(dd, gvc, dd, {}).editor(gvc, () => {
+                                                                                                                                    gvc.notifyDataChange('showView');
+                                                                                                                                }, '模塊容器樣式'));
+                                                                                                                            }
+                                                                                                                            return view.join(`<div class="my-2"></div>`);
+                                                                                                                        },
+                                                                                                                        divCreate: {
+                                                                                                                            class: 'mt-2 mb-2 '
+                                                                                                                        },
+                                                                                                                    };
+                                                                                                                })}
+                                                                                                                    </div>`;
+                                                                                                            case "lifecycle":
+                                                                                                                if (dd.data && dd.data.onCreateEvent) {
+                                                                                                                    dd.onCreateEvent = dd.data.onCreateEvent;
+                                                                                                                    dd.data.onCreateEvent = undefined;
+                                                                                                                }
+                                                                                                                dd.onInitialEvent = (_a = dd.onInitialEvent) !== null && _a !== void 0 ? _a : {};
+                                                                                                                dd.onCreateEvent = (_b = dd.onCreateEvent) !== null && _b !== void 0 ? _b : {};
+                                                                                                                dd.onResumtEvent = (_c = dd.onResumtEvent) !== null && _c !== void 0 ? _c : {};
+                                                                                                                dd.onDestoryEvent = (_d = dd.onDestoryEvent) !== null && _d !== void 0 ? _d : {};
+                                                                                                                return `<div class="p-2 pt-1">${[
+                                                                                                                    html `
+                                                                                                                        <div class="alert alert-warning  p-2   m-n2 border-bottom fw-500"
+                                                                                                                             style="border-radius: 0px;color:black !important;">
+                                                                                                                            <strong>onInitial事件:</strong><br>模塊初次加載所執行事件。<br>
+                                                                                                                            <strong>onCreate事件:</strong><br>模塊被建立時所執行事件。<br>
+                                                                                                                            <strong>onResume事件:</strong><br>模塊重新渲染至畫面時所執行事件。<br>
+                                                                                                                            <strong>onDestroy事件:</strong><br>模塊被銷毀所執行的事件。<br>
+                                                                                                                        </div>`,
+                                                                                                                    `<div class="my-4"></div>`,
+                                                                                                                    TriggerEvent.editer(gvc, dd, dd.onInitialEvent, {
+                                                                                                                        title: "onInitial事件",
+                                                                                                                        option: [],
+                                                                                                                        hover: false
+                                                                                                                    }),
+                                                                                                                    TriggerEvent.editer(gvc, dd, dd.onCreateEvent, {
+                                                                                                                        title: "onCreate事件",
+                                                                                                                        option: [],
+                                                                                                                        hover: false
+                                                                                                                    }),
+                                                                                                                    TriggerEvent.editer(gvc, dd, dd.onResumtEvent, {
+                                                                                                                        title: "onResume事件",
+                                                                                                                        option: [],
+                                                                                                                        hover: false
+                                                                                                                    }),
+                                                                                                                    TriggerEvent.editer(gvc, dd, dd.onDestoryEvent, {
+                                                                                                                        title: "onDestroy事件",
+                                                                                                                        option: [],
+                                                                                                                        hover: false
+                                                                                                                    })
+                                                                                                                ].join(`<div class="my-2"></div>`)}</div>`;
+                                                                                                            default:
+                                                                                                                return ``;
+                                                                                                        }
+                                                                                                    },
+                                                                                                };
+                                                                                            })
+                                                                                        ].join('');
+                                                                                    })(),
+                                                                                    width: 350
+                                                                                });
                                                                             })}">
 <i class="fa-regular fa-gear" style="font-size:16px"></i>進階</button>
 `;
@@ -1035,7 +1044,7 @@ ${(dd.value === vm.select) ? `background:linear-gradient(135deg, #667eea 0%, #76
                                                                 let data = '';
                                                                 function getData() {
                                                                     if (dd.type === 'code') {
-                                                                        data = codeComponent.render(gvc, dd, setting, hover, subData, {
+                                                                        data = codeComponent.render(gvc, dd, setting, HtmlGenerate.hover_items, subData, {
                                                                             widgetComponentID: gvc.glitter.getUUID()
                                                                         })
                                                                             .editor();
@@ -1043,8 +1052,9 @@ ${(dd.value === vm.select) ? `background:linear-gradient(135deg, #667eea 0%, #76
                                                                         gvc.notifyDataChange(component);
                                                                     }
                                                                     else if ((dd.type === 'widget') || (dd.type === 'container')) {
-                                                                        data = widgetComponent.render(gvc, dd, setting, hover, subData, {
-                                                                            widgetComponentID: gvc.glitter.getUUID()
+                                                                        data = widgetComponent.render(gvc, dd, setting, HtmlGenerate.hover_items, subData, {
+                                                                            widgetComponentID: gvc.glitter.getUUID(),
+                                                                            root: root
                                                                         })
                                                                             .editor();
                                                                         loading = false;
@@ -1060,14 +1070,14 @@ ${(dd.value === vm.select) ? `background:linear-gradient(135deg, #667eea 0%, #76
                                                                                             gvc: gvc,
                                                                                             widget: dd,
                                                                                             widgetList: setting,
-                                                                                            hoverID: hover,
+                                                                                            hoverID: HtmlGenerate.hover_items,
                                                                                             subData: subData,
                                                                                             formData: dd.formData
                                                                                         })
                                                                                             .editor();
                                                                                     }
                                                                                     else {
-                                                                                        data = data2[dd.type].render(gvc, dd, setting, hover, subData)
+                                                                                        data = data2[dd.type].render(gvc, dd, setting, HtmlGenerate.hover_items, subData)
                                                                                             .editor();
                                                                                     }
                                                                                     if (typeof data === 'string') {
@@ -1239,17 +1249,29 @@ ${e.line}
                 return `
 <div type="button" class="btn  w-100 " style="background:white;width:calc(100%);border-radius:8px;
                     min-height:45px;border:1px solid black;color:#151515;" onclick="${gvc.event(() => {
-                    glitter.openDiaLog("glitterBundle/plugins/dialog-style-editor.js", "dialog-style-editor", {
-                        callback: () => {
-                            if (typeof widget === 'function') {
-                                widget();
-                            }
-                            else {
-                                widget.refreshComponent();
-                            }
-                        },
-                        data: data,
-                        option: option
+                    NormalPageEditor.closeEvent = () => {
+                        if (typeof widget === 'function') {
+                            widget();
+                        }
+                        else {
+                            widget.refreshComponent();
+                        }
+                    };
+                    NormalPageEditor.toggle({
+                        visible: true,
+                        title: title || '設計樣式編輯',
+                        view: StyleEditor.main(gvc, {
+                            callback: () => {
+                                if (typeof widget === 'function') {
+                                    widget();
+                                }
+                                else {
+                                    widget.refreshComponent();
+                                }
+                            },
+                            data: data,
+                            option: option
+                        })
                     });
                 })}">${title !== null && title !== void 0 ? title : "設計樣式"}</div><br>`;
             },
@@ -1368,7 +1390,7 @@ ${e.line}
                     replaceString(/@{{(.*?)}}/g);
                     return styleStringJoin;
                 }
-                return [getStyleData()].concat((_a = getStyleData().list) !== null && _a !== void 0 ? _a : []).map((dd) => {
+                return (data.basic_style || '') + [getStyleData()].concat((_a = getStyleData().list) !== null && _a !== void 0 ? _a : []).map((dd) => {
                     const data = styleString(dd);
                     return data && ` ${data}`;
                 }).join('');
@@ -1428,6 +1450,47 @@ ${obj.gvc.bindView({
                 autosize(obj.gvc.getBindViewElem(id));
             }
         })}`;
+    }
+    static selectWidget(cf) {
+        const dd = cf.dd;
+        const gvc = cf.gvc;
+        const widgetComponentID = cf.widgetComponentID;
+        const event = cf.event;
+        function active() {
+            try {
+                gvc.glitter.$('.editorItemActive').removeClass('editorItemActive');
+                gvc.glitter.$(`.editor_it_${widgetComponentID}`).addClass('editorItemActive');
+                window.parent.glitter.share.editorViewModel.selectItem = dd;
+                Storage.lastSelect = dd.id;
+                window.parent.glitter.share.selectEditorItem();
+                event && event.stopPropagation && event.stopPropagation();
+            }
+            catch (e) {
+                console.log(e);
+            }
+        }
+        active();
+    }
+    static getEditorSelectSection(cf) {
+        return cf.gvc.bindView(() => {
+            const id = cf.gvc.glitter.getUUID();
+            return {
+                bind: id,
+                view: () => {
+                    return html `
+                        <div class="position-absolute align-items-center justify-content-center px-3 fw-500 fs-6 badge_it"
+                             style="height:22px;left:-2px;top:-22px;background: linear-gradient(143deg, #FFB400 -22.7%, #FF6C02 114.57%);color:white;white-space: nowrap;">
+                            ${cf.label}
+                        </div>`;
+                },
+                divCreate: {
+                    class: `editorChild editor_it_${cf.id} ${(cf.gvc.glitter.htmlGenerate.hover_items.indexOf(cf.id) !== -1) ? `editorItemActive` : ``}`,
+                    style: `z-index: 99999;top:0px;left:0px;`
+                },
+                onCreate: () => {
+                }
+            };
+        });
     }
 }
 HtmlGenerate.share = {};
@@ -1596,6 +1659,7 @@ HtmlGenerate.changePage = (obj) => {
         data: obj.data,
     }, (_b = obj.option) !== null && _b !== void 0 ? _b : {});
 };
+HtmlGenerate.hover_items = [];
 function isEditMode() {
     try {
         return window.parent.editerData !== undefined;
@@ -1608,7 +1672,7 @@ function scrollToHover(element) {
     function scrollToItem(element) {
         if (element) {
             element.scrollIntoView({
-                behavior: 'auto',
+                behavior: 'smooth',
                 block: 'center',
             });
         }

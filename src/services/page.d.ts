@@ -9,7 +9,7 @@ export declare class Page {
         tag: string;
     }): Promise<boolean>;
     getTemplate(query: {
-        template_from: 'all' | 'me';
+        template_from: 'all' | 'me' | 'project';
         type: 'page' | 'module' | 'article' | 'blog';
         page?: string;
         limit?: string;
