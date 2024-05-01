@@ -35,6 +35,10 @@ export class AddComponent {
             return {
                 bind: id,
                 view: () => {
+                    if (Storage.select_function === 'user-editor') {
+                        Storage.select_add_btn = 'official';
+                        vm.select = 'official';
+                    }
                     return html `
                         <div class="w-100 d-flex align-items-center p-3 border-bottom">
                             <h5 class=" offcanvas-title  " style="">
@@ -44,7 +48,7 @@ export class AddComponent {
                         AddComponent.toggle(false);
                     })}"><i class="fa-sharp fa-regular fa-circle-xmark" style="color:black;"></i></div>
                         </div>
-                        <div class="d-flex  py-2 px-2 bg-white align-items-center w-100 justify-content-around border-bottom">
+                        <div class="d-flex  py-2 px-2 bg-white align-items-center w-100 justify-content-around border-bottom ${(Storage.select_function === 'user-editor') ? `d-none` : ``}">
                             ${(() => {
                         const list = [
                             {
@@ -165,37 +169,8 @@ export class AddComponent {
                                             break;
                                         case "official":
                                             AddComponent.addModuleView(gvc, 'module', (tdata) => {
-                                                gvc.glitter.share.addComponent({
-                                                    "id": gvc.glitter.getUUID(),
-                                                    "js": "./official_view_component/official.js",
-                                                    "css": {
-                                                        "class": {},
-                                                        "style": {}
-                                                    },
-                                                    "data": {
-                                                        'refer_app': tdata.copyApp,
-                                                        "tag": tdata.copy,
-                                                        "list": [],
-                                                        "carryData": {}
-                                                    },
-                                                    "type": "component",
-                                                    "class": "",
-                                                    "index": 0,
-                                                    "label": tdata.title,
-                                                    "style": "",
-                                                    "bundle": {},
-                                                    "global": [],
-                                                    "toggle": false,
-                                                    "stylist": [],
-                                                    "dataType": "static",
-                                                    "style_from": "code",
-                                                    "classDataType": "static",
-                                                    "preloadEvenet": {},
-                                                    "share": {}
-                                                });
-                                                gvc.glitter.closeDiaLog();
-                                                gvc.glitter.htmlGenerate.saveEvent(true);
-                                            }, true, true).then((res) => {
+                                                AddComponent.addEvent(gvc, tdata);
+                                            }, (Storage.select_function !== 'user-editor'), true).then((res) => {
                                                 resolve(res);
                                             });
                                             break;
@@ -260,6 +235,40 @@ export class AddComponent {
     }
     static toggle(visible) {
         if (visible) {
+            AddComponent.closeEvent();
+            AddComponent.closeEvent = () => { };
+            AddComponent.addEvent = (gvc, tdata) => {
+                gvc.glitter.share.addComponent({
+                    "id": gvc.glitter.getUUID(),
+                    "js": "./official_view_component/official.js",
+                    "css": {
+                        "class": {},
+                        "style": {}
+                    },
+                    "data": {
+                        'refer_app': tdata.copyApp,
+                        "tag": tdata.copy,
+                        "list": [],
+                        "carryData": {}
+                    },
+                    "type": "component",
+                    "class": "",
+                    "index": 0,
+                    "label": tdata.title,
+                    "style": "",
+                    "bundle": {},
+                    "global": [],
+                    "toggle": false,
+                    "stylist": [],
+                    "dataType": "static",
+                    "style_from": "code",
+                    "classDataType": "static",
+                    "preloadEvenet": {},
+                    "share": {}
+                });
+                gvc.glitter.closeDiaLog();
+                gvc.glitter.htmlGenerate.saveEvent(true);
+            };
             $('#addComponentViewHover').removeClass('d-none');
             $('#addComponentView').removeClass('scroll-out');
             $('#addComponentView').addClass('scroll-in');
@@ -863,3 +872,6 @@ ${[
         });
     }
 }
+AddComponent.addEvent = (gvc, tdata) => { };
+AddComponent.closeEvent = () => { };
+window.glitter.setModule(import.meta.url, AddComponent);

@@ -310,10 +310,10 @@ ul {
 }
 
 .h_item:hover .child {
-    visibility: visible;
+    display: block !important;
 }
 .child {
-    visibility: hidden;
+    display: none !important;
 }
 
 .hoverF2:hover {

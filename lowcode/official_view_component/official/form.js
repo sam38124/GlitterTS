@@ -614,7 +614,6 @@ Plugin.createComponent(import.meta.url, (glitter, editMode) => {
                                     gvc: gvc,
                                     array: config.array,
                                     refresh: (key) => {
-                                        console.log(JSON.stringify(formData));
                                         gvc.notifyDataChange(id);
                                     },
                                     widget: widget,

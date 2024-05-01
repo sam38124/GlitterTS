@@ -122,32 +122,32 @@ export class Main_editor {
 
                                         loop(pageConfig, list);
 
-                                      
+
                                         function renderItems(list: any, og_array: any) {
                                             return gvc.bindView(() => {
                                                 const id = gvc.glitter.getUUID()
                                                 return {
                                                     bind: id,
                                                     view: () => {
-                                                        let lastClick=gvc.glitter.ut.clock()
+                                                        let lastClick = gvc.glitter.ut.clock()
                                                         return list.map((dd: any, index: any) => {
-                                                            og_array[index].visible=og_array[index].visible ?? true;
+                                                            og_array[index].visible = og_array[index].visible ?? true;
                                                             return html`
                                                                 <li>
                                                                     <div class="w-100 fw-500 d-flex align-items-center  fs-6 hoverBtn h_item  rounded px-2 hoverF2 mb-1"
-                                                                         style="gap:5px;color:#393939;${(dd.toggle && dd.type==='container') ? `border-radius: 5px;background: #F2F2F2;` : ``}"
+                                                                         style="gap:5px;color:#393939;${(dd.toggle && dd.type === 'container') ? `border-radius: 5px;background: #F2F2F2;` : ``}"
                                                                          onclick="${gvc.event(() => {
-                                                                             if(lastClick.stop()>0.1){
+                                                                             if (lastClick.stop() > 0.1) {
                                                                                  dd.toggle = !dd.toggle;
                                                                                  dd.info && (dd.info.toggle = !dd.info.toggle);
                                                                                  gvc.notifyDataChange(id)
                                                                                  dd.info.editorEvent()
                                                                              }
-                                                                           
+
                                                                          })}"
                                                                     >
                                                                         ${(dd.type === 'container') ? `
-                                                                          <div class="hoverBtn p-1"
+                                                                          <div class="hoverBtn p-1 "
                                                                              onclick="${gvc.event((e, event) => {
                                                                             lastClick.zeroing()
                                                                             event.preventDefault();
@@ -158,46 +158,49 @@ export class Main_editor {
                                                                         })}">
                                                                                ${((!dd.toggle) ? `
                                             <i class="fa-regular fa-angle-right hoverBtn me-1" aria-hidden="true"></i>
-                                            ` : `<i class="fa-regular fa-angle-down hoverBtn me-1" aria-hidden="true"></i>`) }
+                                            ` : `<i class="fa-regular fa-angle-down hoverBtn me-1" aria-hidden="true"></i>`)}
                                                                         </div>
-                                                                        `:``}
+                                                                        ` : ``}
                                                                         ${dd.icon ? `<img src="${dd.icon}" style="width:18px;height:18px;">` : ``}
                                                                         <span>${dd.title}</span>
                                                                         <div class="flex-fill"></div>
-                                                                        <div class="hoverBtn p-1"
+                                                                        <div class="hoverBtn p-1 child"
                                                                              onclick="${gvc.event((e, event) => {
                                                                                  lastClick.zeroing()
                                                                                  event.stopPropagation();
+
                                                                                  function deleteBlock() {
                                                                                      viewModel.selectItem = undefined;
                                                                                      if ((document.querySelector('#editerCenter iframe') as any).contentWindow.document.querySelector(`.editor_it_${og_array[index].id}`)) {
                                                                                          (document.querySelector('#editerCenter iframe') as any).contentWindow.glitter.$(`.editor_it_${og_array[index].id}`).parent().remove()
                                                                                      }
-                                                                                     og_array.splice(index,1)
+                                                                                     og_array.splice(index, 1)
+                                                                                     setPageConfig()
                                                                                      gvc.notifyDataChange('MainEditorLeft');
-                                                                                     
+
                                                                                  }
+
                                                                                  deleteBlock()
                                                                              })}">
                                                                             <i class="fa-regular fa-trash d-flex align-items-center justify-content-center "></i>
                                                                         </div>
-                                                                        <div class="hoverBtn p-1"
+                                                                        <div class="hoverBtn p-1 ${(og_array[index].visible) ? `child`:``}"
                                                                              onclick="${gvc.event((e, event) => {
                                                                                  lastClick.zeroing()
                                                                                  event.stopPropagation();
-                                                                                 og_array[index].visible=!og_array[index].visible
+                                                                                 og_array[index].visible = !og_array[index].visible
                                                                                  setPageConfig()
-                                                                                 if(og_array[index].visible){
+                                                                                 if (og_array[index].visible) {
                                                                                      (document.querySelector('#editerCenter iframe')! as any).contentWindow.glitter.$(`.editor_it_${og_array[index].id}`).parent().show();
-                                                                                 }else{
+                                                                                 } else {
                                                                                      (document.querySelector('#editerCenter iframe')! as any).contentWindow.glitter.$(`.editor_it_${og_array[index].id}`).parent().hide();
                                                                                  }
                                                                              })}">
-                                                                            <i class="${(og_array[index].visible) ? `fa-regular fa-eye`:`fa-solid fa-eye-slash`} d-flex align-items-center justify-content-center " style="width:15px;height:15px;"
+                                                                            <i class="${(og_array[index].visible) ? `fa-regular fa-eye` : `fa-solid fa-eye-slash`} d-flex align-items-center justify-content-center "
+                                                                               style="width:15px;height:15px;"
                                                                                aria-hidden="true"></i>
                                                                         </div>
-                                                                        <div class="hoverBtn p-1 dragItem"
-                                                                             >
+                                                                        <div class="hoverBtn p-1 dragItem child">
                                                                             <i class="fa-solid fa-grip-dots-vertical d-flex align-items-center justify-content-center  "
                                                                                style="width:15px;height:15px;"
                                                                                aria-hidden="true"></i>
@@ -206,7 +209,18 @@ export class Main_editor {
                                                                     ${(dd.type === 'container' ? `<div class="ps-2  pb-2 ${dd.toggle ? `` : `d-none`}">${renderItems(dd.child, dd.array)}</div>` : ``)}
                                                                 </li>
                                                             `
-                                                        }).join('')
+                                                        }).join('') + html`
+                                                            <div class="w-100 fw-500 d-flex align-items-center  fs-6 hoverBtn h_item  rounded px-2 hoverF2 mb-1"
+                                                                 style="color:#36B;gap:10px;" onclick="${gvc.event(()=>{
+                                                                glitter.share.editorViewModel.selectContainer = og_array
+                                                                AddComponent.closeEvent=()=>{
+                                                                    setPageConfig()
+                                                                }
+                                                                AddComponent.toggle(true)
+                                                            })}">
+                                                                <i class="fa-solid fa-plus"></i>新增區段
+                                                            </div>
+                                                        `
                                                     },
                                                     divCreate: {
                                                         elem: 'ul',
@@ -271,14 +285,6 @@ export class Main_editor {
                                             <div class="p-2">
                                                 ${renderItems(list, pageConfig)}
                                             </div>`
-                                        return new PageEditor(gvc, 'MainEditorLeft', 'MainEditorRight').renderLineItem(pageConfig, false, pageConfig, {
-                                            selectEv: (dd) => {
-                                                return dd.id === Storage.lastSelect
-                                            },
-                                            refreshEvent: () => {
-                                                setPageConfig()
-                                            }
-                                        })
                                     })()
 
                                 ])
@@ -349,12 +355,6 @@ export class Main_editor {
                     const htmlGenerate = new gvc.glitter.htmlGenerate((viewModel.data! as any).config, [Storage.lastSelect], undefined, true);
                     (window as any).editerData = htmlGenerate;
                     (window as any).page_config = (viewModel.data! as any).page_config
-                    setTimeout(() => {
-                        document.querySelector('.selectLeftItem')!.scrollIntoView({
-                            behavior: 'auto', // 使用平滑滾動效果
-                            block: 'center', // 將元素置中
-                        })
-                    }, 1000)
                 }
             }
         })
@@ -529,56 +529,23 @@ export class Main_editor {
                                          checkSelect((viewModel.data! as any).config)
                                          try {
                                              const dialog = new ShareDialog(gvc.glitter)
-
                                              function deleteBlock() {
                                                  for (let a = 0; a < viewModel.selectContainer.length; a++) {
                                                      if (viewModel.selectContainer[a] == viewModel.selectItem) {
                                                          viewModel.selectContainer.splice(a, 1)
                                                      }
                                                  }
+                                                 if ((document.querySelector('#editerCenter iframe') as any).contentWindow.document.querySelector(`.editor_it_${viewModel.selectItem.id}`)) {
+                                                     (document.querySelector('#editerCenter iframe') as any).contentWindow.glitter.$(`.editor_it_${viewModel.selectItem.id}`).parent().remove()
+                                                 }
                                                  // selectComponentHover
                                                  viewModel.selectItem = undefined;
-                                                 if ((document.querySelector('#editerCenter iframe') as any).contentWindow.document.querySelector('.selectComponentHover')) {
-                                                     (document.querySelector('#editerCenter iframe') as any).contentWindow.document.querySelector('.selectComponentHover').remove()
-                                                 }
+                                                
                                                  // $('#editerCenter iframe').get(0)
                                                  gvc.notifyDataChange(['right_NAV', 'MainEditorLeft']);
                                              }
 
-                                             if (viewModel.selectItem.type === 'component') {
-                                                 dialog.checkYesOrNot({
-                                                     text: '是否連同模塊一同刪除?',
-                                                     callback: (response) => {
-                                                         if (response) {
-                                                             new Promise(async (resolve, reject) => {
-                                                                 dialog.dataLoading({visible: true})
-                                                                 let deleteArray: string[] = [viewModel.selectItem.tag]
-                                                                 viewModel.selectItem.list && viewModel.selectItem.list.map((dd: any) => {
-                                                                     deleteArray.push(dd.tag)
-                                                                 })
-                                                                 for (const b of deleteArray) {
-                                                                     await new Promise((resolve, reject) => {
-                                                                         ApiPageConfig.deletePage({
-                                                                             "appName": (window as any).appName,
-                                                                             tag: b
-                                                                         }).then((data) => {
-                                                                             resolve(true)
-                                                                         })
-                                                                     })
-                                                                 }
-                                                                 deleteBlock()
-                                                                 dialog.dataLoading({visible: false})
-                                                                 glitter.htmlGenerate.saveEvent(true)
-                                                             })
-
-                                                         } else {
-                                                             deleteBlock()
-                                                         }
-                                                     }
-                                                 })
-                                             } else {
-                                                 deleteBlock()
-                                             }
+                                             deleteBlock()
                                          } catch (e) {
                                              alert(e)
                                          }
@@ -598,7 +565,7 @@ export class Main_editor {
 
         return html`
             <div class="${(viewModel.type === ViewType.mobile && (Storage.select_function === 'page-editor' || Storage.select_function === 'user-editor')) ? `d-flex align-items-center justify-content-center flex-column mx-auto` : `d-flex align-items-center justify-content-center flex-column`}"
-                 style="${(viewModel.type === ViewType.mobile && (Storage.select_function === 'page-editor' || Storage.select_function === 'user-editor')) ? `width: 414px;height: calc(100vh - 56px);` : `width: calc(100%);margin-left:10px;height: calc(100vh - 50px);"`}">
+                 style="${(viewModel.type === ViewType.mobile && (Storage.select_function === 'page-editor' || Storage.select_function === 'user-editor')) ? `width: 414px;height: calc(100vh - 56px);` : `width: calc(100%);height: calc(100vh - 56px);"`}">
                 <div class="" style="width:100%;height: calc(100%);" id="editerCenter">
                     <iframe class="w-100 h-100  bg-white"
                             src="index.html?type=htmlEditor&page=${gvc.glitter.getUrlParameter('page')}&appName=${gvc.glitter.getUrlParameter('appName')}"></iframe>

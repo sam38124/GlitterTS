@@ -511,6 +511,26 @@ function initialEditor(gvc, viewModel) {
     glitter.share.refreshAllContainer = () => {
         gvc.notifyDataChange(editorContainerID);
     };
+    glitter.share.findWidgetIndex = (id) => {
+        let find = {
+            widget: undefined,
+            container: undefined, index: 0
+        };
+        function loop(array) {
+            array.map((dd, index) => {
+                if (dd.type === 'container') {
+                    loop(dd.data.setting);
+                }
+                else if (dd.id === id) {
+                    find.widget = dd;
+                    find.container = array;
+                    find.index = index;
+                }
+            });
+        }
+        loop(glitter.share.editorViewModel.data.config);
+        return find;
+    };
     glitter.share.addComponent = (data) => {
         const url = new URL(location.href);
         url.search = '';
@@ -519,6 +539,27 @@ function initialEditor(gvc, viewModel) {
         Storage.lastSelect = data.id;
         if (viewModel.selectContainer.refresh) {
             viewModel.selectContainer.refresh();
+            gvc.notifyDataChange(['right_NAV', 'MainEditorLeft']);
+            AddComponent.toggle(false);
+        }
+        else {
+            gvc.recreateView();
+        }
+    };
+    glitter.share.addWithIndex = (cf) => {
+        const arrayData = glitter.share.findWidgetIndex(cf.index);
+        const url = new URL(location.href);
+        url.search = '';
+        cf.data.js = cf.data.js.replace(url.href, './');
+        if (cf.direction === 1) {
+            arrayData.container.splice(arrayData.index + 1, 0, cf.data);
+        }
+        else {
+            arrayData.container.splice(arrayData.index, 0, cf.data);
+        }
+        Storage.lastSelect = cf.data.id;
+        if (arrayData.container.refresh) {
+            arrayData.container.refresh();
             gvc.notifyDataChange(['right_NAV', 'MainEditorLeft']);
             AddComponent.toggle(false);
         }

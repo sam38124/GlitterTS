@@ -490,9 +490,8 @@ color:white;
                     <!-- Page container -->
                     <main class="docs-container"
                           style="padding-top: 56px;
-
                           padding-right:${((viewModel.type === ViewType.col3 || viewModel.type === ViewType.mobile) && Storage.select_function !== 'backend-manger' && Storage.select_function !== 'server-manager') ? `290` : `0`}px;${(viewModel.type === ViewType.fullScreen) ? `padding-left:0px;` : `
-                          padding-left:${Storage.select_function === 'user-editor' ? `355px;overflow:hidden;` : `calc(20rem - 20px);`}
+                          padding-left:${Storage.select_function === 'user-editor' ? `365px;overflow:hidden;` : `calc(20rem);`}
                           ${Storage.select_function === 'page-editor' ? `overflow:hidden;` : ``}
                           `}">
                         ${gvc.bindView({

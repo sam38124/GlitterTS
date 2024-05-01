@@ -44,9 +44,6 @@ TriggerEvent.createSingleEvent(import.meta.url, (glitter) => {
                     ].join('<div class="my-2"></div>');
                 },
                 event: () => {
-                    if (gvc.glitter.htmlGenerate.isEditMode()) {
-                        return;
-                    }
                     return new Promise((resolve, reject) => __awaiter(void 0, void 0, void 0, function* () {
                         const accept = yield TriggerEvent.trigger({
                             gvc: gvc,

@@ -444,12 +444,12 @@ ${(Storage.select_function === `${da.index}`) ? `background:${EditorConfig.edito
                                                                         if (Storage.select_function === 'user-editor') {
                                                                             if (!viewModel.data.page_config || viewModel.data.page_config.support_editor !== 'true') {
                                                                                 const redirect = viewModel.dataList.find((dd: any) => {
-                                                                                    return dd.page_config && dd.page_config.support_editor==='true'
+                                                                                    return dd.page_config && dd.page_config.support_editor === 'true'
                                                                                 })
-                                                                                if(redirect){
-                                                                                    const url=new URL(location.href)
-                                                                                    url.searchParams.set('page',redirect.tag);
-                                                                                    location.href=url.href
+                                                                                if (redirect) {
+                                                                                    const url = new URL(location.href)
+                                                                                    url.searchParams.set('page', redirect.tag);
+                                                                                    location.href = url.href
                                                                                 }
                                                                             }
                                                                         }
@@ -565,6 +565,30 @@ function initialEditor(gvc: GVC, viewModel: any) {
     glitter.share.refreshAllContainer = () => {
         gvc.notifyDataChange(editorContainerID);
     }
+    //找到ID索引位置
+    glitter.share.findWidgetIndex = (id: string) => {
+        let find: {
+            widget: any, container: any, index: number
+        } = {
+            widget: undefined,
+            container: undefined, index: 0
+        }
+
+        function loop(array: any) {
+            array.map((dd: any, index: number) => {
+                if (dd.type === 'container') {
+                    loop(dd.data.setting)
+                } else if (dd.id === id) {
+                    find.widget = dd;
+                    find.container = array;
+                    find.index = index
+                }
+            })
+        }
+
+        loop(glitter.share.editorViewModel.data.config);
+        return find;
+    }
     //添加Component至當前頁面
     glitter.share.addComponent = (data: any) => {
         const url = new URL(location.href)
@@ -574,6 +598,30 @@ function initialEditor(gvc: GVC, viewModel: any) {
         Storage.lastSelect = data.id
         if (viewModel.selectContainer.refresh) {
             viewModel.selectContainer.refresh()
+            gvc.notifyDataChange(['right_NAV', 'MainEditorLeft']);
+            AddComponent.toggle(false)
+        } else {
+            gvc.recreateView()
+        }
+    }
+    //添加Component至指定索引
+    glitter.share.addWithIndex = (cf: {
+        data: any,
+        index: string,
+        direction: number
+    }) => {
+        const arrayData = glitter.share.findWidgetIndex(cf.index);
+        const url = new URL(location.href)
+        url.search = ''
+        cf.data.js = cf.data.js.replace(url.href, './')
+        if (cf.direction === 1) {
+            arrayData.container.splice(arrayData.index+1, 0, cf.data);
+        } else {
+            arrayData.container.splice(arrayData.index, 0, cf.data);
+        }
+        Storage.lastSelect = cf.data.id
+        if (arrayData.container.refresh) {
+            arrayData.container.refresh()
             gvc.notifyDataChange(['right_NAV', 'MainEditorLeft']);
             AddComponent.toggle(false)
         } else {

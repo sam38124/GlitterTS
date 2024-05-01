@@ -402,51 +402,63 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
 <div class="flex-fill border"></div>
 </div>`
                                                             }
-                                                            const refer_form = ((widget.data.refer_app)) ? (widget.data.refer_form_data || page_config.formData) : page_config.formData
-                                                            html += FormWidget.editorView({
-                                                                gvc: gvc,
-                                                                array: page_config.formFormat,
-                                                                refresh: () => {
-
-                                                                    if (widget.data.refer_app) {
-                                                                        widget.data.refer_form_data = refer_form;
-                                                                        if (pageData.id !== id) {
-                                                                            glitter.share.editorViewModel.saveArray[pageData.id] = (() => {
-                                                                                return new Promise(async (resolve, reject) => {
-                                                                                    await ApiPageConfig.setPage({
-                                                                                        id: id as any,
-                                                                                        appName: (window as any).appName,
-                                                                                        tag: (parent_array).tag,
-                                                                                        config: parent_array
-                                                                                    });
-                                                                                    resolve(true)
-                                                                                })
-                                                                            });
-                                                                            (window as any).glitterInitialHelper.share[`getPageData-${parent_array.tag}`].data.response.result[0].config=parent_array;
-                                                                        }
-                                                                        if(!widget.storage){
-                                                                            const doc:any=(((document.querySelector('#editerCenter iframe') as any)!.contentWindow as any).document).querySelectorAll(`.${widget.data.refer_app}_${widget.data.tag}`)!;
-                                                                            console.log(doc)
-                                                                                if(doc){
-                                                                                    for (const b of doc){
-                                                                                        b.updatePageConfig(refer_form)
-                                                                                    }
-                                                                                }
-                                                                        }
-                                                                    } else {
+                                                            const refer_form = ((widget.data.refer_app)) ? (widget.data.refer_form_data || page_config.formData) : page_config.formData;
+                                                            function refresh(){
+                                                                console.log('refresh')
+                                                                if (widget.data.refer_app) {
+                                                                    widget.data.refer_form_data = refer_form;
+                                                                    if (pageData.id !== id) {
                                                                         glitter.share.editorViewModel.saveArray[pageData.id] = (() => {
-                                                                            return ApiPageConfig.setPage({
-                                                                                id: pageData.id,
-                                                                                appName: pageData.appName,
-                                                                                tag: pageData.tag,
-                                                                                page_config: pageData.page_config,
+                                                                            return new Promise(async (resolve, reject) => {
+                                                                                await ApiPageConfig.setPage({
+                                                                                    id: id as any,
+                                                                                    appName: (window as any).appName,
+                                                                                    tag: (parent_array).tag,
+                                                                                    config: parent_array
+                                                                                });
+                                                                                resolve(true)
                                                                             })
                                                                         });
-                                                                        (window as any).glitterInitialHelper.share[`getPageData-${pageData.tag}`].data.response.result[0].page_config=pageData.page_config;
+                                                                        (window as any).glitterInitialHelper.share[`getPageData-${parent_array.tag}`].data.response.result[0].config=parent_array;
                                                                     }
-                                                                    widget.storage && widget.storage.updatePageConfig && widget.storage.updatePageConfig(refer_form);
-                                                                },
-                                                                formData: refer_form
+
+                                                                    if(!widget.storage){
+                                                                        const doc:any=(((document.querySelector('#editerCenter iframe') as any)!.contentWindow as any).document).querySelectorAll(`.${widget.data.refer_app}_${widget.data.tag}`)!;
+                                                                        if(doc){
+                                                                            for (const b of doc){
+                                                                                b.updatePageConfig(refer_form)
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                } else {
+                                                                    glitter.share.editorViewModel.saveArray[pageData.id] = (() => {
+                                                                        return ApiPageConfig.setPage({
+                                                                            id: pageData.id,
+                                                                            appName: pageData.appName,
+                                                                            tag: pageData.tag,
+                                                                            page_config: pageData.page_config,
+                                                                        })
+                                                                    });
+                                                                    (window as any).glitterInitialHelper.share[`getPageData-${pageData.tag}`].data.response.result[0].page_config=pageData.page_config;
+                                                                }
+                                                                widget.storage && widget.storage.updatePageConfig && widget.storage.updatePageConfig(refer_form);
+                                                            }
+                                                            html += gvc.bindView(()=>{
+                                                                const id=gvc.glitter.getUUID()
+                                                                return {
+                                                                    bind:id,
+                                                                    view:()=>{
+                                                                        return FormWidget.editorView({
+                                                                            gvc: gvc,
+                                                                            array: page_config.formFormat,
+                                                                            refresh:refresh,
+                                                                            formData: refer_form
+                                                                        })
+                                                                    },
+                                                                    onDestroy:()=>{
+                                                                        refresh()
+                                                                    }
+                                                                }
                                                             })
                                                         }
                                                     }

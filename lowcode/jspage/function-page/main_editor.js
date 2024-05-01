@@ -1,17 +1,7 @@
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 import { Swal } from "../../modules/sweetAlert.js";
 import { EditorElem } from "../../glitterBundle/plugins/editor-elem.js";
 import { PageEditor } from "../../editor/page-editor.js";
 import { ShareDialog } from "../../dialog/ShareDialog.js";
-import { ApiPageConfig } from "../../api/pageConfig.js";
 import { Storage } from "../../glitterBundle/helper/storage.js";
 import { AddComponent } from "../../editor/add-component.js";
 var ViewType;
@@ -138,7 +128,7 @@ export class Main_editor {
                                                             })}"
                                                                     >
                                                                         ${(dd.type === 'container') ? `
-                                                                          <div class="hoverBtn p-1"
+                                                                          <div class="hoverBtn p-1 "
                                                                              onclick="${gvc.event((e, event) => {
                                                                 lastClick.zeroing();
                                                                 event.preventDefault();
@@ -155,7 +145,7 @@ export class Main_editor {
                                                                         ${dd.icon ? `<img src="${dd.icon}" style="width:18px;height:18px;">` : ``}
                                                                         <span>${dd.title}</span>
                                                                         <div class="flex-fill"></div>
-                                                                        <div class="hoverBtn p-1"
+                                                                        <div class="hoverBtn p-1 child"
                                                                              onclick="${gvc.event((e, event) => {
                                                                 lastClick.zeroing();
                                                                 event.stopPropagation();
@@ -165,13 +155,14 @@ export class Main_editor {
                                                                         document.querySelector('#editerCenter iframe').contentWindow.glitter.$(`.editor_it_${og_array[index].id}`).parent().remove();
                                                                     }
                                                                     og_array.splice(index, 1);
+                                                                    setPageConfig();
                                                                     gvc.notifyDataChange('MainEditorLeft');
                                                                 }
                                                                 deleteBlock();
                                                             })}">
                                                                             <i class="fa-regular fa-trash d-flex align-items-center justify-content-center "></i>
                                                                         </div>
-                                                                        <div class="hoverBtn p-1"
+                                                                        <div class="hoverBtn p-1 ${(og_array[index].visible) ? `child` : ``}"
                                                                              onclick="${gvc.event((e, event) => {
                                                                 lastClick.zeroing();
                                                                 event.stopPropagation();
@@ -184,11 +175,11 @@ export class Main_editor {
                                                                     document.querySelector('#editerCenter iframe').contentWindow.glitter.$(`.editor_it_${og_array[index].id}`).parent().hide();
                                                                 }
                                                             })}">
-                                                                            <i class="${(og_array[index].visible) ? `fa-regular fa-eye` : `fa-solid fa-eye-slash`} d-flex align-items-center justify-content-center " style="width:15px;height:15px;"
+                                                                            <i class="${(og_array[index].visible) ? `fa-regular fa-eye` : `fa-solid fa-eye-slash`} d-flex align-items-center justify-content-center "
+                                                                               style="width:15px;height:15px;"
                                                                                aria-hidden="true"></i>
                                                                         </div>
-                                                                        <div class="hoverBtn p-1 dragItem"
-                                                                             >
+                                                                        <div class="hoverBtn p-1 dragItem child">
                                                                             <i class="fa-solid fa-grip-dots-vertical d-flex align-items-center justify-content-center  "
                                                                                style="width:15px;height:15px;"
                                                                                aria-hidden="true"></i>
@@ -197,7 +188,18 @@ export class Main_editor {
                                                                     ${(dd.type === 'container' ? `<div class="ps-2  pb-2 ${dd.toggle ? `` : `d-none`}">${renderItems(dd.child, dd.array)}</div>` : ``)}
                                                                 </li>
                                                             `;
-                                                        }).join('');
+                                                        }).join('') + html `
+                                                            <div class="w-100 fw-500 d-flex align-items-center  fs-6 hoverBtn h_item  rounded px-2 hoverF2 mb-1"
+                                                                 style="color:#36B;gap:10px;" onclick="${gvc.event(() => {
+                                                            glitter.share.editorViewModel.selectContainer = og_array;
+                                                            AddComponent.closeEvent = () => {
+                                                                setPageConfig();
+                                                            };
+                                                            AddComponent.toggle(true);
+                                                        })}">
+                                                                <i class="fa-solid fa-plus"></i>新增區段
+                                                            </div>
+                                                        `;
                                                     },
                                                     divCreate: {
                                                         elem: 'ul',
@@ -258,14 +260,6 @@ export class Main_editor {
                                             <div class="p-2">
                                                 ${renderItems(list, pageConfig)}
                                             </div>`;
-                                        return new PageEditor(gvc, 'MainEditorLeft', 'MainEditorRight').renderLineItem(pageConfig, false, pageConfig, {
-                                            selectEv: (dd) => {
-                                                return dd.id === Storage.lastSelect;
-                                            },
-                                            refreshEvent: () => {
-                                                setPageConfig();
-                                            }
-                                        });
                                     })()
                                 ]);
                             })()}`
@@ -330,12 +324,6 @@ export class Main_editor {
                     const htmlGenerate = new gvc.glitter.htmlGenerate(viewModel.data.config, [Storage.lastSelect], undefined, true);
                     window.editerData = htmlGenerate;
                     window.page_config = viewModel.data.page_config;
-                    setTimeout(() => {
-                        document.querySelector('.selectLeftItem').scrollIntoView({
-                            behavior: 'auto',
-                            block: 'center',
-                        });
-                    }, 1000);
                 }
             };
         });
@@ -507,47 +495,13 @@ export class Main_editor {
                                             viewModel.selectContainer.splice(a, 1);
                                         }
                                     }
-                                    viewModel.selectItem = undefined;
-                                    if (document.querySelector('#editerCenter iframe').contentWindow.document.querySelector('.selectComponentHover')) {
-                                        document.querySelector('#editerCenter iframe').contentWindow.document.querySelector('.selectComponentHover').remove();
+                                    if (document.querySelector('#editerCenter iframe').contentWindow.document.querySelector(`.editor_it_${viewModel.selectItem.id}`)) {
+                                        document.querySelector('#editerCenter iframe').contentWindow.glitter.$(`.editor_it_${viewModel.selectItem.id}`).parent().remove();
                                     }
+                                    viewModel.selectItem = undefined;
                                     gvc.notifyDataChange(['right_NAV', 'MainEditorLeft']);
                                 }
-                                if (viewModel.selectItem.type === 'component') {
-                                    dialog.checkYesOrNot({
-                                        text: '是否連同模塊一同刪除?',
-                                        callback: (response) => {
-                                            if (response) {
-                                                new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
-                                                    dialog.dataLoading({ visible: true });
-                                                    let deleteArray = [viewModel.selectItem.tag];
-                                                    viewModel.selectItem.list && viewModel.selectItem.list.map((dd) => {
-                                                        deleteArray.push(dd.tag);
-                                                    });
-                                                    for (const b of deleteArray) {
-                                                        yield new Promise((resolve, reject) => {
-                                                            ApiPageConfig.deletePage({
-                                                                "appName": window.appName,
-                                                                tag: b
-                                                            }).then((data) => {
-                                                                resolve(true);
-                                                            });
-                                                        });
-                                                    }
-                                                    deleteBlock();
-                                                    dialog.dataLoading({ visible: false });
-                                                    glitter.htmlGenerate.saveEvent(true);
-                                                }));
-                                            }
-                                            else {
-                                                deleteBlock();
-                                            }
-                                        }
-                                    });
-                                }
-                                else {
-                                    deleteBlock();
-                                }
+                                deleteBlock();
                             }
                             catch (e) {
                                 alert(e);
@@ -564,7 +518,7 @@ export class Main_editor {
     static center(viewModel, gvc) {
         return html `
             <div class="${(viewModel.type === ViewType.mobile && (Storage.select_function === 'page-editor' || Storage.select_function === 'user-editor')) ? `d-flex align-items-center justify-content-center flex-column mx-auto` : `d-flex align-items-center justify-content-center flex-column`}"
-                 style="${(viewModel.type === ViewType.mobile && (Storage.select_function === 'page-editor' || Storage.select_function === 'user-editor')) ? `width: 414px;height: calc(100vh - 56px);` : `width: calc(100%);margin-left:10px;height: calc(100vh - 50px);"`}">
+                 style="${(viewModel.type === ViewType.mobile && (Storage.select_function === 'page-editor' || Storage.select_function === 'user-editor')) ? `width: 414px;height: calc(100vh - 56px);` : `width: calc(100%);height: calc(100vh - 56px);"`}">
                 <div class="" style="width:100%;height: calc(100%);" id="editerCenter">
                     <iframe class="w-100 h-100  bg-white"
                             src="index.html?type=htmlEditor&page=${gvc.glitter.getUrlParameter('page')}&appName=${gvc.glitter.getUrlParameter('appName')}"></iframe>
