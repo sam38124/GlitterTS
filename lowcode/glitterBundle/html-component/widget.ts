@@ -102,11 +102,9 @@ export const widgetComponent = {
                         option: option.concat(htmlGenerate.option),
                     }
                 }
-
                 if (widget.type === 'container') {
                     const glitter = (window as any).glitter
                     widget.data.setting.formData = widget.formData;
-
                     function getView() {
                         const htmlGenerate = new glitter.htmlGenerate(widget.data.setting, hoverID, subData, rootHtmlGenerate.root);
                         innerText = ''

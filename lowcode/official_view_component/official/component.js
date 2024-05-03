@@ -474,162 +474,169 @@ export const component = Plugin.createComponent(import.meta.url, (glitter, editM
                         return __awaiter(this, void 0, void 0, function* () {
                             return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
                                 var _a;
-                                for (const b of widget.data.list) {
-                                    b.evenet = (_a = b.evenet) !== null && _a !== void 0 ? _a : {};
-                                    try {
-                                        if (b.triggerType === 'trigger') {
-                                            const result = yield new Promise((resolve, reject) => {
-                                                (TriggerEvent.trigger({
-                                                    gvc: gvc,
-                                                    widget: widget,
-                                                    clickEvent: b.evenet,
-                                                    subData
-                                                })).then((data) => {
-                                                    resolve(data);
+                                try {
+                                    for (const b of widget.data.list) {
+                                        b.evenet = (_a = b.evenet) !== null && _a !== void 0 ? _a : {};
+                                        try {
+                                            if (b.triggerType === 'trigger') {
+                                                const result = yield new Promise((resolve, reject) => {
+                                                    (TriggerEvent.trigger({
+                                                        gvc: gvc,
+                                                        widget: widget,
+                                                        clickEvent: b.evenet,
+                                                        subData
+                                                    })).then((data) => {
+                                                        resolve(data);
+                                                    });
                                                 });
-                                            });
-                                            if (result) {
-                                                tag = b.tag;
-                                                carryData = b.carryData;
-                                                break;
-                                            }
-                                        }
-                                        else {
-                                            if (b.codeVersion === 'v2') {
-                                                if ((yield eval(`(() => {
-                                                ${b.code}
-                                            })()`)) === true) {
+                                                if (result) {
                                                     tag = b.tag;
                                                     carryData = b.carryData;
                                                     break;
                                                 }
                                             }
                                             else {
-                                                if ((yield eval(b.code)) === true) {
-                                                    tag = b.tag;
-                                                    carryData = b.carryData;
-                                                    break;
+                                                if (b.codeVersion === 'v2') {
+                                                    if ((yield eval(`(() => {
+                                                ${b.code}
+                                            })()`)) === true) {
+                                                        tag = b.tag;
+                                                        carryData = b.carryData;
+                                                        break;
+                                                    }
+                                                }
+                                                else {
+                                                    if ((yield eval(b.code)) === true) {
+                                                        tag = b.tag;
+                                                        carryData = b.carryData;
+                                                        break;
+                                                    }
                                                 }
                                             }
                                         }
+                                        catch (e) {
+                                            console.log(e);
+                                        }
+                                    }
+                                    let sub = subData;
+                                    try {
+                                        sub.carryData = yield TriggerEvent.trigger({
+                                            gvc: gvc,
+                                            clickEvent: carryData,
+                                            widget: widget,
+                                            subData: subData
+                                        });
                                     }
                                     catch (e) {
+                                        console.log(e);
                                     }
-                                }
-                                let sub = subData;
-                                try {
-                                    sub.carryData = yield TriggerEvent.trigger({
-                                        gvc: gvc,
-                                        clickEvent: carryData,
-                                        widget: widget,
-                                        subData: subData
-                                    });
-                                }
-                                catch (e) {
-                                }
-                                if (!tag) {
-                                    resolve(``);
-                                }
-                                else {
-                                    const page_request_config = widget.data.refer_app ? {
-                                        tag: tag,
-                                        appName: widget.data.refer_app
-                                    } : {
-                                        tag: tag,
-                                        appName: window.appName
-                                    };
-                                    (window.glitterInitialHelper).getPageData(page_request_config, (d2) => {
-                                        var _a, _b, _c, _d, _e;
-                                        data = d2.response.result[0];
-                                        data.config = (_a = data.config) !== null && _a !== void 0 ? _a : [];
-                                        data.config.map((dd) => {
-                                            glitter.htmlGenerate.renameWidgetID(dd);
-                                        });
-                                        if (data.page_config.resource_from === 'own') {
-                                            const url = new URL("", location.href);
-                                            const id = gvc.glitter.getUUID();
-                                            url.search = '';
-                                            url.searchParams.set("page", data.tag);
-                                            url.searchParams.set('appName', window.appName);
-                                            url.searchParams.set('isIframe', 'true');
-                                            url.searchParams.set('iframe_id', `${id}`);
-                                            gvc.glitter.config.frameHeight = (_b = gvc.glitter.config.frameHeight) !== null && _b !== void 0 ? _b : {};
-                                            gvc.glitter.config.frameHeight[url.href] = (_c = gvc.glitter.config.frameHeight[url.href]) !== null && _c !== void 0 ? _c : 0;
-                                            function iframeView() {
-                                                var _a;
-                                                return __awaiter(this, void 0, void 0, function* () {
-                                                    let rendered = false;
-                                                    glitter.share.iframeHeightChange = (_a = glitter.share.iframeHeightChange) !== null && _a !== void 0 ? _a : {};
-                                                    let lastHeight = 0;
-                                                    glitter.share.iframeHeightChange[id] = (newHeight) => {
-                                                        if (lastHeight != newHeight) {
-                                                            lastHeight = newHeight;
-                                                            let iframe = document.getElementById(id);
-                                                            iframe.style.height = `${newHeight}px`;
-                                                            iframe.style.minHeight = `${newHeight}px`;
-                                                            $(`#${id}`).parent().height(`${newHeight}px`);
-                                                        }
-                                                    };
-                                                    return `<iframe id="${id}" style="border:none !important;${(editMode) ? `pointer-events: none;` : ''}
+                                    if (!tag) {
+                                        resolve(``);
+                                    }
+                                    else {
+                                        const page_request_config = widget.data.refer_app ? {
+                                            tag: tag,
+                                            appName: widget.data.refer_app
+                                        } : {
+                                            tag: tag,
+                                            appName: window.appName
+                                        };
+                                        (window.glitterInitialHelper).getPageData(page_request_config, (d2) => {
+                                            var _a, _b, _c, _d, _e;
+                                            data = d2.response.result[0];
+                                            data.config = (_a = data.config) !== null && _a !== void 0 ? _a : [];
+                                            data.config.map((dd) => {
+                                                glitter.htmlGenerate.renameWidgetID(dd);
+                                            });
+                                            if (data.page_config.resource_from === 'own') {
+                                                const url = new URL("", location.href);
+                                                const id = gvc.glitter.getUUID();
+                                                url.search = '';
+                                                url.searchParams.set("page", data.tag);
+                                                url.searchParams.set('appName', window.appName);
+                                                url.searchParams.set('isIframe', 'true');
+                                                url.searchParams.set('iframe_id', `${id}`);
+                                                gvc.glitter.config.frameHeight = (_b = gvc.glitter.config.frameHeight) !== null && _b !== void 0 ? _b : {};
+                                                gvc.glitter.config.frameHeight[url.href] = (_c = gvc.glitter.config.frameHeight[url.href]) !== null && _c !== void 0 ? _c : 0;
+                                                function iframeView() {
+                                                    var _a;
+                                                    return __awaiter(this, void 0, void 0, function* () {
+                                                        let rendered = false;
+                                                        glitter.share.iframeHeightChange = (_a = glitter.share.iframeHeightChange) !== null && _a !== void 0 ? _a : {};
+                                                        let lastHeight = 0;
+                                                        glitter.share.iframeHeightChange[id] = (newHeight) => {
+                                                            if (lastHeight != newHeight) {
+                                                                lastHeight = newHeight;
+                                                                let iframe = document.getElementById(id);
+                                                                iframe.style.height = `${newHeight}px`;
+                                                                iframe.style.minHeight = `${newHeight}px`;
+                                                                $(`#${id}`).parent().height(`${newHeight}px`);
+                                                            }
+                                                        };
+                                                        return `<iframe id="${id}" style="border:none !important;${(editMode) ? `pointer-events: none;` : ''}
   border: none;
     margin:!important;
     padding: !important;" src="${url.href}" class="w-100 h-100"  ></iframe>`;
-                                                });
-                                            }
-                                            iframeView().then((dd) => {
-                                                resolve(dd);
-                                            });
-                                        }
-                                        else {
-                                            let createOption = (_d = (htmlGenerate !== null && htmlGenerate !== void 0 ? htmlGenerate : {}).createOption) !== null && _d !== void 0 ? _d : {};
-                                            createOption.option = (_e = createOption.option) !== null && _e !== void 0 ? _e : [];
-                                            createOption.class = createOption.class || ``;
-                                            createOption.childContainer = true;
-                                            if ((widget.data.refer_app)) {
-                                                data.page_config.formData = (widget.data.refer_form_data || data.page_config.formData);
-                                            }
-                                            data.config.formData = data.page_config.formData;
-                                            viewConfig = data.config;
-                                            const id = gvc.glitter.getUUID();
-                                            function getView() {
-                                                function loop(array) {
-                                                    array.map((dd) => {
-                                                        var _a;
-                                                        if (dd.type === 'container') {
-                                                            loop((_a = dd.data.setting) !== null && _a !== void 0 ? _a : []);
-                                                        }
-                                                        dd.formData = undefined;
                                                     });
                                                 }
-                                                loop(viewConfig);
-                                                createOption.class += ` ${(glitter.htmlGenerate.isEditMode()) ? `${page_request_config.appName}_${page_request_config.tag}` : ``}`;
-                                                return new glitter.htmlGenerate(viewConfig, [], sub).render(gvc, {
-                                                    class: ``,
-                                                    style: ``,
-                                                    containerID: id,
-                                                    jsFinish: () => {
-                                                    },
-                                                    onCreate: () => {
-                                                        if (glitter.htmlGenerate.isEditMode()) {
-                                                            gvc.getBindViewElem(id).get(0).updatePageConfig = (formData) => {
-                                                                viewConfig.formData = formData;
-                                                                document.querySelector(`[gvc-id="${gvc.id(id)}"]`).outerHTML = getView();
-                                                            };
-                                                        }
-                                                    },
-                                                    document: document
-                                                }, createOption !== null && createOption !== void 0 ? createOption : {});
+                                                iframeView().then((dd) => {
+                                                    resolve(dd);
+                                                });
                                             }
-                                            widget.storage.updatePageConfig = (formData) => {
-                                                viewConfig.formData = formData;
-                                                document.querySelector(`[gvc-id="${gvc.id(id)}"]`).outerHTML = getView();
-                                            };
-                                            resolve(`
+                                            else {
+                                                let createOption = (_d = (htmlGenerate !== null && htmlGenerate !== void 0 ? htmlGenerate : {}).createOption) !== null && _d !== void 0 ? _d : {};
+                                                createOption.option = (_e = createOption.option) !== null && _e !== void 0 ? _e : [];
+                                                createOption.class = createOption.class || ``;
+                                                createOption.childContainer = true;
+                                                if ((widget.data.refer_app)) {
+                                                    data.page_config.formData = (widget.data.refer_form_data || data.page_config.formData);
+                                                }
+                                                data.config.formData = data.page_config.formData;
+                                                viewConfig = data.config;
+                                                const id = gvc.glitter.getUUID();
+                                                function getView() {
+                                                    function loop(array) {
+                                                        array.map((dd) => {
+                                                            var _a;
+                                                            if (dd.type === 'container') {
+                                                                loop((_a = dd.data.setting) !== null && _a !== void 0 ? _a : []);
+                                                            }
+                                                            dd.formData = undefined;
+                                                        });
+                                                    }
+                                                    loop(viewConfig);
+                                                    createOption.class += ` ${(glitter.htmlGenerate.isEditMode()) ? `${page_request_config.appName}_${page_request_config.tag}` : ``}`;
+                                                    return new glitter.htmlGenerate(viewConfig, [], sub).render(gvc, {
+                                                        class: ``,
+                                                        style: ``,
+                                                        containerID: id,
+                                                        jsFinish: () => {
+                                                        },
+                                                        onCreate: () => {
+                                                            if (glitter.htmlGenerate.isEditMode()) {
+                                                                gvc.getBindViewElem(id).get(0).updatePageConfig = (formData) => {
+                                                                    viewConfig.formData = formData;
+                                                                    document.querySelector(`[gvc-id="${gvc.id(id)}"]`).outerHTML = getView();
+                                                                };
+                                                            }
+                                                        },
+                                                        document: document
+                                                    }, createOption !== null && createOption !== void 0 ? createOption : {});
+                                                }
+                                                widget.storage.updatePageConfig = (formData) => {
+                                                    viewConfig.formData = formData;
+                                                    document.querySelector(`[gvc-id="${gvc.id(id)}"]`).outerHTML = getView();
+                                                };
+                                                resolve(`
                                                 <!-- tag=${tag} -->
                                               ${getView()}
                                                 `);
-                                        }
-                                    });
+                                            }
+                                        });
+                                    }
+                                }
+                                catch (e) {
+                                    console.log(e);
                                 }
                             }));
                         });

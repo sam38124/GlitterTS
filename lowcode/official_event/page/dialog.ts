@@ -124,6 +124,7 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                         gvc.glitter.innerDialog((gvc: GVC) => {
                             gvc.getBundle().carryData = data
                             return new Promise<string>(async (resolve, reject) => {
+
                                 const view = component.render(gvc, ({
                                     data: {
                                         tag: link

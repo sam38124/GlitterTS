@@ -245,12 +245,12 @@ export class ApiShop {
     }
     static getCheckout(json) {
         return BaseApi.create({
-            url: getBaseUrl() + `/api-public/v1/ec/checkout/preview`,
-            type: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'g-app': getConfig().config.appName,
-                Authorization: GlobalUser.token,
+            "url": getBaseUrl() + `/api-public/v1/ec/checkout/preview`,
+            "type": "POST",
+            "headers": {
+                "Content-Type": "application/json",
+                "g-app": getConfig().config.appName,
+                "Authorization": GlobalUser.token
             },
             data: JSON.stringify(json),
         });

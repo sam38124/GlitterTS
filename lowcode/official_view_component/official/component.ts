@@ -525,162 +525,166 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
                     let data: any = undefined
                     let tag = widget.data.tag
                     let carryData = widget.data.carryData
-
                     async function getData(document: any) {
                         return new Promise(async (resolve, reject) => {
-                            for (const b of widget.data.list) {
-                                b.evenet = b.evenet ?? {}
-                                try {
-                                    if (b.triggerType === 'trigger') {
-                                        const result = await new Promise((resolve, reject) => {
-                                            (TriggerEvent.trigger({
-                                                gvc: gvc,
-                                                widget: widget,
-                                                clickEvent: b.evenet,
-                                                subData
-                                            })).then((data) => {
-                                                resolve(data)
+                            try {
+                                for (const b of widget.data.list) {
+                                    b.evenet = b.evenet ?? {}
+                                    try {
+                                        if (b.triggerType === 'trigger') {
+                                            const result = await new Promise((resolve, reject) => {
+                                                (TriggerEvent.trigger({
+                                                    gvc: gvc,
+                                                    widget: widget,
+                                                    clickEvent: b.evenet,
+                                                    subData
+                                                })).then((data) => {
+                                                    resolve(data)
+                                                })
                                             })
-                                        })
-                                        if (result) {
-                                            tag = b.tag
-                                            carryData = b.carryData
-                                            break
-                                        }
-                                    } else {
-                                        if (b.codeVersion === 'v2') {
-                                            if ((await eval(`(() => {
-                                                ${b.code}
-                                            })()`)) === true) {
+                                            if (result) {
                                                 tag = b.tag
                                                 carryData = b.carryData
                                                 break
                                             }
                                         } else {
-                                            if ((await eval(b.code)) === true) {
-                                                tag = b.tag
-                                                carryData = b.carryData
-                                                break
-                                            }
-                                        }
-
-                                    }
-                                } catch (e) {
-                                }
-                            }
-                            let sub: any = subData;
-                            try {
-                                sub.carryData = await TriggerEvent.trigger({
-                                    gvc: gvc,
-                                    clickEvent: carryData,
-                                    widget: widget,
-                                    subData: subData
-                                })
-                            } catch (e) {
-                            }
-                            if (!tag) {
-                                resolve(``)
-                            } else {
-                                const page_request_config = widget.data.refer_app ? {
-                                    tag: tag,
-                                    appName: widget.data.refer_app
-                                } : {
-                                    tag: tag,
-                                    appName: (window as any).appName
-                                };
-                                ((window as any).glitterInitialHelper).getPageData(page_request_config, (d2: any) => {
-                                    data = d2.response.result[0]
-                                    data.config = data.config ?? []
-                                    data.config.map((dd: any) => {
-                                        glitter.htmlGenerate.renameWidgetID(dd)
-                                    })
-                                    if (data.page_config.resource_from === 'own') {
-                                        const url = new URL("", location.href)
-                                        const id = gvc.glitter.getUUID()
-                                        url.search = ''
-                                        url.searchParams.set("page", data.tag)
-                                        url.searchParams.set('appName', (window as any).appName)
-                                        url.searchParams.set('isIframe', 'true')
-                                        url.searchParams.set('iframe_id', `${id}`)
-                                        gvc.glitter.config.frameHeight = gvc.glitter.config.frameHeight ?? {}
-                                        gvc.glitter.config.frameHeight[url.href] = gvc.glitter.config.frameHeight[url.href] ?? 0
-
-                                        async function iframeView() {
-                                            let rendered = false
-                                            glitter.share.iframeHeightChange = glitter.share.iframeHeightChange ?? {};
-                                            let lastHeight = 0
-                                            glitter.share.iframeHeightChange[id] = (newHeight: any) => {
-                                                if (lastHeight != newHeight) {
-                                                    lastHeight = newHeight
-                                                    let iframe = document.getElementById(id);
-                                                    iframe.style.height = `${newHeight}px`;
-                                                    iframe.style.minHeight = `${newHeight}px`;
-                                                    $(`#${id}`).parent().height(`${newHeight}px`)
+                                            if (b.codeVersion === 'v2') {
+                                                if ((await eval(`(() => {
+                                                ${b.code}
+                                            })()`)) === true) {
+                                                    tag = b.tag
+                                                    carryData = b.carryData
+                                                    break
+                                                }
+                                            } else {
+                                                if ((await eval(b.code)) === true) {
+                                                    tag = b.tag
+                                                    carryData = b.carryData
+                                                    break
                                                 }
                                             }
 
-                                            return `<iframe id="${id}" style="border:none !important;${(editMode) ? `pointer-events: none;` : ''}
+                                        }
+                                    } catch (e) {
+                                        console.log(e)
+                                    }
+                                }
+                                let sub: any = subData;
+                                try {
+                                    sub.carryData = await TriggerEvent.trigger({
+                                        gvc: gvc,
+                                        clickEvent: carryData,
+                                        widget: widget,
+                                        subData: subData
+                                    })
+                                } catch (e) {
+                                    console.log(e)
+                                }
+                                if (!tag) {
+                                    resolve(``)
+                                } else {
+                                    const page_request_config = widget.data.refer_app ? {
+                                        tag: tag,
+                                        appName: widget.data.refer_app
+                                    } : {
+                                        tag: tag,
+                                        appName: (window as any).appName
+                                    };
+                                    ((window as any).glitterInitialHelper).getPageData(page_request_config, (d2: any) => {
+                                        data = d2.response.result[0]
+                                        data.config = data.config ?? []
+                                        data.config.map((dd: any) => {
+                                            glitter.htmlGenerate.renameWidgetID(dd)
+                                        })
+                                        if (data.page_config.resource_from === 'own') {
+                                            const url = new URL("", location.href)
+                                            const id = gvc.glitter.getUUID()
+                                            url.search = ''
+                                            url.searchParams.set("page", data.tag)
+                                            url.searchParams.set('appName', (window as any).appName)
+                                            url.searchParams.set('isIframe', 'true')
+                                            url.searchParams.set('iframe_id', `${id}`)
+                                            gvc.glitter.config.frameHeight = gvc.glitter.config.frameHeight ?? {}
+                                            gvc.glitter.config.frameHeight[url.href] = gvc.glitter.config.frameHeight[url.href] ?? 0
+                                            async function iframeView() {
+                                                let rendered = false
+                                                glitter.share.iframeHeightChange = glitter.share.iframeHeightChange ?? {};
+                                                let lastHeight = 0
+                                                glitter.share.iframeHeightChange[id] = (newHeight: any) => {
+                                                    if (lastHeight != newHeight) {
+                                                        lastHeight = newHeight
+                                                        let iframe = document.getElementById(id);
+                                                        iframe.style.height = `${newHeight}px`;
+                                                        iframe.style.minHeight = `${newHeight}px`;
+                                                        $(`#${id}`).parent().height(`${newHeight}px`)
+                                                    }
+                                                }
+
+                                                return `<iframe id="${id}" style="border:none !important;${(editMode) ? `pointer-events: none;` : ''}
   border: none;
     margin:!important;
     padding: !important;" src="${url.href}" class="w-100 h-100"  ></iframe>`
-                                        }
-
-                                        iframeView().then((dd) => {
-                                            resolve(dd)
-                                        })
-                                    } else {
-                                        let createOption = (htmlGenerate ?? {}).createOption ?? {}
-                                        createOption.option = createOption.option ?? []
-                                        createOption.class = createOption.class || ``
-                                        createOption.childContainer = true
-                                        if ((widget.data.refer_app)) {
-                                            data.page_config.formData = (widget.data.refer_form_data || data.page_config.formData)
-                                        }
-                                        data.config.formData = data.page_config.formData
-                                        viewConfig = data.config;
-                                        const id = gvc.glitter.getUUID()
-
-                                        function getView() {
-                                            function loop(array: any) {
-                                                array.map((dd: any) => {
-                                                    if (dd.type === 'container') {
-                                                        loop(dd.data.setting ?? [])
-                                                    }
-                                                    dd.formData = undefined
-                                                })
                                             }
 
-                                            loop(viewConfig)
-                                            createOption.class += ` ${(glitter.htmlGenerate.isEditMode()) ? `${page_request_config.appName}_${page_request_config.tag}` : ``}`;
-                                            return new glitter.htmlGenerate(viewConfig, [], sub).render(gvc, {
-                                                class: ``,
-                                                style: ``,
-                                                containerID: id,
-                                                jsFinish: () => {
-                                                },
-                                                onCreate: () => {
-                                                    if (glitter.htmlGenerate.isEditMode()) {
-                                                        gvc.getBindViewElem(id).get(0).updatePageConfig=(formData: any) => {
-                                                            viewConfig.formData = formData
-                                                            document.querySelector(`[gvc-id="${gvc.id(id)}"]`).outerHTML = getView()
-                                                        }
-                                                    }
-                                                },
-                                                document: document
-                                            }, createOption ?? {})
-                                        }
+                                            iframeView().then((dd) => {
+                                                resolve(dd)
+                                            })
+                                        } else {
+                                            let createOption = (htmlGenerate ?? {}).createOption ?? {}
+                                            createOption.option = createOption.option ?? []
+                                            createOption.class = createOption.class || ``
+                                            createOption.childContainer = true
+                                            if ((widget.data.refer_app)) {
+                                                data.page_config.formData = (widget.data.refer_form_data || data.page_config.formData)
+                                            }
+                                            data.config.formData = data.page_config.formData
+                                            viewConfig = data.config;
+                                            const id = gvc.glitter.getUUID()
 
-                                        widget.storage.updatePageConfig = (formData: any) => {
-                                            viewConfig.formData = formData
-                                            document.querySelector(`[gvc-id="${gvc.id(id)}"]`).outerHTML = getView()
-                                        }
-                                        resolve(`
+                                            function getView() {
+                                                function loop(array: any) {
+                                                    array.map((dd: any) => {
+                                                        if (dd.type === 'container') {
+                                                            loop(dd.data.setting ?? [])
+                                                        }
+                                                        dd.formData = undefined
+                                                    })
+                                                }
+
+                                                loop(viewConfig)
+                                                createOption.class += ` ${(glitter.htmlGenerate.isEditMode()) ? `${page_request_config.appName}_${page_request_config.tag}` : ``}`;
+                                                return new glitter.htmlGenerate(viewConfig, [], sub).render(gvc, {
+                                                    class: ``,
+                                                    style: ``,
+                                                    containerID: id,
+                                                    jsFinish: () => {
+                                                    },
+                                                    onCreate: () => {
+                                                        if (glitter.htmlGenerate.isEditMode()) {
+                                                            gvc.getBindViewElem(id).get(0).updatePageConfig=(formData: any) => {
+                                                                viewConfig.formData = formData
+                                                                document.querySelector(`[gvc-id="${gvc.id(id)}"]`).outerHTML = getView()
+                                                            }
+                                                        }
+                                                    },
+                                                    document: document
+                                                }, createOption ?? {})
+                                            }
+
+                                            widget.storage.updatePageConfig = (formData: any) => {
+                                                viewConfig.formData = formData
+                                                document.querySelector(`[gvc-id="${gvc.id(id)}"]`).outerHTML = getView()
+                                            }
+                                            resolve(`
                                                 <!-- tag=${tag} -->
                                               ${getView()}
                                                 `)
-                                    }
+                                        }
 
-                                })
+                                    })
+                                }
+                            }catch (e){
+                                console.log(e)
                             }
                         })
 
@@ -712,6 +716,7 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
                             }
                         })
                     } else {
+
                         return gvc.bindView(() => {
                             const tempView = glitter.getUUID()
                             return {
@@ -723,6 +728,7 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
                                     class: ``
                                 },
                                 onInitial: async () => {
+
                                     const target = document.querySelector(`[gvc-id="${gvc.id(tempView)}"]`)
                                     target!.outerHTML = (await getData(gvc.glitter.document) as any)
                                 },
