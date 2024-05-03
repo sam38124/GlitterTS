@@ -175,7 +175,6 @@ export class Shopping {
 
             return data;
         } catch (e) {
-            console.log(e);
             throw exception.BadRequestError('BAD_REQUEST', 'GetProduct Error:' + e, null);
         }
     }
@@ -375,16 +374,21 @@ export class Shopping {
                             status: 'active',
                         })
                     ).data;
+
                     if (pdDqlData) {
                         const pd = pdDqlData.content;
                         const variant = pd.variants.find((dd: any) => {
                             return dd.spec.join('-') === b.spec.join('-');
                         });
-                        if (Number.isInteger(variant.stock) && Number.isInteger(b.count)) {
-                            //當超過庫存數量則調整為庫存上限
-                            if (variant.stock < b.count) {
+                        if (
+                            (Number.isInteger(variant.stock) || variant.show_understocking === 'false') &&
+                            Number.isInteger(b.count)
+                        ) {
+                            // 當超過庫存數量則調整為庫存上限
+                            if (variant.stock < b.count && variant.show_understocking !== 'false') {
                                 b.count = variant.stock;
                             }
+
                             if (variant && b.count > 0) {
                                 b.preview_image = variant.preview_image || pd.preview_image[0];
                                 b.title = pd.title;
@@ -397,9 +401,10 @@ export class Shopping {
                                 carData.lineItems.push(b as any);
                                 carData.total += variant.sale_price * b.count;
                             }
-                            //當為結帳時則更改商品庫存數量
+                            // 當為結帳時則更改商品庫存數量
                             if (type !== 'preview') {
-                                variant.stock = variant.stock - b.count;
+                                const countless = variant.stock - b.count;
+                                variant.stock = countless > 0 ? countless : 0;
                                 await db.query(
                                     `update \`${this.app}\`.\`t_manager_post\`
                                                 SET ?
@@ -415,20 +420,16 @@ export class Shopping {
                                 let deadTime = new Date();
                                 // 添加10分鐘
                                 deadTime.setMinutes(deadTime.getMinutes() + 15);
-                                //設定15分鐘後回寫訂單庫存
-                                await db.query(
-                                    `insert into \`${this.app}\`.\`t_stock_recover\`
-                                                set ?`,
-                                    [
-                                        {
-                                            product_id: pdDqlData.id,
-                                            spec: variant.spec.join('-'),
-                                            dead_line: deadTime,
-                                            order_id: carData.orderID,
-                                            count: b.count,
-                                        },
-                                    ]
-                                );
+                                // 設定15分鐘後回寫訂單庫存
+                                await db.query(`insert into \`${this.app}\`.\`t_stock_recover\` set ?`, [
+                                    {
+                                        product_id: pdDqlData.id,
+                                        spec: variant.spec.join('-'),
+                                        dead_line: deadTime,
+                                        order_id: carData.orderID,
+                                        count: b.count,
+                                    },
+                                ]);
                             }
                         }
                     }
@@ -533,7 +534,6 @@ export class Shopping {
                 };
             }
         } catch (e) {
-            console.log(e);
             throw exception.BadRequestError('BAD_REQUEST', 'ToCheckout Error:' + e, null);
         }
     }
@@ -878,7 +878,6 @@ export class Shopping {
             }
             a.type = 'variants';
             a.product_id = content.id;
-            console.log(a);
             await db.query(
                 `insert into \`${this.app}\`.t_manager_post
                             SET ?`,

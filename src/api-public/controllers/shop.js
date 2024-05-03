@@ -514,7 +514,7 @@ router.get('/dataAnalyze', async (req, resp) => {
             },
         };
         if (await ut_permission_1.UtPermission.isManager(req)) {
-            return response_1.default.succ(resp, await new shopping_1.Shopping(fake['g-app'], fake['Authorization']).getDataAnalyze(tags.split(',')));
+            return response_1.default.succ(resp, await new shopping_1.Shopping(req.get('g-app'), req.body.token).getDataAnalyze(tags.split(',')));
         }
         else {
             throw exception_1.default.BadRequestError('BAD_REQUEST', 'No permission.', null);

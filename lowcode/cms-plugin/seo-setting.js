@@ -7,51 +7,49 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import { ApiPageConfig } from "../api/pageConfig.js";
-import { EditorElem } from "../glitterBundle/plugins/editor-elem.js";
-import { BaseApi } from "../glitterBundle/api/base.js";
-import { BgWidget } from "../backend-manager/bg-widget.js";
-import { ShareDialog } from "../glitterBundle/dialog/ShareDialog.js";
+import { ApiPageConfig } from '../api/pageConfig.js';
+import { EditorElem } from '../glitterBundle/plugins/editor-elem.js';
+import { BaseApi } from '../glitterBundle/api/base.js';
+import { BgWidget } from '../backend-manager/bg-widget.js';
+import { ShareDialog } from '../glitterBundle/dialog/ShareDialog.js';
 export class SeoSetting {
     static main(gvc) {
         const html = String.raw;
         const id = gvc.glitter.getUUID();
-        function save() {
-        }
+        const glitter = gvc.glitter;
         const vm = {
             loading: true,
             page_list: [],
             select_page: '',
-            plugin: ''
+            plugin: '',
         };
         const config = window.parent.config;
         function getData() {
             return __awaiter(this, void 0, void 0, function* () {
                 const plugin = yield BaseApi.create({
-                    "url": config.url + `/api/v1/app?appName=${config.appName}`,
-                    "type": "GET",
-                    "timeout": 0,
-                    "headers": {
-                        "Content-Type": "application/json",
-                        "Authorization": config.token
-                    }
+                    url: config.url + `/api/v1/app?appName=${config.appName}`,
+                    type: 'GET',
+                    timeout: 0,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: config.token,
+                    },
                 });
                 vm.plugin = plugin.response.result[0].config;
                 const data = yield ApiPageConfig.getPage({
                     appName: config.appName,
                     type: 'template',
-                    token: config.token
+                    token: config.token,
                 });
                 vm.loading = false;
                 vm.page_list = data.response.result.filter((data) => {
-                    return (data.page_type != 'module') && (data.page_type != 'article');
+                    return data.page_type != 'module' && data.page_type != 'article';
                 });
                 vm.select_page = vm.page_list[0].tag;
                 gvc.notifyDataChange(id);
             });
         }
         getData();
-        const glitter = gvc.glitter;
         return gvc.bindView(() => {
             return {
                 bind: id,
@@ -60,17 +58,20 @@ export class SeoSetting {
                         return ``;
                     }
                     return html `
-                        <div class="position-relative bgf6 d-flex align-items-center justify-content-between  p-2 py-3 border-bottom shadow">
-                            <span class="fs-lg fw-bold " style="color:black;">SEO設定</span>
-                            <button class="btn btn-primary-c fs-6" 
-                                    style="height:40px;"
-                                    onclick="${gvc.event(() => {
+                        <div
+                            class="position-relative bgf6 d-flex align-items-center justify-content-between border-bottom mt-2 p-2"
+                        >
+                            <span class="fs-lg fw-bold" style="color:black;">SEO設定</span>
+                            <button
+                                class="btn btn-primary-c fs-6"
+                                style="height:40px;"
+                                onclick="${gvc.event(() => {
                         const editData = vm.page_list.find((d1) => {
                             return d1.tag === vm.select_page;
                         });
                         const dialog = new ShareDialog(gvc.glitter);
                         dialog.dataLoading({
-                            visible: true
+                            visible: true,
                         });
                         ApiPageConfig.setPage({
                             id: editData.id,
@@ -84,13 +85,12 @@ export class SeoSetting {
                             preview_image: editData.preview_image,
                             favorite: editData.favorite,
                         }).then((api) => {
-                            dialog.dataLoading({
-                                visible: false
-                            });
+                            dialog.dataLoading({ visible: false });
                             dialog.successMessage({ text: '儲存成功' });
                         });
-                        save();
-                    })}">儲存
+                    })}"
+                            >
+                                儲存
                             </button>
                         </div>
                         ${gvc.bindView(() => {
@@ -99,45 +99,43 @@ export class SeoSetting {
                             bind: menuID,
                             view: () => {
                                 return html `
-                                        <div class="">${EditorElem.h3('選擇頁面')}</div>
-                                        <div class="d-flex">
+                                        <div class="mb-2">${EditorElem.h3('選擇頁面')}</div>
+                                        <div class="d-flex mb-2">
                                             ${EditorElem.select({
                                     title: '',
                                     gvc: gvc,
                                     def: vm.select_page,
                                     array: vm.page_list.map((dd) => {
-                                        return {
-                                            title: dd.name, value: dd.tag
-                                        };
+                                        return { title: dd.name, value: dd.tag };
                                     }),
                                     callback: (value) => {
                                         vm.select_page = value;
                                         gvc.notifyDataChange(id);
-                                    }
+                                    },
                                 })}
-                                            <div class="d-flex align-items-center justify-content-center hoverBtn ms-1 me-2 border bg-white
-${(vm.plugin.homePage === vm.select_page) ? `d-none` : ``}
-"
-                                                 style="height:43px;width:43px;border-radius:10px;cursor:pointer;color:#151515;"
-                                                 data-bs-toggle="tooltip" data-bs-placement="top"
-                                                 data-bs-custom-class="custom-tooltip" data-bs-title="前往首頁"
-                                                 onclick="${gvc.event(() => {
+                                            <div
+                                                class="d-flex align-items-center justify-content-center hoverBtn ms-1 me-2 border bg-white
+${vm.plugin.homePage === vm.select_page ? `d-none` : ``}"
+                                                style="height:43px;width:43px;border-radius:10px;cursor:pointer;color:#151515;"
+                                                data-bs-toggle="tooltip"
+                                                data-bs-placement="top"
+                                                data-bs-custom-class="custom-tooltip"
+                                                data-bs-title="前往首頁"
+                                                onclick="${gvc.event(() => {
                                     vm.select_page = vm.plugin.homePage;
                                     gvc.notifyDataChange(id);
-                                })}">
+                                })}"
+                                            >
                                                 <i class="fa-regular fa-house"></i>
                                             </div>
                                         </div>
-
                                     `;
                             },
-                            divCreate: {
-                                class: 'p-2'
-                            },
+                            divCreate: {},
                             onCreate: () => {
                                 $('.tooltip').remove();
                                 $('[data-bs-toggle="tooltip"]').tooltip();
-                            }
+                            },
                         };
                     })}
                         ${gvc.bindView(() => {
@@ -150,116 +148,137 @@ ${(vm.plugin.homePage === vm.select_page) ? `d-none` : ``}
                                     const editData = vm.page_list.find((d1) => {
                                         return d1.tag === vm.select_page;
                                     });
-                                    console.log(`editData->`, editData);
                                     editData.page_config.seo = (_a = editData.page_config.seo) !== null && _a !== void 0 ? _a : {};
                                     const seo = editData.page_config.seo;
-                                    seo.type = (_b = seo.type) !== null && _b !== void 0 ? _b : "def";
+                                    seo.type = (_b = seo.type) !== null && _b !== void 0 ? _b : 'def';
                                     if (editData.tag === vm.plugin.homePage) {
                                         seo.type = 'custom';
                                     }
                                     return html `
-                                            ${BgWidget.card([`<div class="fs-sm fw-500 d-flex align-items-center justify-content-between mb-2 ">搜尋引擎預覽
-</div>`,
-                                        `<div class="fs-6 fw-500" style="color:#1a0dab;white-space: normal;">${document.title || '尚未設定'}</div>`,
+                                            ${BgWidget.card([
+                                        html `<div
+                                                        class="fs-sm fw-500 d-flex align-items-center justify-content-between mb-2"
+                                                    >
+                                                        搜尋引擎預覽
+                                                    </div>`,
+                                        html `<div
+                                                            class="fs-6 fw-500"
+                                                            style="color:#1a0dab;white-space: normal;"
+                                                        >
+                                                            ${document.title || '尚未設定'}
+                                                        </div>
+                                                        html`,
                                         `<div class="fs-sm fw-500" style="color:#006621;white-space: normal;">${(() => {
-                                            const url = new URL("", (vm.plugin.domain) ? `https://${vm.plugin.domain}/` : location.href);
+                                            const url = new URL('', vm.plugin.domain
+                                                ? `https://${vm.plugin.domain}/`
+                                                : location.href);
                                             url.search = '';
-                                            url.searchParams.set("page", glitter.getUrlParameter("page"));
+                                            url.searchParams.set('page', glitter.getUrlParameter('page'));
                                             if (!vm.plugin.domain) {
                                                 url.searchParams.set('appName', window.appName);
                                             }
                                             return url.href;
                                         })()}</div>`,
-                                        `<div class="fs-sm fw-500" style="color:#545454;white-space: normal;">${'desc'}</div>`].join(''), `p-3 bg-white rounded-3 shadow border  mt-2`)}
-                                            ${((editData.page_type === 'page') || (editData.page_type === 'blog')) ? (EditorElem.select({
-                                        title: "設為首頁",
-                                        gvc: gvc,
-                                        def: (vm.plugin.homePage === editData.tag) ? `true` : `false`,
-                                        array: [{
-                                                title: "是",
-                                                value: 'true'
-                                            }, {
-                                                title: "否",
-                                                value: 'false'
-                                            }],
-                                        callback: (text) => {
-                                            if (text === 'true') {
-                                                vm.plugin.homePage = editData.tag;
-                                                seo.type = 'custom';
-                                            }
-                                            else {
-                                                vm.plugin.homePage = undefined;
-                                            }
-                                            gvc.notifyDataChange(id);
-                                        }
-                                    })) : ''}
-                                            ${(editData.tag === vm.plugin.homePage) ? `` : EditorElem.h3('SEO參照')}
-                                            <select class="mt-2 form-select form-control ${(editData.tag === vm.plugin.homePage) && 'd-none'}"
-                                                    onchange="${gvc.event((e) => {
+                                        html `<div
+                                                        class="fs-sm fw-500"
+                                                        style="color:#545454;white-space: normal;"
+                                                    >
+                                                        ${'desc'}
+                                                    </div>`,
+                                    ].join(''), `p-3 bg-white rounded-3 shadow border  mt-2`)}
+                                            ${editData.page_type === 'page' || editData.page_type === 'blog'
+                                        ? EditorElem.select({
+                                            title: '設為首頁',
+                                            gvc: gvc,
+                                            def: vm.plugin.homePage === editData.tag ? `true` : `false`,
+                                            array: [
+                                                { title: '是', value: 'true' },
+                                                { title: '否', value: 'false' },
+                                            ],
+                                            callback: (text) => {
+                                                if (text === 'true') {
+                                                    vm.plugin.homePage = editData.tag;
+                                                    seo.type = 'custom';
+                                                }
+                                                else {
+                                                    vm.plugin.homePage = undefined;
+                                                }
+                                                gvc.notifyDataChange(id);
+                                            },
+                                        })
+                                        : ''}
+                                            ${editData.tag === vm.plugin.homePage ? `` : EditorElem.h3('SEO參照')}
+                                            <select
+                                                class="mt-2 form-select form-control
+                                                ${editData.tag === vm.plugin.homePage && 'd-none'}"
+                                                onchange="${gvc.event((e) => {
                                         seo.type = e.value;
                                         gvc.notifyDataChange(id);
-                                    })}">
-                                                <option value="def" ${(seo.type === "def") ? `selected` : ``}>
+                                    })}"
+                                            >
+                                                <option value="def" ${seo.type === 'def' ? `selected` : ``}>
                                                     依照首頁
                                                 </option>
-                                                <option value="custom"
-                                                        ${(seo.type === "custom") ? `selected` : ``}>自定義
+                                                <option value="custom" ${seo.type === 'custom' ? `selected` : ``}>
+                                                    自定義
                                                 </option>
                                             </select>
-                                            ${(seo.type === "def") ? `` : gvc.map([uploadImage({
-                                            gvc: gvc,
-                                            title: `網頁logo`,
-                                            def: (_c = seo.logo) !== null && _c !== void 0 ? _c : "",
-                                            callback: (data) => {
-                                                seo.logo = data;
-                                            }
-                                        }),
-                                        uploadImage({
-                                            gvc: gvc,
-                                            title: `預覽圖片`,
-                                            def: (_d = seo.image) !== null && _d !== void 0 ? _d : "",
-                                            callback: (data) => {
-                                                seo.image = data;
-                                            }
-                                        }),
-                                        EditorElem.editeInput({
-                                            gvc: gvc,
-                                            title: "網頁標題",
-                                            default: (_e = seo.title) !== null && _e !== void 0 ? _e : "",
-                                            placeHolder: "請輸入網頁標題",
-                                            callback: (text) => {
-                                                seo.title = text;
-                                            }
-                                        }),
-                                        EditorElem.editeText({
-                                            gvc: gvc,
-                                            title: "網頁描述",
-                                            default: (_f = seo.content) !== null && _f !== void 0 ? _f : "",
-                                            placeHolder: "請輸入網頁標題",
-                                            callback: (text) => {
-                                                seo.content = text;
-                                            }
-                                        }),
-                                        EditorElem.editeText({
-                                            gvc: gvc,
-                                            title: "關鍵字設定",
-                                            default: (_g = seo.keywords) !== null && _g !== void 0 ? _g : "",
-                                            placeHolder: "關鍵字設定",
-                                            callback: (text) => {
-                                                seo.keywords = text;
-                                            }
-                                        }),
-                                        EditorElem.htmlEditor({
-                                            gvc: gvc,
-                                            title: `網頁代碼`,
-                                            initial: (_h = seo.code) !== null && _h !== void 0 ? _h : "",
-                                            callback: (text) => {
-                                                seo.code = text;
-                                                console.log(text);
-                                            },
-                                            height: 200
-                                        })
-                                    ])}
+                                            ${seo.type === 'def'
+                                        ? ``
+                                        : gvc.map([
+                                            uploadImage({
+                                                gvc: gvc,
+                                                title: `網頁logo`,
+                                                def: (_c = seo.logo) !== null && _c !== void 0 ? _c : '',
+                                                callback: (data) => {
+                                                    seo.logo = data;
+                                                },
+                                            }),
+                                            uploadImage({
+                                                gvc: gvc,
+                                                title: `預覽圖片`,
+                                                def: (_d = seo.image) !== null && _d !== void 0 ? _d : '',
+                                                callback: (data) => {
+                                                    seo.image = data;
+                                                },
+                                            }),
+                                            EditorElem.editeInput({
+                                                gvc: gvc,
+                                                title: '網頁標題',
+                                                default: (_e = seo.title) !== null && _e !== void 0 ? _e : '',
+                                                placeHolder: '請輸入網頁標題',
+                                                callback: (text) => {
+                                                    seo.title = text;
+                                                },
+                                            }),
+                                            EditorElem.editeText({
+                                                gvc: gvc,
+                                                title: '網頁描述',
+                                                default: (_f = seo.content) !== null && _f !== void 0 ? _f : '',
+                                                placeHolder: '請輸入網頁標題',
+                                                callback: (text) => {
+                                                    seo.content = text;
+                                                },
+                                            }),
+                                            EditorElem.editeText({
+                                                gvc: gvc,
+                                                title: '關鍵字設定',
+                                                default: (_g = seo.keywords) !== null && _g !== void 0 ? _g : '',
+                                                placeHolder: '關鍵字設定',
+                                                callback: (text) => {
+                                                    seo.keywords = text;
+                                                },
+                                            }),
+                                            EditorElem.htmlEditor({
+                                                gvc: gvc,
+                                                title: `網頁代碼`,
+                                                initial: (_h = seo.code) !== null && _h !== void 0 ? _h : '',
+                                                callback: (text) => {
+                                                    seo.code = text;
+                                                },
+                                                height: 200,
+                                            }),
+                                        ])}
                                         `;
                                 }
                                 catch (e) {
@@ -268,42 +287,57 @@ ${(vm.plugin.homePage === vm.select_page) ? `d-none` : ``}
                             },
                             divCreate: () => {
                                 return {
-                                    class: `mx-2 d-flex flex-column position-relative `,
-                                    style: ``
+                                    class: ``,
+                                    style: ``,
                                 };
                             },
-                            onCreate: () => {
-                            }
+                            onCreate: () => { },
                         };
                     })}
                     `;
                 },
                 divCreate: {
-                    style: ``
-                }
+                    style: `
+                        display: flex;
+                        flex-direction: column;
+                        background: whitesmoke;
+                        padding: 0 ${window.innerWidth > 1000 ? '24%' : '3%'};
+                    `,
+                },
             };
         });
     }
 }
 function uploadImage(obj) {
-    obj.gvc.addStyle(`.p-hover-image:hover{
-  opacity: 1 !important; /* 在父元素悬停时，底层元素可见 */
-}`);
+    obj.gvc.addStyle(`
+        .p-hover-image:hover {
+            opacity: 1 !important;
+        }
+    `);
     const glitter = window.glitter;
     const id = glitter.getUUID();
+    const html = String.raw;
     return obj.gvc.bindView(() => {
         return {
             bind: id,
             view: () => {
-                return `<h3 style="font-size: 15px;margin-bottom: 10px;" class="mt-2 fw-500">${obj.title}</h3>
-                            <div class="d-flex align-items-center mb-3">
-                                <input class="flex-fill form-control "  placeholder="請輸入圖片連結" value="${obj.def}" onchange="${obj.gvc.event((e) => {
+                return html `<h3 style="font-size: 15px;margin-bottom: 10px;" class="mt-2 fw-500">${obj.title}</h3>
+                    <div class="d-flex align-items-center mb-3">
+                        <input
+                            class="flex-fill form-control "
+                            placeholder="請輸入圖片連結"
+                            value="${obj.def}"
+                            onchange="${obj.gvc.event((e) => {
                     obj.callback(e.value);
                     obj.def = e.value;
                     obj.gvc.notifyDataChange(id);
-                })}">
-                                <div class="" style="width: 1px;height: 25px;background-"></div>
-                                <i class="fa-regular fa-upload text-dark ms-2" style="cursor: pointer;" onclick="${obj.gvc.event(() => {
+                })}"
+                        />
+                        <div class="" style="width: 1px;height: 25px;background-"></div>
+                        <i
+                            class="fa-regular fa-upload text-dark ms-2"
+                            style="cursor: pointer;"
+                            onclick="${obj.gvc.event(() => {
                     glitter.ut.chooseMediaCallback({
                         single: true,
                         accept: 'json,image/*',
@@ -321,7 +355,7 @@ function uploadImage(obj) {
                                     type: 'put',
                                     data: file,
                                     headers: {
-                                        "Content-Type": data1.type
+                                        'Content-Type': data1.type,
                                     },
                                     processData: false,
                                     crossDomain: true,
@@ -333,28 +367,34 @@ function uploadImage(obj) {
                                     },
                                     error: (err) => {
                                         dialog.dataLoading({ visible: false });
-                                        dialog.errorMessage({ text: "上傳失敗" });
+                                        dialog.errorMessage({ text: '上傳失敗' });
                                     },
                                 });
                             });
-                        }
+                        },
                     });
-                })}"></i>
-                            </div>
-                            ${obj.def && `
-<div class="d-flex align-items-center justify-content-center rounded-3 shadow"  style="min-width:100px;width:100px;height:100px;cursor:pointer;
-background: 50%/cover url('${obj.def}');
-">
-<div class="w-100 h-100 d-flex align-items-center justify-content-center rounded-3 p-hover-image" style="opacity:0;background: rgba(0,0,0,0.5);gap:20px;color:white;font-size:22px;">
-<i class="fa-regular fa-eye" onclick="${obj.gvc.event(() => {
-                    obj.gvc.glitter.openDiaLog(new URL('../dialog/image-preview.js', import.meta.url).href, 'preview', obj.def);
-                })}"></i>
-</div>
-</div>`}
-
-`;
+                })}"
+                        ></i>
+                    </div>
+                    ${obj.def &&
+                    html ` <div
+                        class="d-flex align-items-center justify-content-center rounded-3 shadow"
+                        style="min-width:100px;width:100px;height:100px;cursor:pointer;background: 50%/cover url('${obj.def}');"
+                    >
+                        <div
+                            class="w-100 h-100 d-flex align-items-center justify-content-center rounded-3 p-hover-image"
+                            style="opacity:0;background: rgba(0,0,0,0.5);gap:20px;color:white;font-size:22px;"
+                        >
+                            <i
+                                class="fa-regular fa-eye"
+                                onclick="${obj.gvc.event(() => {
+                        obj.gvc.glitter.openDiaLog(new URL('../dialog/image-preview.js', import.meta.url).href, 'preview', obj.def);
+                    })}"
+                            ></i>
+                        </div>
+                    </div>`} `;
             },
-            divCreate: {}
+            divCreate: {},
         };
     });
 }

@@ -98,7 +98,6 @@ class Shopping {
             return data;
         }
         catch (e) {
-            console.log(e);
             throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'GetProduct Error:' + e, null);
         }
     }
@@ -223,15 +222,22 @@ class Shopping {
                         id: b.id,
                         status: 'active',
                     })).data;
+                    console.log('======================================');
                     if (pdDqlData) {
                         const pd = pdDqlData.content;
                         const variant = pd.variants.find((dd) => {
                             return dd.spec.join('-') === b.spec.join('-');
                         });
-                        if (Number.isInteger(variant.stock) && Number.isInteger(b.count)) {
-                            if (variant.stock < b.count) {
+                        console.log(`pd: ${pd.title}`);
+                        console.log(`b.count: ${b.count}`);
+                        console.log(`variant.stock: ${variant.stock}`);
+                        console.log(`variant.show_understocking: ${variant.show_understocking}`);
+                        if ((Number.isInteger(variant.stock) || variant.show_understocking === 'false') &&
+                            Number.isInteger(b.count)) {
+                            if (variant.stock < b.count && variant.show_understocking !== 'false') {
                                 b.count = variant.stock;
                             }
+                            console.log(`after b.count: ${b.count}`);
                             if (variant && b.count > 0) {
                                 b.preview_image = variant.preview_image || pd.preview_image[0];
                                 b.title = pd.title;
@@ -245,7 +251,8 @@ class Shopping {
                                 carData.total += variant.sale_price * b.count;
                             }
                             if (type !== 'preview') {
-                                variant.stock = variant.stock - b.count;
+                                const countless = variant.stock - b.count;
+                                variant.stock = countless > 0 ? countless : 0;
                                 await database_js_1.default.query(`update \`${this.app}\`.\`t_manager_post\`
                                                 SET ?
                                                 where 1 = 1
@@ -256,8 +263,7 @@ class Shopping {
                                 ]);
                                 let deadTime = new Date();
                                 deadTime.setMinutes(deadTime.getMinutes() + 15);
-                                await database_js_1.default.query(`insert into \`${this.app}\`.\`t_stock_recover\`
-                                                set ?`, [
+                                await database_js_1.default.query(`insert into \`${this.app}\`.\`t_stock_recover\` set ?`, [
                                     {
                                         product_id: pdDqlData.id,
                                         spec: variant.spec.join('-'),
@@ -352,7 +358,6 @@ class Shopping {
             }
         }
         catch (e) {
-            console.log(e);
             throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'ToCheckout Error:' + e, null);
         }
     }
@@ -596,7 +601,6 @@ class Shopping {
             }
             a.type = 'variants';
             a.product_id = content.id;
-            console.log(a);
             await database_js_1.default.query(`insert into \`${this.app}\`.t_manager_post
                             SET ?`, [
                 {
