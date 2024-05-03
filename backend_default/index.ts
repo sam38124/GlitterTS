@@ -1,5 +1,5 @@
 import * as Glitter from 'ts-glitter';
-import path from "path";
+import path from 'path';
 import express from 'express';
 import cors from 'cors';
 //Glitter FrontEnd Rout
@@ -17,10 +17,10 @@ Glitter.set_frontend(app, [
     {
         rout: '/test',
         path: path.resolve(__dirname, '../../src'),
-        seoManager:(req,resp)=>{
-            return new Promise((resolve, reject)=>{
-                resolve('')
-            })
-        }
+        seoManager: (req, resp) => {
+            return new Promise((resolve, reject) => {
+                resolve('');
+            });
+        },
     },
 ]);

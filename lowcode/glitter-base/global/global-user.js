@@ -1,6 +1,6 @@
 export class GlobalUser {
     static getTag(tag) {
-        if (window.glitter.getUrlParameter("type") === 'editor') {
+        if (window.glitter.getUrlParameter('type') === 'editor') {
             return `${window.glitterBase}${GlobalUser.tagId}${tag}`;
         }
         else {
@@ -23,6 +23,6 @@ export class GlobalUser {
         window.glitter.setCookie(GlobalUser.getTag('language'), value);
     }
 }
-GlobalUser.tagId = "sjnsannsai23ij3as";
+GlobalUser.tagId = 'sjnsannsai23ij3as';
 GlobalUser.userInfo = undefined;
 GlobalUser.updateUserData = {};

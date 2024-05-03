@@ -7,9 +7,9 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import { TriggerEvent } from "../glitterBundle/plugins/trigger-event.js";
-import { EditorElem } from "../glitterBundle/plugins/editor-elem.js";
-import { NormalPageEditor } from "../editor/normal-page-editor.js";
+import { TriggerEvent } from '../glitterBundle/plugins/trigger-event.js';
+import { EditorElem } from '../glitterBundle/plugins/editor-elem.js';
+import { NormalPageEditor } from '../editor/normal-page-editor.js';
 export class GlobalData {
 }
 GlobalData.data = {
@@ -21,16 +21,20 @@ GlobalData.data = {
         }
         GlobalData.data.isRunning = true;
         const saasConfig = window.saasConfig;
-        saasConfig.api.getPage({
+        saasConfig.api
+            .getPage({
             appName: saasConfig.config.appName,
-            page_type: 'page'
-        }).then((data) => {
+            page_type: 'page',
+        })
+            .then((data) => {
             if (data.result) {
-                GlobalData.data.pageList = data.response.result.map((dd) => {
+                GlobalData.data.pageList = data.response.result
+                    .map((dd) => {
                     var _a;
                     dd.page_config = (_a = dd.page_config) !== null && _a !== void 0 ? _a : {};
                     return dd;
-                }).sort((a, b) => `${a.group}-${a.name}`.localeCompare(`${b.group}-${b.name}`));
+                })
+                    .sort((a, b) => `${a.group}-${a.name}`.localeCompare(`${b.group}-${b.name}`));
             }
             else {
                 GlobalData.data.isRunning = false;
@@ -56,17 +60,17 @@ TriggerEvent.create(import.meta.url, {
         title: '官方事件 / 畫面 / 頁面跳轉',
         subContent: questionText([
             {
-                title: "內部連結跳轉",
-                content: `使用此事件可以跳轉至GLITTER內部頁面，採用SPA的開發技術，來降低頁面延遲，使轉場的效果更加順暢。`
+                title: '內部連結跳轉',
+                content: `使用此事件可以跳轉至GLITTER內部頁面，採用SPA的開發技術，來降低頁面延遲，使轉場的效果更加順暢。`,
             },
             {
-                title: "外連結跳轉",
-                content: `使用此事件可以跳轉至外部頁面。`
+                title: '外連結跳轉',
+                content: `使用此事件可以跳轉至外部頁面。`,
             },
             {
-                title: "HashTag",
-                content: `使用此事件可以滾動至此標籤的位置。`
-            }
+                title: 'HashTag',
+                content: `使用此事件可以滾動至此標籤的位置。`,
+            },
         ]),
         fun: TriggerEvent.setEventRouter(import.meta.url, './page/change-page.js'),
     },
@@ -79,17 +83,17 @@ TriggerEvent.create(import.meta.url, {
         title: '官方事件 / 畫面 / 彈跳視窗',
         subContent: questionText([
             {
-                title: "打開彈跳視窗",
-                content: `使用此事件可以開啟彈跳視窗，可以實現 表單 / 加載動畫 / 錯誤提醒 ....等效果都可以透過頁面彈窗來進行實現。`
+                title: '打開彈跳視窗',
+                content: `使用此事件可以開啟彈跳視窗，可以實現 表單 / 加載動畫 / 錯誤提醒 ....等效果都可以透過頁面彈窗來進行實現。`,
             },
             {
-                title: "關閉彈跳視窗",
-                content: `於跳轉的頁面執行 <span style="color:#295ed1;">gvc.closeDialog()</span> 即可關閉彈跳視窗。`
+                title: '關閉彈跳視窗',
+                content: `於跳轉的頁面執行 <span style="color:#295ed1;">gvc.closeDialog()</span> 即可關閉彈跳視窗。`,
             },
             {
-                title: "夾帶資料",
-                content: `返回要挾帶的資料並且於彈跳視窗的頁面中，透過 <span style="color:#295ed1;">gvc.getBundle().carryData</span>  ，來取得夾帶內容。`
-            }
+                title: '夾帶資料',
+                content: `返回要挾帶的資料並且於彈跳視窗的頁面中，透過 <span style="color:#295ed1;">gvc.getBundle().carryData</span>  ，來取得夾帶內容。`,
+            },
         ]),
         fun: TriggerEvent.setEventRouter(import.meta.url, './page/dialog.js'),
     },
@@ -97,19 +101,19 @@ TriggerEvent.create(import.meta.url, {
         title: '官方事件 / 畫面 / 視窗關閉',
         subContent: questionText([
             {
-                title: "當前視窗",
-                content: `僅關閉當前的彈跳視窗。`
+                title: '當前視窗',
+                content: `僅關閉當前的彈跳視窗。`,
             },
             {
-                title: "所有視窗",
-                content: `關閉所有彈跳視窗。`
+                title: '所有視窗',
+                content: `關閉所有彈跳視窗。`,
             },
             {
-                title: "標籤",
-                content: `關閉具有此標籤的視窗。`
-            }
+                title: '標籤',
+                content: `關閉具有此標籤的視窗。`,
+            },
         ]),
-        fun: TriggerEvent.setEventRouter(import.meta.url, './page/close-dialog.js')
+        fun: TriggerEvent.setEventRouter(import.meta.url, './page/close-dialog.js'),
     },
     drawer: {
         title: '官方事件 / 畫面 / 左側導覽列',
@@ -164,19 +168,19 @@ TriggerEvent.create(import.meta.url, {
     },
     setStyle: {
         title: '官方事件 / 畫面 / 更換STYLE樣式',
-        fun: TriggerEvent.setEventRouter(import.meta.url, './style/change-style.js')
+        fun: TriggerEvent.setEventRouter(import.meta.url, './style/change-style.js'),
     },
     getFormData: {
         title: '官方事件 / 表單 / 取得表單資料',
-        fun: TriggerEvent.setEventRouter(import.meta.url, './glitter-util/get-form.js')
+        fun: TriggerEvent.setEventRouter(import.meta.url, './glitter-util/get-form.js'),
     },
     checkForm: {
         title: '官方事件 / 表單 / 判斷表單是否填寫完畢',
-        fun: TriggerEvent.setEventRouter(import.meta.url, './glitter-util/check-form.js')
+        fun: TriggerEvent.setEventRouter(import.meta.url, './glitter-util/check-form.js'),
     },
     postForm: {
         title: '官方事件 / 表單 / 內容發佈',
-        fun: TriggerEvent.setEventRouter(import.meta.url, './glitter-util/post-form.js')
+        fun: TriggerEvent.setEventRouter(import.meta.url, './glitter-util/post-form.js'),
     },
     code: {
         title: '官方事件 / 開發工具 / 代碼區塊',
@@ -186,27 +190,28 @@ TriggerEvent.create(import.meta.url, {
                 editor: () => {
                     object.codeVersion = 'v2';
                     const html = String.raw;
-                    return html `
-                        <div class="w-100">
-                            ${EditorElem.codeEditor({
+                    return html ` <div class="w-100">
+                        ${EditorElem.codeEditor({
                         gvc: gvc,
                         height: 500,
                         initial: object.code,
-                        title: "代碼區塊",
+                        title: '代碼區塊',
                         callback: (text) => {
                             object.code = text;
                         },
-                        structStart: `((gvc,widget,object,subData,element)=>{`
+                        structStart: `((gvc,widget,object,subData,element)=>{`,
                     })}
-                        </div>`;
+                    </div>`;
                 },
                 event: () => {
                     return new Promise((resolve, reject) => __awaiter(void 0, void 0, void 0, function* () {
                         var _a;
                         try {
-                            const a = (object.codeVersion == 'v2') ? (eval(`(() => {
+                            const a = object.codeVersion == 'v2'
+                                ? eval(`(() => {
                                 ${object.code}
-                            })()`)) : (eval(object.code));
+                            })()`)
+                                : eval(object.code);
                             if (a.then) {
                                 a.then((data) => {
                                     resolve(data);
@@ -241,7 +246,7 @@ TriggerEvent.create(import.meta.url, {
                                         originalArray: object.eventList,
                                         gvc: gvc,
                                         title: '',
-                                        array: (() => {
+                                        array: () => {
                                             return object.eventList.map((dd, index) => {
                                                 var _a, _b;
                                                 dd.yesEvent = (_a = dd.yesEvent) !== null && _a !== void 0 ? _a : {};
@@ -249,7 +254,7 @@ TriggerEvent.create(import.meta.url, {
                                                 return {
                                                     title: dd.title || `事件:${index + 1}`,
                                                     expand: dd,
-                                                    innerHtml: (() => {
+                                                    innerHtml: () => {
                                                         NormalPageEditor.toggle({
                                                             visible: true,
                                                             view: gvc.bindView(() => {
@@ -261,7 +266,7 @@ TriggerEvent.create(import.meta.url, {
                                                                             gvc.glitter.htmlGenerate.editeInput({
                                                                                 gvc: gvc,
                                                                                 title: '事件標題',
-                                                                                default: (_a = dd.title) !== null && _a !== void 0 ? _a : "",
+                                                                                default: (_a = dd.title) !== null && _a !== void 0 ? _a : '',
                                                                                 placeHolder: '請輸入事件標題',
                                                                                 callback: (text) => {
                                                                                     dd.title = text;
@@ -270,28 +275,28 @@ TriggerEvent.create(import.meta.url, {
                                                                             TriggerEvent.editer(gvc, widget, dd.yesEvent, {
                                                                                 hover: true,
                                                                                 option: [],
-                                                                                title: "判斷式-返回true則執行事件"
+                                                                                title: '判斷式-返回true則執行事件',
                                                                             }),
                                                                             `<div class="mt-2"></div>`,
                                                                             TriggerEvent.editer(gvc, widget, dd.trigger, {
                                                                                 hover: true,
                                                                                 option: [],
-                                                                                title: "執行事件"
-                                                                            })
+                                                                                title: '執行事件',
+                                                                            }),
                                                                         ].join('')}</div>`;
-                                                                    }
+                                                                    },
                                                                 };
                                                             }),
-                                                            title: '設定事件'
+                                                            title: '設定事件',
                                                         });
-                                                    }),
+                                                    },
                                                     minus: gvc.event(() => {
                                                         object.eventList.splice(index, 1);
                                                         gvc.notifyDataChange(id);
                                                     }),
                                                 };
                                             });
-                                        }),
+                                        },
                                         expand: object,
                                         plus: {
                                             title: '添加事件判斷',
@@ -303,14 +308,14 @@ TriggerEvent.create(import.meta.url, {
                                         refreshComponent: () => {
                                             gvc.notifyDataChange(id);
                                         },
-                                        customEditor: true
+                                        customEditor: true,
                                     });
                                 }
                                 catch (e) {
                                     return ``;
                                 }
                             },
-                            divCreate: {}
+                            divCreate: {},
                         };
                     });
                 },
@@ -324,7 +329,7 @@ TriggerEvent.create(import.meta.url, {
                                     widget: widget,
                                     clickEvent: a.yesEvent,
                                     subData: subData,
-                                    element: element
+                                    element: element,
                                 });
                                 if (result) {
                                     const response = yield TriggerEvent.trigger({
@@ -332,7 +337,7 @@ TriggerEvent.create(import.meta.url, {
                                         widget: widget,
                                         clickEvent: a.trigger,
                                         subData: subData,
-                                        element: element
+                                        element: element,
                                     });
                                     resolve(response);
                                     return;
@@ -385,20 +390,20 @@ TriggerEvent.create(import.meta.url, {
         fun: TriggerEvent.setEventRouter(import.meta.url, './glitter-util/delay-event.js'),
     },
     api_request: {
-        title: "官方事件 / 開發工具 / API 請求",
-        fun: TriggerEvent.setEventRouter(import.meta.url, './api/api-request.js')
+        title: '官方事件 / 開發工具 / API 請求',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './api/api-request.js'),
     },
     scrollWatch: {
-        title: "官方事件 / 開發工具 / 滾動監聽",
-        fun: TriggerEvent.setEventRouter(import.meta.url, './glitter-util/scroll-watch.js')
+        title: '官方事件 / 開發工具 / 滾動監聽',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './glitter-util/scroll-watch.js'),
     },
     storeData: {
-        title: "官方事件 / 開發工具 / 儲存資料",
-        fun: TriggerEvent.setEventRouter(import.meta.url, './glitter-util/store-data.js')
+        title: '官方事件 / 開發工具 / 儲存資料',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './glitter-util/store-data.js'),
     },
     getData: {
-        title: "官方事件 / 開發工具 / 取得儲存資料",
-        fun: TriggerEvent.setEventRouter(import.meta.url, './glitter-util/get-data.js')
+        title: '官方事件 / 開發工具 / 取得儲存資料',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './glitter-util/get-data.js'),
     },
     registerDevice: {
         title: '官方事件 / 推播 / 註冊裝置',
@@ -413,8 +418,8 @@ TriggerEvent.create(import.meta.url, {
                 editor: () => {
                     return TriggerEvent.editer(gvc, widget, object.getEvent, {
                         option: [],
-                        title: "取得推播頻道",
-                        hover: false
+                        title: '取得推播頻道',
+                        hover: false,
                     });
                 },
                 event: () => {
@@ -422,20 +427,22 @@ TriggerEvent.create(import.meta.url, {
                         var _a;
                         try {
                             const topic = yield TriggerEvent.trigger({
-                                gvc, widget, clickEvent: object.getEvent, subData: subData, element
+                                gvc,
+                                widget,
+                                clickEvent: object.getEvent,
+                                subData: subData,
+                                element,
                             });
-                            if (typeof topic != "object") {
-                                gvc.glitter.runJsInterFace("regNotification", {
-                                    topic: topic
-                                }, (response) => {
-                                });
+                            if (typeof topic != 'object') {
+                                gvc.glitter.runJsInterFace('regNotification', {
+                                    topic: topic,
+                                }, (response) => { });
                             }
                             else {
                                 topic.map((dd) => {
-                                    gvc.glitter.runJsInterFace("regNotification", {
-                                        topic: dd
-                                    }, (response) => {
-                                    });
+                                    gvc.glitter.runJsInterFace('regNotification', {
+                                        topic: dd,
+                                    }, (response) => { });
                                 });
                             }
                             resolve(true);
@@ -459,7 +466,7 @@ TriggerEvent.create(import.meta.url, {
                     return new Promise((resolve, reject) => __awaiter(void 0, void 0, void 0, function* () {
                         var _a;
                         try {
-                            gvc.glitter.runJsInterFace("getFireBaseToken", {}, (response) => {
+                            gvc.glitter.runJsInterFace('getFireBaseToken', {}, (response) => {
                                 resolve(response.token);
                             });
                         }
@@ -482,7 +489,7 @@ TriggerEvent.create(import.meta.url, {
                     return new Promise((resolve, reject) => __awaiter(void 0, void 0, void 0, function* () {
                         var _a;
                         try {
-                            gvc.glitter.runJsInterFace("deleteFireBaseToken", {}, (response) => {
+                            gvc.glitter.runJsInterFace('deleteFireBaseToken', {}, (response) => {
                                 resolve(true);
                             });
                         }
@@ -496,31 +503,31 @@ TriggerEvent.create(import.meta.url, {
     },
     emailSubscription: {
         title: '官方事件 / 推播 / 信箱註冊',
-        fun: TriggerEvent.setEventRouter(import.meta.url, './user/email-subscription.js')
+        fun: TriggerEvent.setEventRouter(import.meta.url, './user/email-subscription.js'),
     },
     api_graph: {
-        title: "官方事件 / API / Graph-API",
-        fun: TriggerEvent.setEventRouter(import.meta.url, './api/api-graph.js')
+        title: '官方事件 / API / Graph-API',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './api/api-graph.js'),
     },
     api_data_get: {
-        title: "官方事件 / API / 內容取得",
-        fun: TriggerEvent.setEventRouter(import.meta.url, './api/api-data-get.js')
+        title: '官方事件 / API / 內容取得',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './api/api-data-get.js'),
     },
     api_data_post: {
-        title: "官方事件 / API / 內容上傳",
-        fun: TriggerEvent.setEventRouter(import.meta.url, './api/api-data-post.js')
+        title: '官方事件 / API / 內容上傳',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './api/api-data-post.js'),
     },
     api_data_put: {
-        title: "官方事件 / API / 內容更新",
-        fun: TriggerEvent.setEventRouter(import.meta.url, './api/api-data-put.js')
+        title: '官方事件 / API / 內容更新',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './api/api-data-put.js'),
     },
     api_data_delete: {
-        title: "官方事件 / API / 內容移除",
-        fun: TriggerEvent.setEventRouter(import.meta.url, './api/api-data-delete.js')
+        title: '官方事件 / API / 內容移除',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './api/api-data-delete.js'),
     },
     upload_file: {
-        title: "官方事件 / API / 檔案上傳",
-        fun: TriggerEvent.setEventRouter(import.meta.url, './api/api-file-upload.js')
+        title: '官方事件 / API / 檔案上傳',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './api/api-file-upload.js'),
     },
     getProduct: {
         title: '電子商務 / 選擇商品',
@@ -610,6 +617,10 @@ TriggerEvent.create(import.meta.url, {
         title: '電子商務 / 選擇門市',
         fun: TriggerEvent.setEventRouter(import.meta.url, './e-commerce/to-c2cMap.js'),
     },
+    dataAnalyze: {
+        title: '電子商務 / 資料分析',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './e-commerce/data-analyze.js'),
+    },
     postWallet: {
         title: '電子錢包 / 新增儲值金額',
         fun: TriggerEvent.setEventRouter(import.meta.url, './wallet/add-money.js'),
@@ -624,51 +635,51 @@ TriggerEvent.create(import.meta.url, {
     },
     login: {
         title: '用戶相關 / 用戶登入',
-        fun: TriggerEvent.setEventRouter(import.meta.url, './user/login.js')
+        fun: TriggerEvent.setEventRouter(import.meta.url, './user/login.js'),
     },
     register: {
         title: '用戶相關 / 用戶註冊',
-        fun: TriggerEvent.setEventRouter(import.meta.url, './user/register.js')
+        fun: TriggerEvent.setEventRouter(import.meta.url, './user/register.js'),
     },
     logout: {
         title: '用戶相關 / 用戶登出',
-        fun: TriggerEvent.setEventRouter(import.meta.url, './user/logout.js')
+        fun: TriggerEvent.setEventRouter(import.meta.url, './user/logout.js'),
     },
     user_initial: {
         title: '用戶相關 / 用戶初始化',
-        fun: TriggerEvent.setEventRouter(import.meta.url, './user/initial.js')
+        fun: TriggerEvent.setEventRouter(import.meta.url, './user/initial.js'),
     },
     user_token_check: {
         title: '用戶相關 / 判斷用戶是否登入',
-        fun: TriggerEvent.setEventRouter(import.meta.url, './user/check_login.js')
+        fun: TriggerEvent.setEventRouter(import.meta.url, './user/check_login.js'),
     },
     get_user_data: {
         title: '用戶相關 / 取得個人檔案資料',
-        fun: TriggerEvent.setEventRouter(import.meta.url, './user/get-userdata.js')
+        fun: TriggerEvent.setEventRouter(import.meta.url, './user/get-userdata.js'),
     },
     get_user_info: {
         title: '用戶相關 / 取得某用戶資料',
-        fun: TriggerEvent.setEventRouter(import.meta.url, './user/get-users-data.js')
+        fun: TriggerEvent.setEventRouter(import.meta.url, './user/get-users-data.js'),
     },
     set_user_data: {
         title: '用戶相關 / 設定用戶資料',
-        fun: TriggerEvent.setEventRouter(import.meta.url, './user/set-userdata.js')
+        fun: TriggerEvent.setEventRouter(import.meta.url, './user/set-userdata.js'),
     },
     forgetPwd: {
         title: '用戶相關 / 忘記密碼',
-        fun: TriggerEvent.setEventRouter(import.meta.url, './user/forget_pwd.js')
+        fun: TriggerEvent.setEventRouter(import.meta.url, './user/forget_pwd.js'),
     },
     forgetPwd_Reset: {
         title: '用戶相關 / 忘記密碼 / 進行重設',
-        fun: TriggerEvent.setEventRouter(import.meta.url, './user/forget_reset_pwd.js')
+        fun: TriggerEvent.setEventRouter(import.meta.url, './user/forget_reset_pwd.js'),
     },
     reset_pwd: {
         title: '用戶相關 / 個人檔案 / 重設密碼',
-        fun: TriggerEvent.setEventRouter(import.meta.url, './user/reset_pwd.js')
+        fun: TriggerEvent.setEventRouter(import.meta.url, './user/reset_pwd.js'),
     },
     getToken: {
         title: '用戶相關 / 取得TOKEN',
-        fun: TriggerEvent.setEventRouter(import.meta.url, './user/token.js')
+        fun: TriggerEvent.setEventRouter(import.meta.url, './user/token.js'),
     },
     get_chat_room: {
         title: '訊息相關 / 取得已建立聊天室',
@@ -676,69 +687,71 @@ TriggerEvent.create(import.meta.url, {
     },
     addChatRoom: {
         title: '訊息相關 / 建立聊天室',
-        fun: TriggerEvent.setEventRouter(import.meta.url, './chat/add-chat-room.js')
+        fun: TriggerEvent.setEventRouter(import.meta.url, './chat/add-chat-room.js'),
     },
     sendChatMessage: {
         title: '訊息相關 / 傳送訊息',
-        fun: TriggerEvent.setEventRouter(import.meta.url, './chat/send-chat-message.js')
+        fun: TriggerEvent.setEventRouter(import.meta.url, './chat/send-chat-message.js'),
     },
     getChatMessage: {
         title: '訊息相關 / 取得訊息',
-        fun: TriggerEvent.setEventRouter(import.meta.url, './chat/get-message.js')
+        fun: TriggerEvent.setEventRouter(import.meta.url, './chat/get-message.js'),
     },
     getAutoReply: {
         title: '訊息相關 / 客服 / 取得自動答覆問題',
-        fun: TriggerEvent.setEventRouter(import.meta.url, './chat/auto-reply.js')
+        fun: TriggerEvent.setEventRouter(import.meta.url, './chat/auto-reply.js'),
     },
     glitterADD: {
         title: 'GLITTER / 建立APP',
-        fun: TriggerEvent.setEventRouter(import.meta.url, './glitter/create.js')
+        fun: TriggerEvent.setEventRouter(import.meta.url, './glitter/create.js'),
     },
     glitterGetTemplate: {
         title: 'GLITTER / 取得模板列表',
-        fun: TriggerEvent.setEventRouter(import.meta.url, './glitter/get-template-list.js')
+        fun: TriggerEvent.setEventRouter(import.meta.url, './glitter/get-template-list.js'),
     },
     glitterPreview: {
         title: 'GLITTER / 預覽APP',
-        fun: TriggerEvent.setEventRouter(import.meta.url, './glitter/preview.js')
+        fun: TriggerEvent.setEventRouter(import.meta.url, './glitter/preview.js'),
     },
     glitterAPPList: {
         title: 'GLITTER / 取得APP列表',
-        fun: TriggerEvent.setEventRouter(import.meta.url, './glitter/app-list.js')
+        fun: TriggerEvent.setEventRouter(import.meta.url, './glitter/app-list.js'),
     },
     deleteAPP: {
         title: 'GLITTER / 刪除APP',
-        fun: TriggerEvent.setEventRouter(import.meta.url, './glitter/delete.js')
+        fun: TriggerEvent.setEventRouter(import.meta.url, './glitter/delete.js'),
     },
     getTopInset: {
         title: '手機裝置 / 取得上方導覽列高度',
-        fun: TriggerEvent.setEventRouter(import.meta.url, './mobile/get-top-inset.js')
+        fun: TriggerEvent.setEventRouter(import.meta.url, './mobile/get-top-inset.js'),
     },
     getBottomInset: {
         title: '手機裝置 / 取得下方導覽列高度',
-        fun: TriggerEvent.setEventRouter(import.meta.url, './mobile/get-bottom-inset.js')
+        fun: TriggerEvent.setEventRouter(import.meta.url, './mobile/get-bottom-inset.js'),
     },
     getBlogList: {
         title: 'Blog / 取得網誌列表',
-        fun: TriggerEvent.setEventRouter(import.meta.url, './blog/get-blog.js')
-    }
+        fun: TriggerEvent.setEventRouter(import.meta.url, './blog/get-blog.js'),
+    },
 });
 function questionText(data) {
     return `<div class="bg-secondary rounded-3 py-2 px-2 ">
           <h2 class="text-center my-3 mt-2" style="font-size:22px;">使用方法說明</h2>
              <div class="accordion mx-2" id="faq">
-                ${data.map((dd, index) => {
+                ${data
+        .map((dd, index) => {
         return ` <div class="accordion-item border-0 rounded-3 shadow-sm mb-3">
                   <h3 class="accordion-header">
-                    <button class="accordion-button shadow-none rounded-3 ${(index === 0) ? '' : 'collapsed'}" type="button" data-bs-toggle="collapse" data-bs-target="#q-${index}" aria-expanded="false" aria-controls="q-1">${dd.title}</button>
+                    <button class="accordion-button shadow-none rounded-3 ${index === 0 ? '' : 'collapsed'}" type="button" data-bs-toggle="collapse" data-bs-target="#q-${index}" aria-expanded="false" aria-controls="q-1">${dd.title}</button>
                   </h3>
-                  <div class="accordion-collapse collapse ${(index === 0) ? 'show' : ''}" id="q-${index}" data-bs-parent="#faq" style="">
+                  <div class="accordion-collapse collapse ${index === 0 ? 'show' : ''}" id="q-${index}" data-bs-parent="#faq" style="">
                     <div class="accordion-body fs-sm pt-0">
                      ${dd.content}
                     </div>
                   </div>
                 </div>`;
-    }).join('')}
+    })
+        .join('')}
               
               </div>
         </div>`;

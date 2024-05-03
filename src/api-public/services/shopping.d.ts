@@ -1,9 +1,9 @@
-import { IToken } from "../models/Auth.js";
+import { IToken } from '../models/Auth.js';
 interface VoucherData {
     title: string;
     method: 'percent' | 'fixed';
     reBackType: 'rebate' | 'discount' | 'shipment_free';
-    trigger: 'auto' | "code";
+    trigger: 'auto' | 'code';
     value: string;
     for: 'collection' | 'product' | 'all';
     rule: 'min_price' | 'min_count';
@@ -18,13 +18,13 @@ interface VoucherData {
     code?: string;
     overlay: boolean;
     bind?: {
-        "id": string;
-        "spec": string[];
-        "count": number;
-        "sale_price": number;
-        "collection": string[];
-        "discount_price": number;
-        "rebate": number;
+        id: string;
+        spec: string[];
+        count: number;
+        sale_price: number;
+        collection: string[];
+        discount_price: number;
+        rebate: number;
         shipment_fee: number;
     }[];
     start_ISO_Date: string;
@@ -85,30 +85,30 @@ export declare class Shopping {
     }>;
     toCheckout(data: {
         lineItems: {
-            "id": string;
-            "spec": string[];
-            "count": number;
-            "sale_price": number;
-            "collection"?: string[];
+            id: string;
+            spec: string[];
+            count: number;
+            sale_price: number;
+            collection?: string[];
             title?: string;
             preview_image?: string;
-            "sku": string;
+            sku: string;
             shipment_fee: number;
         }[];
-        "email"?: string;
-        "return_url": string;
-        "user_info": any;
-        "code"?: string;
-        "use_rebate"?: number;
-        "use_wallet"?: number;
+        email?: string;
+        return_url: string;
+        user_info: any;
+        code?: string;
+        use_rebate?: number;
+        use_wallet?: number;
     }, type?: 'add' | 'preview'): Promise<{
         data: {
             lineItems: {
-                "id": string;
-                "spec": string[];
-                "count": number;
-                "sale_price": number;
-                "collection": string[];
+                id: string;
+                spec: string[];
+                count: number;
+                sale_price: number;
+                collection: string[];
                 title: string;
                 preview_image: string;
                 shipment_fee: number;
@@ -145,12 +145,12 @@ export declare class Shopping {
     }>;
     checkVoucher(cart: {
         lineItems: {
-            "id": string;
-            "spec": string[];
-            "count": number;
-            "sale_price": number;
-            "collection": string[];
-            "discount_price"?: number;
+            id: string;
+            spec: string[];
+            count: number;
+            sale_price: number;
+            collection: string[];
+            discount_price?: number;
             shipment_fee: number;
             rebate?: number;
         }[];
@@ -166,28 +166,28 @@ export declare class Shopping {
     putOrder(data: {
         id: string;
         orderData: {
-            "id": number;
-            "cart_token": string;
-            "status": number;
-            "email": string;
-            "orderData": {
-                "email": string;
-                "total": number;
-                "lineItems": {
-                    "id": number;
-                    "spec": string[];
-                    "count": string;
-                    "sale_price": number;
+            id: number;
+            cart_token: string;
+            status: number;
+            email: string;
+            orderData: {
+                email: string;
+                total: number;
+                lineItems: {
+                    id: number;
+                    spec: string[];
+                    count: string;
+                    sale_price: number;
                 }[];
-                "user_info": {
-                    "name": string;
-                    "email": string;
-                    "phone": string;
-                    "address": string;
+                user_info: {
+                    name: string;
+                    email: string;
+                    phone: string;
+                    address: string;
                 };
             };
-            "created_time": string;
-            "progress": 'finish' | 'wait' | 'shipping';
+            created_time: string;
+            progress: 'finish' | 'wait' | 'shipping';
         };
         status: number;
     }): Promise<{
@@ -198,19 +198,19 @@ export declare class Shopping {
             status: number;
             email: string;
             orderData: {
-                "email": string;
-                "total": number;
-                "lineItems": {
-                    "id": number;
-                    "spec": string[];
-                    "count": string;
-                    "sale_price": number;
+                email: string;
+                total: number;
+                lineItems: {
+                    id: number;
+                    spec: string[];
+                    count: string;
+                    sale_price: number;
                 }[];
-                "user_info": {
-                    "name": string;
-                    "email": string;
-                    "phone": string;
-                    "address": string;
+                user_info: {
+                    name: string;
+                    email: string;
+                    phone: string;
+                    address: string;
                 };
             };
             created_time: string;
@@ -239,5 +239,33 @@ export declare class Shopping {
         result?: undefined;
     }>;
     postVariantsAndPriceValue(content: any): Promise<void>;
+    getDataAnalyze(tags: string[]): Promise<any>;
+    getRecentActiveUser(): Promise<{
+        recent: any;
+        months: any;
+    }>;
+    getSalesInRecentMonth(): Promise<{
+        recent_month_total: number;
+        previous_month_total: number;
+        gap: number;
+    }>;
+    getHotProducts(): Promise<{
+        series: number[];
+        categories: string[];
+    }>;
+    getOrdersInRecentMonth(): Promise<{
+        recent_month_total: any;
+        previous_month_total: any;
+        gap: number;
+    }>;
+    getOrdersPerMonth1Year(): Promise<{
+        countArray: any[];
+    }>;
+    getSalesPerMonth1Year(): Promise<{
+        countArray: number[];
+    }>;
+    getOrderAvgSalePrice(): Promise<{
+        countArray: number[];
+    }>;
 }
 export {};
