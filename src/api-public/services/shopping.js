@@ -222,22 +222,16 @@ class Shopping {
                         id: b.id,
                         status: 'active',
                     })).data;
-                    console.log('======================================');
                     if (pdDqlData) {
                         const pd = pdDqlData.content;
                         const variant = pd.variants.find((dd) => {
                             return dd.spec.join('-') === b.spec.join('-');
                         });
-                        console.log(`pd: ${pd.title}`);
-                        console.log(`b.count: ${b.count}`);
-                        console.log(`variant.stock: ${variant.stock}`);
-                        console.log(`variant.show_understocking: ${variant.show_understocking}`);
                         if ((Number.isInteger(variant.stock) || variant.show_understocking === 'false') &&
                             Number.isInteger(b.count)) {
                             if (variant.stock < b.count && variant.show_understocking !== 'false') {
                                 b.count = variant.stock;
                             }
-                            console.log(`after b.count: ${b.count}`);
                             if (variant && b.count > 0) {
                                 b.preview_image = variant.preview_image || pd.preview_image[0];
                                 b.title = pd.title;

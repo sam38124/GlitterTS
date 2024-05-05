@@ -338,13 +338,15 @@ class App {
                     await loop(dd.data.setting);
                 }
                 else if (dd.type === 'component') {
-                    const pageData = (await (new template_js_1.Template(undefined).getPage({
-                        appName: appName,
-                        tag: dd.data.tag
-                    })))[0];
-                    if (pageData && pageData.config) {
-                        preloadData.component.push(pageData);
-                        await loop((_a = pageData.config) !== null && _a !== void 0 ? _a : []);
+                    if (!dd.data.refer_app) {
+                        const pageData = (await (new template_js_1.Template(undefined).getPage({
+                            appName: appName,
+                            tag: dd.data.tag
+                        })))[0];
+                        if (pageData && pageData.config) {
+                            preloadData.component.push(pageData);
+                            await loop((_a = pageData.config) !== null && _a !== void 0 ? _a : []);
+                        }
                     }
                 }
             }

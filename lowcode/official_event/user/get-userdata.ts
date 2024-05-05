@@ -25,6 +25,7 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                         }else{
                             (window as any).glitterInitialHelper.setQueue(`api-get-user_data`, async (callback:any) => {
                                 callback(await ApiUser.getUserData(GlobalUser.token,'me'))
+
                             }, ( (r:any) => {
                                 try {
                                     if (!r.result) {

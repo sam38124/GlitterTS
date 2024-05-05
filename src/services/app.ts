@@ -321,18 +321,22 @@ export class App {
                 if (dd.type === 'container') {
                     await loop(dd.data.setting)
                 } else if (dd.type === 'component') {
-                    const pageData=(await (new Template(undefined).getPage({
-                        appName:appName,
-                        tag:dd.data.tag
-                    })))[0]
-                    if(pageData&&pageData.config){
-                        preloadData.component.push(pageData)
-                        await loop(pageData.config ?? [])
+                    if(!dd.data.refer_app){
+                        const pageData=(await (new Template(undefined).getPage({
+                            appName:appName,
+                            tag:dd.data.tag
+                        })))[0]
+                        if(pageData&&pageData.config){
+                            preloadData.component.push(pageData)
+                            await loop(pageData.config ?? [])
+                        }
                     }
+
                 }
             }
         }
         (await loop(pageData.config));
+
         let mapPush:any={}
         mapPush['getPlugin']={callback:[],data:{response:{data:preloadData.appConfig,result:true}},isRunning:true}
         preloadData.component.map((dd:any)=>{

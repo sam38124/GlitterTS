@@ -368,11 +368,15 @@ export const component = Plugin.createComponent(import.meta.url, (glitter, editM
                                                                         window.glitterInitialHelper.share[`getPageData-${parent_array.tag}`].data.response.result[0].config = parent_array;
                                                                     }
                                                                     if (!widget.storage) {
-                                                                        const doc = (document.querySelector('#editerCenter iframe').contentWindow.document).querySelectorAll(`.${widget.data.refer_app}_${widget.data.tag}`);
-                                                                        if (doc) {
-                                                                            for (const b of doc) {
-                                                                                b.updatePageConfig(refer_form);
+                                                                        try {
+                                                                            const doc = (document.querySelector('#editerCenter iframe').contentWindow.document).querySelectorAll(`.${widget.data.refer_app}_${widget.data.tag}`);
+                                                                            if (doc) {
+                                                                                for (const b of doc) {
+                                                                                    b.updatePageConfig(refer_form);
+                                                                                }
                                                                             }
+                                                                        }
+                                                                        catch (e) {
                                                                         }
                                                                     }
                                                                 }
@@ -624,8 +628,12 @@ export const component = Plugin.createComponent(import.meta.url, (glitter, editM
                                                     }, createOption !== null && createOption !== void 0 ? createOption : {});
                                                 }
                                                 widget.storage.updatePageConfig = (formData) => {
-                                                    viewConfig.formData = formData;
-                                                    document.querySelector(`[gvc-id="${gvc.id(id)}"]`).outerHTML = getView();
+                                                    try {
+                                                        viewConfig.formData = formData;
+                                                        document.querySelector(`[gvc-id="${gvc.id(id)}"]`).outerHTML = getView();
+                                                    }
+                                                    catch (e) {
+                                                    }
                                                 };
                                                 resolve(`
                                                 <!-- tag=${tag} -->

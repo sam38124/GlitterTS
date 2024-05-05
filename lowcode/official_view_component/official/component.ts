@@ -423,12 +423,17 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
                                                                     }
 
                                                                     if(!widget.storage){
-                                                                        const doc:any=(((document.querySelector('#editerCenter iframe') as any)!.contentWindow as any).document).querySelectorAll(`.${widget.data.refer_app}_${widget.data.tag}`)!;
-                                                                        if(doc){
-                                                                            for (const b of doc){
-                                                                                b.updatePageConfig(refer_form)
+                                                                        try {
+                                                                            const doc:any=(((document.querySelector('#editerCenter iframe') as any)!.contentWindow as any).document).querySelectorAll(`.${widget.data.refer_app}_${widget.data.tag}`)!;
+                                                                            if(doc){
+                                                                                for (const b of doc){
+                                                                                    b.updatePageConfig(refer_form)
+                                                                                }
                                                                             }
+                                                                        }catch (e){
+
                                                                         }
+
                                                                     }
                                                                 } else {
                                                                     glitter.share.editorViewModel.saveArray[pageData.id] = (() => {
@@ -672,8 +677,13 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
                                             }
 
                                             widget.storage.updatePageConfig = (formData: any) => {
-                                                viewConfig.formData = formData
-                                                document.querySelector(`[gvc-id="${gvc.id(id)}"]`).outerHTML = getView()
+                                                try {
+                                                    viewConfig.formData = formData
+                                                    document.querySelector(`[gvc-id="${gvc.id(id)}"]`).outerHTML = getView()
+                                                }catch (e){
+
+                                                }
+
                                             }
                                             resolve(`
                                                 <!-- tag=${tag} -->

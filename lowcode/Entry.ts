@@ -15,13 +15,14 @@ export class Entry {
             scroll-behavior: auto !important;
           }
         }`)
+
         if (glitter.getUrlParameter('appName')) {
             (window as any).appName = glitter.getUrlParameter('appName')
             config.appName = glitter.getUrlParameter('appName')
         }
         (window as any).renderClock = (window as any).renderClock ?? clockF();
         console.log(`Entry-time:`, (window as any).renderClock.stop());
-        glitter.share.editerVersion = "V_6.3.2";
+        glitter.share.editerVersion = "V_6.3.5";
         glitter.share.start = (new Date());
         const vm: {
             appConfig: any
