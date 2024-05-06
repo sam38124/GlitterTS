@@ -272,11 +272,9 @@ export class EditorElem {
                                 type: 'getData',
                                 value: obj.dontRefactor
                                     ? obj.initial
-                                    : `
-                                          style {
-                                              ${addNewlineAfterSemicolon(obj.initial)}
-                                          }
-                                      `,
+                                    : `style {
+    ${addNewlineAfterSemicolon(obj.initial)}
+}`,
                                 language: 'css',
                                 refactor: !obj.dontRefactor,
                             },
@@ -473,7 +471,9 @@ export class EditorElem {
                         childWindow.postMessage(
                             {
                                 type: 'getData',
-                                value: `${obj.structStart ? obj.structStart : `(()=>{`} ${obj.initial ?? ''} ${obj.structEnd ? obj.structEnd : '})()'}`,
+                                value: `${obj.structStart ? obj.structStart : `(()=>{`}
+${obj.initial ?? ''}
+${obj.structEnd ? obj.structEnd : '})()'}`,
                                 language: 'javascript',
                                 refactor: true,
                                 structStart: obj.structStart,
@@ -481,7 +481,7 @@ export class EditorElem {
                             },
                             domain
                         );
-                    } else if (event.data.data.callbackID === id) {
+                    } else if (event.data.data && event.data.data.callbackID === id) {
                         const array = event.data.data.value.split('\n');
                         const data = array
                             .filter((dd: any, index: number) => {
