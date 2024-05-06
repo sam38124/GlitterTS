@@ -87,8 +87,7 @@ export class ShoppingProductSetting {
                                                                 html`<img
                                                                     class="rounded border me-4 "
                                                                     alt=""
-                                                                    src="${dd.content.preview_image[0] ||
-                                                                    'https://jmva.or.jp/wp-content/uploads/2018/07/noimage.png'}"
+                                                                    src="${dd.content.preview_image[0] || 'https://jmva.or.jp/wp-content/uploads/2018/07/noimage.png'}"
                                                                     style="width:40px;height:40px;"
                                                                 />` + dd.content.title,
                                                         },
@@ -117,10 +116,7 @@ export class ShoppingProductSetting {
                                                         },
                                                         {
                                                             key: '類別',
-                                                            value: html`<div
-                                                                class="d-flex align-items-center "
-                                                                style="height:40px;"
-                                                            >
+                                                            value: html`<div class="d-flex align-items-center " style="height:40px;">
                                                                 ${dd.content.collection
                                                                     .map((dd: any) => {
                                                                         return `<div class="badge bg-secondary fs-7">${dd}</div>`;
@@ -341,29 +337,17 @@ export class ShoppingProductSetting {
                                                             class=" btn ms-2 btn-primary-c ms-2"
                                                             style="height: 30px;width: 60px;"
                                                             onclick="${obj.gvc.event(() => {
-                                                                postMD.content = html`<h3 style="padding: 32px 0px;">
-                                                                        商品資訊
-                                                                    </h3>
+                                                                postMD.content = html`<h3 style="padding: 32px 0px;">商品資訊</h3>
 
-                                                                    <p>
-                                                                        优雅家居经典绒面椅将为您的家居空间带来一抹优雅和舒适。
-                                                                    </p>
+                                                                    <p>优雅家居经典绒面椅将为您的家居空间带来一抹优雅和舒适。</p>
 
-                                                                    <p>
-                                                                        这款椅子结合了现代舒适和经典风格，为您提供了完美的休憩之地。
-                                                                    </p>
+                                                                    <p>这款椅子结合了现代舒适和经典风格，为您提供了完美的休憩之地。</p>
 
-                                                                    <p>
-                                                                        绒面面料舒适柔软，而实木框架确保了椅子的坚固性。
-                                                                    </p>
+                                                                    <p>绒面面料舒适柔软，而实木框架确保了椅子的坚固性。</p>
 
-                                                                    <p>
-                                                                        您可以在这把椅子上放松身体和心灵，无论是阅读一本好书还是与家人共度美好时光。
-                                                                    </p>
+                                                                    <p>您可以在这把椅子上放松身体和心灵，无论是阅读一本好书还是与家人共度美好时光。</p>
 
-                                                                    <p>
-                                                                        它的多用途设计使它适用于各种房间和场合，是一个实用且具有装饰性的家居家具选择。
-                                                                    </p>
+                                                                    <p>它的多用途设计使它适用于各种房间和场合，是一个实用且具有装饰性的家居家具选择。</p>
                                                                     <hr style="margin-top: 48px;" color="#E0E0E0" />
 
                                                                     <h3 style="padding: 32px 0px;">商品材質</h3>
@@ -373,20 +357,11 @@ export class ShoppingProductSetting {
 
                                                                     <h3 style="padding: 32px 0px;">商品交期</h3>
 
-                                                                    <p>
-                                                                        標準交期：家具製造商已備妥家具組件，將在接單後直接組裝出貨，預計交期為
-                                                                        5-6 週。
-                                                                    </p>
+                                                                    <p>標準交期：家具製造商已備妥家具組件，將在接單後直接組裝出貨，預計交期為 5-6 週。</p>
 
-                                                                    <p>
-                                                                        平均交期：家具製造商無現成家具組件，須再加上製造時間，平均交期為
-                                                                        10 至 12 週。
-                                                                    </p>
+                                                                    <p>平均交期：家具製造商無現成家具組件，須再加上製造時間，平均交期為 10 至 12 週。</p>
 
-                                                                    <p>
-                                                                        若逢春節期間、國定假日及雙 11
-                                                                        檔期，交期可能會受到影響，建議提早下單，避免久候。
-                                                                    </p>
+                                                                    <p>若逢春節期間、國定假日及雙 11 檔期，交期可能會受到影響，建議提早下單，避免久候。</p>
                                                                     <hr style="margin-top: 48px;" color="#E0E0E0" />
 
                                                                     <h3 style="padding: 32px 0px;">商品規格</h3>
@@ -405,15 +380,11 @@ export class ShoppingProductSetting {
                                                                     <p><strong>塑膠</strong></p>
 
                                                                     <p>
-                                                                        <span style="font-weight: 400;"
-                                                                            >清潔時，可使用些許水擦拭並用乾淨的布擦乾。避免日曬。</span
-                                                                        >
+                                                                        <span style="font-weight: 400;">清潔時，可使用些許水擦拭並用乾淨的布擦乾。避免日曬。</span>
                                                                     </p>
 
                                                                     <p>
-                                                                        <span style="font-weight: 400;"
-                                                                            >使用時，應防止硬物碰撞。壁面金屬刷具清潔。</span
-                                                                        >
+                                                                        <span style="font-weight: 400;">使用時，應防止硬物碰撞。壁面金屬刷具清潔。</span>
                                                                     </p>
                                                                     <hr style="margin-top: 48px;" color="#E0E0E0" /> `;
                                                                 obj.gvc.notifyDataChange(bi);
@@ -444,10 +415,7 @@ export class ShoppingProductSetting {
                                         bind: id,
                                         view: () => {
                                             return (
-                                                EditorElem.h3(html` <div
-                                                    class="d-flex align-items-center"
-                                                    style="gap:10px;"
-                                                >
+                                                EditorElem.h3(html` <div class="d-flex align-items-center" style="gap:10px;">
                                                     多媒體檔案
                                                     <div
                                                         class="d-flex align-items-center justify-content-center rounded-3"
@@ -503,12 +471,8 @@ export class ShoppingProductSetting {
                                                     array: () => {
                                                         return postMD.specs.map((dd) => {
                                                             dd.option = dd.option ?? [];
-
                                                             return {
-                                                                title: html`<div
-                                                                    class="d-flex flex-column w-100 ps-2"
-                                                                    style="gap:5px;"
-                                                                >
+                                                                title: html`<div class="d-flex flex-column w-100 ps-2" style="gap:5px;">
                                                                     <span>${dd.title || '尚未設定規格名稱'}</span>
                                                                     <div class="d-flex">
                                                                         ${dd.option
@@ -536,28 +500,25 @@ export class ShoppingProductSetting {
                                                                                 gvc: obj.gvc,
                                                                                 title: '分類選項',
                                                                                 array: () => {
-                                                                                    return dd.option.map((dd: any) => {
+                                                                                    return dd.option.map((d2: any) => {
                                                                                         return {
-                                                                                            title: html`<div
-                                                                                                class="px-2 w-100"
-                                                                                            >
-                                                                                                ${EditorElem.editeInput(
-                                                                                                    {
-                                                                                                        gvc: gvc,
-                                                                                                        title: '',
-                                                                                                        default:
-                                                                                                            dd.title ??
-                                                                                                            '',
-                                                                                                        placeHolder: ``,
-                                                                                                        callback: (
-                                                                                                            text: string
-                                                                                                        ) => {
-                                                                                                            dd.title =
-                                                                                                                text;
+                                                                                            title: html`<div class="px-2 w-100">
+                                                                                                ${EditorElem.editeInput({
+                                                                                                    gvc: gvc,
+                                                                                                    title: '',
+                                                                                                    default: d2.title ?? '',
+                                                                                                    placeHolder: ``,
+                                                                                                    callback: (text: string) => {
+                                                                                                        if (dd.option.filter((x: { title: string }) => x.title === text).length == 1) {
+                                                                                                            alert('已存在相同名稱的規格');
+                                                                                                            d2.title = '';
+                                                                                                            gvc.recreateView();
+                                                                                                        } else {
+                                                                                                            d2.title = text;
                                                                                                             refresh();
-                                                                                                        },
-                                                                                                    }
-                                                                                                )}
+                                                                                                        }
+                                                                                                    },
+                                                                                                })}
                                                                                             </div>`,
                                                                                             innerHtml: () => {
                                                                                                 return ``;
@@ -603,15 +564,79 @@ export class ShoppingProductSetting {
                                                     refreshComponent: () => {
                                                         const remove_indexs: number[] = [];
 
+                                                        let complexity = 1;
+                                                        postMD.specs.map((spec) => {
+                                                            complexity *= spec.option.length;
+                                                        });
+
+                                                        const cType: string[][] = [];
+
+                                                        function generateCombinations(specs: any, currentCombination: any, index = 0) {
+                                                            if (
+                                                                index === specs.length &&
+                                                                currentCombination.length > 0 &&
+                                                                cType.findIndex((ct: string[]) => {
+                                                                    return JSON.stringify(ct) === JSON.stringify(currentCombination);
+                                                                }) === -1
+                                                            ) {
+                                                                cType.push(JSON.parse(JSON.stringify(currentCombination)));
+                                                                return;
+                                                            }
+                                                            const currentSpecOptions = specs[index];
+                                                            if (currentSpecOptions) {
+                                                                for (const option of currentSpecOptions) {
+                                                                    currentCombination[index] = option;
+                                                                    generateCombinations(specs, currentCombination, index + 1);
+                                                                }
+                                                            }
+                                                        }
+
                                                         function checkSpecInclude(spec: string, index: number) {
-                                                            for (const { title } of postMD.specs[index].option) {
-                                                                if (spec === title) return true;
+                                                            if (postMD.specs[index]) {
+                                                                for (const { title } of postMD.specs[index].option) {
+                                                                    if (spec === title) return true;
+                                                                }
+                                                                return false;
                                                             }
                                                             return false;
                                                         }
 
+                                                        for (let n = 0; n < complexity; n++) {
+                                                            let currentCombination: any = [];
+                                                            generateCombinations(
+                                                                postMD.specs.map((dd) => {
+                                                                    return dd.option.map((dd: any) => {
+                                                                        return dd.title;
+                                                                    });
+                                                                }),
+                                                                currentCombination
+                                                            );
+
+                                                            const waitAdd = cType.find((dd: any) => {
+                                                                return !postMD.variants.find((d2) => {
+                                                                    return JSON.stringify(d2.spec) === JSON.stringify(dd);
+                                                                });
+                                                            });
+
+                                                            if (waitAdd) {
+                                                                postMD.variants.push({
+                                                                    spec: waitAdd,
+                                                                    sale_price: 0,
+                                                                    compare_price: 0,
+                                                                    stock: 0,
+                                                                    sku: '',
+                                                                    preview_image: '',
+                                                                    shipment_weight: 0,
+                                                                    show_understocking: 'true',
+                                                                });
+                                                            }
+                                                        }
+
                                                         if (postMD.variants && postMD.variants.length > 0) {
                                                             postMD.variants.map((variant: any, index1: number) => {
+                                                                if (variant.spec.length !== postMD.specs.length) {
+                                                                    remove_indexs.push(index1);
+                                                                }
                                                                 variant.spec.map((sp: string, index2: number) => {
                                                                     if (!checkSpecInclude(sp, index2)) {
                                                                         remove_indexs.push(index1);
@@ -656,10 +681,7 @@ export class ShoppingProductSetting {
                                                         config: any;
                                                         api: any;
                                                     } = (window.parent as any).saasConfig;
-                                                    const data = await saasConfig.api.getPrivateConfig(
-                                                        saasConfig.config.appName,
-                                                        `glitter_shipment`
-                                                    );
+                                                    const data = await saasConfig.api.getPrivateConfig(saasConfig.config.appName, `glitter_shipment`);
                                                     if (data.response.result[0]) {
                                                         shipmentSetting = data.response.result[0].value;
                                                     }
@@ -671,9 +693,7 @@ export class ShoppingProductSetting {
                                                                 <div style="width:${wi};">比較價格</div>
                                                                 <div style="width:${wi};">存貨數量</div>
                                                                 <div style="width:${wi};">存貨SKU</div>
-                                                                <div style="width:${wi}; margin-left: 10px;">
-                                                                    運費權重
-                                                                </div>
+                                                                <div style="width:${wi}; margin-left: 10px;">運費權重</div>
                                                                 <div style="width:${wi};"></div>
                                                             </div>`,
                                                             EditorElem.arrayItem({
@@ -683,13 +703,9 @@ export class ShoppingProductSetting {
                                                                 array: () => {
                                                                     return postMD.variants.map((dd) => {
                                                                         const wi = `calc(100% / 6 + 47px);`;
-                                                                        const defaultImage =
-                                                                            'https://nationalityforall.org/wp-content/themes/nfa/dist/images/default_image.jpg';
+                                                                        const defaultImage = 'https://nationalityforall.org/wp-content/themes/nfa/dist/images/default_image.jpg';
                                                                         return {
-                                                                            title: html`<div
-                                                                                class="d-flex align-items-center p-0 px-2"
-                                                                                style="gap:10px;"
-                                                                            >
+                                                                            title: html`<div class="d-flex align-items-center p-0 px-2" style="gap:10px;">
                                                                                 ${[
                                                                                     html`<div
                                                                                         class="rounded border"
@@ -698,41 +714,26 @@ export class ShoppingProductSetting {
                                                                                             ? dd.preview_image
                                                                                             : defaultImage}'); "
                                                                                     ></div>`,
-                                                                                    html`<div
-                                                                                        style="width: 40%; max-width: 40%; white-space:normal;"
-                                                                                    >
-                                                                                        ${dd.spec.join('-') ||
-                                                                                        postMD.title}
-                                                                                    </div>`,
+                                                                                    html`<div style="width: 40%; max-width: 40%; white-space:normal;">${dd.spec.join('-') || postMD.title}</div>`,
                                                                                     EditorElem.editeInput({
                                                                                         gvc: obj.gvc,
                                                                                         title: '',
-                                                                                        default: `${
-                                                                                            dd.sale_price ?? 0
-                                                                                        }`,
+                                                                                        default: `${dd.sale_price ?? 0}`,
                                                                                         placeHolder: '',
                                                                                         type: 'number',
                                                                                         callback: (text) => {
-                                                                                            dd.sale_price = parseInt(
-                                                                                                text,
-                                                                                                10
-                                                                                            );
+                                                                                            dd.sale_price = parseInt(text, 10);
                                                                                         },
                                                                                         style: `width:${wi};`,
                                                                                     }),
                                                                                     EditorElem.editeInput({
                                                                                         gvc: obj.gvc,
                                                                                         title: '',
-                                                                                        default: `${
-                                                                                            dd.compare_price ?? 0
-                                                                                        }`,
+                                                                                        default: `${dd.compare_price ?? 0}`,
                                                                                         placeHolder: '',
                                                                                         type: 'number',
                                                                                         callback: (text) => {
-                                                                                            dd.compare_price = parseInt(
-                                                                                                text,
-                                                                                                10
-                                                                                            );
+                                                                                            dd.compare_price = parseInt(text, 10);
                                                                                         },
                                                                                         style: `width:${wi};`,
                                                                                     }),
@@ -743,10 +744,7 @@ export class ShoppingProductSetting {
                                                                                         placeHolder: '',
                                                                                         type: 'number',
                                                                                         callback: (text) => {
-                                                                                            dd.stock = parseInt(
-                                                                                                text,
-                                                                                                10
-                                                                                            );
+                                                                                            dd.stock = parseInt(text, 10);
                                                                                         },
                                                                                         style: `width:${wi};`,
                                                                                     }),
@@ -764,14 +762,11 @@ export class ShoppingProductSetting {
                                                                                     EditorElem.editeInput({
                                                                                         gvc: obj.gvc,
                                                                                         title: '',
-                                                                                        default: `${
-                                                                                            dd.shipment_weight ?? 0
-                                                                                        }`,
+                                                                                        default: `${dd.shipment_weight ?? 0}`,
                                                                                         placeHolder: '',
                                                                                         type: 'number',
                                                                                         callback: (text) => {
-                                                                                            dd.shipment_weight =
-                                                                                                parseInt(text, 10);
+                                                                                            dd.shipment_weight = parseInt(text, 10);
                                                                                         },
                                                                                         style: `width:${wi};`,
                                                                                     }),
@@ -780,282 +775,143 @@ export class ShoppingProductSetting {
                                                                                     class="btn ms-2 btn-primary-c ms-2"
                                                                                     style="height: 38px;"
                                                                                     onclick="${obj.gvc.event(() => {
-                                                                                        obj.gvc.glitter.innerDialog(
-                                                                                            (gvc: GVC) => {
-                                                                                                return html` <div
-                                                                                                    class="dropdown-menu mx-0 position-fixed pb-0 border p-0 show "
-                                                                                                    style="z-index:999999;400px;"
-                                                                                                    onclick="${gvc.event(
-                                                                                                        (
-                                                                                                            e: any,
-                                                                                                            event: any
-                                                                                                        ) => {
-                                                                                                            event.preventDefault();
-                                                                                                            event.stopPropagation();
-                                                                                                        }
-                                                                                                    )}"
-                                                                                                >
+                                                                                        obj.gvc.glitter.innerDialog((gvc: GVC) => {
+                                                                                            return html` <div
+                                                                                                class="dropdown-menu mx-0 position-fixed pb-0 border p-0 show "
+                                                                                                style="z-index:999999;400px;"
+                                                                                                onclick="${gvc.event((e: any, event: any) => {
+                                                                                                    event.preventDefault();
+                                                                                                    event.stopPropagation();
+                                                                                                })}"
+                                                                                            >
+                                                                                                <div class="d-flex align-items-center px-2 border-bottom" style="height:50px;min-width:400px;">
+                                                                                                    <h3 style="font-size:15px;font-weight:500;" class="m-0">${`編輯內容`}</h3>
+                                                                                                    <div class="flex-fill"></div>
                                                                                                     <div
-                                                                                                        class="d-flex align-items-center px-2 border-bottom"
-                                                                                                        style="height:50px;min-width:400px;"
+                                                                                                        class="hoverBtn p-2"
+                                                                                                        data-bs-toggle="dropdown"
+                                                                                                        aria-haspopup="true"
+                                                                                                        aria-expanded="false"
+                                                                                                        style="color:black;font-size:20px;"
+                                                                                                        onclick="${gvc.event((e: any, event: any) => {
+                                                                                                            gvc.closeDialog();
+                                                                                                            refresh();
+                                                                                                        })}"
                                                                                                     >
-                                                                                                        <h3
-                                                                                                            style="font-size:15px;font-weight:500;"
-                                                                                                            class="m-0"
-                                                                                                        >
-                                                                                                            ${`編輯內容`}
-                                                                                                        </h3>
-                                                                                                        <div
-                                                                                                            class="flex-fill"
-                                                                                                        ></div>
-                                                                                                        <div
-                                                                                                            class="hoverBtn p-2"
-                                                                                                            data-bs-toggle="dropdown"
-                                                                                                            aria-haspopup="true"
-                                                                                                            aria-expanded="false"
-                                                                                                            style="color:black;font-size:20px;"
-                                                                                                            onclick="${gvc.event(
-                                                                                                                (
-                                                                                                                    e: any,
-                                                                                                                    event: any
-                                                                                                                ) => {
-                                                                                                                    gvc.closeDialog();
-                                                                                                                    refresh();
-                                                                                                                }
-                                                                                                            )}"
-                                                                                                        >
-                                                                                                            <i
-                                                                                                                class="fa-sharp fa-regular fa-circle-xmark"
-                                                                                                            ></i>
-                                                                                                        </div>
+                                                                                                        <i class="fa-sharp fa-regular fa-circle-xmark"></i>
                                                                                                     </div>
-                                                                                                    <div
-                                                                                                        class="px-2 pb-2 pt-2"
-                                                                                                        style="max-height:calc(100vh - 150px);overflow-y:auto;"
-                                                                                                    >
-                                                                                                        ${[
-                                                                                                            EditorElem.editeInput(
+                                                                                                </div>
+                                                                                                <div class="px-2 pb-2 pt-2" style="max-height:calc(100vh - 150px);overflow-y:auto;">
+                                                                                                    ${[
+                                                                                                        EditorElem.editeInput({
+                                                                                                            gvc: obj.gvc,
+                                                                                                            title: '商品規格',
+                                                                                                            default: dd.spec.join('-') || postMD.title,
+                                                                                                            placeHolder: '',
+                                                                                                            type: 'text',
+                                                                                                            callback: () => {},
+                                                                                                            readonly: true,
+                                                                                                        }),
+                                                                                                        EditorElem.uploadImage({
+                                                                                                            title: '商品圖片',
+                                                                                                            gvc: obj.gvc,
+                                                                                                            def: dd.preview_image ?? '',
+                                                                                                            callback: (text) => {
+                                                                                                                dd.preview_image = text;
+                                                                                                                gvc.recreateView();
+                                                                                                            },
+                                                                                                        }),
+                                                                                                        EditorElem.editeInput({
+                                                                                                            gvc: obj.gvc,
+                                                                                                            title: '販售價格',
+                                                                                                            default: `${dd.sale_price ?? 0}`,
+                                                                                                            placeHolder: '',
+                                                                                                            type: 'number',
+                                                                                                            callback: (text) => {
+                                                                                                                dd.sale_price = parseInt(text, 10);
+                                                                                                            },
+                                                                                                        }),
+                                                                                                        EditorElem.editeInput({
+                                                                                                            gvc: obj.gvc,
+                                                                                                            title: '比較價格',
+                                                                                                            default: `${dd.compare_price ?? 0}`,
+                                                                                                            placeHolder: '',
+                                                                                                            type: 'number',
+                                                                                                            callback: (text) => {
+                                                                                                                dd.compare_price = parseInt(text, 10);
+                                                                                                            },
+                                                                                                        }),
+                                                                                                        EditorElem.checkBox({
+                                                                                                            title: '無存貨購買狀態',
+                                                                                                            gvc: gvc,
+                                                                                                            def: dd.show_understocking ?? 'true',
+                                                                                                            array: [
                                                                                                                 {
-                                                                                                                    gvc: obj.gvc,
-                                                                                                                    title: '商品規格',
-                                                                                                                    default:
-                                                                                                                        dd.spec.join(
-                                                                                                                            '-'
-                                                                                                                        ) ||
-                                                                                                                        postMD.title,
-                                                                                                                    placeHolder:
-                                                                                                                        '',
-                                                                                                                    type: 'text',
-                                                                                                                    callback:
-                                                                                                                        () => {},
-                                                                                                                    readonly:
-                                                                                                                        true,
-                                                                                                                }
-                                                                                                            ),
-                                                                                                            EditorElem.uploadImage(
+                                                                                                                    title: '存貨為0時，顯示庫存不足',
+                                                                                                                    value: 'true',
+                                                                                                                },
                                                                                                                 {
-                                                                                                                    title: '商品圖片',
-                                                                                                                    gvc: obj.gvc,
-                                                                                                                    def:
-                                                                                                                        dd.preview_image ??
-                                                                                                                        '',
-                                                                                                                    callback:
-                                                                                                                        (
-                                                                                                                            text
-                                                                                                                        ) => {
-                                                                                                                            dd.preview_image =
-                                                                                                                                text;
-                                                                                                                            gvc.recreateView();
-                                                                                                                        },
-                                                                                                                }
-                                                                                                            ),
-                                                                                                            EditorElem.editeInput(
-                                                                                                                {
-                                                                                                                    gvc: obj.gvc,
-                                                                                                                    title: '販售價格',
-                                                                                                                    default: `${
-                                                                                                                        dd.sale_price ??
-                                                                                                                        0
-                                                                                                                    }`,
-                                                                                                                    placeHolder:
-                                                                                                                        '',
-                                                                                                                    type: 'number',
-                                                                                                                    callback:
-                                                                                                                        (
-                                                                                                                            text
-                                                                                                                        ) => {
-                                                                                                                            dd.sale_price =
-                                                                                                                                parseInt(
-                                                                                                                                    text,
-                                                                                                                                    10
-                                                                                                                                );
-                                                                                                                        },
-                                                                                                                }
-                                                                                                            ),
-                                                                                                            EditorElem.editeInput(
-                                                                                                                {
-                                                                                                                    gvc: obj.gvc,
-                                                                                                                    title: '比較價格',
-                                                                                                                    default: `${
-                                                                                                                        dd.compare_price ??
-                                                                                                                        0
-                                                                                                                    }`,
-                                                                                                                    placeHolder:
-                                                                                                                        '',
-                                                                                                                    type: 'number',
-                                                                                                                    callback:
-                                                                                                                        (
-                                                                                                                            text
-                                                                                                                        ) => {
-                                                                                                                            dd.compare_price =
-                                                                                                                                parseInt(
-                                                                                                                                    text,
-                                                                                                                                    10
-                                                                                                                                );
-                                                                                                                        },
-                                                                                                                }
-                                                                                                            ),
-                                                                                                            EditorElem.checkBox(
-                                                                                                                {
-                                                                                                                    title: '無存貨購買狀態',
-                                                                                                                    gvc: gvc,
-                                                                                                                    def:
-                                                                                                                        dd.show_understocking ??
-                                                                                                                        'true',
-                                                                                                                    array: [
-                                                                                                                        {
-                                                                                                                            title: '存貨為0時，顯示庫存不足',
-                                                                                                                            value: 'true',
-                                                                                                                        },
-                                                                                                                        {
-                                                                                                                            title: '存貨為0時，依然可購買',
-                                                                                                                            value: 'false',
-                                                                                                                        },
-                                                                                                                    ],
-                                                                                                                    callback:
-                                                                                                                        (
-                                                                                                                            text
-                                                                                                                        ) => {
-                                                                                                                            dd.show_understocking =
-                                                                                                                                text;
-                                                                                                                        },
-                                                                                                                }
-                                                                                                            ),
-                                                                                                            EditorElem.editeInput(
-                                                                                                                {
-                                                                                                                    gvc: obj.gvc,
-                                                                                                                    title: '存貨數量',
-                                                                                                                    default: `${
-                                                                                                                        dd.stock ??
-                                                                                                                        0
-                                                                                                                    }`,
-                                                                                                                    placeHolder:
-                                                                                                                        '',
-                                                                                                                    type: 'number',
-                                                                                                                    callback:
-                                                                                                                        (
-                                                                                                                            text
-                                                                                                                        ) => {
-                                                                                                                            dd.stock =
-                                                                                                                                parseInt(
-                                                                                                                                    text,
-                                                                                                                                    10
-                                                                                                                                );
-                                                                                                                        },
-                                                                                                                }
-                                                                                                            ),
-                                                                                                            EditorElem.editeInput(
-                                                                                                                {
-                                                                                                                    gvc: obj.gvc,
-                                                                                                                    title: 'SKU',
-                                                                                                                    default: `${
-                                                                                                                        dd.sku ??
-                                                                                                                        0
-                                                                                                                    }`,
-                                                                                                                    placeHolder:
-                                                                                                                        '',
-                                                                                                                    type: 'text',
-                                                                                                                    callback:
-                                                                                                                        (
-                                                                                                                            text
-                                                                                                                        ) => {
-                                                                                                                            dd.sku =
-                                                                                                                                text;
-                                                                                                                        },
-                                                                                                                }
-                                                                                                            ),
-                                                                                                            (() => {
-                                                                                                                return EditorElem.editeInput(
-                                                                                                                    {
-                                                                                                                        gvc: obj.gvc,
-                                                                                                                        title: html` <div
-                                                                                                                            class="d-flex flex-column"
+                                                                                                                    title: '存貨為0時，依然可購買',
+                                                                                                                    value: 'false',
+                                                                                                                },
+                                                                                                            ],
+                                                                                                            callback: (text) => {
+                                                                                                                dd.show_understocking = text;
+                                                                                                            },
+                                                                                                        }),
+                                                                                                        EditorElem.editeInput({
+                                                                                                            gvc: obj.gvc,
+                                                                                                            title: '存貨數量',
+                                                                                                            default: `${dd.stock ?? 0}`,
+                                                                                                            placeHolder: '',
+                                                                                                            type: 'number',
+                                                                                                            callback: (text) => {
+                                                                                                                dd.stock = parseInt(text, 10);
+                                                                                                            },
+                                                                                                        }),
+                                                                                                        EditorElem.editeInput({
+                                                                                                            gvc: obj.gvc,
+                                                                                                            title: 'SKU',
+                                                                                                            default: `${dd.sku ?? 0}`,
+                                                                                                            placeHolder: '',
+                                                                                                            type: 'text',
+                                                                                                            callback: (text) => {
+                                                                                                                dd.sku = text;
+                                                                                                            },
+                                                                                                        }),
+                                                                                                        (() => {
+                                                                                                            return EditorElem.editeInput({
+                                                                                                                gvc: obj.gvc,
+                                                                                                                title: html` <div class="d-flex flex-column">
+                                                                                                                    <span>運費權重</span>
+                                                                                                                    <div class="alert-info alert mt-2 mb-0">
+                                                                                                                        <span>( 每單位金額*權重 ) + 基本運費 = 總運費</span><br />
+                                                                                                                        <span style=""
+                                                                                                                            >試算 : ( ${shipmentSetting.weight} * ${dd.shipment_weight} ) +
+                                                                                                                            ${shipmentSetting.basic_fee} =
+                                                                                                                            ${shipmentSetting.weight * dd.shipment_weight +
+                                                                                                                            shipmentSetting.basic_fee}</span
                                                                                                                         >
-                                                                                                                            <span
-                                                                                                                                >運費權重</span
-                                                                                                                            >
-                                                                                                                            <div
-                                                                                                                                class="alert-info alert mt-2 mb-0"
-                                                                                                                            >
-                                                                                                                                <span
-                                                                                                                                    >(
-                                                                                                                                    每單位金額*權重
-                                                                                                                                    )
-                                                                                                                                    +
-                                                                                                                                    基本運費
-                                                                                                                                    =
-                                                                                                                                    總運費</span
-                                                                                                                                ><br />
-                                                                                                                                <span
-                                                                                                                                    style=""
-                                                                                                                                    >試算
-                                                                                                                                    :
-                                                                                                                                    (
-                                                                                                                                    ${shipmentSetting.weight}
-                                                                                                                                    *
-                                                                                                                                    ${dd.shipment_weight}
-                                                                                                                                    )
-                                                                                                                                    +
-                                                                                                                                    ${shipmentSetting.basic_fee}
-                                                                                                                                    =
-                                                                                                                                    ${shipmentSetting.weight *
-                                                                                                                                        dd.shipment_weight +
-                                                                                                                                    shipmentSetting.basic_fee}</span
-                                                                                                                                >
-                                                                                                                            </div>
-                                                                                                                        </div>`,
-                                                                                                                        default: `${
-                                                                                                                            dd.shipment_weight ??
-                                                                                                                            0
-                                                                                                                        }`,
-                                                                                                                        placeHolder:
-                                                                                                                            '',
-                                                                                                                        type: 'number',
-                                                                                                                        callback:
-                                                                                                                            (
-                                                                                                                                text
-                                                                                                                            ) => {
-                                                                                                                                dd.shipment_weight =
-                                                                                                                                    parseInt(
-                                                                                                                                        text
-                                                                                                                                    );
-                                                                                                                            },
-                                                                                                                    }
-                                                                                                                );
-                                                                                                            })(),
-                                                                                                        ].join('')}
-                                                                                                    </div>
-                                                                                                </div>`;
-                                                                                            },
-                                                                                            obj.gvc.glitter.getUUID()
-                                                                                        );
+                                                                                                                    </div>
+                                                                                                                </div>`,
+                                                                                                                default: `${dd.shipment_weight ?? 0}`,
+                                                                                                                placeHolder: '',
+                                                                                                                type: 'number',
+                                                                                                                callback: (text) => {
+                                                                                                                    dd.shipment_weight = parseInt(text);
+                                                                                                                },
+                                                                                                            });
+                                                                                                        })(),
+                                                                                                    ].join('')}
+                                                                                                </div>
+                                                                                            </div>`;
+                                                                                        }, obj.gvc.glitter.getUUID());
                                                                                     })}"
                                                                                 >
                                                                                     編輯商品
                                                                                 </button>
                                                                             </div>`,
                                                                             innerHtml: (gvc: GVC) => {
-                                                                                // refresh()
                                                                                 return [].join('');
                                                                             },
                                                                             editTitle: `編輯規格`,
@@ -1067,73 +923,7 @@ export class ShoppingProductSetting {
                                                                 expand: true,
                                                                 copyable: false,
                                                                 hr: true,
-                                                                plus: {
-                                                                    title: '添加商品項目',
-                                                                    event: obj.gvc.event(() => {
-                                                                        let cType: any = [];
-
-                                                                        function generateCombinations(
-                                                                            specs: any,
-                                                                            currentCombination: any,
-                                                                            index = 0
-                                                                        ) {
-                                                                            if (index === specs.length) {
-                                                                                cType.push(
-                                                                                    JSON.parse(
-                                                                                        JSON.stringify(
-                                                                                            currentCombination
-                                                                                        )
-                                                                                    )
-                                                                                );
-                                                                                return;
-                                                                            }
-                                                                            const currentSpecOptions = specs[index];
-                                                                            for (const option of currentSpecOptions) {
-                                                                                currentCombination[index] = option;
-                                                                                generateCombinations(
-                                                                                    specs,
-                                                                                    currentCombination,
-                                                                                    index + 1
-                                                                                );
-                                                                            }
-                                                                        }
-
-                                                                        let currentCombination: any = [];
-                                                                        generateCombinations(
-                                                                            postMD.specs.map((dd) => {
-                                                                                return dd.option.map((dd: any) => {
-                                                                                    return dd.title;
-                                                                                });
-                                                                            }),
-                                                                            currentCombination
-                                                                        );
-                                                                        const waitAdd = cType.find((dd: any) => {
-                                                                            return !postMD.variants.find((d2) => {
-                                                                                return (
-                                                                                    JSON.stringify(d2.spec) ===
-                                                                                    JSON.stringify(dd)
-                                                                                );
-                                                                            });
-                                                                        });
-
-                                                                        if (waitAdd) {
-                                                                            postMD.variants.push({
-                                                                                spec: waitAdd,
-                                                                                sale_price: 0,
-                                                                                compare_price: 0,
-                                                                                stock: 0,
-                                                                                sku: '',
-                                                                                preview_image: '',
-                                                                                shipment_weight: 0,
-                                                                                show_understocking: 'true',
-                                                                            });
-                                                                            obj.gvc.notifyDataChange(variantsViewID);
-                                                                        } else {
-                                                                            alert('無可加入之規格');
-                                                                        }
-                                                                        //
-                                                                    }),
-                                                                },
+                                                                minus: false,
                                                                 refreshComponent: () => {
                                                                     obj.gvc.notifyDataChange(variantsViewID);
                                                                 },
@@ -1162,9 +952,7 @@ export class ShoppingProductSetting {
                                         bind: id,
                                         view: () => {
                                             let view = [
-                                                html`<div
-                                                    class="fs-sm fw-500 d-flex align-items-center justify-content-between mb-2"
-                                                >
+                                                html`<div class="fs-sm fw-500 d-flex align-items-center justify-content-between mb-2">
                                                     搜尋引擎列表
                                                     <div
                                                         class="fw-500 fs-sm ${toggle ? `d-none` : ``}"
@@ -1177,17 +965,10 @@ export class ShoppingProductSetting {
                                                         編輯
                                                     </div>
                                                 </div>`,
-                                                html`<div class="fs-6 fw-500" style="color:#1a0dab;">
-                                                    ${postMD.seo.title || '尚未設定'}
-                                                </div>`,
+                                                html`<div class="fs-6 fw-500" style="color:#1a0dab;">${postMD.seo.title || '尚未設定'}</div>`,
                                                 (() => {
                                                     const href = (() => {
-                                                        const url = new URL(
-                                                            '',
-                                                            gvc.glitter.share.editorViewModel.domain
-                                                                ? `https://${gvc.glitter.share.editorViewModel.domain}/`
-                                                                : location.href
-                                                        );
+                                                        const url = new URL('', gvc.glitter.share.editorViewModel.domain ? `https://${gvc.glitter.share.editorViewModel.domain}/` : location.href);
                                                         url.search = '';
                                                         url.searchParams.set('page', postMD.template);
                                                         url.searchParams.set('product_id', postMD.id || '');
@@ -1196,19 +977,9 @@ export class ShoppingProductSetting {
                                                         }
                                                         return url.href;
                                                     })();
-                                                    return html`<a
-                                                        class="fs-sm fw-500"
-                                                        style="color:#006621;cursor: pointer;"
-                                                        href="${href}"
-                                                        >${href}</a
-                                                    >`;
+                                                    return html`<a class="fs-sm fw-500" style="color:#006621;cursor: pointer;" href="${href}">${href}</a>`;
                                                 })(),
-                                                html`<div
-                                                    class="fs-sm fw-500"
-                                                    style="color:#545454;white-space: normal;"
-                                                >
-                                                    ${postMD.seo.content || '尚未設定'}
-                                                </div>`,
+                                                html`<div class="fs-sm fw-500" style="color:#545454;white-space: normal;">${postMD.seo.content || '尚未設定'}</div>`,
                                             ];
                                             if (toggle) {
                                                 view = view.concat([
@@ -1269,10 +1040,7 @@ export class ShoppingProductSetting {
                                                     postMD.template = data;
                                                 },
                                                 (dd) => {
-                                                    const filter_result =
-                                                        dd.group !== 'glitter-article' &&
-                                                        dd.page_type === 'article' &&
-                                                        dd.page_config.template_type === 'product';
+                                                    const filter_result = dd.group !== 'glitter-article' && dd.page_type === 'article' && dd.page_config.template_type === 'product';
                                                     if (filter_result && !postMD.template) {
                                                         postMD.template = dd.tag;
                                                         gvc.notifyDataChange([seoID, id]);
@@ -1303,10 +1071,7 @@ export class ShoppingProductSetting {
                                                             .map((dd: any) => {
                                                                 const indt = ind ? `${ind} / ${dd.title}` : dd.title;
                                                                 if (dd.array && dd.array.length > 0) {
-                                                                    return html` <li
-                                                                        class="btn-group d-flex flex-column"
-                                                                        style="margin-top:1px;margin-bottom:1px;"
-                                                                    >
+                                                                    return html` <li class="btn-group d-flex flex-column" style="margin-top:1px;margin-bottom:1px;">
                                                                         <div
                                                                             class="editor_item d-flex pe-2 my-0 hi me-n1 "
                                                                             style=""
@@ -1317,12 +1082,8 @@ export class ShoppingProductSetting {
                                                                         >
                                                                             <div class="subBt ps-0 ms-n2">
                                                                                 ${dd.toogle
-                                                                                    ? html`<i
-                                                                                          class="fa-sharp fa-regular fa-chevron-down"
-                                                                                      ></i>`
-                                                                                    : html` <i
-                                                                                          class="fa-regular fa-angle-right hoverBtn "
-                                                                                      ></i>`}
+                                                                                    ? html`<i class="fa-sharp fa-regular fa-chevron-down"></i>`
+                                                                                    : html` <i class="fa-regular fa-angle-right hoverBtn "></i>`}
                                                                             </div>
                                                                             ${dd.title}
                                                                             <div class="flex-fill"></div>
@@ -1332,10 +1093,7 @@ export class ShoppingProductSetting {
                                                                         </ul>
                                                                     </li>`;
                                                                 } else {
-                                                                    return html` <li
-                                                                        class="btn-group d-flex flex-column"
-                                                                        style="margin-top:1px;margin-bottom:1px;"
-                                                                    >
+                                                                    return html` <li class="btn-group d-flex flex-column" style="margin-top:1px;margin-bottom:1px;">
                                                                         <div
                                                                             class="editor_item d-flex   pe-2 my-0 hi  "
                                                                             style=""
