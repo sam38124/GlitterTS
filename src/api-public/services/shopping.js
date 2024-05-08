@@ -623,7 +623,7 @@ class Shopping {
                 }
                 return result;
             }
-            return {};
+            return { result: false };
         }
         catch (e) {
             throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'getDataAnalyze Error:' + e, null);
@@ -829,6 +829,14 @@ class Shopping {
     async putCollection(data) {
         try {
             const config = (await database_js_1.default.query(`SELECT * FROM \`${this.app}\`.public_config WHERE \`key\` = 'collection';`, []))[0];
+            if (data.id == -1 || data.parent_name !== data.origin.parent_name || data.name !== data.origin.item_name) {
+                if (data.parent_id === undefined && config.value.find((item) => item.title === data.name)) {
+                    return { result: false, message: `上層分類已存在「${data.name}」類別名稱` };
+                }
+                if (data.parent_id !== undefined && config.value[data.parent_id].array.find((item) => item.title === data.name)) {
+                    return { result: false, message: `上層分類「${config.value[data.parent_id].title}」已存在「${data.name}」類別名稱` };
+                }
+            }
             if (data.id == -1) {
                 if (data.parent_id === undefined) {
                     config.value.push({ array: [], title: data.name });
@@ -941,7 +949,7 @@ class Shopping {
                     await this.updateProductCollection(product.content, product.id);
                 }
             }
-            return {};
+            return { result: true };
         }
         catch (e) {
             throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'getCollectionProducts Error:' + e, null);
@@ -993,7 +1001,7 @@ class Shopping {
             });
             const update_col_sql = `UPDATE \`${this.app}\`.public_config SET value = ? WHERE \`key\` = 'collection';`;
             await database_js_1.default.execute(update_col_sql, [config.value]);
-            return {};
+            return { result: true };
         }
         catch (e) {
             throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'getCollectionProducts Error:' + e, null);
@@ -1020,7 +1028,7 @@ class Shopping {
                     await this.updateProductCollection(product.content, product.id);
                 }
             }
-            return {};
+            return { result: true };
         }
         catch (error) {
             throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'deleteCollectionProduct Error:' + express_1.default, null);

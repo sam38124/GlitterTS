@@ -268,9 +268,19 @@ export declare class Shopping {
         countArray: number[];
     }>;
     getCollectionProducts(tag: string): Promise<any>;
-    putCollection(data: any): Promise<{}>;
-    deleteCollection(id_array: any): Promise<{}>;
-    deleteCollectionProduct(parent_name: string, children_list?: string[]): Promise<{}>;
+    putCollection(data: any): Promise<{
+        result: boolean;
+        message: string;
+    } | {
+        result: boolean;
+        message?: undefined;
+    }>;
+    deleteCollection(id_array: any): Promise<{
+        result: boolean;
+    }>;
+    deleteCollectionProduct(parent_name: string, children_list?: string[]): Promise<{
+        result: boolean;
+    }>;
     containsTagSQL(name: string): string;
     updateProductCollection(content: string[], id: number): Promise<void>;
 }

@@ -605,7 +605,6 @@ router.put('/collection', async (req: express.Request, resp: express.Response) =
         return response.fail(resp, err);
     }
 });
-
 router.delete('/collection', async (req: express.Request, resp: express.Response) => {
     try {
         if (await UtPermission.isManager(req)) {

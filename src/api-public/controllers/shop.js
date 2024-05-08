@@ -521,16 +521,8 @@ router.get('/dataAnalyze', async (req, resp) => {
 });
 router.get('/collection/products', async (req, resp) => {
     try {
-        const tag = `${req.query.tag}`;
-        req.body.token = {
-            account: 'mk@ncdesign.info',
-            userID: 234285319,
-            iat: 1714557000,
-            exp: 1746093000,
-            userData: {},
-        };
         if (await ut_permission_1.UtPermission.isManager(req)) {
-            return response_1.default.succ(resp, await new shopping_1.Shopping(req.get('g-app'), req.body.token).getCollectionProducts(tag));
+            return response_1.default.succ(resp, await new shopping_1.Shopping(req.get('g-app'), req.body.token).getCollectionProducts(`${req.query.tag}`));
         }
         else {
             throw exception_1.default.BadRequestError('BAD_REQUEST', 'No permission.', null);
@@ -542,13 +534,6 @@ router.get('/collection/products', async (req, resp) => {
 });
 router.put('/collection', async (req, resp) => {
     try {
-        req.body.token = {
-            account: 'mk@ncdesign.info',
-            userID: 234285319,
-            iat: 1714557000,
-            exp: 1746093000,
-            userData: {},
-        };
         if (await ut_permission_1.UtPermission.isManager(req)) {
             return response_1.default.succ(resp, await new shopping_1.Shopping(req.get('g-app'), req.body.token).putCollection(req.body.data));
         }
@@ -562,13 +547,6 @@ router.put('/collection', async (req, resp) => {
 });
 router.delete('/collection', async (req, resp) => {
     try {
-        req.body.token = {
-            account: 'mk@ncdesign.info',
-            userID: 234285319,
-            iat: 1714557000,
-            exp: 1746093000,
-            userData: {},
-        };
         if (await ut_permission_1.UtPermission.isManager(req)) {
             return response_1.default.succ(resp, await new shopping_1.Shopping(req.get('g-app'), req.body.token).deleteCollection(req.body.data));
         }
