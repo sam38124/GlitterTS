@@ -1232,11 +1232,11 @@ export class Shopping {
                             });
                     }
 
-                    if (data.id !== -1 && data.parent_name) {
+                    if (data.parent_id === undefined) {
+                        product.content.collection.push(data.name);
+                    } else {
                         product.content.collection.push(data.parent_name);
                         product.content.collection.push(`${data.parent_name} / ${data.name}`);
-                    } else {
-                        product.content.collection.push(data.name);
                     }
 
                     product.content.collection = [...new Set(product.content.collection)];

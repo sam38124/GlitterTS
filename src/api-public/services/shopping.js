@@ -942,14 +942,13 @@ class Shopping {
                             return str;
                         });
                     }
-                    if (data.id !== -1 && data.parent_name) {
-                        console.log([1, data.parent_name, `${data.parent_name} / ${data.name}`]);
-                        product.content.collection.push(data.parent_name);
-                        product.content.collection.push(`${data.parent_name} / ${data.name}`);
+                    console.log([data.id, data.parent_id, data.parent_name, data.name]);
+                    if (data.parent_id === undefined) {
+                        product.content.collection.push(data.name);
                     }
                     else {
-                        console.log([2, data.name]);
-                        product.content.collection.push(data.name);
+                        product.content.collection.push(data.parent_name);
+                        product.content.collection.push(`${data.parent_name} / ${data.name}`);
                     }
                     product.content.collection = [...new Set(product.content.collection)];
                     await this.updateProductCollection(product.content, product.id);
