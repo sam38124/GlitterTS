@@ -9,6 +9,7 @@ import { User } from './user.js';
 import { Post } from './post.js';
 import Tool from '../../modules/tool.js';
 import { Invoice } from './invoice.js';
+import e from 'express';
 
 interface VoucherData {
     title: string;
@@ -80,10 +81,7 @@ export class Shopping {
     }) {
         try {
             let querySql = [`(content->>'$.type'='product')`];
-            query.search &&
-                querySql.push(
-                    `(UPPER(JSON_UNQUOTE(JSON_EXTRACT(content, '$.title'))) LIKE UPPER('%${query.search}%'))`
-                );
+            query.search && querySql.push(`(UPPER(JSON_UNQUOTE(JSON_EXTRACT(content, '$.title'))) LIKE UPPER('%${query.search}%'))`);
             query.id && querySql.push(`(content->>'$.id' = ${query.id})`);
             query.collection &&
                 querySql.push(
@@ -96,14 +94,8 @@ export class Shopping {
                 );
             query.id_list && querySql.push(`(content->>'$.id' in (${query.id_list}))`);
             query.status && querySql.push(`(JSON_EXTRACT(content, '$.status') = '${query.status}')`);
-            query.min_price &&
-                querySql.push(
-                    `(CAST(JSON_UNQUOTE(JSON_EXTRACT(content, '$.variants[0].sale_price')) AS SIGNED)>=${query.min_price}) `
-                );
-            query.max_price &&
-                querySql.push(
-                    `(CAST(JSON_UNQUOTE(JSON_EXTRACT(content, '$.variants[0].sale_price')) AS SIGNED)<=${query.max_price}) `
-                );
+            query.min_price && querySql.push(`(CAST(JSON_UNQUOTE(JSON_EXTRACT(content, '$.variants[0].sale_price')) AS SIGNED)>=${query.min_price}) `);
+            query.max_price && querySql.push(`(CAST(JSON_UNQUOTE(JSON_EXTRACT(content, '$.variants[0].sale_price')) AS SIGNED)<=${query.max_price}) `);
             const data = await this.querySql(querySql, query);
             //產品清單
             const productList = Array.isArray(data.data) ? data.data : [data.data];
@@ -380,10 +372,7 @@ export class Shopping {
                         const variant = pd.variants.find((dd: any) => {
                             return dd.spec.join('-') === b.spec.join('-');
                         });
-                        if (
-                            (Number.isInteger(variant.stock) || variant.show_understocking === 'false') &&
-                            Number.isInteger(b.count)
-                        ) {
+                        if ((Number.isInteger(variant.stock) || variant.show_understocking === 'false') && Number.isInteger(b.count)) {
                             // 當超過庫存數量則調整為庫存上限
                             if (variant.stock < b.count && variant.show_understocking !== 'false') {
                                 b.count = variant.stock;
@@ -591,10 +580,7 @@ export class Shopping {
             })
             .filter((dd: VoucherData) => {
                 //判斷有效期限
-                return (
-                    new Date(dd.start_ISO_Date).getTime() < new Date().getTime() &&
-                    (!dd.end_ISO_Date || new Date(dd.end_ISO_Date).getTime() > new Date().getTime())
-                );
+                return new Date(dd.start_ISO_Date).getTime() < new Date().getTime() && (!dd.end_ISO_Date || new Date(dd.end_ISO_Date).getTime() > new Date().getTime());
             })
             .filter((dd: VoucherData) => {
                 //綁定商品
@@ -637,9 +623,7 @@ export class Shopping {
             })
             .filter((dd: VoucherData) => {
                 //判斷最低消費金額或數量。
-                return dd.rule === 'min_count'
-                    ? cart.lineItems.length >= parseInt(`${dd.ruleValue}`, 10)
-                    : cart.total >= parseInt(`${dd.ruleValue}`, 10);
+                return dd.rule === 'min_count' ? cart.lineItems.length >= parseInt(`${dd.ruleValue}`, 10) : cart.total >= parseInt(`${dd.ruleValue}`, 10);
             })
             .sort(function (a: VoucherData, b: VoucherData) {
                 let compareB = b
@@ -647,9 +631,7 @@ export class Shopping {
                         if (b.reBackType === 'shipment_free') {
                             return dd.shipment_fee;
                         } else {
-                            return b.method === 'percent'
-                                ? (dd.sale_price * parseFloat(b.value)) / 100
-                                : parseFloat(b.value);
+                            return b.method === 'percent' ? (dd.sale_price * parseFloat(b.value)) / 100 : parseFloat(b.value);
                         }
                     })
                     .reduce(function (accumulator, currentValue) {
@@ -660,9 +642,7 @@ export class Shopping {
                         if (a.reBackType === 'shipment_free') {
                             return dd.shipment_fee;
                         } else {
-                            return a.method === 'percent'
-                                ? (dd.sale_price * parseFloat(a.value)) / 100
-                                : parseFloat(a.value);
+                            return a.method === 'percent' ? (dd.sale_price * parseFloat(a.value)) / 100 : parseFloat(a.value);
                         }
                     })
                     .reduce(function (accumulator, currentValue) {
@@ -690,10 +670,7 @@ export class Shopping {
                         cart.total -= d2.shipment_fee;
                         return true;
                     } else {
-                        let discount =
-                            dd.method === 'percent'
-                                ? (d2.sale_price * parseFloat(dd.value)) / 100
-                                : parseFloat(dd.value);
+                        let discount = dd.method === 'percent' ? (d2.sale_price * parseFloat(dd.value)) / 100 : parseFloat(dd.value);
                         //單項商品折扣金額必須小於商品單價
                         if (d2.discount_price + discount < d2.sale_price) {
                             if (dd.reBackType === 'rebate') {
@@ -798,14 +775,7 @@ export class Shopping {
         }
     }
 
-    public async getCheckOut(query: {
-        page: number;
-        limit: number;
-        id?: string;
-        search?: string;
-        email?: string;
-        status?: string;
-    }) {
+    public async getCheckOut(query: { page: number; limit: number; id?: string; search?: string; email?: string; status?: string }) {
         try {
             let querySql = ['1=1'];
             query.email && querySql.push(`(email=${db.escape(query.email)})`);
@@ -827,9 +797,7 @@ export class Shopping {
                 const data = (
                     await db.query(
                         `SELECT *
-                                              FROM (${sql}) as subqyery limit ${query.page * query.limit}, ${
-                            query.limit
-                        }`,
+                                              FROM (${sql}) as subqyery limit ${query.page * query.limit}, ${query.limit}`,
                         []
                     )
                 )[0];
@@ -1125,6 +1093,245 @@ export class Shopping {
             return { countArray };
         } catch (e) {
             throw exception.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
+        }
+    }
+
+    async getCollectionProducts(tag: string) {
+        try {
+            const products_sql = `SELECT * FROM \`${this.app}\`.t_manager_post WHERE JSON_EXTRACT(content, '$.type') = 'product';`;
+            const products = await db.query(products_sql, []);
+            return products.filter((product: any) => product.content.collection.includes(tag));
+        } catch (e) {
+            throw exception.BadRequestError('BAD_REQUEST', 'getCollectionProducts Error:' + e, null);
+        }
+    }
+
+    async putCollection(data: any) {
+        try {
+            const config = (await db.query(`SELECT * FROM \`${this.app}\`.public_config WHERE \`key\` = 'collection';`, []))[0];
+
+            if (data.id == -1) {
+                if (data.parent_id === undefined) {
+                    // 新增父層類別
+                    config.value.push({ array: [], title: data.name });
+                } else {
+                    // 新增子層類別
+                    config.value[data.parent_id].array.push({ array: [], title: data.name });
+                }
+            } else if (data.origin.parent_id === undefined) {
+                // 編輯父層類別
+                config.value[data.origin.item_id] = {
+                    array: data.children_collections.map((col: { name: string }) => ({ array: [], title: col.name })),
+                    title: data.name,
+                };
+            } else {
+                if (data.origin.parent_id === data.parent_id) {
+                    // 編輯子層類別，沒有調整父層
+                    config.value[data.origin.parent_id].array[data.origin.item_id] = { array: [], title: data.name };
+                } else {
+                    // 編輯子層類別，有調整父層
+                    config.value[data.origin.parent_id].array.splice(data.origin.item_id, 1);
+                    config.value[data.parent_id].array.push({ array: [], title: data.name });
+                }
+            }
+
+            // 更新父層的子類別
+            if (data.id != -1 && data.origin.children_collections) {
+                const filter_childrens = data.origin.children_collections
+                    .filter((child: any) => {
+                        return data.children_collections.find((child2: any) => child2.id === child.id) === undefined;
+                    })
+                    .map((child: any) => {
+                        return child.name;
+                    });
+                await this.deleteCollectionProduct(data.origin.item_name, filter_childrens);
+            }
+
+            // 更新商品類別 config
+            const update_col_sql = `UPDATE \`${this.app}\`.public_config SET value = ? WHERE \`key\` = 'collection';`;
+            await db.execute(update_col_sql, [config.value]);
+
+            // 類別刪除產品
+            if (data.id != -1) {
+                const delete_id_list = data.origin.product_list
+                    .filter((o_prod: { id: number }) => {
+                        return data.product_list.find((prod: { id: number }) => prod.id === o_prod.id) === undefined;
+                    })
+                    .map((o_prod: { id: number }) => {
+                        return o_prod.id;
+                    });
+                if (delete_id_list.length > 0) {
+                    const products_sql = `SELECT * FROM \`${this.app}\`.t_manager_post WHERE id in (${delete_id_list.join(',')});`;
+                    const delete_product_list = await db.query(products_sql, []);
+                    for (const product of delete_product_list) {
+                        product.content.collection = product.content.collection.filter((str: string) => {
+                            if (data.origin.parent_name) {
+                                if (str.includes(data.origin.item_name) || str.includes(`${data.origin.item_name} /`)) {
+                                    return false;
+                                }
+                            } else {
+                                if (str.includes(data.origin.item_name) || str.includes(`${data.origin.item_name} /`) || str.includes(data.origin.parent_name)) {
+                                    return false;
+                                }
+                            }
+                            return true;
+                        });
+                        await this.updateProductCollection(product.content, product.id);
+                    }
+                }
+            }
+
+            // 更新類別下商品
+            const get_product_sql = `SELECT * FROM \`${this.app}\`.t_manager_post WHERE id = ?`;
+            for (const p of data.product_list) {
+                const get_product = await db.query(get_product_sql, [p.id]);
+                if (get_product[0]) {
+                    const product = get_product[0];
+
+                    if (data.id != -1) {
+                        product.content.collection = product.content.collection
+                            .filter((str: string) => {
+                                if (data.origin.parent_name === data.parent_name) {
+                                    return true;
+                                }
+                                if (data.parent_name) {
+                                    if (str === data.origin.parent_name || str.includes(`${data.origin.parent_name} / ${data.origin.item_name}`)) {
+                                        return false;
+                                    }
+                                } else {
+                                    if (str === data.origin.item_name || str.includes(`${data.origin.item_name} /`)) {
+                                        return false;
+                                    }
+                                }
+                                return true;
+                            })
+                            .map((str: string) => {
+                                if (data.parent_name) {
+                                    if (str.includes(`${data.origin.parent_name} / ${data.origin.item_name}`)) {
+                                        return str.replace(data.origin.item_name, data.name);
+                                    }
+                                } else {
+                                    if (str === data.origin.item_name || str.includes(`${data.origin.item_name} /`)) {
+                                        return str.replace(data.origin.item_name, data.name);
+                                    }
+                                }
+                                return str;
+                            });
+                    }
+
+                    if (data.parent_name) {
+                        product.content.collection.push(data.parent_name);
+                        product.content.collection.push(`${data.parent_name} / ${data.name}`);
+                    } else {
+                        product.content.collection.push(data.name);
+                    }
+
+                    product.content.collection = [...new Set(product.content.collection)];
+
+                    await this.updateProductCollection(product.content, product.id);
+                }
+            }
+            return {};
+        } catch (e) {
+            throw exception.BadRequestError('BAD_REQUEST', 'getCollectionProducts Error:' + e, null);
+        }
+    }
+
+    async deleteCollection(id_array: any) {
+        try {
+            const config = (await db.query(`SELECT * FROM \`${this.app}\`.public_config WHERE \`key\` = 'collection';`, []))[0];
+            const delete_index_array: { parent: number; child: number[] }[] = [];
+
+            // format 刪除類別 index
+            id_array.map((id: string | number) => {
+                if (typeof id === 'number') {
+                    delete_index_array.push({ parent: id, child: [-1] });
+                } else {
+                    const arr = id.split('_').map((str) => parseInt(str, 10));
+                    const n = delete_index_array.findIndex((obj) => obj.parent === arr[0]);
+                    if (n === -1) {
+                        delete_index_array.push({ parent: arr[0], child: [arr[1]] });
+                    } else {
+                        delete_index_array[n].child.push(arr[1]);
+                    }
+                }
+            });
+
+            // 刪除類別之產品
+            for (const d of delete_index_array) {
+                const collection = config.value[d.parent];
+                for (const index of d.child) {
+                    if (index !== -1) {
+                        await this.deleteCollectionProduct(collection.title, [`${collection.array[index].title}`]);
+                    }
+                }
+                if (d.child.length === collection.array.length || d.child[0] === -1) {
+                    await this.deleteCollectionProduct(collection.title);
+                }
+            }
+
+            // 取得新的類別 config 陣列
+            delete_index_array.map((obj) => {
+                config.value[obj.parent].array = config.value[obj.parent].array.filter((col: any, index: number) => {
+                    return !obj.child.includes(index);
+                });
+            });
+            config.value = config.value.filter((col: any, index: number) => {
+                const find_collection = delete_index_array.find((obj) => obj.parent === index);
+                if (find_collection) {
+                    if (col.array.length === 0 || find_collection.child[0] === -1) {
+                        return false;
+                    }
+                }
+                return true;
+            });
+
+            // 更新商品類別
+            const update_col_sql = `UPDATE \`${this.app}\`.public_config SET value = ? WHERE \`key\` = 'collection';`;
+            await db.execute(update_col_sql, [config.value]);
+
+            return {};
+        } catch (e) {
+            throw exception.BadRequestError('BAD_REQUEST', 'getCollectionProducts Error:' + e, null);
+        }
+    }
+
+    async deleteCollectionProduct(parent_name: string, children_list?: string[]) {
+        try {
+            if (children_list) {
+                for (const children of children_list) {
+                    const tag_name = `${parent_name} / ${children}`;
+                    for (const product of await db.query(this.containsTagSQL(tag_name), [])) {
+                        product.content.collection = product.content.collection.filter((str: string) => str != tag_name);
+                        await this.updateProductCollection(product.content, product.id);
+                    }
+                }
+            } else {
+                for (const product of await db.query(this.containsTagSQL(parent_name), [])) {
+                    product.content.collection = product.content.collection.filter((str: string) => !(str === parent_name));
+                    await this.updateProductCollection(product.content, product.id);
+                }
+                for (const product of await db.query(this.containsTagSQL(`${parent_name} /`), [])) {
+                    product.content.collection = product.content.collection.filter((str: string) => str.includes(`${parent_name} / `));
+                    await this.updateProductCollection(product.content, product.id);
+                }
+            }
+            return {};
+        } catch (error) {
+            throw exception.BadRequestError('BAD_REQUEST', 'deleteCollectionProduct Error:' + e, null);
+        }
+    }
+
+    containsTagSQL(name: string) {
+        return `SELECT * FROM \`${this.app}\`.t_manager_post WHERE JSON_CONTAINS(content->'$.collection', '"${name}"');`;
+    }
+
+    async updateProductCollection(content: string[], id: number) {
+        try {
+            const updateProdSQL = `UPDATE \`${this.app}\`.t_manager_post SET content = ? WHERE \`id\` = ?;`;
+            await db.execute(updateProdSQL, [content, id]);
+        } catch (error) {
+            throw exception.BadRequestError('BAD_REQUEST', 'updateProductCollection Error:' + e, null);
         }
     }
 }

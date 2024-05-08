@@ -267,5 +267,11 @@ export declare class Shopping {
     getOrderAvgSalePrice(): Promise<{
         countArray: number[];
     }>;
+    getCollectionProducts(tag: string): Promise<any>;
+    putCollection(data: any): Promise<{}>;
+    deleteCollection(id_array: any): Promise<{}>;
+    deleteCollectionProduct(parent_name: string, children_list?: string[]): Promise<{}>;
+    containsTagSQL(name: string): string;
+    updateProductCollection(content: string[], id: number): Promise<void>;
 }
 export {};

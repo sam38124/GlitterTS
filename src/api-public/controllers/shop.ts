@@ -69,7 +69,6 @@ router.get('/rebate/sum', async (req: express.Request, resp: express.Response) =
         return response.fail(resp, err);
     }
 });
-
 router.get('/product', async (req: express.Request, resp: express.Response) => {
     try {
         const shopping = await new Shopping(req.get('g-app') as string, req.body.token).getProduct({
@@ -98,17 +97,13 @@ router.get('/product', async (req: express.Request, resp: express.Response) => {
         return response.fail(resp, err);
     }
 });
-
 router.get('/rebate', async (req: express.Request, resp: express.Response) => {
     try {
         const app = req.get('g-app') as string;
         let query: any = [];
 
         if (await UtPermission.isManager(req)) {
-            req.query.search &&
-                query.push(
-                    `(userID in (select userID from \`${app}\`.t_user where (UPPER(JSON_UNQUOTE(JSON_EXTRACT(userData, '$.name')) LIKE UPPER('%${req.query.search}%')))))`
-                );
+            req.query.search && query.push(`(userID in (select userID from \`${app}\`.t_user where (UPPER(JSON_UNQUOTE(JSON_EXTRACT(userData, '$.name')) LIKE UPPER('%${req.query.search}%')))))`);
         } else {
             query.push(`userID=${db.escape(req.body.token.userID)}`);
         }
@@ -298,8 +293,7 @@ router.delete('/order', async (req: express.Request, resp: express.Response) => 
 router.get('/voucher', async (req: express.Request, resp: express.Response) => {
     try {
         let query = [`(content->>'$.type'='voucher')`];
-        req.query.search &&
-            query.push(`(UPPER(JSON_UNQUOTE(JSON_EXTRACT(content, '$.title'))) LIKE UPPER('%${req.query.search}%'))`);
+        req.query.search && query.push(`(UPPER(JSON_UNQUOTE(JSON_EXTRACT(content, '$.title'))) LIKE UPPER('%${req.query.search}%'))`);
         return response.succ(
             resp,
             await new Shopping(req.get('g-app') as string, req.body.token).querySql(query, {
@@ -388,11 +382,7 @@ router.post('/notify', upload.single('file'), async (req: express.Request, resp:
             raw = EcPay.urlEncode_dot_net(`HashKey=${keyData.HASH_KEY}&${raw.toLowerCase()}&HashIV=${keyData.HASH_IV}`);
             const chkSum = crypto.createHash('sha256').update(raw.toLowerCase()).digest('hex');
             decodeData = {
-                Status:
-                    url.searchParams.get('RtnCode') === '1' &&
-                    url.searchParams.get('CheckMacValue')!.toLowerCase() === chkSum
-                        ? `SUCCESS`
-                        : `ERROR`,
+                Status: url.searchParams.get('RtnCode') === '1' && url.searchParams.get('CheckMacValue')!.toLowerCase() === chkSum ? `SUCCESS` : `ERROR`,
                 Result: {
                     MerchantOrderNo: url.searchParams.get('MerchantTradeNo'),
                     CheckMacValue: url.searchParams.get('CheckMacValue'),
@@ -586,6 +576,40 @@ router.get('/dataAnalyze', async (req: express.Request, resp: express.Response) 
                 await new Shopping(req.get('g-app') as string, req.body.token).getDataAnalyze(tags.split(','))
                 // await new Shopping(fake['g-app'], fake['Authorization']).getDataAnalyze(tags.split(','))
             );
+        } else {
+            throw exception.BadRequestError('BAD_REQUEST', 'No permission.', null);
+        }
+    } catch (err) {
+        return response.fail(resp, err);
+    }
+});
+router.get('/collection/products', async (req: express.Request, resp: express.Response) => {
+    try {
+        if (await UtPermission.isManager(req)) {
+            return response.succ(resp, await new Shopping(req.get('g-app') as string, req.body.token).getCollectionProducts(`${req.query.tag}`));
+        } else {
+            throw exception.BadRequestError('BAD_REQUEST', 'No permission.', null);
+        }
+    } catch (err) {
+        return response.fail(resp, err);
+    }
+});
+router.put('/collection', async (req: express.Request, resp: express.Response) => {
+    try {
+        if (await UtPermission.isManager(req)) {
+            return response.succ(resp, await new Shopping(req.get('g-app') as string, req.body.token).putCollection(req.body.data));
+        } else {
+            throw exception.BadRequestError('BAD_REQUEST', 'No permission.', null);
+        }
+    } catch (err) {
+        return response.fail(resp, err);
+    }
+});
+
+router.delete('/collection', async (req: express.Request, resp: express.Response) => {
+    try {
+        if (await UtPermission.isManager(req)) {
+            return response.succ(resp, await new Shopping(req.get('g-app') as string, req.body.token).deleteCollection(req.body.data));
         } else {
             throw exception.BadRequestError('BAD_REQUEST', 'No permission.', null);
         }

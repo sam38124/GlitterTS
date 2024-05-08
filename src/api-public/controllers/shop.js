@@ -89,8 +89,7 @@ router.get('/rebate', async (req, resp) => {
         const app = req.get('g-app');
         let query = [];
         if (await ut_permission_1.UtPermission.isManager(req)) {
-            req.query.search &&
-                query.push(`(userID in (select userID from \`${app}\`.t_user where (UPPER(JSON_UNQUOTE(JSON_EXTRACT(userData, '$.name')) LIKE UPPER('%${req.query.search}%')))))`);
+            req.query.search && query.push(`(userID in (select userID from \`${app}\`.t_user where (UPPER(JSON_UNQUOTE(JSON_EXTRACT(userData, '$.name')) LIKE UPPER('%${req.query.search}%')))))`);
         }
         else {
             query.push(`userID=${database_js_1.default.escape(req.body.token.userID)}`);
@@ -272,8 +271,7 @@ router.get('/voucher', async (req, resp) => {
     var _a, _b;
     try {
         let query = [`(content->>'$.type'='voucher')`];
-        req.query.search &&
-            query.push(`(UPPER(JSON_UNQUOTE(JSON_EXTRACT(content, '$.title'))) LIKE UPPER('%${req.query.search}%'))`);
+        req.query.search && query.push(`(UPPER(JSON_UNQUOTE(JSON_EXTRACT(content, '$.title'))) LIKE UPPER('%${req.query.search}%'))`);
         return response_1.default.succ(resp, await new shopping_1.Shopping(req.get('g-app'), req.body.token).querySql(query, {
             page: ((_a = req.query.page) !== null && _a !== void 0 ? _a : 0),
             limit: ((_b = req.query.limit) !== null && _b !== void 0 ? _b : 50),
@@ -361,10 +359,7 @@ router.post('/notify', upload.single('file'), async (req, resp) => {
             raw = financial_service_js_1.EcPay.urlEncode_dot_net(`HashKey=${keyData.HASH_KEY}&${raw.toLowerCase()}&HashIV=${keyData.HASH_IV}`);
             const chkSum = crypto_1.default.createHash('sha256').update(raw.toLowerCase()).digest('hex');
             decodeData = {
-                Status: url.searchParams.get('RtnCode') === '1' &&
-                    url.searchParams.get('CheckMacValue').toLowerCase() === chkSum
-                    ? `SUCCESS`
-                    : `ERROR`,
+                Status: url.searchParams.get('RtnCode') === '1' && url.searchParams.get('CheckMacValue').toLowerCase() === chkSum ? `SUCCESS` : `ERROR`,
                 Result: {
                     MerchantOrderNo: url.searchParams.get('MerchantTradeNo'),
                     CheckMacValue: url.searchParams.get('CheckMacValue'),
@@ -515,6 +510,67 @@ router.get('/dataAnalyze', async (req, resp) => {
         };
         if (await ut_permission_1.UtPermission.isManager(req)) {
             return response_1.default.succ(resp, await new shopping_1.Shopping(req.get('g-app'), req.body.token).getDataAnalyze(tags.split(',')));
+        }
+        else {
+            throw exception_1.default.BadRequestError('BAD_REQUEST', 'No permission.', null);
+        }
+    }
+    catch (err) {
+        return response_1.default.fail(resp, err);
+    }
+});
+router.get('/collection/products', async (req, resp) => {
+    try {
+        const tag = `${req.query.tag}`;
+        req.body.token = {
+            account: 'mk@ncdesign.info',
+            userID: 234285319,
+            iat: 1714557000,
+            exp: 1746093000,
+            userData: {},
+        };
+        if (await ut_permission_1.UtPermission.isManager(req)) {
+            return response_1.default.succ(resp, await new shopping_1.Shopping(req.get('g-app'), req.body.token).getCollectionProducts(tag));
+        }
+        else {
+            throw exception_1.default.BadRequestError('BAD_REQUEST', 'No permission.', null);
+        }
+    }
+    catch (err) {
+        return response_1.default.fail(resp, err);
+    }
+});
+router.put('/collection', async (req, resp) => {
+    try {
+        req.body.token = {
+            account: 'mk@ncdesign.info',
+            userID: 234285319,
+            iat: 1714557000,
+            exp: 1746093000,
+            userData: {},
+        };
+        if (await ut_permission_1.UtPermission.isManager(req)) {
+            return response_1.default.succ(resp, await new shopping_1.Shopping(req.get('g-app'), req.body.token).putCollection(req.body.data));
+        }
+        else {
+            throw exception_1.default.BadRequestError('BAD_REQUEST', 'No permission.', null);
+        }
+    }
+    catch (err) {
+        return response_1.default.fail(resp, err);
+    }
+});
+router.delete('/collection', async (req, resp) => {
+    try {
+        req.body.token = {
+            account: 'mk@ncdesign.info',
+            userID: 234285319,
+            iat: 1714557000,
+            exp: 1746093000,
+            userData: {},
+        };
+        if (await ut_permission_1.UtPermission.isManager(req)) {
+            return response_1.default.succ(resp, await new shopping_1.Shopping(req.get('g-app'), req.body.token).deleteCollection(req.body.data));
         }
         else {
             throw exception_1.default.BadRequestError('BAD_REQUEST', 'No permission.', null);

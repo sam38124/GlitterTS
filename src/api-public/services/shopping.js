@@ -12,6 +12,7 @@ const redis_js_1 = __importDefault(require("../../modules/redis.js"));
 const user_js_1 = require("./user.js");
 const tool_js_1 = __importDefault(require("../../modules/tool.js"));
 const invoice_js_1 = require("./invoice.js");
+const express_1 = __importDefault(require("express"));
 class Shopping {
     constructor(app, token) {
         this.app = app;
@@ -30,8 +31,7 @@ class Shopping {
     async getProduct(query) {
         try {
             let querySql = [`(content->>'$.type'='product')`];
-            query.search &&
-                querySql.push(`(UPPER(JSON_UNQUOTE(JSON_EXTRACT(content, '$.title'))) LIKE UPPER('%${query.search}%'))`);
+            query.search && querySql.push(`(UPPER(JSON_UNQUOTE(JSON_EXTRACT(content, '$.title'))) LIKE UPPER('%${query.search}%'))`);
             query.id && querySql.push(`(content->>'$.id' = ${query.id})`);
             query.collection &&
                 querySql.push(`(${query.collection
@@ -42,10 +42,8 @@ class Shopping {
                     .join(' or ')})`);
             query.id_list && querySql.push(`(content->>'$.id' in (${query.id_list}))`);
             query.status && querySql.push(`(JSON_EXTRACT(content, '$.status') = '${query.status}')`);
-            query.min_price &&
-                querySql.push(`(CAST(JSON_UNQUOTE(JSON_EXTRACT(content, '$.variants[0].sale_price')) AS SIGNED)>=${query.min_price}) `);
-            query.max_price &&
-                querySql.push(`(CAST(JSON_UNQUOTE(JSON_EXTRACT(content, '$.variants[0].sale_price')) AS SIGNED)<=${query.max_price}) `);
+            query.min_price && querySql.push(`(CAST(JSON_UNQUOTE(JSON_EXTRACT(content, '$.variants[0].sale_price')) AS SIGNED)>=${query.min_price}) `);
+            query.max_price && querySql.push(`(CAST(JSON_UNQUOTE(JSON_EXTRACT(content, '$.variants[0].sale_price')) AS SIGNED)<=${query.max_price}) `);
             const data = await this.querySql(querySql, query);
             const productList = Array.isArray(data.data) ? data.data : [data.data];
             if (this.token && this.token.userID) {
@@ -227,8 +225,7 @@ class Shopping {
                         const variant = pd.variants.find((dd) => {
                             return dd.spec.join('-') === b.spec.join('-');
                         });
-                        if ((Number.isInteger(variant.stock) || variant.show_understocking === 'false') &&
-                            Number.isInteger(b.count)) {
+                        if ((Number.isInteger(variant.stock) || variant.show_understocking === 'false') && Number.isInteger(b.count)) {
                             if (variant.stock < b.count && variant.show_understocking !== 'false') {
                                 b.count = variant.stock;
                             }
@@ -381,8 +378,7 @@ class Shopping {
             return dd.content;
         })
             .filter((dd) => {
-            return (new Date(dd.start_ISO_Date).getTime() < new Date().getTime() &&
-                (!dd.end_ISO_Date || new Date(dd.end_ISO_Date).getTime() > new Date().getTime()));
+            return new Date(dd.start_ISO_Date).getTime() < new Date().getTime() && (!dd.end_ISO_Date || new Date(dd.end_ISO_Date).getTime() > new Date().getTime());
         })
             .filter((dd) => {
             let item = [];
@@ -419,9 +415,7 @@ class Shopping {
             return dd.trigger === 'auto' || dd.code === `${code}`;
         })
             .filter((dd) => {
-            return dd.rule === 'min_count'
-                ? cart.lineItems.length >= parseInt(`${dd.ruleValue}`, 10)
-                : cart.total >= parseInt(`${dd.ruleValue}`, 10);
+            return dd.rule === 'min_count' ? cart.lineItems.length >= parseInt(`${dd.ruleValue}`, 10) : cart.total >= parseInt(`${dd.ruleValue}`, 10);
         })
             .sort(function (a, b) {
             let compareB = b
@@ -430,9 +424,7 @@ class Shopping {
                     return dd.shipment_fee;
                 }
                 else {
-                    return b.method === 'percent'
-                        ? (dd.sale_price * parseFloat(b.value)) / 100
-                        : parseFloat(b.value);
+                    return b.method === 'percent' ? (dd.sale_price * parseFloat(b.value)) / 100 : parseFloat(b.value);
                 }
             })
                 .reduce(function (accumulator, currentValue) {
@@ -444,9 +436,7 @@ class Shopping {
                     return dd.shipment_fee;
                 }
                 else {
-                    return a.method === 'percent'
-                        ? (dd.sale_price * parseFloat(a.value)) / 100
-                        : parseFloat(a.value);
+                    return a.method === 'percent' ? (dd.sale_price * parseFloat(a.value)) / 100 : parseFloat(a.value);
                 }
             })
                 .reduce(function (accumulator, currentValue) {
@@ -472,9 +462,7 @@ class Shopping {
                     return true;
                 }
                 else {
-                    let discount = dd.method === 'percent'
-                        ? (d2.sale_price * parseFloat(dd.value)) / 100
-                        : parseFloat(dd.value);
+                    let discount = dd.method === 'percent' ? (d2.sale_price * parseFloat(dd.value)) / 100 : parseFloat(dd.value);
                     if (d2.discount_price + discount < d2.sale_price) {
                         if (dd.reBackType === 'rebate') {
                             d2.rebate += discount;
@@ -826,6 +814,228 @@ class Shopping {
         }
         catch (e) {
             throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
+        }
+    }
+    async getCollectionProducts(tag) {
+        try {
+            const products_sql = `SELECT * FROM \`${this.app}\`.t_manager_post WHERE JSON_EXTRACT(content, '$.type') = 'product';`;
+            const products = await database_js_1.default.query(products_sql, []);
+            return products.filter((product) => product.content.collection.includes(tag));
+        }
+        catch (e) {
+            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'getCollectionProducts Error:' + e, null);
+        }
+    }
+    async putCollection(data) {
+        try {
+            const config = (await database_js_1.default.query(`SELECT * FROM \`${this.app}\`.public_config WHERE \`key\` = 'collection';`, []))[0];
+            if (data.id == -1) {
+                if (data.parent_id === undefined) {
+                    config.value.push({ array: [], title: data.name });
+                }
+                else {
+                    config.value[data.parent_id].array.push({ array: [], title: data.name });
+                }
+            }
+            else if (data.origin.parent_id === undefined) {
+                config.value[data.origin.item_id] = {
+                    array: data.children_collections.map((col) => ({ array: [], title: col.name })),
+                    title: data.name,
+                };
+            }
+            else {
+                if (data.origin.parent_id === data.parent_id) {
+                    config.value[data.origin.parent_id].array[data.origin.item_id] = { array: [], title: data.name };
+                }
+                else {
+                    config.value[data.origin.parent_id].array.splice(data.origin.item_id, 1);
+                    config.value[data.parent_id].array.push({ array: [], title: data.name });
+                }
+            }
+            if (data.id != -1 && data.origin.children_collections) {
+                const filter_childrens = data.origin.children_collections
+                    .filter((child) => {
+                    return data.children_collections.find((child2) => child2.id === child.id) === undefined;
+                })
+                    .map((child) => {
+                    return child.name;
+                });
+                await this.deleteCollectionProduct(data.origin.item_name, filter_childrens);
+            }
+            const update_col_sql = `UPDATE \`${this.app}\`.public_config SET value = ? WHERE \`key\` = 'collection';`;
+            await database_js_1.default.execute(update_col_sql, [config.value]);
+            if (data.id != -1) {
+                const delete_id_list = data.origin.product_list
+                    .filter((o_prod) => {
+                    return data.product_list.find((prod) => prod.id === o_prod.id) === undefined;
+                })
+                    .map((o_prod) => {
+                    return o_prod.id;
+                });
+                if (delete_id_list.length > 0) {
+                    const products_sql = `SELECT * FROM \`${this.app}\`.t_manager_post WHERE id in (${delete_id_list.join(',')});`;
+                    const delete_product_list = await database_js_1.default.query(products_sql, []);
+                    for (const product of delete_product_list) {
+                        product.content.collection = product.content.collection.filter((str) => {
+                            if (data.origin.parent_name) {
+                                if (str.includes(data.origin.item_name) || str.includes(`${data.origin.item_name} /`)) {
+                                    return false;
+                                }
+                            }
+                            else {
+                                if (str.includes(data.origin.item_name) || str.includes(`${data.origin.item_name} /`) || str.includes(data.origin.parent_name)) {
+                                    return false;
+                                }
+                            }
+                            return true;
+                        });
+                        await this.updateProductCollection(product.content, product.id);
+                    }
+                }
+            }
+            const get_product_sql = `SELECT * FROM \`${this.app}\`.t_manager_post WHERE id = ?`;
+            for (const p of data.product_list) {
+                const get_product = await database_js_1.default.query(get_product_sql, [p.id]);
+                if (get_product[0]) {
+                    const product = get_product[0];
+                    if (data.id != -1) {
+                        product.content.collection = product.content.collection
+                            .filter((str) => {
+                            if (data.origin.parent_name === data.parent_name) {
+                                return true;
+                            }
+                            if (data.parent_name) {
+                                if (str === data.origin.parent_name || str.includes(`${data.origin.parent_name} / ${data.origin.item_name}`)) {
+                                    return false;
+                                }
+                            }
+                            else {
+                                if (str === data.origin.item_name || str.includes(`${data.origin.item_name} /`)) {
+                                    return false;
+                                }
+                            }
+                            return true;
+                        })
+                            .map((str) => {
+                            if (data.parent_name) {
+                                if (str.includes(`${data.origin.parent_name} / ${data.origin.item_name}`)) {
+                                    return str.replace(data.origin.item_name, data.name);
+                                }
+                            }
+                            else {
+                                if (str === data.origin.item_name || str.includes(`${data.origin.item_name} /`)) {
+                                    return str.replace(data.origin.item_name, data.name);
+                                }
+                            }
+                            return str;
+                        });
+                    }
+                    if (data.parent_name) {
+                        product.content.collection.push(data.parent_name);
+                        product.content.collection.push(`${data.parent_name} / ${data.name}`);
+                    }
+                    else {
+                        product.content.collection.push(data.name);
+                    }
+                    product.content.collection = [...new Set(product.content.collection)];
+                    await this.updateProductCollection(product.content, product.id);
+                }
+            }
+            return {};
+        }
+        catch (e) {
+            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'getCollectionProducts Error:' + e, null);
+        }
+    }
+    async deleteCollection(id_array) {
+        try {
+            const config = (await database_js_1.default.query(`SELECT * FROM \`${this.app}\`.public_config WHERE \`key\` = 'collection';`, []))[0];
+            const delete_index_array = [];
+            id_array.map((id) => {
+                if (typeof id === 'number') {
+                    delete_index_array.push({ parent: id, child: [-1] });
+                }
+                else {
+                    const arr = id.split('_').map((str) => parseInt(str, 10));
+                    const n = delete_index_array.findIndex((obj) => obj.parent === arr[0]);
+                    if (n === -1) {
+                        delete_index_array.push({ parent: arr[0], child: [arr[1]] });
+                    }
+                    else {
+                        delete_index_array[n].child.push(arr[1]);
+                    }
+                }
+            });
+            for (const d of delete_index_array) {
+                const collection = config.value[d.parent];
+                for (const index of d.child) {
+                    if (index !== -1) {
+                        await this.deleteCollectionProduct(collection.title, [`${collection.array[index].title}`]);
+                    }
+                }
+                if (d.child.length === collection.array.length || d.child[0] === -1) {
+                    await this.deleteCollectionProduct(collection.title);
+                }
+            }
+            delete_index_array.map((obj) => {
+                config.value[obj.parent].array = config.value[obj.parent].array.filter((col, index) => {
+                    return !obj.child.includes(index);
+                });
+            });
+            config.value = config.value.filter((col, index) => {
+                const find_collection = delete_index_array.find((obj) => obj.parent === index);
+                if (find_collection) {
+                    if (col.array.length === 0 || find_collection.child[0] === -1) {
+                        return false;
+                    }
+                }
+                return true;
+            });
+            const update_col_sql = `UPDATE \`${this.app}\`.public_config SET value = ? WHERE \`key\` = 'collection';`;
+            await database_js_1.default.execute(update_col_sql, [config.value]);
+            return {};
+        }
+        catch (e) {
+            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'getCollectionProducts Error:' + e, null);
+        }
+    }
+    async deleteCollectionProduct(parent_name, children_list) {
+        try {
+            if (children_list) {
+                for (const children of children_list) {
+                    const tag_name = `${parent_name} / ${children}`;
+                    for (const product of await database_js_1.default.query(this.containsTagSQL(tag_name), [])) {
+                        product.content.collection = product.content.collection.filter((str) => str != tag_name);
+                        await this.updateProductCollection(product.content, product.id);
+                    }
+                }
+            }
+            else {
+                for (const product of await database_js_1.default.query(this.containsTagSQL(parent_name), [])) {
+                    product.content.collection = product.content.collection.filter((str) => !(str === parent_name));
+                    await this.updateProductCollection(product.content, product.id);
+                }
+                for (const product of await database_js_1.default.query(this.containsTagSQL(`${parent_name} /`), [])) {
+                    product.content.collection = product.content.collection.filter((str) => str.includes(`${parent_name} / `));
+                    await this.updateProductCollection(product.content, product.id);
+                }
+            }
+            return {};
+        }
+        catch (error) {
+            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'deleteCollectionProduct Error:' + express_1.default, null);
+        }
+    }
+    containsTagSQL(name) {
+        return `SELECT * FROM \`${this.app}\`.t_manager_post WHERE JSON_CONTAINS(content->'$.collection', '"${name}"');`;
+    }
+    async updateProductCollection(content, id) {
+        try {
+            const updateProdSQL = `UPDATE \`${this.app}\`.t_manager_post SET content = ? WHERE \`id\` = ?;`;
+            await database_js_1.default.execute(updateProdSQL, [content, id]);
+        }
+        catch (error) {
+            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'updateProductCollection Error:' + express_1.default, null);
         }
     }
 }
