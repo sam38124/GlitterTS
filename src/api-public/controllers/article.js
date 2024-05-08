@@ -8,6 +8,7 @@ const express_1 = __importDefault(require("express"));
 const database_js_1 = __importDefault(require("../../modules/database.js"));
 const ut_permission_js_1 = require("../utils/ut-permission.js");
 const exception_js_1 = __importDefault(require("../../modules/exception.js"));
+const article_js_1 = require("../services/article.js");
 const router = express_1.default.Router();
 router.get('/', async (req, resp) => {
     try {
@@ -36,6 +37,44 @@ router.get('/', async (req, resp) => {
         return response_js_1.default.fail(resp, err);
     }
 });
+router.get('/manager', async (req, resp) => {
+    try {
+        let query = [
+            `(content->>'$.type'='article')`
+        ];
+        req.query.for_index && query.push(`((content->>'$.for_index' != 'false') || (content->>'$.for_index' IS NULL))`);
+        req.query.tag && query.push(`(content->>'$.tag' = ${database_js_1.default.escape(req.query.tag)})`);
+        req.query.label && query.push(`JSON_CONTAINS(content->'$.collection', '"${req.query.label}"') `);
+        if (req.query.search) {
+            query.push(`content->>'$.name' like '%${req.query.search}%'`);
+        }
+        const data = await new ut_database_js_1.UtDatabase(req.get('g-app'), `t_manager_post`).querySql(query, req.query);
+        return response_js_1.default.succ(resp, data);
+    }
+    catch (err) {
+        return response_js_1.default.fail(resp, err);
+    }
+});
+router.post('/manager', async (req, resp) => {
+    try {
+        return response_js_1.default.succ(resp, {
+            result: await (new article_js_1.Article(req.get('g-app'), req.body.token).addArticle(req.body.data))
+        });
+    }
+    catch (err) {
+        return response_js_1.default.fail(resp, err);
+    }
+});
+router.put('/manager', async (req, resp) => {
+    try {
+        return response_js_1.default.succ(resp, {
+            result: await (new article_js_1.Article(req.get('g-app'), req.body.token).putArticle(req.body.data))
+        });
+    }
+    catch (err) {
+        return response_js_1.default.fail(resp, err);
+    }
+});
 router.delete('/', async (req, resp) => {
     try {
         if (await ut_permission_js_1.UtPermission.isManager(req)) {
@@ -45,6 +84,24 @@ router.delete('/', async (req, resp) => {
                               and userID = ?`, [
                 req.body.id.split(','),
                 req.body.token.userID
+            ]);
+            return response_js_1.default.succ(resp, { result: true });
+        }
+        else {
+            return response_js_1.default.fail(resp, exception_js_1.default.BadRequestError('BAD_REQUEST', 'No permission.', null));
+        }
+    }
+    catch (err) {
+        return response_js_1.default.fail(resp, err);
+    }
+});
+router.delete('/manager', async (req, resp) => {
+    try {
+        if (await ut_permission_js_1.UtPermission.isManager(req)) {
+            await database_js_1.default.query(`delete
+                            FROM \`${req.get('g-app')}\`.t_manager_post
+                            where id in (?)`, [
+                req.body.id.split(',')
             ]);
             return response_js_1.default.succ(resp, { result: true });
         }

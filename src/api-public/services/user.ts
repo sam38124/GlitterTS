@@ -520,15 +520,26 @@ export class User {
         key: string, value: any, user_id?: string
     }) {
         try {
-            await db.execute(`replace
+            if(typeof config.value!=='string'){
+                config.value=JSON.stringify(config.value)
+            }
+            if((await db.query(`select count(1) from \`${this.app}\`.t_user_public_config where \`key\`=?`,[config.key]))[0]['count(1)']===1){
+                await db.query(`update \`${this.app}\`.t_user_public_config set value=? where \`key\`=?`,[
+                    config.value,
+                    config.key
+                ])
+            }else{
+                await db.query(`insert
             into \`${this.app}\`.t_user_public_config (\`user_id\`,\`key\`,\`value\`,updated_at)
             values (?,?,?,?)
             `, [
-                config.user_id ?? this.token!.userID,
-                config.key,
-                config.value,
-                new Date()
-            ]);
+                    config.user_id ?? this.token!.userID,
+                    config.key,
+                    config.value,
+                    new Date()
+                ]);
+            }
+
         } catch (e) {
             console.log(e);
             throw exception.BadRequestError("ERROR", "ERROR." + e, null);

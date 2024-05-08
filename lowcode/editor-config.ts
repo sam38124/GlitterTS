@@ -23,10 +23,15 @@ export class EditorConfig{
         },{
             title:'嵌入模塊',
             value:'module'
-        },{
+        },
+        {
+          title: '頁面模板',
+          value: 'article'
+        },
+        {
             title:'商品頁樣板',
             value:'product'
-        },{
+        }, {
             title:'後台插件',
             value:'backend'
         },{

@@ -1,0 +1,187 @@
+{
+  "key": "list",
+  "page": "multiple_array",
+  "type": "form_plugin_v2",
+  "group": "",
+  "title": "串珠列表",
+  "appName": "cms_system",
+  "require": "true",
+  "readonly": "write",
+  "formFormat": "{}",
+  "moduleName": "多項生成",
+  "style_data": {
+    "input": {
+      "list": [],
+      "class": "",
+      "style": "",
+      "version": "v2"
+    },
+    "label": {
+      "list": [],
+      "class": "form-label fs-base ",
+      "style": "",
+      "version": "v2"
+    },
+    "container": {
+      "list": [],
+      "class": "",
+      "style": "",
+      "version": "v2"
+    }
+  },
+  "form_config": {
+    "type": "name",
+    "title": "",
+    "form_array": [
+      {
+        "key": "product",
+        "page": "product_search",
+        "type": "form_plugin_v2",
+        "group": "",
+        "title": "對應商品",
+        "appName": "cms_system",
+        "require": "true",
+        "readonly": "write",
+        "formFormat": "{}",
+        "moduleName": "商品搜索",
+        "style_data": {
+          "input": {
+            "list": [],
+            "class": "",
+            "style": "",
+            "version": "v2"
+          },
+          "label": {
+            "list": [],
+            "class": "form-label fs-base ",
+            "style": "",
+            "version": "v2"
+          },
+          "container": {
+            "list": [],
+            "class": "",
+            "style": "",
+            "version": "v2"
+          }
+        },
+        "form_config": {
+          "type": "name",
+          "title": "",
+          "place_holder": ""
+        }
+      },
+      {
+        "key": "name",
+        "page": "input",
+        "type": "form_plugin_v2",
+        "group": "",
+        "title": "方案名稱",
+        "appName": "cms_system",
+        "require": "true",
+        "readonly": "write",
+        "formFormat": "{}",
+        "moduleName": "輸入框",
+        "style_data": {
+          "input": {
+            "list": [],
+            "class": "",
+            "style": "",
+            "version": "v2"
+          },
+          "label": {
+            "list": [],
+            "class": "form-label fs-base ",
+            "style": "",
+            "version": "v2"
+          },
+          "container": {
+            "list": [],
+            "class": "",
+            "style": "",
+            "version": "v2"
+          }
+        },
+        "form_config": {
+          "type": "name",
+          "title": "",
+          "place_holder": ""
+        }
+      },
+      {
+        "key": "count",
+        "page": "input",
+        "type": "form_plugin_v2",
+        "group": "",
+        "title": "珠珠總數",
+        "appName": "cms_system",
+        "require": "true",
+        "readonly": "write",
+        "formFormat": "{}",
+        "moduleName": "輸入框",
+        "style_data": {
+          "input": {
+            "list": [],
+            "class": "",
+            "style": "",
+            "version": "v2"
+          },
+          "label": {
+            "list": [],
+            "class": "form-label fs-base ",
+            "style": "",
+            "version": "v2"
+          },
+          "container": {
+            "list": [],
+            "class": "",
+            "style": "",
+            "version": "v2"
+          }
+        },
+        "form_config": {
+          "type": "number",
+          "title": "",
+          "place_holder": "請輸入珠珠顆數"
+        }
+      },
+      {
+        "key": "r_1715134875481",
+        "page": "input",
+        "type": "form_plugin_v2",
+        "group": "",
+        "title": "火性豬豬",
+        "appName": "cms_system",
+        "require": "true",
+        "readonly": "write",
+        "formFormat": "{}",
+        "moduleName": "輸入框",
+        "style_data": {
+          "input": {
+            "list": [],
+            "class": "",
+            "style": "",
+            "version": "v2"
+          },
+          "label": {
+            "list": [],
+            "class": "form-label fs-base ",
+            "style": "",
+            "version": "v2"
+          },
+          "container": {
+            "list": [],
+            "class": "",
+            "style": "",
+            "version": "v2"
+          }
+        },
+        "form_config": {
+          "type": "name",
+          "title": "",
+          "place_holder": ""
+        }
+      }
+    ],
+    "place_holder": ""
+  }
+}

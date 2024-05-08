@@ -77,6 +77,15 @@ export class Setting_editor {
                                             },
                                             {
                                                 icon: '',
+                                                page: 'blog_manager',
+                                                group: '網誌管理',
+                                                title: '網誌列表',
+                                                appName: 'cms_system',
+                                                groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1714973933251-newspaper-regular.svg',
+                                                moduleName: '網誌列表',
+                                            },
+                                            {
+                                                icon: '',
                                                 page: 'form_setting_page',
                                                 group: '表單管理',
                                                 title: '表單設定',
@@ -236,7 +245,7 @@ export class Setting_editor {
                                                 appName: 'cms_system',
                                                 groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713418629944-Component 56 (7).svg',
                                                 moduleName: 'android應用上架',
-                                            },
+                                            }
                                         ];
                                         ApiPageConfig.getPrivateConfigV2('backend_list').then((res) => {
                                             res.response.result[0] && (items = res.response.result[0].value);

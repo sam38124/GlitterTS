@@ -17,7 +17,7 @@ class ApiPublic {
         try {
             await database_1.default.execute(`CREATE SCHEMA if not exists \`${appName}\` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;`, []);
             await database_1.default.execute(`CREATE SCHEMA if not exists \`${appName}_recover\` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;`, []);
-            const groupSize = 15;
+            const groupSize = 5;
             const sqlArray = [
                 {
                     scheme: appName,

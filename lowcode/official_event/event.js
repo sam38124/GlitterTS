@@ -733,6 +733,10 @@ TriggerEvent.create(import.meta.url, {
         title: 'Blog / 取得網誌列表',
         fun: TriggerEvent.setEventRouter(import.meta.url, './blog/get-blog.js'),
     },
+    getBlogTag: {
+        title: 'Blog / 標籤取得網誌',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './blog/get-blog-tag.js'),
+    }
 });
 function questionText(data) {
     return `<div class="bg-secondary rounded-3 py-2 px-2 ">

@@ -25,6 +25,7 @@ import {GlitterUtil} from "./helper/glitter-util.js";
 import {Seo} from "./services/seo.js";
 import {Shopping} from "./api-public/services/shopping.js";
 import {WebSocket} from "./services/web-socket.js";
+import {UtDatabase} from "./api-public/utils/ut-database.js";
 
 
 export const app = express();
@@ -201,18 +202,32 @@ export async function createAPP(dd: any) {
                             }))
                             if(pd.data.content){
                                 const productSeo=pd.data.content.seo ?? {}
-                                if (d.type !== 'custom') {
-                                    data =await Seo.getPageInfo(appName,data.config.homePage);
-                                    data.page_config = data.page_config ?? {}
-                                    data.page_config.seo=data.page_config.seo??{}
-                                    data.page_config.seo.title=productSeo.title;
-                                    data.page_config.seo.content=productSeo.content;
-                                }
+                                data =await Seo.getPageInfo(appName,data.config.homePage);
+                                data.page_config = data.page_config ?? {}
+                                data.page_config.seo=data.page_config.seo??{}
+                                data.page_config.seo.title=productSeo.title;
+                                data.page_config.seo.content=productSeo.content;
                             }else{
                                 data =await Seo.getPageInfo(appName,data.config.homePage);
                             }
 
-                        }else  if (d.type !== 'custom') {
+                        }else  if(data.page_type==='article' && data.page_config.template_type==='blog'){
+                            let query = [
+                                `(content->>'$.type'='article')`,
+                                `(content->>'$.tag'='${req.query.article}')`,
+                            ]
+                            const article:any=await new UtDatabase(appName, `t_manager_post`).querySql(query, {page:0,limit:1});
+                            console.log(`articleIS->`,article)
+                            data =await Seo.getPageInfo(appName,data.config.homePage);
+                            data.page_config = data.page_config ?? {}
+                            data.page_config.seo=data.page_config.seo??{}
+                            if(article.data[0]){
+                                data.page_config.seo.title=article.data[0].content.seo.title;
+                                data.page_config.seo.content=article.data[0].content.seo.content;
+                                data.page_config.seo.keywords=article.data[0].content.seo.keywords;
+                            }
+
+                        } else if (d.type !== 'custom') {
                             data =await Seo.getPageInfo(appName,data.config.homePage);
                         }
                         const preload=(req.query.type === 'editor' || req.query.isIframe === 'true') ? {} : await App.preloadPageData(appName,data.tag);

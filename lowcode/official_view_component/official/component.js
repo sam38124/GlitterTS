@@ -348,7 +348,8 @@ export const component = Plugin.createComponent(import.meta.url, (glitter, editM
 <div class="flex-fill border"></div>
 </div>`;
                                                             }
-                                                            const refer_form = ((widget.data.refer_app)) ? (widget.data.refer_form_data || page_config.formData) : page_config.formData;
+                                                            page_config.formData = page_config.formData || {};
+                                                            const refer_form = ((widget.data.refer_app)) ? ((widget.data.refer_form_data || page_config.formData) || {}) : page_config.formData;
                                                             function refresh() {
                                                                 console.log('refresh');
                                                                 if (widget.data.refer_app) {

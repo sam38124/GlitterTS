@@ -2576,26 +2576,9 @@ ${EditorElem.editeInput({
                     postMD.status = text;
                 }
             }))}
-<div class="mt-2"></div>
-${BgWidget.card(gvc.bindView(() => {
-            const id = gvc.glitter.getUUID();
-            return {
-                bind: id,
-                view: () => {
-                    var _a;
-                    return EditorElem.pageSelect(gvc, '選擇佈景主題', (_a = postMD.template) !== null && _a !== void 0 ? _a : "", (data) => {
-                        postMD.template = data;
-                    }, (dd) => {
-                        const filter_result = dd.group !== 'glitter-article' && dd.page_type === 'article' && dd.page_config.template_type === 'product';
-                        if (filter_result && !postMD.template) {
-                            postMD.template = dd.tag;
-                            gvc.notifyDataChange([seoID, id]);
-                        }
-                        return filter_result;
-                    });
-                }
-            };
-        }))}
+${(() => {
+            return ``;
+        })()}
 <div class="mt-2"></div>
          ${BgWidget.card(obj.gvc.bindView(() => {
             const id = obj.gvc.glitter.getUUID();

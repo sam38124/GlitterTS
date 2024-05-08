@@ -123,7 +123,7 @@ export class Main_editor {
                                         loop(pageConfig, list);
 
 
-                                        function renderItems(list: any, og_array: any) {
+                                        function renderItems(list: any, og_array: any,root:boolean) {
                                             return gvc.bindView(() => {
                                                 const id = gvc.glitter.getUUID()
                                                 return {
@@ -206,15 +206,21 @@ export class Main_editor {
                                                                                aria-hidden="true"></i>
                                                                         </div>
                                                                     </div>
-                                                                    ${(dd.type === 'container' ? `<div class="ps-2  pb-2 ${dd.toggle ? `` : `d-none`}">${renderItems(dd.child, dd.array)}</div>` : ``)}
+                                                                    ${(dd.type === 'container' ? `<div class="ps-2  pb-2 ${dd.toggle ? `` : `d-none`}">${renderItems(dd.child, dd.array,false)}</div>` : ``)}
                                                                 </li>
                                                             `
                                                         }).join('') + html`
                                                             <div class="w-100 fw-500 d-flex align-items-center  fs-6 hoverBtn h_item  rounded px-2 hoverF2 mb-1"
                                                                  style="color:#36B;gap:10px;" onclick="${gvc.event(()=>{
-                                                                glitter.share.editorViewModel.selectContainer = og_array
+                                                                     if(root){
+                                                                         glitter.share.editorViewModel.selectContainer = glitter.share.editorViewModel.data.config
+                                                                     }else{
+                                                                         glitter.share.editorViewModel.selectContainer = og_array
+                                                                     }
+                                                             
                                                                 AddComponent.closeEvent=()=>{
                                                                     setPageConfig()
+                                                                    console.log(`AddComponent.closeEvent->`,glitter.share.editorViewModel.selectContainer)
                                                                 }
                                                                 AddComponent.toggle(true)
                                                             })}">
@@ -283,7 +289,7 @@ export class Main_editor {
 
                                         return html`
                                             <div class="p-2">
-                                                ${renderItems(list, pageConfig)}
+                                                ${renderItems(list, pageConfig,true)}
                                             </div>`
                                     })()
 

@@ -2667,6 +2667,7 @@ ${EditorElem.editeInput({
                 }))}
           <div class="my-2"></div>
          ${BgWidget.card(obj.gvc.bindView(() => {
+             
                     postMD.seo = postMD.seo ?? {
                         title: '',
                         content: ''
@@ -2741,25 +2742,28 @@ ${EditorElem.editeInput({
                                 postMD.status = text
                             }
                         }))}
-<div class="mt-2"></div>
-${BgWidget.card(gvc.bindView(() => {
-                    const id = gvc.glitter.getUUID()
-                    return {
-                        bind: id,
-                        view: () => {
-                            return EditorElem.pageSelect(gvc, '選擇佈景主題', postMD.template ?? "", (data) => {
-                                postMD.template = data
-                            }, (dd) => {
-                                const filter_result = dd.group !== 'glitter-article' && dd.page_type === 'article' && dd.page_config.template_type === 'product'
-                                if (filter_result && !postMD.template) {
-                                    postMD.template = dd.tag
-                                    gvc.notifyDataChange([seoID, id])
-                                }
-                                return filter_result
-                            })
-                        }
-                    }
-                }))}
+${(()=>{
+    return ``
+//     return `<div class="mt-2"></div>
+// ${BgWidget.card(gvc.bindView(() => {
+//         const id = gvc.glitter.getUUID()
+//         return {
+//             bind: id,
+//             view: () => {
+//                 return EditorElem.pageSelect(gvc, '選擇佈景主題', postMD.template ?? "", (data) => {
+//                     postMD.template = data
+//                 }, (dd) => {
+//                     const filter_result = dd.group !== 'glitter-article' && dd.page_type === 'article' && dd.page_config.template_type === 'product'
+//                     if (filter_result && !postMD.template) {
+//                         postMD.template = dd.tag
+//                         gvc.notifyDataChange([seoID, id])
+//                     }
+//                     return filter_result
+//                 })
+//             }
+//         }
+//     }))}`
+                })()}
 <div class="mt-2"></div>
          ${BgWidget.card(obj.gvc.bindView(() => {
                     const id = obj.gvc.glitter.getUUID()

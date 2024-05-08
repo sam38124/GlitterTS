@@ -500,15 +500,26 @@ class User {
     async setConfig(config) {
         var _a;
         try {
-            await database_1.default.execute(`replace
+            if (typeof config.value !== 'string') {
+                config.value = JSON.stringify(config.value);
+            }
+            if ((await database_1.default.query(`select count(1) from \`${this.app}\`.t_user_public_config where \`key\`=?`, [config.key]))[0]['count(1)'] === 1) {
+                await database_1.default.query(`update \`${this.app}\`.t_user_public_config set value=? where \`key\`=?`, [
+                    config.value,
+                    config.key
+                ]);
+            }
+            else {
+                await database_1.default.query(`insert
             into \`${this.app}\`.t_user_public_config (\`user_id\`,\`key\`,\`value\`,updated_at)
             values (?,?,?,?)
             `, [
-                (_a = config.user_id) !== null && _a !== void 0 ? _a : this.token.userID,
-                config.key,
-                config.value,
-                new Date()
-            ]);
+                    (_a = config.user_id) !== null && _a !== void 0 ? _a : this.token.userID,
+                    config.key,
+                    config.value,
+                    new Date()
+                ]);
+            }
         }
         catch (e) {
             console.log(e);

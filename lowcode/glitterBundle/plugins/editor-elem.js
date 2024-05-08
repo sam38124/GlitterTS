@@ -638,9 +638,9 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
         const glitter = gvc.glitter;
         const id = glitter.getUUID();
         const data = {
-            dataList: undefined,
+            dataList: undefined
         };
-        const saasConfig = window.saasConfig;
+        const saasConfig = window.parent.saasConfig;
         function getData() {
             BaseApi.create({
                 url: saasConfig.config.url + `/api/v1/template?appName=${saasConfig.config.appName}`,

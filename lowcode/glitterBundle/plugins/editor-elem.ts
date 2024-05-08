@@ -852,9 +852,9 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
         const glitter = gvc.glitter;
         const id = glitter.getUUID();
         const data: any = {
-            dataList: undefined,
-        };
-        const saasConfig = (window as any).saasConfig;
+            dataList: undefined
+        }
+        const saasConfig = (window.parent as any).saasConfig
 
         function getData() {
             BaseApi.create({

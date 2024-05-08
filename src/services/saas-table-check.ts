@@ -99,17 +99,24 @@ export const SaasScheme = {
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`
             }
         ];
-        const groupSize = 15;
+        const groupSize = 5;
         for (const b of chunkArray(sqlArray, groupSize)) {
             let check = b.length;
             await new Promise((resolve) => {
                 for (const d of b) {
-                    compare_sql_table(d.scheme, d.table, d.sql).then(() => {
-                        check--;
-                        if (check === 0) {
-                            resolve(true);
+                    function try_execute(){
+                        try {
+                            compare_sql_table(d.scheme, d.table, d.sql).then(() => {
+                                check--;
+                                if (check === 0) {
+                                    resolve(true);
+                                }
+                            });
+                        }catch (e) {
+                            try_execute()
                         }
-                    });
+                    }
+                    try_execute()
                 }
             });
         }
@@ -124,55 +131,60 @@ function chunkArray(array: any, groupSize: number) {
 }
 
 export async function compare_sql_table(scheme: string, table: string, sql: string) {
-    const tempKey = 'tempcompare' + table;
-    const transaction = await db.Transaction.build();
-    await db.execute(`DROP TABLE if exists \`${scheme}\`.\`${tempKey}\`;`, []);
-    await db.execute(`CREATE TABLE if not exists \`${scheme}\`.\`${table}\` ${sql}`, []);
-    await db.execute(`CREATE TABLE if not exists \`${scheme}\`.\`${tempKey}\` ${sql}`, []);
-    const compareStruct = `SELECT COLUMN_NAME,
+    try {
+        const tempKey = 'tempcompare' + table;
+        const transaction = await db.Transaction.build();
+        await db.execute(`DROP TABLE if exists \`${scheme}\`.\`${tempKey}\`;`, []);
+        await db.execute(`CREATE TABLE if not exists \`${scheme}\`.\`${table}\` ${sql}`, []);
+        await db.execute(`CREATE TABLE if not exists \`${scheme}\`.\`${tempKey}\` ${sql}`, []);
+        const compareStruct = `SELECT COLUMN_NAME,
                                   DATA_TYPE,
                                   CHARACTER_MAXIMUM_LENGTH
                            FROM INFORMATION_SCHEMA.COLUMNS
                            WHERE TABLE_NAME = ?
                              AND TABLE_SCHEMA = ?`;
-    const compareStruct2 = `SELECT INDEX_NAME,
+        const compareStruct2 = `SELECT INDEX_NAME,
                                    COLUMN_NAME
                             FROM INFORMATION_SCHEMA.STATISTICS
                             WHERE TABLE_NAME = ?
                               AND TABLE_SCHEMA = ?;    `;
-    let older = await db.query(compareStruct, [table, scheme]);
-    const newest = await db.query(compareStruct, [tempKey, scheme]);
-    const older2 = await db.query(compareStruct2, [table, scheme]);
-    const newest2 = await db.query(compareStruct2, [tempKey, scheme]);
-    if (!(JSON.stringify(older) == JSON.stringify(newest)) || !(JSON.stringify(older2) == JSON.stringify(newest2))) {
-        older = older.filter((dd: any) => {
-            return newest.find((d2: any) => {
-                return dd.COLUMN_NAME === d2.COLUMN_NAME;
+        let older = await db.query(compareStruct, [table, scheme]);
+        const newest = await db.query(compareStruct, [tempKey, scheme]);
+        const older2 = await db.query(compareStruct2, [table, scheme]);
+        const newest2 = await db.query(compareStruct2, [tempKey, scheme]);
+        if (!(JSON.stringify(older) == JSON.stringify(newest)) || !(JSON.stringify(older2) == JSON.stringify(newest2))) {
+            older = older.filter((dd: any) => {
+                return newest.find((d2: any) => {
+                    return dd.COLUMN_NAME === d2.COLUMN_NAME;
+                });
             });
-        });
-        await transaction.execute(
-            `INSERT INTO \`${scheme}\`.\`${tempKey}\` (${older
-                .map((dd: any) => {
-                    return `\`${dd.COLUMN_NAME}\``;
-                })
-                .join(',')})
+            await transaction.execute(
+                `INSERT INTO \`${scheme}\`.\`${tempKey}\` (${older
+                    .map((dd: any) => {
+                        return `\`${dd.COLUMN_NAME}\``;
+                    })
+                    .join(',')})
                                    SELECT ${older
-                .map((dd: any) => {
-                    return `\`${dd.COLUMN_NAME}\``;
-                })
-                .join(',')}
+                    .map((dd: any) => {
+                        return `\`${dd.COLUMN_NAME}\``;
+                    })
+                    .join(',')}
                                    FROM \`${scheme}\`.\`${table}\`
         `,
-            []
-        );
-        await transaction.execute(`
+                []
+            );
+            await transaction.execute(`
         CREATE TABLE  \`${scheme}_recover\`.\`${table}_${new Date().getTime()}\` AS SELECT * FROM \`${scheme}\`.\`${table}\`;
         `,[])
-        await transaction.execute(`DROP TABLE \`${scheme}\`.\`${table}\`;`, []);
-        await transaction.execute(`ALTER TABLE \`${scheme}\`.${tempKey} RENAME TO \`${scheme}\`.\`${table}\`;`, []);
+            await transaction.execute(`DROP TABLE \`${scheme}\`.\`${table}\`;`, []);
+            await transaction.execute(`ALTER TABLE \`${scheme}\`.${tempKey} RENAME TO \`${scheme}\`.\`${table}\`;`, []);
+        }
+        await transaction.execute(`DROP TABLE if exists \`${scheme}\`.\`${tempKey}\`;`, []);
+        await transaction.commit();
+        await transaction.release();
+    }catch (e) {
+        console.log(e)
     }
-    await transaction.execute(`DROP TABLE if exists \`${scheme}\`.\`${tempKey}\`;`, []);
-    await transaction.commit();
-    await transaction.release();
+
 }
 

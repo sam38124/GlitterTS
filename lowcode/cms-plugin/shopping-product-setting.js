@@ -245,6 +245,7 @@ export class ShoppingProductSetting {
             content: '',
             status: 'active',
             collection: [],
+            hideIndex: 'false',
             preview_image: [],
             specs: [],
             variants: [],
@@ -897,59 +898,81 @@ export class ShoppingProductSetting {
             return {
                 bind: id,
                 view: () => {
-                    let view = [
-                        html `<div class="fs-sm fw-500 d-flex align-items-center justify-content-between mb-2">
+                    try {
+                        let view = [
+                            html `<div
+                                                    class="fs-sm fw-500 d-flex align-items-center justify-content-between mb-2"
+                                                >
                                                     搜尋引擎列表
                                                     <div
                                                         class="fw-500 fs-sm ${toggle ? `d-none` : ``}"
                                                         style="cursor: pointer;color:rgba(0, 91, 211, 1);"
                                                         onclick="${obj.gvc.event(() => {
-                            toggle = !toggle;
-                            obj.gvc.notifyDataChange(id);
-                        })}"
+                                toggle = !toggle;
+                                obj.gvc.notifyDataChange(id);
+                            })}"
                                                     >
                                                         編輯
                                                     </div>
                                                 </div>`,
-                        html `<div class="fs-6 fw-500" style="color:#1a0dab;">${postMD.seo.title || '尚未設定'}</div>`,
-                        (() => {
-                            const href = (() => {
-                                const url = new URL('', gvc.glitter.share.editorViewModel.domain ? `https://${gvc.glitter.share.editorViewModel.domain}/` : location.href);
-                                url.search = '';
-                                url.searchParams.set('page', postMD.template);
-                                url.searchParams.set('product_id', postMD.id || '');
-                                if (!gvc.glitter.share.editorViewModel.domain) {
-                                    url.searchParams.set('appName', window.appName);
-                                }
-                                return url.href;
-                            })();
-                            return html `<a class="fs-sm fw-500" style="color:#006621;cursor: pointer;" href="${href}">${href}</a>`;
-                        })(),
-                        html `<div class="fs-sm fw-500" style="color:#545454;white-space: normal;">${postMD.seo.content || '尚未設定'}</div>`,
-                    ];
-                    if (toggle) {
-                        view = view.concat([
-                            EditorElem.editeInput({
-                                gvc: obj.gvc,
-                                title: '頁面標題',
-                                default: postMD.seo.title,
-                                placeHolder: `請輸入頁面標題`,
-                                callback: (text) => {
-                                    postMD.seo.title = text;
-                                },
-                            }),
-                            EditorElem.editeText({
-                                gvc: obj.gvc,
-                                title: '中繼描述',
-                                default: postMD.seo.content,
-                                placeHolder: `請輸入中繼描述`,
-                                callback: (text) => {
-                                    postMD.seo.content = text;
-                                },
-                            }),
-                        ]);
+                            html `<div class="fs-6 fw-500" style="color:#1a0dab;">
+                                                    ${postMD.seo.title || '尚未設定'}
+                                                </div>`,
+                            (() => {
+                                const href = (() => {
+                                    const url = new URL('', window.parent.glitter.share.editorViewModel.domain
+                                        ? `https://${window.parent.glitter.share.editorViewModel.domain}/`
+                                        : window.parent.location.href);
+                                    url.search = '';
+                                    url.searchParams.set('page', postMD.template);
+                                    url.searchParams.set('product_id', postMD.id || '');
+                                    if (!window.parent.glitter.share.editorViewModel.domain) {
+                                        url.searchParams.set('appName', window.parent.appName);
+                                    }
+                                    return url.href;
+                                })();
+                                return html `<a
+                                                        class="fs-sm fw-500"
+                                                        style="color:#006621;cursor: pointer;"
+                                                        href="${href}"
+                                                        >${href}</a
+                                                    >`;
+                            })(),
+                            html `<div
+                                                    class="fs-sm fw-500"
+                                                    style="color:#545454;white-space: normal;"
+                                                >
+                                                    ${postMD.seo.content || '尚未設定'}
+                                                </div>`,
+                        ];
+                        if (toggle) {
+                            view = view.concat([
+                                EditorElem.editeInput({
+                                    gvc: obj.gvc,
+                                    title: '頁面標題',
+                                    default: postMD.seo.title,
+                                    placeHolder: `請輸入頁面標題`,
+                                    callback: (text) => {
+                                        postMD.seo.title = text;
+                                    },
+                                }),
+                                EditorElem.editeText({
+                                    gvc: obj.gvc,
+                                    title: '中繼描述',
+                                    default: postMD.seo.content,
+                                    placeHolder: `請輸入中繼描述`,
+                                    callback: (text) => {
+                                        postMD.seo.content = text;
+                                    },
+                                }),
+                            ]);
+                        }
+                        return view.join('');
                     }
-                    return view.join('');
+                    catch (e) {
+                        console.log(e);
+                        return ``;
+                    }
                 },
             };
         }))}
@@ -986,6 +1009,32 @@ export class ShoppingProductSetting {
                         return filter_result;
                     });
                 },
+            };
+        }))}
+                            <div class="mt-2"></div>
+                            ${BgWidget.card(gvc.bindView(() => {
+            const id = gvc.glitter.getUUID();
+            return {
+                bind: id,
+                view: () => {
+                    var _a;
+                    return EditorElem.select({
+                        title: '是否支援商品搜尋',
+                        gvc: gvc,
+                        def: (_a = postMD.hideIndex) !== null && _a !== void 0 ? _a : 'false',
+                        array: [
+                            {
+                                title: '是', value: 'false',
+                            },
+                            {
+                                title: '否', value: 'true',
+                            }
+                        ],
+                        callback: (text) => {
+                            postMD.hideIndex = text;
+                        }
+                    });
+                }
             };
         }))}
                             <div class="mt-2"></div>

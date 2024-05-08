@@ -127,6 +127,7 @@ export class ApiPageConfig {
         });
     }
     static setPage(data) {
+        console.log(`setPage->`, data);
         return BaseApi.create({
             "url": config.url + `/api/v1/template`,
             "type": "PUT",

@@ -167,6 +167,7 @@ export class ApiPageConfig {
         favorite?: number,
         preview_image?: string
     }) {
+        console.log(`setPage->`,data)
         return BaseApi.create({
             "url": config.url + `/api/v1/template`,
             "type": "PUT",

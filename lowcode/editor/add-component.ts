@@ -241,7 +241,6 @@ export class AddComponent {
 
     public static toggle(visible: boolean) {
         if (visible) {
-            AddComponent.closeEvent()
             AddComponent.closeEvent=()=>{}
             AddComponent.addEvent=(gvc:GVC,tdata:any)=>{
                 gvc.glitter.share.addComponent({
@@ -279,6 +278,7 @@ export class AddComponent {
             $('#addComponentView').removeClass('scroll-out')
             $('#addComponentView').addClass('scroll-in')
         } else {
+            AddComponent.closeEvent()
             $('#addComponentViewHover').addClass('d-none')
             $('#addComponentView').addClass('scroll-out')
             $('#addComponentView').removeClass('scroll-in')

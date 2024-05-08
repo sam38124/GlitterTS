@@ -53,7 +53,8 @@ TriggerEvent.createSingleEvent(import.meta.url, (glitter) => {
                         Article.get({
                             page: page,
                             limit: limit,
-                            label: label
+                            label: label,
+                            for_index: "true"
                         }).then((data) => __awaiter(void 0, void 0, void 0, function* () {
                             yield TriggerEvent.trigger({
                                 gvc: gvc,
