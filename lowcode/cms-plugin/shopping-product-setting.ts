@@ -248,7 +248,7 @@ export class ShoppingProductSetting {
             title: string;
             content: string;
             preview_image: string[];
-            hideIndex:string;
+            hideIndex: string;
             collection: string[];
             status: 'active' | 'draft';
             specs: { title: string; option: any }[];
@@ -272,7 +272,7 @@ export class ShoppingProductSetting {
             content: '',
             status: 'active',
             collection: [],
-            hideIndex:'false',
+            hideIndex: 'false',
             preview_image: [],
             specs: [],
             variants: [],
@@ -703,6 +703,22 @@ export class ShoppingProductSetting {
                                                                 gvc: obj.gvc,
                                                                 title: '',
                                                                 array: () => {
+                                                                    postMD.variants =
+                                                                        postMD.variants.length == 0
+                                                                            ? [
+                                                                                  {
+                                                                                      spec: [],
+                                                                                      sale_price: 0,
+                                                                                      compare_price: 0,
+                                                                                      stock: 0,
+                                                                                      sku: '',
+                                                                                      preview_image: '',
+                                                                                      shipment_weight: 0,
+                                                                                      show_understocking: 'true',
+                                                                                  },
+                                                                              ]
+                                                                            : postMD.variants;
+
                                                                     return postMD.variants.map((dd) => {
                                                                         const wi = `calc(100% / 6 + 47px);`;
                                                                         const defaultImage = 'https://nationalityforall.org/wp-content/themes/nfa/dist/images/default_image.jpg';
@@ -944,7 +960,6 @@ export class ShoppingProductSetting {
                             <div class="my-2"></div>
                             ${BgWidget.card(
                                 obj.gvc.bindView(() => {
-                                  
                                     postMD.seo = postMD.seo ?? {
                                         title: '',
                                         content: '',
@@ -956,82 +971,67 @@ export class ShoppingProductSetting {
                                         view: () => {
                                             try {
                                                 let view = [
-                                                    html`<div
-                                                    class="fs-sm fw-500 d-flex align-items-center justify-content-between mb-2"
-                                                >
-                                                    搜尋引擎列表
-                                                    <div
-                                                        class="fw-500 fs-sm ${toggle ? `d-none` : ``}"
-                                                        style="cursor: pointer;color:rgba(0, 91, 211, 1);"
-                                                        onclick="${obj.gvc.event(() => {
-                                                        toggle = !toggle;
-                                                        obj.gvc.notifyDataChange(id);
-                                                    })}"
-                                                    >
-                                                        編輯
-                                                    </div>
-                                                </div>`,
-                                    html`<div class="fs-6 fw-500" style="color:#1a0dab;">
-                                                    ${postMD.seo.title || '尚未設定'}
-                                                </div>`,
-                                            (() => {
-                                                const href = (() => {
-                                                    const url = new URL(
-                                                            '',
-                                                            (window.parent as any).glitter.share.editorViewModel.domain
+                                                    html`<div class="fs-sm fw-500 d-flex align-items-center justify-content-between mb-2">
+                                                        搜尋引擎列表
+                                                        <div
+                                                            class="fw-500 fs-sm ${toggle ? `d-none` : ``}"
+                                                            style="cursor: pointer;color:rgba(0, 91, 211, 1);"
+                                                            onclick="${obj.gvc.event(() => {
+                                                                toggle = !toggle;
+                                                                obj.gvc.notifyDataChange(id);
+                                                            })}"
+                                                        >
+                                                            編輯
+                                                        </div>
+                                                    </div>`,
+                                                    html`<div class="fs-6 fw-500" style="color:#1a0dab;">${postMD.seo.title || '尚未設定'}</div>`,
+                                                    (() => {
+                                                        const href = (() => {
+                                                            const url = new URL(
+                                                                '',
+                                                                (window.parent as any).glitter.share.editorViewModel.domain
                                                                     ? `https://${(window.parent as any).glitter.share.editorViewModel.domain}/`
                                                                     : (window.parent as any).location.href
-                                                    );
-                                                    url.search = '';
-                                                    url.searchParams.set('page', postMD.template);
-                                                    url.searchParams.set('product_id', postMD.id || '');
-                                                    if (!(window.parent as any).glitter.share.editorViewModel.domain) {
-                                                        url.searchParams.set('appName', (window.parent as any).appName);
-                                                    }
-                                                    return url.href;
-                                                })();
-                                                return html`<a
-                                                        class="fs-sm fw-500"
-                                                        style="color:#006621;cursor: pointer;"
-                                                        href="${href}"
-                                                        >${href}</a
-                                                    >`;
-                                            })(),
-                                            html`<div
-                                                    class="fs-sm fw-500"
-                                                    style="color:#545454;white-space: normal;"
-                                                >
-                                                    ${postMD.seo.content || '尚未設定'}
-                                                </div>`,
-                                ];
-                                    if (toggle) {
-                                        view = view.concat([
-                                            EditorElem.editeInput({
-                                                gvc: obj.gvc,
-                                                title: '頁面標題',
-                                                default: postMD.seo.title,
-                                                placeHolder: `請輸入頁面標題`,
-                                                callback: (text) => {
-                                                    postMD.seo.title = text;
-                                                },
-                                            }),
-                                            EditorElem.editeText({
-                                                gvc: obj.gvc,
-                                                title: '中繼描述',
-                                                default: postMD.seo.content,
-                                                placeHolder: `請輸入中繼描述`,
-                                                callback: (text) => {
-                                                    postMD.seo.content = text;
-                                                },
-                                            }),
-                                        ]);
-                                    }
-                                    return view.join('');
-                                }catch (e){
-                console.log(e)
-                return  ``
+                                                            );
+                                                            url.search = '';
+                                                            url.searchParams.set('page', postMD.template);
+                                                            url.searchParams.set('product_id', postMD.id || '');
+                                                            if (!(window.parent as any).glitter.share.editorViewModel.domain) {
+                                                                url.searchParams.set('appName', (window.parent as any).appName);
+                                                            }
+                                                            return url.href;
+                                                        })();
+                                                        return html`<a class="fs-sm fw-500" style="color:#006621;cursor: pointer;" href="${href}">${href}</a>`;
+                                                    })(),
+                                                    html`<div class="fs-sm fw-500" style="color:#545454;white-space: normal;">${postMD.seo.content || '尚未設定'}</div>`,
+                                                ];
+                                                if (toggle) {
+                                                    view = view.concat([
+                                                        EditorElem.editeInput({
+                                                            gvc: obj.gvc,
+                                                            title: '頁面標題',
+                                                            default: postMD.seo.title,
+                                                            placeHolder: `請輸入頁面標題`,
+                                                            callback: (text) => {
+                                                                postMD.seo.title = text;
+                                                            },
+                                                        }),
+                                                        EditorElem.editeText({
+                                                            gvc: obj.gvc,
+                                                            title: '中繼描述',
+                                                            default: postMD.seo.content,
+                                                            placeHolder: `請輸入中繼描述`,
+                                                            callback: (text) => {
+                                                                postMD.seo.content = text;
+                                                            },
+                                                        }),
+                                                    ]);
+                                                }
+                                                return view.join('');
+                                            } catch (e) {
+                                                console.log(e);
+                                                return ``;
                                             }
-                                         
                                         },
                                     };
                                 })
@@ -1081,30 +1081,34 @@ export class ShoppingProductSetting {
                                 })
                             )}
                             <div class="mt-2"></div>
-                            ${BgWidget.card(gvc.bindView(()=>{
-                                const id=gvc.glitter.getUUID()
-                                return {
-                                    bind:id,
-                                    view:()=>{
-                                        return EditorElem.select({
-                                            title: '是否支援商品搜尋',
-                                            gvc: gvc,
-                                            def: (postMD.hideIndex as any) ?? 'false',
-                                            array: [
-                                                {
-                                                    title: '是', value: 'false',
+                            ${BgWidget.card(
+                                gvc.bindView(() => {
+                                    const id = gvc.glitter.getUUID();
+                                    return {
+                                        bind: id,
+                                        view: () => {
+                                            return EditorElem.select({
+                                                title: '是否支援商品搜尋',
+                                                gvc: gvc,
+                                                def: (postMD.hideIndex as any) ?? 'false',
+                                                array: [
+                                                    {
+                                                        title: '是',
+                                                        value: 'false',
+                                                    },
+                                                    {
+                                                        title: '否',
+                                                        value: 'true',
+                                                    },
+                                                ],
+                                                callback: (text) => {
+                                                    postMD.hideIndex = text;
                                                 },
-                                                {
-                                                    title: '否', value: 'true',
-                                                }
-                                            ],
-                                            callback: (text) => {
-                                                postMD.hideIndex = text;
-                                            }
-                                        })
-                                    }
-                                }
-                            }))}
+                                            });
+                                        },
+                                    };
+                                })
+                            )}
                             <div class="mt-2"></div>
                             ${BgWidget.card(
                                 obj.gvc.bindView(() => {

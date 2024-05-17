@@ -647,6 +647,21 @@ export class ShoppingProductSetting {
                                     gvc: obj.gvc,
                                     title: '',
                                     array: () => {
+                                        postMD.variants =
+                                            postMD.variants.length == 0
+                                                ? [
+                                                    {
+                                                        spec: [],
+                                                        sale_price: 0,
+                                                        compare_price: 0,
+                                                        stock: 0,
+                                                        sku: '',
+                                                        preview_image: '',
+                                                        shipment_weight: 0,
+                                                        show_understocking: 'true',
+                                                    },
+                                                ]
+                                                : postMD.variants;
                                         return postMD.variants.map((dd) => {
                                             var _a, _b, _c, _d, _e;
                                             const wi = `calc(100% / 6 + 47px);`;
@@ -900,24 +915,20 @@ export class ShoppingProductSetting {
                 view: () => {
                     try {
                         let view = [
-                            html `<div
-                                                    class="fs-sm fw-500 d-flex align-items-center justify-content-between mb-2"
-                                                >
-                                                    搜尋引擎列表
-                                                    <div
-                                                        class="fw-500 fs-sm ${toggle ? `d-none` : ``}"
-                                                        style="cursor: pointer;color:rgba(0, 91, 211, 1);"
-                                                        onclick="${obj.gvc.event(() => {
+                            html `<div class="fs-sm fw-500 d-flex align-items-center justify-content-between mb-2">
+                                                        搜尋引擎列表
+                                                        <div
+                                                            class="fw-500 fs-sm ${toggle ? `d-none` : ``}"
+                                                            style="cursor: pointer;color:rgba(0, 91, 211, 1);"
+                                                            onclick="${obj.gvc.event(() => {
                                 toggle = !toggle;
                                 obj.gvc.notifyDataChange(id);
                             })}"
-                                                    >
-                                                        編輯
-                                                    </div>
-                                                </div>`,
-                            html `<div class="fs-6 fw-500" style="color:#1a0dab;">
-                                                    ${postMD.seo.title || '尚未設定'}
-                                                </div>`,
+                                                        >
+                                                            編輯
+                                                        </div>
+                                                    </div>`,
+                            html `<div class="fs-6 fw-500" style="color:#1a0dab;">${postMD.seo.title || '尚未設定'}</div>`,
                             (() => {
                                 const href = (() => {
                                     const url = new URL('', window.parent.glitter.share.editorViewModel.domain
@@ -931,19 +942,9 @@ export class ShoppingProductSetting {
                                     }
                                     return url.href;
                                 })();
-                                return html `<a
-                                                        class="fs-sm fw-500"
-                                                        style="color:#006621;cursor: pointer;"
-                                                        href="${href}"
-                                                        >${href}</a
-                                                    >`;
+                                return html `<a class="fs-sm fw-500" style="color:#006621;cursor: pointer;" href="${href}">${href}</a>`;
                             })(),
-                            html `<div
-                                                    class="fs-sm fw-500"
-                                                    style="color:#545454;white-space: normal;"
-                                                >
-                                                    ${postMD.seo.content || '尚未設定'}
-                                                </div>`,
+                            html `<div class="fs-sm fw-500" style="color:#545454;white-space: normal;">${postMD.seo.content || '尚未設定'}</div>`,
                         ];
                         if (toggle) {
                             view = view.concat([
@@ -1024,17 +1025,19 @@ export class ShoppingProductSetting {
                         def: (_a = postMD.hideIndex) !== null && _a !== void 0 ? _a : 'false',
                         array: [
                             {
-                                title: '是', value: 'false',
+                                title: '是',
+                                value: 'false',
                             },
                             {
-                                title: '否', value: 'true',
-                            }
+                                title: '否',
+                                value: 'true',
+                            },
                         ],
                         callback: (text) => {
                             postMD.hideIndex = text;
-                        }
+                        },
                     });
-                }
+                },
             };
         }))}
                             <div class="mt-2"></div>
