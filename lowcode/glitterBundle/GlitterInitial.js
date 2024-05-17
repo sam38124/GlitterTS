@@ -8,7 +8,7 @@ function listenElementChange(query) {
     const targetElement = document.querySelector(query);
     const observer = new MutationObserver(function (mutationsList) {
         Object.keys(glitter.elementCallback).map((dd) => {
-            if (glitter.elementCallback[dd].rendered && !(document.querySelector(`[gvc-id="${dd}"]`))) {
+            if (glitter.elementCallback[dd].rendered && !(glitter.elementCallback[dd].doc.querySelector(`[gvc-id="${dd}"]`))) {
                 glitter.elementCallback[dd].rendered = false;
                 glitter.elementCallback[dd].onDestroy();
             }
@@ -60,6 +60,7 @@ function traverseHTML(element, document) {
             }
             try {
                 if (document.querySelector(`[gvc-id="${id}"]`)) {
+                    glitter.elementCallback[id].doc = document;
                     glitter.elementCallback[id].rendered = true;
                     if (!document.querySelector(`[gvc-id="${id}"]`).wasRender) {
                         let view = glitter.elementCallback[id].getView();
@@ -214,7 +215,7 @@ class GlitterWebComponent extends HTMLElement {
         const doc = this.shadowRoot;
         const observer = new MutationObserver(function (mutationsList) {
             Object.keys(glitter.elementCallback).map((dd) => {
-                if (glitter.elementCallback[dd].rendered && !(doc.querySelector(`[gvc-id="${dd}"]`))) {
+                if (glitter.elementCallback[dd].rendered && !(glitter.elementCallback[dd].doc.querySelector(`[gvc-id="${dd}"]`))) {
                     glitter.elementCallback[dd].rendered = false;
                     glitter.elementCallback[dd].onDestroy();
                 }

@@ -1,5 +1,4 @@
 import { TriggerEvent } from "../plugins/trigger-event.js";
-import { Editor } from "./editor.js";
 import { EditorElem } from "../plugins/editor-elem.js";
 export const codeComponent = {
     render: (gvc, widget, setting, hoverID, subData, htmlGenerate) => {
@@ -41,7 +40,7 @@ export const codeComponent = {
                                     },
                                     type: 'text'
                                 }),
-                                Editor.select({
+                                EditorElem.select({
                                     title: "觸發時機",
                                     gvc: gvc,
                                     def: widget.data.triggerTime,

@@ -1027,7 +1027,6 @@ ${obj.gvc.bindView({
                                                                                             clickEvent: (dd as any).onResumtEvent,
                                                                                             subData: subData
                                                                                         })
-                                                                                        console.log(`onResume`)
                                                                                     }
                                                                                 },
                                                                                 onInitial: () => {

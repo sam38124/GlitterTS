@@ -28,7 +28,7 @@ export class Entry {
         }
         window.renderClock = (_a = window.renderClock) !== null && _a !== void 0 ? _a : clockF();
         console.log(`Entry-time:`, window.renderClock.stop());
-        glitter.share.editerVersion = "V_6.4.2";
+        glitter.share.editerVersion = "V_6.7.5";
         glitter.share.start = (new Date());
         const vm = {
             appConfig: []
@@ -132,8 +132,13 @@ export class Entry {
         }
     }
     static toBackendEditor(glitter, callback) {
+        if (!glitter.getUrlParameter('function')) {
+            glitter.setUrlParameter('function', 'backend-manger');
+        }
         const css = String.raw;
-        glitter.addStyle(css `@media (prefers-reduced-motion: no-preference) {
+        glitter.addStyle(css `
+          @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@100..900&family=Noto+Sans:ital,wght@0,100..900;1,100..900&display=swap');
+          @media (prefers-reduced-motion: no-preference) {
           :root {
             scroll-behavior: auto !important;
           }
@@ -219,7 +224,8 @@ export class Entry {
             });
         }
         else {
-            if (!GlobalUser.token) {
+            console.log(GlobalUser.saas_token);
+            if (!GlobalUser.saas_token) {
                 const url = new URL(glitter.location.href);
                 location.href = `${url.origin}/glitter/?page=signin`;
             }
@@ -230,7 +236,7 @@ export class Entry {
                     "timeout": 0,
                     "headers": {
                         "Content-Type": "application/json",
-                        "Authorization": GlobalUser.token
+                        "Authorization": GlobalUser.saas_token
                     }
                 }).then((d2) => {
                     if (!d2.result) {
@@ -324,6 +330,9 @@ export class Entry {
                 url.searchParams.set('page', data.response.redirect);
                 if (glitter.getUrlParameter('appName')) {
                     url.searchParams.set('appName', glitter.getUrlParameter('appName'));
+                }
+                if (glitter.getUrlParameter('function')) {
+                    url.searchParams.set('function', glitter.getUrlParameter('function'));
                 }
                 location.href = url.href;
                 return;

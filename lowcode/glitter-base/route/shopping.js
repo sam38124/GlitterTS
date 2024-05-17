@@ -81,6 +81,7 @@ export class ApiShop {
                     json.status && par.push(`status=${json.status}`);
                     json.orderBy && par.push(`order_by=${json.orderBy}`);
                     json.id_list && par.push(`id_list=${json.id_list}`);
+                    json.with_hide_index && par.push(`with_hide_index=${json.with_hide_index}`);
                     return par.join('&');
                 })()}`,
             type: 'GET',

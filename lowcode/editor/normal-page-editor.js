@@ -44,7 +44,7 @@ ${NormalPageEditor.viewArray.map((dd, index) => {
       
         </ol>`,
                         html `
-                            <div style="height:calc(100vh - 65px);overflow-y: auto;">${NormalPageEditor.viewArray[NormalPageEditor.viewArray.length - 1].view}
+                            <div style="height:calc(100vh - 65px);overflow-y: auto;padding-bottom: 100px;">${NormalPageEditor.viewArray[NormalPageEditor.viewArray.length - 1].view}
                             </div>`
                     ].join('');
                 }
@@ -70,6 +70,7 @@ ${NormalPageEditor.viewArray.map((dd, index) => {
             </div>`;
     }
     static toggle(cf) {
+        NormalPageEditor.visible = cf.visible;
         if (cf.visible) {
             $('#norView').removeClass('d-none');
             $('#norViewHover').removeClass('scroll-out');
@@ -94,4 +95,5 @@ ${NormalPageEditor.viewArray.map((dd, index) => {
 NormalPageEditor.refresh = () => {
 };
 NormalPageEditor.viewArray = [];
+NormalPageEditor.visible = false;
 NormalPageEditor.closeEvent = () => { };

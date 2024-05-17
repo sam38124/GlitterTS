@@ -45,6 +45,9 @@ class Seo {
         if (req.query.appName) {
             redirect += `&appName=${req.query.appName}`;
         }
+        if (req.query.function) {
+            redirect += `&function=${req.query.function}`;
+        }
         return `
 ${(() => {
             var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l;

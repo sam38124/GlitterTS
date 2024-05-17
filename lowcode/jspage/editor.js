@@ -20,6 +20,7 @@ import { ShareDialog } from "../dialog/ShareDialog.js";
 import { ApiPageConfig } from "../api/pageConfig.js";
 import { PageCodeSetting } from "../editor/page-code-setting.js";
 import { EditorConfig } from "../editor-config.js";
+import { SaasViewModel } from "../view-model/saas-view-model.js";
 export var ViewType;
 (function (ViewType) {
     ViewType["mobile"] = "mobile";
@@ -72,7 +73,7 @@ export class Editor {
 </svg><span class="ms-1 " style="font-size: 11px;color: orange;">${glitter.share.editerVersion}</span></div>`;
                         }
                         else {
-                            return `CODENEX.EDITOR<span class="ms-1" style="font-size: 11px;">${glitter.share.editerVersion}</span>`;
+                            return `CODENEX<span class="ms-1" style="font-size: 11px;">${glitter.share.editerVersion}</span>`;
                         }
                     })();
             }
@@ -84,8 +85,8 @@ export class Editor {
                             class="header navbar navbar-expand navbar-light bg-light border-bottom border-light shadow fixed-top"
                             data-scroll-header
                             style="height: 56px;">
-                        <div class="container-fluid pe-lg-4">
-                            <div class="navbar-brand text-dark d-none d-lg-flex py-0 h-100" style="width:280px;">
+                        <div class="container-fluid pe-lg-4" style="position: relative">
+                            <div class="navbar-brand text-dark d-none d-lg-flex py-0 h-100" style="width:220px;">
                                 <div class="d-flex align-items-center justify-content-center border-end "
                                      style="width:50px;height: 56px;">
                                     <i class="fa-solid fa-left-to-bracket hoverBtn" style="cursor:pointer;"
@@ -453,13 +454,21 @@ color:white;
             })}">儲存
                                 </button>
                             </div>
+                            ${(() => {
+                if (Storage.select_function === 'backend-manger') {
+                    return SaasViewModel.app_manager(gvc);
+                }
+                else {
+                    return ``;
+                }
+            })()}
                         </div>
 
                     </header>
                     <aside
                             id="componentsNav"
                             class="${(viewModel.type === ViewType.fullScreen) ? `d-none` : ``} offcanvas offcanvas-start offcanvas-expand-lg position-fixed top-0 start-0 vh-100 bg-light border-end-lg overflow-hidden"
-                            style="${(Storage.select_function === 'user-editor') ? `width: 365px;` : `width: 20rem;`}"
+                            style="${(Storage.select_function === 'user-editor') ? `width: 305px;` : `width: calc(20rem - 60px);`}"
                     >
                         <div class="offcanvas-header d-none d-lg-flex justify-content-start border-bottom px-0"
                              style="height: 56px;">
@@ -468,11 +477,18 @@ color:white;
                                      style="width:50px;height: 56px;">
                                     <i class="fa-solid fa-left-to-bracket hoverBtn" style="cursor:pointer;"
                                        onclick="${gvc.event(() => {
-                const url = new URL(location.href);
-                url.searchParams.delete('appName');
-                url.searchParams.delete('type');
-                url.searchParams.set('page', 'backend_manager');
-                location.href = url.href;
+                if (Storage.select_function !== 'backend-manger') {
+                    const url = new URL(location.href);
+                    url.searchParams.set('function', 'backend-manger');
+                    location.href = url.href;
+                }
+                else {
+                    const url = new URL(location.href);
+                    url.searchParams.delete('appName');
+                    url.searchParams.delete('type');
+                    url.searchParams.set('page', 'backend_manager');
+                    location.href = url.href.replace(url.search, '');
+                }
             })}">
 
                                     </i>
@@ -491,7 +507,7 @@ color:white;
                     <main class="docs-container"
                           style="padding-top: 56px;
                           padding-right:${((viewModel.type === ViewType.col3 || viewModel.type === ViewType.mobile) && Storage.select_function !== 'backend-manger' && Storage.select_function !== 'server-manager') ? `290` : `0`}px;${(viewModel.type === ViewType.fullScreen) ? `padding-left:0px;` : `
-                          padding-left:${Storage.select_function === 'user-editor' ? `365px;overflow:hidden;` : `calc(20rem);`}
+                          padding-left:${Storage.select_function === 'user-editor' ? `305px;` : `calc(20rem - 60px);`}
                           ${Storage.select_function === 'page-editor' ? `overflow:hidden;` : ``}
                           `}">
                         ${gvc.bindView({

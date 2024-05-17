@@ -227,7 +227,6 @@ async function createAPP(dd) {
                                 `(content->>'$.tag'='${req.query.article}')`,
                             ];
                             const article = await new ut_database_js_1.UtDatabase(appName, `t_manager_post`).querySql(query, { page: 0, limit: 1 });
-                            console.log(`articleIS->`, article);
                             data = await seo_js_1.Seo.getPageInfo(appName, data.config.homePage);
                             data.page_config = (_f = data.page_config) !== null && _f !== void 0 ? _f : {};
                             data.page_config.seo = (_g = data.page_config.seo) !== null && _g !== void 0 ? _g : {};
@@ -291,6 +290,7 @@ window.preloadData=${JSON.stringify(preload)};
                         `;
                     }
                     else {
+                        console.log(`brandAndMemberType->redirect`);
                         return await seo_js_1.Seo.redirectToHomePage(appName, req);
                     }
                 }

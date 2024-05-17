@@ -7,9 +7,20 @@ export declare class App {
         copyApp: string;
         copyWith: string[];
         brand: string;
+        name?: string;
+        theme?: string;
+    }): Promise<boolean>;
+    updateThemeConfig(body: {
+        theme: string;
+        config: any;
+    }): Promise<boolean>;
+    changeTheme(config: {
+        app_name: string;
+        theme: string;
     }): Promise<boolean>;
     getAPP(query: {
         app_name?: string;
+        theme?: string;
     }): Promise<any>;
     getTemplate(query: {
         app_name?: string;

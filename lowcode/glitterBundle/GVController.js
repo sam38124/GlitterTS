@@ -385,6 +385,10 @@ export function init(metaURL, fun) {
     GVC.glitter.share.GVControllerList[metaURL] = (cf) => {
         var _a, _b, _c, _d, _e, _f;
         if (window.glitter.pageConfig.length - 2 >= 0) {
+            localStorage.setItem('g_l_top', JSON.stringify({
+                y: window.scrollY,
+                id: window.glitter.pageConfig[window.glitter.pageConfig.length - 2].id
+            }));
             window.glitter.pageConfig[window.glitter.pageConfig.length - 2].scrollTop = window.scrollY;
         }
         const gvc = new GVC();

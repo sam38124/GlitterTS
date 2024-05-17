@@ -34,10 +34,11 @@ export const Storage = {
         localStorage.setItem('select_add_btn', value);
     },
     get select_function() {
-        return (localStorage.getItem('select_function') || 'page-editor');
+        return window.glitter.getUrlParameter('function');
     },
     set select_function(value) {
         window.glitter.setUrlParameter('router', ``);
+        window.glitter.setUrlParameter('function', ``);
         localStorage.setItem('select_function', value);
     },
     get page_set_select() {

@@ -10,10 +10,15 @@ const saas_table_check_js_1 = require("../../services/saas-table-check.js");
 const tool_js_1 = __importDefault(require("../../services/tool.js"));
 class ApiPublic {
     static async createScheme(appName) {
-        if (ApiPublic.checkApp.indexOf(appName) !== -1) {
+        if (ApiPublic.checkApp.find((dd) => {
+            return dd.app_name === appName;
+        })) {
             return;
         }
-        ApiPublic.checkApp.push(appName);
+        ApiPublic.checkApp.push({
+            app_name: appName,
+            refer_app: (await database_1.default.query(`select refer_app from \`${config_js_1.saasConfig.SAAS_NAME}\`.app_config where appName=?`, [appName]))[0]['refer_app']
+        });
         try {
             await database_1.default.execute(`CREATE SCHEMA if not exists \`${appName}\` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;`, []);
             await database_1.default.execute(`CREATE SCHEMA if not exists \`${appName}_recover\` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;`, []);
@@ -320,7 +325,7 @@ class ApiPublic {
         catch (e) {
             console.log(e);
             ApiPublic.checkApp = ApiPublic.checkApp.filter((dd) => {
-                return dd === appName;
+                return dd.app_name === appName;
             });
         }
     }

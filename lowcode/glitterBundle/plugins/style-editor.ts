@@ -1,8 +1,7 @@
 import {GVC, init} from '../GVController.js';
 import {EditorElem} from "./editor-elem.js";
 import Add_item_dia from "./add_item_dia.js";
-//@ts-ignore
-import {Swal} from "../../modules/sweetAlert.js";
+
 import {TriggerEvent} from "./trigger-event.js";
 import {ShareDialog} from "../dialog/ShareDialog.js";
 import {Storage} from "../helper/storage.js";
@@ -1125,7 +1124,6 @@ class Render {
         const vid = this.vid
         const viewModel = gvc.glitter.share.editorViewModel
         const parId = gvc.glitter.getUUID()
-        const swal = new Swal(gvc);
 
         return gvc.bindView(() => {
             return {
@@ -1244,10 +1242,6 @@ class Render {
                                                          viewModel.waitCopy = dd
                                                          glitter.share.copycomponent = JSON.stringify(viewModel.waitCopy);
                                                          navigator.clipboard.writeText(JSON.stringify(viewModel.waitCopy));
-                                                         swal.toast({
-                                                             icon: 'success',
-                                                             title: "已複製至剪貼簿，選擇新增模塊來添加項目．"
-                                                         })
                                                      }
 
                                                      event.stopPropagation()

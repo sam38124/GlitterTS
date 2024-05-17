@@ -12,7 +12,6 @@ import { ShareDialog } from "../../dialog/ShareDialog.js";
 import { config } from "../../config.js";
 import { BaseApi } from "../api/base.js";
 import autosize from "./autosize.js";
-import { component_group_key } from "./group_key.js";
 import { ApiPageConfig } from "../../api/pageConfig.js";
 import { Storage } from "../helper/storage.js";
 const html = String.raw;
@@ -430,7 +429,6 @@ class Add_item_dia {
     }
     static add_official_plugin(gvc, search) {
         return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
-            var _a;
             const glitter = gvc.glitter;
             const docID = gvc.glitter.getUUID();
             const tabID = gvc.glitter.getUUID();
@@ -455,16 +453,6 @@ class Add_item_dia {
                 "headers": {
                     "Content-Type": "application/json",
                     "Authorization": config.token
-                }
-            });
-            ((_a = data.response.data) !== null && _a !== void 0 ? _a : []).map((dd) => {
-                if (component_group_key[dd.key]) {
-                    viewModel.pluginList.push({
-                        "src": {
-                            "official": dd.url
-                        },
-                        "name": component_group_key[dd.key].title
-                    });
                 }
             });
             function loading() {

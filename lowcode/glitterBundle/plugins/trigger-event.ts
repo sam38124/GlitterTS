@@ -204,7 +204,12 @@ export class TriggerEvent {
         option.option=option.option ?? []
         const glitter = (window as any).glitter
         if (TriggerEvent.isEditMode()) {
-            return glitter.share.editorBridge['TriggerEventBridge'].editer(gvc, widget, obj, option)
+            if(!glitter.share.editorBridge){
+                return (window.parent as any).glitter.share.editorBridge['TriggerEventBridge'].editer(gvc, widget, obj, option)
+            }else {
+                return glitter.share.editorBridge['TriggerEventBridge'].editer(gvc, widget, obj, option)
+            }
+
         } else {
             return ``
         }
@@ -236,3 +241,10 @@ export class TriggerEvent {
 
     }
 }
+
+const interval=setInterval(()=>{
+    if( (window as any).glitter){
+        (window as any).glitter.setModule(import.meta.url,TriggerEvent)
+        clearInterval(interval)
+    }
+},100)

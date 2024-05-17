@@ -8,7 +8,6 @@ import {BaseApi} from "../api/base.js";
 import {HtmlGenerate} from "../module/html-generate.js";
 //@ts-ignore
 import autosize from "./autosize.js";
-import {component_group_key} from "./group_key.js";
 import {ApiPageConfig} from "../../api/pageConfig.js";
 import {GlobalUser} from "../../glitter-base/global/global-user.js";
 import {Storage} from "../helper/storage.js";
@@ -487,16 +486,6 @@ class Add_item_dia {
                 }
             });
 
-            (data.response.data ?? []).map((dd: any) => {
-                if (component_group_key[dd.key]) {
-                    viewModel.pluginList.push({
-                        "src": {
-                            "official": dd.url
-                        },
-                        "name": component_group_key[dd.key].title
-                    })
-                }
-            })
 
             function loading() {
                 // viewModel.loading = true

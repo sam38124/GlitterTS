@@ -17,11 +17,30 @@ router.post('/', async (req, resp) => {
         return response_1.default.fail(resp, err);
     }
 });
+router.put('/theme', async (req, resp) => {
+    try {
+        const app = new app_1.App(req.body.token);
+        return response_1.default.succ(resp, { result: await app.changeTheme(req.body) });
+    }
+    catch (err) {
+        return response_1.default.fail(resp, err);
+    }
+});
+router.put('/theme_config', async (req, resp) => {
+    try {
+        const app = new app_1.App(req.body.token);
+        return response_1.default.succ(resp, { result: await app.updateThemeConfig(req.body) });
+    }
+    catch (err) {
+        return response_1.default.fail(resp, err);
+    }
+});
 router.get('/', async (req, resp) => {
     try {
         const app = new app_1.App(req.body.token);
         return response_1.default.succ(resp, { result: await app.getAPP({
                 app_name: req.query.appName,
+                theme: req.query.theme
             }) });
     }
     catch (err) {

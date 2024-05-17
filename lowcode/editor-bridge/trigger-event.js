@@ -5,6 +5,11 @@ import { NormalPageEditor } from "../editor/normal-page-editor.js";
 class TriggerEventBridge {
     static editer(gvc, widget, obj, option = { hover: false, option: [] }) {
         var _a;
+        if (!NormalPageEditor.visible) {
+            NormalPageEditor.closeEvent = () => {
+                option.refresh_component && option.refresh_component();
+            };
+        }
         const html = String.raw;
         return `
 <div class="w-100">

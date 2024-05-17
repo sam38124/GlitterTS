@@ -1,8 +1,6 @@
 import {GVC, init} from '../GVController.js';
 import {EditorElem} from "./editor-elem.js";
 import Add_item_dia from "./add_item_dia.js";
-//@ts-ignore
-import {Swal} from "../../modules/sweetAlert.js";
 
 
 const html = String.raw

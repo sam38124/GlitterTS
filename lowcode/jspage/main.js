@@ -23,7 +23,6 @@ import { AddComponent } from "../editor/add-component.js";
 import { PageSettingView } from "../editor/page-setting-view.js";
 import { AddPage } from "../editor/add-page.js";
 import { SetGlobalValue } from "../editor/set-global-value.js";
-import { BgCustomerMessage } from "../backend-manager/bg-customer-message.js";
 import { PageCodeSetting } from "../editor/page-code-setting.js";
 import { NormalPageEditor } from "../editor/normal-page-editor.js";
 import { EditorConfig } from "../editor-config.js";
@@ -89,7 +88,8 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
         globalScript: undefined,
         globalStyle: undefined,
         domain: '',
-        originalDomain: ''
+        originalDomain: '',
+        app_config_original: {}
     };
     initialEditor(gvc, viewModel);
     window.parent.glitter.share.refreshMainLeftEditor = () => {
@@ -106,7 +106,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                     return yield new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
                         const clock = gvc.glitter.ut.clock();
                         ApiPageConfig.getAppConfig().then((res) => {
-                            console.log(res);
+                            viewModel.app_config_original = res.response.result[0];
                             viewModel.domain = res.response.result[0].domain;
                             viewModel.originalDomain = viewModel.domain;
                             resolve(true);
@@ -298,6 +298,8 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                     swal.close();
                     viewModel.originalConfig = JSON.parse(JSON.stringify(viewModel.appConfig));
                     if (refresh) {
+                        window.preloadData = {};
+                        window.glitterInitialHelper.share = {};
                         lod();
                     }
                 });
@@ -333,7 +335,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                             return doc.create(html `
                                         <div class="d-flex overflow-hidden" style="height:100vh;background:white;">
                                             <div style="width:60px;gap:20px;padding-top: 15px;"
-                                                 class="h-100 border-end d-flex flex-column align-items-center">
+                                                 class="d-none h-100 border-end d-flex flex-column align-items-center">
                                                 ${[
                                 {
                                     src: `fa-regular fa-table-layout`,
@@ -362,21 +364,16 @@ ${(Storage.select_function === `${da.index}`) ? `background-color: rgba(10,83,19
 ${(Storage.select_function === `${da.index}`) ? `background:${EditorConfig.editor_layout.btn_background};color:white;` : ``}
 "
                                                             onclick="${gvc.event(() => {
-                                    if (da.index === 'chat-message') {
-                                        BgCustomerMessage.toggle(true, gvc);
+                                    viewModel.waitCopy = undefined;
+                                    viewModel.selectItem = undefined;
+                                    Storage.select_function = da.index;
+                                    if (da.index === 'page-editor') {
+                                        Storage.view_type = 'col3';
                                     }
-                                    else {
-                                        viewModel.waitCopy = undefined;
-                                        viewModel.selectItem = undefined;
-                                        Storage.select_function = da.index;
-                                        if (da.index === 'page-editor') {
-                                            Storage.view_type = 'col3';
-                                        }
-                                        else if (da.index === 'user-editor') {
-                                            Storage.view_type = 'desktop';
-                                        }
-                                        gvc.notifyDataChange(editorContainerID);
+                                    else if (da.index === 'user-editor') {
+                                        Storage.view_type = 'desktop';
                                     }
+                                    gvc.notifyDataChange(editorContainerID);
                                 })}"></i>`;
                             }).join('')}
                                             </div>
@@ -395,7 +392,6 @@ ${(Storage.select_function === `${da.index}`) ? `background:${EditorConfig.edito
                                                 ${PageSettingView.leftNav(gvc)}
                                                 ${AddPage.leftNav(gvc)}
                                                 ${SetGlobalValue.leftNav(gvc)}
-                                                ${BgCustomerMessage.leftNav(gvc)}
                                                 ${PageCodeSetting.leftNav(gvc)}
                                                 ${NormalPageEditor.leftNav(gvc)}
                                                 <div class="h-100" style="">

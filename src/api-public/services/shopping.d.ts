@@ -42,6 +42,7 @@ export declare class Shopping {
     getProduct(query: {
         page: number;
         limit: number;
+        sku?: string;
         id?: string;
         search?: string;
         collection?: string;
@@ -50,6 +51,7 @@ export declare class Shopping {
         status?: string;
         order_by?: string;
         id_list?: string;
+        with_hide_index?: string;
     }): Promise<{
         data: any;
         result: boolean;

@@ -138,8 +138,8 @@ export class Main_editor {
                                                                 gvc.notifyDataChange(id);
                                                             })}">
                                                                                ${((!dd.toggle) ? `
-                                            <i class="fa-regular fa-angle-right hoverBtn me-1" aria-hidden="true"></i>
-                                            ` : `<i class="fa-regular fa-angle-down hoverBtn me-1" aria-hidden="true"></i>`)}
+                                            <i class="fa-regular fa-angle-right hoverBtn " aria-hidden="true"></i>
+                                            ` : `<i class="fa-regular fa-angle-down hoverBtn " aria-hidden="true"></i>`)}
                                                                         </div>
                                                                         ` : ``}
                                                                         ${dd.icon ? `<img src="${dd.icon}" style="width:18px;height:18px;">` : ``}
@@ -185,7 +185,7 @@ export class Main_editor {
                                                                                aria-hidden="true"></i>
                                                                         </div>
                                                                     </div>
-                                                                    ${(dd.type === 'container' ? `<div class="ps-2  pb-2 ${dd.toggle ? `` : `d-none`}">${renderItems(dd.child, dd.array, false)}</div>` : ``)}
+                                                                    ${(dd.type === 'container' ? `<div class="ps-4  pb-2 ${dd.toggle ? `` : `d-none`}" style="margin-left:3px;">${renderItems(dd.child, dd.array, false)}</div>` : ``)}
                                                                 </li>
                                                             `;
                                                         }).join('') + html `
@@ -476,7 +476,6 @@ export class Main_editor {
                     }
                 };
             })}
-                <div class="w-100" style="height:100px;"></div>
             </div>
         `,
             gvc.bindView(() => {
@@ -487,7 +486,6 @@ export class Main_editor {
                             return ``;
                         }
                         return html `
-                            <div style="height:100px;"></div>
                             <div class="w-100  position-absolute bottom-0 border-top d-flex align-items-center ps-3 ${Storage.select_function === 'user-editor' ? `d-none` : ``}"
                                  style="height:50px;background:#f6f6f6;font-size:14px;">
                                 <div class="hoverBtn fw-bold" style="color:#8e1f0b;cursor:pointer;"

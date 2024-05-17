@@ -348,6 +348,7 @@ export const component = Plugin.createComponent(import.meta.url, (glitter, editM
 <div class="flex-fill border"></div>
 </div>`;
                                                             }
+                                                            console.log(`formData->`, page_config);
                                                             page_config.formData = page_config.formData || {};
                                                             const refer_form = ((widget.data.refer_app)) ? ((widget.data.refer_form_data || page_config.formData) || {}) : page_config.formData;
                                                             function refresh() {
@@ -366,7 +367,11 @@ export const component = Plugin.createComponent(import.meta.url, (glitter, editM
                                                                                 resolve(true);
                                                                             }));
                                                                         });
-                                                                        window.glitterInitialHelper.share[`getPageData-${parent_array.tag}`].data.response.result[0].config = parent_array;
+                                                                        try {
+                                                                            window.glitterInitialHelper.share[`getPageData-${parent_array.tag}`].data.response.result[0].config = parent_array;
+                                                                        }
+                                                                        catch (_a) {
+                                                                        }
                                                                     }
                                                                     if (!widget.storage) {
                                                                         try {
@@ -390,7 +395,11 @@ export const component = Plugin.createComponent(import.meta.url, (glitter, editM
                                                                             page_config: pageData.page_config,
                                                                         });
                                                                     });
-                                                                    window.glitterInitialHelper.share[`getPageData-${pageData.tag}`].data.response.result[0].page_config = pageData.page_config;
+                                                                    try {
+                                                                        window.glitterInitialHelper.share[`getPageData-${pageData.tag}`].data.response.result[0].page_config = pageData.page_config;
+                                                                    }
+                                                                    catch (_b) {
+                                                                    }
                                                                 }
                                                                 widget.storage && widget.storage.updatePageConfig && widget.storage.updatePageConfig(refer_form);
                                                             }
@@ -546,6 +555,7 @@ export const component = Plugin.createComponent(import.meta.url, (glitter, editM
                                             tag: tag,
                                             appName: window.appName
                                         };
+                                        console.log(`page_request_config->`, page_request_config);
                                         (window.glitterInitialHelper).getPageData(page_request_config, (d2) => {
                                             var _a, _b, _c, _d, _e;
                                             data = d2.response.result[0];

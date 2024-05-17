@@ -14,8 +14,8 @@ import {NginxConfFile} from "nginx-conf";
 import * as process from "process";
 import {ApiPublic} from "../api-public/services/public-table-check.js";
 import {BackendService} from "./backend-service.js";
-import {UtPermission} from "../api-public/utils/ut-permission.js";
 import {Template} from "./template.js";
+import Tool from "./tool";
 
 export class App {
     public token?: IToken;
@@ -30,7 +30,7 @@ export class App {
         })
     }
 
-    public async createApp(config: { appName: string, copyApp: string, copyWith: string[], brand: string }) {
+    public async createApp(config: { appName: string, copyApp: string, copyWith: string[], brand: string, name?: string, theme?: string }) {
         try {
             config.copyWith = config.copyWith ?? []
             const count = await db.execute(`
@@ -56,17 +56,21 @@ export class App {
                                                    from \`${saasConfig.SAAS_NAME}\`.private_config
                                                    where app_name = ${db.escape(config.copyApp)} `, []));
             }
-
-            await ApiPublic.createScheme(config.appName)
-            const trans = await db.Transaction.build();
-            await trans.execute(`insert into \`${saasConfig.SAAS_NAME}\`.app_config (user, appName, dead_line, \`config\`, brand)
-                                 values (?, ?, ?,
-                                         ${db.escape(JSON.stringify((copyAppData && copyAppData.config) || {}))},
-                                         ${db.escape(config.brand ?? saasConfig.SAAS_NAME)})`, [
+            await db.execute(`insert into \`${saasConfig.SAAS_NAME}\`.app_config (user, appName, dead_line, \`config\`,
+                                                                                  brand, theme_config, refer_app,
+                                                                                  template_config)
+                              values (?, ?, ?, ${db.escape(JSON.stringify((copyAppData && copyAppData.config) || {}))},
+                                      ${db.escape(config.brand ?? saasConfig.SAAS_NAME)},
+                                      ${db.escape(JSON.stringify({name: config.name}))},
+                                      ${(config.theme) ? db.escape(config.theme) : 'null'},
+                                      ${db.escape(JSON.stringify((copyAppData && copyAppData.template_config) || {}))})`, [
                 this.token!.userID,
                 config.appName,
                 addDays(new Date(), saasConfig.DEF_DEADLINE)
             ]);
+            await ApiPublic.createScheme(config.appName)
+            const trans = await db.Transaction.build();
+
             if (config.copyWith.indexOf('checkout') !== -1) {
                 for (const dd of (await db.query(`SELECT *
                                                   FROM \`${config.copyApp}\`.t_checkout`, []))) {
@@ -193,37 +197,101 @@ export class App {
             await createAPP(config)
             return true
         } catch (e: any) {
-            console.log(JSON.stringify(e))
+            console.log(e)
+            throw exception.BadRequestError(e.code ?? 'BAD_REQUEST', e, null);
+        }
+    }
+
+    public async updateThemeConfig(body:{theme:string,config:any}){
+        try {
+            await db.query(`update \`${saasConfig.SAAS_NAME}\`.app_config set theme_config=? where appName=?`,[
+                JSON.stringify(body.config),
+                body.theme
+            ])
+            return true
+        }catch (e:any) {
+            throw exception.BadRequestError(e.code ?? 'BAD_REQUEST', e, null);
+        }
+    }
+    public async changeTheme(config: { app_name: string, theme: string}) {
+        try {
+            const temp_app_name = (Tool.randomString(4)) + new Date().getTime();
+            const temp_app_theme = (Tool.randomString(4)) + new Date().getTime();
+            const tran = await db.Transaction.build();
+            const original_domain = (await db.query(`select \`domain\`
+                                                     from \`${saasConfig.SAAS_NAME}\`.app_config
+                                                     where appName = ${db.escape(config.app_name)}`, []))[0]['domain']
+            /*
+            * 交換APP和theme的資料
+            * */
+            await tran.execute(`update \`${saasConfig.SAAS_NAME}\`.app_config
+                                set appName=${db.escape(temp_app_name)},
+                                    refer_app=${db.escape(config.app_name)},
+                                    domain=null
+                                where appName = ${db.escape(config.app_name)} and user=?`, [this.token?.userID]);
+            await tran.execute(`update \`${saasConfig.SAAS_NAME}\`.app_config
+                                set appName=${db.escape(temp_app_theme)},
+                                    refer_app=null,
+                                    domain=${(original_domain) ? db.escape(original_domain) : 'null'}
+                                where appName = ${db.escape(config.theme)} and user=?`, [this.token?.userID]);
+            /*
+            * 將APP name 寫回去
+            * */
+            await tran.execute(`update \`${saasConfig.SAAS_NAME}\`.app_config
+                                set appName=${db.escape(config.app_name)}
+                                where appName = ${db.escape(temp_app_theme)} and user=?`, [this.token?.userID])
+            await tran.execute(`update \`${saasConfig.SAAS_NAME}\`.app_config
+                                set appName=${db.escape(config.theme)}
+                                where appName = ${db.escape(temp_app_name)} and user=?`, [this.token?.userID])
+            /*
+           * 交換PageConfig
+           * */
+            await tran.execute(`update \`${saasConfig.SAAS_NAME}\`.page_config
+                                set appName=${db.escape(temp_app_name)}
+                                where appName = ${db.escape(config.app_name)} and userID=?`, [this.token?.userID])
+            await tran.execute(`update \`${saasConfig.SAAS_NAME}\`.page_config
+                                set appName=${db.escape(temp_app_theme)}
+                                where appName = ${db.escape(config.theme)} and userID=?`, [this.token?.userID])
+
+            await tran.execute(`update \`${saasConfig.SAAS_NAME}\`.page_config
+                                set appName=${db.escape(config.app_name)}
+                                where appName = ${db.escape(temp_app_theme)} and userID=?`, [this.token?.userID])
+            await tran.execute(`update \`${saasConfig.SAAS_NAME}\`.page_config
+                                set appName=${db.escape(config.theme)}
+                                where appName = ${db.escape(temp_app_name)} and userID=?`, [this.token?.userID])
+            await tran.commit()
+            await tran.release()
+            return true
+        } catch (e:any) {
             throw exception.BadRequestError(e.code ?? 'BAD_REQUEST', e, null);
         }
     }
 
     public async getAPP(query: {
         app_name?: string,
+        theme?: string
     }) {
         try {
-            console.log(`
+            const sql = `
                 SELECT *
                 FROM \`${saasConfig.SAAS_NAME}\`.app_config
                 where ${(() => {
                     const sql = [`user = '${this.token!.userID}'`]
                     if (query.app_name) {
                         sql.push(` appName='${query.app_name}' `)
+                    } else {
+                        if (query.theme) {
+                            sql.push(` refer_app='${query.theme}' `)
+                        } else {
+                            sql.push(` refer_app is null `)
+                        }
                     }
+
                     return sql.join(' and ')
-                })()};
-            `)
-            return (await db.execute(`
-                SELECT *
-                FROM \`${saasConfig.SAAS_NAME}\`.app_config
-                where ${(() => {
-                    const sql = [`user = '${this.token!.userID}'`]
-                    if (query.app_name) {
-                        sql.push(` appName='${query.app_name}' `)
-                    }
-                    return sql.join(' and ')
-                })()};
-            `, []))
+                })()}
+                ;
+            `
+            return (await db.execute(sql, []))
         } catch (e: any) {
             throw exception.BadRequestError(e.code ?? 'BAD_REQUEST', e, null);
         }
@@ -286,7 +354,7 @@ export class App {
         let brand = (await db.query(`SELECT brand
                                      FROM \`${saasConfig.SAAS_NAME}\`.app_config
                                      where appName = ? `, [app]))[0]['brand']
-        console.log(`brand-->`, brand)
+
         const userID = (await db.query(`SELECT user
                                         FROM \`${saasConfig.SAAS_NAME}\`.app_config
                                         where appName = ?`, [app]))[0]['user'];
@@ -296,51 +364,57 @@ export class App {
         return {
             memberType: userData.userData.menber_type,
             brand: brand,
-            userData:userData.userData
+            userData: userData.userData
         };
     }
 
-    public static async preloadPageData(appName:string,page:string){
-        const app=new App();
-        const preloadData:{
-            component:any,
-            appConfig:any
-        }={
-            component:[],
-            appConfig:(await app.getAppConfig({
-                appName:appName
+    public static async preloadPageData(appName: string, page: string) {
+        const app = new App();
+        const preloadData: {
+            component: any,
+            appConfig: any
+        } = {
+            component: [],
+            appConfig: (await app.getAppConfig({
+                appName: appName
             }))
         }
-        const pageData=(await (new Template(undefined).getPage({
-            appName:appName,
-            tag:page
+        const pageData = (await (new Template(undefined).getPage({
+            appName: appName,
+            tag: page
         })))[0];
         preloadData.component.push(pageData)
+
         async function loop(array: any) {
             for (const dd of array) {
                 if (dd.type === 'container') {
                     await loop(dd.data.setting)
                 } else if (dd.type === 'component') {
-                    if(!dd.data.refer_app){
-                        const pageData=(await (new Template(undefined).getPage({
-                            appName:appName,
-                            tag:dd.data.tag
-                        })))[0]
-                        if(pageData&&pageData.config){
-                            preloadData.component.push(pageData)
-                            await loop(pageData.config ?? [])
-                        }
+                    const pageData = (await (new Template(undefined).getPage({
+                        appName: dd.data.refer_app || appName,
+                        tag: dd.data.tag
+                    })))[0]
+                    if (pageData && pageData.config) {
+                        preloadData.component.push(pageData)
+                        await loop(pageData.config ?? [])
                     }
-
                 }
             }
         }
-        (await loop(pageData.config));
 
-        let mapPush:any={}
-        mapPush['getPlugin']={callback:[],data:{response:{data:preloadData.appConfig,result:true}},isRunning:true}
-        preloadData.component.map((dd:any)=>{
-            mapPush['getPageData-'+dd.tag]={callback:[],isRunning:true,data:{response: {result:[dd]}}}
+        (await loop(pageData.config));
+        let mapPush: any = {}
+        mapPush['getPlugin'] = {
+            callback: [],
+            data: {response: {data: preloadData.appConfig, result: true}},
+            isRunning: true
+        }
+        preloadData.component.map((dd: any) => {
+            mapPush[`getPageData-${dd.appName}-${dd.tag}`] = {
+                callback: [],
+                isRunning: true,
+                data: {response: {result: [dd]}}
+            }
         })
         return mapPush
     }
@@ -423,7 +497,6 @@ export class App {
                     const server: any = []
                     for (const b of conf!.nginx.server as any) {
                         if (b.server_name.toString().indexOf(config.domain) === -1) {
-                            console.log(b.server_name.toString())
                             server.push(b)
                         }
                     }
@@ -470,11 +543,11 @@ export class App {
 
     public async deleteAPP(config: { appName: string }) {
         try {
-           try{
-               await (new BackendService(config.appName).stopServer());
-           }catch (e) {
+            try {
+                await (new BackendService(config.appName).stopServer());
+            } catch (e) {
 
-           }
+            }
             (await db.execute(`delete
                                from \`${saasConfig.SAAS_NAME}\`.app_config
                                where appName = ${db.escape(config.appName)}

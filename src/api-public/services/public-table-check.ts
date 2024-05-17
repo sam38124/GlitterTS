@@ -5,14 +5,18 @@ import tool from "../../services/tool.js";
 
 
 export class ApiPublic {
-    public static checkApp: string[] = []
+    public static checkApp: { app_name:string,refer_app:string}[] = []
 
     public static async createScheme(appName: string) {
-        if (ApiPublic.checkApp.indexOf(appName) !== -1) {
+        if (ApiPublic.checkApp.find((dd)=>{
+            return dd.app_name===appName
+        })) {
             return
         }
-
-        ApiPublic.checkApp.push(appName)
+        ApiPublic.checkApp.push({
+            app_name:appName,
+            refer_app:(await db.query(`select refer_app from \`${saasConfig.SAAS_NAME}\`.app_config where appName=?`,[appName]))[0]['refer_app']
+        })
         try {
             await db.execute(`CREATE SCHEMA if not exists \`${appName}\` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;`, [])
             await db.execute(`CREATE SCHEMA if not exists \`${appName}_recover\` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;`, [])
@@ -318,7 +322,7 @@ export class ApiPublic {
         } catch (e) {
             console.log(e)
             ApiPublic.checkApp = ApiPublic.checkApp.filter((dd) => {
-                return dd === appName
+                return dd.app_name === appName
             })
         }
     }

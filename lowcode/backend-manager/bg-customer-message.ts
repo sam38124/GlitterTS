@@ -505,10 +505,10 @@ export class BgCustomerMessage {
 
                                 console.log('Message from server:', event.data);
                             });
-
                             socket.addEventListener('close', function (event) {
                                 console.log('Disconnected from server');
                             });
+
                             const html = String.raw
                             return {
                                 bind: viewId,

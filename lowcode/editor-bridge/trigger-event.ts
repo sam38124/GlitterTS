@@ -9,8 +9,14 @@ class TriggerEventBridge {
     public static editer(gvc: GVC, widget: HtmlJson, obj: any, option: {
         hover: boolean,
         option: string[],
-        title?: string
+        title?: string,
+        refresh_component?:()=>void
     } = {hover: false, option: []}) {
+        if(!NormalPageEditor.visible){
+            NormalPageEditor.closeEvent=()=>{
+                option.refresh_component && option.refresh_component()
+            }
+        }
         const html = String.raw
         return `
 <div class="w-100">

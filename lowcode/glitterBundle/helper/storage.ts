@@ -61,10 +61,17 @@ export const Storage:{
         localStorage.setItem('select_add_btn',value)
     },
     get select_function(){
-        return (localStorage.getItem('select_function') || 'page-editor') as any
+        return (window as any).glitter.getUrlParameter('function')
+        // if((window as any).glitter.getUrlParameter('function')){
+        //
+        // }else{
+        //     return (localStorage.getItem('select_function') || 'page-editor') as any
+        // }
+
     },
     set select_function(value){
-        (window as any).glitter.setUrlParameter('router', ``)
+        (window as any).glitter.setUrlParameter('router', ``);
+        (window as any).glitter.setUrlParameter('function', ``);
         localStorage.setItem('select_function',value)
     },
     get page_set_select(){

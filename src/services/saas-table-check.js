@@ -51,13 +51,16 @@ exports.SaasScheme = {
   \`brand\` varchar(45) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'glitter',
   \`template_config\` json DEFAULT NULL,
   \`template_type\` int NOT NULL DEFAULT '0' COMMENT '0尚未發布，1審核中，2已發布至商城，3已發布至個人模板庫',
-  \`sql_pwd\` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  \`sql_admin\` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  \`ec2_id\` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  \`sql_pwd\` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  \`sql_admin\` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  \`ec2_id\` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  \`update_time\` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  \`theme_config\` json DEFAULT NULL,
+  \`refer_app\` varchar(45) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   PRIMARY KEY (\`id\`),
   UNIQUE KEY \`user_app\` (\`user\`,\`appName\`),
   KEY \`find_user\` (\`user\`)
-) ENGINE=InnoDB AUTO_INCREMENT=269 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+) ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 `
             },
             {

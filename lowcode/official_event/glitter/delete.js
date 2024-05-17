@@ -9,6 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 import { TriggerEvent } from "../../glitterBundle/plugins/trigger-event.js";
 import { ApiPageConfig } from "../../api/pageConfig.js";
+import { ShareDialog } from "../../glitterBundle/dialog/ShareDialog.js";
 TriggerEvent.createSingleEvent(import.meta.url, () => {
     return {
         fun: (gvc, widget, object, subData) => {
@@ -44,7 +45,10 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                             clickEvent: object.deleteApp,
                             subData: subData,
                         });
+                        const dialog = new ShareDialog(gvc.glitter);
+                        dialog.dataLoading({ visible: true });
                         const response = yield ApiPageConfig.deleteApp(deleteAPP);
+                        dialog.dataLoading({ visible: false });
                         if (response.result) {
                             yield TriggerEvent.trigger({
                                 gvc: gvc,

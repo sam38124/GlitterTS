@@ -29,6 +29,19 @@ export class ApiUser {
             }
         })
     }
+    public static getSaasUserData(token: string, type: 'list' | 'me') {
+        return BaseApi.create({
+            "url": getBaseUrl() + `/api-public/v1/user?type=${type}`,
+            "type": "GET",
+            "headers": {
+                "g-app": (window as any).glitterBase,
+                "Content-Type": "application/json",
+                "Authorization": token
+            }
+        })
+    }
+
+
     public static getUsersData(userID:string) {
         return BaseApi.create({
             "url": getBaseUrl() + `/api-public/v1/user/userdata?userID=${userID}`,

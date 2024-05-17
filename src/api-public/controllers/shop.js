@@ -61,6 +61,7 @@ router.get('/product', async (req, resp) => {
             page: ((_a = req.query.page) !== null && _a !== void 0 ? _a : 0),
             limit: ((_b = req.query.limit) !== null && _b !== void 0 ? _b : 50),
             search: req.query.search,
+            sku: req.query.sku,
             id: req.query.id,
             collection: req.query.collection,
             min_price: req.query.min_price,
@@ -74,9 +75,10 @@ router.get('/product', async (req, resp) => {
                     case 'min_price':
                         return `order by (CAST(JSON_UNQUOTE(JSON_EXTRACT(content, '$.min_price')) AS SIGNED))  asc`;
                     default:
-                        return `order by Updated_time desc`;
+                        return `order by id desc`;
                 }
             })(),
+            with_hide_index: req.query.with_hide_index
         });
         return response_1.default.succ(resp, shopping);
     }

@@ -451,7 +451,6 @@ export class HtmlGenerate {
                                                                                                 clickEvent: dd.onResumtEvent,
                                                                                                 subData: subData
                                                                                             });
-                                                                                            console.log(`onResume`);
                                                                                         };
                                                                                     },
                                                                                     onInitial: () => {

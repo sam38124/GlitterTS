@@ -4,9 +4,13 @@ import { GlobalUser } from "../glitter-base/global/global-user.js";
 export class ApiPageConfig {
     constructor() {
     }
-    static getAppList() {
+    static getAppList(theme) {
         return BaseApi.create({
-            "url": config.url + `/api/v1/app`,
+            "url": config.url + `/api/v1/app?` + (() => {
+                let search = [];
+                theme && search.push(`theme=${theme}`);
+                return search.join('&');
+            })(),
             "type": "GET",
             "timeout": 0,
             "headers": {

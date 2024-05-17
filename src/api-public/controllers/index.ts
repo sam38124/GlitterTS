@@ -96,7 +96,11 @@ async function doAuthAction(req: express.Request, resp: express.Response, next: 
         return response.fail(resp, exception.PermissionError('INVALID_APP', 'invalid app'));
     }
     //Check database scheme
-    await ApiPublic.createScheme(req.get('g-app') as any ?? req.query['g-app'])
+    await ApiPublic.createScheme(req.get('g-app') as any ?? req.query['g-app']);
+    const refer_app=ApiPublic.checkApp.find((dd)=>{
+        return (dd.app_name as any)===(req.headers['g-app'] as any);
+    })
+    req.headers['g-app']=refer_app && refer_app.refer_app || (req.get('g-app') as any ?? req.query['g-app']);
     const logger = new Logger();
     const TAG = '[DoAuthAction]';
     const url = req.baseUrl;

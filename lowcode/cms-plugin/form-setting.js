@@ -116,7 +116,7 @@ export class FormSetting {
                             filter: html `
                                     <div style="height:50px;" class="w-100 border-bottom">
                                         <input class="form-control h-100 " style="border: none;"
-                                               placeholder="搜尋所有用戶" onchange="${gvc.event((e, event) => {
+                                               placeholder="搜尋所有表單" onchange="${gvc.event((e, event) => {
                                 vm.query = e.value;
                                 gvc.notifyDataChange(id);
                             })}" value="${vm.query || ''}">

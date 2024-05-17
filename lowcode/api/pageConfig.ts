@@ -6,9 +6,13 @@ export class ApiPageConfig {
     constructor() {
     }
 
-    public static getAppList() {
+    public static getAppList(theme?: string) {
         return BaseApi.create({
-            "url": config.url + `/api/v1/app`,
+            "url": config.url + `/api/v1/app?` + (() => {
+                let search: any = [];
+                theme && search.push(`theme=${theme}`)
+                return search.join('&')
+            })(),
             "type": "GET",
             "timeout": 0,
             "headers": {
@@ -57,10 +61,10 @@ export class ApiPageConfig {
         })
     }
 
-    public static setDomain(cf:{
+    public static setDomain(cf: {
         domain: string,
-        app_name?:string
-        token?:string
+        app_name?: string
+        token?: string
     }) {
         return BaseApi.create({
             "url": config.url + `/api/v1/app/domain`,
@@ -78,7 +82,7 @@ export class ApiPageConfig {
     }
 
     public static getPage(request: {
-        appName?: string, tag?: string, group?: string, type?: 'article' | 'template', page_type?: string,me?:boolean,favorite?:boolean,token?:string
+        appName?: string, tag?: string, group?: string, type?: 'article' | 'template', page_type?: string, me?: boolean, favorite?: boolean, token?: string
     }) {
         return BaseApi.create({
             "url": config.url + `/api/v1/template?` +
@@ -103,14 +107,14 @@ export class ApiPageConfig {
         })
     }
 
-    public static getPageTemplate(request:{
+    public static getPageTemplate(request: {
         template_from: 'all' | 'me' | 'project',
         page?: string,
         limit?: string,
-        type?:'page' | 'module' | 'article' | 'blog' | 'backend' | 'form_plugin',
-        tag?:string,
-        search?:string
-    }){
+        type?: 'page' | 'module' | 'article' | 'blog' | 'backend' | 'form_plugin',
+        tag?: string,
+        search?: string
+    }) {
         return BaseApi.create({
             "url": config.url + `/api/v1/page/template?` +
                 (() => {
@@ -133,10 +137,10 @@ export class ApiPageConfig {
         })
     }
 
-    public static getTagList(request:{
-        type:'page' | 'module' | 'article' | 'blog' | 'backend',
-        template_from:string
-    }){
+    public static getTagList(request: {
+        type: 'page' | 'module' | 'article' | 'blog' | 'backend',
+        template_from: string
+    }) {
         return BaseApi.create({
             "url": config.url + `/api/v1/page/tag_list?` +
                 (() => {
@@ -167,7 +171,7 @@ export class ApiPageConfig {
         favorite?: number,
         preview_image?: string
     }) {
-        console.log(`setPage->`,data)
+        console.log(`setPage->`, data)
         return BaseApi.create({
             "url": config.url + `/api/v1/template`,
             "type": "PUT",
@@ -188,9 +192,9 @@ export class ApiPageConfig {
         "config"?: [],
         "page_config"?: any,
         "copy"?: string,
-        copyApp?:string,
-        page_type?:string,
-        replace?:boolean
+        copyApp?: string,
+        page_type?: string,
+        replace?: boolean
     }) {
 
         return BaseApi.create({
@@ -248,6 +252,7 @@ export class ApiPageConfig {
             })
         })
     }
+
     public static createTemplate(appName: string, obj: any) {
         return BaseApi.create({
             "url": config.url + `/api/v1/app/create_template`,
@@ -262,7 +267,8 @@ export class ApiPageConfig {
             })
         })
     }
-    public static createPageTemplate(appName: string, obj: any,tag:string) {
+
+    public static createPageTemplate(appName: string, obj: any, tag: string) {
         return BaseApi.create({
             "url": config.url + `/api/v1/page/template`,
             "type": "POST",
@@ -273,11 +279,10 @@ export class ApiPageConfig {
             data: JSON.stringify({
                 appName: appName,
                 config: obj,
-                tag:tag
+                tag: tag
             })
         })
     }
-
 
 
     public static setPrivateConfig(appName: string, key: any, value: any) {
@@ -289,17 +294,17 @@ export class ApiPageConfig {
                 "Authorization": config.token
             },
             data: JSON.stringify({
-                appName: appName ,
+                appName: appName,
                 key: key,
                 value: value
             })
         })
     }
 
-    public static setPrivateConfigV2(cf:{
-        key:string,
-        value:string,
-        appName?:string
+    public static setPrivateConfigV2(cf: {
+        key: string,
+        value: string,
+        appName?: string
     }) {
         return BaseApi.create({
             "url": config.url + `/api/v1/private`,
@@ -337,6 +342,7 @@ export class ApiPageConfig {
             }
         })
     }
+
     public static getEditorToken() {
         return BaseApi.create({
             "url": config.url + `/api/v1/user/editorToken`,

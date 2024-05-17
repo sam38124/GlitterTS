@@ -13,7 +13,7 @@ import { EditorElem } from "../../glitterBundle/plugins/editor-elem.js";
 TriggerEvent.createSingleEvent(import.meta.url, () => {
     return {
         fun: (gvc, widget, object, subData, element) => {
-            var _a, _b, _c, _d, _e, _f, _g;
+            var _a, _b, _c, _d, _e, _f, _g, _h;
             object.page = (_a = object.page) !== null && _a !== void 0 ? _a : {};
             object.limit = (_b = object.limit) !== null && _b !== void 0 ? _b : {};
             object.collection = (_c = object.collection) !== null && _c !== void 0 ? _c : {};
@@ -21,12 +21,32 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
             object.minPrice = (_e = object.minPrice) !== null && _e !== void 0 ? _e : {};
             object.titleMatch = (_f = object.titleMatch) !== null && _f !== void 0 ? _f : {};
             object.orderBy = (_g = object.orderBy) !== null && _g !== void 0 ? _g : {};
+            object.with_hide_index = (_h = object.with_hide_index) !== null && _h !== void 0 ? _h : 'false';
             return {
                 editor: () => {
                     var _a;
                     object.getType = (_a = object.getType) !== null && _a !== void 0 ? _a : "manual";
                     const id = gvc.glitter.getUUID();
                     return EditorElem.container([
+                        EditorElem.select({
+                            title: "是否查詢隱藏商品項目",
+                            gvc: gvc,
+                            def: object.with_hide_index,
+                            array: [
+                                {
+                                    title: '是',
+                                    value: 'true'
+                                },
+                                {
+                                    title: '否',
+                                    value: 'false'
+                                }
+                            ],
+                            callback: (text) => {
+                                object.with_hide_index = text;
+                                gvc.notifyDataChange(id);
+                            }
+                        }),
                         TriggerEvent.editer(gvc, widget, object.page, { title: "當前頁面", hover: false, option: [] }),
                         TriggerEvent.editer(gvc, widget, object.limit, { title: "每頁筆數", hover: false, option: [] }),
                         TriggerEvent.editer(gvc, widget, object.collection, {
@@ -109,7 +129,8 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                 minPrice: minPrice,
                                 search: titleMatch,
                                 status: 'active',
-                                orderBy: orderBy
+                                orderBy: orderBy,
+                                with_hide_index: object.with_hide_index
                             }).then((data) => {
                                 data.response.data.pageSize = Math.ceil(data.response.total / parseInt(limit, 10));
                                 if (parseInt(page, 10) <= data.response.data.pageSize) {

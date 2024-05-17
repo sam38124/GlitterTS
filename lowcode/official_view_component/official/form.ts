@@ -44,11 +44,13 @@ export class FormWidget {
                                 title: obj.title || '表單項目',
                                 view: (() => {
                                     dd.type = dd.type || 'form_plugin_v2'
+                                    dd.require = dd.require || 'false'
                                     return gvc.bindView(() => {
                                         const id = gvc.glitter.getUUID()
                                         return {
                                             bind: id,
                                             view: () => {
+
                                                 return `${[
                                                     `<div class="position-relative bgf6 d-flex align-items-center justify-content-between mx-n2 mt-n2 p-2 border-bottom shadow">
                 <span class="fs-6 fw-bold " style="color:black;">表單插件設定</span>
@@ -63,6 +65,27 @@ export class FormWidget {
                                                             obj.refresh()
                                                         }
                                                     }),
+                                                    EditorElem.select(
+                                                        {
+                                                            title: "是否必填",
+                                                            gvc: gvc,
+                                                            def: dd.require,
+                                                            array: [
+                                                                {
+                                                                    title: '是',
+                                                                    value: 'true'
+                                                                },
+                                                                {
+                                                                    title: '否',
+                                                                    value: 'false'
+                                                                }
+                                                            ],
+                                                            callback: (text) => {
+                                                                dd.require = text
+                                                                gvc.notifyDataChange(id)
+                                                            }
+                                                        }
+                                                    ),
                                                     ...(() => {
                                                         dd.formFormat = dd.formFormat ?? '{}'
                                                         return [
@@ -282,7 +305,7 @@ export class FormWidget {
                 const inputCSS = glitter.htmlGenerate.editor_component(dd.style_data.input, gvc, obj.widget as any, obj.subData)
                 const containerCss = glitter.htmlGenerate.editor_component(dd.style_data.container, gvc, obj.widget, obj.subData)
                 const label = `<label class="${labelCSS.class()}" style="${labelCSS.style()}"><span class="text-danger  ${dd.require === "true" ? `` : 'd-none'}"> * </span>${dd.title}</label>`
-                const containerClass = containerCss.class() ?? ``
+                const containerClass = `form_item ${containerCss.class() ?? ``}`
                 const containerStyle = containerCss.style() ?? ``
                 const inputClass = inputCSS.class() || "form-control"
                 const inputStyle = inputCSS.style() || ""
@@ -457,6 +480,9 @@ export class FormWidget {
                                             }))
                                         })
                                     })
+                                },
+                                divCreate:{
+                                    class:containerClass,style:containerStyle
                                 }
                             }
                         })
@@ -475,7 +501,9 @@ export class FormWidget {
                                 view: () => {
                                     return ``
                                 },
-                                divCreate: {},
+                                divCreate:{
+                                    class:containerClass,style:containerStyle
+                                },
                                 onCreate: () => {
 
                                 },
@@ -490,7 +518,9 @@ export class FormWidget {
                                         data.config.map((dd: any) => {
                                             glitter.htmlGenerate.renameWidgetID(dd)
                                         })
-                                        let createOption: any = {}
+                                        let createOption: any = {
+                                            class:containerClass,style:containerStyle,
+                                        }
                                         createOption.option = createOption.option ?? []
                                         createOption.childContainer = true
                                         data.config.formData = data.page_config.formData
@@ -517,8 +547,7 @@ export class FormWidget {
                                                     obj.refresh(dd.key)
                                                 }
                                             }).render(gvc, {
-                                                class: ``,
-                                                style: ``,
+                                                class:containerClass,style:containerStyle,
                                                 containerID: id,
                                                 jsFinish: () => {
                                                 },
@@ -535,13 +564,14 @@ export class FormWidget {
 
                                     })
 
-                                }
+                                },
+
                             }
                         })
                     default:
                 }
                 return html`
-                    <div class="${containerClass}" style="${containerStyle}">
+                    <div class=" ${containerClass}" style="${containerStyle}">
                         ${label}
                         <input type="${dd.type}" value="${formData[dd.key] ?? ""}"
                                class="${inputClass}"
@@ -605,7 +635,10 @@ Plugin.createComponent(import.meta.url, (glitter: Glitter, editMode: boolean) =>
                 }[]
                 formID: string,
                 getFormData: any,
-                containerStyle: any
+                containerStyle: any,
+                form_config_from: string,
+                form_config: any,
+                refreshEvent:any
             } = getInitialData({
                 obj: widget.data,
                 key: 'layout',
@@ -614,43 +647,82 @@ Plugin.createComponent(import.meta.url, (glitter: Glitter, editMode: boolean) =>
                     style: {},
                     formID: 'formID',
                     getFormData: {},
-                    containerStyle: {}
+                    form_config: {},
+                    refreshEvent:{},
+                    containerStyle: {},
+                    form_config_from: 'static'
                 },
             })
             const containerStyle = glitter.htmlGenerate.editor_component((config).containerStyle, gvc, widget as any, subData)
             let formData: any = {}
 
             function getEditor() {
-                return [
-                    containerStyle.editor(gvc, () => {
-                        widget.refreshComponent()
-                    }),
-                    EditorElem.editeInput({
-                        gvc: gvc,
-                        title: '表單ID',
-                        placeHolder: `請輸入表單ID`,
-                        default: config.formID,
-                        callback: (text) => {
-                            config.formID = text
-                            widget.refreshComponent()
+                return gvc.bindView(() => {
+                    const id = gvc.glitter.getUUID()
+                    return {
+                        bind: id,
+                        view: () => {
+                            return [
+                                containerStyle.editor(gvc, () => {
+                                    widget.refreshComponent()
+                                }),
+                                EditorElem.editeInput({
+                                    gvc: gvc,
+                                    title: '表單ID',
+                                    placeHolder: `請輸入表單ID`,
+                                    default: config.formID,
+                                    callback: (text) => {
+                                        config.formID = text
+                                        widget.refreshComponent()
+                                    }
+                                }), TriggerEvent.editer(gvc, widget, config.getFormData, {
+                                    hover: false,
+                                    option: [],
+                                    title: "設定表單資料來源"
+                                }),
+                                TriggerEvent.editer(gvc, widget, config.refreshEvent, {
+                                    hover: false,
+                                    option: [],
+                                    title: "表單更新事件"
+                                }),
+                                EditorElem.select({
+                                    title: '表單格式來源',
+                                    gvc: gvc,
+                                    array: [
+                                        {title: '靜態', value: 'static'},
+                                        {title: '動態', value: 'code'}
+                                    ],
+                                    def: config.form_config_from,
+                                    callback: (text) => {
+                                        config.form_config_from = text
+                                        gvc.notifyDataChange(id)
+                                    }
+                                })
+                                ,
+                                (() => {
+                                    if (config.form_config_from === 'code') {
+                                        return TriggerEvent.editer(gvc, widget, config.form_config, {
+                                            hover: false,
+                                            option: [],
+                                            title: "取得表單格式"
+                                        })
+                                    } else {
+                                        return `<div class="mx-n2 ">${FormWidget.settingView({
+                                            gvc: gvc,
+                                            array: config.array,
+                                            refresh: () => {
+                                                widget.refreshComponent()
+                                            },
+                                            widget: widget,
+                                            subData: subData
+                                        })}</div>`
+                                    }
+                                })()
+
+                            ].join('<div class="my-2"></div>')
                         }
-                    }),
-                    TriggerEvent.editer(gvc, widget, config.getFormData, {
-                        hover: false,
-                        option: [],
-                        title: "設定表單資料來源。"
-                    })
-                    ,
-                    `<div class="mx-n2 ">${FormWidget.settingView({
-                        gvc: gvc,
-                        array: config.array,
-                        refresh: () => {
-                            widget.refreshComponent()
-                        },
-                        widget: widget,
-                        subData: subData
-                    })}</div>`
-                ].join('<div class="my-2"></div>')
+                    }
+                })
             }
 
             return {
@@ -674,25 +746,84 @@ Plugin.createComponent(import.meta.url, (glitter: Glitter, editMode: boolean) =>
                             formData = gvc.share[`formComponentData-${config.formID}`]
                             gvc.notifyDataChange(id)
                         })
-
-                        return {
-                            bind: id,
-                            view: () => {
-                                return FormWidget.editorView({
+let dyView='';
+                        let defineHeight=0
+                        function getCodeView(){
+                            new Promise(async (resolve, reject)=>{
+                                const formConfig=await TriggerEvent.trigger({
                                     gvc: gvc,
-                                    array: config.array,
+                                    widget: widget,
+                                    clickEvent: config.form_config,
+                                    subData: subData,
+                                    element: element
+                                })
+                                resolve( FormWidget.editorView({
+                                    gvc: gvc,
+                                    array: formConfig,
                                     refresh: (key) => {
-                                        gvc.notifyDataChange(id)
+                                        TriggerEvent.trigger({
+                                            gvc: gvc,
+                                            widget: widget,
+                                            clickEvent: config.refreshEvent,
+                                            subData: subData,
+                                            element: element
+                                        });
+                                      defineHeight=(document.querySelector(`.${config.formID}`)! as any).offsetHeight;
+                                      setTimeout(()=>{
+                                          (document.querySelector(`.${config.formID}`)! as any).height = "auto"
+                                      },100)
+                                        getCodeView()
                                     },
                                     widget: widget,
                                     subData: subData,
                                     formData: formData
-                                })
+                                }))
+                            }).then((dd:any)=>{
+                                dyView=dd
+                                gvc.notifyDataChange(id)
+                            })
+                        }
+                            if(config.form_config_from==='code'){
+                                getCodeView()
+                            }
+                        return {
+                            bind: id,
+                            view: () => {
+                                if(config.form_config_from==='code'){
+                                    return dyView
+                                }else{
+                                    return FormWidget.editorView({
+                                        gvc: gvc,
+                                        array: config.array,
+                                        refresh: (key) => {
+                                            TriggerEvent.trigger({
+                                                gvc: gvc,
+                                                widget: widget,
+                                                clickEvent: config.refreshEvent,
+                                                subData: subData,
+                                                element: element
+                                            })
+                                            gvc.notifyDataChange(id)
+                                        },
+                                        widget: widget,
+                                        subData: subData,
+                                        formData: formData
+                                    })
+                                }
+
                             },
-                            divCreate: {
-                                class: `formID-${config.formID} ${containerStyle.class()}`,
-                                style: `${containerStyle.style()}`
-                            },
+                            divCreate: (()=>{
+                                return {
+                                    class: `formID-${config.formID} ${containerStyle.class()}`,
+                                    style: `${containerStyle.style()} ${(()=>{
+                                        if(defineHeight){
+                                            return `height:${defineHeight}px;`
+                                        }else{
+                                            return  ``
+                                        }
+                                    })()}`
+                                }
+                            }),
                             onCreate: () => {
                                 (document.querySelector(`.formID-${config.formID}`) as any).formValue = () => {
                                     return formData

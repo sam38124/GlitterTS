@@ -9,6 +9,7 @@ import {toJSON} from "./modules/toJSON.js";
 
 export class Entry {
     public static onCreate(glitter: Glitter) {
+
         glitter.share.logID = glitter.getUUID()
         glitter.addStyle(`@media (prefers-reduced-motion: no-preference) {
           :root {
@@ -22,13 +23,14 @@ export class Entry {
         }
         (window as any).renderClock = (window as any).renderClock ?? clockF();
         console.log(`Entry-time:`, (window as any).renderClock.stop());
-        glitter.share.editerVersion = "V_6.4.2";
+        glitter.share.editerVersion = "V_6.7.5";
         glitter.share.start = (new Date());
         const vm: {
             appConfig: any
         } = {
             appConfig: []
         };
+
         (window as any).saasConfig = {
             config: (window as any).config = config,
             api: ApiPageConfig,
@@ -136,8 +138,13 @@ export class Entry {
 
     //跳轉至頁面編輯器
     public static toBackendEditor(glitter: Glitter, callback: () => void) {
+        if(!glitter.getUrlParameter('function')){
+            glitter.setUrlParameter('function','backend-manger')
+        }
         const css = String.raw
-        glitter.addStyle(css`@media (prefers-reduced-motion: no-preference) {
+        glitter.addStyle(css`
+          @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@100..900&family=Noto+Sans:ital,wght@0,100..900;1,100..900&display=swap');
+          @media (prefers-reduced-motion: no-preference) {
           :root {
             scroll-behavior: auto !important;
           }
@@ -227,7 +234,8 @@ export class Entry {
                 }
             })
         } else {
-            if (!GlobalUser.token) {
+            console.log(GlobalUser.saas_token);
+            if (!GlobalUser.saas_token) {
                 const url = new URL(glitter.location.href)
                 location.href = `${url.origin}/glitter/?page=signin`
             } else {
@@ -237,7 +245,7 @@ export class Entry {
                     "timeout": 0,
                     "headers": {
                         "Content-Type": "application/json",
-                        "Authorization": GlobalUser.token
+                        "Authorization": GlobalUser.saas_token
                     }
                 }).then((d2) => {
                     if (!d2.result) {
@@ -347,6 +355,10 @@ export class Entry {
                 if (glitter.getUrlParameter('appName')) {
                     url.searchParams.set('appName', glitter.getUrlParameter('appName'))
                 }
+                if (glitter.getUrlParameter('function')) {
+                    url.searchParams.set('function', glitter.getUrlParameter('function'))
+                }
+
                 location.href = url.href;
                 return
             }

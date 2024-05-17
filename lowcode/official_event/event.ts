@@ -359,6 +359,10 @@ TriggerEvent.create(import.meta.url, {
         title: '官方事件 / 開發工具 / 設定URL參數',
         fun: TriggerEvent.setEventRouter(import.meta.url, './glitter-util/set-url.js'),
     },
+    event_trigger: {
+        title: '官方事件 / 開發工具 / 事件觸發',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './glitter-util/event-trigger.js'),
+    },
     globalEvent: {
         title: '官方事件 / 開發工具 / 執行事件集',
         fun: TriggerEvent.setEventRouter(import.meta.url, './glitter-util/global-event.js'),
@@ -852,6 +856,18 @@ TriggerEvent.create(import.meta.url, {
         title: 'GLITTER / 建立APP',
         fun: TriggerEvent.setEventRouter(import.meta.url, './glitter/create.js'),
     },
+    glitterAddTheme: {
+        title: 'GLITTER / 添加主題',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './glitter/create-theme.js'),
+    },
+    glitterChangeTheme: {
+        title: 'GLITTER / 更換主題',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './glitter/change-theme.js'),
+    },
+    glitterChangeThemeConfig: {
+        title: 'GLITTER / 更新主題資訊',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './glitter/change-theme-config.js'),
+    },
     glitterGetTemplate: {
         title: 'GLITTER / 取得模板列表',
         fun: TriggerEvent.setEventRouter(import.meta.url, './glitter/get-template-list.js'),
@@ -863,6 +879,10 @@ TriggerEvent.create(import.meta.url, {
     glitterAPPList: {
         title: 'GLITTER / 取得APP列表',
         fun: TriggerEvent.setEventRouter(import.meta.url, './glitter/app-list.js'),
+    },
+    glitterThemeList: {
+        title: 'GLITTER / 取得主題列表',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './glitter/theme-list.js'),
     },
     deleteAPP: {
         title: 'GLITTER / 刪除APP',

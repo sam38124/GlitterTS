@@ -184,7 +184,12 @@ export class TriggerEvent {
         option.option = (_b = option.option) !== null && _b !== void 0 ? _b : [];
         const glitter = window.glitter;
         if (TriggerEvent.isEditMode()) {
-            return glitter.share.editorBridge['TriggerEventBridge'].editer(gvc, widget, obj, option);
+            if (!glitter.share.editorBridge) {
+                return window.parent.glitter.share.editorBridge['TriggerEventBridge'].editer(gvc, widget, obj, option);
+            }
+            else {
+                return glitter.share.editorBridge['TriggerEventBridge'].editer(gvc, widget, obj, option);
+            }
         }
         else {
             return ``;
@@ -217,3 +222,9 @@ export class TriggerEvent {
         }
     }
 }
+const interval = setInterval(() => {
+    if (window.glitter) {
+        window.glitter.setModule(import.meta.url, TriggerEvent);
+        clearInterval(interval);
+    }
+}, 100);

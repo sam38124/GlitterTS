@@ -123,12 +123,28 @@ export class PageManager {
             glitter.pageConfig[index].createResource();
             glitter.setUrlParameter('page', glitter.pageConfig[index].tag);
             if (glitter.pageConfig[index].type === GVCType.Page) {
-                setTimeout(()=>{
-                    window.scrollTo({
-                        top: glitter.pageConfig[index].scrollTop,
-                        behavior: 'auto' // 'auto' 表示无滚动动画
-                    });
-                })
+               const clock=glitter.ut.clock()
+                function scroll() {
+                    try {
+                        const scroll= JSON.parse(localStorage.getItem('g_l_top') as string)
+                        if(scroll.id===id){
+                            console.log(`scrollTO->`,scroll.y)
+                            window.scrollTo({
+                                top: scroll.y,
+                                behavior: 'auto' // 'auto' 表示无滚动动画
+                            });
+                        }
+                    }catch (e) {
+
+                    }
+                    if(clock.stop()<250){
+                        setTimeout(()=>{
+                            scroll()
+                        },10)
+                    }
+                }
+                setTimeout(()=>{ scroll()})
+
 
             }
         } catch (e) {

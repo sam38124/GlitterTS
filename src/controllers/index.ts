@@ -39,6 +39,7 @@ async function doAuthAction(req: express.Request, resp: express.Response, next: 
     const logger = new Logger();
     const TAG = '[DoAuthAction]';
     const url = req.baseUrl;
+
     const matches = _.where(whiteList, { url: url, method: req.method });
     const token = req.get('Authorization')?.replace('Bearer ', '') as string;
     if (

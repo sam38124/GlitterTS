@@ -14,7 +14,7 @@ function listenElementChange(query: string) {
     const observer = new MutationObserver(function (mutationsList) {
         //判斷BindView是否被銷毀了
         Object.keys(glitter.elementCallback).map((dd) => {
-            if (glitter.elementCallback[dd].rendered && !(document.querySelector(`[gvc-id="${dd}"]`))) {
+            if (glitter.elementCallback[dd].rendered && !(glitter.elementCallback[dd].doc.querySelector(`[gvc-id="${dd}"]`))) {
                 glitter.elementCallback[dd].rendered = false
                 glitter.elementCallback[dd].onDestroy()
             }
@@ -75,7 +75,8 @@ function traverseHTML(element: any, document: any) {
 
             try {
                 if ((document.querySelector(`[gvc-id="${id}"]`) as any)) {
-                    glitter.elementCallback[id].rendered = true
+                    glitter.elementCallback[id].doc=document
+                    glitter.elementCallback[id].rendered = true;
                     if (!(document.querySelector(`[gvc-id="${id}"]`) as any).wasRender) {
                         let view = glitter.elementCallback[id].getView()
                         if (typeof view === 'string') {
@@ -252,7 +253,7 @@ class GlitterWebComponent extends HTMLElement {
         const observer = new MutationObserver(function (mutationsList) {
             //判斷BindView是否被銷毀了
             Object.keys(glitter.elementCallback).map((dd) => {
-                if (glitter.elementCallback[dd].rendered && !(doc.querySelector(`[gvc-id="${dd}"]`))) {
+                if (glitter.elementCallback[dd].rendered && !(glitter.elementCallback[dd].doc.querySelector(`[gvc-id="${dd}"]`))) {
                     glitter.elementCallback[dd].rendered = false
                     glitter.elementCallback[dd].onDestroy()
                 }

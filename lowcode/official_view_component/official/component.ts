@@ -402,7 +402,9 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
 <div class="flex-fill border"></div>
 </div>`
                                                             }
+                                                            console.log(`formData->`,page_config)
                                                             page_config.formData=page_config.formData||{}
+
                                                             const refer_form = ((widget.data.refer_app)) ? ((widget.data.refer_form_data || page_config.formData)||{}) : page_config.formData;
                                                             function refresh(){
                                                                 console.log('refresh')
@@ -420,7 +422,11 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
                                                                                 resolve(true)
                                                                             })
                                                                         });
-                                                                        (window as any).glitterInitialHelper.share[`getPageData-${parent_array.tag}`].data.response.result[0].config=parent_array;
+                                                                        try{
+                                                                            (window as any).glitterInitialHelper.share[`getPageData-${parent_array.tag}`].data.response.result[0].config=parent_array;
+                                                                        }catch{
+
+                                                                        }
                                                                     }
 
                                                                     if(!widget.storage){
@@ -445,7 +451,11 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
                                                                             page_config: pageData.page_config,
                                                                         })
                                                                     });
-                                                                    (window as any).glitterInitialHelper.share[`getPageData-${pageData.tag}`].data.response.result[0].page_config=pageData.page_config;
+                                                                    try{
+                                                                        (window as any).glitterInitialHelper.share[`getPageData-${pageData.tag}`].data.response.result[0].page_config=pageData.page_config;
+                                                                    }catch{
+
+                                                                    }
                                                                 }
                                                                 widget.storage && widget.storage.updatePageConfig && widget.storage.updatePageConfig(refer_form);
                                                             }
@@ -454,6 +464,7 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
                                                                 return {
                                                                     bind:id,
                                                                     view:()=>{
+
                                                                         return FormWidget.editorView({
                                                                             gvc: gvc,
                                                                             array: page_config.formFormat,
@@ -596,6 +607,7 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
                                         tag: tag,
                                         appName: (window as any).appName
                                     };
+                                    console.log(`page_request_config->`,page_request_config);
                                     ((window as any).glitterInitialHelper).getPageData(page_request_config, (d2: any) => {
                                         data = d2.response.result[0]
                                         data.config = data.config ?? []
@@ -677,6 +689,7 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
                                                 }, createOption ?? {})
                                             }
 
+
                                             widget.storage.updatePageConfig = (formData: any) => {
                                                 try {
                                                     viewConfig.formData = formData
@@ -684,7 +697,6 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
                                                 }catch (e){
 
                                                 }
-
                                             }
                                             resolve(`
                                                 <!-- tag=${tag} -->

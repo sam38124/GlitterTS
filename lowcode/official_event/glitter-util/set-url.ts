@@ -54,6 +54,7 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                                 })
                                             ]
                                         }else{
+
                                             return [
                                                 TriggerEvent.editer(gvc, widget, object.valueData, {
                                                     hover: false,
@@ -72,7 +73,7 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                 event: () => {
                     return new Promise(async (resolve, reject) => {
                         if(object.valueFrom==='manual'){
-                           
+
                             gvc.glitter.setUrlParameter(object.key, object.value)
                             resolve(true)
                         }else{

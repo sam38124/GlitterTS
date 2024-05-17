@@ -15,260 +15,282 @@ export class Setting_editor {
                 view: () => {
                     Storage.select_bg_btn = 'custom';
                     return [
-                        html ` <div
-                            class="w-100 align-items-center  d-flex editor_item_title  start-0  z-index-9 ps-2  border-bottom"
-                            style="z-index: 999;border:none;"
-                        >
-                            <span class="fs-6">CMS後台管理系統</span>
-                            <div
-                                class="hoverBtn d-flex align-items-center justify-content-center   border ms-auto me-2"
-                                style="height:30px;width:30px;border-radius:5px;cursor:pointer;color:#151515;"
-                                onclick="${gvc.event(() => {
-                            Setting_editor.addPlugin(gvc, () => {
-                                gvc.notifyDataChange(id);
-                            });
-                        })}"
-                            >
-                                <i class="fa-solid fa-puzzle-piece-simple" aria-hidden="true"></i>
-                            </div>
-                        </div>`,
                         (() => {
-                            switch (Storage.select_bg_btn) {
-                                case 'custom':
-                                    return gvc.bindView(() => {
-                                        const id = gvc.glitter.getUUID();
-                                        let items = [];
-                                        let mustItem = [
-                                            {
-                                                icon: '',
-                                                page: 'seo_manager',
-                                                group: '網站設定',
-                                                title: 'SEO管理',
-                                                appName: 'cms_system',
-                                                groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713343551382-Component 56.svg',
-                                                moduleName: 'SEO管理',
-                                            },
-                                            {
-                                                icon: '',
-                                                page: 'domain_setting',
-                                                group: '網站設定',
-                                                title: '網域設定',
-                                                appName: 'cms_system',
-                                                groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713343551382-Component 56.svg',
-                                                moduleName: '網域設定',
-                                            },
-                                            {
-                                                icon: '',
-                                                page: 'login_setting',
-                                                group: '用戶相關',
-                                                title: '登入設定',
-                                                appName: 'cms_system',
-                                                groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713360844009-Component 56 (1).svg',
-                                                moduleName: '登入設定',
-                                            },
-                                            {
-                                                icon: '',
-                                                page: 'user_list',
-                                                group: '用戶相關',
-                                                title: '用戶列表',
-                                                appName: 'cms_system',
-                                                groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713360844009-Component 56 (1).svg',
-                                                moduleName: '用戶列表',
-                                            },
-                                            {
-                                                icon: '',
-                                                page: 'blog_manager',
-                                                group: '網誌管理',
-                                                title: '網誌列表',
-                                                appName: 'cms_system',
-                                                groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1714973933251-newspaper-regular.svg',
-                                                moduleName: '網誌列表',
-                                            },
-                                            {
-                                                icon: '',
-                                                page: 'form_setting_page',
-                                                group: '表單管理',
-                                                title: '表單設定',
-                                                appName: 'cms_system',
-                                                groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713514549253-calendar-lines-pen-regular.svg',
-                                                moduleName: '表單管理',
-                                            },
-                                            {
-                                                icon: '',
-                                                page: 'dashboard_ec',
-                                                group: '電子商務',
-                                                title: '資料分析',
-                                                appName: 'cms_system',
-                                                groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713363894938-Component 56 (2).svg',
-                                                moduleName: 'dashboard_ec',
-                                            },
-                                            {
-                                                icon: '',
-                                                page: 'setFinanceWay',
-                                                group: '電子商務',
-                                                title: '金流 / 物流 / 發票',
-                                                appName: 'cms_system',
-                                                groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713363894938-Component 56 (2).svg',
-                                                moduleName: '金流 / 物流 / 發票',
-                                            },
-                                            {
-                                                icon: '',
-                                                page: 'product-manager',
-                                                group: '電子商務',
-                                                title: '商品管理',
-                                                appName: 'cms_system',
-                                                groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713363894938-Component 56 (2).svg',
-                                                moduleName: '商品管理',
-                                            },
-                                            {
-                                                icon: '',
-                                                page: 'order_list',
-                                                group: '電子商務',
-                                                title: '訂單管理',
-                                                appName: 'cms_system',
-                                                groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713363894938-Component 56 (2).svg',
-                                                moduleName: '訂單列表',
-                                            },
-                                            {
-                                                icon: '',
-                                                page: 'discount_setting',
-                                                group: '優惠促銷',
-                                                title: '折扣管理',
-                                                appName: 'cms_system',
-                                                groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713370923228-Component 56 (3).svg',
-                                                moduleName: '折扣管理',
-                                            },
-                                            {
-                                                icon: '',
-                                                page: 'shippment-setting',
-                                                group: '電子商務',
-                                                title: '運費設定',
-                                                appName: 'cms_system',
-                                                groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713363894938-Component 56 (2).svg',
-                                                moduleName: '運費設定',
-                                            },
-                                            {
-                                                icon: '',
-                                                page: 'rebate',
-                                                group: '優惠促銷',
-                                                title: '回饋金',
-                                                appName: 'cms_system',
-                                                groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713370923228-Component 56 (3).svg',
-                                                moduleName: '回饋金',
-                                            },
-                                            {
-                                                icon: '',
-                                                page: 'wallet-list',
-                                                group: '電子錢包',
-                                                title: '增減紀錄',
-                                                appName: 'cms_system',
-                                                groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713371719908-wallet-regular.svg',
-                                                moduleName: '增減紀錄',
-                                            },
-                                            {
-                                                icon: '',
-                                                page: 'withdrawRequest',
-                                                group: '電子錢包',
-                                                title: '提領請求',
-                                                appName: 'cms_system',
-                                                groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713371719908-wallet-regular.svg',
-                                                moduleName: '提領請求',
-                                            },
-                                            {
-                                                icon: '',
-                                                page: 'mail_subscrible',
-                                                group: '信件群發',
-                                                title: '已訂閱郵件',
-                                                appName: 'cms_system',
-                                                groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713375442916-Component 56 (4).svg',
-                                                moduleName: '已訂閱郵件',
-                                            },
-                                            {
-                                                icon: '',
-                                                page: 'send_mail',
-                                                group: '信件群發',
-                                                title: '群發設定',
-                                                appName: 'cms_system',
-                                                groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713375442916-Component 56 (4).svg',
-                                                moduleName: '群發設定',
-                                            },
-                                            {
-                                                icon: '',
-                                                page: 'cloud_subscrible',
-                                                group: '雲消息傳遞',
-                                                title: '訂閱裝置管理',
-                                                appName: 'cms_system',
-                                                groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713414599944-Component 56 (5).svg',
-                                                moduleName: '訂閱裝置管理',
-                                            },
-                                            {
-                                                icon: '',
-                                                page: 'notify_message_list',
-                                                group: '雲消息傳遞',
-                                                title: '推播訊息管理',
-                                                appName: 'cms_system',
-                                                groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713414599944-Component 56 (5).svg',
-                                                moduleName: '推播訊息管理',
-                                            },
-                                            {
-                                                icon: '',
-                                                page: 'template_upload',
-                                                group: '應用發佈',
-                                                title: '模板發佈',
-                                                appName: 'cms_system',
-                                                groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713418629944-Component 56 (7).svg',
-                                                moduleName: '模板發佈',
-                                            },
-                                            {
-                                                icon: '',
-                                                page: 'code_info',
-                                                group: '後端代碼',
-                                                title: 'Graph api',
-                                                appName: 'cms_system',
-                                                groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713419947572-code-solid.svg',
-                                                moduleName: '後端代碼事件',
-                                            },
-                                            {
-                                                icon: '',
-                                                page: 'ios_upload',
-                                                group: '應用發佈',
-                                                title: 'IOS應用上架',
-                                                appName: 'cms_system',
-                                                groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713418629944-Component 56 (7).svg',
-                                                moduleName: 'IOS應用上架',
-                                            },
-                                            {
-                                                icon: '',
-                                                page: 'android_release',
-                                                group: '應用發佈',
-                                                title: 'Andriod應用上架',
-                                                appName: 'cms_system',
-                                                groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713418629944-Component 56 (7).svg',
-                                                moduleName: 'android應用上架',
-                                            }
-                                        ];
-                                        ApiPageConfig.getPrivateConfigV2('backend_list').then((res) => {
-                                            res.response.result[0] && (items = res.response.result[0].value);
-                                            items = items.filter((dd) => {
-                                                return dd;
-                                            });
-                                            mustItem.reverse().map((d1) => {
-                                                if (!items.find((dd) => {
-                                                    return (`${dd.appName}-${dd.page}` === `${d1.appName}-${d1.page}`);
-                                                })) {
-                                                    items = [d1].concat(items);
-                                                }
-                                            });
-                                            if (parseInt(Storage.select_item, 10) >= items.length) {
-                                                Storage.select_item = '0';
-                                            }
-                                            gvc.notifyDataChange(id);
+                            return html `
+                                <div class="w-100" style="overflow-y:auto;max-height:calc(100vh - 100px);">
+                                    ${(() => {
+                                return gvc.bindView(() => {
+                                    const id = gvc.glitter.getUUID();
+                                    let items = [];
+                                    let mustItem = [
+                                        {
+                                            icon: '',
+                                            page: 'web_theme',
+                                            group: '商店設計',
+                                            title: '商店版面設計',
+                                            appName: 'cms_system',
+                                            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1715648386529-paintbrush-pencil-regular.svg',
+                                            moduleName: '商店設計',
+                                        },
+                                        {
+                                            icon: '',
+                                            page: 'seo_manager',
+                                            group: '網站設定',
+                                            title: 'SEO管理',
+                                            appName: 'cms_system',
+                                            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713343551382-Component 56.svg',
+                                            moduleName: 'SEO管理',
+                                        },
+                                        {
+                                            icon: '',
+                                            page: 'domain_setting',
+                                            group: '網站設定',
+                                            title: '網域設定',
+                                            appName: 'cms_system',
+                                            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713343551382-Component 56.svg',
+                                            moduleName: '網域設定',
+                                        },
+                                        {
+                                            icon: '',
+                                            page: 'web_config',
+                                            group: '網站設定',
+                                            title: '網站配置',
+                                            appName: 'cms_system',
+                                            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713343551382-Component 56.svg',
+                                            moduleName: '網域設定',
+                                        },
+                                        {
+                                            icon: '',
+                                            page: 'login_setting',
+                                            group: '用戶相關',
+                                            title: '登入設定',
+                                            appName: 'cms_system',
+                                            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713360844009-Component 56 (1).svg',
+                                            moduleName: '登入設定',
+                                        },
+                                        {
+                                            icon: '',
+                                            page: 'user_list',
+                                            group: '用戶相關',
+                                            title: '用戶列表',
+                                            appName: 'cms_system',
+                                            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713360844009-Component 56 (1).svg',
+                                            moduleName: '用戶列表',
+                                        },
+                                        {
+                                            icon: '',
+                                            page: 'blog_manager',
+                                            group: '網誌管理',
+                                            title: '網誌列表',
+                                            appName: 'cms_system',
+                                            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1714973933251-newspaper-regular.svg',
+                                            moduleName: '網誌列表',
+                                        },
+                                        {
+                                            icon: '',
+                                            page: 'form_setting_page',
+                                            group: '表單管理',
+                                            title: '表單設定',
+                                            appName: 'cms_system',
+                                            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713514549253-calendar-lines-pen-regular.svg',
+                                            moduleName: '表單管理',
+                                        },
+                                        {
+                                            icon: '',
+                                            page: 'dashboard_ec',
+                                            group: '電子商務',
+                                            title: '資料分析',
+                                            appName: 'cms_system',
+                                            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713363894938-Component 56 (2).svg',
+                                            moduleName: 'dashboard_ec',
+                                        },
+                                        {
+                                            icon: '',
+                                            page: 'setFinanceWay',
+                                            group: '電子商務',
+                                            title: '金流 / 物流 / 發票',
+                                            appName: 'cms_system',
+                                            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713363894938-Component 56 (2).svg',
+                                            moduleName: '金流 / 物流 / 發票',
+                                        },
+                                        {
+                                            icon: '',
+                                            page: 'product-manager',
+                                            group: '電子商務',
+                                            title: '商品管理',
+                                            appName: 'cms_system',
+                                            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713363894938-Component 56 (2).svg',
+                                            moduleName: '商品管理',
+                                        },
+                                        {
+                                            icon: '',
+                                            page: 'collection',
+                                            group: '電子商務',
+                                            title: '商品分類',
+                                            appName: 'cms_system',
+                                            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713363894938-Component 56 (2).svg'
+                                        },
+                                        {
+                                            icon: '',
+                                            page: 'order_list',
+                                            group: '電子商務',
+                                            title: '訂單管理',
+                                            appName: 'cms_system',
+                                            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713363894938-Component 56 (2).svg',
+                                            moduleName: '訂單列表',
+                                        },
+                                        {
+                                            icon: '',
+                                            page: 'discount_setting',
+                                            group: '優惠促銷',
+                                            title: '折扣管理',
+                                            appName: 'cms_system',
+                                            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713370923228-Component 56 (3).svg',
+                                            moduleName: '折扣管理',
+                                        },
+                                        {
+                                            icon: '',
+                                            page: 'shippment-setting',
+                                            group: '電子商務',
+                                            title: '運費設定',
+                                            appName: 'cms_system',
+                                            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713363894938-Component 56 (2).svg',
+                                            moduleName: '運費設定',
+                                        },
+                                        {
+                                            icon: '',
+                                            page: 'rebate',
+                                            group: '優惠促銷',
+                                            title: '回饋金',
+                                            appName: 'cms_system',
+                                            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713370923228-Component 56 (3).svg',
+                                            moduleName: '回饋金',
+                                        },
+                                        {
+                                            icon: '',
+                                            page: 'wallet-list',
+                                            group: '電子錢包',
+                                            title: '增減紀錄',
+                                            appName: 'cms_system',
+                                            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713371719908-wallet-regular.svg',
+                                            moduleName: '增減紀錄',
+                                        },
+                                        {
+                                            icon: '',
+                                            page: 'withdrawRequest',
+                                            group: '電子錢包',
+                                            title: '提領請求',
+                                            appName: 'cms_system',
+                                            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713371719908-wallet-regular.svg',
+                                            moduleName: '提領請求',
+                                        },
+                                        {
+                                            icon: '',
+                                            page: 'mail_subscrible',
+                                            group: '信件群發',
+                                            title: '已訂閱郵件',
+                                            appName: 'cms_system',
+                                            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713375442916-Component 56 (4).svg',
+                                            moduleName: '已訂閱郵件',
+                                        },
+                                        {
+                                            icon: '',
+                                            page: 'send_mail',
+                                            group: '信件群發',
+                                            title: '群發設定',
+                                            appName: 'cms_system',
+                                            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713375442916-Component 56 (4).svg',
+                                            moduleName: '群發設定',
+                                        },
+                                        {
+                                            icon: '',
+                                            page: 'cloud_subscrible',
+                                            group: '雲消息傳遞',
+                                            title: '訂閱裝置管理',
+                                            appName: 'cms_system',
+                                            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713414599944-Component 56 (5).svg',
+                                            moduleName: '訂閱裝置管理',
+                                        },
+                                        {
+                                            icon: '',
+                                            page: 'notify_message_list',
+                                            group: '雲消息傳遞',
+                                            title: '推播訊息管理',
+                                            appName: 'cms_system',
+                                            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713414599944-Component 56 (5).svg',
+                                            moduleName: '推播訊息管理',
+                                        },
+                                        {
+                                            icon: '',
+                                            page: 'template_upload',
+                                            group: '應用發佈',
+                                            title: '模板發佈',
+                                            appName: 'cms_system',
+                                            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713418629944-Component 56 (7).svg',
+                                            moduleName: '模板發佈',
+                                        },
+                                        {
+                                            icon: '',
+                                            page: 'code_info',
+                                            group: '後端代碼',
+                                            title: 'Graph api',
+                                            appName: 'cms_system',
+                                            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713419947572-code-solid.svg',
+                                            moduleName: '後端代碼事件',
+                                        },
+                                        {
+                                            icon: '',
+                                            page: 'ios_upload',
+                                            group: '應用發佈',
+                                            title: 'IOS應用上架',
+                                            appName: 'cms_system',
+                                            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713418629944-Component 56 (7).svg',
+                                            moduleName: 'IOS應用上架',
+                                        },
+                                        {
+                                            icon: '',
+                                            page: 'android_release',
+                                            group: '應用發佈',
+                                            title: 'Andriod應用上架',
+                                            appName: 'cms_system',
+                                            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713418629944-Component 56 (7).svg',
+                                            moduleName: 'android應用上架',
+                                        }
+                                    ];
+                                    ApiPageConfig.getPrivateConfigV2('backend_list').then((res) => {
+                                        res.response.result[0] && (items = res.response.result[0].value);
+                                        items = items.filter((dd) => {
+                                            return dd;
                                         });
-                                        return {
-                                            bind: id,
-                                            view: () => {
-                                                const list = [];
-                                                function click_item(index) {
+                                        mustItem.reverse().map((d1) => {
+                                            if (!items.find((dd) => {
+                                                return (`${dd.appName}-${dd.page}` === `${d1.appName}-${d1.page}`);
+                                            })) {
+                                                items = [d1].concat(items);
+                                            }
+                                        });
+                                        if (parseInt(Storage.select_item, 10) >= items.length) {
+                                            Storage.select_item = '0';
+                                        }
+                                        gvc.notifyDataChange(id);
+                                    });
+                                    return {
+                                        bind: id,
+                                        view: () => {
+                                            const list = [];
+                                            function click_item(index) {
+                                                if (['page_layout', 'dev_mode'].indexOf(items[parseInt(index)].page) !== -1) {
+                                                    const url = new URL(location.href);
+                                                    if (items[parseInt(index)].page === 'page_layout') {
+                                                        url.searchParams.set('function', 'user-editor');
+                                                    }
+                                                    else {
+                                                        Storage.view_type = 'col3';
+                                                        url.searchParams.set('function', 'page-editor');
+                                                    }
+                                                    location.href = url.href;
+                                                }
+                                                else {
                                                     Storage.select_item = index;
                                                     window.editerData = undefined;
                                                     const url = new URL(location.href);
@@ -278,133 +300,161 @@ export class Setting_editor {
                                                     url.searchParams.set('appName', items[parseInt(index)].appName);
                                                     $('#editerCenter').html(`<iframe src="${url.href}" style="border: none;height: calc(100vh - 70px);"></iframe>`);
                                                 }
-                                                items.map((dd, index) => {
-                                                    let container = list;
-                                                    const group = dd.group.split('/');
-                                                    if (dd.group) {
-                                                        group.map((d3) => {
-                                                            if (!container.find((dd) => {
-                                                                return dd.title === d3;
-                                                            })) {
-                                                                container.push({
-                                                                    type: 'container',
-                                                                    title: d3,
-                                                                    child: [],
-                                                                    toggle: false,
-                                                                    icon: dd.groupIcon,
-                                                                });
-                                                            }
-                                                            if (Storage.select_item === `${index}`) {
-                                                                container.find((dd) => {
-                                                                    return dd.title === d3 && dd.type === 'container';
-                                                                }).toggle = true;
-                                                            }
-                                                            container = container.find((dd) => {
-                                                                return dd.title === d3 && dd.type === 'container';
-                                                            }).child;
-                                                        });
-                                                        if (dd.groupIcon) {
-                                                            items
-                                                                .filter((d2) => {
-                                                                return d2.group === dd.group;
-                                                            })
-                                                                .map((d1) => {
-                                                                d1.groupIcon = dd.groupIcon;
+                                            }
+                                            items.map((dd, index) => {
+                                                let container = list;
+                                                const group = dd.group.split('/');
+                                                if (dd.group) {
+                                                    group.map((d3) => {
+                                                        if (!container.find((dd) => {
+                                                            return dd.title === d3;
+                                                        })) {
+                                                            container.push({
+                                                                type: 'container',
+                                                                title: d3,
+                                                                child: [],
+                                                                toggle: false,
+                                                                icon: dd.groupIcon,
                                                             });
                                                         }
+                                                        if (Storage.select_item === `${index}`) {
+                                                            container.find((dd) => {
+                                                                return dd.title === d3 && dd.type === 'container';
+                                                            }).toggle = true;
+                                                        }
+                                                        container = container.find((dd) => {
+                                                            return dd.title === d3 && dd.type === 'container';
+                                                        }).child;
+                                                    });
+                                                    if (dd.groupIcon) {
+                                                        items
+                                                            .filter((d2) => {
+                                                            return d2.group === dd.group;
+                                                        })
+                                                            .map((d1) => {
+                                                            d1.groupIcon = dd.groupIcon;
+                                                        });
                                                     }
-                                                    if (Storage.select_item === `${index}`) {
+                                                }
+                                                if (Storage.select_item === `${index}`) {
+                                                    if (['page_layout', 'dev_mode'].indexOf(items[index].page) !== -1) {
+                                                        Storage.select_item = `5`;
+                                                        click_item(Storage.select_item);
+                                                    }
+                                                    else {
                                                         click_item(index);
                                                     }
-                                                    container.push({
-                                                        title: dd.title,
-                                                        index: index,
-                                                        info: dd,
-                                                        toggle: Storage.select_item === `${index}`,
-                                                    });
-                                                });
-                                                function refreshContainer() {
-                                                    gvc.notifyDataChange(id);
                                                 }
-                                                function renderItems(list) {
-                                                    return gvc.bindView(() => {
-                                                        const id = gvc.glitter.getUUID();
-                                                        return {
-                                                            bind: id,
-                                                            view: () => {
-                                                                return list
-                                                                    .map((dd, index) => {
-                                                                    return html `
-                                                                            <li>
-                                                                                <div
-                                                                                    class="w-100 fw-500 d-flex align-items-center  fs-6 hoverBtn h_item  rounded px-2 "
-                                                                                    style="gap:5px;color:#393939;${dd.toggle
-                                                                        ? `border-radius: 5px;background: #F2F2F2;`
-                                                                        : ``}"
-                                                                                    onclick="${gvc.event(() => {
-                                                                        if (dd.type === 'container') {
-                                                                            dd.toggle = !dd.toggle;
-                                                                            gvc.notifyDataChange(id);
-                                                                        }
-                                                                        else {
-                                                                            click_item(dd.index);
+                                                container.push({
+                                                    title: dd.title,
+                                                    index: index,
+                                                    info: dd,
+                                                    toggle: Storage.select_item === `${index}`,
+                                                });
+                                            });
+                                            function refreshContainer() {
+                                                gvc.notifyDataChange(id);
+                                            }
+                                            function renderItems(list) {
+                                                return gvc.bindView(() => {
+                                                    const id = gvc.glitter.getUUID();
+                                                    return {
+                                                        bind: id,
+                                                        view: () => {
+                                                            return list
+                                                                .map((dd, index) => {
+                                                                return html `
+                                                                                            <li>
+                                                                                                <div
+                                                                                                        class="w-100 fw-500 d-flex align-items-center  fs-6 hoverBtn h_item  rounded px-2 "
+                                                                                                        style="gap:5px;color:#393939;${dd.toggle
+                                                                    ? `border-radius: 5px;background: #F2F2F2;`
+                                                                    : ``}"
+                                                                                                        onclick="${gvc.event(() => {
+                                                                    if (dd.type === 'container') {
+                                                                        dd.toggle = !dd.toggle;
+                                                                        gvc.notifyDataChange(id);
+                                                                    }
+                                                                    else {
+                                                                        click_item(dd.index);
+                                                                        if (['page_layout', 'dev_mode'].indexOf(items[parseInt(dd.index)].page) === -1) {
                                                                             dd.toggle = true;
                                                                             refreshContainer();
                                                                         }
-                                                                    })}"
-                                                                                >
-                                                                                    ${dd.icon
-                                                                        ? `<img src="${dd.icon}" style="width:18px;height:18px;">`
-                                                                        : ``}
-                                                                                    <span>${dd.title}</span>
-                                                                                    <div class="flex-fill"></div>
-                                                                                    ${dd.type === 'container'
-                                                                        ? !dd.toggle
-                                                                            ? `
+                                                                    }
+                                                                })}"
+                                                                                                >
+                                                                                                    ${dd.icon
+                                                                    ? `<img src="${dd.icon}" style="width:18px;height:18px;">`
+                                                                    : ``}
+                                                                                                    <span>${dd.title}</span>
+                                                                                                    <div class="flex-fill"></div>
+                                                                                                    ${dd.type === 'container'
+                                                                    ? !dd.toggle
+                                                                        ? `
                                             <i class="fa-regular fa-angle-right hoverBtn me-1" aria-hidden="true"></i>
                                             `
-                                                                            : `<i class="fa-regular fa-angle-down hoverBtn me-1" aria-hidden="true"></i>`
-                                                                        : `
+                                                                        : `<i class="fa-regular fa-angle-down hoverBtn me-1" aria-hidden="true"></i>`
+                                                                    : `
                                                ${dd.info && dd.info.icon
-                                                                            ? `<img src="${dd.info.icon}" style="width:18px;height:18px;">`
-                                                                            : ``}
-                                            `}
-                                                                                </div>
-                                                                                ${dd.type === 'container'
-                                                                        ? `<div class="ps-2 pt-2 pb-2 ${dd.toggle ? `` : `d-none`}">${renderItems(dd.child)}</div>`
+                                                                        ? `<img src="${dd.info.icon}" style="width:18px;height:18px;">`
                                                                         : ``}
-                                                                            </li>
-                                                                        `;
-                                                                })
-                                                                    .join('<div class="my-1"></div>');
-                                                            },
-                                                            divCreate: {
-                                                                elem: 'ul',
-                                                                class: `m-0 `,
-                                                                option: [
-                                                                    {
-                                                                        key: 'id',
-                                                                        value: id,
-                                                                    },
-                                                                ],
-                                                            },
-                                                            onCreate: () => { },
-                                                        };
-                                                    });
-                                                }
-                                                return `<div class="p-2">${renderItems(list)}</div>`;
-                                            },
-                                        };
-                                    });
-                            }
+                                            `}
+                                                                                                </div>
+                                                                                                ${dd.type === 'container'
+                                                                    ? `<div class="ps-4 pt-2 pb-2 ${dd.toggle ? `` : `d-none`}">${renderItems(dd.child)}</div>`
+                                                                    : ``}
+                                                                                            </li>
+                                                                                        `;
+                                                            })
+                                                                .join('<div class="my-1"></div>');
+                                                        },
+                                                        divCreate: {
+                                                            elem: 'ul',
+                                                            class: `m-0 `,
+                                                            option: [
+                                                                {
+                                                                    key: 'id',
+                                                                    value: id,
+                                                                },
+                                                            ],
+                                                        },
+                                                        onCreate: () => {
+                                                        },
+                                                    };
+                                                });
+                                            }
+                                            return `<div class="p-2">${renderItems(list)}</div>`;
+                                        },
+                                    };
+                                });
+                            })()}
+                                </div>`;
                         })(),
+                        `<div
+                            class="bg-white w-100 align-items-center  d-flex editor_item_title  start-0  z-index-9 ps-2  border-bottom border-top position-absolute bottom-0"
+                            style="z-index: 999;border:none;"
+                        >
+                            <div
+                                class="hoverBtn d-flex align-items-center justify-content-center   border  me-2"
+                                style="height:30px;width:30px;border-radius:5px;cursor:pointer;color:#151515;"
+                                onclick="${gvc.event(() => {
+                            Setting_editor.addPlugin(gvc, () => {
+                                gvc.notifyDataChange(id);
+                            });
+                        })}"
+                            >
+                                <i class="fa-solid fa-puzzle-piece-simple" aria-hidden="true"></i>
+                            </div>
+                        </div>`
                     ].join('');
                 },
                 divCreate: { style: `border-bottom: 1px solid #e2e5f1 !important;` },
             };
         });
     }
-    static center(gvc, viewModel, createID) { }
+    static center(gvc, viewModel, createID) {
+    }
     static addPlugin(gvc, callback) {
         const saasConfig = window.saasConfig;
         const html = String.raw;
@@ -428,13 +478,13 @@ export class Setting_editor {
                         return html `
                             <div class=" position-relative bgf6 d-flex align-items-center   p-2 border-bottom shadow">
                                 <span class="fs-6 fw-bold " style="color:black;"
-                                    >${updateModel ? `插件設定` : '新增插件'}</span
+                                >${updateModel ? `插件設定` : '新增插件'}</span
                                 >
                                 <div class="flex-fill"></div>
                                 <button
-                                    class="btn btn-primary-c ${updateModel ? `d-none` : ``}"
-                                    style="height: 28px;width:40px;font-size:14px;"
-                                    onclick="${gvc.event(() => {
+                                        class="btn btn-primary-c ${updateModel ? `d-none` : ``}"
+                                        style="height: 28px;width:40px;font-size:14px;"
+                                        onclick="${gvc.event(() => {
                             items.push(postMd);
                             NormalPageEditor.back();
                         })}"
@@ -529,14 +579,15 @@ export class Setting_editor {
             view: (() => {
                 const viewComponent = {
                     add_plus: (title, event) => {
-                        return html ` <div
-                            class="w-100 fw-500 d-flex align-items-center justify-content-center fs-6 hoverBtn h_item border rounded"
-                            style="gap:5px;color:#3366BB;"
-                            onclick="${event}"
-                        >
-                            <i class="fa-solid fa-plus"></i>
-                            <span>${title}</span>
-                        </div>`;
+                        return html `
+                            <div
+                                    class="w-100 fw-500 d-flex align-items-center justify-content-center fs-6 hoverBtn h_item border rounded"
+                                    style="gap:5px;color:#3366BB;"
+                                    onclick="${event}"
+                            >
+                                <i class="fa-solid fa-plus"></i>
+                                <span>${title}</span>
+                            </div>`;
                     },
                 };
                 return gvc.bindView(() => {
@@ -603,9 +654,9 @@ export class Setting_editor {
                                                 return html `
                                                         <li>
                                                             <div
-                                                                class="w-100 fw-500 d-flex align-items-center  fs-6 hoverBtn h_item  rounded px-2"
-                                                                style="gap:5px;color:#393939;"
-                                                                onclick="${gvc.event(() => {
+                                                                    class="w-100 fw-500 d-flex align-items-center  fs-6 hoverBtn h_item  rounded px-2"
+                                                                    style="gap:5px;color:#393939;"
+                                                                    onclick="${gvc.event(() => {
                                                     if (dd.type === 'container') {
                                                         dd.toggle = !dd.toggle;
                                                         gvc.notifyDataChange(id);
@@ -727,14 +778,14 @@ export class Setting_editor {
                             }
                             return html `
                                 <div
-                                    class=" position-relative bgf6 d-flex align-items-center   p-2 border-bottom shadow"
+                                        class=" position-relative bgf6 d-flex align-items-center   p-2 border-bottom shadow"
                                 >
                                     <span class="fs-6 fw-bold " style="color:black;">插件設定</span>
                                     <div class="flex-fill"></div>
                                     <button
-                                        class="btn btn-primary-c "
-                                        style="height: 28px;width:40px;font-size:14px;"
-                                        onclick="${gvc.event(() => {
+                                            class="btn btn-primary-c "
+                                            style="height: 28px;width:40px;font-size:14px;"
+                                            onclick="${gvc.event(() => {
                                 dialog.dataLoading({ visible: true });
                                 ApiPageConfig.setPrivateConfigV2({
                                     key: 'backend_list',

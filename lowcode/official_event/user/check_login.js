@@ -33,7 +33,6 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                 event: () => {
                     return new Promise((resolve, reject) => __awaiter(void 0, void 0, void 0, function* () {
                         if (!GlobalUser.token) {
-                            GlobalUser.token = '';
                             resolve(yield TriggerEvent.trigger({ gvc: gvc, widget: widget, clickEvent: object.errorEvent, subData: subData, element: element }));
                         }
                         else {

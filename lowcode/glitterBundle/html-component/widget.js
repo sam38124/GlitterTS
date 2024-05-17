@@ -31,7 +31,14 @@ export const widgetComponent = {
         return {
             view: () => {
                 var _a;
-                let innerText = widget.data.inner;
+                let innerText = (() => {
+                    if ((widget.data.dataFrom === "code") || (widget.data.dataFrom === "code_text")) {
+                        return ``;
+                    }
+                    else {
+                        return widget.data.inner;
+                    }
+                })();
                 function getCreateOption() {
                     let option = widget.data.attr.map((dd) => {
                         if (dd.type === 'par') {

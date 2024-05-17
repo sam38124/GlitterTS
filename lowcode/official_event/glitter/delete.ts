@@ -1,6 +1,7 @@
 import {GlobalUser} from "../../glitter-base/global/global-user.js";
 import {TriggerEvent} from "../../glitterBundle/plugins/trigger-event.js";
 import {ApiPageConfig} from "../../api/pageConfig.js";
+import {ShareDialog} from "../../glitterBundle/dialog/ShareDialog.js";
 TriggerEvent.createSingleEvent(import.meta.url, () => {
     return {
         fun: (gvc, widget, object, subData) => {
@@ -44,7 +45,10 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                             clickEvent:object.deleteApp,
                             subData:subData,
                         })
+                        const dialog=new ShareDialog(gvc.glitter)
+                        dialog.dataLoading({visible:true})
                         const response=await ApiPageConfig.deleteApp(deleteAPP as string)
+                        dialog.dataLoading({visible:false})
                         if(response.result){
                             await TriggerEvent.trigger({
                                 gvc:gvc,

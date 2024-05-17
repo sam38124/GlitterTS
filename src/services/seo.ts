@@ -40,6 +40,9 @@ export class Seo{
         if (req.query.appName) {
             redirect += `&appName=${req.query.appName}`
         }
+        if(req.query.function){
+            redirect += `&function=${req.query.function}`
+        }
 
         return `
 ${(() => {

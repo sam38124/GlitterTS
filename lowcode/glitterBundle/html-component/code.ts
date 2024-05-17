@@ -1,7 +1,6 @@
 import {GVC} from "../GVController.js";
 import {HtmlJson} from "../plugins/plugin-creater.js";
 import {TriggerEvent} from "../plugins/trigger-event.js";
-import {Editor} from "./editor.js";
 import {EditorElem} from "../plugins/editor-elem.js";
 
 export const codeComponent = {
@@ -43,7 +42,7 @@ export const codeComponent = {
                                     },
                                     type: 'text'
                                 }),
-                                Editor.select({
+                                EditorElem.select({
                                     title: "觸發時機",
                                     gvc: gvc,
                                     def: widget.data.triggerTime,

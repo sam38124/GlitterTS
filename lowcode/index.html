@@ -2,7 +2,7 @@
 <!--//Please dont change-->
 <!DOCTYPE html>
 <meta name="viewport"
-      content="width=device-width,height=device-height, initial-scale=1, minimum-scale=1, maximum-scale=1,user-scalable=no,initial-scale=1.0001,maximum-scale=1.0001,viewport-fit=cover">
+      content="width=device-width, initial-scale=1.0, user-scalable=no">
 <html lang="en">
 <head>
 
@@ -256,14 +256,10 @@
             let tag = cf;
             let appName = window.appName;
             if (typeof cf === 'object') {
-                if(cf.appName===window.appName){
-                    tag=cf.tag
-                }else {
-                    tag = cf.appName + '-' + cf.tag;
-                }
+                tag=cf.tag
                 appName = cf.appName;
             }
-            window.glitterInitialHelper.setQueue(`getPageData-${tag}`, (callback) => {
+            window.glitterInitialHelper.setQueue(`getPageData-${appName}-${tag}`, (callback) => {
                 const myHeaders = new Headers();
                 const requestOptions = {
                     method: 'GET',

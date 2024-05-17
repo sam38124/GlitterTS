@@ -413,6 +413,10 @@ export function init(metaURL: string, fun: (gvc: GVC, glitter: Glitter, gBundle:
         pageConfig: PageConfig
     }) => {
         if ((window as any).glitter.pageConfig.length - 2 >= 0) {
+            localStorage.setItem('g_l_top',JSON.stringify({
+                y:window.scrollY,
+                id:(window as any).glitter.pageConfig[(window as any).glitter.pageConfig.length - 2].id
+            }));
             (window as any).glitter.pageConfig[(window as any).glitter.pageConfig.length - 2].scrollTop = window.scrollY
         }
         const gvc = new GVC()

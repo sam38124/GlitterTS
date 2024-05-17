@@ -40,10 +40,11 @@ class Shopping {
                     return `(JSON_EXTRACT(content, '$.collection') LIKE '%${dd}%')`;
                 })
                     .join(' or ')})`);
-            if (!query.id && query.status === 'active') {
+            console.log(`select content->>'$.product_id' as id from \`${this.app}\`.t_manager_post where content->>'$.sku'=${database_js_1.default.escape(query.sku)}`);
+            query.sku && querySql.push(`id in (select CAST(content->>'$.product_id' AS UNSIGNED) as id from \`${this.app}\`.t_manager_post where content->>'$.sku'=${database_js_1.default.escape(query.sku)})`);
+            if (!query.id && query.status === 'active' && query.with_hide_index !== 'true') {
                 querySql.push(`((content->>'$.hideIndex' is NULL) || (content->>'$.hideIndex'='false'))`);
             }
-            query.id;
             query.id_list && querySql.push(`(content->>'$.id' in (${query.id_list}))`);
             query.status && querySql.push(`(JSON_EXTRACT(content, '$.status') = '${query.status}')`);
             query.min_price && querySql.push(`(CAST(JSON_UNQUOTE(JSON_EXTRACT(content, '$.variants[0].sale_price')) AS SIGNED)>=${query.min_price}) `);
@@ -106,7 +107,7 @@ class Shopping {
     async querySql(querySql, query) {
         let sql = `SELECT *
                    FROM \`${this.app}\`.t_manager_post
-                   where ${querySql.join(' & ')} ${query.order_by || `order by id desc`}
+                   where ${querySql.join(' and ')} ${query.order_by || `order by id desc`}
         `;
         if (query.id) {
             const data = (await database_js_1.default.query(`SELECT *
@@ -942,7 +943,6 @@ class Shopping {
                             return str;
                         });
                     }
-                    console.log([data.id, data.parent_id, data.parent_name, data.name]);
                     if (data.parent_id === undefined) {
                         product.content.collection.push(data.name);
                     }

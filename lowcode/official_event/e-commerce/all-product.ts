@@ -13,11 +13,31 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
             object.minPrice = object.minPrice ?? {}
             object.titleMatch = object.titleMatch ?? {}
             object.orderBy= object.orderBy??{}
+            object.with_hide_index=object.with_hide_index ?? 'false'
             return {
                 editor: () => {
                     object.getType = object.getType ?? "manual"
                     const id = gvc.glitter.getUUID()
                     return EditorElem.container([
+                        EditorElem.select({
+                            title: "是否查詢隱藏商品項目",
+                            gvc: gvc,
+                            def: object.with_hide_index,
+                            array: [
+                                {
+                                    title: '是',
+                                    value: 'true'
+                                },
+                                {
+                                    title: '否',
+                                    value: 'false'
+                                }
+                            ],
+                            callback: (text) => {
+                                object.with_hide_index = text
+                                gvc.notifyDataChange(id)
+                            }
+                        }),
                         TriggerEvent.editer(gvc, widget, object.page, {title: "當前頁面", hover: false, option: []}),
                         TriggerEvent.editer(gvc, widget, object.limit, {title: "每頁筆數", hover: false, option: []}),
                         TriggerEvent.editer(gvc, widget, object.collection, {
@@ -101,7 +121,8 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                 minPrice: minPrice as string,
                                 search: titleMatch as string,
                                 status:'active',
-                                orderBy:orderBy as string
+                                orderBy:orderBy as string,
+                                with_hide_index:object.with_hide_index as string
                             }).then((data) => {
                                 data.response.data.pageSize = Math.ceil(data.response.total / parseInt(limit as any, 10))
                                 if (parseInt(page as string, 10) <= data.response.data.pageSize) {

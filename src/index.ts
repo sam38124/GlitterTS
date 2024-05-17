@@ -31,6 +31,8 @@ import {UtDatabase} from "./api-public/utils/ut-database.js";
 export const app = express();
 const logger = new Logger();
 
+
+
 app.options('/*', (req, res) => {
     // 处理 OPTIONS 请求，返回允许的方法和头信息
     res.header('Access-Control-Allow-Origin', '*');
@@ -210,14 +212,12 @@ export async function createAPP(dd: any) {
                             }else{
                                 data =await Seo.getPageInfo(appName,data.config.homePage);
                             }
-
                         }else  if(data.page_type==='article' && data.page_config.template_type==='blog'){
                             let query = [
                                 `(content->>'$.type'='article')`,
                                 `(content->>'$.tag'='${req.query.article}')`,
                             ]
                             const article:any=await new UtDatabase(appName, `t_manager_post`).querySql(query, {page:0,limit:1});
-                            console.log(`articleIS->`,article)
                             data =await Seo.getPageInfo(appName,data.config.homePage);
                             data.page_config = data.page_config ?? {}
                             data.page_config.seo=data.page_config.seo??{}
@@ -226,7 +226,6 @@ export async function createAPP(dd: any) {
                                 data.page_config.seo.content=article.data[0].content.seo.content;
                                 data.page_config.seo.keywords=article.data[0].content.seo.keywords;
                             }
-
                         } else if (d.type !== 'custom') {
                             data =await Seo.getPageInfo(appName,data.config.homePage);
                         }
@@ -276,6 +275,7 @@ window.preloadData=${JSON.stringify(preload)};
                          
                         `
                     } else {
+                        console.log(`brandAndMemberType->redirect`)
                        return  await Seo.redirectToHomePage(appName,req);
                     }
                 } catch (e: any) {

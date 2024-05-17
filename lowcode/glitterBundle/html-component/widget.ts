@@ -26,7 +26,14 @@ export const widgetComponent = {
 
         return {
             view: () => {
-                let innerText = widget.data.inner
+
+                let innerText = (() => {
+                    if ((widget.data.dataFrom === "code") || (widget.data.dataFrom === "code_text")) {
+                        return ``
+                    } else {
+                        return widget.data.inner;
+                    }
+                })()
 
                 function getCreateOption() {
                     let option = widget.data.attr.map((dd: any) => {
@@ -98,13 +105,15 @@ export const widgetComponent = {
                     return {
                         elem: widget.data.elem,
                         class: classList.join(' '),
-                        style: glitter.htmlGenerate.styleEditor(widget.data, gvc, widget as any, subData).style()+` ${((window.parent as any).editerData !== undefined) ? `${((widget as any).visible===false) ? `display:none;`:``}`:``}`,
+                        style: glitter.htmlGenerate.styleEditor(widget.data, gvc, widget as any, subData).style() + ` ${((window.parent as any).editerData !== undefined) ? `${((widget as any).visible === false) ? `display:none;` : ``}` : ``}`,
                         option: option.concat(htmlGenerate.option),
                     }
                 }
+
                 if (widget.type === 'container') {
                     const glitter = (window as any).glitter
                     widget.data.setting.formData = widget.formData;
+
                     function getView() {
                         const htmlGenerate = new glitter.htmlGenerate(widget.data.setting, hoverID, subData, rootHtmlGenerate.root);
                         innerText = ''
@@ -145,7 +154,7 @@ export const widgetComponent = {
                             app_config: widget.global.appConfig,
                             page_config: widget.global.pageConfig,
                             document: document,
-                            editorSection:widget.id
+                            editorSection: widget.id
                         }, getCreateOption())
                     }
 
@@ -166,6 +175,7 @@ export const widgetComponent = {
                     });
                     return getView()
                 }
+
                 if ((widget.data.dataFrom === "code")) {
                     if (widget.data.elem !== 'select') {
                         innerText = ''
@@ -288,11 +298,11 @@ export const widgetComponent = {
                                         }
                                     })
                                 ];
-                                if((window.parent as any).editerData !== undefined && htmlGenerate.root){
+                                if ((window.parent as any).editerData !== undefined && htmlGenerate.root) {
                                     view.push(glitter.htmlGenerate.getEditorSelectSection({
-                                        id:widget.id,
-                                        gvc:gvc,
-                                        label:widget.label
+                                        id: widget.id,
+                                        gvc: gvc,
+                                        label: widget.label
                                     }));
                                 }
 
@@ -721,7 +731,7 @@ ${(() => {
                                                                         callback: (text) => {
                                                                             widget.data.inner = text
                                                                         },
-                                                                        structStart:`((gvc,widget,object,subData,element)=>{`
+                                                                        structStart: `((gvc,widget,object,subData,element)=>{`
                                                                     })
                                                                 } else {
                                                                     return `<div class="mt-2"></div>` + TriggerEvent.editer(gvc, widget, widget.data.innerEvenet, {
