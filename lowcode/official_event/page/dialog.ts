@@ -136,11 +136,11 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
 
                         }, tag as string, {
                             dismiss: () => {
-                                resolve(true)
+                                resolve(subData)
                             }
                         })
                         if (object.waitType !== 'block') {
-                            resolve(true)
+                            resolve(subData)
                         }
                     })
 

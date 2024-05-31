@@ -2,13 +2,14 @@ import { IToken } from "../models/Auth.js";
 export declare class App {
     token?: IToken;
     static getAdConfig(app: string, key: string): Promise<any>;
-    createApp(config: {
+    createApp(cf: {
         appName: string;
         copyApp: string;
         copyWith: string[];
         brand: string;
         name?: string;
         theme?: string;
+        sub_domain: string;
     }): Promise<boolean>;
     updateThemeConfig(body: {
         theme: string;
@@ -44,6 +45,11 @@ export declare class App {
         appName: string;
         data: any;
     }): Promise<boolean>;
+    putSubDomain(cf: {
+        app_name: string;
+        name: string;
+    }): Promise<boolean>;
+    addDNSRecord(domain: string): Promise<unknown>;
     setDomain(config: {
         appName: string;
         domain: string;

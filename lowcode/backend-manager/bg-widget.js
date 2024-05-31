@@ -10,7 +10,7 @@ export class BgWidget {
             const vm = {
                 loading: true,
                 callback: () => {
-                    vm.stateText = vm.data.length > 0 ? '資料載入中 ....' : '查無資料';
+                    vm.stateText = vm.data.length > 0 ? '資料載入中 ....' : '尚未新增內容';
                     vm.loading = false;
                     gvc.notifyDataChange(id);
                 },
@@ -28,64 +28,79 @@ export class BgWidget {
                 view: () => {
                     var _a;
                     if (vm.loading) {
-                        return html `<div class="py-3 fs-2 text-center">${vm.stateText}</div>`;
+                        return html `
+                            <div class=" fs-2 text-center" style="padding-bottom:32px;">${vm.stateText}</div>`;
                     }
                     else {
                         return html `
-                           ${(_a = obj.filter) !== null && _a !== void 0 ? _a : ""}
-                            <div class="card-body p-0 " style="overflow-x:scroll;">
-                                        <div class="tableHTML">
-                                            <table
-                                                class="table table-centered table-nowrap mb-0 text-center table-hover fw-500 fs-7"
-                                                style="overflow-x:scroll;"
-                                            >
-                                                <thead class="table-light" style="">
-                                                    ${vm.data.length === 0
+
+                            <div class=" p-0 " style="">
+                                <div class="" style="overflow-x:scroll;">
+                                    <table
+                                            class="table table-centered table-nowrap  text-center table-hover fw-500 fs-7"
+                                            style="overflow-x:scroll;margin-left: 32px;margin-right: 32px;"
+                                    >
+                                        <div class="" style="padding: 16px 32px;">
+                                            ${(_a = obj.filter) !== null && _a !== void 0 ? _a : ""}
+                                        </div>
+
+                                        <thead class="" style="">
+                                        ${vm.data.length === 0
                             ? ''
-                            : html `<tr>
-                                                              ${vm.data[0]
+                            : html `
+                                                    <tr>
+                                                        ${vm.data[0]
                                 .map((dd) => {
                                 var _a;
-                                return html `<th
-                                                                              class="${(_a = dd.position) !== null && _a !== void 0 ? _a : 'text-start'}"
-                                                                              style="background:#eaeaea !important;"
-                                                                          >
-                                                                              ${dd.key}
-                                                                          </th>`;
+                                return html `
+                                                                                    <th
+                                                                                            class="${(_a = dd.position) !== null && _a !== void 0 ? _a : 'text-start'} t_39_16 fw-bold"
+                                                                                            style="border:none;padding-bottom: 30px;color:#393939 !important;"
+                                                                                    >
+                                                                                        ${dd.key}
+                                                                                    </th>`;
                             })
                                 .join('')}
-                                                          </tr>`}
-                                                </thead>
+                                                    </tr>`}
+                                        </thead>
 
-                                                <tbody>
-                                                    ${vm.data.length === 0
-                            ? html `<div class="py-3 fs-2 text-center">${vm.stateText}</div>`
+                                        <tbody>
+                                        ${vm.data.length === 0
+                            ? html `
+                                                    <div class=" fs-2 text-center" style="padding-bottom:32px;">
+                                                        ${vm.stateText}
+                                                    </div>`
                             : html `${vm.data
                                 .map((dd, index) => {
-                                return html `<tr style="${(obj.rowClick) ? `cursor:pointer;` : ``};color:#303030;" onclick="${gvc.event(() => {
+                                return html `
+                                                                <tr style="${(obj.rowClick) ? `cursor:pointer;` : ``};color:#303030;"
+                                                                    onclick="${gvc.event(() => {
                                     obj.rowClick && obj.rowClick(dd, index);
                                 })}">
-                                                                      ${dd
+                                                                    ${dd
                                     .map((d3) => {
                                     var _a;
-                                    return html `<td
-                                                                                      class="${(_a = d3.position) !== null && _a !== void 0 ? _a : 'text-start'}  "
-                                                                                      ${d3.key === '●' || d3.stopDialog
+                                    return html `
+                                                                                                <td
+                                                                                                        class="${(_a = d3.position) !== null && _a !== void 0 ? _a : 'text-start'}  t_39_16"
+                                                                                                        ${d3.key === '●' || d3.stopDialog
                                         ? ''
                                         : html ` onclick="${gvc.event(() => {
                                         })}"`}
-                                                                     style="color:#303030 !important;"             >
-                                                                                     <div class="my-auto"> ${d3.value}</div>
-                                                                                  </td>`;
+                                                                                                        style="color:#393939 !important;border:none;">
+                                                                                                    <div class="my-auto">
+                                                                                                        ${d3.value}
+                                                                                                    </div>
+                                                                                                </td>`;
                                 })
                                     .join('')}
-                                                                  </tr>`;
+                                                                </tr>`;
                             })
                                 .join('')}`}
-                                                </tbody>
-                                            </table>
-                                            <div>
-                                                ${vm.data.length === 0
+                                        </tbody>
+                                    </table>
+                                    <div>
+                                        ${vm.data.length === 0
                             ? ''
                             : ps.pageSplit(vm.pageSize, vm.page, (page) => {
                                 (vm.data = []),
@@ -93,12 +108,14 @@ export class BgWidget {
                                     (vm.page = page);
                                 (vm.loading = true), gvc.notifyDataChange(id);
                             }, false)}
-                                            </div>
-                                        </div>
-                                    </div>`;
+                                    </div>
+                                </div>
+                            </div>`;
                     }
                 },
-                divCreate: { class: `card`, style: `border-radius:16px;width:100%;overflow:hidden;` },
+                divCreate: { class: `card`, style: `width:100%;overflow:hidden;border-radius: 10px;
+background: #FFF;
+box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.08);` },
                 onCreate: () => {
                     if (vm.loading) {
                         getData(), (vm.loading = false), gvc.notifyDataChange(id);
@@ -108,7 +125,26 @@ export class BgWidget {
         });
     }
     static card(html, classStyle = 'p-3 bg-white rounded-3 shadow border w-100 ') {
-        return `<div class="${classStyle}">
+        return `<div class="${classStyle}" style="">
+${html}
+</div>`;
+    }
+    static cancel(event) {
+        return `<div class="cursor_it bt_c39_w" onclick="${event}">
+取消
+</div>`;
+    }
+    static save(event) {
+        return `<div class="cursor_it bt_c39" onclick="${event}">
+儲存
+</div>`;
+    }
+    static card_main(html) {
+        return `<div  class="w-100" style="border-radius: 10px;
+padding: 20px;
+background: #FFF;
+/* 陰影 */
+box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.08);">
 ${html}
 </div>`;
     }
@@ -118,12 +154,111 @@ ${html}
 </div>`;
     }
     static title(title) {
-        return ` <h3 class="my-auto" style="font-size:1.25rem;">${title}</h3>`;
+        return ` <h3 class="my-auto t_39_title" >${title}</h3>`;
     }
     static goBack(event) {
-        return `<div class="d-flex align-items-center justify-content-center  me-2 border bg-white" style="height:36px;width:36px;border-radius:10px;cursor:pointer;" onclick="${event}">
-                                 <i class="fa-sharp fa-solid fa-arrow-left"></i>
+        return `<div class="d-flex align-items-center justify-content-center  me-2  fs-5" style="cursor:pointer;" onclick="${event}">
+                              <i class="fa-solid fa-angle-left"></i>
                                 </div>`;
+    }
+    static inlineCheckBox(obj) {
+        var _a;
+        const html = String.raw;
+        obj.type = (_a = obj.type) !== null && _a !== void 0 ? _a : 'single';
+        const gvc = obj.gvc;
+        return html `
+            ${obj.title ? `<div class="t_39_16 fw-normal">${obj.title}</div>` : ``}
+            ${obj.gvc.bindView(() => {
+            const id = obj.gvc.glitter.getUUID();
+            return {
+                bind: id,
+                view: () => {
+                    return obj.array
+                        .map((dd) => {
+                        function isSelect() {
+                            if (obj.type === 'multiple') {
+                                return obj.def.find((d2) => {
+                                    return d2 === dd.value;
+                                });
+                            }
+                            else {
+                                return obj.def === dd.value;
+                            }
+                        }
+                        return html `
+                                        <div
+                                                class="d-flex align-items-center cursor_it"
+                                                onclick="${obj.gvc.event(() => {
+                            if (obj.type === 'multiple') {
+                                if (obj.def.find((d2) => {
+                                    return d2 === dd.value;
+                                })) {
+                                    obj.def = obj.def.filter((d2) => {
+                                        return d2 !== dd.value;
+                                    });
+                                }
+                                else {
+                                    obj.def.push(dd.value);
+                                }
+                                obj.callback(obj.def);
+                            }
+                            else {
+                                obj.def = dd.value;
+                                obj.callback(dd.value);
+                            }
+                            gvc.notifyDataChange(id);
+                        })}"
+                                                style="gap:6px;"
+                                        >
+                                            ${(isSelect()) ? `<i class="fa-sharp fa-solid fa-circle-dot cl_39"></i>` : ` <div class="c_39_checkbox"></div>`}
+                                            <span class="t_39_16">${dd.title}</span>
+                                        </div>
+                                        ${obj.def === dd.value && dd.innerHtml ? `<div class="mt-1">${dd.innerHtml}</div>` : ``} `;
+                    })
+                        .join('');
+                },
+                divCreate: {
+                    class: `ps-1 d-flex`, style: `gap:10px;margin-top:10px;`
+                },
+            };
+        })}
+        `;
+    }
+    static editeInput(obj) {
+        var _a, _b, _c, _d;
+        obj.title = (_a = obj.title) !== null && _a !== void 0 ? _a : '';
+        const html = String.raw;
+        return html `${obj.title ? `<div class="t_39_16 fw-normal">${obj.title}</div>` : ``}
+        <input
+                class="form-control"
+                style="${(_b = obj.style) !== null && _b !== void 0 ? _b : ''} margin-top:8px;"
+                type="${(_c = obj.type) !== null && _c !== void 0 ? _c : 'text'}"
+                placeholder="${obj.placeHolder}"
+                onchange="${obj.gvc.event((e) => {
+            obj.callback(e.value);
+        })}"
+                oninput="${obj.gvc.event((e) => {
+            if (obj.pattern) {
+                const value = e.value;
+                const regex = new RegExp(`[^${obj.pattern}]`, 'g');
+                const validValue = value.replace(regex, '');
+                if (value !== validValue) {
+                    e.value = validValue;
+                }
+            }
+        })}"
+                value="${(_d = obj.default) !== null && _d !== void 0 ? _d : ''}"
+                ${obj.readonly ? `readonly` : ``}
+        />`;
+    }
+    static searchPlace(event, vale, placeholder) {
+        return `<div class="w-100 position-relative" style="margin-top: 16px;">
+<i class=" fa-regular fa-magnifying-glass" style=" font-size: 18px;color: #A0A0A0;position: absolute;left:20px;top:50%;transform: translateY(-50%);"  aria-hidden="true"></i>
+    <input class="form-control h-100 " style="border-radius: 10px;
+border: 1px solid #DDD;
+padding-left: 50px;"
+           placeholder="${placeholder}" onchange="${event}" value="${vale}">
+</div>`;
     }
 }
 window.glitter.setModule(import.meta.url, BgWidget);

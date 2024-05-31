@@ -498,6 +498,7 @@ export class FormWidget {
                                             }
                                             loop(viewConfig);
                                             return new glitter.htmlGenerate(viewConfig, [], {
+                                                root_form_data: obj.widget && obj.widget.formData,
                                                 form_data: formData,
                                                 form_key: dd.key,
                                                 form_config: dd.form_config || JSON.parse(dd.formFormat || '{}'),

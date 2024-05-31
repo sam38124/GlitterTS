@@ -16,7 +16,7 @@ export class ApiSmtp {
     }
 }
 function getConfig() {
-    const saasConfig = window.saasConfig;
+    const saasConfig = window.parent.saasConfig;
     return saasConfig;
 }
 function getBaseUrl() {

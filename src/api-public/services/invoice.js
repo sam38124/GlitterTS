@@ -42,7 +42,6 @@ class Invoice {
     async postCheckoutInvoice(orderID) {
         const order = (await database_js_1.default.query(`SELECT * FROM \`${this.appName}\`.t_checkout where cart_token=?`, [orderID]))[0]['orderData'];
         const config = await app_js_1.default.getAdConfig(this.appName, "invoice_setting");
-        order.total = order.total += (order.use_wallet || 0);
         const line_item = order.lineItems.map((dd) => {
             return {
                 ItemName: dd.title + (dd.spec.join('-') ? `/${dd.spec.join('-')}` : ``),
@@ -118,7 +117,7 @@ class Invoice {
                 CustomerIdentifier: (order.user_info.gui_number || ''),
                 CustomerName: (order.user_info.company || order.user_info.name),
                 CustomerAddr: order.user_info.address,
-                CustomerPhone: (order.user_info.phone || ''),
+                CustomerPhone: (order.user_info.phone || undefined),
                 CustomerEmail: order.user_info.email,
                 Print: '0',
                 CarrierType: '1',

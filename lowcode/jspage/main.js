@@ -335,23 +335,17 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                             return doc.create(html `
                                         <div class="d-flex overflow-hidden" style="height:100vh;background:white;">
                                             <div style="width:60px;gap:20px;padding-top: 15px;"
-                                                 class="d-none h-100 border-end d-flex flex-column align-items-center">
+                                                 class="${(Storage.select_function === 'user-editor' || Storage.select_function === 'page-editor') ? `` : `d-none`} h-100 border-end d-flex flex-column align-items-center">
                                                 ${[
                                 {
-                                    src: `fa-regular fa-table-layout`,
-                                    index: 'user-editor',
-                                    hint: '頁面編輯'
-                                },
-                                {
-                                    src: `fa-regular fa-solid fa-list-check`,
-                                    index: 'backend-manger',
-                                    hint: '後台系統'
-                                },
-                                {
-                                    src: `fa-solid fa-code`,
-                                    index: 'page-editor',
-                                    hint: '開發者模式'
-                                },
+                                    src: `fa-duotone fa-window`,
+                                    index: 'layout',
+                                    hint: '頁面編輯',
+                                }, {
+                                    src: `fa-sharp fa-regular fa-palette`,
+                                    index: 'color',
+                                    hint: '配色設定'
+                                }
                             ].map((da) => {
                                 return html `<i
                                                             class=" ${da.src} fs-5 fw-bold   p-2 rounded"
@@ -360,19 +354,12 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                                                             data-bs-custom-class="custom-tooltip"
                                                             data-bs-title="${da.hint}"
                                                             style="cursor:pointer;
-${(Storage.select_function === `${da.index}`) ? `background-color: rgba(10,83,190,0.1);` : ``};
-${(Storage.select_function === `${da.index}`) ? `background:${EditorConfig.editor_layout.btn_background};color:white;` : ``}
+${(Storage.page_setting_item === `${da.index}`) ? `background:${EditorConfig.editor_layout.btn_background};color:white;` : ``}
 "
                                                             onclick="${gvc.event(() => {
                                     viewModel.waitCopy = undefined;
                                     viewModel.selectItem = undefined;
-                                    Storage.select_function = da.index;
-                                    if (da.index === 'page-editor') {
-                                        Storage.view_type = 'col3';
-                                    }
-                                    else if (da.index === 'user-editor') {
-                                        Storage.view_type = 'desktop';
-                                    }
+                                    Storage.page_setting_item = da.index;
                                     gvc.notifyDataChange(editorContainerID);
                                 })}"></i>`;
                             }).join('')}

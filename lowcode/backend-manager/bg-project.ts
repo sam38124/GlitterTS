@@ -576,13 +576,11 @@ export class BgProject {
 
                                 },
                                 filter: html`
-                                    <div style="height:50px;" class="w-100 border-bottom">
-                                        <input class="form-control h-100 " style="border: none;"
-                                               placeholder="搜尋所有用戶" onchange="${gvc.event((e, event) => {
-                                            vm.query = e.value
-                                            gvc.notifyDataChange(id)
-                                        })}" value="${vm.query || ''}">
-                                    </div>
+                                    ${BgWidget.searchPlace(gvc.event((e, event) => {
+                                        vm.query = e.value
+                                        gvc.notifyDataChange(id)
+                                    }),vm.query || '','搜尋所有用戶')}
+                                    
                                     ${
                                             gvc.bindView(() => {
                                                 return {
@@ -630,7 +628,7 @@ export class BgProject {
                                                             class: `d-flex align-items-center p-2 py-3 ${(!vm.dataList || !vm.dataList.find((dd: any) => {
                                                                 return dd.checked
                                                             }) || type === 'select') ? `d-none` : ``}`,
-                                                            style: `height:40px;gap:10px;`
+                                                            style: `height:40px;gap:10px;margin-top:10px;`
                                                         }
                                                     }
                                                 }
@@ -1047,8 +1045,8 @@ ${BgWidget.card([`<div class="fw-bold fs-7">電子錢包</div>
                                                                     if (dd.result) {
                                                                         dialog.successMessage({
                                                                             text: "下載成功，請前往資料夾查看。"
-                                                                        })
-                                                                        glitter.openNewTab(dd.response.url)
+                                                                        });
+                                                                        (window.parent as any).glitter.openNewTab(dd.response.url);
                                                                     } else {
                                                                         alert('下載失敗!')
                                                                     }
@@ -1073,13 +1071,10 @@ ${BgWidget.card([`<div class="fw-bold fs-7">電子錢包</div>
                                         vm.status = 'replace'
                                     },
                                     filter: html`
-                                        <div style="height:50px;" class="w-100 border-bottom">
-                                            <input class="form-control h-100 " style="border: none;"
-                                                   placeholder="搜尋所有紀錄" onchange="${gvc.event((e, event) => {
-                                                vm.query = e.value
-                                                gvc.notifyDataChange(id)
-                                            })}" value="${vm.query}">
-                                        </div>
+                                        ${BgWidget.searchPlace(gvc.event((e, event) => {
+                                            vm.query = e.value
+                                            gvc.notifyDataChange(id)
+                                        }),vm.query || '','搜尋所有紀錄')}
                                         ${
                                                 gvc.bindView(() => {
                                                     return {
@@ -1127,7 +1122,7 @@ ${BgWidget.card([`<div class="fw-bold fs-7">電子錢包</div>
                                                                 class: `d-flex align-items-center p-2 py-3 ${(!vm.dataList || !vm.dataList.find((dd: any) => {
                                                                     return dd.checked
                                                                 })) ? `d-none` : ``}`,
-                                                                style: `height:40px;gap:10px;`
+                                                                style: `height:40px;gap:10px;margin-top:10px;`
                                                             }
                                                         }
                                                     }
@@ -1497,7 +1492,7 @@ ${BgWidget.card([`<div class="fw-bold fs-7">電子錢包</div>
             dialog.dataLoading({text: '提交審核中...', visible: true});
             ((editorData) ? ApiPost.put : ApiPost.post)({
                 postData: postMD,
-                token: GlobalUser.token,
+                token: GlobalUser.saas_token,
                 type: 'manager'
             }).then((re: any) => {
                 dialog.dataLoading({visible: false})
@@ -1761,7 +1756,7 @@ ${BgWidget.card([`<div class="fw-bold fs-7">電子錢包</div>
                 <button class="btn btn-primary-c" style="height:38px;font-size: 14px;" onclick="${gvc.event(() => {
                     const dialog = new ShareDialog(gvc.glitter)
                     dialog.dataLoading({text: '設定中', visible: true})
-                    saasConfig.api.setPrivateConfig(saasConfig.config.appName, `glitter_finance_webhook`, keyData).then((r: { response: any, result: boolean }) => {
+                    saasConfig.api.setPrivateConfig((window.parent as any).appName, `glitter_finance_webhook`, keyData).then((r: { response: any, result: boolean }) => {
                         dialog.dataLoading({visible: false})
                         if (r.response) {
                             dialog.successMessage({text: "設定成功"})
@@ -1785,7 +1780,7 @@ ${BgWidget.card([`<div class="fw-bold fs-7">電子錢包</div>
                     bind: id,
                     view: () => {
                         return new Promise(async (resolve, reject) => {
-                            const data = await saasConfig.api.getPrivateConfig(saasConfig.config.appName, `glitter_finance_webhook`)
+                            const data = await saasConfig.api.getPrivateConfig((window.parent as any).appName, `glitter_finance_webhook`)
                             if (data.response.result[0]) {
                                 keyData = data.response.result[0].value
                             }

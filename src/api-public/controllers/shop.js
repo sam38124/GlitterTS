@@ -22,32 +22,12 @@ const router = express_1.default.Router();
 router.get('/rebate/sum', async (req, resp) => {
     try {
         const app = req.get('g-app');
-        await database_js_1.default.query(`update \`${app}\`.t_rebate
-                        set status = -1
-                        where userID = ?
-                          and status = 1
-                          and orderID in (select cart_token
-                                          from \`${app}\`.t_checkout
-                                          where (
-                                              status!=1 and created_time < (CURRENT_TIMESTAMP - INTERVAL 10 MINUTE)
-                                              )
-                                             or (
-                                              status = -2
-                                              ))`, [req.query.userID || req.body.token.userID]);
-        await database_js_1.default.query(`update \`${app}\`.t_rebate
-                        set status = 1
-                        where userID = ?
-                          and status = -1
-                          and orderID in (select cart_token
-                                          from \`${app}\`.t_checkout
-                                          where (
-                                                    status = 1
-                                                    ))`, [req.query.userID || req.body.token.userID]);
+        await new user_js_1.User(app).checkRebate(req.query.userID || req.body.token.userID);
         return response_1.default.succ(resp, {
             sum: (await database_js_1.default.query(`SELECT sum(money)
-                                  FROM \`${app}\`.t_rebate
-                                  where status in (1, 2)
-                                    and userID = ?`, [req.query.userID || req.body.token.userID]))[0]['sum(money)'] || 0,
+                         FROM \`${app}\`.t_rebate
+                         where status in (1, 2)
+                           and userID = ?`, [req.query.userID || req.body.token.userID]))[0]['sum(money)'] || 0,
         });
     }
     catch (err) {
@@ -100,8 +80,8 @@ router.get('/rebate', async (req, resp) => {
         const data = await new ut_database_js_1.UtDatabase(req.get('g-app'), `t_rebate`).querySql(query, req.query);
         for (const b of data.data) {
             let userData = (await database_js_1.default.query(`select userData
-                                            from \`${app}\`.t_user
-                                            where userID = ?`, [b.userID]))[0];
+                     from \`${app}\`.t_user
+                     where userID = ?`, [b.userID]))[0];
             b.userData = userData && userData.userData;
         }
         return response_1.default.succ(resp, data);
@@ -117,7 +97,7 @@ router.post('/rebate/manager', async (req, resp) => {
             let orderID = new Date().getTime();
             for (const b of req.body.userID) {
                 await database_js_1.default.execute(`insert into \`${app}\`.t_rebate (orderID, userID, money, status, note)
-                                  values (?, ?, ?, ?, ?)`, [orderID++, b, req.body.total, 2, req.body.note]);
+                     values (?, ?, ?, ?, ?)`, [orderID++, b, req.body.total, 2, req.body.note]);
             }
             return response_1.default.succ(resp, {
                 result: true,
@@ -221,12 +201,13 @@ router.get('/order', async (req, resp) => {
             }));
         }
         else if (await ut_permission_1.UtPermission.isAppUser(req)) {
+            const user_data = await new user_js_1.User(req.get('g-app'), req.body.token).getUserData(req.body.token.userID, 'userID');
             return response_1.default.succ(resp, await new shopping_1.Shopping(req.get('g-app'), req.body.token).getCheckOut({
                 page: ((_c = req.query.page) !== null && _c !== void 0 ? _c : 0),
                 limit: ((_d = req.query.limit) !== null && _d !== void 0 ? _d : 50),
                 search: req.query.search,
                 id: req.query.id,
-                email: req.body.token.account,
+                email: user_data.account,
             }));
         }
         else {
@@ -381,27 +362,20 @@ router.post('/notify', upload.single('file'), async (req, resp) => {
         }
         if (decodeData['Status'] === 'SUCCESS') {
             const notProgress = (await database_js_1.default.query(`SELECT count(1)
-                                                 FROM \`${appName}\`.t_checkout
-                                                 where cart_token = ?
-                                                   and status = 0;`, [decodeData['Result']['MerchantOrderNo']]))[0]['count(1)'];
+                     FROM \`${appName}\`.t_checkout
+                     where cart_token = ?
+                       and status = 0;`, [decodeData['Result']['MerchantOrderNo']]))[0]['count(1)'];
             if (notProgress) {
                 await database_js_1.default.execute(`update \`${appName}\`.t_checkout
-                                  set status=?
-                                  where cart_token = ?`, [1, decodeData['Result']['MerchantOrderNo']]);
+                     set status=?
+                     where cart_token = ?`, [1, decodeData['Result']['MerchantOrderNo']]);
                 const cartData = (await database_js_1.default.query(`SELECT *
-                                                  FROM \`${appName}\`.t_checkout
-                                                  where cart_token = ?;`, [decodeData['Result']['MerchantOrderNo']]))[0];
+                         FROM \`${appName}\`.t_checkout
+                         where cart_token = ?;`, [decodeData['Result']['MerchantOrderNo']]))[0];
                 const userData = await new user_js_1.User(appName).getUserData(cartData.email, 'account');
                 if (cartData.orderData.rebate > 0) {
-                    await database_js_1.default.query(`insert into \`${appName}\`.t_rebate (orderID, userID, money, status, note)
-                                    values (?, ?, ?, ?, ?);`, [
-                        cartData.cart_token,
-                        userData.userID,
-                        cartData.orderData.rebate,
-                        1,
-                        JSON.stringify({
-                            note: '消費返還回饋金',
-                        }),
+                    await database_js_1.default.query(`update \`${appName}\`.t_rebate set status=1 where orderID=?;`, [
+                        cartData.cart_token
                     ]);
                 }
                 try {
@@ -419,8 +393,8 @@ router.post('/notify', upload.single('file'), async (req, resp) => {
         }
         else {
             await database_js_1.default.execute(`update \`${appName}\`.t_checkout
-                              set status=?
-                              where cart_token = ?`, [-1, decodeData['Result']['MerchantOrderNo']]);
+                 set status=?
+                 where cart_token = ?`, [-1, decodeData['Result']['MerchantOrderNo']]);
         }
         return response_1.default.succ(resp, {});
     }
@@ -448,11 +422,11 @@ router.get('/checkWishList', async (req, resp) => {
     try {
         return response_1.default.succ(resp, {
             result: (await database_js_1.default.query(`select count(1)
-                                      FROM \`${req.get('g-app')}\`.t_post
-                                      where (content ->>'$.type'='wishlist')
-                                        and userID = ?
-                                        and (content ->>'$.product_id'=${req.query.product_id})
-            `, [req.body.token.userID]))[0]['count(1)'] == '1',
+                         FROM \`${req.get('g-app')}\`.t_post
+                         where (content ->>'$.type'='wishlist')
+                           and userID = ?
+                           and (content ->>'$.product_id'=${req.query.product_id})
+                        `, [req.body.token.userID]))[0]['count(1)'] == '1',
         });
     }
     catch (err) {
@@ -463,20 +437,22 @@ router.post('/wishlist', async (req, resp) => {
     try {
         const post = new post_js_1.Post(req.get('g-app'), req.body.token);
         await database_js_1.default.query(`delete
-                         FROM \`${req.get('g-app')}\`.t_post
-                         where (content ->>'$.type'='wishlist')
-                           and userID = ?
-                           and (content ->>'$.product_id'=${req.body.product_id})
-        `, [req.body.token.userID]);
+             FROM \`${req.get('g-app')}\`.t_post
+             where (content ->>'$.type'='wishlist')
+               and userID = ?
+               and (content ->>'$.product_id'=${req.body.product_id})
+            `, [req.body.token.userID]);
         const postData = {
             product_id: req.body.product_id,
             userID: (req.body.token && req.body.token.userID) || 0,
             type: 'wishlist',
         };
-        await post.postContent({
-            userID: postData.userID,
-            content: JSON.stringify(postData),
-        }, 't_post');
+        if (req.body.product_id) {
+            await post.postContent({
+                userID: postData.userID,
+                content: JSON.stringify(postData),
+            }, 't_post');
+        }
         return response_1.default.succ(resp, { result: true });
     }
     catch (err) {
@@ -486,11 +462,11 @@ router.post('/wishlist', async (req, resp) => {
 router.delete('/wishlist', async (req, resp) => {
     try {
         await database_js_1.default.query(`delete
-                         FROM \`${req.get('g-app')}\`.t_post
-                         where (content ->>'$.type'='wishlist')
-                           and userID = ?
-                           and (content ->>'$.product_id'=${req.body.product_id})
-        `, [req.body.token.userID]);
+             FROM \`${req.get('g-app')}\`.t_post
+             where (content ->>'$.type'='wishlist')
+               and userID = ?
+               and (content ->>'$.product_id'=${req.body.product_id})
+            `, [req.body.token.userID]);
         return response_1.default.succ(resp, { result: true });
     }
     catch (err) {
@@ -555,6 +531,37 @@ router.delete('/collection', async (req, resp) => {
         else {
             throw exception_1.default.BadRequestError('BAD_REQUEST', 'No permission.', null);
         }
+    }
+    catch (err) {
+        return response_1.default.fail(resp, err);
+    }
+});
+router.get('/payment/method', async (req, resp) => {
+    try {
+        const keyData = (await private_config_js_1.Private_config.getConfig({
+            appName: req.get('g-app'),
+            key: 'glitter_finance',
+        }))[0].value;
+        return response_1.default.succ(resp, {
+            method: [{
+                    value: 'credit',
+                    title: '信用卡'
+                }, {
+                    value: 'atm',
+                    title: 'ATM'
+                }, {
+                    value: 'web_atm',
+                    title: '網路ATM'
+                }, {
+                    value: 'c_code',
+                    title: '超商代碼'
+                }, {
+                    value: 'c_bar_code',
+                    title: '超商條碼'
+                }].filter((dd) => {
+                return keyData[dd.value];
+            })
+        });
     }
     catch (err) {
         return response_1.default.fail(resp, err);

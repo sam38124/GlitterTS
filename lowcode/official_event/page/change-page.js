@@ -11,6 +11,57 @@ import { TriggerEvent } from '../../glitterBundle/plugins/trigger-event.js';
 import { EditorElem } from "../../glitterBundle/plugins/editor-elem.js";
 import { GlobalData } from "../event.js";
 const html = String.raw;
+class ChangePage {
+    static changePage(link, type, subData) {
+        const glitter = window.glitter;
+        return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
+            const url = new URL('./', location.href);
+            url.searchParams.set('page', link);
+            const saasConfig = window.saasConfig;
+            window.glitterInitialHelper.getPageData(link, (data) => {
+                if (data.response.result.length === 0) {
+                    const url = new URL("./", location.href);
+                    url.searchParams.set('page', data.response.redirect);
+                    location.href = url.href;
+                    return;
+                }
+                if (type === 'home') {
+                    const cf = {
+                        app_config: saasConfig.appConfig,
+                        page_config: data.response.result[0].page_config,
+                        config: data.response.result[0].config,
+                        data: subData !== null && subData !== void 0 ? subData : {},
+                        tag: link
+                    };
+                    if (glitter.getUrlParameter('isIframe') === 'true') {
+                        window.parent.glitter.htmlGenerate.setHome(cf);
+                    }
+                    else {
+                        glitter.htmlGenerate.setHome(cf);
+                    }
+                    resolve(true);
+                }
+                else {
+                    const cf = {
+                        app_config: saasConfig.appConfig,
+                        page_config: data.response.result[0].page_config,
+                        config: data.response.result[0].config,
+                        data: subData !== null && subData !== void 0 ? subData : {},
+                        tag: link,
+                        goBack: true
+                    };
+                    if (glitter.getUrlParameter('isIframe') === 'true') {
+                        window.parent.glitter.htmlGenerate.changePage(cf);
+                    }
+                    else {
+                        glitter.htmlGenerate.changePage(cf);
+                    }
+                    resolve(true);
+                }
+            });
+        }));
+    }
+}
 TriggerEvent.createSingleEvent(import.meta.url, () => {
     return {
         fun: (gvc, widget, object, subData) => {
@@ -199,50 +250,7 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                 gvc: gvc, widget: widget, clickEvent: object.linkFromEvent, subData: subData
                             })) : (object.link);
                             if (link) {
-                                const url = new URL('./', location.href);
-                                url.searchParams.set('page', link);
-                                const saasConfig = window.saasConfig;
-                                window.glitterInitialHelper.getPageData(link, (data) => {
-                                    if (data.response.result.length === 0) {
-                                        const url = new URL("./", location.href);
-                                        url.searchParams.set('page', data.response.redirect);
-                                        location.href = url.href;
-                                        return;
-                                    }
-                                    if (object.stackControl === 'home') {
-                                        const cf = {
-                                            app_config: saasConfig.appConfig,
-                                            page_config: data.response.result[0].page_config,
-                                            config: data.response.result[0].config,
-                                            data: subData !== null && subData !== void 0 ? subData : {},
-                                            tag: link
-                                        };
-                                        if (gvc.glitter.getUrlParameter('isIframe') === 'true') {
-                                            window.parent.glitter.htmlGenerate.setHome(cf);
-                                        }
-                                        else {
-                                            gvc.glitter.htmlGenerate.setHome(cf);
-                                        }
-                                        resolve(true);
-                                    }
-                                    else {
-                                        const cf = {
-                                            app_config: saasConfig.appConfig,
-                                            page_config: data.response.result[0].page_config,
-                                            config: data.response.result[0].config,
-                                            data: subData !== null && subData !== void 0 ? subData : {},
-                                            tag: link,
-                                            goBack: true
-                                        };
-                                        if (gvc.glitter.getUrlParameter('isIframe') === 'true') {
-                                            window.parent.glitter.htmlGenerate.changePage(cf);
-                                        }
-                                        else {
-                                            gvc.glitter.htmlGenerate.changePage(cf);
-                                        }
-                                        resolve(true);
-                                    }
-                                });
+                                resolve(yield ChangePage.changePage(link, object.stackControl, subData));
                             }
                         }));
                     }
@@ -267,3 +275,4 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
         },
     };
 });
+window.glitter.setModule(import.meta.url, ChangePage);

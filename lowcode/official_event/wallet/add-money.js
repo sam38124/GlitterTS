@@ -12,9 +12,10 @@ import { ApiWallet } from "../../glitter-base/route/wallet.js";
 TriggerEvent.createSingleEvent(import.meta.url, () => {
     return {
         fun: (gvc, widget, object, subData, element) => {
-            var _a, _b;
+            var _a, _b, _c;
             object.saveMoney = (_a = object.saveMoney) !== null && _a !== void 0 ? _a : {};
             object.error = (_b = object.error) !== null && _b !== void 0 ? _b : {};
+            object.payMethod = (_c = object.payMethod) !== null && _c !== void 0 ? _c : {};
             return {
                 editor: () => {
                     return [
@@ -22,6 +23,11 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                             hover: false,
                             option: [],
                             title: '儲值金額'
+                        }),
+                        TriggerEvent.editer(gvc, widget, object.payMethod, {
+                            hover: false,
+                            option: [],
+                            title: '付款方式'
                         }),
                         TriggerEvent.editer(gvc, widget, object.error, {
                             hover: false,
@@ -37,8 +43,14 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                             widget: widget,
                             clickEvent: object.saveMoney
                         });
+                        const payMethod = yield TriggerEvent.trigger({
+                            gvc: gvc,
+                            widget: widget,
+                            clickEvent: object.payMethod
+                        });
                         ApiWallet.store({
                             total: saveMoney,
+                            method: payMethod,
                             note: {},
                             return_url: location.href
                         }).then((res) => __awaiter(void 0, void 0, void 0, function* () {

@@ -58,7 +58,8 @@ router.post('/', async (req, resp) => {
         return response_1.default.succ(resp, (await new wallet_js_1.Wallet(app, req.body.token).store({
             return_url: req.body.return_url,
             total: req.body.total,
-            note: req.body.note
+            note: req.body.note,
+            method: req.body.method
         })));
     }
     catch (err) {

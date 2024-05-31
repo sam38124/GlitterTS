@@ -142,7 +142,7 @@ export class ApiWallet {
             "headers": {
                 "g-app": getConfig().config.appName,
                 "Content-Type": "application/json",
-                "Authorization": getConfig().config.token
+                "Authorization": (json.type === 'me') ? GlobalUser.token : getConfig().config.token
             }
         });
     }

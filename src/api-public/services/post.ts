@@ -167,6 +167,9 @@ export class Post {
                 }else  if(dd.includes('-|>')){
                     const qu = dd.split('-|>')
                     querySql.push(`(content->>'$.${qu[0]}' like '%${qu[1]}%')`)
+                }else if(dd.includes('-[]>')){
+                    const qu = dd.split('-[]>')
+                    querySql.push(`(JSON_CONTAINS(content, '"${qu[1]}"', '$.${qu[0]}'))`)
                 }
             })
             return await new UtDatabase(this.app, (manager) ? `t_manager_post` : `t_post`).querySql(querySql, query);

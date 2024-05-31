@@ -179,6 +179,20 @@ router.post('/domain',async (req: express.Request, resp: express.Response) => {
     }
 })
 
+router.post('/sub_domain',async (req: express.Request, resp: express.Response) => {
+    try {
+        if (await UtPermission.isManager(req)) {
+            return response.succ(resp,  await (new BackendService(req.get('g-app') as string).putDomain(req.body.data)));
+        } else {
+            return response.fail(resp, {
+                message: "No Permission!"
+            });
+        }
+    } catch (err) {
+        return response.fail(resp, err);
+    }
+})
+
 router.get('/domain',async (req: express.Request, resp: express.Response) => {
     try {
         if (await UtPermission.isManager(req)) {

@@ -2682,6 +2682,12 @@ DNS設定至少需要10分鐘到72小時才會生效，如設定失敗可以稍�
 onclick="${gvc.event(() => {
                                         const dialog = new ShareDialog(glitter);
                                         dialog.dataLoading({text: '', visible: true});
+                                        // setDomain({
+                                        //     domain:viewModel.domain,
+                                        //     app_name:config.appName,
+                                        //     token:config.token
+                                        // })
+                                      
                                         ApiPageConfig.setDomain({
                                             domain:viewModel.domain,
                                             app_name:config.appName,

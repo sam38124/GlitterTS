@@ -25,7 +25,7 @@ export class ApiPublic {
                 {
                     scheme: appName,
                     table: 't_chat_detail',
-                    sql: ` (
+                    sql: `(
   \`id\` int NOT NULL AUTO_INCREMENT,
   \`chat_id\` varchar(120) COLLATE utf8mb4_unicode_ci NOT NULL,
   \`user_id\` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL,
@@ -157,27 +157,30 @@ export class ApiPublic {
   \`company\` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   \`status\` int NOT NULL DEFAULT '1',
   \`online_time\` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  \`static_info\` json DEFAULT NULL,
   PRIMARY KEY (\`id\`,\`userID\`,\`account\`),
   UNIQUE KEY \`account_UNIQUE\` (\`account\`),
   UNIQUE KEY \`userID_UNIQUE\` (\`userID\`),
   KEY \`index5\` (\`company\`),
   KEY \`index6\` (\`role\`),
   KEY \`index4\` (\`status\`)
-) ENGINE=InnoDB AUTO_INCREMENT=78 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`
+) ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`
                 },
                 {
                     scheme: appName,
                     table: 't_checkout',
                     sql: `(
   \`id\` int NOT NULL AUTO_INCREMENT,
-  \`cart_token\` varchar(255) NOT NULL,
+  \`cart_token\` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
   \`status\` int NOT NULL DEFAULT '0',
-  \`email\` varchar(100) DEFAULT NULL,
+  \`email\` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   \`orderData\` json DEFAULT NULL,
   \`created_time\` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (\`id\`),
-  UNIQUE KEY \`cart_token_UNIQUE\` (\`cart_token\`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci `
+  UNIQUE KEY \`cart_token_UNIQUE\` (\`cart_token\`),
+  KEY \`index3\` (\`email\`),
+  KEY \`index4\` (\`created_time\`)
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`
                 },
                 {
                     scheme: appName,
@@ -304,6 +307,20 @@ export class ApiPublic {
   PRIMARY KEY (\`id\`),
   UNIQUE INDEX \`index2\` (\`route\` ASC, \`method\` ASC) VISIBLE);
 `
+                },
+                {
+                    scheme:appName,
+                    table:`t_notice`,
+                    sql:`(
+  \`id\` INT NOT NULL AUTO_INCREMENT,
+  \`user_id\` VARCHAR(45) NOT NULL,
+  \`tag\` VARCHAR(45) NOT NULL,
+  \`title\` VARCHAR(200) NOT NULL,
+  \`content\` VARCHAR(400) NOT NULL,
+  \`link\` VARCHAR(100) NOT NULL,
+  \`created_time\` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (\`id\`),
+  INDEX \`index2\` (\`user_id\` ASC) VISIBLE);`
                 }
             ];
             for (const b of chunkArray(sqlArray, groupSize)) {

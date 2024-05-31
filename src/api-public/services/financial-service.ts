@@ -33,8 +33,12 @@ export default class FinancialService {
         total: number,
         email: string,
         shipment_fee: number,
-        orderID: string
+        orderID: string,
+        use_wallet:number,
+        user_email:string,
+        method:string
     }) {
+
         if (this.keyData.TYPE === 'newWebPay') {
             return await (new EzPay(this.appName, this.keyData).createOrderPage(orderData))
         } else if (this.keyData.TYPE === 'ecPay') {
@@ -42,9 +46,9 @@ export default class FinancialService {
         } else {
             return await db.execute(`insert into \`${this.appName}\`.t_checkout (cart_token, status, email, orderData)
                                      values (?, ?, ?, ?)`, [
-                new Date().getTime(),
+                orderData.orderID,
                 0,
-                orderData.email,
+                orderData.user_email,
                 orderData
             ]);
         }
@@ -54,7 +58,8 @@ export default class FinancialService {
     async saveMoney(orderData: {
         total: number,
         userID: number,
-        note: any
+        note: any,
+        method:string
     }):Promise<string>{
         if (this.keyData.TYPE === 'newWebPay') {
             return (await  (new EzPay(this.appName, this.keyData).saveMoney(orderData)));
@@ -163,7 +168,9 @@ export class EzPay {
         total: number,
         email: string,
         shipment_fee: number,
-        orderID: string
+        orderID: string,
+        use_wallet:number,
+        user_email:string
     }) {
         // 1. 建立請求的參數
         const params = {
@@ -172,7 +179,7 @@ export class EzPay {
             TimeStamp: Math.floor(Date.now() / 1000),
             Version: '2.0',
             MerchantOrderNo: orderData.orderID,
-            Amt: orderData.total,
+            Amt: orderData.total -  orderData.use_wallet,
             ItemDesc: '商品資訊',
             NotifyURL: this.keyData.NotifyURL,
             ReturnURL: this.keyData.ReturnURL,
@@ -184,7 +191,7 @@ export class EzPay {
                           values (?, ?, ?, ?)`, [
             params.MerchantOrderNo,
             0,
-            orderData.email,
+            orderData.user_email,
             orderData
         ]);
 
@@ -307,18 +314,45 @@ export class EcPay {
         total: number,
         email: string,
         shipment_fee: number,
-        orderID: string
+        orderID: string,
+        user_email:string,
+        use_wallet:number,
+        method:string
     }) {
         const params = {
             MerchantTradeNo: orderData.orderID,
             MerchantTradeDate: moment().tz('Asia/Taipei').format('YYYY/MM/DD HH:mm:ss'),
-            TotalAmount: orderData.total,
+            TotalAmount: orderData.total-orderData.use_wallet,
             TradeDesc: '商品資訊',
             ItemName: orderData.lineItems.map((dd) => {
                 return dd.title + (dd.spec.join('-') && ('-' + dd.spec.join('-')))
             }).join('#'),
             ReturnURL: this.keyData.NotifyURL,
-            ChoosePayment: 'ALL',
+            ChoosePayment: orderData.method ? (()=>{
+                return [{
+                    value:'credit',
+                    title:'信用卡',
+                    realKey:'Credit'
+                },{
+                    value:'atm',
+                    title:'ATM',
+                    realKey:'ATM'
+                } ,{
+                    value:'web_atm',
+                    title:'網路ATM',
+                    realKey:'WebATM'
+                }, {
+                    value:'c_code',
+                    title:'超商代碼',
+                    realKey:'CVS'
+                }, {
+                    value:'c_bar_code',
+                    title:'超商條碼',
+                    realKey:'BARCODE'
+                }].find((dd)=>{
+                    return dd.value===orderData.method
+                })!.realKey
+            })() : 'ALL',
             PlatformID: '',
             MerchantID: this.keyData.MERCHANT_ID,
             InvoiceMark: 'N',
@@ -345,7 +379,7 @@ export class EcPay {
                           values (?, ?, ?, ?)`, [
             params.MerchantTradeNo,
             0,
-            orderData.email,
+            orderData.user_email,
             orderData
         ]);
         const html = String.raw
@@ -381,7 +415,8 @@ export class EcPay {
     async saveMoney(orderData: {
         total: number,
         userID: number,
-        note: string
+        note: string,
+        method:string
     }) {
         // 1. 建立請求的參數
         const params = {
@@ -391,7 +426,31 @@ export class EcPay {
             TradeDesc: '商品資訊',
             ItemName: '加值服務',
             ReturnURL: this.keyData.NotifyURL,
-            ChoosePayment: 'ALL',
+            ChoosePayment:orderData.method ? (()=>{
+                return [{
+                    value:'credit',
+                    title:'信用卡',
+                    realKey:'Credit'
+                },{
+                    value:'atm',
+                    title:'ATM',
+                    realKey:'ATM'
+                } ,{
+                    value:'web_atm',
+                    title:'網路ATM',
+                    realKey:'WebATM'
+                }, {
+                    value:'c_code',
+                    title:'超商代碼',
+                    realKey:'CVS'
+                }, {
+                    value:'c_bar_code',
+                    title:'超商條碼',
+                    realKey:'BARCODE'
+                }].find((dd)=>{
+                    return dd.value===orderData.method
+                })!.realKey
+            })() : 'ALL',
             PlatformID: '',
             MerchantID: this.keyData.MERCHANT_ID,
             InvoiceMark: 'N',

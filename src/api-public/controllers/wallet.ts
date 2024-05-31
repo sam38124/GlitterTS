@@ -65,7 +65,8 @@ router.post('/', async (req: express.Request, resp: express.Response) => {
         return response.succ(resp, (await new Wallet(app, req.body.token).store({
                 return_url: req.body.return_url,
                 total: req.body.total,
-                note: req.body.note
+                note: req.body.note,
+                method:req.body.method
             })
         ))
     } catch (err) {

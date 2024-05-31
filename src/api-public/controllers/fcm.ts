@@ -24,6 +24,8 @@ router.post('/', async (req: express.Request, resp: express.Response) => {
                             new Firebase(req.get('g-app') as string).sendMessage({
                                 title:req.body.title,
                                 token:d,
+                                tag:req.body.tag || '',
+                                link:req.body.link || '',
                                 body:req.body.content
                             }).then(()=>{
                                 check--

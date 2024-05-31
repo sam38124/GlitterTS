@@ -33,7 +33,8 @@ class Wallet {
             }).saveMoney({
                 total: cf.total,
                 userID: this.token.userID,
-                note: cf.note
+                note: cf.note,
+                method: cf.method || ''
             })))
         };
     }

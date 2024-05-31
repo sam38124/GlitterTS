@@ -153,6 +153,8 @@ export class TriggerEvent {
         else if (oj.clickEvent !== undefined) {
             arrayEvent = [JSON.parse(JSON.stringify(oj.clickEvent))];
         }
+        let eventText = JSON.stringify(arrayEvent).replace(/location.href=/g, `(window.glitter).href=`).replace(/`console.log`/g, `glitter.deBugMessage`);
+        arrayEvent = JSON.parse(eventText);
         return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
             let result = true;
             for (const a of arrayEvent) {

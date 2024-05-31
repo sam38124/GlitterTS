@@ -100,6 +100,7 @@ export class TriggerEvent {
     public static trigger(oj: {
         gvc: GVC, widget: HtmlJson, clickEvent: any, subData?: any, element?: { e: any, event: any }
     }) {
+
         const glitter = (window as any).glitter
         let arrayEvent: any = []
         let returnData = ''
@@ -168,7 +169,8 @@ export class TriggerEvent {
 
             arrayEvent = [JSON.parse(JSON.stringify(oj.clickEvent))]
         }
-
+        let eventText=JSON.stringify(arrayEvent).replace(/location.href=/g,`(window.glitter).href=`).replace(/`console.log`/g,`glitter.deBugMessage`);
+        arrayEvent=JSON.parse(eventText)
         return new Promise(async (resolve, reject) => {
             let result = true
             for (const a of arrayEvent) {

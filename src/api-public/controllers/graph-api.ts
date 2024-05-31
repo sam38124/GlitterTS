@@ -8,6 +8,7 @@ import {UtPermission} from "../utils/ut-permission.js";
 import exception from "../../modules/exception.js";
 import {UtDatabase} from "../utils/ut-database.js";
 import db from "../../modules/database.js";
+import {Firebase} from "../../modules/firebase.js";
 
 
 const router: express.Router = express.Router();
@@ -135,6 +136,14 @@ router.delete('/delete', async (req: express.Request, resp: express.Response) =>
                             key: 'user_data', data: () => {
                                 return userData
                             }
+                        },
+                        {
+                            key:'sendMessage',data:()=>{
+                                return ((cf:any)=>{
+                                    cf.app=req.get('g-app') as string;
+                                    return new Firebase(req.get('g-app') as string).sendMessage(cf)
+                                })
+                            }
                         }
                     ];
                     const evalString = html`
@@ -161,7 +170,8 @@ router.delete('/delete', async (req: express.Request, resp: express.Response) =>
                             functionValue[2].data(),
                             functionValue[3].data(),
                             functionValue[4].data(),
-                            functionValue[5].data()
+                            functionValue[5].data(),
+                            functionValue[6].data()
                         ))),
                     );
                 })

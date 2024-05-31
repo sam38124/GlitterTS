@@ -57,9 +57,11 @@ exports.SaasScheme = {
   \`update_time\` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   \`theme_config\` json DEFAULT NULL,
   \`refer_app\` varchar(45) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  \`plan\` varchar(45) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   PRIMARY KEY (\`id\`),
   UNIQUE KEY \`user_app\` (\`user\`,\`appName\`),
-  KEY \`find_user\` (\`user\`)
+  KEY \`find_user\` (\`user\`),
+    KEY \`find_plan\` (\`plan\`)
 ) ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 `
             },
@@ -159,7 +161,12 @@ async function compare_sql_table(scheme, table, sql) {
         const newest = await database_1.default.query(compareStruct, [tempKey, scheme]);
         const older2 = await database_1.default.query(compareStruct2, [table, scheme]);
         const newest2 = await database_1.default.query(compareStruct2, [tempKey, scheme]);
+        if ((newest2.length === 0) || (newest.length === 0)) {
+            return await compare_sql_table(scheme, table, sql);
+        }
         if (!(JSON.stringify(older) == JSON.stringify(newest)) || !(JSON.stringify(older2) == JSON.stringify(newest2))) {
+            console.log(`not-equal1->${JSON.stringify(older)}->${JSON.stringify(newest)}`);
+            console.log(`not-equal2->${JSON.stringify(older2)}->${JSON.stringify(newest2)}`);
             older = older.filter((dd) => {
                 return newest.find((d2) => {
                     return dd.COLUMN_NAME === d2.COLUMN_NAME;

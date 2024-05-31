@@ -1,10 +1,11 @@
 @charset "UTF-8";
 @import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;500;600;700;800&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@100..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@100..900&family=Noto+Sans:ital,wght@0,100..900;1,100..900&display=swap');
 
 body {
     font-family: 'Noto Sans', sans-serif !important;
 }
+
 /**/
 :root {
     --ed-color: rgb(48, 48, 48);
@@ -15,13 +16,14 @@ body {
     --text-color: #151515;
     --text-unselect: #616161;
 }
-.text_primary{
+
+.text_primary {
     color: var(--ed-item-primary) !important;
 }
+
 .text_unselect {
     color: var(--text-unselect) !important;
 }
-
 
 
 .editor_btn {
@@ -39,30 +41,34 @@ body {
     border-bottom: 1px solid lightgrey;
     align-items: center;
 }
-.subBt{
-    height:25px;
-    display:flex;
+
+.subBt {
+    height: 25px;
+    display: flex;
     align-items: center;
     justify-content: center;
-    width:25px;
+    width: 25px;
 }
+
 .editor_item .subBt:hover {
     background: #c8c8c8;
     border-radius: 5px;
 }
 
-.hoverBtn:hover{
+.hoverBtn:hover {
     background: #e6e6e6;
     border-radius: 5px;
 }
-.hoverBtn{
-    cursor:pointer;
+
+.hoverBtn {
+    cursor: pointer;
 }
 
-.activeBtn{
-    background:#f1f1f1;
+.activeBtn {
+    background: #f1f1f1;
     color: var(--ed-item-primary);
 }
+
 .editor_item:hover {
     background: #e0e0e0;
     border-radius: var(--ed-item-border-radius);
@@ -75,11 +81,13 @@ body {
 .editor_item.primary {
     color: var(--ed-item-primary);
 }
-.select_container{
+
+.select_container {
     border-radius: 10px;
-    border:2px dashed  var(--ed-item-primary);
-    margin:2px;
+    border: 2px dashed var(--ed-item-primary);
+    margin: 2px;
 }
+
 .editor_item {
     width: calc(100% - 10px);
     margin: 5px 10px;
@@ -153,10 +161,12 @@ body {
     background-color: #214ba7;
     /*border-color: #5b63c4;*/
 }
-.fs-base{
-    font-size:15px !important;
+
+.fs-base {
+    font-size: 15px !important;
     margin-top: 5px !important;
 }
+
 .btn-check:focus + .btn-primary-c,
 .btn-primary-c:focus {
     color: #fff;
@@ -236,8 +246,6 @@ body {
 }
 
 
-
-
 .btn-outline-primary-c {
     color: var(--ed-item-primary);
     border-color: var(--ed-item-primary);
@@ -280,28 +288,30 @@ body {
     background-color: transparent;
 }
 
-.bgf6{
-    background:#f6f6f6;
+.bgf6 {
+    background: #f6f6f6;
 }
 
-.fs-7{
-    font-size:0.85rem;
+.fs-7 {
+    font-size: 0.85rem;
 }
 
-.hoverAdd:hover{
+.hoverAdd:hover {
     background: white;
     border-radius: 5px;
     color: black;
     border: 1px solid black;
 }
-.hoverAdd{
-    cursor:pointer;
-    color:white;
+
+.hoverAdd {
+    cursor: pointer;
+    color: white;
     border: 1px solid white;
     border-radius: 5px;
 }
-.h_item{
-height: 36px;
+
+.h_item {
+    height: 36px;
 }
 
 ul {
@@ -312,12 +322,179 @@ ul {
 .h_item:hover .child {
     display: block !important;
 }
+
 .child {
     display: none !important;
 }
 
 .hoverF2:hover {
-    border-radius: 5px;background: #F2F2F2;
+    border-radius: 5px;
+    background: #F2F2F2;
 }
 
 
+.cl_39 {
+    color: #393939;
+}
+
+.bt_orange {
+    cursor: pointer;
+    height: 38px;
+    padding: 8px 24px;
+    border-radius: 8px;
+    border: 1px #FFB400 solid;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    display: inline-flex;
+    color: #FFB400;
+    font-size: 16px;
+    font-family: Noto Sans;
+    font-weight: 700;
+    letter-spacing: 0.64px;
+    word-wrap: break-word
+}
+
+.cms_left_items {
+    color: #393939;
+    font-family: "Noto Sans";
+    font-size: 16px;
+    font-style: normal;
+    font-weight: 700;
+    line-height: normal;
+}
+
+.t_39_normal {
+    font-family: "Noto Sans";
+    font-size: 16px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: normal;
+    letter-spacing: 0.64px;
+    color: #393939;
+}
+
+.t_39_16 {
+    font-family: "Noto Sans";
+    font-size: 16px;
+    font-style: normal;
+    line-height: normal;
+    letter-spacing: 0.64px;
+    color: #393939;
+}
+
+
+.t_39_title {
+    color: #393939;
+    font-family: 'Noto Sans';
+    font-size: 24px;
+    font-style: normal;
+    font-weight: 700;
+    line-height: normal;
+
+}
+
+.c_card {
+    border-radius: 10px;
+    background: #FFF;
+    padding: 24px;
+    /* 陰影 */
+    box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.08);
+}
+
+.cursor_it {
+    cursor: pointer;
+}
+
+.c_39_checkbox {
+    width: 16px;
+    height: 16px;
+    position: relative;
+    border-radius: 20px;
+    border: 1px #DDDDDD solid;
+}
+
+.bt_c39 {
+    border-radius: 10px;
+    background: #393939;
+    display: flex;
+    padding: 10px 24px;
+    justify-content: center;
+    align-items: center;
+    color: #FFF;
+    font-family: "Noto Sans";
+    font-size: 16px;
+    font-style: normal;
+    font-weight: 700;
+    line-height: normal;
+    cursor: pointer;
+    min-width: 120px;
+}
+
+.bt_c39_w {
+    border-radius: 10px;
+    background: #FFF;
+    display: flex;
+    padding: 10px 24px;
+    justify-content: center;
+    align-items: center;
+    color: #393939;
+    font-family: "Noto Sans";
+    font-size: 16px;
+    font-style: normal;
+    font-weight: 700;
+    border: 1px solid #393939;
+    min-width: 120px;
+    line-height: normal;
+    cursor: pointer;
+}
+
+.bt_ffb40 {
+    border-radius: 12px;
+    background: linear-gradient(143deg, #FFB400 -22.7%, #FF6C02 114.57%);
+    display: flex;
+    padding: 10px 22px 10px 23px;
+    justify-content: center;
+    align-items: center;
+    color: #FFF;
+    cursor: pointer;
+    font-family: "Noto Sans";
+    font-size: 16px;
+    font-style: normal;
+    font-weight: 700;
+    line-height: normal;
+}
+
+.hoverPlace:hover {
+    opacity: 1 !important;
+    display: flex;
+}
+
+.form-switch .form-check-input:checked {
+    background-color: #393939 !important;
+    box-shadow: 0 0.5rem 1.125rem -0.5rem #393939c5;
+}
+
+.bt_border_editor {
+    color: #393939;
+    font-size: 16px;
+    font-weight: 400;
+    word-wrap: break-word;
+    width: 100%;
+    height: 44px;
+    padding: 10px;
+    background: white;
+    border-radius: 7px;
+    border: 1px #DDDDDD solid;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    display: inline-flex;
+    cursor: pointer;
+}
+.bt_3366BB_no_line{
+    color: #3366BB;
+    font-weight: 500;
+    height: 44px;
+    cursor: pointer;
+}

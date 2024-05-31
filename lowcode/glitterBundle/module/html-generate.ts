@@ -302,6 +302,85 @@ export class HtmlGenerate {
             return response
         }
 
+        function getStyleString(){
+            function styleString(data: any) {
+                let styles = ''
+
+                function getStyle(data: any) {
+
+                    let style = ''
+                    if (data.dataType === 'static') {
+                        return data.style
+                    } else {
+
+                        try {
+                            if (data.dataType === 'code') {
+                                style = eval(`(() => {
+                                        ${data.style}
+                                    })()`)
+                            } else if (data.dataType === 'triggerEvent') {
+                                return glitter.promiseValue(new Promise(async (resolve, reject) => {
+                                    resolve((await TriggerEvent.trigger({
+                                        gvc: gvc!,
+                                        widget: widget as any,
+                                        clickEvent: data.triggerStyle,
+                                        subData: subData,
+                                    })))
+                                }))
+                            } else {
+                                style = eval(data.style)
+                            }
+                        } catch (e) {
+                            style = data.style
+                        }
+                        return style
+                    }
+                }
+
+                const tempMap: any = {};
+                (data.stylist ?? []).map((dd: any) => {
+                    tempMap[dd.size] = (() => {
+                        return getStyle(dd)
+                    })
+                })
+                styles = glitter.ut.frSize(tempMap, (() => {
+                    return getStyle(data)
+                }))()
+                let styleString: string[] = [styles];
+                (data.styleList ?? []).map((dd: any) => {
+                    Object.keys(dd.data).map((d2) => {
+                        styleString.push([d2, dd.data[d2]].join(':'));
+                    });
+                });
+                // 正则表达式模式
+                let styleStringJoin = styleString.join(';');
+
+                // 使用正则表达式的 exec 方法来提取匹配项
+                function replaceString(pattern: any) {
+                    let match;
+                    let have=false
+                    while ((match = pattern.exec(styleStringJoin)) !== null) {
+                        const placeholder = match[0]; // 完整的匹配项，例如 "@{{value}}"
+                        const value = match[1]; // 提取的值，例如 "value"
+                        if (glitter.share.globalValue && glitter.share.globalValue[value]) {
+                            styleStringJoin = styleStringJoin.replace(placeholder, glitter.share.globalValue[value])
+                            have=true
+                        }
+                    }
+                    if(have){
+                        replaceString(pattern)
+                    }
+                }
+                replaceString(/\/\**@{{(.*?)}}\*\//g)
+                replaceString(/@{{(.*?)}}/g)
+                return styleStringJoin
+            }
+
+            return (data.basic_style || '') + [getStyleData()].concat(getStyleData().list ?? []).map((dd) => {
+                const data = styleString(dd)
+                return data && ` ${data}`
+            }).join('')
+        }
         return {
             editor: (gvc: GVC, widget: HtmlJson | (() => void), title?: string, option?: any) => {
                 const glitter = (window as any).glitter;
@@ -331,21 +410,11 @@ export class HtmlGenerate {
                                 option: option
                             })
                         })
-                        // glitter.openDiaLog("glitterBundle/plugins/style-editor.js", "dialog-style-editor", {
-                        //     callback: () => {
-                        //         if (typeof widget === 'function') {
-                        //             widget()
-                        //         } else {
-                        //             (widget as any).refreshComponent()
-                        //         }
-                        //     },
-                        //     data: data,
-                        //     option: option
-                        // })
                     })
                 }">${title ?? "設計樣式"}</div><br>`;
             },
             class: () => {
+                const glitter = (window as any).glitter;
                 function classString(data: any) {
                     function getClass(data: any) {
                         let classs = ''
@@ -385,86 +454,15 @@ export class HtmlGenerate {
                         return getClass(data)
                     }))()
                 }
-
                 return [getStyleData()].concat(getStyleData().list ?? []).map((dd) => {
                     const data = classString(dd)
                     return data && ` ${data}`
                 }).join('')
             },
             style: () => {
-                function styleString(data: any) {
-                    let styles = ''
 
-                    function getStyle(data: any) {
+                return  getStyleString();
 
-                        let style = ''
-                        if (data.dataType === 'static') {
-                            return data.style
-                        } else {
-
-                            try {
-                                if (data.dataType === 'code') {
-                                    style = eval(`(() => {
-                                        ${data.style}
-                                    })()`)
-                                } else if (data.dataType === 'triggerEvent') {
-                                    return glitter.promiseValue(new Promise(async (resolve, reject) => {
-                                        resolve((await TriggerEvent.trigger({
-                                            gvc: gvc!,
-                                            widget: widget as any,
-                                            clickEvent: data.triggerStyle,
-                                            subData: subData,
-                                        })))
-                                    }))
-                                } else {
-                                    style = eval(data.style)
-                                }
-                            } catch (e) {
-                                style = data.style
-                            }
-                            return style
-                        }
-                    }
-
-                    const tempMap: any = {};
-                    (data.stylist ?? []).map((dd: any) => {
-                        tempMap[dd.size] = (() => {
-                            return getStyle(dd)
-                        })
-                    })
-                    styles = glitter.ut.frSize(tempMap, (() => {
-                        return getStyle(data)
-                    }))()
-                    let styleString: string[] = [styles];
-                    (data.styleList ?? []).map((dd: any) => {
-                        Object.keys(dd.data).map((d2) => {
-                            styleString.push([d2, dd.data[d2]].join(':'));
-                        });
-                    });
-                    // 正则表达式模式
-                    let styleStringJoin = styleString.join(';');
-
-                    // 使用正则表达式的 exec 方法来提取匹配项
-                    function replaceString(pattern: any) {
-                        let match;
-                        while ((match = pattern.exec(styleStringJoin)) !== null) {
-                            const placeholder = match[0]; // 完整的匹配项，例如 "@{{value}}"
-                            const value = match[1]; // 提取的值，例如 "value"
-                            if (glitter.share.globalValue && glitter.share.globalValue[value]) {
-                                styleStringJoin = styleStringJoin.replace(placeholder, glitter.share.globalValue[value])
-                            }
-                        }
-                    }
-
-                    replaceString(/\/\**@{{(.*?)}}\*\//g)
-                    replaceString(/@{{(.*?)}}/g)
-                    return styleStringJoin
-                }
-
-                return (data.basic_style || '') + [getStyleData()].concat(getStyleData().list ?? []).map((dd) => {
-                    const data = styleString(dd)
-                    return data && ` ${data}`
-                }).join('')
             },
         };
     }
@@ -666,15 +664,20 @@ ${obj.gvc.bindView({
                     }
 
                     if (!dd.bundle) {
-                        Object.defineProperty(dd, "bundle", {
-                            get: function () {
-                                return subData ?? {};
-                            },
+                        try {
+                            Object.defineProperty(dd, "bundle", {
+                                get: function () {
+                                    return subData ?? {};
+                                },
 
-                            set(v) {
-                                subData = v;
-                            }
-                        })
+                                set(v) {
+                                    subData = v;
+                                }
+                            })
+                        }catch (e) {
+
+                        }
+
                     }
                 })
             }
@@ -1124,6 +1127,7 @@ ${obj.gvc.bindView({
                                 startRender()
                             })]
                             if (isEditMode() && option && option.editorSection) {
+
                                 view.push(HtmlGenerate.getEditorSelectSection({
                                     id: option.editorSection,
                                     gvc: gvc,

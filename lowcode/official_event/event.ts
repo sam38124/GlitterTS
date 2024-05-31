@@ -1,11 +1,11 @@
-import { BaseApi } from '../glitterBundle/api/base.js';
-import { GVC } from '../glitterBundle/GVController.js';
-import { GlobalUser } from '../glitter-base/global/global-user.js';
-import { TriggerEvent } from '../glitterBundle/plugins/trigger-event.js';
-import { EditorElem } from '../glitterBundle/plugins/editor-elem.js';
-import { component } from '../official_view_component/official/component.js';
-import { ApiUser } from '../glitter-base/route/user.js';
-import { NormalPageEditor } from '../editor/normal-page-editor.js';
+import {BaseApi} from '../glitterBundle/api/base.js';
+import {GVC} from '../glitterBundle/GVController.js';
+import {GlobalUser} from '../glitter-base/global/global-user.js';
+import {TriggerEvent} from '../glitterBundle/plugins/trigger-event.js';
+import {EditorElem} from '../glitterBundle/plugins/editor-elem.js';
+import {component} from '../official_view_component/official/component.js';
+import {ApiUser} from '../glitter-base/route/user.js';
+import {NormalPageEditor} from '../editor/normal-page-editor.js';
 
 export class GlobalData {
     public static data = {
@@ -173,6 +173,18 @@ TriggerEvent.create(import.meta.url, {
         title: '官方事件 / 表單 / 取得表單資料',
         fun: TriggerEvent.setEventRouter(import.meta.url, './glitter-util/get-form.js'),
     },
+    getFormConfig: {
+        title: '官方事件 / 表單 / 取得表單設定檔',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './glitter-util/get-form-config.js'),
+    },
+    getWebConfig: {
+        title: '官方事件 / 表單 / 取得網頁配置檔',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './glitter-util/get-web-config.js'),
+    },
+    postFormConfig:{
+        title: '官方事件 / 表單 / 發佈表單',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './glitter-util/post-form-config.js'),
+    },
     checkForm: {
         title: '官方事件 / 表單 / 判斷表單是否填寫完畢',
         fun: TriggerEvent.setEventRouter(import.meta.url, './glitter-util/check-form.js'),
@@ -189,18 +201,19 @@ TriggerEvent.create(import.meta.url, {
                 editor: () => {
                     object.codeVersion = 'v2';
                     const html = String.raw;
-                    return html` <div class="w-100">
-                        ${EditorElem.codeEditor({
-                            gvc: gvc,
-                            height: 500,
-                            initial: object.code,
-                            title: '代碼區塊',
-                            callback: (text) => {
-                                object.code = text;
-                            },
-                            structStart: `((gvc,widget,object,subData,element)=>{`,
-                        })}
-                    </div>`;
+                    return html`
+                        <div class="w-100">
+                            ${EditorElem.codeEditor({
+                                gvc: gvc,
+                                height: 500,
+                                initial: object.code,
+                                title: '代碼區塊',
+                                callback: (text) => {
+                                    object.code = text;
+                                },
+                                structStart: `((gvc,widget,object,subData,element)=>{`,
+                            })}
+                        </div>`;
                 },
                 event: () => {
                     return new Promise<any>(async (resolve, reject) => {
@@ -208,8 +221,8 @@ TriggerEvent.create(import.meta.url, {
                             const a =
                                 object.codeVersion == 'v2'
                                     ? eval(`(() => {
-                                ${object.code}
-                            })()`)
+                                        ${object.code}
+                                    })()`)
                                     : eval(object.code);
                             if (a.then) {
                                 a.then((data: any) => {
@@ -306,7 +319,7 @@ TriggerEvent.create(import.meta.url, {
                                         plus: {
                                             title: '添加事件判斷',
                                             event: gvc.event(() => {
-                                                object.eventList.push({ yesEvent: {}, trigger: {} });
+                                                object.eventList.push({yesEvent: {}, trigger: {}});
                                                 gvc.notifyDataChange(id);
                                             }),
                                         },
@@ -411,6 +424,14 @@ TriggerEvent.create(import.meta.url, {
         title: '官方事件 / 開發工具 / 取得儲存資料',
         fun: TriggerEvent.setEventRouter(import.meta.url, './glitter-util/get-data.js'),
     },
+    getPublicConfig: {
+        title: '官方事件 / 開發工具 / 取得公開配置檔案',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './glitter-util/get-public-config.js'),
+    },
+    setPublicConfig: {
+        title: '官方事件 / 開發工具 / 設定公開配置檔案',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './glitter-util/set-public-config.js'),
+    },
     registerDevice: {
         title: '官方事件 / 推播 / 註冊裝置',
         fun: TriggerEvent.setEventRouter(import.meta.url, './fcm/register-device.js'),
@@ -444,7 +465,8 @@ TriggerEvent.create(import.meta.url, {
                                     {
                                         topic: topic,
                                     },
-                                    (response) => {}
+                                    (response) => {
+                                    }
                                 );
                             } else {
                                 (topic as any).map((dd: any) => {
@@ -453,7 +475,8 @@ TriggerEvent.create(import.meta.url, {
                                         {
                                             topic: dd,
                                         },
-                                        (response) => {}
+                                        (response) => {
+                                        }
                                     );
                                 });
                             }
@@ -716,6 +739,10 @@ TriggerEvent.create(import.meta.url, {
         title: '電子商務 / 取得回饋金金額',
         fun: TriggerEvent.setEventRouter(import.meta.url, './e-commerce/get-rebate.js'),
     },
+    getRebateList: {
+        title: '電子商務 / 取得回饋金列表',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './e-commerce/get-rebate-list.js'),
+    },
     getCount: {
         title: '電子商務 / 取得購物車數量',
         fun: TriggerEvent.setEventRouter(import.meta.url, './e-commerce/get-count.js'),
@@ -767,6 +794,10 @@ TriggerEvent.create(import.meta.url, {
     c2cMap: {
         title: '電子商務 / 選擇門市',
         fun: TriggerEvent.setEventRouter(import.meta.url, './e-commerce/to-c2cMap.js'),
+    },
+    getPaymentMethod: {
+        title: '電子商務 / 取得支援付款方式',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './e-commerce/get-payment-method.js'),
     },
     dataAnalyze: {
         title: '電子商務 / 資料分析',
@@ -831,6 +862,10 @@ TriggerEvent.create(import.meta.url, {
     getToken: {
         title: '用戶相關 / 取得TOKEN',
         fun: TriggerEvent.setEventRouter(import.meta.url, './user/token.js'),
+    },
+    getNotice: {
+        title: '用戶相關 / 取得通知訊息',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './user/get-notice.js'),
     },
     get_chat_room: {
         title: '訊息相關 / 取得已建立聊天室',
@@ -911,25 +946,25 @@ function questionText(data: { title: string; content: string }[]) {
           <h2 class="text-center my-3 mt-2" style="font-size:22px;">使用方法說明</h2>
              <div class="accordion mx-2" id="faq">
                 ${data
-                    .map((dd, index) => {
-                        return ` <div class="accordion-item border-0 rounded-3 shadow-sm mb-3">
+        .map((dd, index) => {
+            return ` <div class="accordion-item border-0 rounded-3 shadow-sm mb-3">
                   <h3 class="accordion-header">
                     <button class="accordion-button shadow-none rounded-3 ${
-                        index === 0 ? '' : 'collapsed'
-                    }" type="button" data-bs-toggle="collapse" data-bs-target="#q-${index}" aria-expanded="false" aria-controls="q-1">${
-                            dd.title
-                        }</button>
+                index === 0 ? '' : 'collapsed'
+            }" type="button" data-bs-toggle="collapse" data-bs-target="#q-${index}" aria-expanded="false" aria-controls="q-1">${
+                dd.title
+            }</button>
                   </h3>
                   <div class="accordion-collapse collapse ${
-                      index === 0 ? 'show' : ''
-                  }" id="q-${index}" data-bs-parent="#faq" style="">
+                index === 0 ? 'show' : ''
+            }" id="q-${index}" data-bs-parent="#faq" style="">
                     <div class="accordion-body fs-sm pt-0">
                      ${dd.content}
                     </div>
                   </div>
                 </div>`;
-                    })
-                    .join('')}
+        })
+        .join('')}
               
               </div>
         </div>`;

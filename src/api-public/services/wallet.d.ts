@@ -7,6 +7,7 @@ export declare class Wallet {
         return_url: string;
         total: number;
         note: any;
+        method?: string;
     }): Promise<{
         form: string;
     }>;

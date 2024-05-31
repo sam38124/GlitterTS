@@ -11,13 +11,16 @@ import {UtDatabase} from "../api-public/utils/ut-database.js";
 import {NginxConfFile} from "nginx-conf";
 import axios from "axios";
 import {ApiPublic} from "../api-public/services/public-table-check.js";
+import AWS from "aws-sdk";
+import {App} from "./app.js";
 
 export class BackendService {
     public appName: string
 
     constructor(appName: string) {
         this.appName = appName;
-        ApiPublic.createScheme(this.appName).then(()=>{})
+        ApiPublic.createScheme(this.appName).then(() => {
+        })
     }
 
     public async getDataBaseInfo() {
@@ -51,22 +54,22 @@ export class BackendService {
                 ].join(` || `)
             )
             const resp = await new UtDatabase(this.appName, `t_api_router`).querySql(querySql, query as any)
-            for (const b of resp.data){
-               b.health=await new Promise((resolve, reject)=>{
+            for (const b of resp.data) {
+                b.health = await new Promise((resolve, reject) => {
                     let config = {
                         method: 'get',
                         maxBodyLength: Infinity,
                         url: `http://${exInfo.ip}:${b.port}`,
-                        headers: { }
+                        headers: {}
                     };
                     axios.request(config)
                         .then((response) => {
                             resolve(true)
                         })
                         .catch((error) => {
-                            if(error.response){
+                            if (error.response) {
                                 resolve(true)
-                            }else{
+                            } else {
                                 resolve(false)
                             }
                         });
@@ -138,12 +141,12 @@ export class BackendService {
                 from \`${saasConfig.SAAS_NAME}\`.app_config
                 where appName = ?
             `, [this.appName]))[0]['ec2_id']
-            if(ec2_id){
-                const ec2INFO:any=await getEC2INFO(ec2_id)
+            if (ec2_id) {
+                const ec2INFO: any = await getEC2INFO(ec2_id)
                 return {
                     id: ec2_id,
                     ip: ec2INFO && ec2INFO.ipAddress,
-                    type:ec2INFO && ec2INFO.type
+                    type: ec2INFO && ec2INFO.type
                 }
             }
 
@@ -185,12 +188,12 @@ export class BackendService {
         }
     }
 
-    public async shutdown(conf:{
-        port:number
-    }){
+    public async shutdown(conf: {
+        port: number
+    }) {
         try {
             const serverInfo = await this.serverInfo();
-            if (await this.stopEc2Project(serverInfo.ip,conf.port)) {
+            if (await this.stopEc2Project(serverInfo.ip, conf.port)) {
                 return {
                     result: true
                 }
@@ -204,13 +207,16 @@ export class BackendService {
             throw exception.BadRequestError("ERROR", "ERROR." + e, null);
         }
     }
-    public async deleteAPI(conf:{
-        port:number
-    }){
+
+    public async deleteAPI(conf: {
+        port: number
+    }) {
         try {
             const serverInfo = await this.serverInfo();
-            await db.execute(`delete from \`${this.appName}\`.t_api_router where port=?`,[conf.port])
-            if (await this.stopEc2Project(serverInfo.ip,conf.port)) {
+            await db.execute(`delete
+                              from \`${this.appName}\`.t_api_router
+                              where port = ?`, [conf.port])
+            if (await this.stopEc2Project(serverInfo.ip, conf.port)) {
                 return {
                     result: true
                 }
@@ -224,6 +230,7 @@ export class BackendService {
             throw exception.BadRequestError("ERROR", "ERROR." + e, null);
         }
     }
+
 
     public async putDomain(config: {
         domain: string,
@@ -371,7 +378,8 @@ PORT=8000`)
             `sudo docker run --restart=always --log-opt max-size=50m  -d -p ${port}:${port} -t  ${name}`
         ], ip);
     }
-    public async stopEc2Project(ip: string,  port: number) {
+
+    public async stopEc2Project(ip: string, port: number) {
         //Post project to ec2.
         return await Ssh.exec([
             `sudo docker stop $(sudo docker ps --filter "expose=${port}" --format "{{.ID}}")`,
@@ -388,7 +396,7 @@ PORT=8000`)
             if (ec2_id) {
                 throw exception.BadRequestError("ERROR", "THE SERVER ALREADY CREATED.", null);
             } else {
-                console.log(`this.appName`,this.appName)
+                console.log(`this.appName`, this.appName)
                 const ec2ID = await createEC2Instance()
                 await db.execute(`update \`${saasConfig.SAAS_NAME}\`.app_config
                                   set ec2_id=?

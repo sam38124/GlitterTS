@@ -607,7 +607,6 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
                                         tag: tag,
                                         appName: (window as any).appName
                                     };
-                                    console.log(`page_request_config->`,page_request_config);
                                     ((window as any).glitterInitialHelper).getPageData(page_request_config, (d2: any) => {
                                         data = d2.response.result[0]
                                         data.config = data.config ?? []

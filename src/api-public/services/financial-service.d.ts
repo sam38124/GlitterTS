@@ -25,11 +25,15 @@ export default class FinancialService {
         email: string;
         shipment_fee: number;
         orderID: string;
+        use_wallet: number;
+        user_email: string;
+        method: string;
     }): Promise<any>;
     saveMoney(orderData: {
         total: number;
         userID: number;
         note: any;
+        method: string;
     }): Promise<string>;
     generateUniqueOrderNumber(): string;
     static JsonToQueryString(data: {
@@ -54,6 +58,8 @@ export declare class EzPay {
         email: string;
         shipment_fee: number;
         orderID: string;
+        use_wallet: number;
+        user_email: string;
     }): Promise<string>;
     saveMoney(orderData: {
         total: number;
@@ -77,11 +83,15 @@ export declare class EcPay {
         email: string;
         shipment_fee: number;
         orderID: string;
+        user_email: string;
+        use_wallet: number;
+        method: string;
     }): Promise<string>;
     saveMoney(orderData: {
         total: number;
         userID: number;
         note: string;
+        method: string;
     }): Promise<string>;
     static urlEncode_dot_net(raw_data: string, case_tr?: string): string;
 }

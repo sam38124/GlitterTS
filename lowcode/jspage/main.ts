@@ -83,7 +83,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
         domain: string,
         originalDomain: string,
         saveArray: any,
-        app_config_original:any
+        app_config_original: any
     } = {
         saveArray: {},
         appName: gBundle.appName,
@@ -111,7 +111,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
         globalStyle: undefined,
         domain: '',
         originalDomain: '',
-        app_config_original:{}
+        app_config_original: {}
     };
     initialEditor(gvc, viewModel);
     (window.parent as any).glitter.share.refreshMainLeftEditor = () => {
@@ -129,7 +129,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                 return await new Promise(async (resolve, reject) => {
                     const clock = gvc.glitter.ut.clock()
                     ApiPageConfig.getAppConfig().then((res) => {
-                        viewModel.app_config_original=res.response.result[0]
+                        viewModel.app_config_original = res.response.result[0]
                         viewModel.domain = res.response.result[0].domain
                         viewModel.originalDomain = viewModel.domain
                         resolve(true)
@@ -320,8 +320,8 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                 swal.close();
                 viewModel.originalConfig = JSON.parse(JSON.stringify(viewModel.appConfig))
                 if (refresh) {
-                    (window as any).preloadData={};
-                    (window as any).glitterInitialHelper.share={}
+                    (window as any).preloadData = {};
+                    (window as any).glitterInitialHelper.share = {}
                     lod();
                 }
             }
@@ -358,33 +358,17 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                             return doc.create(html`
                                         <div class="d-flex overflow-hidden" style="height:100vh;background:white;">
                                             <div style="width:60px;gap:20px;padding-top: 15px;"
-                                                 class="d-none h-100 border-end d-flex flex-column align-items-center">
+                                                 class="${(Storage.select_function === 'user-editor' || Storage.select_function === 'page-editor') ? `` : `d-none`} h-100 border-end d-flex flex-column align-items-center">
                                                 ${[
                                                     {
-                                                        src: `fa-regular fa-table-layout`,
-                                                        index: 'user-editor',
-                                                        hint: '頁面編輯'
-                                                    },
-                                                    {
-                                                        src: `fa-regular fa-solid fa-list-check`,
-                                                        index: 'backend-manger',
-                                                        hint: '後台系統'
-                                                    },
-                                                    {
-                                                        src: `fa-solid fa-code`,
-                                                        index: 'page-editor',
-                                                        hint: '開發者模式'
-                                                    },
-                                                    // {
-                                                    //     src: `fa-duotone fa-server`,
-                                                    //     index: 'server-manager',
-                                                    //     hint: '伺服器設定'
-                                                    // },
-                                                    // {
-                                                    //     src: `fa-sharp fa-regular fa-cloud-arrow-up`,
-                                                    //     index: 'app-upload',
-                                                    //     hint: '應用發佈'
-                                                    // },
+                                                        src: `fa-duotone fa-window`,
+                                                        index: 'layout',
+                                                        hint: '頁面編輯',
+                                                    }, {
+                                                        src: `fa-sharp fa-regular fa-palette`,
+                                                        index: 'color',
+                                                        hint: '配色設定'
+                                                    }
                                                 ].map((da: any) => {
                                                     return html`<i
                                                             class=" ${da.src} fs-5 fw-bold   p-2 rounded"
@@ -393,18 +377,12 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                                                             data-bs-custom-class="custom-tooltip"
                                                             data-bs-title="${da.hint}"
                                                             style="cursor:pointer;
-${(Storage.select_function === `${da.index}`) ? `background-color: rgba(10,83,190,0.1);` : ``};
-${(Storage.select_function === `${da.index}`) ? `background:${EditorConfig.editor_layout.btn_background};color:white;` : ``}
+${(Storage.page_setting_item === `${da.index}`) ? `background:${EditorConfig.editor_layout.btn_background};color:white;` : ``}
 "
                                                             onclick="${gvc.event(() => {
                                                                 viewModel.waitCopy = undefined
                                                                 viewModel.selectItem = undefined
-                                                                Storage.select_function = da.index
-                                                                if (da.index === 'page-editor') {
-                                                                    Storage.view_type = 'col3'
-                                                                } else if (da.index === 'user-editor') {
-                                                                    Storage.view_type = 'desktop'
-                                                                }
+                                                                Storage.page_setting_item = da.index
                                                                 gvc.notifyDataChange(editorContainerID)
                                                             })}"></i>`
                                                 }).join('')}
@@ -613,7 +591,7 @@ function initialEditor(gvc: GVC, viewModel: any) {
         url.search = ''
         cf.data.js = cf.data.js.replace(url.href, './')
         if (cf.direction === 1) {
-            arrayData.container.splice(arrayData.index+1, 0, cf.data);
+            arrayData.container.splice(arrayData.index + 1, 0, cf.data);
         } else {
             arrayData.container.splice(arrayData.index, 0, cf.data);
         }

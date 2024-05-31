@@ -24,7 +24,9 @@ export const Storage:{
     //後台點擊按鈕
     select_bg_btn:'official'|'custom',
     //後台點擊選項
-    select_item:any
+    select_item:any,
+    //頁面編輯選項
+    page_setting_item:'layout' | 'color'
 }={
     get editor_mode(){
         return 'dev' as any
@@ -111,10 +113,18 @@ export const Storage:{
         localStorage.setItem('select_bg_btn',value)
     },
     get select_item(){
+
         return (localStorage.getItem('select_item') || '0') as any
     },
     set select_item(value){
         localStorage.setItem('select_item',value)
-    }
+    },
+
+    get page_setting_item(){
+        return (localStorage.getItem('page_setting_item') || 'layout') as any
+    },
+    set page_setting_item(value){
+        localStorage.setItem('page_setting_item',value)
+    },
 }
 

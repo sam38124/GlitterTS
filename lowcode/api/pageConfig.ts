@@ -6,7 +6,7 @@ export class ApiPageConfig {
     constructor() {
     }
 
-    public static getAppList(theme?: string) {
+    public static getAppList(theme?: string,token?:string) {
         return BaseApi.create({
             "url": config.url + `/api/v1/app?` + (() => {
                 let search: any = [];
@@ -17,7 +17,7 @@ export class ApiPageConfig {
             "timeout": 0,
             "headers": {
                 "Content-Type": "application/json",
-                "Authorization": GlobalUser.token
+                "Authorization": token || GlobalUser.saas_token
             }
         })
     }
@@ -53,14 +53,29 @@ export class ApiPageConfig {
             "timeout": 0,
             "headers": {
                 "Content-Type": "application/json",
-                "Authorization": GlobalUser.token
+                "Authorization": GlobalUser.saas_token
             },
             data: JSON.stringify({
                 appName: appName
             })
         })
     }
-
+    public static setSubDomain(cf: {
+        app_name:string,
+        sub_domain:string,
+        token?: string
+    }) {
+        return BaseApi.create({
+            "url": config.url + `/api/v1/app/sub_domain`,
+            "type": "PUT",
+            "timeout": 0,
+            "headers": {
+                "Content-Type": "application/json",
+                "Authorization": cf.token || config.token
+            },
+            data: JSON.stringify(cf)
+        })
+    }
     public static setDomain(cf: {
         domain: string,
         app_name?: string
@@ -291,7 +306,7 @@ export class ApiPageConfig {
             "type": "POST",
             "headers": {
                 "Content-Type": "application/json",
-                "Authorization": config.token
+                "Authorization":  (window.parent as any).saasConfig.config.token
             },
             data: JSON.stringify({
                 appName: appName,
@@ -327,7 +342,7 @@ export class ApiPageConfig {
             "type": "GET",
             "headers": {
                 "Content-Type": "application/json",
-                "Authorization": config.token
+                "Authorization": (window.parent as any).saasConfig.config.token
             }
         })
     }

@@ -36,6 +36,9 @@ export class Main_editor {
                     if ((Storage.view_type === ViewType.col3) || (Storage.view_type === ViewType.mobile)) {
                         gvc.notifyDataChange('right_NAV');
                     }
+                    if (Storage.page_setting_item === 'color') {
+                        return Main_editor.colorSetting(gvc);
+                    }
                     if (viewModel.selectItem && viewModel.selectItem.type && (((Storage.view_type !== ViewType.col3) && (Storage.view_type !== ViewType.mobile)) || (Storage.select_function === 'user-editor')) &&
                         (viewModel.selectItem.type !== 'code') && (viewModel.selectItem.type !== 'widget' || (viewModel.selectItem.data.elem !== 'style' && viewModel.selectItem.data.elem !== 'link' && viewModel.selectItem.data.elem !== 'script'))) {
                         console.log(`viewModel.selectItem-is->`, viewModel.selectItem);
@@ -57,7 +60,7 @@ export class Main_editor {
                                 </div>
                             `,
                             `    ${(() => {
-                                return gvc.map([
+                                return [
                                     (() => {
                                         let pageConfig = (viewModel.data.config.filter((dd, index) => {
                                             return (dd.type !== 'code') && (dd.type !== 'widget' || (dd.data.elem !== 'style' && dd.data.elem !== 'link' && dd.data.elem !== 'script'));
@@ -190,7 +193,8 @@ export class Main_editor {
                                                             `;
                                                         }).join('') + html `
                                                             <div class="w-100 fw-500 d-flex align-items-center  fs-6 hoverBtn h_item  rounded px-2 hoverF2 mb-1"
-                                                                 style="color:#36B;gap:10px;" onclick="${gvc.event(() => {
+                                                                 style="color:#36B;gap:10px;"
+                                                                 onclick="${gvc.event(() => {
                                                             if (root) {
                                                                 glitter.share.editorViewModel.selectContainer = glitter.share.editorViewModel.data.config;
                                                             }
@@ -267,7 +271,7 @@ export class Main_editor {
                                                 ${renderItems(list, pageConfig, true)}
                                             </div>`;
                                     })()
-                                ]);
+                                ].join('');
                             })()}`
                         ].join('');
                     }
@@ -334,6 +338,149 @@ export class Main_editor {
             };
         });
     }
+    static colorSetting(gvc) {
+        var _a;
+        const globalValue = gvc.glitter.share.editorViewModel.appConfig;
+        globalValue.color_theme = (_a = globalValue.color_theme) !== null && _a !== void 0 ? _a : [];
+        const vm = {
+            type: 'list',
+            data: {},
+            name: '配色1',
+            index: 0
+        };
+        return gvc.bindView(() => {
+            const id = gvc.glitter.getUUID();
+            return {
+                bind: id,
+                view: () => {
+                    return html `
+
+                        <div class="" style="">
+                            ${(() => {
+                        if (vm.type === 'list') {
+                            return html `
+                                        <div class="px-3   border-bottom pb-3 fw-bold mt-2 pt-2"
+                                             style="cursor: pointer;color:#393939;">
+                                            <span>配色設定</span>
+                                        </div>
+                                        <div class="row ${(globalValue.color_theme.length === 0) ? `d-none` : ``}"
+                                             style="margin:18px;">
+                                            ${globalValue.color_theme.map((dd, index) => {
+                                return `<div class="col-6 mb-3" style="cursor: pointer;" onclick="${gvc.event(() => {
+                                    vm.type = 'detail';
+                                    vm.data = globalValue.color_theme[index];
+                                    vm.index = index;
+                                    gvc.notifyDataChange(id);
+                                })}">
+                                                <div style="width:100%;padding: 11px 18px;background: white; border-radius: 7px; overflow: hidden; border: 1px #DDDDDD solid; justify-content: center; align-items: center; display: flex">
+                                                    <div style="align-self: stretch; flex-direction: column; justify-content: flex-start; align-items: center; gap: 2px; display: inline-flex">
+                                                        <div style="color: #554233; font-size: 16px;  font-weight: 400; word-wrap: break-word">Aa</div>
+                                                        <div style=" justify-content: flex-start; align-items: flex-start; gap: 4px; display: inline-flex">
+                                                            <div style="width: 26px; height: 13px; position: relative; background: white; border-radius: 7px; border: 1px #554233 solid"></div>
+                                                            <div style="width: 26px;height: 13px; position: relative; background: #554233; border-radius: 7px; border: 1px #554233 solid"></div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="w-100 t_39_16 mt-2" style="text-align: center;">配色${index + 1}</div>
+                                            </div>`;
+                            }).join('')}
+                                        </div>
+                                        <div style="padding: 0px 24px 24px;${(globalValue.color_theme.length === 0) ? `margin-top:24px;` : ``}">
+                                            <div class="bt_border_editor"
+                                                 onclick="${gvc.event(() => {
+                                vm.data = { id: gvc.glitter.getUUID() };
+                                globalValue.color_theme.push(vm.data);
+                                vm.name = ('配色' + globalValue.color_theme.length);
+                                vm.type = 'detail';
+                                vm.index = globalValue.color_theme.length;
+                                gvc.notifyDataChange(id);
+                            })}">
+                                                新增配色
+                                            </div>
+                                        </div>`;
+                        }
+                        else {
+                            return [
+                                `
+ <div class="px-3   border-bottom pb-3 fw-bold mt-2 pt-2" style="cursor: pointer;color:#393939;" onclick="${gvc.event(() => {
+                                    vm.type = 'list';
+                                    gvc.notifyDataChange(id);
+                                })}">
+ <i class="fa-solid fa-angle-left"></i>
+                            <span>${vm.name} 編輯</span>
+                        </div>
+                                    <div class="border-bottom w-100" style="padding: 24px;width: 100%; justify-content: flex-start; align-items: center; gap: 10px; display: inline-flex">
+  <div style="width:93px;padding: 11px 18px;background: white; border-radius: 7px; overflow: hidden; border: 1px #DDDDDD solid; justify-content: center; align-items: center; display: flex">
+    <div style="align-self: stretch; flex-direction: column; justify-content: flex-start; align-items: center; gap: 2px; display: inline-flex">
+      <div style="color: #554233; font-size: 16px;  font-weight: 400; word-wrap: break-word">Aa</div>
+      <div style=" justify-content: flex-start; align-items: flex-start; gap: 4px; display: inline-flex">
+        <div style="width: 26px; height: 13px; position: relative; background: white; border-radius: 7px; border: 1px #554233 solid"></div>
+        <div style="width: 26px;height: 13px; position: relative; background: #554233; border-radius: 7px; border: 1px #554233 solid"></div>
+      </div>
+    </div>
+  </div>
+  <div style="flex: 1 1 0; flex-direction: column; justify-content: center; align-items: flex-start; gap: 4px; display: inline-flex">
+    <div style="align-self: stretch; color: #393939; font-size: 16px;  font-weight: 400; word-wrap: break-word">${vm.name}</div>
+  </div>
+</div>
+                                    `,
+                                `<div style="padding: 18px 24px 24px;">${[
+                                    {
+                                        key: 'background', title: '背景顏色'
+                                    }, {
+                                        key: 'title', title: '標題顏色'
+                                    }, {
+                                        key: 'content', title: '內文'
+                                    }, {
+                                        key: 'solid-button-bg', title: '純色按鈕'
+                                    }, {
+                                        key: 'solid-button-text', title: '純色按鈕文字',
+                                    }, {
+                                        key: 'border-button-bg', title: '邊框按鈕'
+                                    }, {
+                                        key: 'border-button-text', title: '邊框按鈕文字'
+                                    }
+                                ].map((dd) => {
+                                    vm.data[dd.key] = vm.data[dd.key] || '#FFFFFF';
+                                    return EditorElem.colorSelect({
+                                        title: dd.title,
+                                        callback: (text) => {
+                                            vm.data[dd.key] = text;
+                                            gvc.glitter.share.globalValue[`theme_color.${vm.index}.${dd.key}`] = text;
+                                            const lastScrollY = document.querySelector('iframe').contentWindow.scrollY;
+                                            document.querySelector('iframe').contentWindow.glitter.share.globalValue = gvc.glitter.share.globalValue;
+                                            const element = document.querySelector('iframe').contentWindow.glitter.elementCallback;
+                                            Object.keys(element).map((dd) => {
+                                                element[dd].updateAttribute();
+                                            });
+                                        },
+                                        gvc: gvc,
+                                        def: vm.data[dd.key]
+                                    });
+                                }).join('<div style="height: 15px;"></div>')}</div>`,
+                                `<div style="padding: 0px 24px 24px;"> <div class="bt_border_editor"
+                                                 onclick="${gvc.event(() => {
+                                    globalValue.color_theme = globalValue.color_theme.filter((dd) => {
+                                        return dd !== vm.data;
+                                    });
+                                    vm.type = 'list';
+                                    gvc.notifyDataChange(id);
+                                })}" >
+                                                刪除配色
+                                            </div></div>`
+                            ].join('');
+                        }
+                    })()}
+
+                        </div>
+                    `;
+                },
+                divCreate: {
+                    class: `border-bottom`
+                }
+            };
+        });
+    }
     static right(gvc, viewModel, createID, gBundle) {
         const glitter = gvc.glitter;
         return gvc.bindView(() => {
@@ -345,7 +492,6 @@ export class Main_editor {
                     if (viewModel.selectItem !== undefined) {
                         hoverList.push(viewModel.selectItem.id);
                     }
-                    alert('s');
                     if (!viewModel.selectItem) {
                         return `<div class="position-absolute w-100 top-50 d-flex align-items-center justify-content-center flex-column translate-middle-y">
 <iframe src="https://embed.lottiefiles.com/animation/84663" class="w-100" style="width: 400px;height: 400px"></iframe>
@@ -522,7 +668,7 @@ export class Main_editor {
     static center(viewModel, gvc) {
         return html `
             <div class="${(viewModel.type === ViewType.mobile && (Storage.select_function === 'page-editor' || Storage.select_function === 'user-editor')) ? `d-flex align-items-center justify-content-center flex-column mx-auto` : `d-flex align-items-center justify-content-center flex-column`}"
-                 style="${(viewModel.type === ViewType.mobile && (Storage.select_function === 'page-editor' || Storage.select_function === 'user-editor')) ? `width: 414px;height: calc(100vh - 56px);` : `width: calc(100%);height: calc(100vh - 56px);"`}">
+                 style="${(viewModel.type === ViewType.mobile && (Storage.select_function === 'page-editor' || Storage.select_function === 'user-editor')) ? `width: 414px;height: calc(100vh - 56px);` : `width: calc(100%);height: calc(100vh - 56px);overflow:hidden;`}">
                 <div class="" style="width:100%;height: calc(100%);" id="editerCenter">
                     <iframe class="w-100 h-100  bg-white"
                             src="index.html?type=htmlEditor&page=${gvc.glitter.getUrlParameter('page')}&appName=${gvc.glitter.getUrlParameter('appName')}"></iframe>

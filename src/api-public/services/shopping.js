@@ -81,20 +81,22 @@ class Shopping {
                     const variant = product.content.variants.find((dd) => {
                         return dd.spec.join('-') === stock.spec;
                     });
-                    variant.stock += stock.count;
-                    if (stock.status != 1) {
-                        await trans.execute(`update \`${this.app}\`.\`t_manager_post\`
+                    if (variant) {
+                        variant.stock += stock.count;
+                        if (stock.status != 1) {
+                            await trans.execute(`update \`${this.app}\`.\`t_manager_post\`
                                              SET ?
                                              where 1 = 1
                                                and id = ${stock.product_id}`, [
-                            {
-                                content: JSON.stringify(product.content),
-                            },
-                        ]);
-                    }
-                    await trans.execute(`delete
+                                {
+                                    content: JSON.stringify(product.content),
+                                },
+                            ]);
+                        }
+                        await trans.execute(`delete
                                          from \`${this.app}\`.t_stock_recover
                                          where id = ?`, [stock.recoverID]);
+                    }
                 }
                 await trans.commit();
             }
@@ -153,18 +155,27 @@ class Shopping {
         }
     }
     async toCheckout(data, type = 'add') {
-        var _a, _b;
+        var _a, _b, _c;
         try {
+            if (!(this.token && this.token.userID) && !data.email && !(data.user_info && data.user_info.email)) {
+                throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'ToCheckout Error:No email address.', null);
+            }
+            const userData = (this.token && this.token.userID) ? await new user_js_1.User(this.app).getUserData(this.token.userID, 'userID') : await new user_js_1.User(this.app).getUserData(data.email || data.user_info.email, 'account');
+            if (!data.email && (userData && userData.account)) {
+                data.email = userData.account;
+            }
             if (!data.email && type !== 'preview') {
-                if (data.user_info.email) {
+                if (data.user_info && data.user_info.email) {
                     data.email = data.user_info.email;
                 }
                 else {
                     throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'ToCheckout Error:No email address.', null);
                 }
             }
+            if (!data.email) {
+                throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'ToCheckout Error:No email address.', null);
+            }
             if (data.use_rebate && data.use_rebate > 0) {
-                const userData = await new user_js_1.User(this.app).getUserData(data.email || data.user_info.email, 'account');
                 if (userData) {
                     const sum = (await database_js_1.default.query(`SELECT sum(money)
                                                  FROM \`${this.app}\`.t_rebate
@@ -216,6 +227,8 @@ class Shopping {
                 orderID: `${new Date().getTime()}`,
                 shipment_support: shipment_setting,
                 use_wallet: 0,
+                method: data.user_info && data.user_info.method,
+                user_email: (userData && userData.account) || ((_c = data.email) !== null && _c !== void 0 ? _c : ((data.user_info && data.user_info.email) || ''))
             };
             for (const b of data.lineItems) {
                 try {
@@ -283,7 +296,6 @@ class Shopping {
                     data: carData,
                 };
             }
-            const userData = await new user_js_1.User(this.app).getUserData(data.email || data.user_info.email, 'account');
             if (carData.use_rebate) {
                 await database_js_1.default.query(`insert into \`${this.app}\`.t_rebate (orderID, userID, money, status, note)
                                 values (?, ?, ?, ?, ?);`, [
@@ -306,8 +318,17 @@ class Shopping {
             else {
                 carData.use_wallet = carData.total;
             }
-            carData.total -= carData.use_wallet;
-            if (carData.total === 0) {
+            await database_js_1.default.query(`insert into \`${this.app}\`.t_rebate (orderID, userID, money, status, note)
+                         values (?, ?, ?, ?, ?);`, [
+                carData.orderID,
+                userData.userID,
+                carData.rebate,
+                -1,
+                JSON.stringify({
+                    note: '消費返還回饋金',
+                }),
+            ]);
+            if (carData.use_wallet === carData.total) {
                 await database_js_1.default.query(`insert into \`${this.app}\`.t_wallet (orderID, userID, money, status, note)
                                 values (?, ?, ?, ?, ?);`, [
                     carData.orderID,
@@ -341,7 +362,7 @@ class Shopping {
                     NotifyURL: `${process.env.DOMAIN}/api-public/v1/ec/notify?g-app=${this.app}`,
                     ReturnURL: `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&return=${id}`,
                     MERCHANT_ID: keyData.MERCHANT_ID,
-                    TYPE: keyData.TYPE,
+                    TYPE: keyData.TYPE
                 }).createOrderPage(carData);
                 if (keyData.TYPE === 'off_line') {
                     return {
@@ -623,6 +644,8 @@ class Shopping {
                             break;
                         case 'sales_per_month_1_year':
                             result[tag] = await this.getSalesPerMonth1Year();
+                        case 'order_today':
+                            result[tag] = await this.getOrderToDay();
                             break;
                     }
                 }
@@ -632,6 +655,26 @@ class Shopping {
         }
         catch (e) {
             throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'getDataAnalyze Error:' + e, null);
+        }
+    }
+    async getOrderToDay() {
+        try {
+            const order = await database_js_1.default.query(`SELECT * FROM \`${this.app}\`.t_checkout  WHERE DATE(created_time) = CURDATE()`, []);
+            return {
+                total_count: order.filter((dd) => { return dd.status === 1; }).length,
+                un_shipment: (await database_js_1.default.query(`select count(1) from \`${this.app}\`.t_checkout where (orderData->'$.progress' is null || orderData->'$.progress'='wait') and status=1`, []))[0]['count(1)'],
+                un_pay: order.filter((dd) => { return dd.status === 0; }).length,
+                total_amount: (() => {
+                    let amount = 0;
+                    order.filter((dd) => { return dd.status === 1; }).map((dd) => {
+                        amount += dd.orderData.total;
+                    });
+                    return amount;
+                })(),
+            };
+        }
+        catch (e) {
+            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
         }
     }
     async getRecentActiveUser() {

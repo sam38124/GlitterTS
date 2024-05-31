@@ -9,6 +9,7 @@ const ut_permission_js_1 = require("../utils/ut-permission.js");
 const exception_js_1 = __importDefault(require("../../modules/exception.js"));
 const ut_database_js_1 = require("../utils/ut-database.js");
 const database_js_1 = __importDefault(require("../../modules/database.js"));
+const firebase_js_1 = require("../../modules/firebase.js");
 const router = express_1.default.Router();
 router.post('/add', async (req, resp) => {
     try {
@@ -133,6 +134,14 @@ router.delete('/delete', async (req, resp) => {
                             key: 'user_data', data: () => {
                                 return userData;
                             }
+                        },
+                        {
+                            key: 'sendMessage', data: () => {
+                                return ((cf) => {
+                                    cf.app = req.get('g-app');
+                                    return new firebase_js_1.Firebase(req.get('g-app')).sendMessage(cf);
+                                });
+                            }
                         }
                     ];
                     const evalString = html `
@@ -149,7 +158,7 @@ router.delete('/delete', async (req, resp) => {
                         }
                     `;
                     const myFunction = new Function(evalString);
-                    return response_js_1.default.succ(resp, (await (myFunction().execute(functionValue[0].data(), functionValue[1].data(), functionValue[2].data(), functionValue[3].data(), functionValue[4].data(), functionValue[5].data()))));
+                    return response_js_1.default.succ(resp, (await (myFunction().execute(functionValue[0].data(), functionValue[1].data(), functionValue[2].data(), functionValue[3].data(), functionValue[4].data(), functionValue[5].data(), functionValue[6].data()))));
                 });
             }
         }

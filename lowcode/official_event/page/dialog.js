@@ -137,11 +137,11 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                             }));
                         }, tag, {
                             dismiss: () => {
-                                resolve(true);
+                                resolve(subData);
                             }
                         });
                         if (object.waitType !== 'block') {
-                            resolve(true);
+                            resolve(subData);
                         }
                     }));
                 }

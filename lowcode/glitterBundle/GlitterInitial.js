@@ -40,7 +40,9 @@ function traverseHTML(element, document) {
             glitter.consoleLog(`renderBindView`);
             function notifyLifeCycle() {
                 try {
-                    glitter.elementCallback[element.getAttribute('gvc-id')].updateAttribute();
+                    setTimeout(() => {
+                        glitter.elementCallback[element.getAttribute('gvc-id')].updateAttribute();
+                    });
                 }
                 catch (e) {
                     glitter.deBugMessage(e);
@@ -95,9 +97,16 @@ function traverseHTML(element, document) {
                     if (document.querySelector(`[gvc-id="${id}"]`)) {
                         document.querySelector(`[gvc-id="${id}"]`).recreateView = (() => {
                             if (document.querySelector(`[gvc-id="${id}"]`)) {
+                                const originHeight = document.querySelector(`[gvc-id="${id}"]`).style.height;
                                 document.querySelector(`[gvc-id="${id}"]`).wasRecreate = true;
                                 document.querySelector(`[gvc-id="${id}"]`).wasRender = false;
+                                document.querySelector(`[gvc-id="${id}"]`).style.height = `${document.querySelector(`[gvc-id="${id}"]`).offsetHeight}px`;
                                 renderBindView();
+                                setTimeout(() => {
+                                    if (document.querySelector(`[gvc-id="${id}"]`)) {
+                                        document.querySelector(`[gvc-id="${id}"]`).style.height = originHeight;
+                                    }
+                                }, 10);
                             }
                         });
                         document.querySelector(`[gvc-id="${id}"]`).wasRender = true;

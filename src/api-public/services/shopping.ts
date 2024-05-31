@@ -140,34 +140,38 @@ export class Shopping {
                 );
                 const trans = await db.Transaction.build();
                 for (const stock of stockList) {
+
                     const product = productList.find((dd) => {
                         return `${dd.id}` === `${stock.product_id}`;
                     });
                     const variant = product.content.variants.find((dd: any) => {
                         return dd.spec.join('-') === stock.spec;
                     });
-                    variant.stock += stock.count;
-                    if (stock.status != 1) {
-                        //回寫商品訂單
-                        await trans.execute(
-                            `update \`${this.app}\`.\`t_manager_post\`
+                    if (variant){
+                        variant.stock += stock.count;
+                        if (stock.status != 1) {
+                            //回寫商品訂單
+                            await trans.execute(
+                                `update \`${this.app}\`.\`t_manager_post\`
                                              SET ?
                                              where 1 = 1
                                                and id = ${stock.product_id}`,
-                            [
-                                {
-                                    content: JSON.stringify(product.content),
-                                },
-                            ]
-                        );
-                    }
-                    //移除紀錄
-                    await trans.execute(
-                        `delete
+                                [
+                                    {
+                                        content: JSON.stringify(product.content),
+                                    },
+                                ]
+                            );
+                        }
+                        //移除紀錄
+                        await trans.execute(
+                            `delete
                                          from \`${this.app}\`.t_stock_recover
                                          where id = ?`,
-                        [stock.recoverID]
-                    );
+                            [stock.recoverID]
+                        );
+                    }
+
                 }
                 await trans.commit();
             }
@@ -268,16 +272,27 @@ export class Shopping {
         type: 'add' | 'preview' = 'add'
     ) {
         try {
+
+            if(!(this.token && this.token.userID)&&!data.email&& !(data.user_info && data.user_info.email)){
+                throw exception.BadRequestError('BAD_REQUEST', 'ToCheckout Error:No email address.', null);
+            }
+
+            const userData = (this.token && this.token.userID) ? await new User(this.app).getUserData(this.token.userID as any, 'userID'):await new User(this.app).getUserData(data.email! || data.user_info.email, 'account')
+            if(!data.email && (userData && userData.account)){
+                data.email=userData.account
+            }
             if (!data.email && type !== 'preview') {
-                if (data.user_info.email) {
+                if (data.user_info && data.user_info.email) {
                     data.email = data.user_info.email;
                 } else {
                     throw exception.BadRequestError('BAD_REQUEST', 'ToCheckout Error:No email address.', null);
                 }
             }
+            if(!data.email){
+                throw exception.BadRequestError('BAD_REQUEST', 'ToCheckout Error:No email address.', null);
+            }
             //判斷回饋金是否可用
             if (data.use_rebate && data.use_rebate > 0) {
-                const userData = await new User(this.app).getUserData(data.email! || data.user_info.email, 'account');
                 if (userData) {
                     const sum =
                         (
@@ -351,6 +366,8 @@ export class Shopping {
                 orderID: string;
                 shipment_support: string[];
                 use_wallet: number;
+                user_email:string;
+                method:string
             } = {
                 lineItems: [],
                 total: 0,
@@ -362,6 +379,8 @@ export class Shopping {
                 orderID: `${new Date().getTime()}`,
                 shipment_support: shipment_setting as any,
                 use_wallet: 0,
+                method:data.user_info && data.user_info.method,
+                user_email:(userData && userData.account) || (data.email ?? ((data.user_info && data.user_info.email) || ''))
             };
             for (const b of data.lineItems) {
                 try {
@@ -440,7 +459,6 @@ export class Shopping {
                     data: carData,
                 };
             }
-            const userData = await new User(this.app).getUserData(data.email! || data.user_info.email, 'account');
             if (carData.use_rebate) {
                 await db.query(
                     `insert into \`${this.app}\`.t_rebate (orderID, userID, money, status, note)
@@ -473,10 +491,22 @@ export class Shopping {
             } else {
                 carData.use_wallet = carData.total;
             }
-
-            carData.total -= carData.use_wallet;
+            //消費返還回饋金
+            await db.query(
+                `insert into \`${this.app}\`.t_rebate (orderID, userID, money, status, note)
+                         values (?, ?, ?, ?, ?);`,
+                [
+                    carData.orderID,
+                    userData.userID,
+                    carData.rebate,
+                    -1,
+                    JSON.stringify({
+                        note: '消費返還回饋金',
+                    }),
+                ]
+            );
             //當不需付款時直接寫入，並開發票
-            if (carData.total === 0) {
+            if (carData.use_wallet === carData.total) {
                 await db.query(
                     `insert into \`${this.app}\`.t_wallet (orderID, userID, money, status, note)
                                 values (?, ?, ?, ?, ?);`,
@@ -510,6 +540,7 @@ export class Shopping {
                         key: 'glitter_finance',
                     })
                 )[0].value;
+
                 const subMitData = await new FinancialService(this.app, {
                     HASH_IV: keyData.HASH_IV,
                     HASH_KEY: keyData.HASH_KEY,
@@ -517,7 +548,7 @@ export class Shopping {
                     NotifyURL: `${process.env.DOMAIN}/api-public/v1/ec/notify?g-app=${this.app}`,
                     ReturnURL: `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&return=${id}`,
                     MERCHANT_ID: keyData.MERCHANT_ID,
-                    TYPE: keyData.TYPE,
+                    TYPE: keyData.TYPE
                 }).createOrderPage(carData);
                 //線下付款
                 if (keyData.TYPE === 'off_line') {
@@ -892,6 +923,8 @@ export class Shopping {
                             break;
                         case 'sales_per_month_1_year':
                             result[tag] = await this.getSalesPerMonth1Year();
+                        case 'order_today':
+                            result[tag] = await this.getOrderToDay();
                             break;
                     }
                 }
@@ -902,7 +935,30 @@ export class Shopping {
             throw exception.BadRequestError('BAD_REQUEST', 'getDataAnalyze Error:' + e, null);
         }
     }
+    async getOrderToDay() {
+        try {
+            const order=await db.query(`SELECT * FROM \`${this.app}\`.t_checkout  WHERE DATE(created_time) = CURDATE()`,[])
 
+            return {
+                //訂單總數
+                total_count:order.filter((dd:any)=>{return dd.status===1}).length,
+                //未出貨訂單
+                un_shipment:(await db.query(`select count(1) from \`${this.app}\`.t_checkout where (orderData->'$.progress' is null || orderData->'$.progress'='wait') and status=1`,[]))[0]['count(1)'],
+                //未付款訂單
+                un_pay:order.filter((dd:any)=>{return dd.status===0}).length,
+                //今日成交金額
+                total_amount:(()=>{
+                    let amount=0
+                    order.filter((dd:any)=>{return dd.status===1}).map((dd:any)=>{
+                        amount+=dd.orderData.total
+                    })
+                    return amount
+                })(),
+            };
+        } catch (e) {
+            throw exception.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
+        }
+    }
     async getRecentActiveUser() {
         try {
             const recentSQL = `

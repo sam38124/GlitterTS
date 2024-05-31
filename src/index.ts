@@ -110,6 +110,7 @@ async function createDomain(domainName: string) {
     });
 }
 
+
 async function setDNS(domainName: string) {
     const route53 = new AWS.Route53();
     const domainParams = {
@@ -156,6 +157,40 @@ async function setDNS(domainName: string) {
                     // 可在这里继续添加其他域名设置，如CNAME记录等
                 }
             });
+        }
+    });
+}
+
+async function changeDNSRecord(){
+    const route53 = new AWS.Route53();
+
+    const params = {
+        ChangeBatch: {
+            Changes: [
+                {
+                    Action: 'CREATE', // 或 'UPSERT' 如果記錄已存在
+                    ResourceRecordSet: {
+                        Name: 'teadd.shopnex.cc', // 您的域名
+                        Type: 'A',
+                        TTL: 300, // 時間以秒為單位，TTL 的數值
+                        ResourceRecords: [
+                            {
+                                Value: '192.0.2.1' // 目標 IP 地址
+                            }
+                        ]
+                    }
+                }
+            ],
+            Comment: 'Adding A record for example.com'
+        },
+        HostedZoneId: 'Z06668613MA008TSZJ1HW' // 您的托管區域 ID
+    };
+
+    route53.changeResourceRecordSets(params, function(err, data) {
+        if (err) {
+            console.log(err, err.stack); // 錯誤處理
+        } else {
+            console.log(data); // 成功時的回應
         }
     });
 }

@@ -30,56 +30,116 @@ export class Setting_editor {
                                         return gvc.bindView(() => {
                                             const id = gvc.glitter.getUUID();
                                             let items: any = [];
+
                                             let mustItem = [
                                                 {
                                                     icon: '',
-                                                    page: 'web_theme',
-                                                    group: '商店設計',
-                                                    title: '商店版面設計',
+                                                    page: 'home_page',
+                                                    group: '首頁',
+                                                    title: '首頁',
                                                     appName: 'cms_system',
                                                     groupIcon:
-                                                            'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1715648386529-paintbrush-pencil-regular.svg',
+                                                            ' https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1716559696051-Component 56.svg',
+                                                    moduleName: '首頁',
+                                                },
+                                                {
+                                                    icon: '',
+                                                    page: 'shop_information',
+                                                    group: '商店設定',
+                                                    title: '商店訊息',
+                                                    appName: 'cms_system',
+                                                    groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1716566571091-Property 1=gear-regular.svg',
                                                     moduleName: '商店設計',
                                                 },
                                                 {
                                                     icon: '',
-                                                    page: 'seo_manager',
-                                                    group: '網站設定',
-                                                    title: 'SEO管理',
+                                                    page: 'setFinanceWay',
+                                                    group: '商店設定',
+                                                    title: '金流設定',
                                                     appName: 'cms_system',
-                                                    groupIcon:
-                                                            'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713343551382-Component 56.svg',
-                                                    moduleName: 'SEO管理',
+                                                    groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1716566571091-Property 1=gear-regular.svg',
+                                                    moduleName: '金流 / 物流 / 發票',
                                                 },
                                                 {
                                                     icon: '',
-                                                    page: 'domain_setting',
-                                                    group: '網站設定',
-                                                    title: '網域設定',
+                                                    page: 'shippment_setting',
+                                                    group: '商店設定',
+                                                    title: '宅配設定',
                                                     appName: 'cms_system',
-                                                    groupIcon:
-                                                            'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713343551382-Component 56.svg',
-                                                    moduleName: '網域設定',
+                                                    groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1716566571091-Property 1=gear-regular.svg',
+                                                    moduleName: '金流 / 物流 / 發票',
                                                 },
                                                 {
                                                     icon: '',
-                                                    page: 'web_config',
-                                                    group: '網站設定',
-                                                    title: '網站配置',
+                                                    page: 'shippment-setting',
+                                                    group: '商店設定',
+                                                    title: '運費設定',
                                                     appName: 'cms_system',
-                                                    groupIcon:
-                                                            'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713343551382-Component 56.svg',
-                                                    moduleName: '網域設定',
+                                                    groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1716566571091-Property 1=gear-regular.svg',
+                                                    moduleName: '運費設定',
+                                                },
+                                                {
+                                                    icon: '',
+                                                    page: 'invoice_setting',
+                                                    group: '商店設定',
+                                                    title: '電子發票',
+                                                    appName: 'cms_system',
+                                                    groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1716566571091-Property 1=gear-regular.svg',
+                                                    moduleName: '金流 / 物流 / 發票',
+                                                },
+                                                {
+                                                    icon: '',
+                                                    page: 'member_manager',
+                                                    group: '商店設定',
+                                                    title: '登入設定',
+                                                    appName: 'cms_system',
+                                                    groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1716566571091-Property 1=gear-regular.svg',
+                                                    moduleName: '會員設定',
                                                 },
                                                 {
                                                     icon: '',
                                                     page: 'login_setting',
-                                                    group: '用戶相關',
-                                                    title: '登入設定',
+                                                    group: '商店設定',
+                                                    title: '自動發信',
                                                     appName: 'cms_system',
                                                     groupIcon:
                                                             'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713360844009-Component 56 (1).svg',
                                                     moduleName: '登入設定',
+                                                },
+                                                {
+                                                    icon: '',
+                                                    page: 'web_config',
+                                                    group: '商店設定',
+                                                    title: '網站配置檔',
+                                                    appName: 'cms_system',
+                                                    groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1716566571091-Property 1=gear-regular.svg',
+                                                    moduleName: '網域設定',
+                                                },
+                                                {
+                                                    icon: '',
+                                                    page: 'product-manager',
+                                                    group: '商品管理',
+                                                    title: '商品上架',
+                                                    appName: 'cms_system',
+                                                    groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716652645450-boxes-stacked-regular (1).svg',
+                                                    moduleName: '商品管理',
+                                                },
+                                                {
+                                                    icon: '',
+                                                    page: 'collection',
+                                                    group: '商品管理',
+                                                    title: '商品分類',
+                                                    appName: 'cms_system',
+                                                    groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716652645450-boxes-stacked-regular (1).svg',
+                                                },
+                                                {
+                                                    icon: '',
+                                                    page: 'order_list',
+                                                    group: '訂單管理',
+                                                    title: '訂單管理',
+                                                    appName: 'cms_system',
+                                                    groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716652949790-Component 56 (3).svg',
+                                                    moduleName: '訂單列表',
                                                 },
                                                 {
                                                     icon: '',
@@ -93,72 +153,33 @@ export class Setting_editor {
                                                 },
                                                 {
                                                     icon: '',
-                                                    page: 'blog_manager',
-                                                    group: '網誌管理',
-                                                    title: '網誌列表',
+                                                    page: 'member_level',
+                                                    group: '用戶相關',
+                                                    title: '會員等級',
                                                     appName: 'cms_system',
                                                     groupIcon:
-                                                            'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1714973933251-newspaper-regular.svg',
-                                                    moduleName: '網誌列表',
+                                                            'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713360844009-Component 56 (1).svg',
+                                                    moduleName: '用戶列表',
                                                 },
                                                 {
                                                     icon: '',
-                                                    page: 'form_setting_page',
-                                                    group: '表單管理',
-                                                    title: '表單設定',
+                                                    page: 'wallet-list',
+                                                    group: '用戶相關',
+                                                    title: '電子錢包紀錄',
                                                     appName: 'cms_system',
                                                     groupIcon:
-                                                            'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713514549253-calendar-lines-pen-regular.svg',
-                                                    moduleName: '表單管理',
+                                                            'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713371719908-wallet-regular.svg',
+                                                    moduleName: '增減紀錄',
                                                 },
                                                 {
                                                     icon: '',
-                                                    page: 'dashboard_ec',
-                                                    group: '電子商務',
-                                                    title: '資料分析',
+                                                    page: 'withdrawRequest',
+                                                    group: '用戶相關',
+                                                    title: '錢包提領請求',
                                                     appName: 'cms_system',
                                                     groupIcon:
-                                                            'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713363894938-Component 56 (2).svg',
-                                                    moduleName: 'dashboard_ec',
-                                                },
-                                                {
-                                                    icon: '',
-                                                    page: 'setFinanceWay',
-                                                    group: '電子商務',
-                                                    title: '金流 / 物流 / 發票',
-                                                    appName: 'cms_system',
-                                                    groupIcon:
-                                                            'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713363894938-Component 56 (2).svg',
-                                                    moduleName: '金流 / 物流 / 發票',
-                                                },
-                                                {
-                                                    icon: '',
-                                                    page: 'product-manager',
-                                                    group: '電子商務',
-                                                    title: '商品管理',
-                                                    appName: 'cms_system',
-                                                    groupIcon:
-                                                            'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713363894938-Component 56 (2).svg',
-                                                    moduleName: '商品管理',
-                                                },
-                                                {
-                                                    icon: '',
-                                                    page: 'collection',
-                                                    group: '電子商務',
-                                                    title: '商品分類',
-                                                    appName: 'cms_system',
-                                                    groupIcon:
-                                                            'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713363894938-Component 56 (2).svg'
-                                                },
-                                                {
-                                                    icon: '',
-                                                    page: 'order_list',
-                                                    group: '電子商務',
-                                                    title: '訂單管理',
-                                                    appName: 'cms_system',
-                                                    groupIcon:
-                                                            'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713363894938-Component 56 (2).svg',
-                                                    moduleName: '訂單列表',
+                                                            'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713371719908-wallet-regular.svg',
+                                                    moduleName: '提領請求',
                                                 },
                                                 {
                                                     icon: '',
@@ -170,16 +191,7 @@ export class Setting_editor {
                                                             'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713370923228-Component 56 (3).svg',
                                                     moduleName: '折扣管理',
                                                 },
-                                                {
-                                                    icon: '',
-                                                    page: 'shippment-setting',
-                                                    group: '電子商務',
-                                                    title: '運費設定',
-                                                    appName: 'cms_system',
-                                                    groupIcon:
-                                                            'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713363894938-Component 56 (2).svg',
-                                                    moduleName: '運費設定',
-                                                },
+
                                                 {
                                                     icon: '',
                                                     page: 'rebate',
@@ -192,23 +204,13 @@ export class Setting_editor {
                                                 },
                                                 {
                                                     icon: '',
-                                                    page: 'wallet-list',
-                                                    group: '電子錢包',
-                                                    title: '增減紀錄',
+                                                    page: 'dashboard_ec',
+                                                    group: '數據分析',
+                                                    title: '數據總覽',
                                                     appName: 'cms_system',
                                                     groupIcon:
-                                                            'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713371719908-wallet-regular.svg',
-                                                    moduleName: '增減紀錄',
-                                                },
-                                                {
-                                                    icon: '',
-                                                    page: 'withdrawRequest',
-                                                    group: '電子錢包',
-                                                    title: '提領請求',
-                                                    appName: 'cms_system',
-                                                    groupIcon:
-                                                            'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713371719908-wallet-regular.svg',
-                                                    moduleName: '提領請求',
+                                                            'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716653099307-Component 56 (4).svg',
+                                                    moduleName: 'dashboard_ec',
                                                 },
                                                 {
                                                     icon: '',
@@ -222,6 +224,26 @@ export class Setting_editor {
                                                 },
                                                 {
                                                     icon: '',
+                                                    page: 'form_setting_page',
+                                                    group: '電子表單',
+                                                    title: '表單設定',
+                                                    appName: 'cms_system',
+                                                    groupIcon:
+                                                            'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713514549253-calendar-lines-pen-regular.svg',
+                                                    moduleName: '表單管理',
+                                                },
+                                                {
+                                                    icon: '',
+                                                    page: 'form_receive',
+                                                    group: '電子表單',
+                                                    title: '已提交表單',
+                                                    appName: 'cms_system',
+                                                    groupIcon:
+                                                            'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713514549253-calendar-lines-pen-regular.svg',
+                                                    moduleName: '表單管理',
+                                                },
+                                                {
+                                                    icon: '',
                                                     page: 'send_mail',
                                                     group: '信件群發',
                                                     title: '群發設定',
@@ -232,9 +254,48 @@ export class Setting_editor {
                                                 },
                                                 {
                                                     icon: '',
+                                                    page: 'web_theme',
+                                                    group: '品牌官網',
+                                                    title: '佈景主題',
+                                                    appName: 'cms_system',
+                                                    groupIcon:
+                                                            'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716654741305-Component 56 (5).svg',
+                                                    moduleName: '商店設計',
+                                                },
+                                                {
+                                                    icon: '',
+                                                    page: 'blog_manager',
+                                                    group: '品牌官網',
+                                                    title: '部落格文章',
+                                                    appName: 'cms_system',
+                                                    groupIcon:
+                                                            'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716654741305-Component 56 (5).svg',
+                                                    moduleName: '網誌管理',
+                                                },
+                                                {
+                                                    icon: '',
+                                                    page: 'ios_upload',
+                                                    group: 'APP',
+                                                    title: 'IOS應用上架',
+                                                    appName: 'cms_system',
+                                                    groupIcon:
+                                                            'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716655243577-Component 56 (6).svg',
+                                                    moduleName: 'IOS應用上架',
+                                                },  {
+                                                    icon: '',
+                                                    page: 'android_release',
+                                                    group: 'APP',
+                                                    title: 'Android應用上架',
+                                                    appName: 'cms_system',
+                                                    groupIcon:
+                                                            'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716655243577-Component 56 (6).svg',
+                                                    moduleName: 'IOS應用上架',
+                                                },
+                                                {
+                                                    icon: '',
                                                     page: 'cloud_subscrible',
-                                                    group: '雲消息傳遞',
-                                                    title: '訂閱裝置管理',
+                                                    group: 'APP',
+                                                    title: '推播訂閱裝置',
                                                     appName: 'cms_system',
                                                     groupIcon:
                                                             'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713414599944-Component 56 (5).svg',
@@ -243,27 +304,29 @@ export class Setting_editor {
                                                 {
                                                     icon: '',
                                                     page: 'notify_message_list',
-                                                    group: '雲消息傳遞',
+                                                    group: 'APP',
                                                     title: '推播訊息管理',
                                                     appName: 'cms_system',
                                                     groupIcon:
                                                             'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713414599944-Component 56 (5).svg',
                                                     moduleName: '推播訊息管理',
                                                 },
+                                            ];
+                                            mustItem = mustItem.concat([
                                                 {
                                                     icon: '',
-                                                    page: 'template_upload',
-                                                    group: '應用發佈',
-                                                    title: '模板發佈',
+                                                    page: 'web_hook_checkout',
+                                                    group: '擴充套件',
+                                                    title: '結帳事件',
                                                     appName: 'cms_system',
                                                     groupIcon:
-                                                            'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713418629944-Component 56 (7).svg',
-                                                    moduleName: '模板發佈',
+                                                            'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713419947572-code-solid.svg',
+                                                    moduleName: '結帳事件',
                                                 },
                                                 {
                                                     icon: '',
                                                     page: 'code_info',
-                                                    group: '後端代碼',
+                                                    group: '擴充套件',
                                                     title: 'Graph api',
                                                     appName: 'cms_system',
                                                     groupIcon:
@@ -272,209 +335,221 @@ export class Setting_editor {
                                                 },
                                                 {
                                                     icon: '',
-                                                    page: 'ios_upload',
-                                                    group: '應用發佈',
-                                                    title: 'IOS應用上架',
+                                                    page: 'template_upload',
+                                                    group: '擴充套件',
+                                                    title: '模板發佈',
                                                     appName: 'cms_system',
                                                     groupIcon:
                                                             'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713418629944-Component 56 (7).svg',
-                                                    moduleName: 'IOS應用上架',
-                                                },
-                                                {
-                                                    icon: '',
-                                                    page: 'android_release',
-                                                    group: '應用發佈',
-                                                    title: 'Andriod應用上架',
-                                                    appName: 'cms_system',
-                                                    groupIcon:
-                                                            'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713418629944-Component 56 (7).svg',
-                                                    moduleName: 'android應用上架',
+                                                    moduleName: '模板發佈',
                                                 }
+                                            ])
 
-                                            ];
                                             ApiPageConfig.getPrivateConfigV2('backend_list').then((res) => {
                                                 res.response.result[0] && (items = res.response.result[0].value);
                                                 items = items.filter((dd: any) => {
                                                     return dd;
                                                 });
-                                                mustItem.reverse().map((d1) => {
+                                                items.map((d1: any) => {
                                                     if (
-                                                            !items.find((dd: any) => {
+                                                            !mustItem.find((dd: any) => {
                                                                 return (
                                                                         `${dd.appName}-${dd.page}` === `${d1.appName}-${d1.page}`
                                                                 );
                                                             })
                                                     ) {
-                                                        items = [d1].concat(items);
+                                                        mustItem.push(d1)
                                                     }
-                                                });
+                                                })
+                                                items = mustItem
                                                 if (parseInt(Storage.select_item, 10) >= items.length) {
                                                     Storage.select_item = '0';
                                                 }
+
                                                 gvc.notifyDataChange(id);
                                             });
                                             return {
                                                 bind: id,
                                                 view: () => {
-                                                    const list: any = [];
+                                                    function renderItems(items: any) {
+                                                        let list: any = [];
 
-                                                    function click_item(index: any) {
-                                                        if (['page_layout', 'dev_mode'].indexOf(items[parseInt(index)].page) !== -1) {
-                                                            const url = new URL(location.href);
-                                                            if (items[parseInt(index)].page === 'page_layout') {
-                                                                url.searchParams.set('function', 'user-editor')
+                                                        function click_item(index: any) {
+                                                            if (['page_layout', 'dev_mode'].indexOf(items[parseInt(index)].page) !== -1) {
+                                                                const url = new URL(location.href);
+                                                                if (items[parseInt(index)].page === 'page_layout') {
+                                                                    url.searchParams.set('function', 'user-editor')
+                                                                } else {
+                                                                    Storage.view_type = 'col3'
+                                                                    url.searchParams.set('function', 'page-editor')
+                                                                }
+                                                                location.href = url.href;
                                                             } else {
-                                                                Storage.view_type='col3'
-                                                                url.searchParams.set('function', 'page-editor')
+                                                                Storage.select_item = index;
+                                                                (window as any).editerData = undefined;
+                                                                const url = new URL(location.href);
+                                                                url.searchParams.set('page', items[parseInt(index)].page);
+                                                                url.searchParams.delete('type');
+                                                                url.searchParams.set('cms', 'true');
+                                                                url.searchParams.set('appName', items[parseInt(index)].appName);
+                                                                $('#editerCenter').html(
+                                                                        `<iframe src="${url.href}" style="border: none;height: calc(100vh - 56px);"></iframe>`
+                                                                );
                                                             }
-                                                            location.href = url.href;
-                                                        } else {
-                                                            Storage.select_item = index;
-                                                            (window as any).editerData = undefined;
-                                                            const url = new URL(location.href);
-                                                            url.searchParams.set('page', items[parseInt(index)].page);
-                                                            url.searchParams.delete('type');
-                                                            url.searchParams.set('cms', 'true');
-                                                            url.searchParams.set('appName', items[parseInt(index)].appName);
 
-                                                            $('#editerCenter').html(
-                                                                    `<iframe src="${url.href}" style="border: none;height: calc(100vh - 70px);"></iframe>`
-                                                            );
                                                         }
 
-                                                    }
-
-                                                    items.map((dd: any, index: number) => {
-                                                        let container = list;
-                                                        const group = dd.group.split('/');
-                                                        if (dd.group) {
-                                                            group.map((d3: any) => {
-                                                                if (
-                                                                        !container.find((dd: any) => {
-                                                                            return dd.title === d3;
-                                                                        })
-                                                                ) {
-                                                                    container.push({
-                                                                        type: 'container',
-                                                                        title: d3,
-                                                                        child: [],
-                                                                        toggle: false,
-                                                                        icon: dd.groupIcon,
-                                                                    });
-                                                                }
-                                                                if (Storage.select_item === `${index}`) {
-                                                                    container.find((dd: any) => {
-                                                                        return dd.title === d3 && dd.type === 'container';
-                                                                    }).toggle = true;
-                                                                }
-                                                                container = container.find((dd: any) => {
-                                                                    return dd.title === d3 && dd.type === 'container';
-                                                                }).child;
-                                                            });
-                                                            if (dd.groupIcon) {
-                                                                items
-                                                                        .filter((d2: any) => {
-                                                                            return d2.group === dd.group;
-                                                                        })
-                                                                        .map((d1: any) => {
-                                                                            d1.groupIcon = dd.groupIcon;
+                                                        items.filter((dd: any) => {
+                                                            if ((window as any).memberType === 'noLimit') {
+                                                                return true
+                                                            } else {
+                                                                return ['code_info', 'web_hook_checkout', 'template_upload'].indexOf(dd.page) === -1
+                                                            }
+                                                        }).map((dd: any, index: number) => {
+                                                            let container = list;
+                                                            const group = dd.group.split('/');
+                                                            if (dd.group) {
+                                                                group.map((d3: any) => {
+                                                                    if (
+                                                                            !container.find((dd: any) => {
+                                                                                return dd.title === d3;
+                                                                            })
+                                                                    ) {
+                                                                        container.push({
+                                                                            type: 'container',
+                                                                            title: d3,
+                                                                            child: [],
+                                                                            toggle: false,
+                                                                            icon: dd.groupIcon,
                                                                         });
+                                                                    }
+                                                                    if (Storage.select_item === `${index}`) {
+                                                                        container.find((dd: any) => {
+                                                                            return dd.title === d3 && dd.type === 'container';
+                                                                        }).toggle = true;
+                                                                    }
+                                                                    container = container.find((dd: any) => {
+                                                                        return dd.title === d3 && dd.type === 'container';
+                                                                    }).child;
+                                                                });
+                                                                if (dd.groupIcon) {
+                                                                    items
+                                                                            .filter((d2: any) => {
+                                                                                return d2.group === dd.group;
+                                                                            })
+                                                                            .map((d1: any) => {
+                                                                                d1.groupIcon = dd.groupIcon;
+                                                                            });
+                                                                }
                                                             }
-                                                        }
-                                                        if (Storage.select_item === `${index}`) {
-                                                            if(['page_layout', 'dev_mode'].indexOf(items[index].page) !== -1){
-                                                                Storage.select_item=`5`
-                                                                click_item(Storage.select_item);
-                                                            }else{
-                                                                click_item(index);
+                                                            if (Storage.select_item === `${index}`) {
+                                                                if (['page_layout', 'dev_mode'].indexOf(items[index].page) !== -1) {
+                                                                    Storage.select_item = `5`
+                                                                    click_item(Storage.select_item);
+                                                                } else {
+                                                                    click_item(index);
+                                                                }
                                                             }
-                                                        }
-                                                        container.push({
-                                                            title: dd.title,
-                                                            index: index,
-                                                            info: dd,
-                                                            toggle: Storage.select_item === `${index}`,
+                                                            container.push({
+                                                                title: dd.title,
+                                                                index: index,
+                                                                info: dd,
+                                                                toggle: Storage.select_item === `${index}`,
+                                                            });
                                                         });
-                                                    });
 
-                                                    function refreshContainer() {
-                                                        gvc.notifyDataChange(id);
-                                                    }
+                                                        function refreshContainer() {
+                                                            gvc.notifyDataChange(id);
+                                                        }
 
-                                                    function renderItems(list: any) {
-                                                        return gvc.bindView(() => {
-                                                            const id = gvc.glitter.getUUID();
-                                                            return {
-                                                                bind: id,
-                                                                view: () => {
-                                                                    return list
-                                                                            .map((dd: any, index: any) => {
-                                                                                return html`
-                                                                                            <li>
-                                                                                                <div
-                                                                                                        class="w-100 fw-500 d-flex align-items-center  fs-6 hoverBtn h_item  rounded px-2 "
-                                                                                                        style="gap:5px;color:#393939;${dd.toggle
-                                                                                        ? `border-radius: 5px;background: #F2F2F2;`
-                                                                                        : ``}"
-                                                                                                        onclick="${gvc.event(() => {
-                                                                                    if (dd.type === 'container') {
-                                                                                        dd.toggle = !dd.toggle;
-                                                                                        gvc.notifyDataChange(id);
-                                                                                    } else {
-                                                                                        click_item(dd.index);
-                                                                                        if (['page_layout', 'dev_mode'].indexOf(items[parseInt(dd.index)].page) === -1) {
-                                                                                            dd.toggle = true;
-                                                                                            refreshContainer();
-                                                                                        }
-                                                                                    }
-                                                                                })}"
-                                                                                                >
-                                                                                                    ${dd.icon
-                                                                                        ? `<img src="${dd.icon}" style="width:18px;height:18px;">`
-                                                                                        : ``}
-                                                                                                    <span>${dd.title}</span>
-                                                                                                    <div class="flex-fill"></div>
-                                                                                                    ${dd.type === 'container'
-                                                                                        ? !dd.toggle
-                                                                                                ? `
+                                                        list.map((dd: any, index: number) => {
+                                                            if (dd.type === 'container' && dd.child.length == 1) {
+                                                                dd.child[0].icon = dd.icon
+                                                                list[index] = dd.child[0]
+                                                            }
+                                                        })
+
+                                                        function renderItems(list: any) {
+                                                            return gvc.bindView(() => {
+                                                                const id = gvc.glitter.getUUID();
+                                                                return {
+                                                                    bind: id,
+                                                                    view: () => {
+                                                                        return list
+                                                                                .map((dd: any, index: any) => {
+                                                                                    return html`
+                                                                                        ${(dd.title === '品牌官網') ? `<div class="my-4 border-top"></div>` : ``}
+                                                                                        <li>
+                                                                                            <div
+                                                                                                    class="w-100 fw-500 d-flex align-items-center  fs-6 hoverBtn h_item  rounded px-2 cms_left_items"
+                                                                                                    style="gap:7px;color:#393939;${dd.toggle
+                                                                                                            ? `border-radius: 5px;background: #F2F2F2;`
+                                                                                                            : ``}"
+                                                                                                    onclick="${gvc.event(() => {
+                                                                                                        if (dd.type === 'container') {
+                                                                                                            dd.toggle = !dd.toggle;
+                                                                                                            gvc.notifyDataChange(id);
+                                                                                                        } else {
+                                                                                                            click_item(dd.index);
+                                                                                                            if (['page_layout', 'dev_mode'].indexOf(items[parseInt(dd.index)].page) === -1) {
+                                                                                                                dd.toggle = true;
+                                                                                                                refreshContainer();
+                                                                                                            }
+                                                                                                        }
+                                                                                                    })}"
+                                                                                            >
+                                                                                                ${dd.icon
+                                                                                                        ? `<img src="${dd.icon}" style="width:18px;height:18px;">`
+                                                                                                        : ``}
+                                                                                                <span>${dd.title}</span>
+                                                                                                <div class="flex-fill"></div>
+                                                                                                ${dd.type === 'container'
+                                                                                                        ? !dd.toggle
+                                                                                                                ? `
                                             <i class="fa-regular fa-angle-right hoverBtn me-1" aria-hidden="true"></i>
                                             `
-                                                                                                : `<i class="fa-regular fa-angle-down hoverBtn me-1" aria-hidden="true"></i>`
-                                                                                        : `
+                                                                                                                : `<i class="fa-regular fa-angle-down hoverBtn me-1" aria-hidden="true"></i>`
+                                                                                                        : `
                                                ${
-                                                                                                dd.info && dd.info.icon
-                                                                                                        ? `<img src="${dd.info.icon}" style="width:18px;height:18px;">`
-                                                                                                        : ``
-                                                                                        }
+                                                                                                                dd.info && dd.info.icon
+                                                                                                                        ? `<img src="${dd.info.icon}" style="width:18px;height:18px;">`
+                                                                                                                        : ``
+                                                                                                        }
                                             `}
-                                                                                                </div>
-                                                                                                ${dd.type === 'container'
-                                                                                        ? `<div class="ps-4 pt-2 pb-2 ${
-                                                                                                dd.toggle ? `` : `d-none`
-                                                                                        }">${renderItems(dd.child)}</div>`
-                                                                                        : ``}
-                                                                                            </li>
-                                                                                        `;
-                                                                            })
-                                                                            .join('<div class="my-1"></div>');
-                                                                },
-                                                                divCreate: {
-                                                                    elem: 'ul',
-                                                                    class: `m-0 `,
-                                                                    option: [
-                                                                        {
-                                                                            key: 'id',
-                                                                            value: id,
-                                                                        },
-                                                                    ],
-                                                                },
-                                                                onCreate: () => {
-                                                                },
-                                                            };
-                                                        });
+                                                                                            </div>
+                                                                                            ${dd.type === 'container'
+                                                                                                    ? html`
+                                                                                                        <div class="ps-4 pt-2 pb-2 ${
+                                                                                                                dd.toggle ? `` : `d-none`
+                                                                                                        }">
+                                                                                                            ${renderItems(dd.child)}
+                                                                                                        </div>`
+                                                                                                    : ``}
+                                                                                        </li>
+                                                                                    `;
+                                                                                })
+                                                                                .join('<div class="my-1"></div>');
+                                                                    },
+                                                                    divCreate: {
+                                                                        elem: 'ul',
+                                                                        class: `m-0 `,
+                                                                        option: [
+                                                                            {
+                                                                                key: 'id',
+                                                                                value: id,
+                                                                            },
+                                                                        ],
+                                                                    },
+                                                                    onCreate: () => {
+                                                                    },
+                                                                };
+                                                            });
+                                                        }
+
+                                                        return `<div class="p-2">${renderItems(list)}</div>`;
                                                     }
 
-                                                    return `<div class="p-2">${renderItems(list)}</div>`;
+                                                    return renderItems(items)
                                                 },
                                             };
                                         });
@@ -500,7 +575,7 @@ export class Setting_editor {
                         </div>`
                     ].join('');
                 },
-                divCreate: {style: `border-bottom: 1px solid #e2e5f1 !important;`},
+                divCreate: {style: ``},
             };
         });
     }

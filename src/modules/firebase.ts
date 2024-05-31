@@ -70,12 +70,25 @@ export class Firebase {
         token?:string,
         userID?:string,
         title:string,
+        tag:string,
+        link:string,
         body:string,
+        app?:string
     }) {
         return new Promise(async (resolve, reject)=>{
             if(cf.userID){
-                const us=(await db.query(`SELECT deviceToken FROM \`${this.app}\`.t_fcm;`,[]))[0]
+                const us=(await db.query(`SELECT deviceToken FROM \`${cf.app || this.app}\`.t_fcm where userID=?;`,[cf.userID]))[0]
                 cf.token=us &&us['deviceToken']
+                if(cf.userID && cf.tag && cf.title && cf.body && cf.link){
+                    await db.query(`insert into \`${cf.app || this.app}\`.t_notice (user_id,tag,title,content,link) values (?,?,?,?,?)`,[
+                        cf.userID,
+                        cf.tag,
+                        cf.title,
+                        cf.body,
+                        cf.link
+                    ])
+                }
+
             }
             if(cf.token){
                 admin.apps.find((dd) => {
@@ -84,6 +97,9 @@ export class Firebase {
                     notification: {
                         title: cf.title,
                         body: cf.body
+                    },
+                    data:{
+                        link:cf.link
                     },
                     "token":cf.token!
                 }).then((response: any) => {

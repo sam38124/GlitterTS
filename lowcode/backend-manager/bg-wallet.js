@@ -261,13 +261,11 @@ export class BgWallet {
                                 vm.type = "replace";
                             },
                             filter: html `
-                                    <div style="height:50px;" class="w-100 border-bottom">
-                                        <input class="form-control h-100 " style="border: none;"
-                                               placeholder="搜尋所有用戶" onchange="${gvc.event((e, event) => {
+                                    ${BgWidget.searchPlace(gvc.event((e, event) => {
                                 vm.query = e.value;
                                 gvc.notifyDataChange(id);
-                            })}" value="${vm.query || ''}">
-                                    </div>
+                            }), vm.query || '', '搜尋所有用戶')}
+                                    
                                     ${gvc.bindView(() => {
                                 return {
                                     bind: filterID,
@@ -315,7 +313,7 @@ export class BgWallet {
                                             class: `d-flex align-items-center p-2 py-3 ${(!vm.dataList || !vm.dataList.find((dd) => {
                                                 return dd.checked;
                                             })) ? `d-none` : ``}`,
-                                            style: `height:40px;gap:10px;`
+                                            style: `height:40px;gap:10px;margin-top:10px;`
                                         };
                                     }
                                 };
@@ -604,13 +602,11 @@ ${BgWidget.card(BgProject.userInformationDetail({
                                 }, 'add');
                             },
                             filter: html `
-                                    <div style="height:50px;" class="w-100 border-bottom">
-                                        <input class="form-control h-100 " style="border: none;"
-                                               placeholder="搜尋所有用戶" onchange="${gvc.event((e, event) => {
+                                    ${BgWidget.searchPlace(gvc.event((e, event) => {
                                 vm.query = e.value;
                                 gvc.notifyDataChange(id);
-                            })}" value="${vm.query || ''}">
-                                    </div>
+                            }), vm.query || '', '搜尋所有用戶')}
+                                    
                                     ${gvc.bindView(() => {
                                 return {
                                     bind: filterID,
@@ -658,7 +654,7 @@ ${BgWidget.card(BgProject.userInformationDetail({
                                             class: `d-flex align-items-center p-2 py-3 ${(!vm.dataList || !vm.dataList.find((dd) => {
                                                 return dd.checked;
                                             })) ? `d-none` : ``}`,
-                                            style: `height:40px;gap:10px;`
+                                            style: `height:40px;gap:10px;margin-top:10px;`
                                         };
                                     }
                                 };
@@ -924,14 +920,12 @@ ${BgWidget.card(BgProject.userInformationDetail({
                                 vm.type = "replace";
                             },
                             filter: html `
-                                    <div style="height:50px;" class="w-100 border-bottom">
-                                        <input class="form-control h-100 " style="border: none;"
-                                               placeholder="搜尋所有用戶" onchange="${gvc.event((e, event) => {
+                                ${BgWidget.searchPlace(gvc.event((e, event) => {
                                 vm.query = e.value;
                                 gvc.notifyDataChange(id);
-                            })}" value="${vm.query || ''}">
-                                    </div>
-                                    ${gvc.bindView(() => {
+                            }), vm.query || '', '搜尋所有用戶')}
+
+                                ${gvc.bindView(() => {
                                 return {
                                     bind: filterID,
                                     view: () => {
@@ -978,7 +972,7 @@ ${BgWidget.card(BgProject.userInformationDetail({
                                             class: `d-flex align-items-center p-2 py-3 ${(!vm.dataList || !vm.dataList.find((dd) => {
                                                 return dd.checked;
                                             })) ? `d-none` : ``}`,
-                                            style: `height:40px;gap:10px;`
+                                            style: `height:40px;gap:10px;margin-top:10px;`
                                         };
                                     }
                                 };

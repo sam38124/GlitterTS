@@ -3,16 +3,25 @@ export declare class User {
     app: string;
     token?: IToken;
     createUser(account: string, pwd: string, userData: any, req: any): Promise<{
-        verify: any;
+        verify: string;
         token?: undefined;
     } | {
         token: string;
-        verify: any;
+        verify: string;
     }>;
     updateAccount(account: string, userID: string): Promise<any>;
     login(account: string, pwd: string): Promise<any>;
     loginWithFb(token: string): Promise<any>;
     getUserData(query: string, type?: 'userID' | 'account'): Promise<any>;
+    checkRebate(userID: string): Promise<void>;
+    refreshMember(userData: any): Promise<any>;
+    find30DayPeriodWith3000Spent(transactions: {
+        total_amount: number;
+        date: string;
+    }[], total: number, duration: number, dead_line: number): {
+        start_date: string;
+        end_date: string;
+    } | null;
     getUserList(query: {
         page?: number;
         limit?: number;
@@ -80,6 +89,13 @@ export declare class User {
     getConfig(config: {
         key: string;
         user_id: string;
+    }): Promise<any>;
+    getConfigV2(config: {
+        key: string;
+        user_id: string;
+    }): Promise<any>;
+    getNotice(cf: {
+        query: any;
     }): Promise<any>;
     constructor(app: string, token?: IToken);
 }

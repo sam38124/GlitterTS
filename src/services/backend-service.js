@@ -42,7 +42,8 @@ const public_table_check_js_1 = require("../api-public/services/public-table-che
 class BackendService {
     constructor(appName) {
         this.appName = appName;
-        public_table_check_js_1.ApiPublic.createScheme(this.appName).then(() => { });
+        public_table_check_js_1.ApiPublic.createScheme(this.appName).then(() => {
+        });
     }
     async getDataBaseInfo() {
         try {
@@ -218,7 +219,9 @@ class BackendService {
     async deleteAPI(conf) {
         try {
             const serverInfo = await this.serverInfo();
-            await database_js_1.default.execute(`delete from \`${this.appName}\`.t_api_router where port=?`, [conf.port]);
+            await database_js_1.default.execute(`delete
+                              from \`${this.appName}\`.t_api_router
+                              where port = ?`, [conf.port]);
             if (await this.stopEc2Project(serverInfo.ip, conf.port)) {
                 return {
                     result: true

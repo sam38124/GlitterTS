@@ -19,7 +19,8 @@ export class Wallet {
     public async store(cf: {
         return_url: string,
         total: number,
-        note: any
+        note: any,
+        method?:string
     }) {
         const id='redirect_'+Tool.randomString(6)
         await redis.setValue(id,cf.return_url)
@@ -39,7 +40,8 @@ export class Wallet {
             }).saveMoney({
                 total: cf.total,
                 userID: this.token.userID!,
-                note: cf.note
+                note: cf.note,
+                method:cf.method || ''
             })))
         }
     }

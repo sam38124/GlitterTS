@@ -31,6 +31,7 @@ const database_1 = __importDefault(require("../modules/database"));
 const exception_1 = __importDefault(require("../modules/exception"));
 const config_1 = require("../config");
 const index_js_1 = require("../index.js");
+const aws_sdk_1 = __importDefault(require("aws-sdk"));
 const config_js_1 = __importDefault(require("../config.js"));
 const fs_1 = __importDefault(require("fs"));
 const ssh_js_1 = require("../modules/ssh.js");
@@ -50,90 +51,102 @@ class App {
             resolve((data[0]) ? data[0]['value'] : {});
         });
     }
-    async createApp(config) {
+    async createApp(cf) {
         var _a, _b, _c;
         try {
-            config.copyWith = (_a = config.copyWith) !== null && _a !== void 0 ? _a : [];
+            cf.copyWith = (_a = cf.copyWith) !== null && _a !== void 0 ? _a : [];
             const count = await database_1.default.execute(`
                 select count(1)
                 from \`${config_1.saasConfig.SAAS_NAME}\`.app_config
-                where appName = ${database_1.default.escape(config.appName)}
+                where appName = ${database_1.default.escape(cf.appName)}
             `, []);
             if (count[0]["count(1)"] === 1) {
-                throw exception_1.default.BadRequestError('Forbidden', 'This app already be used.', null);
+                throw exception_1.default.BadRequestError('HAVE_APP', 'This app already be used.', null);
+            }
+            const domain_count = await database_1.default.execute(`
+                select count(1)
+                from \`${config_1.saasConfig.SAAS_NAME}\`.app_config
+                where domain = ${database_1.default.escape(`${cf.sub_domain}.${config_js_1.default.HostedDomain}`)}
+            `, []);
+            if (domain_count[0]['count(1)'] === 1) {
+                throw exception_1.default.BadRequestError('HAVE_DOMAIN', 'This domain already be used.', null);
             }
             let copyAppData = undefined;
             let copyPageData = undefined;
             let privateConfig = undefined;
-            if (config.copyApp) {
-                await public_table_check_js_1.ApiPublic.createScheme(config.copyApp);
+            if (cf.copyApp) {
+                await public_table_check_js_1.ApiPublic.createScheme(cf.copyApp);
                 copyAppData = (await database_1.default.execute(`select *
                                                  from \`${config_1.saasConfig.SAAS_NAME}\`.app_config
-                                                 where appName = ${database_1.default.escape(config.copyApp)}`, []))[0];
+                                                 where appName = ${database_1.default.escape(cf.copyApp)}`, []))[0];
                 copyPageData = (await database_1.default.execute(`select *
                                                   from \`${config_1.saasConfig.SAAS_NAME}\`.page_config
-                                                  where appName = ${database_1.default.escape(config.copyApp)}`, []));
+                                                  where appName = ${database_1.default.escape(cf.copyApp)}`, []));
                 privateConfig = (await database_1.default.execute(`select *
                                                    from \`${config_1.saasConfig.SAAS_NAME}\`.private_config
-                                                   where app_name = ${database_1.default.escape(config.copyApp)} `, []));
+                                                   where app_name = ${database_1.default.escape(cf.copyApp)} `, []));
             }
             await database_1.default.execute(`insert into \`${config_1.saasConfig.SAAS_NAME}\`.app_config (user, appName, dead_line, \`config\`,
                                                                                   brand, theme_config, refer_app,
                                                                                   template_config)
                               values (?, ?, ?, ${database_1.default.escape(JSON.stringify((copyAppData && copyAppData.config) || {}))},
-                                      ${database_1.default.escape((_b = config.brand) !== null && _b !== void 0 ? _b : config_1.saasConfig.SAAS_NAME)},
-                                      ${database_1.default.escape(JSON.stringify({ name: config.name }))},
-                                      ${(config.theme) ? database_1.default.escape(config.theme) : 'null'},
+                                      ${database_1.default.escape((_b = cf.brand) !== null && _b !== void 0 ? _b : config_1.saasConfig.SAAS_NAME)},
+                                      ${database_1.default.escape(JSON.stringify({ name: cf.name }))},
+                                      ${(cf.theme) ? database_1.default.escape(cf.theme) : 'null'},
                                       ${database_1.default.escape(JSON.stringify((copyAppData && copyAppData.template_config) || {}))})`, [
                 this.token.userID,
-                config.appName,
+                cf.appName,
                 addDays(new Date(), config_1.saasConfig.DEF_DEADLINE)
             ]);
-            await public_table_check_js_1.ApiPublic.createScheme(config.appName);
+            await this.putSubDomain({
+                app_name: cf.appName,
+                name: cf.sub_domain
+            });
+            await public_table_check_js_1.ApiPublic.createScheme(cf.appName);
             const trans = await database_1.default.Transaction.build();
-            if (config.copyWith.indexOf('checkout') !== -1) {
+            if (cf.copyWith.indexOf('checkout') !== -1) {
                 for (const dd of (await database_1.default.query(`SELECT *
-                                                  FROM \`${config.copyApp}\`.t_checkout`, []))) {
+                                                  FROM \`${cf.copyApp}\`.t_checkout`, []))) {
                     dd.orderData = dd.orderData && JSON.stringify(dd.orderData);
                     await trans.execute(`
-                        insert into \`${config.appName}\`.t_checkout
+                        insert into \`${cf.appName}\`.t_checkout
                         SET ?;
                     `, [
                         dd
                     ]);
                 }
             }
-            if (config.copyWith.indexOf('manager_post') !== -1) {
+            if (cf.copyWith.indexOf('manager_post') !== -1) {
                 for (const dd of (await database_1.default.query(`SELECT *
-                                                  FROM \`${config.copyApp}\`.t_manager_post`, []))) {
+                                                  FROM \`${cf.copyApp}\`.t_manager_post`, []))) {
                     dd.content = dd.content && JSON.stringify(dd.content);
                     dd.userID = this.token.userID;
                     await trans.execute(`
-                        insert into \`${config.appName}\`.t_manager_post
+                        insert into \`${cf.appName}\`.t_manager_post
                         SET ?;
                     `, [
                         dd
                     ]);
                 }
             }
-            if (config.copyWith.indexOf('user_post') !== -1) {
+            if (cf.copyWith.indexOf('user_post') !== -1) {
                 for (const dd of (await database_1.default.query(`SELECT *
-                                                  FROM \`${config.copyApp}\`.t_post`, []))) {
+                                                  FROM \`${cf.copyApp}\`.t_post`, []))) {
                     dd.content = dd.content && JSON.stringify(dd.content);
                     await trans.execute(`
-                        insert into \`${config.appName}\`.t_post
+                        insert into \`${cf.appName}\`.t_post
                         SET ?;
                     `, [
                         dd
                     ]);
                 }
             }
-            if (config.copyWith.indexOf('user') !== -1) {
+            if (cf.copyWith.indexOf('user') !== -1) {
                 for (const dd of (await database_1.default.query(`SELECT *
-                                                  FROM \`${config.copyApp}\`.t_user`, []))) {
+                                                  FROM \`${cf.copyApp}\`.t_user`, []))) {
                     dd.userData = dd.userData && JSON.stringify(dd.userData);
                     await trans.execute(`
-                        insert into \`${config.appName}\`.t_user
+                        insert into \`${cf.appName}\`.t_user
                         SET ?;
                     `, [
                         dd
@@ -141,31 +154,31 @@ class App {
                 }
             }
             for (const dd of (await database_1.default.query(`SELECT *
-                                              FROM \`${config.copyApp}\`.t_global_event`, []))) {
+                                              FROM \`${cf.copyApp}\`.t_global_event`, []))) {
                 dd.json = dd.json && JSON.stringify(dd.json);
                 await trans.execute(`
-                    insert into \`${config.appName}\`.t_global_event
+                    insert into \`${cf.appName}\`.t_global_event
                     SET ?;
                 `, [
                     dd
                 ]);
             }
-            if (config.copyWith.indexOf('public_config') !== -1) {
+            if (cf.copyWith.indexOf('public_config') !== -1) {
                 for (const dd of (await database_1.default.query(`SELECT *
-                                                  FROM \`${config.copyApp}\`.public_config`, []))) {
+                                                  FROM \`${cf.copyApp}\`.public_config`, []))) {
                     dd.value = dd.value && JSON.stringify(dd.value);
                     await trans.execute(`
-                        insert into \`${config.appName}\`.public_config
+                        insert into \`${cf.appName}\`.public_config
                         SET ?;
                     `, [
                         dd
                     ]);
                 }
                 for (const dd of (await database_1.default.query(`SELECT *
-                                                  FROM \`${config.copyApp}\`.t_user_public_config`, []))) {
+                                                  FROM \`${cf.copyApp}\`.t_user_public_config`, []))) {
                     dd.value = dd.value && JSON.stringify(dd.value);
                     await trans.execute(`
-                        insert into \`${config.appName}\`.t_user_public_config
+                        insert into \`${cf.appName}\`.t_user_public_config
                         SET ?;
                     `, [
                         dd
@@ -178,7 +191,7 @@ class App {
                         insert into \`${config_1.saasConfig.SAAS_NAME}\`.private_config (\`app_name\`, \`key\`, \`value\`, updated_at)
                         values (?, ?, ?, ?);
                     `, [
-                        config.appName,
+                        cf.appName,
                         dd.key,
                         JSON.stringify(dd.value),
                         new Date()
@@ -194,7 +207,7 @@ class App {
                                 ${database_1.default.escape(JSON.stringify(dd.page_config))}, ${database_1.default.escape(dd.page_type)});
                     `, [
                         this.token.userID,
-                        config.appName,
+                        cf.appName,
                         dd.tag,
                         dd.group || '未分類',
                         dd.name
@@ -208,17 +221,18 @@ class App {
                     values (?, ?, ?, ?, ?, ${database_1.default.escape(JSON.stringify({}))}, ${database_1.default.escape(JSON.stringify({}))});
                 `, [
                     this.token.userID,
-                    config.appName,
+                    cf.appName,
                     'index',
                     '',
                     '首頁',
                 ]);
             }
             await trans.commit();
-            await (0, index_js_1.createAPP)(config);
+            await (0, index_js_1.createAPP)(cf);
             return true;
         }
         catch (e) {
+            await database_1.default.query(`delete from \`${config_1.saasConfig.SAAS_NAME}\`.app_config where appName=?`, [cf.appName]);
             console.log(e);
             throw exception_1.default.BadRequestError((_c = e.code) !== null && _c !== void 0 ? _c : 'BAD_REQUEST', e, null);
         }
@@ -226,7 +240,9 @@ class App {
     async updateThemeConfig(body) {
         var _a;
         try {
-            await database_1.default.query(`update \`${config_1.saasConfig.SAAS_NAME}\`.app_config set theme_config=? where appName=?`, [
+            await database_1.default.query(`update \`${config_1.saasConfig.SAAS_NAME}\`.app_config
+                            set theme_config=?
+                            where appName = ?`, [
                 JSON.stringify(body.config),
                 body.theme
             ]);
@@ -242,37 +258,47 @@ class App {
             const temp_app_name = (tool_1.default.randomString(4)) + new Date().getTime();
             const temp_app_theme = (tool_1.default.randomString(4)) + new Date().getTime();
             const tran = await database_1.default.Transaction.build();
-            const original_domain = (await database_1.default.query(`select \`domain\`
-                                                     from \`${config_1.saasConfig.SAAS_NAME}\`.app_config
-                                                     where appName = ${database_1.default.escape(config.app_name)}`, []))[0]['domain'];
+            const cf_app = (await database_1.default.query(`select \`domain\`, \`dead_line\`, \`plan\`
+                                            from \`${config_1.saasConfig.SAAS_NAME}\`.app_config
+                                            where appName = ${database_1.default.escape(config.app_name)}`, []))[0];
             await tran.execute(`update \`${config_1.saasConfig.SAAS_NAME}\`.app_config
                                 set appName=${database_1.default.escape(temp_app_name)},
                                     refer_app=${database_1.default.escape(config.app_name)},
                                     domain=null
-                                where appName = ${database_1.default.escape(config.app_name)} and user=?`, [(_a = this.token) === null || _a === void 0 ? void 0 : _a.userID]);
+                                where appName = ${database_1.default.escape(config.app_name)}
+                                  and user = ?`, [(_a = this.token) === null || _a === void 0 ? void 0 : _a.userID]);
             await tran.execute(`update \`${config_1.saasConfig.SAAS_NAME}\`.app_config
                                 set appName=${database_1.default.escape(temp_app_theme)},
                                     refer_app=null,
-                                    domain=${(original_domain) ? database_1.default.escape(original_domain) : 'null'}
-                                where appName = ${database_1.default.escape(config.theme)} and user=?`, [(_b = this.token) === null || _b === void 0 ? void 0 : _b.userID]);
+                                    domain=${(cf_app['domain']) ? database_1.default.escape(cf_app['domain']) : 'null'},
+                                    dead_line=${(cf_app['dead_line']) ? database_1.default.escape(cf_app['dead_line']) : 'null'},
+                                    plan=${(cf_app['plan']) ? database_1.default.escape(cf_app['plan']) : 'null'}
+                                where appName = ${database_1.default.escape(config.theme)}
+                                  and user = ?`, [(_b = this.token) === null || _b === void 0 ? void 0 : _b.userID]);
             await tran.execute(`update \`${config_1.saasConfig.SAAS_NAME}\`.app_config
                                 set appName=${database_1.default.escape(config.app_name)}
-                                where appName = ${database_1.default.escape(temp_app_theme)} and user=?`, [(_c = this.token) === null || _c === void 0 ? void 0 : _c.userID]);
+                                where appName = ${database_1.default.escape(temp_app_theme)}
+                                  and user = ?`, [(_c = this.token) === null || _c === void 0 ? void 0 : _c.userID]);
             await tran.execute(`update \`${config_1.saasConfig.SAAS_NAME}\`.app_config
                                 set appName=${database_1.default.escape(config.theme)}
-                                where appName = ${database_1.default.escape(temp_app_name)} and user=?`, [(_d = this.token) === null || _d === void 0 ? void 0 : _d.userID]);
+                                where appName = ${database_1.default.escape(temp_app_name)}
+                                  and user = ?`, [(_d = this.token) === null || _d === void 0 ? void 0 : _d.userID]);
             await tran.execute(`update \`${config_1.saasConfig.SAAS_NAME}\`.page_config
                                 set appName=${database_1.default.escape(temp_app_name)}
-                                where appName = ${database_1.default.escape(config.app_name)} and userID=?`, [(_e = this.token) === null || _e === void 0 ? void 0 : _e.userID]);
+                                where appName = ${database_1.default.escape(config.app_name)}
+                                  and userID = ?`, [(_e = this.token) === null || _e === void 0 ? void 0 : _e.userID]);
             await tran.execute(`update \`${config_1.saasConfig.SAAS_NAME}\`.page_config
                                 set appName=${database_1.default.escape(temp_app_theme)}
-                                where appName = ${database_1.default.escape(config.theme)} and userID=?`, [(_f = this.token) === null || _f === void 0 ? void 0 : _f.userID]);
+                                where appName = ${database_1.default.escape(config.theme)}
+                                  and userID = ?`, [(_f = this.token) === null || _f === void 0 ? void 0 : _f.userID]);
             await tran.execute(`update \`${config_1.saasConfig.SAAS_NAME}\`.page_config
                                 set appName=${database_1.default.escape(config.app_name)}
-                                where appName = ${database_1.default.escape(temp_app_theme)} and userID=?`, [(_g = this.token) === null || _g === void 0 ? void 0 : _g.userID]);
+                                where appName = ${database_1.default.escape(temp_app_theme)}
+                                  and userID = ?`, [(_g = this.token) === null || _g === void 0 ? void 0 : _g.userID]);
             await tran.execute(`update \`${config_1.saasConfig.SAAS_NAME}\`.page_config
                                 set appName=${database_1.default.escape(config.theme)}
-                                where appName = ${database_1.default.escape(temp_app_name)} and userID=?`, [(_h = this.token) === null || _h === void 0 ? void 0 : _h.userID]);
+                                where appName = ${database_1.default.escape(temp_app_name)}
+                                  and userID = ?`, [(_h = this.token) === null || _h === void 0 ? void 0 : _h.userID]);
             await tran.commit();
             await tran.release();
             return true;
@@ -452,10 +478,11 @@ class App {
                 await trans.commit();
             }
             return (await database_1.default.execute(`update \`${config_1.saasConfig.SAAS_NAME}\`.app_config
-                                      set config=?
+                                      set config=?,
+                                          update_time=?
                                       where appName = ${database_1.default.escape(config.appName)}
                                         and user = '${this.token.userID}'
-            `, [config.data]))['changedRows'] == true;
+            `, [config.data, new Date()]))['changedRows'] == true;
         }
         catch (e) {
             throw exception_1.default.BadRequestError((_b = e.code) !== null && _b !== void 0 ? _b : 'BAD_REQUEST', e, null);
@@ -487,6 +514,54 @@ class App {
         catch (e) {
             throw exception_1.default.BadRequestError((_b = e.code) !== null && _b !== void 0 ? _b : 'BAD_REQUEST', e, null);
         }
+    }
+    async putSubDomain(cf) {
+        const domain_name = `${cf.name}.${config_js_1.default.HostedDomain}`;
+        if ((await database_1.default.query(`SELECT count(1)
+                             FROM \`${config_1.saasConfig.SAAS_NAME}\`.app_config
+                             where domain =${database_1.default.escape(domain_name)}`, []))[0]['count(1)'] === 0) {
+            const result = await this.addDNSRecord(domain_name);
+            (await this.setDomain({
+                appName: cf.app_name,
+                domain: domain_name
+            }));
+            return true;
+        }
+        else {
+            throw exception_1.default.BadRequestError("ERROR", "ERROR.THIS DOMAIN ALREADY USED.", null);
+        }
+    }
+    addDNSRecord(domain) {
+        console.log(`addDNSRecord->${domain}`);
+        return new Promise((resolve, reject) => {
+            const route53 = new aws_sdk_1.default.Route53();
+            const params = {
+                ChangeBatch: {
+                    Changes: [
+                        {
+                            Action: 'CREATE',
+                            ResourceRecordSet: {
+                                Name: domain,
+                                Type: 'A',
+                                TTL: 1,
+                                ResourceRecords: [
+                                    {
+                                        Value: config_js_1.default.sshIP
+                                    }
+                                ]
+                            }
+                        }
+                    ],
+                    Comment: 'Adding A record for example.com'
+                },
+                HostedZoneId: config_js_1.default.AWS_HostedZoneId
+            };
+            route53.changeResourceRecordSets(params, function (err, data) {
+                setTimeout(() => {
+                    resolve(true);
+                }, 10 * 1000);
+            });
+        });
     }
     async setDomain(config) {
         var _a;

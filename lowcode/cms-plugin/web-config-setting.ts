@@ -128,13 +128,10 @@ export class WebConfigSetting {
                                     vm.type = "replace"
                                 },
                                 filter: html`
-                                    <div style="height:50px;" class="w-100 border-bottom">
-                                        <input class="form-control h-100 " style="border: none;"
-                                               placeholder="搜尋所有表單" onchange="${gvc.event((e, event) => {
-                                            vm.query = e.value
-                                            gvc.notifyDataChange(id)
-                                        })}" value="${vm.query || ''}">
-                                    </div>
+                                    ${BgWidget.searchPlace(gvc.event((e, event) => {
+                                        vm.query = e.value;
+                                        gvc.notifyDataChange(id);
+                                    }),vm.query || '','搜尋所有表單')}
                                     ${
                                             gvc.bindView(() => {
                                                 return {
@@ -175,7 +172,7 @@ export class WebConfigSetting {
                                                             class: `d-flex align-items-center p-2 py-3 ${(!vm.dataList || !vm.dataList.find((dd: any) => {
                                                                 return dd.checked
                                                             })) ? `d-none` : ``}`,
-                                                            style: `height:40px;gap:10px;`
+                                                            style: `height:40px;gap:10px;margin-top:10px;`
                                                         }
                                                     }
                                                 }
@@ -241,7 +238,7 @@ export class WebConfigSetting {
                                     }
                                  
 
-                        }))} ${BgWidget.title((viewType === 'preview') ? `表單預覽` : "表單設定")}
+                        }))} ${BgWidget.title((viewType === 'preview') ? `配置設定` : "表單調整")}
                                 <div class="flex-fill"></div>
                                 <div class="${((viewType === 'editor')) ? `d-none` : `d-flex`}  align-items-center justify-content-center bg-white  me-2 border"
                                      style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;"
@@ -290,7 +287,11 @@ export class WebConfigSetting {
                                         gvc: gvc,
                                         array: postMd.form_format,
                                         refresh: () => {
+                                            const scrollTop=document.querySelector('.web_config_container')!.scrollTop
                                             gvc.notifyDataChange(id)
+                                            setTimeout(()=>{
+                                                document.querySelector('.web_config_container')!.scrollTop=scrollTop
+                                            })
                                         },
                                         formData: postMd.form_data
                                     })
@@ -384,8 +385,7 @@ export class WebConfigSetting {
                                      data-bs-toggle="tooltip" data-bs-placement="top"
                                      data-bs-custom-class="custom-tooltip" data-bs-title="預覽表單"
                                      onclick="${gvc.event(() => {
-                                         viewType = 'preview'
-                                         gvc.notifyDataChange(id)
+                                         cf.vm.type = 'list'
                                      })}">
                                     <i class="fa-regular fa-eye" aria-hidden="true"></i>
                                 </div>
@@ -412,6 +412,7 @@ export class WebConfigSetting {
                                                     dialog.successMessage({
                                                         text: '新增成功!'
                                                     })
+                                                    cf.vm.type = 'list'
                                                 })
                                             } else {
                                                 ApiPost.put({

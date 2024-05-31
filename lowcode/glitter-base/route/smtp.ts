@@ -28,7 +28,7 @@ export class ApiSmtp {
 }
 
 function getConfig() {
-    const saasConfig: { config: any; api: any } = (window as any).saasConfig;
+    const saasConfig: { config: any; api: any } = (window.parent as any).saasConfig;
     return saasConfig
 }
 

@@ -17,7 +17,7 @@ export interface EcInvoiceInterface {
     "TaxType": string,
     "SalesAmount": number,
     "InvType": string,
-    CarrierType:string
+    CarrierType: string
     "Items": {
         "ItemSeq": number,
         "ItemName": string,
@@ -51,16 +51,17 @@ export class EcInvoice {
             data: {
                 MerchantID: obj.merchNO,
                 RqHeader: {
-                    Timestamp: parseInt(`${timeStamp.substring(0,10)}`,10)
+                    Timestamp: parseInt(`${timeStamp.substring(0, 10)}`, 10)
                 },
                 Data: encryptedData
             }
         };
+        //發送通知
         //PlatformID
         return new Promise<boolean>((resolve, reject) => {
             axios.request(config)
                 .then((response) => {
-                    console.log('invoice-->',JSON.stringify(response.data))
+                    console.log('invoice-->', JSON.stringify(response.data))
                     resolve(response.data)
                 })
                 .catch((error) => {

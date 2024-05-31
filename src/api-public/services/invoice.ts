@@ -73,7 +73,6 @@ export class Invoice {
             discount:number
         }=(await db.query(`SELECT * FROM \`${this.appName}\`.t_checkout where cart_token=?`,[orderID]))[0]['orderData']
         const config = await app.getAdConfig(this.appName, "invoice_setting");
-        order.total=order.total+=(order.use_wallet || 0);
         const line_item=order.lineItems.map((dd)=>{
             return {
                 ItemName: dd.title+(dd.spec.join('-') ? `/${dd.spec.join('-')}`:``),
@@ -148,7 +147,7 @@ export class Invoice {
                 CustomerIdentifier:(order.user_info.gui_number || '') as string,
                 CustomerName:(order.user_info.company || order.user_info.name) as string,
                 CustomerAddr:order.user_info.address as string,
-                CustomerPhone:(order.user_info.phone || '') as string,
+                CustomerPhone:(order.user_info.phone || undefined) as string,
                 CustomerEmail:order.user_info.email as string,
                 Print:'0',
                 CarrierType:'1',

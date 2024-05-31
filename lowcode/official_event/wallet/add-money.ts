@@ -7,6 +7,7 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
         fun: (gvc, widget, object, subData, element) => {
             object.saveMoney = object.saveMoney ?? {}
             object.error=object.error??{}
+            object.payMethod=object.payMethod??{}
             return {
                 editor: () => {
                     return [
@@ -14,6 +15,11 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                             hover: false,
                             option: [],
                             title: '儲值金額'
+                        }),
+                        TriggerEvent.editer(gvc, widget, object.payMethod, {
+                            hover: false,
+                            option: [],
+                            title: '付款方式'
                         }),
                         TriggerEvent.editer(gvc, widget, object.error, {
                             hover: false,
@@ -28,9 +34,15 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                             gvc: gvc,
                             widget: widget,
                             clickEvent: object.saveMoney
-                        })
+                        });
+                        const payMethod= await TriggerEvent.trigger({
+                            gvc: gvc,
+                            widget: widget,
+                            clickEvent: object.payMethod
+                        });
                         ApiWallet.store({
                             total: saveMoney as number,
+                            method:payMethod,
                             note: {},
                             return_url:location.href
                         }).then(async (res) => {

@@ -171,6 +171,38 @@ async function setDNS(domainName) {
         }
     });
 }
+async function changeDNSRecord() {
+    const route53 = new aws_sdk_1.default.Route53();
+    const params = {
+        ChangeBatch: {
+            Changes: [
+                {
+                    Action: 'CREATE',
+                    ResourceRecordSet: {
+                        Name: 'teadd.shopnex.cc',
+                        Type: 'A',
+                        TTL: 300,
+                        ResourceRecords: [
+                            {
+                                Value: '192.0.2.1'
+                            }
+                        ]
+                    }
+                }
+            ],
+            Comment: 'Adding A record for example.com'
+        },
+        HostedZoneId: 'Z06668613MA008TSZJ1HW'
+    };
+    route53.changeResourceRecordSets(params, function (err, data) {
+        if (err) {
+            console.log(err, err.stack);
+        }
+        else {
+            console.log(data);
+        }
+    });
+}
 function createContext(req, res, next) {
     const uuid = (0, uuid_1.v4)();
     const ip = req.ip;

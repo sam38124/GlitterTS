@@ -266,13 +266,10 @@ export class WalletList {
                                     vm.type = "replace"
                                 },
                                 filter: html`
-                                    <div style="height:50px;" class="w-100 border-bottom">
-                                        <input class="form-control h-100 " style="border: none;"
-                                               placeholder="搜尋所有用戶" onchange="${gvc.event((e, event) => {
-                                            vm.query = e.value
-                                            gvc.notifyDataChange(id)
-                                        })}" value="${vm.query || ''}">
-                                    </div>
+                                    ${BgWidget.searchPlace(gvc.event((e, event) => {
+                                        vm.query = e.value;
+                                        gvc.notifyDataChange(id);
+                                    }),vm.query || '','搜尋所有用戶')}
                                     ${
                                             gvc.bindView(() => {
                                                 return {
@@ -320,7 +317,7 @@ export class WalletList {
                                                             class: `d-flex align-items-center p-2 py-3 ${(!vm.dataList || !vm.dataList.find((dd: any) => {
                                                                 return dd.checked
                                                             })) ? `d-none` : ``}`,
-                                                            style: `height:40px;gap:10px;`
+                                                            style: `height:40px;gap:10px;margin-top:10px;`
                                                         }
                                                     }
                                                 }
@@ -622,13 +619,10 @@ ${BgWidget.card(UserList.userInformationDetail({
                                     }, 'add')
                                 },
                                 filter: html`
-                                    <div style="height:50px;" class="w-100 border-bottom">
-                                        <input class="form-control h-100 " style="border: none;"
-                                               placeholder="搜尋所有用戶" onchange="${gvc.event((e, event) => {
-                                            vm.query = e.value
-                                            gvc.notifyDataChange(id)
-                                        })}" value="${vm.query || ''}">
-                                    </div>
+                                    ${BgWidget.searchPlace(gvc.event((e, event) => {
+                                        vm.query = e.value;
+                                        gvc.notifyDataChange(id);
+                                    }),vm.query || '','搜尋所有用戶')}
                                     ${
                                             gvc.bindView(() => {
                                                 return {
@@ -676,7 +670,7 @@ ${BgWidget.card(UserList.userInformationDetail({
                                                             class: `d-flex align-items-center p-2 py-3 ${(!vm.dataList || !vm.dataList.find((dd: any) => {
                                                                 return dd.checked
                                                             })) ? `d-none` : ``}`,
-                                                            style: `height:40px;gap:10px;`
+                                                            style: `height:40px;gap:10px;margin-top:10px;`
                                                         }
                                                     }
                                                 }
@@ -954,13 +948,10 @@ ${BgWidget.card(UserList.userInformationDetail({
                                     vm.type = "replace"
                                 },
                                 filter: html`
-                                    <div style="height:50px;" class="w-100 border-bottom">
-                                        <input class="form-control h-100 " style="border: none;"
-                                               placeholder="搜尋所有用戶" onchange="${gvc.event((e, event) => {
-                                            vm.query = e.value
-                                            gvc.notifyDataChange(id)
-                                        })}" value="${vm.query || ''}">
-                                    </div>
+                                    ${BgWidget.searchPlace(gvc.event((e, event) => {
+                                        vm.query = e.value;
+                                        gvc.notifyDataChange(id);
+                                    }),vm.query || '','搜尋所有用戶')}
                                     ${
                                             gvc.bindView(() => {
                                                 return {
@@ -1008,7 +999,7 @@ ${BgWidget.card(UserList.userInformationDetail({
                                                             class: `d-flex align-items-center p-2 py-3 ${(!vm.dataList || !vm.dataList.find((dd: any) => {
                                                                 return dd.checked
                                                             })) ? `d-none` : ``}`,
-                                                            style: `height:40px;gap:10px;`
+                                                            style: `height:40px;gap:10px;margin-top:10px;`
                                                         }
                                                     }
                                                 }

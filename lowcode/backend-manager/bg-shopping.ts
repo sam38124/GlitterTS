@@ -148,13 +148,11 @@ export class BgShopping {
                                     vm.type = "replace"
                                 },
                                 filter: html`
-                                    <div style="height:50px;" class="w-100 border-bottom">
-                                        <input class="form-control h-100 " style="border: none;"
-                                               placeholder="搜尋所有訂單" onchange="${gvc.event((e, event) => {
-                                            vm.query = e.value
-                                            gvc.notifyDataChange(id)
-                                        })}" value="${vm.query || ''}">
-                                    </div>
+                                    ${BgWidget.searchPlace(gvc.event((e, event) => {
+                                        vm.query = e.value
+                                        gvc.notifyDataChange(id)
+                                    }),vm.query || '','搜尋所有訂單')}
+                                   
                                     ${
                                             gvc.bindView(() => {
                                                 return {
@@ -199,10 +197,10 @@ export class BgShopping {
                                                     },
                                                     divCreate: () => {
                                                         return {
-                                                            class: `d-flex align-items-center p-2 py-3 ${(!vm.dataList || !vm.dataList.find((dd: any) => {
+                                                            class: `d-flex align-items-center mt-2 p-2 py-3 ${(!vm.dataList || !vm.dataList.find((dd: any) => {
                                                                 return dd.checked
                                                             })) ? `d-none` : ``}`,
-                                                            style: `height:40px;gap:10px;`
+                                                            style: `height:40px;gap:10px;margin-top:10px;`
                                                         }
                                                     }
                                                 }
@@ -827,13 +825,11 @@ ${[
                                     vm.type = "replace"
                                 },
                                 filter: html`
-                                    <div style="height:50px;" class="w-100 border-bottom">
-                                        <input class="form-control h-100 " style="border: none;"
-                                               placeholder="搜尋所有折扣" onchange="${gvc.event((e, event) => {
-                                            vm.query = e.value
-                                            gvc.notifyDataChange(id)
-                                        })}" value="${vm.query || ''}">
-                                    </div>
+                                    ${BgWidget.searchPlace(gvc.event((e, event) => {
+                                        vm.query = e.value
+                                        gvc.notifyDataChange(id)
+                                    }),vm.query || '','搜尋所有折扣')}
+                                   
                                     ${
                                             gvc.bindView(() => {
                                                 return {
@@ -881,7 +877,7 @@ ${[
                                                             class: `d-flex align-items-center p-2 py-3 ${(!vm.dataList || !vm.dataList.find((dd: any) => {
                                                                 return dd.checked
                                                             })) ? `d-none` : ``}`,
-                                                            style: `height:40px;gap:10px;`
+                                                            style: `height:40px;gap:10px;margin-top:10px;`
                                                         }
                                                     }
                                                 }
@@ -1697,13 +1693,11 @@ ${EditorElem.editeInput({
                                         vm.status = 'replace'
                                     },
                                     filter: html`
-                                        <div style="height:50px;" class="w-100 border-bottom">
-                                            <input class="form-control h-100 " style="border: none;"
-                                                   placeholder="搜尋所有商品" onchange="${gvc.event((e, event) => {
-                                                vm.query = e.value
-                                                gvc.notifyDataChange(id)
-                                            })}" value="${vm.query}">
-                                        </div>
+                                        ${BgWidget.searchPlace(gvc.event((e, event) => {
+                                            vm.query = e.value
+                                            gvc.notifyDataChange(id)
+                                        }),vm.query || '','搜尋所有商品')}
+                                        
                                         ${
                                                 gvc.bindView(() => {
                                                     return {
@@ -1751,7 +1745,7 @@ ${EditorElem.editeInput({
                                                                 class: `d-flex align-items-center p-2 py-3 ${(!vm.dataList || !vm.dataList.find((dd: any) => {
                                                                     return dd.checked
                                                                 })) ? `d-none` : ``}`,
-                                                                style: `height:40px;gap:10px;`
+                                                                style: `height:40px;gap:10px;margin-top:10px;`
                                                             }
                                                         }
                                                     }
@@ -3128,7 +3122,7 @@ ${(()=>{
                     divCreate: {class: `d-flex flex-column flex-column-reverse  flex-md-row`, style: `gap:10px;`}
                 }
             })}
-        `, 900)
+        `,undefined,'width:calc(100% - 56px);')
     }
 
     public static invoice_setting(gvc: GVC) {

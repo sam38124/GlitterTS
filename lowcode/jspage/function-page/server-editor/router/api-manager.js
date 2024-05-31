@@ -504,13 +504,10 @@ data-bs-title="下載專案壓縮檔"
                             gvc.notifyDataChange(id);
                         },
                         filter: html `
-                                <div style="height:50px;" class="w-100 border-bottom">
-                                    <input class="form-control h-100 " style="border: none;"
-                                           placeholder="搜尋所有專案" onchange="${gvc.event((e, event) => {
+                                ${BgWidget.searchPlace(gvc.event((e, event) => {
                             vm.query = e.value;
                             gvc.notifyDataChange(id);
-                        })}" value="${vm.query || ''}">
-                                </div>
+                        }), vm.query || '', '搜尋所有專案')}
                                 ${gvc.bindView(() => {
                             return {
                                 bind: filterID,
@@ -558,7 +555,7 @@ data-bs-title="下載專案壓縮檔"
                                         class: `d-flex align-items-center p-2 py-3 ${(!vm.dataList || !vm.dataList.find((dd) => {
                                             return dd.checked;
                                         })) ? `d-none` : ``}`,
-                                        style: `height:40px;gap:10px;`
+                                        style: `height:40px;gap:10px;margin-top:10px;`
                                     };
                                 }
                             };

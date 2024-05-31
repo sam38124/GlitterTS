@@ -8,6 +8,13 @@
 
 <body>
     <script>
+        sendMessage({
+            title:`收到評論`,
+            userID:body.data.userID,
+            tag: 'comment',
+            link: './?page=user_info&tab=評價',
+            body:`收到來自『${userData.name}』的評論。`
+        });
         try {
             window.webkit.messageHandlers.addJsInterFace.postMessage(JSON.stringify({
                 functionName: 'closeWebView',

@@ -414,5 +414,15 @@ router.get('/public/config', async (req, resp) => {
         return response_1.default.fail(resp, err);
     }
 });
+router.get('/notice', async (req, resp) => {
+    try {
+        return response_1.default.succ(resp, await new user_1.User(req.get('g-app'), req.body.token).getNotice({
+            query: req.query
+        }));
+    }
+    catch (err) {
+        return response_1.default.fail(resp, err);
+    }
+});
 module.exports = router;
 //# sourceMappingURL=user.js.map

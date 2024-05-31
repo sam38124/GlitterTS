@@ -112,6 +112,19 @@ router.put('/domain', async (req: express.Request, resp: express.Response) => {
     }
 });
 
+router.put('/sub_domain', async (req: express.Request, resp: express.Response) => {
+    try {
+        const app=new App(req.body.token);
+        (await app.putSubDomain({
+            app_name:req.body.app_name,
+            name:req.body.sub_domain
+        }))
+        return response.succ(resp, { result:true});
+    } catch (err) {
+        return response.fail(resp, err);
+    }
+});
+
 router.post('/create_template', async (req: express.Request, resp: express.Response) => {
     try {
         if (!await UtPermission.isManager(req)) {

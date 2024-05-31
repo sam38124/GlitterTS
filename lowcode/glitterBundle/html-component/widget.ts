@@ -298,7 +298,7 @@ export const widgetComponent = {
                                         }
                                     })
                                 ];
-                                if ((window.parent as any).editerData !== undefined && htmlGenerate.root) {
+                                if ((window.parent as any).editerData !== undefined && htmlGenerate.root && widget.data.elem!=='textArea') {
                                     view.push(glitter.htmlGenerate.getEditorSelectSection({
                                         id: widget.id,
                                         gvc: gvc,
@@ -406,6 +406,7 @@ export const widgetComponent = {
                                         (widget.type === 'container') ? `<div class="d-flex justify-content-end">
 <button class="btn btn-secondary mt-2 w-100" onclick="${gvc.event(() => {
                                             const dialog = new ShareDialog(gvc.glitter)
+
                                             dialog.checkYesOrNot({
                                                 text: '是否確認清空容器內容?',
                                                 callback: (b) => {

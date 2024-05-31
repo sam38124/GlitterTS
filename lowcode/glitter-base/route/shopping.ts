@@ -23,6 +23,20 @@ export class ApiShop {
         });
     }
 
+    public static getPaymentMethod(query: { userID?: string }) {
+        return BaseApi.create({
+            url:
+                getBaseUrl() +
+                `/api-public/v1/ec/payment/method`,
+            type: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'g-app': getConfig().config.appName,
+                Authorization: !query.userID ? GlobalUser.token : getConfig().config.token,
+            },
+        });
+    }
+
     public static postWishList(wishList: string) {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/ec/wishlist`,

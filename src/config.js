@@ -67,6 +67,15 @@ exports.config = {
     get AWS_SecretAccessKey() {
         return process.env.AWS_SecretAccessKey;
     },
+    get AWS_HostedZoneId() {
+        return process.env.HostedZoneId;
+    },
+    get HostedDomain() {
+        return process.env.HostedDomain;
+    },
+    get sshIP() {
+        return process.env.sshIP;
+    },
     get AWS_S3_PREFIX_DOMAIN_NAME() {
         return process.env.AWS_S3_DOMAIN + '/';
     },

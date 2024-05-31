@@ -16,6 +16,9 @@ export declare class Firebase {
         token?: string;
         userID?: string;
         title: string;
+        tag: string;
+        link: string;
         body: string;
+        app?: string;
     }): Promise<unknown>;
 }

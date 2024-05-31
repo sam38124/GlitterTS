@@ -4,7 +4,7 @@ import { GlobalUser } from "../glitter-base/global/global-user.js";
 export class ApiPageConfig {
     constructor() {
     }
-    static getAppList(theme) {
+    static getAppList(theme, token) {
         return BaseApi.create({
             "url": config.url + `/api/v1/app?` + (() => {
                 let search = [];
@@ -15,7 +15,7 @@ export class ApiPageConfig {
             "timeout": 0,
             "headers": {
                 "Content-Type": "application/json",
-                "Authorization": GlobalUser.token
+                "Authorization": token || GlobalUser.saas_token
             }
         });
     }
@@ -48,11 +48,23 @@ export class ApiPageConfig {
             "timeout": 0,
             "headers": {
                 "Content-Type": "application/json",
-                "Authorization": GlobalUser.token
+                "Authorization": GlobalUser.saas_token
             },
             data: JSON.stringify({
                 appName: appName
             })
+        });
+    }
+    static setSubDomain(cf) {
+        return BaseApi.create({
+            "url": config.url + `/api/v1/app/sub_domain`,
+            "type": "PUT",
+            "timeout": 0,
+            "headers": {
+                "Content-Type": "application/json",
+                "Authorization": cf.token || config.token
+            },
+            data: JSON.stringify(cf)
         });
     }
     static setDomain(cf) {
@@ -226,7 +238,7 @@ export class ApiPageConfig {
             "type": "POST",
             "headers": {
                 "Content-Type": "application/json",
-                "Authorization": config.token
+                "Authorization": window.parent.saasConfig.config.token
             },
             data: JSON.stringify({
                 appName: appName,
@@ -256,7 +268,7 @@ export class ApiPageConfig {
             "type": "GET",
             "headers": {
                 "Content-Type": "application/json",
-                "Authorization": config.token
+                "Authorization": window.parent.saasConfig.config.token
             }
         });
     }

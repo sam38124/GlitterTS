@@ -301,7 +301,7 @@ export const widgetComponent = {
                                         }
                                     }))
                                 ];
-                                if (window.parent.editerData !== undefined && htmlGenerate.root) {
+                                if (window.parent.editerData !== undefined && htmlGenerate.root && widget.data.elem !== 'textArea') {
                                     view.push(glitter.htmlGenerate.getEditorSelectSection({
                                         id: widget.id,
                                         gvc: gvc,

@@ -49,6 +49,9 @@ export class Main_editor {
                     if ((Storage.view_type === ViewType.col3) || (Storage.view_type === ViewType.mobile)) {
                         gvc.notifyDataChange('right_NAV')
                     }
+                    if (Storage.page_setting_item === 'color') {
+                        return Main_editor.colorSetting(gvc)
+                    }
                     if (viewModel.selectItem && viewModel.selectItem.type && (((Storage.view_type !== ViewType.col3) && (Storage.view_type !== ViewType.mobile)) || (Storage.select_function === 'user-editor')) &&
                         (viewModel.selectItem.type !== 'code') && (viewModel.selectItem.type !== 'widget' || (viewModel.selectItem.data.elem !== 'style' && viewModel.selectItem.data.elem !== 'link' && viewModel.selectItem.data.elem !== 'script'))
 
@@ -71,7 +74,7 @@ export class Main_editor {
                                 </div>
                             `,
                             `    ${(() => {
-                                return gvc.map([
+                                return [
                                     (() => {
                                         let pageConfig = ((viewModel.data! as any).config.filter((dd: any, index: number) => {
                                             return (dd.type !== 'code') && (dd.type !== 'widget' || (dd.data.elem !== 'style' && dd.data.elem !== 'link' && dd.data.elem !== 'script'))
@@ -123,7 +126,7 @@ export class Main_editor {
                                         loop(pageConfig, list);
 
 
-                                        function renderItems(list: any, og_array: any,root:boolean) {
+                                        function renderItems(list: any, og_array: any, root: boolean) {
                                             return gvc.bindView(() => {
                                                 const id = gvc.glitter.getUUID()
                                                 return {
@@ -184,7 +187,7 @@ export class Main_editor {
                                                                              })}">
                                                                             <i class="fa-regular fa-trash d-flex align-items-center justify-content-center "></i>
                                                                         </div>
-                                                                        <div class="hoverBtn p-1 ${(og_array[index].visible) ? `child`:``}"
+                                                                        <div class="hoverBtn p-1 ${(og_array[index].visible) ? `child` : ``}"
                                                                              onclick="${gvc.event((e, event) => {
                                                                                  lastClick.zeroing()
                                                                                  event.stopPropagation();
@@ -206,24 +209,25 @@ export class Main_editor {
                                                                                aria-hidden="true"></i>
                                                                         </div>
                                                                     </div>
-                                                                    ${(dd.type === 'container' ? `<div class="ps-4  pb-2 ${dd.toggle ? `` : `d-none`}" style="margin-left:3px;">${renderItems(dd.child, dd.array,false)}</div>` : ``)}
+                                                                    ${(dd.type === 'container' ? `<div class="ps-4  pb-2 ${dd.toggle ? `` : `d-none`}" style="margin-left:3px;">${renderItems(dd.child, dd.array, false)}</div>` : ``)}
                                                                 </li>
                                                             `
                                                         }).join('') + html`
                                                             <div class="w-100 fw-500 d-flex align-items-center  fs-6 hoverBtn h_item  rounded px-2 hoverF2 mb-1"
-                                                                 style="color:#36B;gap:10px;" onclick="${gvc.event(()=>{
-                                                                     if(root){
+                                                                 style="color:#36B;gap:10px;"
+                                                                 onclick="${gvc.event(() => {
+                                                                     if (root) {
                                                                          glitter.share.editorViewModel.selectContainer = glitter.share.editorViewModel.data.config
-                                                                     }else{
+                                                                     } else {
                                                                          glitter.share.editorViewModel.selectContainer = og_array
                                                                      }
-                                                             
-                                                                AddComponent.closeEvent=()=>{
-                                                                    setPageConfig()
-                                                                    console.log(`AddComponent.closeEvent->`,glitter.share.editorViewModel.selectContainer)
-                                                                }
-                                                                AddComponent.toggle(true)
-                                                            })}">
+
+                                                                     AddComponent.closeEvent = () => {
+                                                                         setPageConfig()
+                                                                         console.log(`AddComponent.closeEvent->`, glitter.share.editorViewModel.selectContainer)
+                                                                     }
+                                                                     AddComponent.toggle(true)
+                                                                 })}">
                                                                 <i class="fa-solid fa-plus"></i>新增區段
                                                             </div>
                                                         `
@@ -289,11 +293,11 @@ export class Main_editor {
 
                                         return html`
                                             <div class="p-2">
-                                                ${renderItems(list, pageConfig,true)}
+                                                ${renderItems(list, pageConfig, true)}
                                             </div>`
                                     })()
 
-                                ])
+                                ].join('')
                             })()}`
                         ].join('')
                     } else {
@@ -366,6 +370,159 @@ export class Main_editor {
         })
     }
 
+    public static colorSetting(gvc: GVC) {
+        // Storage.page_setting_item
+        const globalValue = gvc.glitter.share.editorViewModel.appConfig;
+        globalValue.color_theme = globalValue.color_theme ?? []
+        const vm: {
+            type: 'list' | 'detail'
+            data: any,
+            name: string,
+            index:number
+        } = {
+            type: 'list',
+            data: {},
+            name: '配色1',
+            index:0
+        }
+        return gvc.bindView(() => {
+            const id = gvc.glitter.getUUID()
+            return {
+                bind: id,
+                view: () => {
+                    return html`
+
+                        <div class="" style="">
+                            ${(() => {
+                                if (vm.type === 'list') {
+                                    return html`
+                                        <div class="px-3   border-bottom pb-3 fw-bold mt-2 pt-2"
+                                             style="cursor: pointer;color:#393939;">
+                                            <span>配色設定</span>
+                                        </div>
+                                        <div class="row ${(globalValue.color_theme.length === 0) ? `d-none` : ``}"
+                                             style="margin:18px;">
+                                            ${globalValue.color_theme.map((dd: any,index:number) => {
+                                                return `<div class="col-6 mb-3" style="cursor: pointer;" onclick="${gvc.event(()=>{
+                                                    vm.type='detail'
+                                                    vm.data=globalValue.color_theme[index]
+                                                    vm.index=index
+                                                    gvc.notifyDataChange(id)
+                                                })}">
+                                                <div style="width:100%;padding: 11px 18px;background: white; border-radius: 7px; overflow: hidden; border: 1px #DDDDDD solid; justify-content: center; align-items: center; display: flex">
+                                                    <div style="align-self: stretch; flex-direction: column; justify-content: flex-start; align-items: center; gap: 2px; display: inline-flex">
+                                                        <div style="color: #554233; font-size: 16px;  font-weight: 400; word-wrap: break-word">Aa</div>
+                                                        <div style=" justify-content: flex-start; align-items: flex-start; gap: 4px; display: inline-flex">
+                                                            <div style="width: 26px; height: 13px; position: relative; background: white; border-radius: 7px; border: 1px #554233 solid"></div>
+                                                            <div style="width: 26px;height: 13px; position: relative; background: #554233; border-radius: 7px; border: 1px #554233 solid"></div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="w-100 t_39_16 mt-2" style="text-align: center;">配色${index+1}</div>
+                                            </div>`
+                                            }).join('')}
+                                        </div>
+                                        <div style="padding: 0px 24px 24px;${(globalValue.color_theme.length === 0) ? `margin-top:24px;` : ``}">
+                                            <div class="bt_border_editor"
+                                                 onclick="${gvc.event(() => {
+                                                     vm.data = {id:gvc.glitter.getUUID()};
+                                                     globalValue.color_theme.push(vm.data);
+                                                     vm.name = ('配色' + globalValue.color_theme.length);
+                                                     vm.type = 'detail'
+                                                     vm.index = globalValue.color_theme.length
+                                                     gvc.notifyDataChange(id)
+                                                 })}">
+                                                新增配色
+                                            </div>
+                                        </div>`
+                                } else {
+                                    return [
+                                        `
+ <div class="px-3   border-bottom pb-3 fw-bold mt-2 pt-2" style="cursor: pointer;color:#393939;" onclick="${gvc.event(() => {
+                                            vm.type = 'list'
+                                            gvc.notifyDataChange(id)
+                                        })}">
+ <i class="fa-solid fa-angle-left"></i>
+                            <span>${vm.name} 編輯</span>
+                        </div>
+                                    <div class="border-bottom w-100" style="padding: 24px;width: 100%; justify-content: flex-start; align-items: center; gap: 10px; display: inline-flex">
+  <div style="width:93px;padding: 11px 18px;background: white; border-radius: 7px; overflow: hidden; border: 1px #DDDDDD solid; justify-content: center; align-items: center; display: flex">
+    <div style="align-self: stretch; flex-direction: column; justify-content: flex-start; align-items: center; gap: 2px; display: inline-flex">
+      <div style="color: #554233; font-size: 16px;  font-weight: 400; word-wrap: break-word">Aa</div>
+      <div style=" justify-content: flex-start; align-items: flex-start; gap: 4px; display: inline-flex">
+        <div style="width: 26px; height: 13px; position: relative; background: white; border-radius: 7px; border: 1px #554233 solid"></div>
+        <div style="width: 26px;height: 13px; position: relative; background: #554233; border-radius: 7px; border: 1px #554233 solid"></div>
+      </div>
+    </div>
+  </div>
+  <div style="flex: 1 1 0; flex-direction: column; justify-content: center; align-items: flex-start; gap: 4px; display: inline-flex">
+    <div style="align-self: stretch; color: #393939; font-size: 16px;  font-weight: 400; word-wrap: break-word">${vm.name}</div>
+  </div>
+</div>
+                                    `,
+                                        `<div style="padding: 18px 24px 24px;">${[
+                                            {
+                                                key: 'background', title: '背景顏色'
+                                            }, {
+                                                key: 'title', title: '標題顏色'
+                                            }, {
+                                                key: 'content', title: '內文'
+                                            }, {
+                                                key: 'solid-button-bg', title: '純色按鈕'
+                                            }, {
+                                                key: 'solid-button-text', title: '純色按鈕文字',
+                                            }, {
+                                                key: 'border-button-bg', title: '邊框按鈕'
+                                            }, {
+                                                key: 'border-button-text', title: '邊框按鈕文字'
+                                            }
+                                        ].map((dd) => {
+                                            vm.data[dd.key] = vm.data[dd.key] || '#FFFFFF'
+                                            return EditorElem.colorSelect({
+                                                title: dd.title,
+                                                callback: (text) => {
+                                                    vm.data[dd.key] = text;
+                                                    gvc.glitter.share.globalValue[`theme_color.${vm.index}.${dd.key}`]=text;
+                                                    const lastScrollY=(document.querySelector('iframe') as any).contentWindow.scrollY;
+                                                    (document.querySelector('iframe') as any).contentWindow.glitter.share.globalValue=gvc.glitter.share.globalValue;
+                                                    const element=(document.querySelector('iframe') as any).contentWindow.glitter.elementCallback;
+                                                    Object.keys(element).map((dd)=>{
+                                                        element[dd].updateAttribute()
+                                                    });
+                                                    // (document.querySelector('iframe') as any).contentWindow.glitter.pageConfig[0].gvc.recreateView();
+                                                    // setTimeout(()=>{
+                                                    //     (document.querySelector('iframe') as any).contentWindow.scrollTo(0,lastScrollY)
+                                                    // })
+                                                    //
+                                                },
+                                                gvc: gvc,
+                                                def: vm.data[dd.key]
+                                            })
+                                        }).join('<div style="height: 15px;"></div>')}</div>`,
+                                            `<div style="padding: 0px 24px 24px;"> <div class="bt_border_editor"
+                                                 onclick="${gvc.event(() => {
+                                                globalValue.color_theme=globalValue.color_theme.filter((dd:any)=>{
+                                                    return dd !== vm.data
+                                                })
+                                                vm.type = 'list'
+                                                gvc.notifyDataChange(id)
+                                            })}" >
+                                                刪除配色
+                                            </div></div>`
+                                    ].join('')
+                                }
+                            })()}
+
+                        </div>
+                    `
+                },
+                divCreate: {
+                    class: `border-bottom`
+                }
+            }
+        })
+    }
+
     public static right(gvc: GVC, viewModel: any, createID: string, gBundle: any) {
 
         const glitter = gvc.glitter
@@ -379,7 +536,6 @@ export class Main_editor {
                         hoverList.push((viewModel.selectItem as any).id);
                     }
 
-                    alert('s')
                     if (!viewModel.selectItem) {
                         return `<div class="position-absolute w-100 top-50 d-flex align-items-center justify-content-center flex-column translate-middle-y">
 <iframe src="https://embed.lottiefiles.com/animation/84663" class="w-100" style="width: 400px;height: 400px"></iframe>
@@ -533,6 +689,7 @@ export class Main_editor {
                                          checkSelect((viewModel.data! as any).config)
                                          try {
                                              const dialog = new ShareDialog(gvc.glitter)
+
                                              function deleteBlock() {
                                                  for (let a = 0; a < viewModel.selectContainer.length; a++) {
                                                      if (viewModel.selectContainer[a] == viewModel.selectItem) {
@@ -544,7 +701,7 @@ export class Main_editor {
                                                  }
                                                  // selectComponentHover
                                                  viewModel.selectItem = undefined;
-                                                
+
                                                  // $('#editerCenter iframe').get(0)
                                                  gvc.notifyDataChange(['right_NAV', 'MainEditorLeft']);
                                              }
@@ -569,7 +726,7 @@ export class Main_editor {
 
         return html`
             <div class="${(viewModel.type === ViewType.mobile && (Storage.select_function === 'page-editor' || Storage.select_function === 'user-editor')) ? `d-flex align-items-center justify-content-center flex-column mx-auto` : `d-flex align-items-center justify-content-center flex-column`}"
-                 style="${(viewModel.type === ViewType.mobile && (Storage.select_function === 'page-editor' || Storage.select_function === 'user-editor')) ? `width: 414px;height: calc(100vh - 56px);` : `width: calc(100%);height: calc(100vh - 56px);"`}">
+                 style="${(viewModel.type === ViewType.mobile && (Storage.select_function === 'page-editor' || Storage.select_function === 'user-editor')) ? `width: 414px;height: calc(100vh - 56px);` : `width: calc(100%);height: calc(100vh - 56px);overflow:hidden;`}">
                 <div class="" style="width:100%;height: calc(100%);" id="editerCenter">
                     <iframe class="w-100 h-100  bg-white"
                             src="index.html?type=htmlEditor&page=${gvc.glitter.getUrlParameter('page')}&appName=${gvc.glitter.getUrlParameter('appName')}"></iframe>

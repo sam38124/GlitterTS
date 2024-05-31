@@ -511,18 +511,6 @@ export class Glitter {
                             element.setAttribute(dd.key, data);
                         });
                     }
-                    if (!(glitter.share.EditorMode === true)) {
-                        const inputString = dd.value;
-                        const pattern = /@{{(.*?)}}/g;
-                        let match;
-                        while ((match = pattern.exec(inputString)) !== null) {
-                            const placeholder = match[0];
-                            const value = match[1];
-                            if (glitter.share.globalValue && glitter.share.globalValue[value]) {
-                                dd.value = dd.value.replace(placeholder, glitter.share.globalValue[value]);
-                            }
-                        }
-                    }
                 }
                 catch (e) {
                     console.log(e);
@@ -536,6 +524,21 @@ export class Glitter {
         this.document = window.document;
         Glitter.glitter = this;
         Glitter.glitter.share.htmlExtension = (_a = Glitter.glitter.share.htmlExtension) !== null && _a !== void 0 ? _a : {};
+    }
+    get href() {
+        return location.href;
+    }
+    set href(value) {
+        const link = new URL(value, location.href);
+        if ((location.origin + location.pathname) === (link.origin + link.pathname)) {
+            window.history.replaceState({}, document.title, link.search);
+            this.getModule(new URL('../official_event/page/change-page.js', import.meta.url).href, (cl) => {
+                cl.changePage(link.searchParams.get('page'), 'page', {});
+            });
+        }
+        else {
+            location.href = value;
+        }
     }
     get baseUrl() {
         var getUrl = window.location;
@@ -883,6 +886,19 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
         glitter.runJsInterFace("closeAPP", {}, function (response) {
         });
     }
+    generateCheckSum(str) {
+        let hash = 0;
+        for (let i = 0; i < str.length; i++) {
+            hash = (hash << 5) - hash + str.charCodeAt(i);
+            hash = hash & hash;
+        }
+        hash = Math.abs(hash);
+        let checksum = hash.toString().slice(0, 6);
+        while (checksum.length < 6) {
+            checksum = '0' + checksum;
+        }
+        return checksum;
+    }
     getUrlParameter(sParam) {
         let sPageURL = window.location.search.substring(1), sURLVariables = sPageURL.split('&'), sParameterName, i;
         for (i = 0; i < sURLVariables.length; i++) {
@@ -932,24 +948,24 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
         });
     }
     addStyle(style) {
-        const glitter = this;
-        let sl = {
-            id: glitter.getUUID(),
-            style: style
-        };
-        if (!glitter.parameter.styleList.find((dd) => {
-            return dd.style === style;
-        })) {
-            const css = document.createElement('style');
-            css.type = 'text/css';
-            css.id = sl.id;
-            if (css.styleSheet)
-                css.styleSheet.cssText = style;
-            else
-                css.appendChild(document.createTextNode(style));
-            document.getElementsByTagName("head")[0].appendChild(css);
-            glitter.parameter.styleList.push(sl);
+        var _a, _b;
+        const glitter = window.glitter;
+        glitter.share.style_memory = (_a = glitter.share.style_memory) !== null && _a !== void 0 ? _a : {};
+        const checkSum = glitter.generateCheckSum(style);
+        if (glitter.share.style_memory[checkSum]) {
+            return;
         }
+        glitter.share.style_memory[checkSum] = true;
+        glitter.share.wait_add_style_string = (_b = glitter.share.wait_add_style_string) !== null && _b !== void 0 ? _b : style;
+        glitter.share.wait_add_style_string += style;
+        const css = document.createElement('style');
+        css.type = 'text/css';
+        if (css.styleSheet)
+            css.styleSheet.cssText = glitter.share.wait_add_style_string;
+        else
+            css.appendChild(document.createTextNode(glitter.share.wait_add_style_string));
+        glitter.share.wait_add_style_string = '';
+        document.getElementsByTagName("head")[0].appendChild(css);
     }
     addStyleLink(data, doc) {
         return __awaiter(this, void 0, void 0, function* () {

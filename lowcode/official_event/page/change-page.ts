@@ -1,8 +1,61 @@
 import {TriggerEvent} from '../../glitterBundle/plugins/trigger-event.js';
 import {EditorElem} from "../../glitterBundle/plugins/editor-elem.js";
 import {GlobalData} from "../event.js";
+import {GVC} from "../../glitterBundle/GVController.js";
 
 const html = String.raw
+class ChangePage {
+    public static changePage(link: string, type: 'home' | 'page', subData: any) {
+        const glitter=(window as any).glitter;
+        return new Promise(async (resolve, reject) => {
+            const url = new URL('./', location.href);
+            url.searchParams.set('page', link);
+            const saasConfig: {
+                config: any;
+                api: any;
+                appConfig: any
+            } = (window as any).saasConfig;
+            (window as any).glitterInitialHelper.getPageData(link, (data: any) => {
+                if (data.response.result.length === 0) {
+                    const url = new URL("./", location.href)
+                    url.searchParams.set('page', data.response.redirect)
+                    location.href = url.href;
+                    return
+                }
+                if (type === 'home') {
+                    const cf = {
+                        app_config: saasConfig.appConfig,
+                        page_config: data.response.result[0].page_config,
+                        config: data.response.result[0].config,
+                        data: subData ?? {},
+                        tag: link
+                    }
+                    if (glitter.getUrlParameter('isIframe') === 'true') {
+                        (window.parent as any).glitter.htmlGenerate.setHome(cf)
+                    } else {
+                        glitter.htmlGenerate.setHome(cf)
+                    }
+                    resolve(true)
+                } else {
+                    const cf = {
+                        app_config: saasConfig.appConfig,
+                        page_config: data.response.result[0].page_config,
+                        config: data.response.result[0].config,
+                        data: subData ?? {},
+                        tag: link,
+                        goBack: true
+                    }
+                    if (glitter.getUrlParameter('isIframe') === 'true') {
+                        (window.parent as any).glitter.htmlGenerate.changePage(cf)
+                    } else {
+                        glitter.htmlGenerate.changePage(cf)
+                    }
+                    resolve(true)
+                }
+            })
+        })
+    }
+}
 TriggerEvent.createSingleEvent(import.meta.url, () => {
     return {
         fun: (gvc, widget, object, subData) => {
@@ -10,6 +63,7 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                 editor: () => {
                     return gvc.bindView(() => {
                         const id = gvc.glitter.getUUID();
+
                         function recursive() {
                             if (GlobalData.data.pageList.length === 0) {
                                 GlobalData.data.run();
@@ -62,7 +116,7 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                         object.stackControl = object.stackControl ?? "home"
                                         object.switchType = object.switchType ?? 'template'
                                         object.linkFrom = object.linkFrom ?? 'manual'
-                                        object.linkFromEvent=object.linkFromEvent??{}
+                                        object.linkFromEvent = object.linkFromEvent ?? {}
                                         return html`
                                             ${EditorElem.select({
                                                 title: '堆棧控制',
@@ -90,7 +144,7 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                                         object.linkFrom = text
                                                         gvc.notifyDataChange(id)
                                                     }
-                                                })  ,
+                                                }),
                                                 (object.linkFrom === 'manual') ? [
                                                     EditorElem.select({
                                                         title: '跳轉類型',
@@ -125,8 +179,8 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                                     })}
                                             </select>`
                                                 ].join('<div class="my-2"></div>') : [
-                                                    TriggerEvent.editer(gvc,widget,object.linkFromEvent,{
-                                                        title:'獲取連結來源'
+                                                    TriggerEvent.editer(gvc, widget, object.linkFromEvent, {
+                                                        title: '獲取連結來源'
                                                     })
                                                 ].join('')
                                             ].join(`<div class="my-2"></div>`)}
@@ -173,11 +227,11 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                     });
                 },
                 event: () => {
-                   try {
-                       (window as any).resetClock()
-                   }catch (e) {
+                    try {
+                        (window as any).resetClock()
+                    } catch (e) {
 
-                   }
+                    }
                     console.log(`changePage-Plugin-Time:`, (window as any).renderClock.stop());
                     object.link_change_type = object.link_change_type ?? object.type
                     /**
@@ -185,55 +239,11 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                      * */
                     if (object.link_change_type === 'inlink') {
                         return new Promise(async (resolve, reject) => {
-                            const link:string=(object.linkFrom==='code') ? (await TriggerEvent.trigger({
-                                gvc: gvc, widget: widget, clickEvent: object.linkFromEvent,subData:subData
-                            })):(object.link);
-                            if(link){
-                                const url = new URL('./', location.href);
-                                url.searchParams.set('page', link);
-                                const saasConfig: {
-                                    config: any;
-                                    api: any;
-                                    appConfig: any
-                                } = (window as any).saasConfig;
-                                (window as any).glitterInitialHelper.getPageData(link, (data:any) => {
-                                    if (data.response.result.length === 0) {
-                                        const url = new URL("./", location.href)
-                                        url.searchParams.set('page', data.response.redirect)
-                                        location.href = url.href;
-                                        return
-                                    }
-                                    if (object.stackControl === 'home') {
-                                        const cf={
-                                            app_config: saasConfig.appConfig,
-                                            page_config: data.response.result[0].page_config,
-                                            config: data.response.result[0].config,
-                                            data: subData ?? {},
-                                            tag: link
-                                        }
-                                        if(gvc.glitter.getUrlParameter('isIframe') === 'true'){
-                                            (window.parent as any).glitter.htmlGenerate.setHome(cf)
-                                        }else{
-                                            gvc.glitter.htmlGenerate.setHome(cf)
-                                        }
-                                        resolve(true)
-                                    } else {
-                                        const cf={
-                                            app_config: saasConfig.appConfig,
-                                            page_config: data.response.result[0].page_config,
-                                            config: data.response.result[0].config,
-                                            data: subData ?? {},
-                                            tag: link,
-                                            goBack: true
-                                        }
-                                        if(gvc.glitter.getUrlParameter('isIframe') === 'true'){
-                                            (window.parent as any).glitter.htmlGenerate.changePage(cf)
-                                        }else{
-                                            gvc.glitter.htmlGenerate.changePage(cf)
-                                        }
-                                        resolve(true)
-                                    }
-                                })
+                            const link: string = (object.linkFrom === 'code') ? (await TriggerEvent.trigger({
+                                gvc: gvc, widget: widget, clickEvent: object.linkFromEvent, subData: subData
+                            })) : (object.link);
+                            if (link) {
+                                resolve(await ChangePage.changePage( link, object.stackControl, subData))
                             }
                         })
                     } else if (object.link_change_type === 'hashTag') {
@@ -254,4 +264,9 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
             };
         },
     }
-})
+});
+
+
+
+
+(window as any).glitter.setModule(import.meta.url, ChangePage)

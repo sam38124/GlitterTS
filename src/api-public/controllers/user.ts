@@ -9,6 +9,7 @@ import {sendmail} from "../../services/ses.js";
 import UserUtil from "../../utils/UserUtil.js";
 import {UtPermission} from "../utils/ut-permission.js";
 import {Post} from "../services/post.js";
+import {UtDatabase} from "../utils/ut-database.js";
 
 const router: express.Router = express.Router();
 
@@ -390,6 +391,16 @@ router.get('/public/config', async (req: express.Request, resp: express.Response
                 user_id:req.query.user_id as string
             }))[0] ?? {})['value'] ?? ""});
     } catch (err) {
+        return response.fail(resp, err);
+    }
+})
+
+router.get('/notice',async (req: express.Request, resp: express.Response) => {
+    try {
+        return  response.succ(resp, await new User(req.get('g-app') as string, req.body.token).getNotice({
+            query:req.query
+        }))
+    }catch (err) {
         return response.fail(resp, err);
     }
 })

@@ -5,6 +5,7 @@ export class ApiWallet{
     public static store(json: {
         "total":number,
         "note":any,
+        method?:any,
         "return_url":string
     }) {
         return BaseApi.create({
@@ -169,7 +170,8 @@ export class ApiWallet{
         limit: number,
         page: number,
         search?: string,
-        id?: string
+        id?: string,
+        type?:'me' | 'all'
     }) {
         return BaseApi.create({
             "url": getBaseUrl() + `/api-public/v1/ec/rebate?${ (() => {
@@ -185,7 +187,7 @@ export class ApiWallet{
             "headers": {
                 "g-app": getConfig().config.appName,
                 "Content-Type": "application/json",
-                "Authorization": getConfig().config.token
+                "Authorization": (json.type==='me') ? GlobalUser.token:getConfig().config.token
             }
         })
     }

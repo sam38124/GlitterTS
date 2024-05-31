@@ -41,7 +41,7 @@ export class AddComponent {
                     }
                     return html `
                         <div class="w-100 d-flex align-items-center p-3 border-bottom">
-                            <h5 class=" offcanvas-title  " style="">
+                            <h5 class="offcanvas-title" style="">
                                 添加組件</h5>
                             <div class="flex-fill"></div>
                             <div class="fs-5 text-black" style="cursor: pointer;" onclick="${gvc.event(() => {
@@ -235,7 +235,8 @@ export class AddComponent {
     }
     static toggle(visible) {
         if (visible) {
-            AddComponent.closeEvent = () => { };
+            AddComponent.closeEvent = () => {
+            };
             AddComponent.addEvent = (gvc, tdata) => {
                 gvc.glitter.share.addComponent({
                     "id": gvc.glitter.getUUID(),
@@ -424,330 +425,372 @@ export class AddComponent {
                 return {
                     bind: containerID,
                     view: () => {
-                        return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
-                            const data = yield ApiPageConfig.getPageTemplate({
+                        return gvc.bindView(() => {
+                            let data = undefined;
+                            const id = gvc.glitter.getUUID();
+                            ApiPageConfig.getPageTemplate({
                                 template_from: vm.template_from,
                                 page: '0',
-                                limit: '50',
+                                limit: '2000',
                                 type: type,
-                                tag: vm.query_tag.join(','),
+                                tag: ((Storage.select_function === 'user-editor') ? vm.query_tag.concat('設計元件') : vm.query_tag).join(','),
                                 search: vm.search
+                            }).then((res) => {
+                                data = res;
+                                gvc.notifyDataChange(id);
                             });
-                            const title = EditorConfig.page_type_list.find((dd) => {
-                                return type === dd.value;
-                            }).title;
-                            if (withEmpty) {
-                                data.response.result.data = [{
-                                        template_config: {
-                                            image: ['https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1709282671899-BLANK PAGE.jpg'],
-                                            tag: ['頁面設計'],
-                                            name: '空白-' + title
-                                        },
-                                        name: '空白-' + title
-                                    }].concat(data.response.result.data);
-                            }
-                            resolve((() => {
-                                if (data.response.result.data.length === 0) {
-                                    return html `
-                                    <div class="d-flex align-items-center justify-content-center flex-column w-100"
-                                         style="width:700px;">
-                                        <lottie-player style="max-width: 100%;width: 300px;"
-                                                       src="https://assets10.lottiefiles.com/packages/lf20_rc6CDU.json"
-                                                       speed="1" loop="true"
-                                                       background="transparent"></lottie-player>
-                                        <h3 class="text-dark fs-6 mt-n3 px-2  "
-                                            style="line-height: 200%;text-align: center;">
-                                            查無相關模塊。</h3>
-                                    </div>
+                            return {
+                                bind: id,
+                                view: () => {
+                                    if (data) {
+                                        const title = EditorConfig.page_type_list.find((dd) => {
+                                            return type === dd.value;
+                                        }).title;
+                                        if (withEmpty) {
+                                            data.response.result.data = [{
+                                                    template_config: {
+                                                        image: ['https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1709282671899-BLANK PAGE.jpg'],
+                                                        tag: ['頁面設計', '基本元件'],
+                                                        name: '空白-' + title
+                                                    },
+                                                    name: '空白-' + title
+                                                }].concat(data.response.result.data);
+                                        }
+                                        return (() => {
+                                            if (data.response.result.data.length === 0) {
+                                                return html `
+                                                <div class="d-flex align-items-center justify-content-center flex-column w-100"
+                                                     style="width:700px;">
+                                                    <lottie-player style="max-width: 100%;width: 300px;"
+                                                                   src="https://assets10.lottiefiles.com/packages/lf20_rc6CDU.json"
+                                                                   speed="1" loop="true"
+                                                                   background="transparent"></lottie-player>
+                                                    <h3 class="text-dark fs-6 mt-n3 px-2  "
+                                                        style="line-height: 200%;text-align: center;">
+                                                        查無相關模塊。</h3>
+                                                </div>
 
-                                `;
-                                }
-                                else {
-                                    return html `
-                                    <div class="w-100"
-                                         style="max-height: calc(100vh - 220px);overflow-y: auto;">
-                                        <div class="row m-0 pt-2 w-100">
-                                            ${data.response.result.data.map((dd, index) => {
-                                        var _a, _b;
-                                        return html `
-                                                    <div class="col-6 mb-3">
-                                                        <div class="d-flex flex-column  justify-content-center w-100"
-                                                             style="gap:5px;cursor:pointer;">
-                                                            <div class="card w-100 position-relative rounded hoverHidden bgf6 rounded-3"
-                                                                 style="padding-bottom: 58%;">
-                                                                <div class="position-absolute w-100 h-100 d-flex align-items-center justify-content-center"
-                                                                     style="overflow: hidden;">
-                                                                    <img class="w-100 "
-                                                                         src="${(_a = dd.template_config.image[0]) !== null && _a !== void 0 ? _a : 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713445383494-未命名(1080x1080像素).jpg'}"></img>
-                                                                </div>
-
-                                                                <div class="position-absolute w-100 h-100  align-items-center justify-content-center rounded fs-6 flex-column"
-                                                                     style="background: rgba(0,0,0,0.5);gap:5px;">
-                                                                    <button class="btn btn-primary-c  d-flex align-items-center"
-                                                                            style="height: 28px;width: 75px;gap:5px;"
-                                                                            onclick="${gvc.event(() => {
-                                            const dialog = new ShareDialog(gvc.glitter);
-                                            if (withEmpty && index === 0) {
-                                                AddComponent.redefinePage(gvc, (data) => {
-                                                    const tdata = {
-                                                        "appName": window.appName,
-                                                        "tag": data.tag,
-                                                        "group": data.group,
-                                                        "name": data.name,
-                                                        page_type: type
-                                                    };
-                                                    dialog.dataLoading({ visible: true });
-                                                    ApiPageConfig.addPage(tdata).then((it) => {
-                                                        setTimeout(() => {
-                                                            dialog.dataLoading({ visible: false });
-                                                            if (it.result) {
-                                                                callback(tdata);
-                                                                gvc.glitter.closeDiaLog();
-                                                            }
-                                                            else {
-                                                                dialog.errorMessage({
-                                                                    text: "已有此頁面標籤"
-                                                                });
-                                                            }
-                                                        }, 1000);
-                                                    });
-                                                }, type);
+                                            `;
                                             }
                                             else {
-                                                if (justGetIframe) {
-                                                    callback({
-                                                        copy: dd.tag,
-                                                        copyApp: dd.appName,
-                                                        title: dd.name
+                                                return html `
+                                                <div class="w-100"
+                                                     style=" max-height:${(Storage.select_function === 'user-editor') ? `calc(100vh - 160px)` : `calc(100vh - 220px)`};overflow-y: auto;">
+                                                    <div class="row m-0 pt-2 w-100">
+                                                        ${data.response.result.data.sort((a, b) => {
+                                                    var _a, _b;
+                                                    const aData = ((_a = a.template_config.tag) !== null && _a !== void 0 ? _a : []).find((dd) => {
+                                                        return dd === '基本元件';
                                                     });
-                                                }
-                                                else {
-                                                    dialog.dataLoading({ visible: true });
-                                                    this.checkLoop(gvc, {
-                                                        copy: dd.tag,
-                                                        copyApp: dd.appName
-                                                    }).then((res) => __awaiter(this, void 0, void 0, function* () {
-                                                        function next() {
-                                                            var _a, _b;
-                                                            return __awaiter(this, void 0, void 0, function* () {
-                                                                for (const dd of res.copy_component) {
-                                                                    if (dd.execute !== 'ignore') {
-                                                                        const data = {
-                                                                            "appName": window.appName,
-                                                                            "tag": dd.tag,
-                                                                            "group": dd.group,
-                                                                            "name": dd.name,
-                                                                            page_type: dd.page_type,
-                                                                            config: dd.config,
-                                                                            page_config: dd.page_config,
-                                                                            replace: dd.execute === 'replace'
-                                                                        };
-                                                                        if ((dd.page_config.resource_from !== 'own')) {
-                                                                            data.config = data.config.concat((_a = res.global_style) !== null && _a !== void 0 ? _a : []);
-                                                                            data.config = data.config.concat((_b = res.global_script) !== null && _b !== void 0 ? _b : []);
+                                                    const bData = ((_b = b.template_config.tag) !== null && _b !== void 0 ? _b : []).find((dd) => {
+                                                        return dd === '基本元件';
+                                                    });
+                                                    if (aData && bData) {
+                                                        if (a.template_config.name === '空白-嵌入模塊') {
+                                                            return -1;
+                                                        }
+                                                        else {
+                                                            return 1;
+                                                        }
+                                                    }
+                                                    else if (aData) {
+                                                        return -1;
+                                                    }
+                                                    else {
+                                                        return 1;
+                                                    }
+                                                }).map((dd, index) => {
+                                                    var _a, _b;
+                                                    return html `
+                                                                <div class="col-6 mb-3">
+                                                                    <div class="d-flex flex-column  justify-content-center w-100"
+                                                                         style="gap:5px;cursor:pointer;">
+                                                                        <div class="card w-100 position-relative rounded hoverHidden bgf6 rounded-3"
+                                                                             style="padding-bottom: 58%;">
+                                                                            <div class="position-absolute w-100 h-100 d-flex align-items-center justify-content-center"
+                                                                                 style="overflow: hidden;">
+                                                                                <img class="w-100 "
+                                                                                     src="${(_a = dd.template_config.image[0]) !== null && _a !== void 0 ? _a : 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713445383494-未命名(1080x1080像素).jpg'}"></img>
+                                                                            </div>
+
+                                                                            <div class="position-absolute w-100 h-100  align-items-center justify-content-center rounded fs-6 flex-column"
+                                                                                 style="background: rgba(0,0,0,0.5);gap:5px;">
+                                                                                <button class="btn btn-primary-c  d-flex align-items-center"
+                                                                                        style="height: 28px;width: 75px;gap:5px;"
+                                                                                        onclick="${gvc.event(() => {
+                                                        const dialog = new ShareDialog(gvc.glitter);
+                                                        if (withEmpty && index === 0) {
+                                                            AddComponent.redefinePage(gvc, (data) => {
+                                                                const tdata = {
+                                                                    "appName": window.appName,
+                                                                    "tag": data.tag,
+                                                                    "group": data.group,
+                                                                    "name": data.name,
+                                                                    page_type: type
+                                                                };
+                                                                dialog.dataLoading({ visible: true });
+                                                                ApiPageConfig.addPage(tdata).then((it) => {
+                                                                    setTimeout(() => {
+                                                                        dialog.dataLoading({ visible: false });
+                                                                        if (it.result) {
+                                                                            callback(tdata);
+                                                                            gvc.glitter.closeDiaLog();
                                                                         }
-                                                                        yield new Promise((resolve, reject) => {
-                                                                            ApiPageConfig.addPage(data).then((it) => {
-                                                                                resolve(true);
+                                                                        else {
+                                                                            dialog.errorMessage({
+                                                                                text: "已有此頁面標籤"
+                                                                            });
+                                                                        }
+                                                                    }, 1000);
+                                                                });
+                                                            }, type);
+                                                        }
+                                                        else {
+                                                            if (justGetIframe) {
+                                                                callback({
+                                                                    copy: dd.tag,
+                                                                    copyApp: dd.appName,
+                                                                    title: dd.name
+                                                                });
+                                                            }
+                                                            else {
+                                                                dialog.dataLoading({ visible: true });
+                                                                this.checkLoop(gvc, {
+                                                                    copy: dd.tag,
+                                                                    copyApp: dd.appName
+                                                                }).then((res) => __awaiter(this, void 0, void 0, function* () {
+                                                                    function next() {
+                                                                        var _a, _b;
+                                                                        return __awaiter(this, void 0, void 0, function* () {
+                                                                            for (const dd of res.copy_component) {
+                                                                                if (dd.execute !== 'ignore') {
+                                                                                    const data = {
+                                                                                        "appName": window.appName,
+                                                                                        "tag": dd.tag,
+                                                                                        "group": dd.group,
+                                                                                        "name": dd.name,
+                                                                                        page_type: dd.page_type,
+                                                                                        config: dd.config,
+                                                                                        page_config: dd.page_config,
+                                                                                        replace: dd.execute === 'replace'
+                                                                                    };
+                                                                                    if ((dd.page_config.resource_from !== 'own')) {
+                                                                                        data.config = data.config.concat((_a = res.global_style) !== null && _a !== void 0 ? _a : []);
+                                                                                        data.config = data.config.concat((_b = res.global_script) !== null && _b !== void 0 ? _b : []);
+                                                                                    }
+                                                                                    yield new Promise((resolve, reject) => {
+                                                                                        ApiPageConfig.addPage(data).then((it) => {
+                                                                                            resolve(true);
+                                                                                        });
+                                                                                    });
+                                                                                }
+                                                                            }
+                                                                            gvc.glitter.htmlGenerate.saveEvent(false, () => {
+                                                                                dialog.dataLoading({ visible: false });
+                                                                                callback({
+                                                                                    "appName": window.appName,
+                                                                                    "tag": res.copy_component[0].tag,
+                                                                                    "group": res.copy_component[0].group,
+                                                                                    "name": res.copy_component[0].name,
+                                                                                    page_type: res.copy_component[0].page_type,
+                                                                                    config: res.copy_component[0].config,
+                                                                                    page_config: res.copy_component[0].page_config
+                                                                                });
                                                                             });
                                                                         });
                                                                     }
-                                                                }
-                                                                gvc.glitter.htmlGenerate.saveEvent(false, () => {
-                                                                    dialog.dataLoading({ visible: false });
-                                                                    callback({
-                                                                        "appName": window.appName,
-                                                                        "tag": res.copy_component[0].tag,
-                                                                        "group": res.copy_component[0].group,
-                                                                        "name": res.copy_component[0].name,
-                                                                        page_type: res.copy_component[0].page_type,
-                                                                        config: res.copy_component[0].config,
-                                                                        page_config: res.copy_component[0].page_config
-                                                                    });
-                                                                });
-                                                            });
-                                                        }
-                                                        if (gvc.glitter.share.editorViewModel.dataList.find((dd) => {
-                                                            return res.copy_component.find((d2) => {
-                                                                return d2.tag === dd.tag;
-                                                            });
-                                                        })) {
-                                                            dialog.dataLoading({
-                                                                visible: false
-                                                            });
-                                                            EditorElem.openEditorDialog(gvc, (gvc) => {
-                                                                return [gvc.bindView(() => {
-                                                                        const id = gvc.glitter.getUUID();
-                                                                        return {
-                                                                            bind: id,
-                                                                            view: () => {
-                                                                                return html `
-                                                                                                                <div class="alert alert-danger fs-base fw-bold">
-                                                                                                                    標籤名稱發生衝突，請選擇以下衝突組件的處理方式。
-                                                                                                                </div>
-                                                                                                                ${res.copy_component.filter((d1) => {
-                                                                                    return gvc.glitter.share.editorViewModel.dataList.find((dd) => {
-                                                                                        return d1.tag === dd.tag;
-                                                                                    });
-                                                                                }).map((data, index) => {
-                                                                                    let view = [
-                                                                                        EditorElem.h3(html `
-                                                                                                                            <span class="text-danger">
+                                                                    if (gvc.glitter.share.editorViewModel.dataList.find((dd) => {
+                                                                        return res.copy_component.find((d2) => {
+                                                                            return d2.tag === dd.tag;
+                                                                        });
+                                                                    })) {
+                                                                        dialog.dataLoading({
+                                                                            visible: false
+                                                                        });
+                                                                        EditorElem.openEditorDialog(gvc, (gvc) => {
+                                                                            return [gvc.bindView(() => {
+                                                                                    const id = gvc.glitter.getUUID();
+                                                                                    return {
+                                                                                        bind: id,
+                                                                                        view: () => {
+                                                                                            return html `
+                                                                                                                                <div class="alert alert-danger fs-base fw-bold">
+                                                                                                                                    標籤名稱發生衝突，請選擇以下衝突組件的處理方式。
+                                                                                                                                </div>
+                                                                                                                                ${res.copy_component.filter((d1) => {
+                                                                                                return gvc.glitter.share.editorViewModel.dataList.find((dd) => {
+                                                                                                    return d1.tag === dd.tag;
+                                                                                                });
+                                                                                            }).map((data, index) => {
+                                                                                                let view = [
+                                                                                                    EditorElem.h3(html `
+                                                                                                                                            <span class="text-danger">
 ${(data.template_config && data.template_config.name) || data.name}
 </span>`),
-                                                                                        `<div class="d-flex flex-wrap px-1 align-items-center ">
+                                                                                                    `<div class="d-flex flex-wrap px-1 align-items-center ">
 ${[
-                                                                                            {
-                                                                                                title: "忽略",
-                                                                                                value: 'ignore'
-                                                                                            },
-                                                                                            {
-                                                                                                title: "替換",
-                                                                                                value: 'replace'
-                                                                                            },
-                                                                                            {
-                                                                                                title: "重新命名",
-                                                                                                value: 'tag'
-                                                                                            }
-                                                                                        ].map((dd) => {
-                                                                                            return `<div class="form-check form-check-inline" onclick="${gvc.event(() => {
-                                                                                                data.execute = dd.value;
-                                                                                                gvc.notifyDataChange(id);
-                                                                                            })}">
+                                                                                                        {
+                                                                                                            title: "忽略",
+                                                                                                            value: 'ignore'
+                                                                                                        },
+                                                                                                        {
+                                                                                                            title: "替換",
+                                                                                                            value: 'replace'
+                                                                                                        },
+                                                                                                        {
+                                                                                                            title: "重新命名",
+                                                                                                            value: 'tag'
+                                                                                                        }
+                                                                                                    ].map((dd) => {
+                                                                                                        return `<div class="form-check form-check-inline" onclick="${gvc.event(() => {
+                                                                                                            data.execute = dd.value;
+                                                                                                            gvc.notifyDataChange(id);
+                                                                                                        })}">
   <input class="form-check-input" type="checkbox" id="ch-${dd.value}-${index}"   ${(dd.value === data.execute) ? `checked` : ``} >
   <label class="form-check-label" for="ch-${dd.value}-${index}" style="color:#5e5e5e;" onclick="${gvc.event(() => {
-                                                                                            })}">${dd.title}</label>
+                                                                                                        })}">${dd.title}</label>
 </div>
                                                         `;
-                                                                                        }).join('')}
+                                                                                                    }).join('')}
 </div>`
-                                                                                    ];
-                                                                                    (data.execute === 'tag') && (view.push(`<div class="pb-2">${EditorElem.editeInput({
-                                                                                        gvc: gvc,
-                                                                                        title: ``,
-                                                                                        default: data.changeTag,
-                                                                                        placeHolder: `請輸入標籤名稱`,
-                                                                                        callback: (text) => {
-                                                                                            data.changeTag = text;
+                                                                                                ];
+                                                                                                (data.execute === 'tag') && (view.push(`<div class="pb-2">${EditorElem.editeInput({
+                                                                                                    gvc: gvc,
+                                                                                                    title: ``,
+                                                                                                    default: data.changeTag,
+                                                                                                    placeHolder: `請輸入標籤名稱`,
+                                                                                                    callback: (text) => {
+                                                                                                        data.changeTag = text;
+                                                                                                    }
+                                                                                                })}</div>`));
+                                                                                                return `<div class="border-bottom w-100 ">${view.join('')}</div>`;
+                                                                                            }).join('')}
+                                                                                                                            `;
+                                                                                        },
+                                                                                        divCreate: {
+                                                                                            class: `p-2 `
                                                                                         }
-                                                                                    })}</div>`));
-                                                                                    return `<div class="border-bottom w-100 ">${view.join('')}</div>`;
-                                                                                }).join('')}
-                                                                                                            `;
-                                                                            },
-                                                                            divCreate: {
-                                                                                class: `p-2 `
-                                                                            }
-                                                                        };
-                                                                    }),
-                                                                    html `
-                                                                                                        <div class="d-flex align-items-center justify-content-end px-2 ">
-                                                                                                            <button class="btn btn-primary-c btn-sm mb-2 fs-base"
-                                                                                                                    onclick="${gvc.event(() => {
-                                                                        const conflict = res.copy_component.filter((d1) => {
-                                                                            return gvc.glitter.share.editorViewModel.dataList.find((dd) => {
-                                                                                return d1.tag === dd.tag;
-                                                                            });
-                                                                        });
-                                                                        if (conflict.find((dd) => {
-                                                                            return !dd.execute;
-                                                                        })) {
-                                                                            dialog.errorMessage({ text: '請勾選項目' });
-                                                                        }
-                                                                        else if (conflict.find((dd) => {
-                                                                            return (dd.execute === 'tag') && !dd.changeTag;
-                                                                        })) {
-                                                                            dialog.errorMessage({ text: '請設定標籤名稱' });
-                                                                        }
-                                                                        else if (conflict.find((d1) => {
-                                                                            return (d1.execute === 'tag') && gvc.glitter.share.editorViewModel.dataList.find((dd) => {
-                                                                                return d1.changeTag === dd.tag;
-                                                                            });
-                                                                        })) {
-                                                                            dialog.errorMessage({
-                                                                                text: `此標籤名稱已重複:${conflict.find((d1) => {
-                                                                                    return (d1.execute === 'tag') && gvc.glitter.share.editorViewModel.dataList.find((dd) => {
-                                                                                        return d1.changeTag === dd.tag;
+                                                                                    };
+                                                                                }),
+                                                                                html `
+                                                                                                                        <div class="d-flex align-items-center justify-content-end px-2 ">
+                                                                                                                            <button class="btn btn-primary-c btn-sm mb-2 fs-base"
+                                                                                                                                    onclick="${gvc.event(() => {
+                                                                                    const conflict = res.copy_component.filter((d1) => {
+                                                                                        return gvc.glitter.share.editorViewModel.dataList.find((dd) => {
+                                                                                            return d1.tag === dd.tag;
+                                                                                        });
                                                                                     });
-                                                                                }).changeTag}`
-                                                                            });
-                                                                        }
-                                                                        else {
-                                                                            function loop(array, tag, replace) {
-                                                                                for (const dd of array) {
-                                                                                    if (dd.type === 'container') {
-                                                                                        loop(dd.data.setting, tag, replace);
+                                                                                    if (conflict.find((dd) => {
+                                                                                        return !dd.execute;
+                                                                                    })) {
+                                                                                        dialog.errorMessage({ text: '請勾選項目' });
                                                                                     }
-                                                                                    else if (dd.type === 'component') {
-                                                                                        if (dd.data.tag === tag) {
-                                                                                            dd.data.tag = replace;
+                                                                                    else if (conflict.find((dd) => {
+                                                                                        return (dd.execute === 'tag') && !dd.changeTag;
+                                                                                    })) {
+                                                                                        dialog.errorMessage({ text: '請設定標籤名稱' });
+                                                                                    }
+                                                                                    else if (conflict.find((d1) => {
+                                                                                        return (d1.execute === 'tag') && gvc.glitter.share.editorViewModel.dataList.find((dd) => {
+                                                                                            return d1.changeTag === dd.tag;
+                                                                                        });
+                                                                                    })) {
+                                                                                        dialog.errorMessage({
+                                                                                            text: `此標籤名稱已重複:${conflict.find((d1) => {
+                                                                                                return (d1.execute === 'tag') && gvc.glitter.share.editorViewModel.dataList.find((dd) => {
+                                                                                                    return d1.changeTag === dd.tag;
+                                                                                                });
+                                                                                            }).changeTag}`
+                                                                                        });
+                                                                                    }
+                                                                                    else {
+                                                                                        function loop(array, tag, replace) {
+                                                                                            for (const dd of array) {
+                                                                                                if (dd.type === 'container') {
+                                                                                                    loop(dd.data.setting, tag, replace);
+                                                                                                }
+                                                                                                else if (dd.type === 'component') {
+                                                                                                    if (dd.data.tag === tag) {
+                                                                                                        dd.data.tag = replace;
+                                                                                                    }
+                                                                                                }
+                                                                                            }
                                                                                         }
+                                                                                        conflict.filter((d1) => {
+                                                                                            return (d1.execute === 'tag');
+                                                                                        }).map((dd) => {
+                                                                                            loop(dd.config, dd.tag, dd.changeTag);
+                                                                                            dd.tag = dd.changeTag;
+                                                                                        });
                                                                                     }
-                                                                                }
-                                                                            }
-                                                                            conflict.filter((d1) => {
-                                                                                return (d1.execute === 'tag');
-                                                                            }).map((dd) => {
-                                                                                loop(dd.config, dd.tag, dd.changeTag);
-                                                                                dd.tag = dd.changeTag;
-                                                                            });
-                                                                        }
+                                                                                    next();
+                                                                                })}">
+                                                                                                                                確認
+                                                                                                                            </button>
+                                                                                                                        </div>`
+                                                                            ].join('');
+                                                                        }, () => {
+                                                                        }, 400, '偵測到衝突組件');
+                                                                    }
+                                                                    else {
                                                                         next();
-                                                                    })}">
-                                                                                                                確認
-                                                                                                            </button>
-                                                                                                        </div>`
-                                                                ].join('');
-                                                            }, () => {
-                                                            }, 400, '偵測到衝突組件');
+                                                                    }
+                                                                }));
+                                                            }
                                                         }
-                                                        else {
-                                                            next();
-                                                        }
-                                                    }));
-                                                }
-                                            }
-                                        })}"
-                                                                    >
-                                                                        <i class="fa-regular fa-circle-plus "></i>新增
-                                                                    </button>
-                                                                    <button class="btn btn-warning d-flex align-items-center ${(withEmpty && index === 0) ? `d-none` : ``}"
-                                                                            style="height: 28px;width: 75px;color:black;gap:5px;"
-                                                                            onclick="${gvc.event(() => {
-                                            gvc.glitter.openDiaLog(new URL('./preview-app.js', import.meta.url).href, 'preview', {
-                                                "page": dd.tag,
-                                                "appName": dd.appName,
-                                                "title": dd.name
-                                            });
-                                        })}"
-                                                                    >
-                                                                        <i class="fa-solid fa-eye "></i>預覽
-                                                                    </button>
+                                                    })}"
+                                                                                >
+                                                                                    <i class="fa-regular fa-circle-plus "></i>新增
+                                                                                </button>
+                                                                                <button class="btn btn-warning d-flex align-items-center ${(withEmpty && index === 0) ? `d-none` : ``}"
+                                                                                        style="height: 28px;width: 75px;color:black;gap:5px;"
+                                                                                        onclick="${gvc.event(() => {
+                                                        gvc.glitter.openDiaLog(new URL('./preview-app.js', import.meta.url).href, 'preview', {
+                                                            "page": dd.tag,
+                                                            "appName": dd.appName,
+                                                            "title": dd.name
+                                                        });
+                                                    })}"
+                                                                                >
+                                                                                    <i class="fa-solid fa-eye "></i>預覽
+                                                                                </button>
+                                                                            </div>
+                                                                        </div>
+                                                                        <h3 class="fs-6 mb-0">
+                                                                            ${dd.template_config.name}</h3>
+                                                                        <div class="d-flex flex-wrap">
+                                                                            ${((_b = dd.template_config.tag) !== null && _b !== void 0 ? _b : []).map((dd) => {
+                                                        return html `
+                                                                                    <div class="d-flex align-items-center justify-content-center p-2   mb-1 bgf6 fw-500 border"
+                                                                                         style="color:black;border-radius: 11px;font-size:11px;height:22px;cursor: pointer;">
+                                                                                            #${dd}
+                                                                                    </div>`;
+                                                    }).join('<div class="me-1"></div>')}
+
+                                                                        </div>
+
+                                                                    </div>
                                                                 </div>
-                                                            </div>
-                                                            <h3 class="fs-6 mb-0">
-                                                                ${dd.template_config.name}</h3>
-                                                            <div class="d-flex flex-wrap">
-                                                                ${((_b = dd.template_config.tag) !== null && _b !== void 0 ? _b : []).map((dd) => {
-                                            return html `
-                                                                        <div class="d-flex align-items-center justify-content-center p-2   mb-1 bgf6 fw-500 border"
-                                                                             style="color:black;border-radius: 11px;font-size:11px;height:22px;cursor: pointer;">
-                                                                                #${dd}
-                                                                        </div>`;
-                                        }).join('<div class="me-1"></div>')}
-
-                                                            </div>
-
-                                                        </div>
+                                                            `;
+                                                }).join('')}
                                                     </div>
-                                                `;
-                                    }).join('')}
-                                        </div>
-                                    </div>
-                                `;
+                                                </div>
+                                            `;
+                                            }
+                                        })();
+                                    }
+                                    else {
+                                        return html `
+                                        <div class="w-100 p-3 d-flex align-items-center justify-content-center flex-column"
+                                             style="gap: 10px;">
+                                            <div class="spinner-border fs-5"></div>
+                                            <div class="fs-6 fw-500">加載中...</div>
+                                        </div>`;
+                                    }
                                 }
-                            })());
-                        }));
+                            };
+                        });
                     }
                 };
             });
@@ -872,6 +915,8 @@ ${[
         });
     }
 }
-AddComponent.addEvent = (gvc, tdata) => { };
-AddComponent.closeEvent = () => { };
+AddComponent.addEvent = (gvc, tdata) => {
+};
+AddComponent.closeEvent = () => {
+};
 window.glitter.setModule(import.meta.url, AddComponent);

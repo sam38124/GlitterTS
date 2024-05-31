@@ -36,6 +36,7 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                                 }
                                             })
                                         })
+
                                         resolve(EditorElem.searchInputDynamic({
                                             title: '搜尋商品',
                                             gvc: gvc,

@@ -17,7 +17,7 @@ export class ApiFcm {
             "type": "POST",
             "headers": {
                 "Content-Type": "application/json",
-                "g-app": getConfig().config.appName,
+                "g-app": (window.parent as any).appName,
                 "Authorization": getConfig().config.token
             },
             data: JSON.stringify(json)

@@ -5,7 +5,6 @@ import {config} from "./config.js";
 import {ApiPageConfig} from "./api/pageConfig.js";
 import {BaseApi} from "./glitterBundle/api/base.js";
 import {GlobalUser} from "./glitter-base/global/global-user.js";
-import {toJSON} from "./modules/toJSON.js";
 
 export class Entry {
     public static onCreate(glitter: Glitter) {
@@ -21,9 +20,10 @@ export class Entry {
             (window as any).appName = glitter.getUrlParameter('appName')
             config.appName = glitter.getUrlParameter('appName')
         }
+
         (window as any).renderClock = (window as any).renderClock ?? clockF();
         console.log(`Entry-time:`, (window as any).renderClock.stop());
-        glitter.share.editerVersion = "V_6.7.5";
+        glitter.share.editerVersion = "V_7.2.3";
         glitter.share.start = (new Date());
         const vm: {
             appConfig: any
@@ -234,7 +234,6 @@ export class Entry {
                 }
             })
         } else {
-            console.log(GlobalUser.saas_token);
             if (!GlobalUser.saas_token) {
                 const url = new URL(glitter.location.href)
                 location.href = `${url.origin}/glitter/?page=signin`
@@ -358,8 +357,10 @@ export class Entry {
                 if (glitter.getUrlParameter('function')) {
                     url.searchParams.set('function', glitter.getUrlParameter('function'))
                 }
+                if(data.response.redirect){
+                    location.href = url.href;
+                }
 
-                location.href = url.href;
                 return
             }
             //Preload page script.
@@ -400,7 +401,9 @@ export class Entry {
             }
 
             //判斷APP是否過期
-            if (((window as any).memberType !== 'noLimit') && vm.appConfig.dead_line && (new Date(vm.appConfig.dead_line).getTime()) < new Date().getTime()) {
+            if (((window as any).memberType !== 'noLimit') && vm.appConfig.dead_line && (new Date(vm.appConfig.dead_line).getTime()) < new Date().getTime()
+            && (!(vm.appConfig.refer_app) || (vm.appConfig.refer_app===vm.appConfig.appName))
+            ) {
                 authError('使用權限已過期，請前往後台執行續費。')
             } else {
                 authPass()
@@ -419,9 +422,31 @@ export class Entry {
             glitter.share.appConfigresponse = dd;
             glitter.share.globalValue = {}
             glitter.share.globalStyle = {}
-            glitter.share.appConfigresponse.response.data.globalValue = glitter.share.appConfigresponse.response.data.globalValue ?? []
-            glitter.share.appConfigresponse.response.data.globalStyleTag = glitter.share.appConfigresponse.response.data.globalStyleTag ?? [];
-
+            const config=glitter.share.appConfigresponse.response.data;
+            config.color_theme = config.color_theme ?? [];
+            config.globalValue = config.globalValue ?? []
+            config.globalStyleTag = config.globalStyleTag ?? [];
+            config.color_theme.map((dd:any,index:number)=>{
+                [
+                    {
+                        key: 'background', title: '背景顏色'
+                    }, {
+                    key: 'title', title: '標題顏色'
+                }, {
+                    key: 'content', title: '內文'
+                }, {
+                    key: 'solid-button-bg', title: '純色按鈕'
+                }, {
+                    key: 'solid-button-text', title: '純色按鈕文字',
+                }, {
+                    key: 'border-button-bg', title: '邊框按鈕'
+                }, {
+                    key: 'border-button-text', title: '邊框按鈕文字'
+                }
+                ].map((d2)=>{
+                    glitter.share.globalValue[`theme_color.${index}.${d2.key}`]=dd[d2.key]
+                })
+            })
             function loopCheckGlobalValue(array: any, tag: string) {
                 try {
                     array.map((dd: any) => {

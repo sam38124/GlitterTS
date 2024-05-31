@@ -27,6 +27,9 @@ export declare const config: {
     readonly AWS_S3_NAME: string | undefined;
     readonly AWS_ACCESS_KEY: string | undefined;
     readonly AWS_SecretAccessKey: string | undefined;
+    readonly AWS_HostedZoneId: string | undefined;
+    readonly HostedDomain: string | undefined;
+    readonly sshIP: string | undefined;
     readonly AWS_S3_PREFIX_DOMAIN_NAME: string;
     readonly SINGLE_TYPE: boolean;
     getRoute: (r: string, type?: 'public' | 'normal') => string;

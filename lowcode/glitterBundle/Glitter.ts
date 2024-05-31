@@ -25,7 +25,7 @@ export class Glitter {
     /*Parameter*/
     public htmlGenerate = HtmlGenerate
     public window: Window;
-    public config:any={};
+    public config: any = {};
     public $: any;
     public document: any;
     public webUrl: string = '';
@@ -45,9 +45,26 @@ export class Glitter {
     public pageConfig: PageConfig[] = []
     public nowPageConfig?: PageConfig
     public waitChangePage = false
-    public elementCallback: { [name: string]: { onCreate: () => void, onInitial: () => void, notifyDataChange: () => void, getView: () => string | Promise<string>, updateAttribute: () => void, onDestroy: () => void, rendered: boolean,recreateView:()=>void ,element:any,doc:any} } = {}
+    public elementCallback: { [name: string]: { onCreate: () => void, onInitial: () => void, notifyDataChange: () => void, getView: () => string | Promise<string>, updateAttribute: () => void, onDestroy: () => void, rendered: boolean, recreateView: () => void, element: any, doc: any } } = {}
     public html = String.raw
     public promiseValueMap: any = {}
+
+    get href() {
+        return location.href
+    }
+
+    set href(value) {
+        const link = new URL(value, location.href);
+        if ((location.origin + location.pathname) === (link.origin + link.pathname)) {
+            window.history.replaceState({}, document.title, link.search);
+            this.getModule(new URL('../official_event/page/change-page.js', import.meta.url).href, (cl) => {
+                cl.changePage(link.searchParams.get('page'), 'page', {})
+            })
+        } else {
+            location.href = value;
+        }
+    }
+
     /*Getter*/
 
     //@ts-ignore
@@ -229,7 +246,7 @@ export class Glitter {
     };
 
     public deBugMessage(error: any) {
-        if (this.debugMode==='true') {
+        if (this.debugMode === 'true') {
             try {
                 if (error && error.message) {
                     console.error(`${error}
@@ -249,7 +266,7 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
     }
 
     public consoleLog(text: string) {
-        if (this.debugMode==='true') {
+        if (this.debugMode === 'true') {
             console.log(text)
         }
     }
@@ -435,6 +452,27 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
         })
     }
 
+    public generateCheckSum(str:string){
+        let hash = 0;
+
+        for (let i = 0; i < str.length; i++) {
+            hash = (hash << 5) - hash + str.charCodeAt(i);
+            hash = hash & hash; // 轉換為32位整數
+        }
+
+        // 將hash轉換為正整數
+        hash = Math.abs(hash);
+
+        // 將hash轉換為6碼字串
+        let checksum = hash.toString().slice(0, 6);
+
+        // 如果不足6碼，則補零
+        while (checksum.length < 6) {
+            checksum = '0' + checksum;
+        }
+
+        return checksum;
+    }
     public getUrlParameter(sParam: string): any {
 
         let sPageURL = window.location.search.substring(1),
@@ -495,73 +533,80 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
     }
 
     public addStyle(style: string) {
-        const glitter = this;
-        let sl = {
-            id: glitter.getUUID(),
-            style: style
+        const glitter=(window as any).glitter;
+        glitter.share.style_memory=glitter.share.style_memory ?? {};
+        const checkSum=glitter.generateCheckSum(style)
+        if(glitter.share.style_memory[checkSum]){
+            return
         }
-        if (!glitter.parameter.styleList.find((dd: any) => {
-            return dd.style === style
-        })) {
-            const css = document.createElement('style');
-            css.type = 'text/css';
-            css.id = sl.id
-            if ((css as any).styleSheet)
-                (css as any).styleSheet.cssText = style;
-            else
-                css.appendChild(document.createTextNode(style));
-            /* Append style to the tag name */
-            document.getElementsByTagName("head")[0].appendChild(css);
-            glitter.parameter.styleList.push(sl)
-        }
+        glitter.share.style_memory[checkSum]=true
+        glitter.share.wait_add_style_string= glitter.share.wait_add_style_string ?? style;
+        glitter.share.wait_add_style_string += style
+        // clearInterval(glitter.share.wait_add_style)
+        const css = document.createElement('style');
+        css.type = 'text/css';
+        if ((css as any).styleSheet)
+            (css as any).styleSheet.cssText = glitter.share.wait_add_style_string;
+        else
+            css.appendChild(document.createTextNode(glitter.share.wait_add_style_string));
+        glitter.share.wait_add_style_string=''
+        document.getElementsByTagName("head")[0].appendChild(css);
+
+        // setTimeout(()=>{
+        //     document.querySelector('#style_base')!.innerHTML+=`\n${style}`
+        // })
+
+        /* Append style to the tag name */
+
     }
 
-    public async addStyleLink(data: string | string[],doc?:any) {
-        const document=doc ?? (window.document)
+    public async addStyleLink(data: string | string[], doc?: any) {
+        const document = doc ?? (window.document)
         const glitter = this;
         const head = document.head || document;
+
         async function add(filePath: string) {
-           return new Promise((resolve, reject)=>{
-               const id = glitter.getUUID()
-               // 获取所有<a>标签
-               let allLinks:any = document.querySelectorAll("link");
-               let pass=true
-               // 遍历所有<a>标签并输出其href属性值
-               for (let i = 0; i < allLinks.length; i++) {
-                   const hrefValue = allLinks[i].getAttribute("href");
-                   if(hrefValue===filePath){
-                       pass=false
-                       break
-                   }
-               }
-               if (pass) {
-                   let link = (window.document).createElement("link");
-                   link.type = "text/css";
-                   link.rel = "stylesheet";
-                   link.href = filePath;
-                   link.id = id;
-                   link.onload = function() {
-                       resolve(true); // 样式表加载完毕
-                   };
-                   link.onerror=function (){
-                       resolve(false)
-                   }
-                   glitter.parameter.styleLinks.push({
-                       id: id,
-                       src: filePath
-                   })
-                   head.appendChild(link);
-               }else{
-                   resolve(true)
-               }
-           })
+            return new Promise((resolve, reject) => {
+                const id = glitter.getUUID()
+                // 获取所有<a>标签
+                let allLinks: any = document.querySelectorAll("link");
+                let pass = true
+                // 遍历所有<a>标签并输出其href属性值
+                for (let i = 0; i < allLinks.length; i++) {
+                    const hrefValue = allLinks[i].getAttribute("href");
+                    if (hrefValue === filePath) {
+                        pass = false
+                        break
+                    }
+                }
+                if (pass) {
+                    let link = (window.document).createElement("link");
+                    link.type = "text/css";
+                    link.rel = "stylesheet";
+                    link.href = filePath;
+                    link.id = id;
+                    link.onload = function () {
+                        resolve(true); // 样式表加载完毕
+                    };
+                    link.onerror = function () {
+                        resolve(false)
+                    }
+                    glitter.parameter.styleLinks.push({
+                        id: id,
+                        src: filePath
+                    })
+                    head.appendChild(link);
+                } else {
+                    resolve(true)
+                }
+            })
         }
 
         if (typeof data == "string") {
             await add(data)
         } else {
-            for (const d3 of data){
-                await  add(d3)
+            for (const d3 of data) {
+                await add(d3)
             }
         }
     }
@@ -598,7 +643,6 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
                 })())
             } else {
                 queue[tag].callback.push(callback)
-
                 if (!queue[tag].isRunning) {
                     queue[tag].isRunning = true
                     fun((response: any) => {
@@ -932,7 +976,8 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
                 return inputString
             }
             let convert = inputString
-            function replaceString(pattern:any){
+
+            function replaceString(pattern: any) {
                 let match;
                 while ((match = pattern.exec(convert)) !== null) {
                     const placeholder = match[0]; // 完整的匹配项，例如 "@{{value}}"
@@ -942,6 +987,7 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
                     }
                 }
             }
+
             replaceString(/\/\**@{{(.*?)}}\*\//g)
             replaceString(/@{{(.*?)}}/g)
             return convert
@@ -1015,20 +1061,23 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
                     })
                 }
 
-                if (!(glitter.share.EditorMode === true)) {
-                    const inputString = dd.value;
-                    // 正则表达式模式
-                    const pattern = /@{{(.*?)}}/g;
-                    // 使用正则表达式的 exec 方法来提取匹配项
-                    let match;
-                    while ((match = pattern.exec(inputString)) !== null) {
-                        const placeholder = match[0]; // 完整的匹配项，例如 "@{{value}}"
-                        const value = match[1]; // 提取的值，例如 "value"
-                        if (glitter.share.globalValue && glitter.share.globalValue[value]) {
-                            dd.value = dd.value.replace(placeholder, glitter.share.globalValue[value])
-                        }
-                    }
-                }
+                // if (!(glitter.share.EditorMode === true)) {
+                //     const inputString = dd.value;
+                //     // 正则表达式模式
+                //     const pattern = /@{{(.*?)}}/g;
+                //     // 使用正则表达式的 exec 方法来提取匹配项
+                //     let match;
+                //     while ((match = pattern.exec(inputString)) !== null) {
+                //         const placeholder = match[0]; // 完整的匹配项，例如 "@{{value}}"
+                //         const value = match[1]; // 提取的值，例如 "value"
+                //         if (glitter.share.globalValue && glitter.share.globalValue[value]) {
+                //             console.log(`match->`,value)
+                //
+                //             dd.value = dd.value.replace(placeholder, glitter.share.globalValue[value])
+                //             console.log(`natch->in_.`,dd.value )
+                //         }
+                //     }
+                // }
             } catch (e) {
                 console.log(e)
             }
@@ -1042,27 +1091,27 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
         this.share.glitterModule[key] = value
     }
 
-    public getModule(js: string,callback:(module:any)=>void) {
+    public getModule(js: string, callback: (module: any) => void) {
         const glitter = this;
         glitter.share.glitterModule = glitter.share.glitterModule ?? {}
-        glitter.share.glitterModuleCallback= glitter.share.glitterModuleCallback ?? {}
-        if(glitter.share.glitterModule[js]){
+        glitter.share.glitterModuleCallback = glitter.share.glitterModuleCallback ?? {}
+        if (glitter.share.glitterModule[js]) {
             callback(glitter.share.glitterModule[js])
-        }else{
-            glitter.share.glitterModuleCallback[js]=glitter.share.glitterModuleCallback[js]??[]
+        } else {
+            glitter.share.glitterModuleCallback[js] = glitter.share.glitterModuleCallback[js] ?? []
             glitter.share.glitterModuleCallback[js].push(callback)
             Object.defineProperty(glitter.share.glitterModule, js, {
                 // getter 函数返回属性的值
                 get() {
-                    return glitter.share.glitterModule['init_'+js];
+                    return glitter.share.glitterModule['init_' + js];
                 },
                 // setter 函数设置属性的值，并触发监听事件
                 set(newValue) {
-                    glitter.share.glitterModule['init_'+js]=newValue
+                    glitter.share.glitterModule['init_' + js] = newValue
                     glitter.share.glitterModuleCallback[js].map((callback: any) => {
                         callback && callback(newValue)
                     })
-                    glitter.share.glitterModuleCallback[js]=[]
+                    glitter.share.glitterModuleCallback[js] = []
                 },
                 // 可选：指定属性是否可枚举
                 enumerable: true,

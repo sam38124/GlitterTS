@@ -96,7 +96,7 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                         gvc:gvc,
                                         widget:widget,
                                         clickEvent:object.error,
-                                        subData:subData,
+                                        subData:r,
                                         element:element
                                     })
                                     resolve(false)

@@ -120,13 +120,10 @@ export class BgGraphApi {
                                         vm.status = "replace"
                                     },
                                     filter: html`
-                                        <div style="height:50px;" class="w-100 border-bottom">
-                                            <input class="form-control h-100 " style="border: none;"
-                                                   placeholder="搜尋所有訂單" onchange="${gvc.event((e, event) => {
-                                                vm.query = e.value
-                                                gvc.notifyDataChange(id)
-                                            })}" value="${vm.query || ''}">
-                                        </div>
+                                        ${BgWidget.searchPlace(gvc.event((e, event) => {
+                                            vm.query = e.value
+                                            gvc.notifyDataChange(id)
+                                        }),vm.query || '','搜尋所有訂單')}
                                         ${
                                                 gvc.bindView(() => {
                                                     return {
@@ -174,7 +171,7 @@ export class BgGraphApi {
                                                                 class: `d-flex align-items-center p-2 py-3 ${(!vm.dataList || !vm.dataList.find((dd: any) => {
                                                                     return dd.checked
                                                                 })) ? `d-none` : ``}`,
-                                                                style: `height:40px;gap:10px;`
+                                                                style: `height:40px;gap:10px;margin-top:10px;`
                                                             }
                                                         }
                                                     }
@@ -306,7 +303,7 @@ export class BgGraphApi {
                                 callback: (text) => {
                                     postData.info.code = text
                                 },
-                                structStart:`((db,is_manager,is_appUser,body,query,user_data)=>{`
+                                structStart:`((db,is_manager,is_appUser,body,query,user_data,sendMessage)=>{`
                             })
                         ].join(`<div class="my-2"></div>`)}`)}
                     `, 800)

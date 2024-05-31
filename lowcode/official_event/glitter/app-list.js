@@ -11,15 +11,24 @@ import { TriggerEvent } from "../../glitterBundle/plugins/trigger-event.js";
 import { ApiPageConfig } from "../../api/pageConfig.js";
 TriggerEvent.createSingleEvent(import.meta.url, () => {
     return {
-        fun: (gvc, widget, object, subData) => {
+        fun: (gvc, widget, object, subData, element) => {
+            var _a;
+            object.token = (_a = object.token) !== null && _a !== void 0 ? _a : {};
             return {
                 editor: () => {
-                    `<div class="btn-outline-danger"></div>`;
-                    return ``;
+                    return [
+                        TriggerEvent.editer(gvc, widget, object.token, {
+                            hover: false,
+                            option: [],
+                            title: "取得TOKEN"
+                        })
+                    ].join('');
                 },
                 event: () => {
                     return new Promise((resolve, reject) => __awaiter(void 0, void 0, void 0, function* () {
-                        const appList = yield ApiPageConfig.getAppList();
+                        const appList = yield ApiPageConfig.getAppList(undefined, (yield TriggerEvent.trigger({
+                            gvc: gvc, widget: widget, clickEvent: object.token, subData: subData, element: element
+                        })));
                         resolve(appList.response.result);
                     }));
                 }

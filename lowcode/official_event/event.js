@@ -174,6 +174,18 @@ TriggerEvent.create(import.meta.url, {
         title: '官方事件 / 表單 / 取得表單資料',
         fun: TriggerEvent.setEventRouter(import.meta.url, './glitter-util/get-form.js'),
     },
+    getFormConfig: {
+        title: '官方事件 / 表單 / 取得表單設定檔',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './glitter-util/get-form-config.js'),
+    },
+    getWebConfig: {
+        title: '官方事件 / 表單 / 取得網頁配置檔',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './glitter-util/get-web-config.js'),
+    },
+    postFormConfig: {
+        title: '官方事件 / 表單 / 發佈表單',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './glitter-util/post-form-config.js'),
+    },
     checkForm: {
         title: '官方事件 / 表單 / 判斷表單是否填寫完畢',
         fun: TriggerEvent.setEventRouter(import.meta.url, './glitter-util/check-form.js'),
@@ -190,8 +202,9 @@ TriggerEvent.create(import.meta.url, {
                 editor: () => {
                     object.codeVersion = 'v2';
                     const html = String.raw;
-                    return html ` <div class="w-100">
-                        ${EditorElem.codeEditor({
+                    return html `
+                        <div class="w-100">
+                            ${EditorElem.codeEditor({
                         gvc: gvc,
                         height: 500,
                         initial: object.code,
@@ -201,7 +214,7 @@ TriggerEvent.create(import.meta.url, {
                         },
                         structStart: `((gvc,widget,object,subData,element)=>{`,
                     })}
-                    </div>`;
+                        </div>`;
                 },
                 event: () => {
                     return new Promise((resolve, reject) => __awaiter(void 0, void 0, void 0, function* () {
@@ -209,8 +222,8 @@ TriggerEvent.create(import.meta.url, {
                         try {
                             const a = object.codeVersion == 'v2'
                                 ? eval(`(() => {
-                                ${object.code}
-                            })()`)
+                                        ${object.code}
+                                    })()`)
                                 : eval(object.code);
                             if (a.then) {
                                 a.then((data) => {
@@ -409,6 +422,14 @@ TriggerEvent.create(import.meta.url, {
         title: '官方事件 / 開發工具 / 取得儲存資料',
         fun: TriggerEvent.setEventRouter(import.meta.url, './glitter-util/get-data.js'),
     },
+    getPublicConfig: {
+        title: '官方事件 / 開發工具 / 取得公開配置檔案',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './glitter-util/get-public-config.js'),
+    },
+    setPublicConfig: {
+        title: '官方事件 / 開發工具 / 設定公開配置檔案',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './glitter-util/set-public-config.js'),
+    },
     registerDevice: {
         title: '官方事件 / 推播 / 註冊裝置',
         fun: TriggerEvent.setEventRouter(import.meta.url, './fcm/register-device.js'),
@@ -440,13 +461,15 @@ TriggerEvent.create(import.meta.url, {
                             if (typeof topic != 'object') {
                                 gvc.glitter.runJsInterFace('regNotification', {
                                     topic: topic,
-                                }, (response) => { });
+                                }, (response) => {
+                                });
                             }
                             else {
                                 topic.map((dd) => {
                                     gvc.glitter.runJsInterFace('regNotification', {
                                         topic: dd,
-                                    }, (response) => { });
+                                    }, (response) => {
+                                    });
                                 });
                             }
                             resolve(true);
@@ -569,6 +592,10 @@ TriggerEvent.create(import.meta.url, {
         title: '電子商務 / 取得回饋金金額',
         fun: TriggerEvent.setEventRouter(import.meta.url, './e-commerce/get-rebate.js'),
     },
+    getRebateList: {
+        title: '電子商務 / 取得回饋金列表',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './e-commerce/get-rebate-list.js'),
+    },
     getCount: {
         title: '電子商務 / 取得購物車數量',
         fun: TriggerEvent.setEventRouter(import.meta.url, './e-commerce/get-count.js'),
@@ -620,6 +647,10 @@ TriggerEvent.create(import.meta.url, {
     c2cMap: {
         title: '電子商務 / 選擇門市',
         fun: TriggerEvent.setEventRouter(import.meta.url, './e-commerce/to-c2cMap.js'),
+    },
+    getPaymentMethod: {
+        title: '電子商務 / 取得支援付款方式',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './e-commerce/get-payment-method.js'),
     },
     dataAnalyze: {
         title: '電子商務 / 資料分析',
@@ -684,6 +715,10 @@ TriggerEvent.create(import.meta.url, {
     getToken: {
         title: '用戶相關 / 取得TOKEN',
         fun: TriggerEvent.setEventRouter(import.meta.url, './user/token.js'),
+    },
+    getNotice: {
+        title: '用戶相關 / 取得通知訊息',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './user/get-notice.js'),
     },
     get_chat_room: {
         title: '訊息相關 / 取得已建立聊天室',

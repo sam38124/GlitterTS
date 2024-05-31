@@ -114,13 +114,11 @@ export class FormSetting {
                                 vm.type = "replace";
                             },
                             filter: html `
-                                    <div style="height:50px;" class="w-100 border-bottom">
-                                        <input class="form-control h-100 " style="border: none;"
-                                               placeholder="搜尋所有表單" onchange="${gvc.event((e, event) => {
+${BgWidget.searchPlace(gvc.event((e, event) => {
                                 vm.query = e.value;
                                 gvc.notifyDataChange(id);
-                            })}" value="${vm.query || ''}">
-                                    </div>
+                            }), vm.query || '', '搜尋所有表單')}
+                                   
                                     ${gvc.bindView(() => {
                                 return {
                                     bind: filterID,
@@ -158,10 +156,10 @@ export class FormSetting {
                                     },
                                     divCreate: () => {
                                         return {
-                                            class: `d-flex align-items-center p-2 py-3 ${(!vm.dataList || !vm.dataList.find((dd) => {
+                                            class: `mt-2 d-flex align-items-center p-2 py-3 ${(!vm.dataList || !vm.dataList.find((dd) => {
                                                 return dd.checked;
                                             })) ? `d-none` : ``}`,
-                                            style: `height:40px;gap:10px;`
+                                            style: `height:40px;gap:10px;margin-top:10px;`
                                         };
                                     }
                                 };
@@ -186,6 +184,223 @@ export class FormSetting {
                 }
             };
         });
+    }
+    static form_post_list(gvc) {
+        const html = String.raw;
+        const glitter = gvc.glitter;
+        let callback = (data) => {
+        };
+        const vm = {
+            type: "list",
+            data: {},
+            dataList: undefined,
+            query: ''
+        };
+        const filterID = gvc.glitter.getUUID();
+        let vmi = undefined;
+        function getDatalist() {
+            return vm.dataList.map((dd) => {
+                return [
+                    {
+                        key: EditorElem.checkBoxOnly({
+                            gvc: gvc,
+                            def: (!vm.dataList.find((dd) => {
+                                return !dd.checked;
+                            })),
+                            callback: (result) => {
+                                vm.dataList.map((dd) => {
+                                    dd.checked = result;
+                                });
+                                vmi.data = getDatalist();
+                                vmi.callback();
+                                gvc.notifyDataChange(filterID);
+                                callback(vm.dataList.filter((dd) => {
+                                    return dd.checked;
+                                }));
+                            }
+                        }),
+                        value: EditorElem.checkBoxOnly({
+                            gvc: gvc,
+                            def: dd.checked,
+                            callback: (result) => {
+                                dd.checked = result;
+                                vmi.data = getDatalist();
+                                vmi.callback();
+                                gvc.notifyDataChange(filterID);
+                                callback(vm.dataList.filter((dd) => {
+                                    return dd.checked;
+                                }));
+                            },
+                            style: "height:25px;"
+                        })
+                    },
+                    {
+                        key: '表單標題',
+                        value: `<span class="fs-7">${dd.content.form_title}</span>`
+                    },
+                    {
+                        key: '建立時間',
+                        value: `<span class="fs-7">${glitter.ut.dateFormat(new Date(dd.created_time), 'yyyy-MM-dd hh:mm')}</span>`
+                    }
+                ];
+            });
+        }
+        return gvc.bindView(() => {
+            const id = glitter.getUUID();
+            return {
+                bind: id,
+                dataList: [{ obj: vm, key: 'type' }],
+                view: () => {
+                    if (vm.type === 'list') {
+                        return BgWidget.container(html `
+                            <div class="d-flex w-100 align-items-center mb-3">
+                                ${BgWidget.title('用戶提交表單')}
+                                <div class="flex-fill"></div>
+                                <button class="btn btn-primary-c  me-2 px-3"
+                                        style="height:35px !important;font-size: 14px;"
+                                        onclick="${gvc.event(() => {
+                            vm.type = 'add';
+                        })}">
+                                    <i class="fa-regular fa-plus me-2 "></i>
+                                    新增表單
+                                </button>
+                            </div>
+                            ${BgWidget.table({
+                            gvc: gvc,
+                            getData: (vd) => {
+                                vmi = vd;
+                                ApiPost.getV2({
+                                    page: vmi.page - 1,
+                                    limit: 20,
+                                    type: 'user',
+                                    search: (vm.query) ? `form_title-|>${vm.query},type->post-form-config` : `type->post-form-config`
+                                }).then((data) => {
+                                    vmi.pageSize = Math.ceil(data.response.total / 20);
+                                    vm.dataList = data.response.data;
+                                    vmi.data = getDatalist();
+                                    vmi.loading = false;
+                                    vmi.callback();
+                                });
+                            },
+                            rowClick: (data, index) => {
+                                vm.data = vm.dataList[index];
+                                vm.type = "replace";
+                            },
+                            filter: html `
+                                ${BgWidget.searchPlace(gvc.event((e, event) => {
+                                vm.query = e.value;
+                                gvc.notifyDataChange(id);
+                            }), vm.query || '', '搜尋所有表單')}
+                                    ${gvc.bindView(() => {
+                                return {
+                                    bind: filterID,
+                                    view: () => {
+                                        return [
+                                            `<span class="fs-7 fw-bold">操作選項</span>`,
+                                            `<button class="btn btn-danger fs-7 px-2" style="height:30px;border:none;" onclick="${gvc.event(() => {
+                                                const dialog = new ShareDialog(gvc.glitter);
+                                                dialog.checkYesOrNot({
+                                                    text: '是否確認移除所選項目?',
+                                                    callback: (response) => {
+                                                        if (response) {
+                                                            dialog.dataLoading({ visible: true });
+                                                            ApiPost.deleteUserPost({
+                                                                id: vm.dataList.filter((dd) => {
+                                                                    return dd.checked;
+                                                                }).map((dd) => {
+                                                                    return dd.id;
+                                                                }).join(`,`)
+                                                            }).then((res) => {
+                                                                dialog.dataLoading({ visible: false });
+                                                                if (res.result) {
+                                                                    vm.dataList = undefined;
+                                                                    gvc.notifyDataChange(id);
+                                                                }
+                                                                else {
+                                                                    dialog.errorMessage({ text: "刪除失敗" });
+                                                                }
+                                                            });
+                                                        }
+                                                    }
+                                                });
+                                            })}">批量移除</button>`
+                                        ].join(``);
+                                    },
+                                    divCreate: () => {
+                                        return {
+                                            class: `d-flex align-items-center p-2 mt-2 py-3 ${(!vm.dataList || !vm.dataList.find((dd) => {
+                                                return dd.checked;
+                                            })) ? `d-none` : ``}`,
+                                            style: `height:40px;gap:10px;margin-top:10px;`
+                                        };
+                                    }
+                                };
+                            })}
+                                `
+                        })}
+                        `);
+                    }
+                    else if (vm.type == 'replace' || vm.type == 'add') {
+                        return this.formReadOnly({
+                            formID: '',
+                            gvc: gvc,
+                            vm: vm
+                        });
+                    }
+                    else {
+                        return ``;
+                    }
+                },
+                divCreate: {
+                    class: `w-100`
+                }
+            };
+        });
+    }
+    static formReadOnly(cf) {
+        const postMd = cf.vm.data.content;
+        let viewType = 'editor';
+        const gvc = cf.gvc;
+        const html = String.raw;
+        const dialog = new ShareDialog(gvc.glitter);
+        return BgWidget.container(cf.gvc.bindView(() => {
+            const id = gvc.glitter.getUUID();
+            return {
+                bind: id,
+                view: () => {
+                    return [
+                        html `
+                            <div class="d-flex w-100 align-items-center mb-3 ">
+                                ${BgWidget.goBack(gvc.event(() => {
+                            if (viewType === 'preview') {
+                                viewType = 'editor';
+                                gvc.notifyDataChange(id);
+                            }
+                            else {
+                                cf.vm.type = 'list';
+                            }
+                        }))} ${BgWidget.title(`表單內容`)}
+                                <div class="flex-fill"></div>
+                              
+                            </div>`,
+                        BgWidget.card((() => {
+                            return FormWidget.editorView({
+                                gvc: gvc,
+                                array: postMd.form_config,
+                                refresh: () => {
+                                    gvc.notifyDataChange(id);
+                                },
+                                formData: postMd.form_data
+                            });
+                        })())
+                    ].join('');
+                },
+                onCreate: () => {
+                    $('.tooltip').remove();
+                    $('[data-bs-toggle="tooltip"]').tooltip();
+                }
+            };
+        }), 800);
     }
     static formSettingDetail(cf) {
         const postMd = (cf.vm.type === 'add') ? {
@@ -294,8 +509,7 @@ export class FormSetting {
                                         callback: (text) => {
                                             postMd.form_title = text;
                                         }
-                                    }),
-                                    `${EditorElem.h3('表單標籤')}
+                                    }), `${EditorElem.h3('表單標籤')}
                                                     ${gvc.bindView(() => {
                                         const id = gvc.glitter.getUUID();
                                         function refreshTag() {

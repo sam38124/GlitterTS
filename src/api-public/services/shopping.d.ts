@@ -125,6 +125,8 @@ export declare class Shopping {
             orderID: string;
             shipment_support: string[];
             use_wallet: number;
+            user_email: string;
+            method: string;
         };
         is_free?: undefined;
         off_line?: undefined;
@@ -242,6 +244,12 @@ export declare class Shopping {
     }>;
     postVariantsAndPriceValue(content: any): Promise<void>;
     getDataAnalyze(tags: string[]): Promise<any>;
+    getOrderToDay(): Promise<{
+        total_count: any;
+        un_shipment: any;
+        un_pay: any;
+        total_amount: number;
+    }>;
     getRecentActiveUser(): Promise<{
         recent: any;
         months: any;

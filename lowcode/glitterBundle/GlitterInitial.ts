@@ -57,7 +57,9 @@ function traverseHTML(element: any, document: any) {
 
             function notifyLifeCycle() {
                 try {
-                    glitter.elementCallback[element.getAttribute('gvc-id') as string].updateAttribute()
+                    setTimeout(()=>{
+                        glitter.elementCallback[element.getAttribute('gvc-id') as string].updateAttribute()
+                    })
                 } catch (e) {
                     glitter.deBugMessage(e)
                 }
@@ -114,9 +116,16 @@ function traverseHTML(element: any, document: any) {
                     if ((document.querySelector(`[gvc-id="${id}"]`) as any)) {
                         (document.querySelector(`[gvc-id="${id}"]`) as any).recreateView = (() => {
                             if ((document.querySelector(`[gvc-id="${id}"]`) as any)) {
+                                const originHeight=(document.querySelector(`[gvc-id="${id}"]`) as any).style.height;
                                 (document.querySelector(`[gvc-id="${id}"]`) as any).wasRecreate = true;
                                 (document.querySelector(`[gvc-id="${id}"]`) as any).wasRender = false;
+                                (document.querySelector(`[gvc-id="${id}"]`) as any).style.height=`${(document.querySelector(`[gvc-id="${id}"]`) as any).offsetHeight}px`;
                                 renderBindView();
+                                setTimeout(()=>{
+                                    if((document.querySelector(`[gvc-id="${id}"]`) as any)){
+                                        (document.querySelector(`[gvc-id="${id}"]`) as any).style.height=originHeight
+                                    }
+                                },10)
                             }
                         });
                         (document.querySelector(`[gvc-id="${id}"]`) as any).wasRender = true

@@ -44,6 +44,10 @@ class User {
     async createUser(account, pwd, userData, req) {
         var _a, _b, _c;
         try {
+            const login_config = (await this.getConfigV2({
+                key: 'login_config',
+                user_id: 'manager'
+            }));
             const userID = generateUserID();
             let data = await database_1.default.query(`select \`value\`
                                        from \`${config_js_1.default.DB_NAME}\`.private_config
@@ -61,29 +65,24 @@ class User {
                 if ((userData.verify_code !== (await redis_js_1.default.getValue(`verify-${account}`)))) {
                     throw exception_1.default.BadRequestError('BAD_REQUEST', 'Verify code error.', null);
                 }
-                else {
-                    data.verify = 'normal';
-                }
             }
-            else if (data.verify != 'normal') {
+            else if (login_config.email_verify) {
                 await database_1.default.execute(`delete
                                   from \`${this.app}\`.\`t_user\`
                                   where account = ${database_1.default.escape(account)}
                                     and status = 0`, []);
-                if (data.verify == 'mail') {
-                    data.content = (_a = data.content) !== null && _a !== void 0 ? _a : '';
-                    const code = tool_js_1.default.randomNumber(6);
-                    await redis_js_1.default.setValue(`verify-${account}`, code);
-                    if (data.content.indexOf('@{{code}}') === -1) {
-                        data.content = `嗨！歡迎加入 ${data.name || 'GLITTER.AI'}，請輸入驗證碼「 @{{code}}  」。請於1分鐘內輸入並完成驗證。`;
-                    }
-                    data.content = data.content.replace(`@{{code}}`, code);
-                    data.title = data.title || `嗨！歡迎加入 ${data.name || 'GLITTER.AI'}，請輸入驗證碼`;
-                    (0, ses_js_1.sendmail)(`${data.name} <${process_1.default.env.smtp}>`, account, data.title, data.content);
-                    return {
-                        verify: data.verify
-                    };
+                data.content = (_a = data.content) !== null && _a !== void 0 ? _a : '';
+                const code = tool_js_1.default.randomNumber(6);
+                await redis_js_1.default.setValue(`verify-${account}`, code);
+                if (data.content.indexOf('@{{code}}') === -1) {
+                    data.content = `嗨！歡迎加入 ${data.name || 'GLITTER.AI'}，請輸入驗證碼「 @{{code}}  」。請於1分鐘內輸入並完成驗證。`;
                 }
+                data.content = data.content.replace(`@{{code}}`, code);
+                data.title = data.title || `嗨！歡迎加入 ${data.name || 'GLITTER.AI'}，請輸入驗證碼`;
+                (0, ses_js_1.sendmail)(`${data.name} <${process_1.default.env.smtp}>`, account, data.title, data.content);
+                return {
+                    verify: 'mail'
+                };
             }
             if (data.will_come_title && data.will_come_content) {
                 (0, ses_js_1.sendmail)(`${data.name} <${process_1.default.env.smtp}>`, account, (_b = data.will_come_title) !== null && _b !== void 0 ? _b : '嗨！歡迎加入 Glitter.AI。', (_c = data.will_come_content) !== null && _c !== void 0 ? _c : '');
@@ -102,15 +101,8 @@ class User {
                 userData: {}
             });
             return {
-                token: (() => {
-                    if (data.verify == 'normal') {
-                        return generateToken;
-                    }
-                    else {
-                        return ``;
-                    }
-                })(),
-                verify: data.verify
+                token: generateToken,
+                verify: 'normal'
             };
         }
         catch (e) {
@@ -184,7 +176,9 @@ class User {
                 throw exception_1.default.BadRequestError('BAD_REQUEST', 'Login Error:' + error, null);
             });
         });
-        if ((await database_1.default.query(`select count(1) from \`${this.app}\`.t_user where account = ?`, [fbResponse.email]))[0]["count(1)"] == 0) {
+        if ((await database_1.default.query(`select count(1)
+                             from \`${this.app}\`.t_user
+                             where account = ?`, [fbResponse.email]))[0]["count(1)"] == 0) {
             const userID = generateUserID();
             await database_1.default.execute(`INSERT INTO \`${this.app}\`.\`t_user\` (\`userID\`, \`account\`, \`pwd\`, \`userData\`, \`status\`)
                               VALUES (?, ?, ?, ?, ?);`, [
@@ -230,12 +224,170 @@ class User {
                 userData: data
             };
             await (new custom_code_js_1.CustomCode(this.app).loginHook(cf));
-            data.pwd = undefined;
+            if (data) {
+                data.pwd = undefined;
+                data.member = await this.refreshMember(data);
+                await this.checkRebate(data.userID);
+            }
             return data;
         }
         catch (e) {
             throw exception_1.default.BadRequestError('BAD_REQUEST', 'GET USER DATA Error:' + e, null);
         }
+    }
+    async checkRebate(userID) {
+        await database_1.default.query(`update \`${this.app}\`.t_rebate
+             set status = -1
+             where userID = ?
+               and status = 1
+               and orderID in (select cart_token
+                               from \`${this.app}\`.t_checkout
+                               where (
+                                   status!=1 and created_time < (CURRENT_TIMESTAMP - INTERVAL 10 MINUTE)
+                                   )
+                                  or (
+                                   status = -2
+                                   ))`, [userID]);
+        await database_1.default.query(`update \`${this.app}\`.t_rebate
+             set status = 1
+             where userID = ?
+               and status = -1
+               and orderID in (select cart_token
+                               from \`${this.app}\`.t_checkout
+                               where (
+                                         status = 1
+                                         ))`, [userID]);
+    }
+    async refreshMember(userData) {
+        const member_list = (await this.getConfigV2({
+            key: 'member_level_config',
+            user_id: 'manager'
+        })).levels || [];
+        const order_list = (await database_1.default.query(`SELECT orderData -> '$.total' as total, created_time
+                                            FROM \`${this.app}\`.t_checkout
+                                            where email = ${database_1.default.escape(userData.account)} and status=1
+                                            order by id desc`, [])).map((dd) => {
+            return { total_amount: dd.total, date: dd.created_time };
+        });
+        const member = member_list.reverse().map((dd) => {
+            if (dd.condition.type === 'single') {
+                const time = order_list.find((d1) => {
+                    return d1.total_amount >= parseInt(dd.condition.value, 10);
+                });
+                if (time) {
+                    let dead_line = new Date(time.created_time);
+                    if (dd.dead_line.type === 'noLimit') {
+                        dead_line.setDate(dead_line.getDate() + 365 * 10);
+                        return {
+                            id: dd.id,
+                            trigger: true,
+                            tag_name: dd.tag_name,
+                            dead_line: dead_line,
+                            og: dd
+                        };
+                    }
+                    else {
+                        dead_line.setDate(dead_line.getDate() + dd.dead_line.value);
+                        return {
+                            id: dd.id,
+                            trigger: true,
+                            tag_name: dd.tag_name,
+                            dead_line: dead_line,
+                            og: dd
+                        };
+                    }
+                }
+                else {
+                    let leak = parseInt(dd.condition.value, 10);
+                    return {
+                        id: dd.id,
+                        tag_name: dd.tag_name,
+                        dead_line: '',
+                        trigger: (leak === 0),
+                        og: dd,
+                        leak: leak,
+                    };
+                }
+            }
+            else {
+                const date = this.find30DayPeriodWith3000Spent(order_list, parseInt(dd.condition.value, 10), ((dd.duration.type === 'noLimit')) ? 365 * 10 : dd.duration.value, 365 * 10);
+                if (date) {
+                    const latest = new Date(date.end_date);
+                    if (dd.dead_line.type === 'noLimit') {
+                        latest.setDate(latest.getDate() + 365 * 10);
+                        return {
+                            id: dd.id,
+                            trigger: true,
+                            tag_name: dd.tag_name,
+                            dead_line: latest,
+                            og: dd
+                        };
+                    }
+                    else {
+                        latest.setDate(latest.getDate() + dd.dead_line.value);
+                        return {
+                            id: dd.id,
+                            trigger: true,
+                            tag_name: dd.tag_name,
+                            dead_line: latest,
+                            og: dd
+                        };
+                    }
+                }
+                else {
+                    let leak = parseInt(dd.condition.value, 10);
+                    let sum = 0;
+                    const compareDate = new Date();
+                    compareDate.setDate(compareDate.getDate() - (((dd.duration.type === 'noLimit')) ? 365 * 10 : dd.duration.value));
+                    order_list.map((dd) => {
+                        if (new Date().getTime() > compareDate.getTime()) {
+                            leak = leak - dd.total_amount;
+                            sum += dd.total_amount;
+                        }
+                    });
+                    return {
+                        id: dd.id,
+                        tag_name: dd.tag_name,
+                        dead_line: '',
+                        trigger: leak === 0,
+                        leak: leak,
+                        sum: sum,
+                        og: dd
+                    };
+                }
+            }
+        });
+        return member;
+    }
+    find30DayPeriodWith3000Spent(transactions, total, duration, dead_line) {
+        const ONE_YEAR_MS = dead_line * 24 * 60 * 60 * 1000;
+        const THIRTY_DAYS_MS = duration * 24 * 60 * 60 * 1000;
+        const NOW = new Date().getTime();
+        const recentTransactions = transactions.filter(transaction => {
+            const transactionDate = new Date(transaction.date);
+            return NOW - transactionDate.getTime() <= ONE_YEAR_MS;
+        });
+        recentTransactions.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+        for (let i = 0; i < recentTransactions.length; i++) {
+            let sum = 0;
+            for (let j = i; j < recentTransactions.length; j++) {
+                const dateI = new Date(recentTransactions[i].date);
+                const dateJ = new Date(recentTransactions[j].date);
+                if (dateI.getTime() - dateJ.getTime() <= THIRTY_DAYS_MS) {
+                    sum += recentTransactions[j].total_amount;
+                    if (sum >= total) {
+                        return {
+                            start_date: recentTransactions[j].date,
+                            end_date: recentTransactions[i].date
+                        };
+                    }
+                }
+                else {
+                    break;
+                }
+            }
+        }
+        return null;
     }
     async getUserList(query) {
         var _a, _b;
@@ -360,14 +512,26 @@ class User {
                                               where userID = ${database_1.default.escape(userID)}`, []))[0];
             const configAd = await app_js_1.default.getAdConfig(this.app, 'glitter_loginConfig');
             if ((!manager) && par.userData.email && (par.userData.email !== userData.account) && (!par.userData.verify_code || (par.userData.verify_code !== (await redis_js_1.default.getValue(`verify-${par.userData.email}`))))) {
-                const code = tool_js_1.default.randomNumber(6);
-                await redis_js_1.default.setValue(`verify-${par.userData.email}`, code);
-                (0, ses_js_1.sendmail)(`${configAd.name} <${process_1.default.env.smtp}>`, par.userData.email, '信箱驗證', `請輸入驗證碼「 ${code} 」。並於1分鐘內輸入並完成驗證。`);
-                return {
-                    data: 'emailVerify'
-                };
+                if (!par.userData.verify_code) {
+                    const code = tool_js_1.default.randomNumber(6);
+                    await redis_js_1.default.setValue(`verify-${par.userData.email}`, code);
+                    (0, ses_js_1.sendmail)(`${configAd.name} <${process_1.default.env.smtp}>`, par.userData.email, '信箱驗證', `請輸入驗證碼「 ${code} 」。並於1分鐘內輸入並完成驗證。`);
+                    return {
+                        data: 'emailVerify'
+                    };
+                }
+                else {
+                    throw exception_1.default.BadRequestError('AUTH_ERROR', 'Check email error.', null);
+                }
             }
             else if (par.userData.email) {
+                await database_1.default.query(`update \`${this.app}\`.t_checkout
+                                set email=?
+                                where id > 0
+                                  and email = ?`, [
+                    par.userData.email,
+                    userData.account
+                ]);
                 userData.account = par.userData.email;
             }
             par.userData = await this.checkUpdate({
@@ -391,7 +555,7 @@ class User {
             };
         }
         catch (e) {
-            throw exception_1.default.BadRequestError('BAD_REQUEST', 'Update user error:' + e, null);
+            throw exception_1.default.BadRequestError(e.code || 'BAD_REQUEST', e.message, null);
         }
     }
     async checkUpdate(cf) {
@@ -503,17 +667,21 @@ class User {
             if (typeof config.value !== 'string') {
                 config.value = JSON.stringify(config.value);
             }
-            if ((await database_1.default.query(`select count(1) from \`${this.app}\`.t_user_public_config where \`key\`=?`, [config.key]))[0]['count(1)'] === 1) {
-                await database_1.default.query(`update \`${this.app}\`.t_user_public_config set value=? where \`key\`=?`, [
+            if ((await database_1.default.query(`select count(1)
+                                 from \`${this.app}\`.t_user_public_config
+                                 where \`key\` = ?`, [config.key]))[0]['count(1)'] === 1) {
+                await database_1.default.query(`update \`${this.app}\`.t_user_public_config
+                                set value=?
+                                where \`key\` = ?`, [
                     config.value,
                     config.key
                 ]);
             }
             else {
                 await database_1.default.query(`insert
-            into \`${this.app}\`.t_user_public_config (\`user_id\`,\`key\`,\`value\`,updated_at)
-            values (?,?,?,?)
-            `, [
+                                into \`${this.app}\`.t_user_public_config (\`user_id\`, \`key\`, \`value\`, updated_at)
+                                values (?, ?, ?, ?)
+                `, [
                     (_a = config.user_id) !== null && _a !== void 0 ? _a : this.token.userID,
                     config.key,
                     config.value,
@@ -533,6 +701,58 @@ class User {
                                      where \`key\` = ${database_1.default.escape(config.key)}
                                        and user_id = ${database_1.default.escape(config.user_id)}
             `, []);
+        }
+        catch (e) {
+            console.log(e);
+            throw exception_1.default.BadRequestError("ERROR", "ERROR." + e, null);
+        }
+    }
+    async getConfigV2(config) {
+        try {
+            const data = await database_1.default.execute(`select *
+                                           from \`${this.app}\`.t_user_public_config
+                                           where \`key\` = ${database_1.default.escape(config.key)}
+                                             and user_id = ${database_1.default.escape(config.user_id)}
+            `, []);
+            return (data[0] && data[0].value) || {};
+        }
+        catch (e) {
+            console.log(e);
+            throw exception_1.default.BadRequestError("ERROR", "ERROR." + e, null);
+        }
+    }
+    async getNotice(cf) {
+        var _a, _b, _c, _d;
+        try {
+            const query = [`user_id=${(_a = this.token) === null || _a === void 0 ? void 0 : _a.userID}`];
+            let last_time_read = 0;
+            const last_read_time = await database_1.default.query(`SELECT value
+                                                   FROM \`${this.app}\`.t_user_public_config
+                                                   where \`key\` = 'notice_last_read'
+                                                     and user_id = ?;`, [
+                (_b = this.token) === null || _b === void 0 ? void 0 : _b.userID
+            ]);
+            if (!last_read_time[0]) {
+                await database_1.default.query(`insert into \`${this.app}\`.t_user_public_config (user_id, \`key\`, value, updated_at)
+                                values (?, ?, ?, ?)`, [
+                    (_c = this.token) === null || _c === void 0 ? void 0 : _c.userID,
+                    'notice_last_read',
+                    JSON.stringify({ time: new Date() }),
+                    new Date()
+                ]);
+            }
+            else {
+                last_time_read = (new Date(last_read_time[0].value.time)).getTime();
+                await database_1.default.query(`update \`${this.app}\`.t_user_public_config
+                                set \`value\`=?
+                                where user_id = ?
+                                  and \`key\` = ?`, [
+                    JSON.stringify({ time: new Date() }), `${(_d = this.token) === null || _d === void 0 ? void 0 : _d.userID}`, 'notice_last_read'
+                ]);
+            }
+            const response = await new ut_database_js_1.UtDatabase(this.app, `t_notice`).querySql(query, cf.query);
+            response.last_time_read = last_time_read;
+            return response;
         }
         catch (e) {
             console.log(e);

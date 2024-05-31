@@ -82,5 +82,11 @@ export const Storage = {
     },
     set select_item(value) {
         localStorage.setItem('select_item', value);
-    }
+    },
+    get page_setting_item() {
+        return (localStorage.getItem('page_setting_item') || 'layout');
+    },
+    set page_setting_item(value) {
+        localStorage.setItem('page_setting_item', value);
+    },
 };

@@ -113,14 +113,18 @@ export class HtmlGenerate {
                         });
                     }
                     if (!dd.bundle) {
-                        Object.defineProperty(dd, "bundle", {
-                            get: function () {
-                                return subData !== null && subData !== void 0 ? subData : {};
-                            },
-                            set(v) {
-                                subData = v;
-                            }
-                        });
+                        try {
+                            Object.defineProperty(dd, "bundle", {
+                                get: function () {
+                                    return subData !== null && subData !== void 0 ? subData : {};
+                                },
+                                set(v) {
+                                    subData = v;
+                                }
+                            });
+                        }
+                        catch (e) {
+                        }
                     }
                 });
             }
@@ -1242,6 +1246,83 @@ ${e.line}
             response.version = 'v2';
             return response;
         }
+        function getStyleString() {
+            var _a;
+            function styleString(data) {
+                var _a, _b;
+                let styles = '';
+                function getStyle(data) {
+                    let style = '';
+                    if (data.dataType === 'static') {
+                        return data.style;
+                    }
+                    else {
+                        try {
+                            if (data.dataType === 'code') {
+                                style = eval(`(() => {
+                                        ${data.style}
+                                    })()`);
+                            }
+                            else if (data.dataType === 'triggerEvent') {
+                                return glitter.promiseValue(new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
+                                    resolve((yield TriggerEvent.trigger({
+                                        gvc: gvc,
+                                        widget: widget,
+                                        clickEvent: data.triggerStyle,
+                                        subData: subData,
+                                    })));
+                                })));
+                            }
+                            else {
+                                style = eval(data.style);
+                            }
+                        }
+                        catch (e) {
+                            style = data.style;
+                        }
+                        return style;
+                    }
+                }
+                const tempMap = {};
+                ((_a = data.stylist) !== null && _a !== void 0 ? _a : []).map((dd) => {
+                    tempMap[dd.size] = (() => {
+                        return getStyle(dd);
+                    });
+                });
+                styles = glitter.ut.frSize(tempMap, (() => {
+                    return getStyle(data);
+                }))();
+                let styleString = [styles];
+                ((_b = data.styleList) !== null && _b !== void 0 ? _b : []).map((dd) => {
+                    Object.keys(dd.data).map((d2) => {
+                        styleString.push([d2, dd.data[d2]].join(':'));
+                    });
+                });
+                let styleStringJoin = styleString.join(';');
+                function replaceString(pattern) {
+                    let match;
+                    let have = false;
+                    while ((match = pattern.exec(styleStringJoin)) !== null) {
+                        const placeholder = match[0];
+                        const value = match[1];
+                        if (glitter.share.globalValue && glitter.share.globalValue[value]) {
+                            styleStringJoin = styleStringJoin.replace(placeholder, glitter.share.globalValue[value]);
+                            have = true;
+                        }
+                    }
+                    if (have) {
+                        replaceString(pattern);
+                    }
+                }
+                replaceString(/\/\**@{{(.*?)}}\*\//g);
+                replaceString(/@{{(.*?)}}/g);
+                return styleStringJoin;
+            }
+            return (data.basic_style || '') + [getStyleData()].concat((_a = getStyleData().list) !== null && _a !== void 0 ? _a : []).map((dd) => {
+                const data = styleString(dd);
+                return data && ` ${data}`;
+            }).join('');
+        }
         return {
             editor: (gvc, widget, title, option) => {
                 const glitter = window.glitter;
@@ -1276,6 +1357,7 @@ ${e.line}
             },
             class: () => {
                 var _a;
+                const glitter = window.glitter;
                 function classString(data) {
                     var _a;
                     function getClass(data) {
@@ -1323,76 +1405,7 @@ ${e.line}
                 }).join('');
             },
             style: () => {
-                var _a;
-                function styleString(data) {
-                    var _a, _b;
-                    let styles = '';
-                    function getStyle(data) {
-                        let style = '';
-                        if (data.dataType === 'static') {
-                            return data.style;
-                        }
-                        else {
-                            try {
-                                if (data.dataType === 'code') {
-                                    style = eval(`(() => {
-                                        ${data.style}
-                                    })()`);
-                                }
-                                else if (data.dataType === 'triggerEvent') {
-                                    return glitter.promiseValue(new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
-                                        resolve((yield TriggerEvent.trigger({
-                                            gvc: gvc,
-                                            widget: widget,
-                                            clickEvent: data.triggerStyle,
-                                            subData: subData,
-                                        })));
-                                    })));
-                                }
-                                else {
-                                    style = eval(data.style);
-                                }
-                            }
-                            catch (e) {
-                                style = data.style;
-                            }
-                            return style;
-                        }
-                    }
-                    const tempMap = {};
-                    ((_a = data.stylist) !== null && _a !== void 0 ? _a : []).map((dd) => {
-                        tempMap[dd.size] = (() => {
-                            return getStyle(dd);
-                        });
-                    });
-                    styles = glitter.ut.frSize(tempMap, (() => {
-                        return getStyle(data);
-                    }))();
-                    let styleString = [styles];
-                    ((_b = data.styleList) !== null && _b !== void 0 ? _b : []).map((dd) => {
-                        Object.keys(dd.data).map((d2) => {
-                            styleString.push([d2, dd.data[d2]].join(':'));
-                        });
-                    });
-                    let styleStringJoin = styleString.join(';');
-                    function replaceString(pattern) {
-                        let match;
-                        while ((match = pattern.exec(styleStringJoin)) !== null) {
-                            const placeholder = match[0];
-                            const value = match[1];
-                            if (glitter.share.globalValue && glitter.share.globalValue[value]) {
-                                styleStringJoin = styleStringJoin.replace(placeholder, glitter.share.globalValue[value]);
-                            }
-                        }
-                    }
-                    replaceString(/\/\**@{{(.*?)}}\*\//g);
-                    replaceString(/@{{(.*?)}}/g);
-                    return styleStringJoin;
-                }
-                return (data.basic_style || '') + [getStyleData()].concat((_a = getStyleData().list) !== null && _a !== void 0 ? _a : []).map((dd) => {
-                    const data = styleString(dd);
-                    return data && ` ${data}`;
-                }).join('');
+                return getStyleString();
             },
         };
     }
