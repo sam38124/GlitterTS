@@ -47,6 +47,15 @@ router.get('/unread', async (req, resp) => {
         return response_js_1.default.fail(resp, e);
     }
 });
+router.get('/unread/count', async (req, resp) => {
+    try {
+        const chat = new chat_1.Chat(req.get('g-app'), req.body.token);
+        return response_js_1.default.succ(resp, await chat.unReadMessage(req.query.user_id));
+    }
+    catch (e) {
+        return response_js_1.default.fail(resp, e);
+    }
+});
 router.get('/', async (req, resp) => {
     try {
         const chat = new chat_1.Chat(req.get('g-app'), req.body.token);

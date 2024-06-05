@@ -22,12 +22,9 @@ router.post('/register', async (req: express.Request, resp: express.Response) =>
             throw exception.BadRequestError('BAD_REQUEST', 'user is already exists.', null);
         } else {
             const res = (await user.createUser(req.body.account, req.body.pwd, req.body.userData, req))
-            return response.succ(resp, {
-                result: true,
-                token: res.token,
-                type: res.verify,
-                needVerify: res.verify
-            });
+            res.type=res.verify;
+            res.needVerify=res.verify;
+            return response.succ(resp, res);
         }
     } catch (err) {
         return response.fail(resp, err);
@@ -400,6 +397,14 @@ router.get('/notice',async (req: express.Request, resp: express.Response) => {
         return  response.succ(resp, await new User(req.get('g-app') as string, req.body.token).getNotice({
             query:req.query
         }))
+    }catch (err) {
+        return response.fail(resp, err);
+    }
+})
+
+router.get('/notice/unread/count',async (req: express.Request, resp: express.Response) => {
+    try {
+        return  response.succ(resp, await new User(req.get('g-app') as string, req.body.token).getUnreadCount())
     }catch (err) {
         return response.fail(resp, err);
     }

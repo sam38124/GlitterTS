@@ -332,6 +332,10 @@ ul {
     background: #F2F2F2;
 }
 
+.hoverF2:hover .child{
+    display: block !important;
+}
+
 
 .cl_39 {
     color: #393939;
@@ -472,6 +476,11 @@ ul {
 
 .form-switch .form-check-input:checked {
     background-color: #393939 !important;
+    box-shadow: 0 0.5rem 1.125rem -0.5rem #393939c5;
+}
+
+.form-switch .form-check-input-success:checked {
+    background-color: #159240 !important;
     box-shadow: 0 0.5rem 1.125rem -0.5rem #393939c5;
 }
 

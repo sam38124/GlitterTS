@@ -104,25 +104,20 @@ function traverseHTML(element: any, document: any) {
                     } else if( (document.querySelector(`[gvc-id="${id}"]`) as any).onResumeEvent){
                         (document.querySelector(`[gvc-id="${id}"]`) as any).onResumeEvent()
                     }else {
-                        // clearInterval(scrollInterval);
-                        // scrollInterval = setTimeout(() => {
-                        //     window.scrollTo({
-                        //         top: glitter.pageConfig[glitter.pageConfig.length - 1].scrollTop || 0,
-                        //         behavior: 'auto' // 'auto' 表示无滚动动画
-                        //     });
-                        // }, 300)
-                        // console.log(`wasRender`)
                     }
                     if ((document.querySelector(`[gvc-id="${id}"]`) as any)) {
                         (document.querySelector(`[gvc-id="${id}"]`) as any).recreateView = (() => {
                             if ((document.querySelector(`[gvc-id="${id}"]`) as any)) {
                                 const originHeight=(document.querySelector(`[gvc-id="${id}"]`) as any).style.height;
-                                (document.querySelector(`[gvc-id="${id}"]`) as any).wasRecreate = true;
-                                (document.querySelector(`[gvc-id="${id}"]`) as any).wasRender = false;
-                                (document.querySelector(`[gvc-id="${id}"]`) as any).style.height=`${(document.querySelector(`[gvc-id="${id}"]`) as any).offsetHeight}px`;
+                      if(originHeight!=='0px'){
+                          (document.querySelector(`[gvc-id="${id}"]`) as any).wasRecreate = true;
+                          (document.querySelector(`[gvc-id="${id}"]`) as any).wasRender = false;
+                          (document.querySelector(`[gvc-id="${id}"]`) as any).style.height=`${(document.querySelector(`[gvc-id="${id}"]`) as any).offsetHeight}px`;
+                      }
+
                                 renderBindView();
                                 setTimeout(()=>{
-                                    if((document.querySelector(`[gvc-id="${id}"]`) as any)){
+                                    if((document.querySelector(`[gvc-id="${id}"]`) as any) && originHeight!=='0px'){
                                         (document.querySelector(`[gvc-id="${id}"]`) as any).style.height=originHeight
                                     }
                                 },10)

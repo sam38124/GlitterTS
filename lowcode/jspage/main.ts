@@ -22,39 +22,72 @@ const html = String.raw
 //
 const editorContainerID = `HtmlEditorContainer`;
 init(import.meta.url, (gvc, glitter, gBundle) => {
+    const css = String.raw
+    gvc.addStyle(css`.tooltip {
+      z-index: 99999 !important;
+    }
+      .scroll-in {
 
-    gvc.addStyle(`.tooltip{
-    z-index:99999 !important;
-    }
-     .scroll-in {
-    
-      left: -100%; /* 將元素移到畫面外 */
-      animation: slideInFromLeft 0.5s ease-out forwards;
-    }
+        left: -100%; /* 將元素移到畫面外 */
+        animation: slideInFromLeft 0.5s ease-out forwards;
+      }
 
-  .scroll-out {
-      left: 0%; /* 將元素移到畫面外 */
-      animation: slideOutFromLeft 1s ease-out forwards;
-    }
-    /* @keyframes 定義動畫 */
-    @keyframes slideInFromLeft {
-      0% {
-        left: -100%; /* 起始位置在畫面外 */
+      .scroll-out {
+        left: 0%; /* 將元素移到畫面外 */
+        animation: slideOutFromLeft 1s ease-out forwards;
       }
-      100% {
-        left: 0; /* 結束位置在畫面內 */
+      /* @keyframes 定義動畫 */
+      @keyframes slideInFromLeft {
+        0% {
+          left: -100%; /* 起始位置在畫面外 */
+        }
+        100% {
+          left: 0; /* 結束位置在畫面內 */
+        }
       }
-    }
-     /* @keyframes 定義動畫 */
-    @keyframes slideOutFromLeft {
-      0% {
-        left: 0; /* 起始位置在畫面外 */
+      /* @keyframes 定義動畫 */
+      @keyframes slideOutFromLeft {
+        0% {
+          left: 0; /* 起始位置在畫面外 */
+        }
+        100% {
+          left: -100%; /* 結束位置在畫面內 */
+        }
       }
-      100% {
-        left: -100%; /* 結束位置在畫面內 */
-      }
-    }
     `)
+    gvc.addStyle(css`
+      .scroll-right-in {
+        right: -100% ; /* 將元素移到畫面外 */
+        animation: slideInRight 0.5s ease-out forwards;
+      }
+
+      .scroll-right-out {
+        right: 0 ; /* 將元素移到畫面外 */
+        animation: slideOutRight 1s ease-out forwards;
+      }
+
+      /* @keyframes 定義動畫 */
+      @keyframes slideInRight {
+        0% {
+          right: -100% ; /* 起始位置在畫面外 */
+        }
+        100% {
+          right: 0 ; /* 結束位置在畫面內 */
+        }
+      }
+      /* @keyframes 定義動畫 */
+      @keyframes slideOutRight {
+        0% {
+          right: 0 ; /* 起始位置在畫面外 */
+        }
+        100% {
+          right: -100% ; /* 結束位置在畫面內 */
+        }
+      }`)
+    /*
+    *
+    * */
+
     const swal = new Swal(gvc);
     const viewModel: {
         dataList: any
@@ -356,7 +389,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                         try {
                             const doc = new Editor(gvc, viewModel);
                             return doc.create(html`
-                                        <div class="d-flex overflow-hidden" style="height:100vh;background:white;">
+                                        <div class="d-flex overflow-hidden border-end" style="height:100vh;background:white;">
                                             <div style="width:60px;gap:20px;padding-top: 15px;"
                                                  class="${(Storage.select_function === 'user-editor' || Storage.select_function === 'page-editor') ? `` : `d-none`} h-100 border-end d-flex flex-column align-items-center">
                                                 ${[

@@ -1,6 +1,7 @@
 import { PageSplit } from "./splitPage.js";
 export class BgWidget {
     static table(obj) {
+        obj.style = obj.style || [];
         const gvc = obj.gvc;
         const glitter = obj.gvc.glitter;
         const html = String.raw;
@@ -26,7 +27,7 @@ export class BgWidget {
             return {
                 bind: id,
                 view: () => {
-                    var _a;
+                    var _a, _b;
                     if (vm.loading) {
                         return html `
                             <div class=" fs-2 text-center" style="padding-bottom:32px;">${vm.stateText}</div>`;
@@ -38,10 +39,10 @@ export class BgWidget {
                                 <div class="" style="overflow-x:scroll;">
                                     <table
                                             class="table table-centered table-nowrap  text-center table-hover fw-500 fs-7"
-                                            style="overflow-x:scroll;margin-left: 32px;margin-right: 32px;"
+                                            style="overflow-x:scroll;margin-left: 32px;margin-right: 32px;width:calc(100% - 64px);${(_a = obj.table_style) !== null && _a !== void 0 ? _a : ''}"
                                     >
                                         <div class="" style="padding: 16px 32px;">
-                                            ${(_a = obj.filter) !== null && _a !== void 0 ? _a : ""}
+                                            ${(_b = obj.filter) !== null && _b !== void 0 ? _b : ""}
                                         </div>
 
                                         <thead class="" style="">
@@ -50,12 +51,12 @@ export class BgWidget {
                             : html `
                                                     <tr>
                                                         ${vm.data[0]
-                                .map((dd) => {
+                                .map((dd, index) => {
                                 var _a;
                                 return html `
                                                                                     <th
                                                                                             class="${(_a = dd.position) !== null && _a !== void 0 ? _a : 'text-start'} t_39_16 fw-bold"
-                                                                                            style="border:none;padding-bottom: 30px;color:#393939 !important;"
+                                                                                            style="border:none;padding-bottom: 30px;color:#393939 !important;${((obj.style || []) && obj.style[index]) ? obj.style[index] : ``}"
                                                                                     >
                                                                                         ${dd.key}
                                                                                     </th>`;
@@ -72,13 +73,18 @@ export class BgWidget {
                                                     </div>`
                             : html `${vm.data
                                 .map((dd, index) => {
+                                const pencilId = gvc.glitter.getUUID();
                                 return html `
-                                                                <tr style="${(obj.rowClick) ? `cursor:pointer;` : ``};color:#303030;"
+                                                                <tr style="${(obj.rowClick) ? `cursor:pointer;` : ``};color:#303030;position: relative;"
                                                                     onclick="${gvc.event(() => {
                                     obj.rowClick && obj.rowClick(dd, index);
+                                })}" onmouseover="${gvc.event(() => {
+                                    $('#' + pencilId).removeClass('d-none');
+                                })}" onmouseout="${gvc.event(() => {
+                                    $('#' + pencilId).addClass('d-none');
                                 })}">
                                                                     ${dd
-                                    .map((d3) => {
+                                    .map((d3, index) => {
                                     var _a;
                                     return html `
                                                                                                 <td
@@ -87,13 +93,21 @@ export class BgWidget {
                                         ? ''
                                         : html ` onclick="${gvc.event(() => {
                                         })}"`}
-                                                                                                        style="color:#393939 !important;border:none;">
-                                                                                                    <div class="my-auto">
+                                                                                                        style="color:#393939 !important;border:none;
+${((obj.style || []) && obj.style[index]) ? obj.style[index] : ``}
+">
+                                                                                                    <div class="my-auto"
+                                                                                                         style="${((obj.style || []) && obj.style[index]) ? obj.style[index] : ``}">
                                                                                                         ${d3.value}
                                                                                                     </div>
+                                                                                                    ${((index === dd.length - 1) && obj.editable) ? `
+                                                                                                      <i id="${pencilId}" class="fa-regular fa-pencil position-absolute d-none me-2" style="right: 5px;transform: translateY(-50%);top:50%;"></i>
+                                                                                                    ` : ``}
+
                                                                                                 </td>`;
                                 })
                                     .join('')}
+
                                                                 </tr>`;
                             })
                                 .join('')}`}
@@ -113,9 +127,11 @@ export class BgWidget {
                             </div>`;
                     }
                 },
-                divCreate: { class: `card`, style: `width:100%;overflow:hidden;border-radius: 10px;
+                divCreate: {
+                    class: `card`, style: `width:100%;overflow:hidden;border-radius: 10px;
 background: #FFF;
-box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.08);` },
+box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.08);`
+                },
                 onCreate: () => {
                     if (vm.loading) {
                         getData(), (vm.loading = false), gvc.notifyDataChange(id);
@@ -158,7 +174,7 @@ ${html}
     }
     static goBack(event) {
         return `<div class="d-flex align-items-center justify-content-center  me-2  fs-5" style="cursor:pointer;" onclick="${event}">
-                              <i class="fa-solid fa-angle-left"></i>
+                              <i class="fa-solid fa-angle-left" style="color:#393939;"></i>
                                 </div>`;
     }
     static inlineCheckBox(obj) {

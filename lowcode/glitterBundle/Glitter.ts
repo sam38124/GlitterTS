@@ -54,11 +54,14 @@ export class Glitter {
     }
 
     set href(value) {
+
         const link = new URL(value, location.href);
         if ((location.origin + location.pathname) === (link.origin + link.pathname)) {
-            window.history.replaceState({}, document.title, link.search);
+            window.history.replaceState({}, document.title, link.search || '');
             this.getModule(new URL('../official_event/page/change-page.js', import.meta.url).href, (cl) => {
-                cl.changePage(link.searchParams.get('page'), 'page', {})
+                setTimeout(()=>{
+                    cl.changePage(link.searchParams.get('page'), 'page', {})
+                })
             })
         } else {
             location.href = value;

@@ -7,7 +7,6 @@ import {ApiUser} from "../../glitter-base/route/user.js";
 TriggerEvent.createSingleEvent(import.meta.url, () => {
     return {
         fun: (gvc, widget, object, subData, element) => {
-
             object.successEvent = object.successEvent ?? {}
             object.errorEvent = object.errorEvent ?? {}
             object.account = object.account ?? {}

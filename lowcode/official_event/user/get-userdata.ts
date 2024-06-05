@@ -30,14 +30,16 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                 try {
                                     if (!r.result) {
                                         GlobalUser.token = ''
-                                        resolve(false)
+                                        resolve(false);
+                                        (gvc.glitter.ut.queue as any)[`api-get-user_data`]=undefined
                                     } else {
                                         GlobalUser.userInfo = r.response
                                         GlobalUser.updateUserData = JSON.parse(JSON.stringify(r.response))
-                                        resolve(GlobalUser.userInfo)
+                                        resolve(GlobalUser.userInfo);
                                     }
                                 } catch (e) {
-                                    resolve(false)
+                                    resolve(false);
+                                    (gvc.glitter.ut.queue as any)[`api-get-user_data`]=undefined
                                 }
                             }));
 

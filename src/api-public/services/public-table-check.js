@@ -96,28 +96,31 @@ class ApiPublic {
                 {
                     scheme: appName,
                     table: 't_chat_list',
-                    sql: `(
+                    sql: ` (
   \`id\` int NOT NULL AUTO_INCREMENT,
   \`chat_id\` varchar(120) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  \`type\` varchar(45) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'user',
+  \`type\` varchar(45) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'user',
   \`info\` json DEFAULT NULL,
   \`created_time\` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  \`updated_time\` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (\`id\`),
   UNIQUE KEY \`index2\` (\`chat_id\`),
-  KEY \`index3\` (\`type\`)
-) ENGINE=InnoDB AUTO_INCREMENT=22 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`
+  KEY \`index3\` (\`type\`),
+  KEY \`index4\` (\`updated_time\`)
+) ENGINE=InnoDB AUTO_INCREMENT=71 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`
                 },
                 {
                     scheme: appName,
                     table: 't_chat_participants',
-                    sql: ` (
+                    sql: `(
   \`id\` int NOT NULL AUTO_INCREMENT,
-  \`chat_id\` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL,
+  \`chat_id\` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   \`user_id\` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   \`created_time\` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  \`updated_time\` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (\`id\`),
   UNIQUE KEY \`index2\` (\`chat_id\`,\`user_id\`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`
+) ENGINE=InnoDB AUTO_INCREMENT=92 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`
                 },
                 {
                     scheme: appName,

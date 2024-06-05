@@ -13,6 +13,7 @@ import {Private_config} from "../../services/private_config.js";
 import {CustomCode} from "./custom-code.js";
 import {IToken} from "../models/Auth.js";
 import axios from "axios";
+import {AutoSendEmail} from "./auto-send-email.js";
 
 export class User {
     public app: string
@@ -26,17 +27,6 @@ export class User {
                 user_id: 'manager'
             }))
             const userID = generateUserID();
-            let data = await db.query(`select \`value\`
-                                       from \`${config.DB_NAME}\`.private_config
-                                       where app_name = '${this.app}'
-                                         and \`key\` = 'glitter_loginConfig'`, [])
-            if (data.length > 0) {
-                data = data[0]['value']
-            } else {
-                data = {
-                    verify: `normal`
-                }
-            }
             if (userData.verify_code) {
                 if ((userData.verify_code !== (await redis.getValue(`verify-${account}`)))) {
                     throw exception.BadRequestError('BAD_REQUEST', 'Verify code error.', null);
@@ -46,14 +36,10 @@ export class User {
                                   from \`${this.app}\`.\`t_user\`
                                   where account = ${db.escape(account)}
                                     and status = 0`, [])
-                data.content = data.content ?? ''
+                const data = await AutoSendEmail.getDefCompare(this.app, 'auto-email-verify')
                 const code = Tool.randomNumber(6);
                 await redis.setValue(`verify-${account}`, code);
-                if (data.content.indexOf('@{{code}}') === -1) {
-                    data.content = `嗨！歡迎加入 ${data.name || 'GLITTER.AI'}，請輸入驗證碼「 @{{code}}  」。請於1分鐘內輸入並完成驗證。`
-                }
                 data.content = data.content.replace(`@{{code}}`, code)
-                data.title = data.title || `嗨！歡迎加入 ${data.name || 'GLITTER.AI'}，請輸入驗證碼`
                 sendmail(
                     `${data.name} <${process.env.smtp}>`,
                     account,
@@ -64,14 +50,16 @@ export class User {
                     verify: 'mail'
                 }
             }
-            if (data.will_come_title && data.will_come_content) {
+            const data = await AutoSendEmail.getDefCompare(this.app, 'auto-email-welcome')
+            if(data.toggle){
                 sendmail(
                     `${data.name} <${process.env.smtp}>`,
                     account,
-                    data.will_come_title ?? '嗨！歡迎加入 Glitter.AI。',
-                    data.will_come_content ?? ''
+                    data.title,
+                    data.content
                 );
             }
+
             await db.execute(`INSERT INTO \`${this.app}\`.\`t_user\` (\`userID\`, \`account\`, \`pwd\`, \`userData\`, \`status\`)
                               VALUES (?, ?, ?, ?, ?);`, [
                 userID,
@@ -80,15 +68,15 @@ export class User {
                 userData ?? {},
                 1
             ])
-            const generateToken = await UserUtil.generateToken({
-                user_id: parseInt(userID, 10),
-                account: account,
+
+            const usData: any = await this.getUserData(userID,'userID')
+            usData.pwd = undefined
+            usData.token = await UserUtil.generateToken({
+                user_id: usData["userID"],
+                account: usData["account"],
                 userData: {}
             })
-            return {
-                token: generateToken,
-                verify: 'normal'
-            }
+            return usData
         } catch (e) {
             throw exception.BadRequestError('BAD_REQUEST', 'Register Error:' + e, null);
         }
@@ -212,8 +200,8 @@ export class User {
             await (new CustomCode(this.app).loginHook(cf))
             if (data) {
                 data.pwd = undefined;
-                data.member=await this.refreshMember(data);
-               await this.checkRebate(data.userID);
+                data.member = await this.refreshMember(data);
+                await this.checkRebate(data.userID);
             }
 
 
@@ -223,7 +211,7 @@ export class User {
         }
     }
 
-    public async checkRebate(userID:string){
+    public async checkRebate(userID: string) {
         //超過繳費期限退還購物金
         await db.query(
             `update \`${this.app}\`.t_rebate
@@ -255,16 +243,19 @@ export class User {
         );
 
     }
+
     public async refreshMember(userData: any) {
+
         //分級配置檔案
         const member_list = (await this.getConfigV2({
             key: 'member_level_config',
             user_id: 'manager'
         })).levels || []
         //用戶訂單
-        const order_list = (await db.query(`SELECT orderData -> '$.total' as total, created_time
+        const order_list = (await db.query(`SELECT orderData ->> '$.total' as total, created_time
                                             FROM \`${this.app}\`.t_checkout
-                                            where email = ${db.escape(userData.account)} and status=1
+                                            where email = ${db.escape(userData.account)}
+                                              and status = 1
                                             order by id desc`, [])).map((dd: any) => {
             return {total_amount: dd.total, date: dd.created_time}
         });
@@ -292,81 +283,81 @@ export class User {
                 if (time) {
                     let dead_line = new Date(time.created_time);
                     if (dd.dead_line.type === 'noLimit') {
-                        dead_line.setDate(dead_line.getDate()+365*10);
+                        dead_line.setDate(dead_line.getDate() + 365 * 10);
                         return {
                             id: dd.id,
-                            trigger:true,
-                            tag_name:dd.tag_name,
+                            trigger: true,
+                            tag_name: dd.tag_name,
                             dead_line: dead_line,
-                            og:dd
+                            og: dd
                         }
                     } else {
 
                         dead_line.setDate(dead_line.getDate() + dd.dead_line.value);
                         return {
                             id: dd.id,
-                            trigger:true,
-                            tag_name:dd.tag_name,
+                            trigger: true,
+                            tag_name: dd.tag_name,
                             dead_line: dead_line,
-                            og:dd
+                            og: dd
                         }
                     }
                 } else {
 
-                    let leak=parseInt(dd.condition.value,10);
+                    let leak = parseInt(dd.condition.value, 10);
                     return {
                         id: dd.id,
-                        tag_name:dd.tag_name,
+                        tag_name: dd.tag_name,
                         dead_line: '',
-                        trigger:(leak === 0),
-                        og:dd,
-                        leak:leak,
+                        trigger: (leak === 0),
+                        og: dd,
+                        leak: leak,
                     }
                 }
             } else {
-                const date = this.find30DayPeriodWith3000Spent(order_list, parseInt(dd.condition.value,10), ((dd.duration.type === 'noLimit')) ? 365 * 10 : dd.duration.value, 365 * 10);
-                if(date){
-                    const latest=new Date(date.end_date);
-                    if(dd.dead_line.type==='noLimit'){
-                        latest.setDate(latest.getDate()+365*10)
+                const date = this.find30DayPeriodWith3000Spent(order_list, parseInt(dd.condition.value, 10), ((dd.duration.type === 'noLimit')) ? 365 * 10 : dd.duration.value, 365 * 10);
+                if (date) {
+                    const latest = new Date(date.end_date);
+                    if (dd.dead_line.type === 'noLimit') {
+                        latest.setDate(latest.getDate() + 365 * 10)
                         return {
                             id: dd.id,
-                            trigger:true,
-                            tag_name:dd.tag_name,
-                            dead_line:latest,
-                            og:dd
+                            trigger: true,
+                            tag_name: dd.tag_name,
+                            dead_line: latest,
+                            og: dd
                         }
-                    }else{
-                        latest.setDate(latest.getDate()+dd.dead_line.value)
+                    } else {
+                        latest.setDate(latest.getDate() + dd.dead_line.value)
                         return {
                             id: dd.id,
-                            trigger:true,
-                            tag_name:dd.tag_name,
-                            dead_line:latest,
-                            og:dd
+                            trigger: true,
+                            tag_name: dd.tag_name,
+                            dead_line: latest,
+                            og: dd
                         }
                     }
-                }else{
+                } else {
 
-                    let leak=parseInt(dd.condition.value,10);
-                    let sum=0
-                    const compareDate=new Date();
-                    compareDate.setDate(compareDate.getDate()-(((dd.duration.type === 'noLimit')) ? 365 * 10 : dd.duration.value))
-                    order_list.map((dd:any)=>{
-                        if(new Date().getTime() > compareDate.getTime()){
-                            leak=leak-dd.total_amount;
-                            sum+=dd.total_amount;
+                    let leak = parseInt(dd.condition.value, 10);
+                    let sum = 0
+                    const compareDate = new Date();
+                    compareDate.setDate(compareDate.getDate() - (((dd.duration.type === 'noLimit')) ? 365 * 10 : dd.duration.value))
+                    order_list.map((dd: any) => {
+                        if (new Date().getTime() > compareDate.getTime()) {
+                            leak = leak - dd.total_amount;
+                            sum += dd.total_amount;
                         }
                     })
 
-                    return  {
+                    return {
                         id: dd.id,
-                        tag_name:dd.tag_name,
+                        tag_name: dd.tag_name,
                         dead_line: '',
-                        trigger:leak===0,
-                        leak:leak,
-                        sum:sum,
-                        og:dd
+                        trigger: leak === 0,
+                        leak: leak,
+                        sum: sum,
+                        og: dd
                     }
                 }
             }
@@ -786,6 +777,29 @@ export class User {
             return (data[0] && data[0].value) || {};
         } catch (e) {
             console.log(e);
+            throw exception.BadRequestError("ERROR", "ERROR." + e, null);
+        }
+    }
+
+    public async getUnreadCount() {
+        try {
+
+            const last_read_time = await db.query(`SELECT value
+                                                   FROM \`${this.app}\`.t_user_public_config
+                                                   where \`key\` = 'notice_last_read'
+                                                     and user_id = ?;`, [
+                this.token?.userID
+            ]);
+            const date = (!last_read_time[0]) ? new Date('2022-01-29') : new Date(last_read_time[0].value.time);
+            const count = (await db.query(`select count(1)
+                                           from \`${this.app}\`.t_notice
+                                           where user_id = ?
+                                             and created_time > ?`, [this.token?.userID,
+                date]))[0]['count(1)'];
+            return {
+                count: count
+            }
+        } catch (e) {
             throw exception.BadRequestError("ERROR", "ERROR." + e, null);
         }
     }

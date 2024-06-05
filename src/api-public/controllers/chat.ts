@@ -40,6 +40,17 @@ router.get('/message', async (req: express.Request, resp: express.Response) => {
 router.get('/unread', async (req: express.Request, resp: express.Response) => {
     try {
         const chat=new Chat(req.get('g-app') as string,req.body.token)
+
+        return response.succ(resp, await chat.unReadMessage(req.query.user_id as string));
+    } catch (e) {
+        return response.fail(resp, e);
+    }
+})
+
+router.get('/unread/count', async (req: express.Request, resp: express.Response) => {
+    try {
+        const chat=new Chat(req.get('g-app') as string,req.body.token)
+
         return response.succ(resp, await chat.unReadMessage(req.query.user_id as string));
     } catch (e) {
         return response.fail(resp, e);

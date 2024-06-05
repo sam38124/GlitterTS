@@ -9,14 +9,14 @@ export class UtDatabase {
         this.table = table
     }
 
-    public async querySql(querySql: string[], query: { page: number, limit: number, id?: string },select?:string) {
+    public async querySql(querySql: string[], query: { page: number, limit: number, id?: string,order_string?:string },select?:string) {
         if(querySql.length===0){
             querySql.push(`1=1`)
         }
         let sql = `SELECT ${select || '*'}
                    FROM \`${this.app}\`.\`${this.table}\`
                    where ${querySql.join(' and ')}
-                   order by id desc`
+                   ${(query.order_string) ? query.order_string:`order by id desc`}`
         if (query.id) {
             const data = (await db.query(`SELECT  ${select || '*'}
                                           FROM (${sql}) as subqyery limit ${query.page * query.limit}, ${query.limit}`, []))[0]

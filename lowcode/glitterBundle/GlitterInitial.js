@@ -98,12 +98,14 @@ function traverseHTML(element, document) {
                         document.querySelector(`[gvc-id="${id}"]`).recreateView = (() => {
                             if (document.querySelector(`[gvc-id="${id}"]`)) {
                                 const originHeight = document.querySelector(`[gvc-id="${id}"]`).style.height;
-                                document.querySelector(`[gvc-id="${id}"]`).wasRecreate = true;
-                                document.querySelector(`[gvc-id="${id}"]`).wasRender = false;
-                                document.querySelector(`[gvc-id="${id}"]`).style.height = `${document.querySelector(`[gvc-id="${id}"]`).offsetHeight}px`;
+                                if (originHeight !== '0px') {
+                                    document.querySelector(`[gvc-id="${id}"]`).wasRecreate = true;
+                                    document.querySelector(`[gvc-id="${id}"]`).wasRender = false;
+                                    document.querySelector(`[gvc-id="${id}"]`).style.height = `${document.querySelector(`[gvc-id="${id}"]`).offsetHeight}px`;
+                                }
                                 renderBindView();
                                 setTimeout(() => {
-                                    if (document.querySelector(`[gvc-id="${id}"]`)) {
+                                    if (document.querySelector(`[gvc-id="${id}"]`) && originHeight !== '0px') {
                                         document.querySelector(`[gvc-id="${id}"]`).style.height = originHeight;
                                     }
                                 }, 10);

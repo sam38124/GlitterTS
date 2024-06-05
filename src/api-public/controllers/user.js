@@ -20,12 +20,9 @@ router.post('/register', async (req, resp) => {
         }
         else {
             const res = (await user.createUser(req.body.account, req.body.pwd, req.body.userData, req));
-            return response_1.default.succ(resp, {
-                result: true,
-                token: res.token,
-                type: res.verify,
-                needVerify: res.verify
-            });
+            res.type = res.verify;
+            res.needVerify = res.verify;
+            return response_1.default.succ(resp, res);
         }
     }
     catch (err) {
@@ -419,6 +416,14 @@ router.get('/notice', async (req, resp) => {
         return response_1.default.succ(resp, await new user_1.User(req.get('g-app'), req.body.token).getNotice({
             query: req.query
         }));
+    }
+    catch (err) {
+        return response_1.default.fail(resp, err);
+    }
+});
+router.get('/notice/unread/count', async (req, resp) => {
+    try {
+        return response_1.default.succ(resp, await new user_1.User(req.get('g-app'), req.body.token).getUnreadCount());
     }
     catch (err) {
         return response_1.default.fail(resp, err);

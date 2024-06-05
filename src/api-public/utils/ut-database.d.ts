@@ -6,6 +6,7 @@ export declare class UtDatabase {
         page: number;
         limit: number;
         id?: string;
+        order_string?: string;
     }, select?: string): Promise<{
         data: any;
         result: boolean;

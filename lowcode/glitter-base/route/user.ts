@@ -32,6 +32,17 @@ export class ApiUser {
             }
         })
     }
+    public static getNoticeUnread(){
+        return BaseApi.create({
+            "url": getBaseUrl() + `/api-public/v1/user/notice/unread/count`,
+            "type": "GET",
+            "headers": {
+                "g-app": getConfig().config.appName,
+                "Content-Type": "application/json",
+                "Authorization": GlobalUser.userToken
+            }
+        })
+    }
     public static getUserData(token: string, type: 'list' | 'me') {
         return BaseApi.create({
             "url": getBaseUrl() + `/api-public/v1/user?type=${type}`,

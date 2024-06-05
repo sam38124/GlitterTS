@@ -142,7 +142,6 @@ function chunkArray(array, groupSize) {
 async function compare_sql_table(scheme, table, sql) {
     try {
         const tempKey = 'tempcompare' + table;
-        const transaction = await database_1.default.Transaction.build();
         await database_1.default.execute(`DROP TABLE if exists \`${scheme}\`.\`${tempKey}\`;`, []);
         await database_1.default.execute(`CREATE TABLE if not exists \`${scheme}\`.\`${table}\` ${sql}`, []);
         await database_1.default.execute(`CREATE TABLE if not exists \`${scheme}\`.\`${tempKey}\` ${sql}`, []);
@@ -172,7 +171,7 @@ async function compare_sql_table(scheme, table, sql) {
                     return dd.COLUMN_NAME === d2.COLUMN_NAME;
                 });
             });
-            await transaction.execute(`INSERT INTO \`${scheme}\`.\`${tempKey}\` (${older
+            await database_1.default.execute(`INSERT INTO \`${scheme}\`.\`${tempKey}\` (${older
                 .map((dd) => {
                 return `\`${dd.COLUMN_NAME}\``;
             })
@@ -184,18 +183,18 @@ async function compare_sql_table(scheme, table, sql) {
                 .join(',')}
                                    FROM \`${scheme}\`.\`${table}\`
         `, []);
-            await transaction.execute(`
+            await database_1.default.execute(`
         CREATE TABLE  \`${scheme}_recover\`.\`${table}_${new Date().getTime()}\` AS SELECT * FROM \`${scheme}\`.\`${table}\`;
         `, []);
-            await transaction.execute(`DROP TABLE \`${scheme}\`.\`${table}\`;`, []);
-            await transaction.execute(`ALTER TABLE \`${scheme}\`.${tempKey} RENAME TO \`${scheme}\`.\`${table}\`;`, []);
+            await database_1.default.execute(`DROP TABLE \`${scheme}\`.\`${table}\`;`, []);
+            await database_1.default.execute(`ALTER TABLE \`${scheme}\`.${tempKey} RENAME TO \`${scheme}\`.\`${table}\`;`, []);
         }
-        await transaction.execute(`DROP TABLE if exists \`${scheme}\`.\`${tempKey}\`;`, []);
-        await transaction.commit();
-        await transaction.release();
+        await database_1.default.execute(`DROP TABLE if exists \`${scheme}\`.\`${tempKey}\`;`, []);
+        return true;
     }
     catch (e) {
         console.log(e);
+        return false;
     }
 }
 exports.compare_sql_table = compare_sql_table;

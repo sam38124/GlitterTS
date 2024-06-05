@@ -668,6 +668,10 @@ TriggerEvent.create(import.meta.url, {
         title: '電子錢包 / 取得總金額',
         fun: TriggerEvent.setEventRouter(import.meta.url, './wallet/get-sum.js'),
     },
+    getWalletMemory: {
+        title: '電子錢包 / 取得紀錄',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './wallet/get-memory.js'),
+    },
     login: {
         title: '用戶相關 / 用戶登入',
         fun: TriggerEvent.setEventRouter(import.meta.url, './user/login.js'),
@@ -720,9 +724,17 @@ TriggerEvent.create(import.meta.url, {
         title: '用戶相關 / 取得通知訊息',
         fun: TriggerEvent.setEventRouter(import.meta.url, './user/get-notice.js'),
     },
+    getNoticeUnread: {
+        title: '用戶相關 / 取得通知數量',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './user/get-notice-unread.js'),
+    },
     get_chat_room: {
         title: '訊息相關 / 取得已建立聊天室',
         fun: TriggerEvent.setEventRouter(import.meta.url, './chat/get-chat-room.js'),
+    },
+    get_un_read: {
+        title: '訊息相關 / 取得未讀訊息',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './chat/get-un-read.js'),
     },
     addChatRoom: {
         title: '訊息相關 / 建立聊天室',

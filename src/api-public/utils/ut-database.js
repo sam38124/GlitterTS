@@ -17,7 +17,7 @@ class UtDatabase {
         let sql = `SELECT ${select || '*'}
                    FROM \`${this.app}\`.\`${this.table}\`
                    where ${querySql.join(' and ')}
-                   order by id desc`;
+                   ${(query.order_string) ? query.order_string : `order by id desc`}`;
         if (query.id) {
             const data = (await database_js_1.default.query(`SELECT  ${select || '*'}
                                           FROM (${sql}) as subqyery limit ${query.page * query.limit}, ${query.limit}`, []))[0];

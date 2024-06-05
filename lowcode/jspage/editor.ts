@@ -82,7 +82,7 @@ export class Editor {
                             data-scroll-header
                             style="height: 56px;">
                         <div class="container-fluid pe-lg-4" style="position: relative">
-                            <div class="navbar-brand text-dark d-none d-lg-flex py-0 h-100" style="width:220px;">
+                            <div class="navbar-brand  text-dark d-none d-lg-flex py-0 h-100" style="width:220px;">
                                 <div class="d-flex align-items-center justify-content-center border-end "
                                      style="width:50px;height: 56px;">
                                     <i class="fa-solid fa-left-to-bracket hoverBtn" style="cursor:pointer;"
@@ -112,7 +112,7 @@ export class Editor {
                                         `
                                 }
                             </div>
-                            <div style="width:${(glitter.getUrlParameter('blogEditor')) ? `100px` : `35px`};"></div>
+                            <div class="border-end" style="width:${(glitter.getUrlParameter('blogEditor')) ? `100px` : `37px`};height: 56px; "></div>
                             ${    (() => {
                                 if (Storage.select_function === 'backend-manger') {
                                     return html`
@@ -498,10 +498,10 @@ color:white;
                     </header>
                     <aside
                             id="componentsNav"
-                            class="${(viewModel.type === ViewType.fullScreen) ? `d-none` : ``} offcanvas offcanvas-start offcanvas-expand-lg position-fixed top-0 start-0 vh-100 bg-light border-end-lg overflow-hidden"
+                            class="${(viewModel.type === ViewType.fullScreen) ? `d-none` : ``} offcanvas offcanvas-start offcanvas-expand-lg position-fixed top-0 start-0 vh-100 bg-light overflow-hidden"
                             style="${(Storage.select_function === 'user-editor') ? `width: 365px;` : `width: 284px;`}"
                     >
-                        <div class="offcanvas-header d-none d-lg-flex justify-content-start border-bottom px-0"
+                        <div class="offcanvas-header d-none d-lg-flex justify-content-start border-bottom px-0 ${(Storage.select_function === 'user-editor') ? `border-end` : ``}"
                              style="height: 56px;">
                             <div class="navbar-brand text-dark d-none d-lg-flex py-0 h-100">
                                 <div class="d-flex align-items-center justify-content-center border-end "

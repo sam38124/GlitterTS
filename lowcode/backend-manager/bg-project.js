@@ -1097,7 +1097,7 @@ ${BgWidget.card([`<div class="fw-bold fs-7">電子錢包</div>
                 postMD.status = 'finish';
             }
             dialog.dataLoading({ text: '提交審核中...', visible: true });
-            ApiPageConfig.createTemplate(window.appName, postMD).then((response) => {
+            ApiPageConfig.createTemplate(window.parent.appName, postMD, saasConfig.config.token).then((response) => {
                 dialog.dataLoading({ visible: false });
                 if (response.result) {
                     dialog.successMessage({ text: `上傳成功...` });

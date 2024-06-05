@@ -40,7 +40,6 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                             page: page,
                             limit: limit
                         })).response;
-                        console.log(`notice_data->`, data);
                         resolve(data);
                     }));
                 },

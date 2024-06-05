@@ -8,8 +8,12 @@ export class BgWidget {
         gvc: GVC,
         getData: (vm: { page: number, loading: boolean, callback: () => void, pageSize: number, data: any }) => void,
         rowClick?: (data: any, index: number) => void,
-        filter?: string
+        filter?: string,
+        style?: string[],
+        table_style?: string,
+        editable?:boolean
     }) {
+        obj.style = obj.style || []
         const gvc = obj.gvc
         const glitter = obj.gvc.glitter
         const html = String.raw
@@ -36,6 +40,7 @@ export class BgWidget {
                 pageSize: 0,
                 editData: [],
                 stateText: '資料載入中 ....',
+
             };
 
             const getData = () => {
@@ -55,7 +60,7 @@ export class BgWidget {
                                 <div class="" style="overflow-x:scroll;">
                                     <table
                                             class="table table-centered table-nowrap  text-center table-hover fw-500 fs-7"
-                                            style="overflow-x:scroll;margin-left: 32px;margin-right: 32px;"
+                                            style="overflow-x:scroll;margin-left: 32px;margin-right: 32px;width:calc(100% - 64px);${obj.table_style ?? ''}"
                                     >
                                         <div class="" style="padding: 16px 32px;">
                                             ${obj.filter ?? ""}
@@ -68,11 +73,11 @@ export class BgWidget {
                                                     <tr>
                                                         ${vm.data[0]
                                                                 .map(
-                                                                        (dd: any) =>
+                                                                        (dd: any, index: number) =>
                                                                                 html`
                                                                                     <th
                                                                                             class="${dd.position ?? 'text-start'} t_39_16 fw-bold"
-                                                                                            style="border:none;padding-bottom: 30px;color:#393939 !important;"
+                                                                                            style="border:none;padding-bottom: 30px;color:#393939 !important;${((obj.style || []) && obj.style![index]) ? obj.style![index] : ``}"
                                                                                     >
                                                                                         ${dd.key}
                                                                                     </th>`
@@ -89,14 +94,19 @@ export class BgWidget {
                                                     </div>`
                                                 : html`${vm.data
                                                         .map((dd: any, index: number) => {
+                                                            const pencilId = gvc.glitter.getUUID()
                                                             return html`
-                                                                <tr style="${(obj.rowClick) ? `cursor:pointer;` : ``};color:#303030;"
+                                                                <tr style="${(obj.rowClick) ? `cursor:pointer;` : ``};color:#303030;position: relative;"
                                                                     onclick="${gvc.event(() => {
                                                                         obj.rowClick && obj.rowClick(dd, index)
-                                                                    })}">
+                                                                    })}" onmouseover="${gvc.event(() => {
+                                                                    $('#' + pencilId).removeClass('d-none')
+                                                                })}" onmouseout="${gvc.event(() => {
+                                                                    $('#' + pencilId).addClass('d-none')
+                                                                })}">
                                                                     ${dd
                                                                             .map(
-                                                                                    (d3: any) =>
+                                                                                    (d3: any, index: number) =>
                                                                                             html`
                                                                                                 <td
                                                                                                         class="${d3.position ??
@@ -108,13 +118,21 @@ export class BgWidget {
 
                                                                                                                         }
                                                                                                                 )}"`}
-                                                                                                        style="color:#393939 !important;border:none;">
-                                                                                                    <div class="my-auto">
+                                                                                                        style="color:#393939 !important;border:none;
+${((obj.style || []) && obj.style![index]) ? obj.style![index] : ``}
+">
+                                                                                                    <div class="my-auto"
+                                                                                                         style="${((obj.style || []) && obj.style![index]) ? obj.style![index] : ``}">
                                                                                                         ${d3.value}
                                                                                                     </div>
+                                                                                                    ${((index === dd.length - 1) &&obj.editable) ? `
+                                                                                                      <i id="${pencilId}" class="fa-regular fa-pencil position-absolute d-none me-2" style="right: 5px;transform: translateY(-50%);top:50%;"></i>
+                                                                                                    ` : ``}
+
                                                                                                 </td>`
                                                                             )
                                                                             .join('')}
+
                                                                 </tr>`;
                                                         })
                                                         .join('')}`}
@@ -139,9 +157,11 @@ export class BgWidget {
                             </div>`;
                     }
                 },
-                divCreate: {class: `card`, style: `width:100%;overflow:hidden;border-radius: 10px;
+                divCreate: {
+                    class: `card`, style: `width:100%;overflow:hidden;border-radius: 10px;
 background: #FFF;
-box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.08);`},
+box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.08);`
+                },
                 onCreate: () => {
                     if (vm.loading) {
                         getData(), (vm.loading = false), gvc.notifyDataChange(id);
@@ -151,25 +171,25 @@ box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.08);`},
         });
     }
 
-    public static card(html: string, classStyle: string = 'p-3 bg-white rounded-3 shadow border w-100 ') {
+    public static card(html: string, classStyle: string = 'p-3 bg-white rounded-3 shadow border w-100 ',) {
         return `<div class="${classStyle}" style="">
 ${html}
 </div>`
     }
 
-    public static cancel(event:string){
-return `<div class="cursor_it bt_c39_w" onclick="${event}">
+    public static cancel(event: string) {
+        return `<div class="cursor_it bt_c39_w" onclick="${event}">
 取消
 </div>`
     }
 
-    public static save(event:string){
+    public static save(event: string) {
         return `<div class="cursor_it bt_c39" onclick="${event}">
 儲存
 </div>`
     }
 
-    public static card_main(html: string){
+    public static card_main(html: string) {
         return `<div  class="w-100" style="border-radius: 10px;
 padding: 20px;
 background: #FFF;
@@ -191,7 +211,7 @@ ${html}
 
     public static goBack(event: string) {
         return `<div class="d-flex align-items-center justify-content-center  me-2  fs-5" style="cursor:pointer;" onclick="${event}">
-                              <i class="fa-solid fa-angle-left"></i>
+                              <i class="fa-solid fa-angle-left" style="color:#393939;"></i>
                                 </div>`
     }
 
@@ -265,8 +285,10 @@ ${html}
         `;
     }
 
-    public static editeInput(obj: { gvc: GVC; title: string; default: string; placeHolder: string; callback: (text: string) => void; style?: string; type?: string; readonly?: boolean,
-        pattern?:string}) {
+    public static editeInput(obj: {
+        gvc: GVC; title: string; default: string; placeHolder: string; callback: (text: string) => void; style?: string; type?: string; readonly?: boolean,
+        pattern?: string
+    }) {
         obj.title = obj.title ?? '';
         const html = String.raw;
         return html`${obj.title ? `<div class="t_39_16 fw-normal">${obj.title}</div>` : ``}
@@ -276,25 +298,26 @@ ${html}
                 type="${obj.type ?? 'text'}"
                 placeholder="${obj.placeHolder}"
                 onchange="${obj.gvc.event((e) => {
-            obj.callback(e.value);
-        })}"
-                oninput="${obj.gvc.event((e)=>{
-            if(obj.pattern){
-                const value = e.value;
-                // 只允許英文字符、數字和連字符
-                const regex = new RegExp(`[^${obj.pattern}]`, 'g');
-                const validValue = value.replace(regex, '');
-                if (value !== validValue) {
-                    e.value = validValue;
-                }
-            }
+                    obj.callback(e.value);
+                })}"
+                oninput="${obj.gvc.event((e) => {
+                    if (obj.pattern) {
+                        const value = e.value;
+                        // 只允許英文字符、數字和連字符
+                        const regex = new RegExp(`[^${obj.pattern}]`, 'g');
+                        const validValue = value.replace(regex, '');
+                        if (value !== validValue) {
+                            e.value = validValue;
+                        }
+                    }
 
-        })}"
+                })}"
                 value="${obj.default ?? ''}"
                 ${obj.readonly ? `readonly` : ``}
         />`;
     }
-    public static searchPlace(event:string,vale:string,placeholder:string){
+
+    public static searchPlace(event: string, vale: string, placeholder: string) {
         return `<div class="w-100 position-relative" style="margin-top: 16px;">
 <i class=" fa-regular fa-magnifying-glass" style=" font-size: 18px;color: #A0A0A0;position: absolute;left:20px;top:50%;transform: translateY(-50%);"  aria-hidden="true"></i>
     <input class="form-control h-100 " style="border-radius: 10px;

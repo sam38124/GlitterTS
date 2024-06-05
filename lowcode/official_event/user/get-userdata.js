@@ -35,6 +35,7 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                     if (!r.result) {
                                         GlobalUser.token = '';
                                         resolve(false);
+                                        gvc.glitter.ut.queue[`api-get-user_data`] = undefined;
                                     }
                                     else {
                                         GlobalUser.userInfo = r.response;
@@ -44,6 +45,7 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                 }
                                 catch (e) {
                                     resolve(false);
+                                    gvc.glitter.ut.queue[`api-get-user_data`] = undefined;
                                 }
                             }));
                         }

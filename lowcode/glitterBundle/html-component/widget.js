@@ -128,7 +128,8 @@ export const widgetComponent = {
                                     gvc,
                                     widget: widget,
                                     clickEvent: widget.onCreateEvent,
-                                    subData: subData
+                                    subData: subData,
+                                    element: gvc.getBindViewElem(id).get(0)
                                 });
                                 gvc.glitter.document.querySelector(`[gvc-id="${gvc.id(id)}"]`).onResumeEvent = () => {
                                     TriggerEvent.trigger({
@@ -321,7 +322,8 @@ export const widgetComponent = {
                                 gvc,
                                 widget: widget,
                                 clickEvent: widget.onCreateEvent,
-                                subData: subData
+                                subData: subData,
+                                element: gvc.getBindViewElem(id).get(0)
                             });
                             gvc.glitter.document.querySelector(`[gvc-id="${gvc.id(id)}"]`).onResumeEvent = () => {
                                 TriggerEvent.trigger({

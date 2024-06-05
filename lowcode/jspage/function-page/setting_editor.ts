@@ -98,16 +98,6 @@ export class Setting_editor {
                                                 },
                                                 {
                                                     icon: '',
-                                                    page: 'login_setting',
-                                                    group: '商店設定',
-                                                    title: '自動發信',
-                                                    appName: 'cms_system',
-                                                    groupIcon:
-                                                            'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713360844009-Component 56 (1).svg',
-                                                    moduleName: '登入設定',
-                                                },
-                                                {
-                                                    icon: '',
                                                     page: 'web_config',
                                                     group: '商店設定',
                                                     title: '網站配置檔',
@@ -224,6 +214,16 @@ export class Setting_editor {
                                                 },
                                                 {
                                                     icon: '',
+                                                    page: 'auto_send',
+                                                    group: '信件群發',
+                                                    title: '自動寄件',
+                                                    appName: 'cms_system',
+                                                    groupIcon:
+                                                            'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713375442916-Component 56 (4).svg',
+                                                    moduleName: '已訂閱郵件',
+                                                },
+                                                {
+                                                    icon: '',
                                                     page: 'form_setting_page',
                                                     group: '電子表單',
                                                     title: '表單設定',
@@ -266,7 +266,27 @@ export class Setting_editor {
                                                     icon: '',
                                                     page: 'blog_manager',
                                                     group: '品牌官網',
-                                                    title: '部落格文章',
+                                                    title: '網誌文章',
+                                                    appName: 'cms_system',
+                                                    groupIcon:
+                                                            'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716654741305-Component 56 (5).svg',
+                                                    moduleName: '網誌管理',
+                                                },
+                                                {
+                                                    icon: '',
+                                                    page: 'page_manager',
+                                                    group: '品牌官網',
+                                                    title: '頁面 / 條款',
+                                                    appName: 'cms_system',
+                                                    groupIcon:
+                                                            'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716654741305-Component 56 (5).svg',
+                                                    moduleName: '網誌管理',
+                                                },
+                                                {
+                                                    icon: '',
+                                                    page: 'menus-setting',
+                                                    group: '品牌官網',
+                                                    title: '選單管理',
                                                     appName: 'cms_system',
                                                     groupIcon:
                                                             'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716654741305-Component 56 (5).svg',

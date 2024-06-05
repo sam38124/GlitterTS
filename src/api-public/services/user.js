@@ -40,27 +40,15 @@ const process_1 = __importDefault(require("process"));
 const ut_database_js_1 = require("../utils/ut-database.js");
 const custom_code_js_1 = require("./custom-code.js");
 const axios_1 = __importDefault(require("axios"));
+const auto_send_email_js_1 = require("./auto-send-email.js");
 class User {
     async createUser(account, pwd, userData, req) {
-        var _a, _b, _c;
         try {
             const login_config = (await this.getConfigV2({
                 key: 'login_config',
                 user_id: 'manager'
             }));
             const userID = generateUserID();
-            let data = await database_1.default.query(`select \`value\`
-                                       from \`${config_js_1.default.DB_NAME}\`.private_config
-                                       where app_name = '${this.app}'
-                                         and \`key\` = 'glitter_loginConfig'`, []);
-            if (data.length > 0) {
-                data = data[0]['value'];
-            }
-            else {
-                data = {
-                    verify: `normal`
-                };
-            }
             if (userData.verify_code) {
                 if ((userData.verify_code !== (await redis_js_1.default.getValue(`verify-${account}`)))) {
                     throw exception_1.default.BadRequestError('BAD_REQUEST', 'Verify code error.', null);
@@ -71,21 +59,18 @@ class User {
                                   from \`${this.app}\`.\`t_user\`
                                   where account = ${database_1.default.escape(account)}
                                     and status = 0`, []);
-                data.content = (_a = data.content) !== null && _a !== void 0 ? _a : '';
+                const data = await auto_send_email_js_1.AutoSendEmail.getDefCompare(this.app, 'auto-email-verify');
                 const code = tool_js_1.default.randomNumber(6);
                 await redis_js_1.default.setValue(`verify-${account}`, code);
-                if (data.content.indexOf('@{{code}}') === -1) {
-                    data.content = `嗨！歡迎加入 ${data.name || 'GLITTER.AI'}，請輸入驗證碼「 @{{code}}  」。請於1分鐘內輸入並完成驗證。`;
-                }
                 data.content = data.content.replace(`@{{code}}`, code);
-                data.title = data.title || `嗨！歡迎加入 ${data.name || 'GLITTER.AI'}，請輸入驗證碼`;
                 (0, ses_js_1.sendmail)(`${data.name} <${process_1.default.env.smtp}>`, account, data.title, data.content);
                 return {
                     verify: 'mail'
                 };
             }
-            if (data.will_come_title && data.will_come_content) {
-                (0, ses_js_1.sendmail)(`${data.name} <${process_1.default.env.smtp}>`, account, (_b = data.will_come_title) !== null && _b !== void 0 ? _b : '嗨！歡迎加入 Glitter.AI。', (_c = data.will_come_content) !== null && _c !== void 0 ? _c : '');
+            const data = await auto_send_email_js_1.AutoSendEmail.getDefCompare(this.app, 'auto-email-welcome');
+            if (data.toggle) {
+                (0, ses_js_1.sendmail)(`${data.name} <${process_1.default.env.smtp}>`, account, data.title, data.content);
             }
             await database_1.default.execute(`INSERT INTO \`${this.app}\`.\`t_user\` (\`userID\`, \`account\`, \`pwd\`, \`userData\`, \`status\`)
                               VALUES (?, ?, ?, ?, ?);`, [
@@ -95,15 +80,14 @@ class User {
                 userData !== null && userData !== void 0 ? userData : {},
                 1
             ]);
-            const generateToken = await UserUtil_1.default.generateToken({
-                user_id: parseInt(userID, 10),
-                account: account,
+            const usData = await this.getUserData(userID, 'userID');
+            usData.pwd = undefined;
+            usData.token = await UserUtil_1.default.generateToken({
+                user_id: usData["userID"],
+                account: usData["account"],
                 userData: {}
             });
-            return {
-                token: generateToken,
-                verify: 'normal'
-            };
+            return usData;
         }
         catch (e) {
             throw exception_1.default.BadRequestError('BAD_REQUEST', 'Register Error:' + e, null);
@@ -263,9 +247,10 @@ class User {
             key: 'member_level_config',
             user_id: 'manager'
         })).levels || [];
-        const order_list = (await database_1.default.query(`SELECT orderData -> '$.total' as total, created_time
+        const order_list = (await database_1.default.query(`SELECT orderData ->> '$.total' as total, created_time
                                             FROM \`${this.app}\`.t_checkout
-                                            where email = ${database_1.default.escape(userData.account)} and status=1
+                                            where email = ${database_1.default.escape(userData.account)}
+                                              and status = 1
                                             order by id desc`, [])).map((dd) => {
             return { total_amount: dd.total, date: dd.created_time };
         });
@@ -718,6 +703,28 @@ class User {
         }
         catch (e) {
             console.log(e);
+            throw exception_1.default.BadRequestError("ERROR", "ERROR." + e, null);
+        }
+    }
+    async getUnreadCount() {
+        var _a, _b;
+        try {
+            const last_read_time = await database_1.default.query(`SELECT value
+                                                   FROM \`${this.app}\`.t_user_public_config
+                                                   where \`key\` = 'notice_last_read'
+                                                     and user_id = ?;`, [
+                (_a = this.token) === null || _a === void 0 ? void 0 : _a.userID
+            ]);
+            const date = (!last_read_time[0]) ? new Date('2022-01-29') : new Date(last_read_time[0].value.time);
+            const count = (await database_1.default.query(`select count(1)
+                                           from \`${this.app}\`.t_notice
+                                           where user_id = ?
+                                             and created_time > ?`, [(_b = this.token) === null || _b === void 0 ? void 0 : _b.userID, date]))[0]['count(1)'];
+            return {
+                count: count
+            };
+        }
+        catch (e) {
             throw exception_1.default.BadRequestError("ERROR", "ERROR." + e, null);
         }
     }

@@ -135,10 +135,9 @@ function chunkArray(array: any, groupSize: number) {
     return result;
 }
 
-export async function compare_sql_table(scheme: string, table: string, sql: string) {
+export async function compare_sql_table(scheme: string, table: string, sql: string): Promise<any> {
     try {
         const tempKey = 'tempcompare' + table;
-        const transaction = await db.Transaction.build();
         await db.execute(`DROP TABLE if exists \`${scheme}\`.\`${tempKey}\`;`, []);
         await db.execute(`CREATE TABLE if not exists \`${scheme}\`.\`${table}\` ${sql}`, []);
         await db.execute(`CREATE TABLE if not exists \`${scheme}\`.\`${tempKey}\` ${sql}`, []);
@@ -169,7 +168,7 @@ export async function compare_sql_table(scheme: string, table: string, sql: stri
                     return dd.COLUMN_NAME === d2.COLUMN_NAME;
                 });
             });
-            await transaction.execute(
+            await db.execute(
                 `INSERT INTO \`${scheme}\`.\`${tempKey}\` (${older
                     .map((dd: any) => {
                         return `\`${dd.COLUMN_NAME}\``;
@@ -184,17 +183,17 @@ export async function compare_sql_table(scheme: string, table: string, sql: stri
         `,
                 []
             );
-            await transaction.execute(`
+            await db.execute(`
         CREATE TABLE  \`${scheme}_recover\`.\`${table}_${new Date().getTime()}\` AS SELECT * FROM \`${scheme}\`.\`${table}\`;
         `,[])
-            await transaction.execute(`DROP TABLE \`${scheme}\`.\`${table}\`;`, []);
-            await transaction.execute(`ALTER TABLE \`${scheme}\`.${tempKey} RENAME TO \`${scheme}\`.\`${table}\`;`, []);
+            await db.execute(`DROP TABLE \`${scheme}\`.\`${table}\`;`, []);
+            await db.execute(`ALTER TABLE \`${scheme}\`.${tempKey} RENAME TO \`${scheme}\`.\`${table}\`;`, []);
         }
-        await transaction.execute(`DROP TABLE if exists \`${scheme}\`.\`${tempKey}\`;`, []);
-        await transaction.commit();
-        await transaction.release();
+        await db.execute(`DROP TABLE if exists \`${scheme}\`.\`${tempKey}\`;`, []);
+        return  true
     }catch (e) {
         console.log(e)
+        return  false
     }
 
 }

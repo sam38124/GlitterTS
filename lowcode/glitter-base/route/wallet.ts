@@ -47,6 +47,19 @@ export class ApiWallet{
             }
         })
     }
+    public static getWalletMemory(cf:{
+        page:number,limit:number,type:string,start_date:string
+    }) {
+        return BaseApi.create({
+            "url": getBaseUrl() + `/api-public/v1/wallet?page=${cf.page}&limit=${cf.limit}&type=${cf.type}&start_date=${cf.start_date}`,
+            "type": "GET",
+            "headers": {
+                "Content-Type": "application/json",
+                "g-app": getConfig().config.appName,
+                "Authorization": GlobalUser.token
+            }
+        })
+    }
     public static withdrawPut(json: {
         "id": number,
         "status": number,

@@ -8,7 +8,6 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                 editor: () => {
                   `<div class="btn-outline-danger"></div>`
                     return ``
-
                 },
                 event: () => {
                     return new Promise(async (resolve, reject)=>{

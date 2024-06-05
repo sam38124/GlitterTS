@@ -55,6 +55,7 @@ const seo_js_1 = require("./services/seo.js");
 const shopping_js_1 = require("./api-public/services/shopping.js");
 const web_socket_js_1 = require("./services/web-socket.js");
 const ut_database_js_1 = require("./api-public/utils/ut-database.js");
+const compression_1 = __importDefault(require("compression"));
 exports.app = (0, express_1.default)();
 const logger = new logger_1.default();
 exports.app.options('/*', (req, res) => {
@@ -64,6 +65,7 @@ exports.app.options('/*', (req, res) => {
     res.status(200).send();
 });
 exports.app.use((0, cors_1.default)());
+exports.app.use((0, compression_1.default)());
 exports.app.use(express_1.default.raw());
 exports.app.use(express_1.default.json({ limit: '50MB' }));
 exports.app.use(createContext);

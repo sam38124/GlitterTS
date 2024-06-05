@@ -203,13 +203,13 @@ export class ApiPageConfig {
             })
         });
     }
-    static createTemplate(appName, obj) {
+    static createTemplate(appName, obj, token) {
         return BaseApi.create({
             "url": config.url + `/api/v1/app/create_template`,
             "type": "POST",
             "headers": {
                 "Content-Type": "application/json",
-                "Authorization": config.token
+                "Authorization": token || config.token
             },
             data: JSON.stringify({
                 appName: appName,

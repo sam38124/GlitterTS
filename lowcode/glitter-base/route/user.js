@@ -25,6 +25,17 @@ export class ApiUser {
             }
         });
     }
+    static getNoticeUnread() {
+        return BaseApi.create({
+            "url": getBaseUrl() + `/api-public/v1/user/notice/unread/count`,
+            "type": "GET",
+            "headers": {
+                "g-app": getConfig().config.appName,
+                "Content-Type": "application/json",
+                "Authorization": GlobalUser.userToken
+            }
+        });
+    }
     static getUserData(token, type) {
         return BaseApi.create({
             "url": getBaseUrl() + `/api-public/v1/user?type=${type}`,

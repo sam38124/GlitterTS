@@ -24,7 +24,15 @@ router.get('/', async (req, resp) => {
         else {
             query.push(`userID=${database_js_1.default.escape(req.body.token.userID)}`);
         }
+        if (req.query.type === 'minus') {
+            query.push(`money<0`);
+        }
+        else if (req.query.type === 'plus') {
+            query.push(`money>0`);
+        }
+        req.query.start_date && query.push(`created_time>${database_js_1.default.escape(req.query.start_date)}`);
         query.push(`status in (1,2)`);
+        console.log(`queryIS`, query);
         const data = await new ut_database_js_1.UtDatabase(req.get('g-app'), `t_wallet`).querySql(query, req.query);
         for (const b of data.data) {
             let userData = (await database_js_1.default.query(`select userData

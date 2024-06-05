@@ -441,7 +441,8 @@ export class BgCustomerMessage {
                                 lastScroll: number,
                                 message: string,
                                 prefixScroll: number,
-                                last_read: any
+                                last_read: any,
+                                close:boolean
                             } = {
                                 data: [],
                                 loading: true,
@@ -449,7 +450,8 @@ export class BgCustomerMessage {
                                 lastScroll: -1,
                                 message: '',
                                 prefixScroll: 0,
-                                last_read: {}
+                                last_read: {},
+                                close:false
                             }
                             //chat_id
                             Chat.getMessage({
@@ -465,49 +467,65 @@ export class BgCustomerMessage {
                             })
 
                             const url = new URL((window as any).glitterBackend)
-                            if (gvc.share.socket) {
-                                gvc.share.socket.close()
+
+
+                            let socket:any = undefined;
+
+                            function connect(){
+                                if (gvc.share.close_socket) {
+                                    gvc.share.close_socket()
+
+                                }
+                                socket=(location.href.includes('https://')) ? new WebSocket(`wss://${url.hostname}/websocket`) : new WebSocket(`ws://${url.hostname}:9003`);
+                                gvc.share.close_socket=()=>{
+                                    vm.close=true
+                                    socket.close()
+                                    gvc.share.close_socket=undefined
+                                }
+                                gvc.share.socket = socket;
+                                socket.addEventListener('open', function (event:any) {
+                                    console.log('Connected to server');
+                                    socket.send(JSON.stringify({
+                                        type: 'message',
+                                        chatID: cf.chat.chat_id,
+                                        user_id: cf.user_id
+                                    }))
+                                });
+                                let interVal: any = 0
+                                socket.addEventListener('message', function (event:any) {
+                                    const data = JSON.parse(event.data)
+                                    console.log(`message_in`, data.data)
+                                    if (data.type === 'update_read_count') {
+                                        vm.last_read = (data.data);
+                                    } else {
+                                        vm.data.push(data);
+                                    }
+
+                                    const element: any = document.querySelector(".chatContainer")!
+                                    const st = element.scrollTop;
+                                    const ofs = element.offsetHeight;
+                                    const sh = element.scrollHeight;
+                                    if ((st + ofs) >= sh - 50) {
+                                        vm.lastScroll = -1;
+                                    } else {
+                                        vm.lastScroll = st;
+                                    }
+                                    clearInterval(interVal)
+                                    interVal = setTimeout(() => {
+                                        gvc.notifyDataChange(viewId)
+                                    }, 500)
+
+                                    console.log('Message from server:', event.data);
+                                });
+                                socket.addEventListener('close', function (event:any) {
+                                    console.log('Disconnected from server');
+                                    if(!vm.close){
+                                        console.log('Reconnected from server');
+                                        connect()
+                                    }
+                                });
                             }
-
-                            const socket = (location.href.includes('https://')) ? new WebSocket(`wss://${url.hostname}/websocket`) : new WebSocket(`ws://${url.hostname}:9003`);
-                            gvc.share.socket = socket;
-                            socket.addEventListener('open', function (event) {
-                                console.log('Connected to server');
-                                socket.send(JSON.stringify({
-                                    type: 'message',
-                                    chatID: cf.chat.chat_id,
-                                    user_id: cf.user_id
-                                }))
-                            });
-                            let interVal: any = 0
-                            socket.addEventListener('message', function (event) {
-                                const data = JSON.parse(event.data)
-                                console.log(`message_in`, data.data)
-                                if (data.type === 'update_read_count') {
-                                    vm.last_read = (data.data);
-                                } else {
-                                    vm.data.push(data);
-                                }
-
-                                const element: any = document.querySelector(".chatContainer")!
-                                const st = element.scrollTop;
-                                const ofs = element.offsetHeight;
-                                const sh = element.scrollHeight;
-                                if ((st + ofs) >= sh - 50) {
-                                    vm.lastScroll = -1;
-                                } else {
-                                    vm.lastScroll = st;
-                                }
-                                clearInterval(interVal)
-                                interVal = setTimeout(() => {
-                                    gvc.notifyDataChange(viewId)
-                                }, 500)
-
-                                console.log('Message from server:', event.data);
-                            });
-                            socket.addEventListener('close', function (event) {
-                                console.log('Disconnected from server');
-                            });
+                            connect()
 
                             const html = String.raw
                             return {
@@ -571,7 +589,7 @@ export class BgCustomerMessage {
                                             <div class="w-100 text-center"><div class="badge bg-secondary">尚未展開對話，於下方輸入訊息並傳送。</div></div>
                                             `:``}
                                         </div>
-                                        <div class="card-footer border-top d-flex align-items-center w-100 border-0 pt-3 pb-3 px-4 position-absolute bottom-0 "
+                                        <div class="card-footer border-top d-flex align-items-center w-100 border-0 pt-3 pb-3 px-4 position-fixed bottom-0 position-lg-absolute"
                                              style="background: white;">
                                             <div class="position-relative w-100 me-2 ">
                                                 ${gvc.bindView(() => {
@@ -605,16 +623,6 @@ export class BgCustomerMessage {
                                                         }
                                                     }
                                                 })}
-                                                <!-- <div class="position-absolute top-50 end-0 translate-middle-y d-flex zindex-3 me-2"> -->
-                                                <!--     <button type="button" -->
-                                                <!--             class="btn btn-icon btn-sm btn-link nav-link bg-faded-primary-hover me-1"> -->
-                                                <!--         <i class="bx bx-paperclip fs-4"></i> -->
-                                                <!--     </button> -->
-                                                <!--     <button type="button" -->
-                                                <!--             class="btn btn-icon btn-sm btn-link nav-link bg-faded-primary-hover"> -->
-                                                <!--         <i class="bx bx-smile fs-4"></i> -->
-                                                <!--     </button> -->
-                                                <!-- </div> -->
                                             </div>
                                             <button type="button"
                                                     class="btn btn-icon btn-lg  d-sm-inline-flex ms-1"
@@ -641,6 +649,7 @@ export class BgCustomerMessage {
                                 },
                                 divCreate: {},
                                 onCreate: () => {
+                                    vm.close=false
                                     // 取得要監聽的元素
                                     let targetElement = document.querySelector('.chatContainer')!;
                                     if (vm.lastScroll === -1) {
@@ -677,6 +686,7 @@ export class BgCustomerMessage {
                                     });
                                 },
                                 onDestroy: () => {
+                                    vm.close=true
                                     socket.close()
                                 }
                             }

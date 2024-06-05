@@ -613,7 +613,7 @@ router.get('/payment/method', async (req: express.Request, resp: express.Respons
                 value:'c_bar_code',
                 title:'超商條碼'
             }].filter((dd)=>{
-               return  keyData[dd.value]
+               return  keyData[dd.value] && keyData.TYPE!=='off_line'
             })
         })
     } catch (err) {

@@ -40,5 +40,6 @@ export declare class Chat {
         result?: undefined;
     }>;
     unReadMessage(user_id: string): Promise<any>;
+    unReadMessageCount(user_id: string): Promise<any>;
     constructor(app: string, token: IToken);
 }

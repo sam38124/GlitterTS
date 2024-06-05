@@ -2,13 +2,7 @@ import { IToken } from "../models/Auth.js";
 export declare class User {
     app: string;
     token?: IToken;
-    createUser(account: string, pwd: string, userData: any, req: any): Promise<{
-        verify: string;
-        token?: undefined;
-    } | {
-        token: string;
-        verify: string;
-    }>;
+    createUser(account: string, pwd: string, userData: any, req: any): Promise<any>;
     updateAccount(account: string, userID: string): Promise<any>;
     login(account: string, pwd: string): Promise<any>;
     loginWithFb(token: string): Promise<any>;
@@ -94,6 +88,9 @@ export declare class User {
         key: string;
         user_id: string;
     }): Promise<any>;
+    getUnreadCount(): Promise<{
+        count: any;
+    }>;
     getNotice(cf: {
         query: any;
     }): Promise<any>;

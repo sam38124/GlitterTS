@@ -8,7 +8,6 @@ import {GlobalUser} from "./glitter-base/global/global-user.js";
 
 export class Entry {
     public static onCreate(glitter: Glitter) {
-
         glitter.share.logID = glitter.getUUID()
         glitter.addStyle(`@media (prefers-reduced-motion: no-preference) {
           :root {
@@ -23,7 +22,7 @@ export class Entry {
 
         (window as any).renderClock = (window as any).renderClock ?? clockF();
         console.log(`Entry-time:`, (window as any).renderClock.stop());
-        glitter.share.editerVersion = "V_7.2.3";
+        glitter.share.editerVersion = "V_7.4.1";
         glitter.share.start = (new Date());
         const vm: {
             appConfig: any

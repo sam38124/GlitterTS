@@ -22,15 +22,15 @@ router.get('/', async (req: express.Request, resp: express.Response) => {
         ]
         req.query.tag && query.push(`tag = ${db.escape(req.query.tag)}`)
         req.query.label && query.push(`(JSON_EXTRACT(page_config, '$.meta_article.tag') LIKE '%${req.query.label}%')`)
-        if(!(await UtPermission.isManager(req))){
+        if (!(await UtPermission.isManager(req))) {
             query.push(`(JSON_EXTRACT(page_config, '$.hideIndex') IS NULL
    OR JSON_EXTRACT(page_config, '$.hideIndex') != 'true')`)
         }
 
-        if(req.query.search){
+        if (req.query.search) {
             query.push(`tag like '%${req.query.search}%'`)
         }
-        if(req.query.search){
+        if (req.query.search) {
             query.push(`(tag like '%${req.query.search}%') 
             ||
              (UPPER(JSON_EXTRACT(page_config, '$.meta_article.title')) LIKE UPPER('%${req.query.search}%'))`)
@@ -48,11 +48,14 @@ router.get('/manager', async (req: express.Request, resp: express.Response) => {
         let query = [
             `(content->>'$.type'='article')`
         ]
-        req.query.for_index && query.push(`((content->>'$.for_index' != 'false') || (content->>'$.for_index' IS NULL))`)
-        req.query.tag && query.push(`(content->>'$.tag' = ${db.escape(req.query.tag)})`)
-        req.query.label && query.push(`JSON_CONTAINS(content->'$.collection', '"${req.query.label}"') `)
-
-        if(req.query.search){
+        if (req.query.for_index === 'true') {
+            req.query.for_index && query.push(`((content->>'$.for_index' != 'false') || (content->>'$.for_index' IS NULL))`);
+        } else {
+            req.query.for_index && query.push(`((content->>'$.for_index' = 'false'))`);
+        }
+        req.query.tag && query.push(`(content->>'$.tag' = ${db.escape(req.query.tag)})`);
+        req.query.label && query.push(`JSON_CONTAINS(content->'$.collection', '"${req.query.label}"')`);
+        if (req.query.search) {
             query.push(`content->>'$.name' like '%${req.query.search}%'`)
         }
         const data = await new UtDatabase(req.get('g-app') as string, `t_manager_post`).querySql(query, req.query as any);

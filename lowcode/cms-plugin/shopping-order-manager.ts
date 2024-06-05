@@ -89,7 +89,7 @@ export class ShoppingOrderManager{
                                                 },
                                                 {
                                                     key: '顧客名稱',
-                                                    value: dd.orderData.user_info.name
+                                                    value: (dd.orderData.user_info) ? dd.orderData.user_info.name : `匿名`
                                                 },
                                                 {
                                                     key: '信箱',

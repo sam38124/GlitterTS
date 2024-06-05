@@ -26,7 +26,8 @@ import {Seo} from "./services/seo.js";
 import {Shopping} from "./api-public/services/shopping.js";
 import {WebSocket} from "./services/web-socket.js";
 import {UtDatabase} from "./api-public/utils/ut-database.js";
-
+import {UpdateScript} from "./update-script.js";
+import compression from 'compression'
 
 export const app = express();
 const logger = new Logger();
@@ -42,6 +43,7 @@ app.options('/*', (req, res) => {
 });
 // 添加路由和其他中间件
 app.use(cors());
+app.use(compression());
 app.use(express.raw());
 app.use(express.json({limit: '50MB'}));
 app.use(createContext);
@@ -66,6 +68,7 @@ export async function initial(serverPort: number) {
             await Firebase.initial();
         }
         WebSocket.start()
+        // await UpdateScript.run()
         logger.info('[Init]', `Server is listening on port: ${serverPort}`);
         console.log('Starting up the server now.');
     })();

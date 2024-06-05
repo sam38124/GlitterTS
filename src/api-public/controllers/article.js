@@ -42,9 +42,14 @@ router.get('/manager', async (req, resp) => {
         let query = [
             `(content->>'$.type'='article')`
         ];
-        req.query.for_index && query.push(`((content->>'$.for_index' != 'false') || (content->>'$.for_index' IS NULL))`);
+        if (req.query.for_index === 'true') {
+            req.query.for_index && query.push(`((content->>'$.for_index' != 'false') || (content->>'$.for_index' IS NULL))`);
+        }
+        else {
+            req.query.for_index && query.push(`((content->>'$.for_index' = 'false'))`);
+        }
         req.query.tag && query.push(`(content->>'$.tag' = ${database_js_1.default.escape(req.query.tag)})`);
-        req.query.label && query.push(`JSON_CONTAINS(content->'$.collection', '"${req.query.label}"') `);
+        req.query.label && query.push(`JSON_CONTAINS(content->'$.collection', '"${req.query.label}"')`);
         if (req.query.search) {
             query.push(`content->>'$.name' like '%${req.query.search}%'`);
         }

@@ -54,7 +54,7 @@ ${NormalPageEditor.viewArray.map((dd, index) => {
     static leftNav(gvc) {
         const html = String.raw;
         return html `
-            <div class="vw-100 vh-100 position-fixed left-0 top-0 d-none"
+            <div class="vw-100 vh-100 position-fixed  top-0 d-none"
                  id="norView"
                  style="z-index: 99999;background: rgba(0,0,0,0.5);"
                  onclick="${gvc.event(() => {
@@ -64,36 +64,57 @@ ${NormalPageEditor.viewArray.map((dd, index) => {
         })}"></div>
 
             <div id="norViewHover"
-                 class="position-fixed left-0 top-0 h-100 bg-white shadow-lg "
-                 style="width:350px;z-index: 99999;left: -100%;">
+                 class="position-fixed  top-0 h-100 bg-white shadow-lg scroll-out"
+                 style="width:350px;z-index: 99999;">
                 ${NormalPageEditor.view(gvc)}
             </div>`;
     }
     static toggle(cf) {
-        NormalPageEditor.visible = cf.visible;
-        if (cf.visible) {
-            $('#norView').removeClass('d-none');
-            $('#norViewHover').removeClass('scroll-out');
-            $('#norViewHover').addClass('scroll-in');
-            NormalPageEditor.viewArray.push({
-                view: cf.view,
-                title: cf.title,
-                width: cf.width
-            });
-            NormalPageEditor.refresh();
+        try {
+            NormalPageEditor.visible = cf.visible;
+            if (cf.visible) {
+                NormalPageEditor.isRight = cf.right;
+                $('#norView').removeClass('d-none');
+                $('#norViewHover').removeClass('scroll-out');
+                $('#norViewHover').removeClass('scroll-right-out');
+                $('#norViewHover').removeClass('scroll-in');
+                $('#norViewHover').removeClass('scroll-right-in');
+                if (NormalPageEditor.isRight) {
+                    $('#norViewHover').addClass('scroll-right-in');
+                }
+                else {
+                    $('#norViewHover').addClass('scroll-in');
+                }
+                NormalPageEditor.viewArray.push({
+                    view: cf.view,
+                    title: cf.title,
+                    width: cf.width
+                });
+                NormalPageEditor.refresh();
+            }
+            else {
+                NormalPageEditor.viewArray = [];
+                $('#norView').addClass('d-none');
+                if (NormalPageEditor.isRight) {
+                    $('#norViewHover').removeClass('scroll-out');
+                    $('#norViewHover').removeClass('scroll-right-in');
+                    $('#norViewHover').addClass('scroll-right-out');
+                }
+                else {
+                    $('#norViewHover').removeClass('scroll-in');
+                    $('#norViewHover').removeClass('scroll-right-out');
+                    $('#norViewHover').addClass('scroll-out');
+                }
+                NormalPageEditor.closeEvent();
+                NormalPageEditor.closeEvent = () => { };
+            }
         }
-        else {
-            NormalPageEditor.viewArray = [];
-            $('#norView').addClass('d-none');
-            $('#norViewHover').addClass('scroll-out');
-            $('#norViewHover').removeClass('scroll-in');
-            NormalPageEditor.closeEvent();
-            NormalPageEditor.closeEvent = () => { };
-        }
+        catch (r) { }
     }
 }
 NormalPageEditor.refresh = () => {
 };
 NormalPageEditor.viewArray = [];
+NormalPageEditor.isRight = false;
 NormalPageEditor.visible = false;
 NormalPageEditor.closeEvent = () => { };

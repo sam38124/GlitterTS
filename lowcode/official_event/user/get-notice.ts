@@ -31,8 +31,7 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                         const data = (await ApiUser.getNotice({
                             page: page as any,
                             limit: limit as any
-                        })).response
-                        console.log(`notice_data->`,data)
+                        })).response;
                         resolve(data)
                     })
 
