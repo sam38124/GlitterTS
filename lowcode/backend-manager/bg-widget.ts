@@ -488,9 +488,9 @@ padding-left: 50px;"
                                     if (dropMenu.loading) {
                                         return html``;
                                     } else {
-                                        let h = '';
+                                        let h1 = '';
                                         if (dropMenu.prevList.length > 0) {
-                                            h += html` <div
+                                            h1 += html` <div
                                                     class="m-3"
                                                     style="font-size: 16px; font-weight: 500; gap: 6px; line-height: 140%;cursor: pointer;"
                                                     onclick=${obj.gvc.event(() => {
@@ -526,12 +526,13 @@ padding-left: 50px;"
                                                     value="${dropMenu.search}"
                                                 />`;
                                         }
+                                        let h2 = '';
                                         dataList
                                             .filter((item) => {
                                                 return item.name.includes(dropMenu.search);
                                             })
                                             .map((tag) => {
-                                                h += html`
+                                                h2 += html`
                                                     <div class="m-3" style="display: flex; align-items: center; justify-content: space-between;">
                                                         <div
                                                             class="link-item-container ${tag.link && tag.link.length > 0 ? 'hoverF2' : ''}"
@@ -558,7 +559,12 @@ padding-left: 50px;"
                                                     </div>
                                                 `;
                                             });
-                                        return html` <div class="border border-2 rounded-2 p-2" style="width: 310px;">${h}</div> `;
+                                        return html`
+                                            <div class="border border-2 rounded-2 p-2" style="width: 310px;">
+                                                ${h1}
+                                                <div style="overflow-y: auto; max-height: 42.5vh;">${h2}</div>
+                                            </div>
+                                        `;
                                     }
                                 },
                                 divCreate: { style: 'position: absolute; top: 42.5px; left: 0;' },
