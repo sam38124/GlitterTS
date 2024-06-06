@@ -7,15 +7,38 @@ exports.UpdateScript = void 0;
 const database_1 = __importDefault(require("./modules/database"));
 class UpdateScript {
     static async run() {
-        UpdateScript.migrateHeaderAndFooter(['3131_shop', 'shop-template-clothing-v3', 't_1717129048727', 't_1717141688550', 't_1717152410650', 't_1717407696327', 't_1717385441550', 't_1717386839537', 't_1717397588096']);
+        UpdateScript.migrateAccount('3131_shop');
+    }
+    static async migrateAccount(appName) {
+        const page_list = (await database_1.default.query(`SELECT *
+                                             FROM glitter.page_config
+                                             where appName = 'shop-template-clothing-v3'
+                                               and tag in ('account_userinfo','rebate','order_list','wishlist','menu-items')`, []));
+        page_list.map((d) => {
+            Object.keys(d).map((dd) => {
+                if (typeof d[dd] === 'object') {
+                    d[dd] = JSON.stringify(d[dd]);
+                }
+            });
+        });
+        for (const b of page_list) {
+            await database_1.default.query(`delete
+                            from glitter.page_config
+                            where appName = ${database_1.default.escape(appName)}
+                              and tag = ?`, [b.tag]);
+            b['appName'] = appName;
+            b['id'] = undefined;
+            b['created_time'] = new Date();
+            await database_1.default.query(`insert into glitter.page_config
+                            set ?`, [
+                b
+            ]);
+        }
     }
     static async migrateHeaderAndFooter(appList) {
         const rebate_page = (await database_1.default.query(`SELECT *
                                              FROM shop_template_black_style.t_user_public_config
                                              where \`key\` in ('menu-setting', 'footer-setting');`, []));
-        rebate_page.map((d) => {
-            d.value = JSON.stringify(d.value);
-        });
         for (const b of appList) {
             for (const c of rebate_page) {
                 (await database_1.default.query(`replace into \`${b}\`.t_user_public_config set ?`, [

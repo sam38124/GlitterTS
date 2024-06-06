@@ -13,12 +13,13 @@ import { EditorElem } from "../../glitterBundle/plugins/editor-elem.js";
 TriggerEvent.createSingleEvent(import.meta.url, () => {
     return {
         fun: (gvc, widget, object, subData) => {
-            var _a, _b, _c, _d, _e;
+            var _a, _b, _c, _d, _e, _f;
             object.userInfo = (_a = object.userInfo) !== null && _a !== void 0 ? _a : {};
             object.idData = (_b = object.idData) !== null && _b !== void 0 ? _b : {};
             object.cartCount = (_c = object.cartCount) !== null && _c !== void 0 ? _c : {};
             object.payType = (_d = object.payType) !== null && _d !== void 0 ? _d : 'online';
             object.codeData = (_e = object.codeData) !== null && _e !== void 0 ? _e : {};
+            object.redirect = (_f = object.redirect) !== null && _f !== void 0 ? _f : {};
             return {
                 editor: () => {
                     return gvc.bindView(() => {
@@ -26,7 +27,7 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                         return {
                             bind: id,
                             view: () => {
-                                var _a, _b;
+                                var _a;
                                 let map = [
                                     EditorElem.select({
                                         gvc: gvc,
@@ -79,8 +80,10 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                         title: '購買數量'
                                     }));
                                 }
-                                map.push(EditorElem.pageSelect(gvc, '跳轉頁面', (_b = object.switchPage) !== null && _b !== void 0 ? _b : '', (tag) => {
-                                    object.switchPage = tag;
+                                map.push(TriggerEvent.editer(gvc, widget, object.redirect, {
+                                    hover: false,
+                                    option: [],
+                                    title: '跳轉頁面'
                                 }));
                                 return EditorElem.container(map);
                             }
@@ -94,6 +97,11 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                             widget: widget,
                             clickEvent: object.userInfo
                         });
+                        const redirect = yield TriggerEvent.trigger({
+                            gvc: gvc,
+                            widget: widget,
+                            clickEvent: object.redirect
+                        });
                         const cartData = {
                             line_items: [],
                             total: 0
@@ -101,8 +109,7 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                         const voucher = yield ApiShop.getVoucherCode();
                         const rebate = (yield ApiShop.getRebateValue()) || 0;
                         function checkout() {
-                            const href = new URL(location.href);
-                            href.searchParams.set('page', object.switchPage || '');
+                            const href = new URL(redirect, location.href);
                             ApiShop.toCheckout({
                                 line_items: cartData.line_items.map((dd) => {
                                     return {

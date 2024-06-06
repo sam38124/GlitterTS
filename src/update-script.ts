@@ -3,16 +3,41 @@ import db from './modules/database';
 export class UpdateScript {
     public static async run() {
         // UpdateScript.migrateTermsOfService(['3131_shop', 't_1717152410650', 't_1717141688550', 't_1717129048727', 'shop-template-clothing-v3'])
-        UpdateScript.migrateHeaderAndFooter(['3131_shop','shop-template-clothing-v3','t_1717129048727','t_1717141688550','t_1717152410650','t_1717407696327','t_1717385441550','t_1717386839537','t_1717397588096'])
+        // UpdateScript.migrateHeaderAndFooter(['3131_shop','shop-template-clothing-v3','t_1717129048727','t_1717141688550','t_1717152410650','t_1717407696327','t_1717385441550','t_1717386839537','t_1717397588096'])
+        UpdateScript.migrateAccount('3131_shop')
+    }
+    public static async migrateAccount(appName:string){
+        const page_list=(await db.query(`SELECT *
+                                             FROM glitter.page_config
+                                             where appName = 'shop-template-clothing-v3'
+                                               and tag in ('account_userinfo','rebate','order_list','wishlist','menu-items')`, []));
+        page_list.map((d: any) => {
+            Object.keys(d).map((dd) => {
+                if (typeof d[dd] === 'object') {
+                    d[dd] = JSON.stringify(d[dd])
+                }
+            })
+        })
+        for (const b of page_list) {
+            await db.query(`delete
+                            from glitter.page_config
+                            where appName = ${db.escape(appName)}
+                              and tag = ?`, [b.tag]);
+            b['appName']=appName
+            b['id']=undefined
+            b['created_time'] = new Date()
+            await db.query(`insert into glitter.page_config
+                            set ?`, [
+                b
+            ])
+        }
     }
 
     public static async migrateHeaderAndFooter(appList: string[]) {
         const rebate_page = (await db.query(`SELECT *
                                              FROM shop_template_black_style.t_user_public_config
                                              where \`key\` in ('menu-setting', 'footer-setting');`, []));
-        rebate_page.map((d: any) => {
-            d.value = JSON.stringify(d.value)
-        })
+
         for (const b of appList) {
             for (const c of rebate_page) {
                 (await db.query(`replace into \`${b}\`.t_user_public_config set ?`, [

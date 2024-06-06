@@ -68,7 +68,7 @@ export async function initial(serverPort: number) {
             await Firebase.initial();
         }
         WebSocket.start()
-        // await UpdateScript.run()
+        await UpdateScript.run()
         logger.info('[Init]', `Server is listening on port: ${serverPort}`);
         console.log('Starting up the server now.');
     })();

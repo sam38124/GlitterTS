@@ -851,6 +851,14 @@ TriggerEvent.create(import.meta.url, {
         title: '用戶相關 / 設定用戶資料',
         fun: TriggerEvent.setEventRouter(import.meta.url, './user/set-userdata.js'),
     },
+    get_user_config: {
+        title: '用戶相關 / 取得用戶配置檔案',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './user/get-public-config.js'),
+    },
+    set_user_config: {
+        title: '用戶相關 / 設定配置檔案',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './user/set-public-config.js'),
+    },
     forgetPwd: {
         title: '用戶相關 / 忘記密碼',
         fun: TriggerEvent.setEventRouter(import.meta.url, './user/forget_pwd.js'),

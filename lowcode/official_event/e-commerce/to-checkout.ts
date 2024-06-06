@@ -11,6 +11,7 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
             object.cartCount = object.cartCount ?? {}
             object.payType = object.payType ?? 'online'
             object.codeData=object.codeData ?? {}
+            object.redirect=object.redirect ?? {}
             return {
                 editor: () => {
                     return gvc.bindView(() => {
@@ -70,23 +71,29 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                         title: '購買數量'
                                     }))
                                 }
-                                map.push(
-                                    EditorElem.pageSelect(gvc, '跳轉頁面', object.switchPage ?? '', (tag) => {
-                                        object.switchPage = tag
-                                    })
-                                )
+                                map.push(TriggerEvent.editer(gvc, widget, object.redirect, {
+                                    hover: false,
+                                    option: [],
+                                    title: '跳轉頁面'
+                                }))
+
                                 return EditorElem.container(map)
                             }
                         }
                     })
                 },
                 event: () => {
-                    
+
                     return new Promise(async (resolve, reject) => {
                         const userInfo = await TriggerEvent.trigger({
                             gvc: gvc,
                             widget: widget,
                             clickEvent: object.userInfo
+                        })
+                        const redirect = await TriggerEvent.trigger({
+                            gvc: gvc,
+                            widget: widget,
+                            clickEvent: object.redirect
                         })
                         const cartData: {
                             line_items: {
@@ -109,8 +116,7 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                         const rebate = await ApiShop.getRebateValue() || 0
 
                         function checkout() {
-                            const href = new URL(location.href)
-                            href.searchParams.set('page', object.switchPage || '')
+                            const href = new URL(redirect as any,location.href)
                             ApiShop.toCheckout({
                                 line_items: cartData.line_items.map((dd) => {
                                     return {

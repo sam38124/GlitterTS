@@ -55,6 +55,7 @@ const seo_js_1 = require("./services/seo.js");
 const shopping_js_1 = require("./api-public/services/shopping.js");
 const web_socket_js_1 = require("./services/web-socket.js");
 const ut_database_js_1 = require("./api-public/utils/ut-database.js");
+const update_script_js_1 = require("./update-script.js");
 const compression_1 = __importDefault(require("compression"));
 exports.app = (0, express_1.default)();
 const logger = new logger_1.default();
@@ -89,6 +90,7 @@ async function initial(serverPort) {
             await firebase_js_1.Firebase.initial();
         }
         web_socket_js_1.WebSocket.start();
+        await update_script_js_1.UpdateScript.run();
         logger.info('[Init]', `Server is listening on port: ${serverPort}`);
         console.log('Starting up the server now.');
     })();

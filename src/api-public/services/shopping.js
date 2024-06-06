@@ -337,6 +337,7 @@ class Shopping {
                     1,
                     JSON.stringify({
                         note: '使用錢包購物',
+                        orderData: carData
                     }),
                 ]);
                 await database_js_1.default.execute(`insert into \`${this.app}\`.t_checkout (cart_token, status, email, orderData)

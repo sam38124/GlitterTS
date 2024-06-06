@@ -517,6 +517,7 @@ export class Shopping {
                         1,
                         JSON.stringify({
                             note: '使用錢包購物',
+                            orderData:carData
                         }),
                     ]
                 );
