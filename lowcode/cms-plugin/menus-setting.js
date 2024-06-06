@@ -1,18 +1,17 @@
-import { BgWidget } from "../backend-manager/bg-widget.js";
-import { ApiUser } from "../glitter-base/route/user.js";
-import { ShareDialog } from "../glitterBundle/dialog/ShareDialog.js";
+import { BgWidget } from '../backend-manager/bg-widget.js';
+import { ApiUser } from '../glitter-base/route/user.js';
+import { ShareDialog } from '../glitterBundle/dialog/ShareDialog.js';
 const html = String.raw;
 export class MenusSetting {
     static main(gvc, widget) {
         const html = String.raw;
         const glitter = gvc.glitter;
-        let callback = (data) => {
-        };
+        let callback = (data) => { };
         const vm = {
-            type: "list",
+            type: 'list',
             index: 0,
             dataList: undefined,
-            query: ''
+            query: '',
         };
         const filterID = gvc.glitter.getUUID();
         let vmi = undefined;
@@ -21,8 +20,8 @@ export class MenusSetting {
                 return [
                     {
                         key: '選單名稱',
-                        value: `<span class="fs-7">${dd.title}</span>`
-                    }
+                        value: `<span class="fs-7">${dd.title}</span>`,
+                    },
                 ];
             });
         }
@@ -37,10 +36,14 @@ export class MenusSetting {
                             <div class="d-flex w-100 align-items-center mb-3">
                                 ${BgWidget.title('選單管理')}
                                 <div class="flex-fill"></div>
-                                <div class="bt_ffb40 d-none" onclick="${gvc.event(() => {
+                                <div
+                                    class="bt_ffb40 d-none"
+                                    onclick="${gvc.event(() => {
                             vm.type = 'add';
                             gvc.notifyDataChange(id);
-                        })}">新增
+                        })}"
+                                >
+                                    新增
                                 </div>
                             </div>
                             ${BgWidget.table({
@@ -51,11 +54,12 @@ export class MenusSetting {
                                 vm.dataList = [
                                     {
                                         tag: 'menu-setting',
-                                        title: '主選單'
-                                    }, {
+                                        title: '主選單',
+                                    },
+                                    {
                                         tag: 'footer-setting',
-                                        title: '頁腳'
-                                    }
+                                        title: '頁腳',
+                                    },
                                 ];
                                 vmi.data = getDatalist();
                                 vmi.loading = false;
@@ -65,7 +69,7 @@ export class MenusSetting {
                             },
                             rowClick: (data, index) => {
                                 vm.index = index;
-                                vm.type = "replace";
+                                vm.type = 'replace';
                             },
                             filter: html `
                                     ${gvc.bindView(() => {
@@ -81,7 +85,7 @@ export class MenusSetting {
                                                     callback: (response) => {
                                                         if (response) {
                                                             widget.event('loading', {
-                                                                title: '設定中...'
+                                                                title: '設定中...',
                                                             });
                                                             ApiUser.setPublicConfig({
                                                                 key: 'member_level_config',
@@ -89,36 +93,39 @@ export class MenusSetting {
                                                                 value: {
                                                                     levels: vm.dataList.filter((dd) => {
                                                                         return !dd.checked;
-                                                                    })
-                                                                }
+                                                                    }),
+                                                                },
                                                             }).then(() => {
                                                                 setTimeout(() => {
                                                                     widget.event('loading', {
-                                                                        visible: false
+                                                                        visible: false,
                                                                     });
                                                                     widget.event('success', {
-                                                                        title: "設定成功"
+                                                                        title: '設定成功',
                                                                     });
                                                                     gvc.notifyDataChange(id);
                                                                 }, 500);
                                                             });
                                                         }
-                                                    }
+                                                    },
                                                 });
-                                            })}">批量移除</button>`
+                                            })}">批量移除</button>`,
                                         ].join(``);
                                     },
                                     divCreate: () => {
                                         return {
-                                            class: `d-flex align-items-center p-2 py-3 ${(!vm.dataList || !vm.dataList.find((dd) => {
-                                                return dd.checked;
-                                            })) ? `d-none` : ``}`,
-                                            style: `height:40px;gap:10px;margin-top:10px;`
+                                            class: `d-flex align-items-center p-2 py-3 ${!vm.dataList ||
+                                                !vm.dataList.find((dd) => {
+                                                    return dd.checked;
+                                                })
+                                                ? `d-none`
+                                                : ``}`,
+                                            style: `height:40px;gap:10px;margin-top:10px;`,
                                         };
-                                    }
+                                    },
                                 };
                             })}
-                                `
+                                `,
                         })}
                         `);
                     }
@@ -127,8 +134,7 @@ export class MenusSetting {
                             gvc: gvc,
                             widget: widget,
                             key: vm.dataList[vm.index].tag,
-                            goBack: () => {
-                            }
+                            goBack: () => { },
                         });
                     }
                     else {
@@ -139,13 +145,14 @@ export class MenusSetting {
                             goBack: () => {
                                 vm.type = 'list';
                                 gvc.notifyDataChange(id);
-                            }
+                            },
                         });
                     }
                 },
                 divCreate: {
-                    class: `mx-auto `, style: `max-width:100%;width:960px;`
-                }
+                    class: `mx-auto `,
+                    style: `max-width:100%;width:960px;`,
+                },
             };
         });
     }
@@ -154,7 +161,7 @@ export class MenusSetting {
             id: cf.gvc.glitter.getUUID(),
             link: [],
             selected: false,
-            loading: true
+            loading: true,
         };
         ApiUser.getPublicConfig(cf.key, 'manager').then((data) => {
             if (data.response.value) {
@@ -169,22 +176,21 @@ export class MenusSetting {
             });
         }
         function save() {
-            console.log(vm.link);
             clearNoNeedData(vm.link);
             cf.widget.event('loading', {
-                title: '儲存中...'
+                title: '儲存中...',
             });
             ApiUser.setPublicConfig({
                 key: cf.key,
                 value: vm.link,
-                user_id: 'manager'
+                user_id: 'manager',
             }).then((data) => {
                 setTimeout(() => {
                     cf.widget.event('loading', {
-                        visible: false
+                        visible: false,
                     });
                     cf.widget.event('success', {
-                        title: '儲存成功'
+                        title: '儲存成功',
                     });
                 }, 1000);
             });
@@ -204,9 +210,9 @@ export class MenusSetting {
             });
         }
         function allSelect(dd) {
-            return !(dd.items.find((d1) => {
+            return (!dd.items.find((d1) => {
                 return !d1.selected;
-            })) && dd.selected;
+            }) && dd.selected);
         }
         function getSelectCount(dd) {
             let count = 0;
@@ -229,84 +235,98 @@ export class MenusSetting {
             return {
                 bind: vm.id,
                 view: () => {
-                    return html `
-                        <div class="d-flex align-items-center my-3">${BgWidget.goBack(cf.gvc.event(() => {
+                    return html ` <div class="d-flex align-items-center my-3">
+                            ${BgWidget.goBack(cf.gvc.event(() => {
                         cf.goBack();
                     }))}${BgWidget.title('選單設定')}
                         </div>
-                        <div style="max-width:100%;width: 856px; padding: 20px; background: white; box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.08); border-radius: 10px; overflow: hidden; justify-content: center; align-items: center; display: inline-flex">
+                        <div
+                            style="max-width:100%;width: 856px; padding: 20px; background: white; box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.08); border-radius: 10px; overflow: hidden; justify-content: center; align-items: center; display: inline-flex"
+                        >
                             <div style="width: 100%;  position: relative">
                                 <div style="width: 100%;  left: 0px; top: 0px;  flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 20px; display: inline-flex">
-                                    <div class="w-100  ${(getSelectCount({
-                        items: vm.link
-                    }) > 0) ? `` : `d-none`}"
-                                         style="height: 40px; padding: 12px 18px;background: #F7F7F7; border-radius: 10px; justify-content: flex-end; align-items: center; gap: 8px; display: inline-flex">
+                                    <div
+                                        class="w-100  ${getSelectCount({
+                        items: vm.link,
+                    }) > 0
+                        ? ``
+                        : `d-none`}"
+                                        style="height: 40px; padding: 12px 18px;background: #F7F7F7; border-radius: 10px; justify-content: flex-end; align-items: center; gap: 8px; display: inline-flex"
+                                    >
                                         <div style="flex: 1 1 0; color: #393939; font-size: 14px; font-family: Noto Sans; font-weight: 700; word-wrap: break-word">
                                             已選取${getSelectCount({
-                        items: vm.link
+                        items: vm.link,
                     })}項
                                         </div>
-                                        <div style="cursor:pointer;padding: 4px 14px;background: white; box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.10); border-radius: 20px; border: 1px #DDDDDD solid; justify-content: flex-start; align-items: flex-start; gap: 10px; display: flex">
-                                            <div style="color: #393939; font-size: 14px; font-family: Noto Sans; font-weight: 400; word-wrap: break-word" onclick="${gvc.event(() => {
+                                        <div
+                                            style="cursor:pointer;padding: 4px 14px;background: white; box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.10); border-radius: 20px; border: 1px #DDDDDD solid; justify-content: flex-start; align-items: flex-start; gap: 10px; display: flex"
+                                        >
+                                            <div
+                                                style="color: #393939; font-size: 14px; font-family: Noto Sans; font-weight: 400; word-wrap: break-word"
+                                                onclick="${gvc.event(() => {
                         vm.link = deleteSelect(vm.link);
                         gvc.notifyDataChange(vm.id);
-                    })}">
+                    })}"
+                                            >
                                                 刪除
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="d-flex align-items-center"
-                                         style="width: 100%; height: 22px; position: relative;gap:29px;">
-                                        <div class="${allSelect({
+                                    <div class="d-flex align-items-center" style="width: 100%; height: 22px; position: relative;gap:29px;">
+                                        <div
+                                            class="${allSelect({
                         items: vm.link,
                         selected: !vm.link.find((dd) => {
                             return !dd.selected;
-                        })
-                    }) ? `fa-solid fa-square-check` : `fa-regular fa-square`}"
-                                             style="color:#393939;width: 16px; height: 16px;cursor: pointer;"
-                                             onclick="${cf.gvc.event((e, event) => {
+                        }),
+                    })
+                        ? `fa-solid fa-square-check`
+                        : `fa-regular fa-square`}"
+                                            style="color:#393939;width: 16px; height: 16px;cursor: pointer;"
+                                            onclick="${cf.gvc.event((e, event) => {
                         event.stopPropagation();
                         if (vm.link.find((dd) => {
                             return !dd.selected;
                         })) {
                             selectAll({
-                                items: vm.link
+                                items: vm.link,
                             });
                         }
                         else {
                             clearAll({
-                                items: vm.link
+                                items: vm.link,
                             });
                         }
                         gvc.notifyDataChange(vm.id);
-                    })}"></div>
-                                        <div style="left: 61px; top: 0px;  color: #393939; font-size: 16px; font-family: Noto Sans; font-weight: 700; word-wrap: break-word">
-                                            選單名稱
-                                        </div>
-
+                    })}"
+                                        ></div>
+                                        <div style="left: 61px; top: 0px;  color: #393939; font-size: 16px; font-family: Noto Sans; font-weight: 700; word-wrap: break-word">選單名稱</div>
                                     </div>
                                     <div style="align-self: stretch; flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 18px; display: flex">
                                         ${(() => {
                         function renderItems(array) {
                             const id = gvc.glitter.getUUID();
-                            return gvc.bindView(() => {
+                            return (gvc.bindView(() => {
                                 return {
                                     bind: id,
                                     view: () => {
-                                        return array.map((dd, index) => {
+                                        return array
+                                            .map((dd, index) => {
                                             const list = html `
-                                                        <div class=" w-100 "
-                                                             style="width: 100%; justify-content: flex-start; align-items: center; gap: 5px; display: inline-flex;cursor: pointer;"
-                                                             onclick="${cf.gvc.event(() => {
+                                                                            <div
+                                                                                class=" w-100 "
+                                                                                style="width: 100%; justify-content: flex-start; align-items: center; gap: 5px; display: inline-flex;cursor: pointer;"
+                                                                                onclick="${cf.gvc.event(() => {
                                                 if (dd.items && dd.items.length > 0) {
                                                     dd.toggle = !dd.toggle;
                                                     gvc.notifyDataChange(vm.id);
                                                 }
-                                            })}">
-
-                                                            <div class="${allSelect(dd) ? `fa-solid fa-square-check` : `fa-regular fa-square`}"
-                                                                 style="color:#393939;width: 16px; height: 16px;"
-                                                                 onclick="${cf.gvc.event((e, event) => {
+                                            })}"
+                                                                            >
+                                                                                <div
+                                                                                    class="${allSelect(dd) ? `fa-solid fa-square-check` : `fa-regular fa-square`}"
+                                                                                    style="color:#393939;width: 16px; height: 16px;"
+                                                                                    onclick="${cf.gvc.event((e, event) => {
                                                 event.stopPropagation();
                                                 dd.selected = !dd.selected;
                                                 if (dd.selected) {
@@ -316,72 +336,99 @@ export class MenusSetting {
                                                     clearAll(dd);
                                                 }
                                                 gvc.notifyDataChange(vm.id);
-                                            })}"></div>
-                                                            <div class="hoverF2 pe-2"
-                                                                 style="width: 100%;  justify-content: flex-start; align-items: center; gap: 8px; display: flex">
-                                                                <i class="ms-2 fa-solid fa-grip-dots-vertical cl_39 dragItem hoverBtn d-flex align-items-center justify-content-center" 
-                                                                   style="cursor: pointer;width:25px;height: 25px;"></i>
-                                                                <div style="flex-direction: column; justify-content: center; align-items: flex-start; gap: 2px; display: inline-flex">
-                                                                    <div style="justify-content: flex-start; align-items: center; gap: 8px; display: inline-flex">
-                                                                        <div style="color: #393939; font-size: 16px; font-family: Noto Sans; font-weight: 400; word-wrap: break-word">
-                                                                            ${dd.title}
-                                                                        </div>
-                                                                        ${(dd.items && dd.items.length > 0) ?
-                                                (!dd.toggle ? `<i class="fa-solid fa-angle-down cl_39"></i>` : `<i class="fa-solid fa-angle-up cl_39"></i>`) :
-                                                ``}
-                                                                    </div>
-                                                                    <div style="justify-content: flex-start; align-items: center; gap: 8px; display: inline-flex">
-                                                                        <div style="color: #3366BB; font-size: 14px; font-family: Noto Sans; font-weight: 400; line-height: 14px; word-wrap: break-word">
-                                                                            ${dd.title}
-                                                                        </div>
-                                                                        <div style="color: #159240; font-size: 14px; font-family: Noto Sans; font-weight: 400; word-wrap: break-word">
-                                                                            ${dd.link}
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                                <div class="flex-fill"></div>
-                                                                <div class="child me-2" onclick="${cf.gvc.event((e, event) => {
+                                            })}"
+                                                                                ></div>
+                                                                                <div
+                                                                                    class="hoverF2 pe-2"
+                                                                                    style="width: 100%;  justify-content: flex-start; align-items: center; gap: 8px; display: flex"
+                                                                                >
+                                                                                    <i
+                                                                                        class="ms-2 fa-solid fa-grip-dots-vertical cl_39 dragItem hoverBtn d-flex align-items-center justify-content-center"
+                                                                                        style="cursor: pointer;width:25px;height: 25px;"
+                                                                                    ></i>
+                                                                                    <div
+                                                                                        style="flex-direction: column; justify-content: center; align-items: flex-start; gap: 2px; display: inline-flex"
+                                                                                    >
+                                                                                        <div style="justify-content: flex-start; align-items: center; gap: 8px; display: inline-flex">
+                                                                                            <div
+                                                                                                style="color: #393939; font-size: 16px; font-family: Noto Sans; font-weight: 400; word-wrap: break-word"
+                                                                                            >
+                                                                                                ${dd.title}
+                                                                                            </div>
+                                                                                            ${dd.items && dd.items.length > 0
+                                                ? !dd.toggle
+                                                    ? `<i class="fa-solid fa-angle-down cl_39"></i>`
+                                                    : `<i class="fa-solid fa-angle-up cl_39"></i>`
+                                                : ``}
+                                                                                        </div>
+                                                                                        <div style="justify-content: flex-start; align-items: center; gap: 8px; display: inline-flex">
+                                                                                            <div
+                                                                                                style="color: #3366BB; font-size: 14px; font-family: Noto Sans; font-weight: 400; line-height: 14px; word-wrap: break-word"
+                                                                                            >
+                                                                                                ${dd.title}
+                                                                                            </div>
+                                                                                            <div
+                                                                                                style="color: #159240; font-size: 14px; font-family: Noto Sans; font-weight: 400; word-wrap: break-word"
+                                                                                            >
+                                                                                                ${dd.link}
+                                                                                            </div>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                    <div class="flex-fill"></div>
+                                                                                    <div
+                                                                                        class="child me-2"
+                                                                                        onclick="${cf.gvc.event((e, event) => {
                                                 event.stopPropagation();
                                                 MenusSetting.editEvent({
                                                     link: '',
                                                     title: '',
-                                                    items: []
+                                                    items: [],
                                                 }, (data) => {
                                                     dd.items = dd.items || [];
                                                     dd.items.push(data);
                                                     gvc.notifyDataChange(vm.id);
                                                 });
-                                            })}"><i class="fa-solid fa-plus"
-                                                                      style="color:#393939;"></i></div>
-                                                                <div class="child"
-                                                                     onclick="${cf.gvc.event((e, event) => {
+                                            })}"
+                                                                                    >
+                                                                                        <i class="fa-solid fa-plus" style="color:#393939;"></i>
+                                                                                    </div>
+                                                                                    <div
+                                                                                        class="child"
+                                                                                        onclick="${cf.gvc.event((e, event) => {
                                                 event.stopPropagation();
                                                 MenusSetting.editEvent(dd, (data) => {
-                                                    array[index] = (data);
+                                                    array[index] = data;
                                                     gvc.notifyDataChange(vm.id);
                                                 });
-                                            })}"><i class="fa-solid fa-pencil"
-                                                                             style="color:#393939;"></i></div>
-                                                            </div>
-                                                        </div>
-                                                        ${(dd.items && dd.items.length > 0) ? `
-                                    <div class=" w-100 ${(dd.toggle) ? `` : `d-none`}" style="padding-left: 35px;" >
+                                            })}"
+                                                                                    >
+                                                                                        <i class="fa-solid fa-pencil" style="color:#393939;"></i>
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
+                                                                            ${dd.items && dd.items.length > 0
+                                                ? `
+                                    <div class=" w-100 ${dd.toggle ? `` : `d-none`}" style="padding-left: 35px;" >
                                  ${renderItems(dd.items)}
 </div>
-                                    ` : ``}
-                                                    `;
+                                    `
+                                                : ``}
+                                                                        `;
                                             return `<li class="w-100 ">${list}</li>`;
-                                        }).join('');
+                                        })
+                                            .join('');
                                     },
                                     divCreate: {
-                                        elem: 'ul', class: `w-100 my-2`, style: `display:flex;flex-direction: column;gap:18px;`
+                                        elem: 'ul',
+                                        class: `w-100 my-2`,
+                                        style: `display:flex;flex-direction: column;gap:18px;`,
                                     },
                                     onCreate: () => {
-                                        gvc.glitter.addMtScript([{
-                                                src: `https://raw.githack.com/SortableJS/Sortable/master/Sortable.js`
-                                            }], () => {
-                                        }, () => {
-                                        });
+                                        gvc.glitter.addMtScript([
+                                            {
+                                                src: `https://raw.githack.com/SortableJS/Sortable/master/Sortable.js`,
+                                            },
+                                        ], () => { }, () => { });
                                         const interval = setInterval(() => {
                                             if (window.Sortable) {
                                                 try {
@@ -399,36 +446,35 @@ export class MenusSetting {
                                                         group: id,
                                                         animation: 100,
                                                         handle: '.dragItem',
-                                                        onChange: function (evt) {
-                                                        },
+                                                        onChange: function (evt) { },
                                                         onEnd: (evt) => {
                                                             swapArr(array, startIndex, evt.newIndex);
                                                             gvc.notifyDataChange(id);
                                                         },
                                                         onStart: function (evt) {
                                                             startIndex = evt.oldIndex;
-                                                        }
+                                                        },
                                                     });
                                                 }
-                                                catch (e) {
-                                                }
+                                                catch (e) { }
                                                 clearInterval(interval);
                                             }
                                         }, 100);
-                                    }
+                                    },
                                 };
-                            }) + ` <div class=""
+                            }) +
+                                ` <div class=""
                                                          style="cursor:pointer;align-self: stretch; height: 50px; flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 10px; display: flex"
                                                          onclick="${cf.gvc.event(() => {
-                                MenusSetting.editEvent({
-                                    link: '',
-                                    title: '',
-                                    items: []
-                                }, (data) => {
-                                    array.push(data);
-                                    gvc.notifyDataChange(vm.id);
-                                });
-                            })}">
+                                    MenusSetting.editEvent({
+                                        link: '',
+                                        title: '',
+                                        items: [],
+                                    }, (data) => {
+                                        array.push(data);
+                                        gvc.notifyDataChange(vm.id);
+                                    });
+                                })}">
                                                         <div style="align-self: stretch; height: 54px; border-radius: 10px; border: 1px #DDDDDD solid; justify-content: center; align-items: center; gap: 6px; display: inline-flex">
                                                             <i class="fa-solid fa-plus"
                                                                style="color: #3366BB;font-size: 16px; "></i>
@@ -436,7 +482,7 @@ export class MenusSetting {
                                                                 新增選單
                                                             </div>
                                                         </div>
-                                                    </div>`;
+                                                    </div>`);
                         }
                         return renderItems(vm.link);
                     })()}
@@ -444,8 +490,7 @@ export class MenusSetting {
                                 </div>
                             </div>
                         </div>
-                        <div class="position-fixed bg-body bottom-0  w-100 d-flex align-items-center justify-content-end p-3 border-top"
-                             style="gap:10px;left:0px;">
+                        <div class="position-fixed bg-body bottom-0  w-100 d-flex align-items-center justify-content-end p-3 border-top" style="gap:10px;left:0px;">
                             ${BgWidget.cancel(gvc.event(() => {
                         cf.goBack();
                     }))}
@@ -455,14 +500,14 @@ export class MenusSetting {
                         </div>`;
                 },
                 divCreate: {
-                    style: `padding-bottom:60px;`
-                }
+                    style: `padding-bottom:60px;`,
+                },
             };
         });
     }
     static editEvent(data, save) {
         const gvc = window.parent.glitter.pageConfig[0].gvc;
-        const rightMenu = (window.parent.glitter.share).NormalPageEditor;
+        const rightMenu = window.parent.glitter.share.NormalPageEditor;
         rightMenu.toggle({
             visible: true,
             title: '新增選單',
@@ -480,22 +525,22 @@ export class MenusSetting {
                                     placeHolder: '請輸入選單名稱',
                                     callback: (text) => {
                                         data.title = text;
-                                    }
+                                    },
                                 }),
-                                BgWidget.editeInput({
+                                BgWidget.linkList({
                                     gvc: gvc,
                                     title: '',
                                     default: data.link || '',
                                     placeHolder: '搜尋或貼上外部連結',
                                     callback: (text) => {
                                         data.link = text;
-                                    }
-                                })
+                                    },
+                                }),
                             ].join('');
                         },
                         divCreate: {
-                            style: `padding:20px;`
-                        }
+                            style: `padding:20px;`,
+                        },
                     };
                 }),
                 `<div class="position-absolute bottom-0 left-0 w-100 d-flex align-items-center justify-content-end p-3 border-top" style="gap:10px;">
@@ -506,9 +551,9 @@ ${BgWidget.save(gvc.event(() => {
                     save(data);
                     rightMenu.toggle({ visible: false });
                 }))}
-</div>`
+</div>`,
             ].join(''),
-            right: true
+            right: true,
         });
     }
 }
