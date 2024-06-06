@@ -9,7 +9,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 import { ShareDialog } from "../dialog/ShareDialog.js";
 import { BgWidget } from "../backend-manager/bg-widget.js";
-import { EditorElem } from "../glitterBundle/plugins/editor-elem.js";
 export class ShoppingFinanceSetting {
     static main(gvc) {
         return ShoppingFinanceSetting.fin_setting(gvc, undefined);
@@ -209,95 +208,6 @@ export class ShoppingFinanceSetting {
                                             </div>
 
                                         `;
-                                    return BgWidget.card([
-                                        `<div class="t_39_16 fw-bold">金流選擇</div>`,
-                                        EditorElem.select({
-                                            title: '金流選擇',
-                                            gvc: gvc,
-                                            def: keyData.TYPE,
-                                            array: [
-                                                { title: '藍新金流', value: 'newWebPay' },
-                                                { title: '綠界金流', value: 'ecPay' },
-                                                { title: '線下付款', value: 'off_line' }
-                                            ],
-                                            callback: (text) => {
-                                                keyData.TYPE = text;
-                                                if (keyData.TYPE === 'newWebPay') {
-                                                    keyData.ActionURL = 'https://ccore.newebpay.com/MPG/mpg_gateway';
-                                                }
-                                                else {
-                                                    keyData.ActionURL = 'https://payment-stage.ecpay.com.tw/Cashier/AioCheckOut/V5';
-                                                }
-                                                gvc.notifyDataChange(id);
-                                            }
-                                        }),
-                                        (() => {
-                                            if (keyData.TYPE === 'off_line') {
-                                                return [].join('');
-                                            }
-                                            else {
-                                                return [
-                                                    EditorElem.select({
-                                                        title: '金流站點',
-                                                        gvc: gvc,
-                                                        def: keyData.ActionURL,
-                                                        array: (() => {
-                                                            if (keyData.TYPE === 'newWebPay') {
-                                                                return [{
-                                                                        title: '正式站',
-                                                                        value: "https://core.newebpay.com/MPG/mpg_gateway"
-                                                                    },
-                                                                    {
-                                                                        title: '測試站',
-                                                                        value: "https://ccore.newebpay.com/MPG/mpg_gateway"
-                                                                    }];
-                                                            }
-                                                            else {
-                                                                return [{
-                                                                        title: '正式站',
-                                                                        value: "https://payment.ecpay.com.tw/Cashier/AioCheckOut/V5"
-                                                                    },
-                                                                    {
-                                                                        title: '測試站',
-                                                                        value: "https://payment-stage.ecpay.com.tw/Cashier/AioCheckOut/V5"
-                                                                    }];
-                                                            }
-                                                        })(),
-                                                        callback: (text) => {
-                                                            keyData.ActionURL = text;
-                                                        }
-                                                    }),
-                                                    EditorElem.editeInput({
-                                                        gvc: gvc,
-                                                        title: '特店編號',
-                                                        default: keyData.MERCHANT_ID,
-                                                        callback: (text) => {
-                                                            keyData.MERCHANT_ID = text;
-                                                        },
-                                                        placeHolder: '請輸入特店編號'
-                                                    }),
-                                                    EditorElem.editeInput({
-                                                        gvc: gvc,
-                                                        title: 'HASH_KEY',
-                                                        default: keyData.HASH_KEY,
-                                                        callback: (text) => {
-                                                            keyData.HASH_KEY = text;
-                                                        },
-                                                        placeHolder: '請輸入HASH_KEY'
-                                                    }),
-                                                    EditorElem.editeInput({
-                                                        gvc: gvc,
-                                                        title: 'HASH_IV',
-                                                        default: keyData.HASH_IV,
-                                                        callback: (text) => {
-                                                            keyData.HASH_IV = text;
-                                                        },
-                                                        placeHolder: '請輸入HASH_IV'
-                                                    })
-                                                ].join('');
-                                            }
-                                        })()
-                                    ].join('<div class="my-2"></div>'));
                                 },
                                 divCreate: {
                                     style: ``,

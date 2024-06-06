@@ -22,7 +22,8 @@ export class MemberSetting {
                 key: 'login_config',
                 value: vm.data,
                 user_id: 'manager'
-            }).then(() => { });
+            }).then(() => {
+            });
         }
         return gvc.bindView(() => {
             return {
@@ -31,6 +32,325 @@ export class MemberSetting {
                     if (vm.loading) {
                         return ``;
                     }
+                    return BgWidget.container(html `
+                        ${BgWidget.title('顧客設定')}
+                        <div style="height: 24px;"></div>
+                        ${BgWidget.card([
+                        `<div class="t_39_16 fw-bolder mt-2" style="margin-bottom: 24px;">登入 / 註冊設定</div>`,
+                        gvc.bindView(() => {
+                            const id = gvc.glitter.getUUID();
+                            return {
+                                bind: id,
+                                view: () => {
+                                    return [
+                                        {
+                                            title: 'line登入串接設定',
+                                            value: 'line',
+                                            src: `https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1716355632461-icon_LINE.svg`,
+                                            event: gvc.event(() => {
+                                                EditorElem.openEditorDialog(gvc, (gvc) => {
+                                                    const key = 'login_line_setting';
+                                                    return gvc.bindView(() => {
+                                                        const id = gvc.glitter.getUUID();
+                                                        const vm = {
+                                                            loading: false,
+                                                            data: {
+                                                                id: '',
+                                                                secret: ''
+                                                            }
+                                                        };
+                                                        (ApiUser.getPublicConfig(key, 'manager')).then((dd) => {
+                                                            vm.loading = false;
+                                                            dd.response.value && (vm.data = dd.response.value);
+                                                            gvc.notifyDataChange(id);
+                                                        });
+                                                        return {
+                                                            bind: id,
+                                                            view: () => {
+                                                                if (vm.loading) {
+                                                                    return ``;
+                                                                }
+                                                                return html `
+                                                            <div class="p-2">
+                                                                ${[
+                                                                    EditorElem.editeInput({
+                                                                        gvc: gvc,
+                                                                        title: 'Channel ID',
+                                                                        placeHolder: `請輸入Channel ID`,
+                                                                        default: vm.data.id,
+                                                                        callback: (text) => {
+                                                                            vm.data.id = text;
+                                                                        }
+                                                                    }),
+                                                                    EditorElem.editeInput({
+                                                                        gvc: gvc,
+                                                                        title: 'Channel Secret',
+                                                                        placeHolder: `請輸入Channel Secret`,
+                                                                        default: vm.data.secret,
+                                                                        callback: (text) => {
+                                                                            vm.data.secret = text;
+                                                                        }
+                                                                    })
+                                                                ].join('')}
+                                                            </div>
+                                                            ${ViewWidget.dialogSaveRaw(gvc, () => {
+                                                                    gvc.glitter.closeDiaLog();
+                                                                }, () => {
+                                                                    const dialog = new ShareDialog(gvc.glitter);
+                                                                    dialog.dataLoading({ visible: true });
+                                                                    ApiUser.setPublicConfig({
+                                                                        key: key,
+                                                                        value: vm.data,
+                                                                        user_id: 'manager'
+                                                                    }).then(() => {
+                                                                        dialog.dataLoading({ visible: false });
+                                                                        dialog.successMessage({ text: '設定成功' });
+                                                                        gvc.closeDialog();
+                                                                    });
+                                                                })}
+                                                        `;
+                                                            }
+                                                        };
+                                                    });
+                                                }, () => {
+                                                }, 400, 'line登入串接設定');
+                                            })
+                                        },
+                                        {
+                                            title: 'FB登入串接設定', value: 'fb',
+                                            src: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1716359127136-facebook.svg',
+                                            event: gvc.event(() => {
+                                                EditorElem.openEditorDialog(gvc, (gvc) => {
+                                                    const key = 'login_fb_setting';
+                                                    return gvc.bindView(() => {
+                                                        const id = gvc.glitter.getUUID();
+                                                        const vm = {
+                                                            loading: false,
+                                                            data: {
+                                                                id: '',
+                                                                secret: ''
+                                                            }
+                                                        };
+                                                        (ApiUser.getPublicConfig(key, 'manager')).then((dd) => {
+                                                            vm.loading = false;
+                                                            dd.response.value && (vm.data = dd.response.value);
+                                                            gvc.notifyDataChange(id);
+                                                        });
+                                                        return {
+                                                            bind: id,
+                                                            view: () => {
+                                                                if (vm.loading) {
+                                                                    return ``;
+                                                                }
+                                                                return html `
+                                                                    <div class="p-2">
+                                                                        ${[
+                                                                    EditorElem.editeInput({
+                                                                        gvc: gvc,
+                                                                        title: '應用程式編號',
+                                                                        placeHolder: `請輸入應用程式編號`,
+                                                                        default: vm.data.id,
+                                                                        callback: (text) => {
+                                                                            vm.data.id = text;
+                                                                        }
+                                                                    }),
+                                                                    EditorElem.editeInput({
+                                                                        gvc: gvc,
+                                                                        title: '應用程式密鑰',
+                                                                        placeHolder: `請輸入應用程式密鑰`,
+                                                                        default: vm.data.secret,
+                                                                        callback: (text) => {
+                                                                            vm.data.secret = text;
+                                                                        }
+                                                                    })
+                                                                ].join('')}
+                                                                    </div>
+                                                                    ${ViewWidget.dialogSaveRaw(gvc, () => {
+                                                                    gvc.glitter.closeDiaLog();
+                                                                }, () => {
+                                                                    const dialog = new ShareDialog(gvc.glitter);
+                                                                    dialog.dataLoading({ visible: true });
+                                                                    ApiUser.setPublicConfig({
+                                                                        key: key,
+                                                                        value: vm.data,
+                                                                        user_id: 'manager'
+                                                                    }).then(() => {
+                                                                        dialog.dataLoading({ visible: false });
+                                                                        dialog.successMessage({ text: '設定成功' });
+                                                                        gvc.closeDialog();
+                                                                    });
+                                                                })}
+                                                                `;
+                                                            }
+                                                        };
+                                                    });
+                                                }, () => {
+                                                }, 400, 'FB登入串接設定');
+                                            })
+                                        },
+                                        {
+                                            title: 'Google登入串接設定', value: 'google',
+                                            src: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1716359248773-icon_google.svg',
+                                            event: gvc.event(() => {
+                                                EditorElem.openEditorDialog(gvc, (gvc) => {
+                                                    const key = 'login_fb_setting';
+                                                    return gvc.bindView(() => {
+                                                        const id = gvc.glitter.getUUID();
+                                                        const vm = {
+                                                            loading: false,
+                                                            data: {
+                                                                id: '',
+                                                                secret: ''
+                                                            }
+                                                        };
+                                                        (ApiUser.getPublicConfig(key, 'manager')).then((dd) => {
+                                                            vm.loading = false;
+                                                            dd.response.value && (vm.data = dd.response.value);
+                                                            gvc.notifyDataChange(id);
+                                                        });
+                                                        return {
+                                                            bind: id,
+                                                            view: () => {
+                                                                if (vm.loading) {
+                                                                    return ``;
+                                                                }
+                                                                return html `
+                                                                    <div class="p-2">
+                                                                        ${[
+                                                                    EditorElem.editeInput({
+                                                                        gvc: gvc,
+                                                                        title: '應用程式編號',
+                                                                        placeHolder: `請輸入應用程式編號`,
+                                                                        default: vm.data.id,
+                                                                        callback: (text) => {
+                                                                            vm.data.id = text;
+                                                                        }
+                                                                    }),
+                                                                    EditorElem.editeInput({
+                                                                        gvc: gvc,
+                                                                        title: '應用程式密鑰',
+                                                                        placeHolder: `請輸入應用程式密鑰`,
+                                                                        default: vm.data.secret,
+                                                                        callback: (text) => {
+                                                                            vm.data.secret = text;
+                                                                        }
+                                                                    })
+                                                                ].join('')}
+                                                                    </div>
+                                                                    ${ViewWidget.dialogSaveRaw(gvc, () => {
+                                                                    gvc.glitter.closeDiaLog();
+                                                                }, () => {
+                                                                    const dialog = new ShareDialog(gvc.glitter);
+                                                                    dialog.dataLoading({ visible: true });
+                                                                    ApiUser.setPublicConfig({
+                                                                        key: key,
+                                                                        value: vm.data,
+                                                                        user_id: 'manager'
+                                                                    }).then(() => {
+                                                                        dialog.dataLoading({ visible: false });
+                                                                        dialog.successMessage({ text: '設定成功' });
+                                                                        gvc.closeDialog();
+                                                                    });
+                                                                })}
+                                                                `;
+                                                            }
+                                                        };
+                                                    });
+                                                }, () => {
+                                                }, 400, 'GOOGLE登入串接設定');
+                                            })
+                                        }
+                                    ].map((dd) => {
+                                        return html `
+                                                <div class="col-12 col-md-4 mb-3">
+                                                    <div class="w-100"
+                                                         style=" padding: 24px; background: white; box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.08); border-radius: 10px; overflow: hidden; flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 18px; display: inline-flex">
+                                                        <div style="align-self: stretch; justify-content: flex-start; align-items: center; gap: 28px; display: inline-flex">
+                                                            <img style="width: 46px;" src="${dd.src}">
+                                                            <div style="flex-direction: column; justify-content: center; align-items: flex-start; gap: 4px; display: inline-flex">
+                                                                <div class="t_39_16">${dd.title}</div>
+                                                                <div class="d-flex align-items-center w-100"
+                                                                     style="gap:4px;">
+                                                                    <div class="t_39_16">
+                                                                        ${(vm.data[dd.value]) ? `開啟` : `關閉`}
+                                                                    </div>
+                                                                    <div class="cursor_it form-check form-switch"
+                                                                         style="     margin-top: 10px; ">
+                                                                        <input class=" form-check-input" style=" "
+                                                                               type="checkbox" value=""
+                                                                               onchange="${gvc.event((e, event) => {
+                                            vm.data[dd.value] = !vm.data[dd.value];
+                                            saveEvent();
+                                        })}"
+                                                                               ${(vm.data[dd.value]) ? `checked` : ``}>
+                                                                    </div>
+                                                                    <div class="flex-fill"></div>
+                                                                </div>
+                                                            </div>
+                                                            <div class="flex-fill"></div>
+                                                            <div class="bt_ffb40" onclick="${dd.event}">設定
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div> `;
+                                    }).join('');
+                                },
+                                divCreate: {
+                                    class: `row m-0 mx-n2`
+                                }
+                            };
+                        })
+                    ].join(''))}
+                        <div style="height: 24px;"></div>
+                        ${BgWidget.card([
+                        `<div class="t_39_16 fw-bolder mt-2" style="margin-bottom: 24px;">驗證方式</div>`,
+                        ` <div class="d-flex flex-column" style="gap:18px;">
+                                                ${[
+                            { title: `<div class="d-flex flex-column">
+不發送驗證信件
+<span class="" style="color:#8D8D8D;font-size: 12px;">顧客可用未驗證帳號登入</span>
+</div>`, checked: !vm.data.email_verify },
+                            { title: `<div class="d-flex flex-column">
+發送驗證信件
+<span class="" style="color:#8D8D8D;font-size: 12px;">顧客必須經過驗證才能登入</span>
+</div>`, checked: vm.data.email_verify }
+                        ].map((dd) => {
+                            return `<div>${[
+                                html `
+                                                            <div class="d-flex align-items-center cursor_it"
+                                                                 style="gap:8px;" onclick="${gvc.event(() => {
+                                    vm.data.email_verify = !vm.data.email_verify;
+                                    saveEvent();
+                                    gvc.notifyDataChange(id);
+                                })}">
+                                                                ${(dd.checked) ? `<i class="fa-sharp fa-solid fa-circle-dot cl_39"></i>` : ` <div class="c_39_checkbox"></div>`}
+                                                                <div class="t_39_16 fw-normal">${dd.title}</div>
+                                                            </div>`,
+                            ].join('')}</div>`;
+                        }).join('')}
+                                            </div>`,
+                        `<div class="w-100 border-top my-3"></div>`,
+                        `<div class="t_39_16 fw-bolder mt-2" style="margin-bottom: 12px;">結帳設定</div>`,
+                        `   <div class="d-flex align-items-center w-100"
+                                                                     style="gap:4px;margin-bottom: 12px;">
+                                                                     <div class="t_39_16 fw-bolder " style="">只允許登入下單</div>
+                                                                    <div class="t_39_16 ms-2">
+                                                                        ${(vm.data.login_in_to_order) ? `開啟` : `關閉`}
+                                                                    </div>
+                                                                    <div class="cursor_it form-check form-switch m-0"
+                                                                         style=" ">
+                                                                        <input class=" form-check-input" style=" "
+                                                                               type="checkbox" value=""
+                                                                               onchange="${gvc.event((e, event) => {
+                            vm.data.login_in_to_order = !vm.data.login_in_to_order;
+                            saveEvent();
+                        })}"
+                                                                               ${(vm.data.login_in_to_order) ? `checked` : ``}>
+                                                                    </div>
+                                                                    <div class="flex-fill"></div>
+                                                                </div>`,
+                    ].join(''))}
+                    `, undefined, 'width:calc(100% - 56px);');
                     return BgWidget.container(html `
                         <div class="d-flex w-100 align-items-center mb-3">
                             ${BgWidget.title('登入方式設定')}

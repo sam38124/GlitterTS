@@ -245,8 +245,7 @@ ${html}
                                         }
                                     }
 
-                                    return html`
-                                        <div
+                                    return html`<div
                                                 class="d-flex align-items-center cursor_it"
                                                 onclick="${obj.gvc.event(() => {
                                                     if (obj.type === 'multiple') {

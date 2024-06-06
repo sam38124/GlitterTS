@@ -79,15 +79,6 @@ export class Setting_editor {
                                         },
                                         {
                                             icon: '',
-                                            page: 'member_manager',
-                                            group: '商店設定',
-                                            title: '登入設定',
-                                            appName: 'cms_system',
-                                            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1716566571091-Property 1=gear-regular.svg',
-                                            moduleName: '會員設定',
-                                        },
-                                        {
-                                            icon: '',
                                             page: 'web_config',
                                             group: '商店設定',
                                             title: '網站配置檔',
@@ -123,8 +114,17 @@ export class Setting_editor {
                                         },
                                         {
                                             icon: '',
+                                            page: 'member_manager',
+                                            group: '顧客管理',
+                                            title: '顧客設定',
+                                            appName: 'cms_system',
+                                            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1716566571091-Property 1=gear-regular.svg',
+                                            moduleName: '會員設定',
+                                        },
+                                        {
+                                            icon: '',
                                             page: 'user_list',
-                                            group: '用戶相關',
+                                            group: '顧客管理',
                                             title: '用戶列表',
                                             appName: 'cms_system',
                                             groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713360844009-Component 56 (1).svg',
@@ -133,7 +133,7 @@ export class Setting_editor {
                                         {
                                             icon: '',
                                             page: 'member_level',
-                                            group: '用戶相關',
+                                            group: '顧客管理',
                                             title: '會員等級',
                                             appName: 'cms_system',
                                             groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713360844009-Component 56 (1).svg',
@@ -142,7 +142,7 @@ export class Setting_editor {
                                         {
                                             icon: '',
                                             page: 'wallet-list',
-                                            group: '用戶相關',
+                                            group: '顧客管理',
                                             title: '電子錢包紀錄',
                                             appName: 'cms_system',
                                             groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713371719908-wallet-regular.svg',
@@ -151,7 +151,7 @@ export class Setting_editor {
                                         {
                                             icon: '',
                                             page: 'withdrawRequest',
-                                            group: '用戶相關',
+                                            group: '顧客管理',
                                             title: '錢包提領請求',
                                             appName: 'cms_system',
                                             groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713371719908-wallet-regular.svg',
