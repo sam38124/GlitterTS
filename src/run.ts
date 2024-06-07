@@ -1,9 +1,20 @@
 import path from 'path';
+import fs from 'fs';
 import { initial } from './index';
 import { ConfigSetting } from './config';
 
-ConfigSetting.setConfig(path.resolve(`/Users/jianzhi.wang/Desktop/square_studio/APP檔案/Glitter星澄基地/backend_default/environments/staging.env`));
-// ConfigSetting.setConfig(path.resolve(`/Users/daniellin/Desktop/GlitterEnv/staging.env`));
+const wangPath = `/Users/jianzhi.wang/Desktop/square_studio/APP檔案/Glitter星澄基地/backend_default/environments/staging.env`;
+const danielPath = `/Users/daniellin/Desktop/GlitterEnv/staging.env`;
+
+if (fs.existsSync(path.resolve(wangPath))) {
+    console.log('使用 Wang 路徑環境');
+    ConfigSetting.setConfig(wangPath);
+}
+
+if (fs.existsSync(path.resolve(danielPath))) {
+    console.log('使用 Daniel 路徑環境');
+    ConfigSetting.setConfig(danielPath);
+}
 
 initial(4000).then(async () => {
     // ReleaseIos.release()

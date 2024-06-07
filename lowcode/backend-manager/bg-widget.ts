@@ -541,7 +541,20 @@ padding-left: 50px;"
                                                             })}
                                                         >
                                                             <div style="width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;">
-                                                                <i class="${tag.icon.length > 0 ? tag.icon : 'fa-regular fa-image'}"></i>
+                                                                ${(() => {
+                                                                    if (tag.icon.includes('https://')) {
+                                                                        return html`<div
+                                                                            style="
+                                                                                width: 25px; height: 25px;
+                                                                                background-image: url('${tag.icon}');
+                                                                                background-position: center;
+                                                                                background-size: cover;
+                                                                                background-repeat: no-repeat;
+                                                                            "
+                                                                        ></div>`;
+                                                                    }
+                                                                    return html`<i class="${tag.icon.length > 0 ? tag.icon : 'fa-regular fa-image'}"></i>`;
+                                                                })()}
                                                             </div>
                                                             ${tag.name}
                                                         </div>
@@ -589,9 +602,10 @@ padding-left: 50px;"
                         new Promise<void>((resolve) => {
                             ApiShop.getProduct({ page: 0, limit: 50000, search: '' }).then((data: any) => {
                                 if (data.result) {
-                                    data.response.data.map((item: { content: { id: string; title: string } }) => {
-                                        const { id, title } = item.content;
-                                        productList.push({ name: title, icon: '', link: `./?appName=${appName}&product_id=${id}&page=product_detail` });
+                                    data.response.data.map((item: { content: { id: string; title: string; preview_image: string[] } }) => {
+                                        const { id, title, preview_image } = item.content;
+                                        const icon = preview_image && preview_image[0] ? preview_image[0] : '';
+                                        productList.push({ name: title, icon: icon, link: `./?appName=${appName}&product_id=${id}&page=product_detail` });
                                     });
                                     resolve();
                                 }
