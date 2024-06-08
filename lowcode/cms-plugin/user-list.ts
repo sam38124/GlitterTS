@@ -670,7 +670,7 @@ export class UserList {
                                                                                 let h = html`
                                                                                     <div class="gray-bottom-line-18">
                                                                                         <div class="cms_left_items">會員等級</div>
-                                                                                        <div>
+                                                                                        <div style="margin-top: 12px">
                                                                                             <div class="badge bg-warning fs-7" style="max-height:34px;">高級會員</div>
                                                                                         </div>
                                                                                     </div>
