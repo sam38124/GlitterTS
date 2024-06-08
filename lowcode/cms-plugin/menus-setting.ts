@@ -591,7 +591,7 @@ export class MenusSetting {
                                     gvc: gvc,
                                     title: '',
                                     default: data.link || '',
-                                    placeHolder: '搜尋或貼上外部連結',
+                                    placeHolder: '選擇或貼上外部連結',
                                     callback: (text) => {
                                         data.link = text;
                                     },

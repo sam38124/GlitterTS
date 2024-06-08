@@ -160,8 +160,10 @@ class Shopping {
             if (!(this.token && this.token.userID) && !data.email && !(data.user_info && data.user_info.email)) {
                 throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'ToCheckout Error:No email address.', null);
             }
-            const userData = (this.token && this.token.userID) ? await new user_js_1.User(this.app).getUserData(this.token.userID, 'userID') : await new user_js_1.User(this.app).getUserData(data.email || data.user_info.email, 'account');
-            if (!data.email && (userData && userData.account)) {
+            const userData = this.token && this.token.userID
+                ? await new user_js_1.User(this.app).getUserData(this.token.userID, 'userID')
+                : await new user_js_1.User(this.app).getUserData(data.email || data.user_info.email, 'account');
+            if (!data.email && userData && userData.account) {
                 data.email = userData.account;
             }
             if (!data.email && type !== 'preview') {
@@ -228,7 +230,7 @@ class Shopping {
                 shipment_support: shipment_setting,
                 use_wallet: 0,
                 method: data.user_info && data.user_info.method,
-                user_email: (userData && userData.account) || ((_c = data.email) !== null && _c !== void 0 ? _c : ((data.user_info && data.user_info.email) || ''))
+                user_email: (userData && userData.account) || ((_c = data.email) !== null && _c !== void 0 ? _c : ((data.user_info && data.user_info.email) || '')),
             };
             for (const b of data.lineItems) {
                 try {
@@ -337,7 +339,7 @@ class Shopping {
                     1,
                     JSON.stringify({
                         note: '使用錢包購物',
-                        orderData: carData
+                        orderData: carData,
                     }),
                 ]);
                 await database_js_1.default.execute(`insert into \`${this.app}\`.t_checkout (cart_token, status, email, orderData)
@@ -363,7 +365,7 @@ class Shopping {
                     NotifyURL: `${process.env.DOMAIN}/api-public/v1/ec/notify?g-app=${this.app}`,
                     ReturnURL: `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&return=${id}`,
                     MERCHANT_ID: keyData.MERCHANT_ID,
-                    TYPE: keyData.TYPE
+                    TYPE: keyData.TYPE,
                 }).createOrderPage(carData);
                 if (keyData.TYPE === 'off_line') {
                     return {
@@ -558,7 +560,7 @@ class Shopping {
     async getCheckOut(query) {
         try {
             let querySql = ['1=1'];
-            query.email && querySql.push(`(email=${database_js_1.default.escape(query.email)})`);
+            query.email && querySql.push(`email=${database_js_1.default.escape(query.email)}`);
             query.search &&
                 querySql.push([
                     `((UPPER(Cart_token) LIKE UPPER('%${query.search}%'))`,
@@ -569,7 +571,7 @@ class Shopping {
             query.id && querySql.push(`(content->>'$.id'=${query.id})`);
             let sql = `SELECT *
                        FROM \`${this.app}\`.t_checkout
-                       where ${querySql.join(' & ')}
+                       where ${querySql.join(' and ')}
                        order by id desc`;
             if (query.id) {
                 const data = (await database_js_1.default.query(`SELECT *
@@ -662,12 +664,20 @@ class Shopping {
         try {
             const order = await database_js_1.default.query(`SELECT * FROM \`${this.app}\`.t_checkout  WHERE DATE(created_time) = CURDATE()`, []);
             return {
-                total_count: order.filter((dd) => { return dd.status === 1; }).length,
+                total_count: order.filter((dd) => {
+                    return dd.status === 1;
+                }).length,
                 un_shipment: (await database_js_1.default.query(`select count(1) from \`${this.app}\`.t_checkout where (orderData->'$.progress' is null || orderData->'$.progress'='wait') and status=1`, []))[0]['count(1)'],
-                un_pay: order.filter((dd) => { return dd.status === 0; }).length,
+                un_pay: order.filter((dd) => {
+                    return dd.status === 0;
+                }).length,
                 total_amount: (() => {
                     let amount = 0;
-                    order.filter((dd) => { return dd.status === 1; }).map((dd) => {
+                    order
+                        .filter((dd) => {
+                        return dd.status === 1;
+                    })
+                        .map((dd) => {
                         amount += dd.orderData.total;
                     });
                     return amount;

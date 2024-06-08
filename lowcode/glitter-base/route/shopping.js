@@ -20,8 +20,7 @@ export class ApiShop {
     }
     static getPaymentMethod(query) {
         return BaseApi.create({
-            url: getBaseUrl() +
-                `/api-public/v1/ec/payment/method`,
+            url: getBaseUrl() + `/api-public/v1/ec/payment/method`,
             type: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -110,6 +109,7 @@ export class ApiShop {
                     let par = [`limit=${json.limit}`, `page=${json.page}`];
                     json.search && par.push(`search=${json.search}`);
                     json.id && par.push(`id=${json.id}`);
+                    json.email && par.push(`email=${json.email}`);
                     return par.join('&');
                 })()}`,
             type: 'GET',
@@ -332,6 +332,13 @@ export class ApiShop {
                 Authorization: getConfig().config.token,
             },
         });
+    }
+    static getShippingStatusArray() {
+        return [
+            { title: '未出貨', value: 'wait' },
+            { title: '配送中', value: 'shipping' },
+            { title: '已送達', value: 'finish' },
+        ];
     }
 }
 ApiShop.rebateID = 'asko323';

@@ -5,7 +5,7 @@ import { Glitter } from '../../glitterBundle/Glitter.js';
 export class ApiShop {
     constructor() {}
 
-    public static getRebate(query: { userID?: string }) {
+    static getRebate(query: { userID?: string }) {
         return BaseApi.create({
             url:
                 getBaseUrl() +
@@ -23,11 +23,9 @@ export class ApiShop {
         });
     }
 
-    public static getPaymentMethod(query: { userID?: string }) {
+    static getPaymentMethod(query: { userID?: string }) {
         return BaseApi.create({
-            url:
-                getBaseUrl() +
-                `/api-public/v1/ec/payment/method`,
+            url: getBaseUrl() + `/api-public/v1/ec/payment/method`,
             type: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -37,7 +35,7 @@ export class ApiShop {
         });
     }
 
-    public static postWishList(wishList: string) {
+    static postWishList(wishList: string) {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/ec/wishlist`,
             type: 'POST',
@@ -52,7 +50,7 @@ export class ApiShop {
         });
     }
 
-    public static deleteWishList(wishList: string) {
+    static deleteWishList(wishList: string) {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/ec/wishlist`,
             type: 'delete',
@@ -67,7 +65,7 @@ export class ApiShop {
         });
     }
 
-    public static getWishList() {
+    static getWishList() {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/ec/wishlist?page=0&limit=200`,
             type: 'get',
@@ -79,7 +77,7 @@ export class ApiShop {
         });
     }
 
-    public static checkWishList(product_id: string) {
+    static checkWishList(product_id: string) {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/ec/checkWishList?product_id=${product_id}`,
             type: 'get',
@@ -91,7 +89,7 @@ export class ApiShop {
         });
     }
 
-    public static getProduct(json: {
+    static getProduct(json: {
         limit: number;
         page: number;
         search?: string;
@@ -102,7 +100,7 @@ export class ApiShop {
         status?: string;
         orderBy?: string;
         id_list?: string;
-        with_hide_index?:string
+        with_hide_index?: string;
     }) {
         return BaseApi.create({
             url:
@@ -128,13 +126,7 @@ export class ApiShop {
         });
     }
 
-    public static getOrder(json: {
-        limit: number;
-        page: number;
-        search?: string;
-        id?: string;
-        data_from?: 'user' | 'manager';
-    }) {
+    static getOrder(json: { limit: number; page: number; search?: string; email?: string; id?: string; data_from?: 'user' | 'manager' }) {
         return BaseApi.create({
             url:
                 getBaseUrl() +
@@ -142,6 +134,7 @@ export class ApiShop {
                     let par = [`limit=${json.limit}`, `page=${json.page}`];
                     json.search && par.push(`search=${json.search}`);
                     json.id && par.push(`id=${json.id}`);
+                    json.email && par.push(`email=${json.email}`);
                     return par.join('&');
                 })()}`,
             type: 'GET',
@@ -153,13 +146,7 @@ export class ApiShop {
         });
     }
 
-    public static getVoucher(json: {
-        limit: number;
-        page: number;
-        search?: string;
-        id?: string;
-        data_from?: 'user' | 'manager';
-    }) {
+    static getVoucher(json: { limit: number; page: number; search?: string; id?: string; data_from?: 'user' | 'manager' }) {
         return BaseApi.create({
             url:
                 getBaseUrl() +
@@ -178,7 +165,7 @@ export class ApiShop {
         });
     }
 
-    public static putOrder(json: { id: string; order_data: any; status?: any }) {
+    static putOrder(json: { id: string; order_data: any; status?: any }) {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/ec/order`,
             type: 'PUT',
@@ -191,7 +178,7 @@ export class ApiShop {
         });
     }
 
-    public static delete(json: { id: string }) {
+    static delete(json: { id: string }) {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/ec/product?id=${json.id}`,
             type: 'DELETE',
@@ -203,7 +190,7 @@ export class ApiShop {
         });
     }
 
-    public static deleteOrders(json: { id: string }) {
+    static deleteOrders(json: { id: string }) {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/ec/order`,
             type: 'DELETE',
@@ -216,7 +203,7 @@ export class ApiShop {
         });
     }
 
-    public static deleteVoucher(json: { id: string }) {
+    static deleteVoucher(json: { id: string }) {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/ec/voucher?id=${json.id}`,
             type: 'DELETE',
@@ -228,7 +215,7 @@ export class ApiShop {
         });
     }
 
-    public static setCollection(json: any) {
+    static setCollection(json: any) {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/manager/config`,
             type: 'PUT',
@@ -244,7 +231,7 @@ export class ApiShop {
         });
     }
 
-    public static getCollection() {
+    static getCollection() {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/manager/config?key=collection`,
             type: 'GET',
@@ -255,7 +242,7 @@ export class ApiShop {
         });
     }
 
-    public static setShowList(json: any) {
+    static setShowList(json: any) {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/manager/config`,
             type: 'PUT',
@@ -271,7 +258,7 @@ export class ApiShop {
         });
     }
 
-    public static getShowList() {
+    static getShowList() {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/manager/config?key=product_show_list`,
             type: 'GET',
@@ -282,7 +269,7 @@ export class ApiShop {
         });
     }
 
-    public static selectC2cMap(json: { returnURL: string; logistics: string }) {
+    static selectC2cMap(json: { returnURL: string; logistics: string }) {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/delivery/c2cMap`,
             type: 'POST',
@@ -294,7 +281,7 @@ export class ApiShop {
         });
     }
 
-    public static toCheckout(json: {
+    static toCheckout(json: {
         line_items: {
             id: number;
             spec: string[];
@@ -322,7 +309,7 @@ export class ApiShop {
         });
     }
 
-    public static getCheckout(json: {
+    static getCheckout(json: {
         line_items: {
             id: number;
             spec: string[];
@@ -343,7 +330,7 @@ export class ApiShop {
         });
     }
 
-    public static getVoucherCode() {
+    static getVoucherCode() {
         const glitter = (window as any).glitter;
         return new Promise((resolve, reject) => {
             (window as any).glitter.getPro(ApiShop.voucherID, (response: any) => {
@@ -352,15 +339,15 @@ export class ApiShop {
         });
     }
 
-    public static setVoucherCode(code: string) {
+    static setVoucherCode(code: string) {
         (window as any).glitter.setPro(ApiShop.voucherID, code, () => {});
     }
 
-    public static setRebateValue(value: string) {
+    static setRebateValue(value: string) {
         (window as any).glitter.setPro(ApiShop.rebateID, value, () => {});
     }
 
-    public static getRebateValue() {
+    static getRebateValue() {
         const glitter = (window as any).glitter;
         return new Promise((resolve, reject) => {
             (window as any).glitter.getPro(ApiShop.rebateID, (response: any) => {
@@ -369,11 +356,11 @@ export class ApiShop {
         });
     }
 
-    public static rebateID = 'asko323';
-    public static voucherID = 'voucxasw';
-    public static cartID = 'lemnoas';
+    static rebateID = 'asko323';
+    static voucherID = 'voucxasw';
+    static cartID = 'lemnoas';
 
-    public static addToCart(id: string, count: string) {
+    static addToCart(id: string, count: string) {
         (window as any).glitter.getPro(ApiShop.cartID, (response: any) => {
             const cartData = response.data ? JSON.parse(response.data) : {};
             cartData[id] = cartData[id] ?? 0;
@@ -382,7 +369,7 @@ export class ApiShop {
         });
     }
 
-    public static setToCart(id: string, count: string) {
+    static setToCart(id: string, count: string) {
         (window as any).glitter.getPro(ApiShop.cartID, (response: any) => {
             const cartData = response.data ? JSON.parse(response.data) : {};
             if (parseInt(count, 10) === 0) {
@@ -394,11 +381,11 @@ export class ApiShop {
         });
     }
 
-    public static clearCart() {
+    static clearCart() {
         (window as any).glitter.setPro(ApiShop.cartID, JSON.stringify({}), () => {});
     }
 
-    public static getCart() {
+    static getCart() {
         return new Promise((resolve, reject) => {
             (window as any).glitter.getPro(ApiShop.cartID, (response: any) => {
                 const cartData = response.data ? JSON.parse(response.data) : {};
@@ -407,7 +394,7 @@ export class ApiShop {
         });
     }
 
-    public static ecDataAnalyze(tagArray: string[]) {
+    static ecDataAnalyze(tagArray: string[]) {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/ec/dataAnalyze?tags=${tagArray.join(',')}`,
             type: 'GET',
@@ -417,6 +404,14 @@ export class ApiShop {
                 Authorization: getConfig().config.token,
             },
         });
+    }
+
+    static getShippingStatusArray() {
+        return [
+            { title: '未出貨', value: 'wait' },
+            { title: '配送中', value: 'shipping' },
+            { title: '已送達', value: 'finish' },
+        ];
     }
 }
 

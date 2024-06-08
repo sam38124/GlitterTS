@@ -2,17 +2,17 @@ import express from 'express';
 import response from '../../modules/response';
 import multer from 'multer';
 import exception from '../../modules/exception';
-import {Shopping} from '../services/shopping';
-import {UtPermission} from '../utils/ut-permission';
-import {EcPay, EzPay} from '../services/financial-service.js';
-import {Private_config} from '../../services/private_config.js';
+import { Shopping } from '../services/shopping';
+import { UtPermission } from '../utils/ut-permission';
+import { EcPay, EzPay } from '../services/financial-service.js';
+import { Private_config } from '../../services/private_config.js';
 import db from '../../modules/database.js';
-import {IToken} from '../models/Auth.js';
-import {Invoice} from '../services/invoice.js';
-import {User} from '../services/user.js';
-import {CustomCode} from '../services/custom-code.js';
-import {UtDatabase} from '../utils/ut-database.js';
-import {Post} from '../services/post.js';
+import { IToken } from '../models/Auth.js';
+import { Invoice } from '../services/invoice.js';
+import { User } from '../services/user.js';
+import { CustomCode } from '../services/custom-code.js';
+import { UtDatabase } from '../utils/ut-database.js';
+import { Post } from '../services/post.js';
 import crypto from 'crypto';
 import redis from '../../modules/redis.js';
 
@@ -63,7 +63,7 @@ router.get('/product', async (req: express.Request, resp: express.Response) => {
                         return `order by id desc`;
                 }
             })(),
-            with_hide_index: req.query.with_hide_index as string
+            with_hide_index: req.query.with_hide_index as string,
         });
         return response.succ(resp, shopping);
     } catch (err) {
@@ -77,22 +77,40 @@ router.get('/rebate', async (req: express.Request, resp: express.Response) => {
 
         if (await UtPermission.isManager(req)) {
             req.query.search && query.push(`(userID in (select userID from \`${app}\`.t_user where (UPPER(JSON_UNQUOTE(JSON_EXTRACT(userData, '$.name')) LIKE UPPER('%${req.query.search}%')))))`);
+            if (req.query.id && `${req.query.id}`.length > 0) {
+                query.push(`userID=${db.escape(req.query.id)}`);
+            }
         } else {
             query.push(`userID=${db.escape(req.body.token.userID)}`);
         }
-        query.push(`status in (1,2)`);
+        query.push(`status in (1, 2)`);
+        req.query.dataType === 'all' && delete req.query.id;
         const data = await new UtDatabase(req.get('g-app') as string, `t_rebate`).querySql(query, req.query as any);
-        for (const b of data.data) {
+
+        if (Array.isArray(data.data)) {
+            for (const b of data.data) {
+                let userData = (
+                    await db.query(
+                        `select userData
+                         from \`${app}\`.t_user
+                         where userID = ?`,
+                        [b.userID]
+                    )
+                )[0];
+                b.userData = userData && userData.userData;
+            }
+        } else {
             let userData = (
                 await db.query(
                     `select userData
                      from \`${app}\`.t_user
                      where userID = ?`,
-                    [b.userID]
+                    [data.data.userID]
                 )
             )[0];
-            b.userData = userData && userData.userData;
+            data.data.userData = userData && userData.userData;
         }
+
         return response.succ(resp, data);
     } catch (err) {
         return response.fail(resp, err);
@@ -142,7 +160,7 @@ router.delete('/product', async (req: express.Request, resp: express.Response) =
             await new Shopping(req.get('g-app') as string, req.body.token).deleteProduct({
                 id: req.query.id as string,
             });
-            return response.succ(resp, {result: true});
+            return response.succ(resp, { result: true });
         } else {
             return response.fail(resp, exception.BadRequestError('BAD_REQUEST', 'No permission.', null));
         }
@@ -209,6 +227,7 @@ router.get('/order', async (req: express.Request, resp: express.Response) => {
                     limit: (req.query.limit ?? 50) as number,
                     search: req.query.search as string,
                     id: req.query.id as string,
+                    email: req.query.email as string,
                 })
             );
         } else if (await UtPermission.isAppUser(req)) {
@@ -286,7 +305,7 @@ router.delete('/voucher', async (req: express.Request, resp: express.Response) =
             await new Shopping(req.get('g-app') as string, req.body.token).deleteVoucher({
                 id: req.query.id as string,
             });
-            return response.succ(resp, {result: true});
+            return response.succ(resp, { result: true });
         } else {
             return response.fail(resp, exception.BadRequestError('BAD_REQUEST', 'No permission.', null));
         }
@@ -325,7 +344,7 @@ router.post('/redirect', async (req: express.Request, resp: express.Response) =>
     }
 });
 const storage = multer.memoryStorage(); // 将文件存储在内存中
-const upload = multer({storage});
+const upload = multer({ storage });
 router.post('/notify', upload.single('file'), async (req: express.Request, resp: express.Response) => {
     try {
         const appName = req.query['g-app'] as string;
@@ -403,12 +422,7 @@ router.post('/notify', upload.single('file'), async (req: express.Request, resp:
                 )[0];
                 const userData = await new User(appName).getUserData(cartData.email, 'account');
                 if (cartData.orderData.rebate > 0) {
-                    await db.query(
-                        `update \`${appName}\`.t_rebate set status=1 where orderID=?;`,
-                        [
-                            cartData.cart_token
-                        ]
-                    );
+                    await db.query(`update \`${appName}\`.t_rebate set status=1 where orderID=?;`, [cartData.cart_token]);
                 }
                 try {
                     await new CustomCode(appName).checkOutHook({
@@ -504,7 +518,7 @@ router.post('/wishlist', async (req: express.Request, resp: express.Response) =>
                 't_post'
             );
         }
-        return response.succ(resp, {result: true});
+        return response.succ(resp, { result: true });
     } catch (err) {
         return response.fail(resp, err);
     }
@@ -520,7 +534,7 @@ router.delete('/wishlist', async (req: express.Request, resp: express.Response) 
             `,
             [req.body.token.userID]
         );
-        return response.succ(resp, {result: true});
+        return response.succ(resp, { result: true });
     } catch (err) {
         return response.fail(resp, err);
     }
@@ -586,7 +600,6 @@ router.delete('/collection', async (req: express.Request, resp: express.Response
     }
 });
 
-
 router.get('/payment/method', async (req: express.Request, resp: express.Response) => {
     try {
         const keyData = (
@@ -596,27 +609,33 @@ router.get('/payment/method', async (req: express.Request, resp: express.Respons
             })
         )[0].value;
 
-        return  response.succ(resp,{
-            method: [{
-                value:'credit',
-                title:'信用卡'
-            },{
-                value:'atm',
-                title:'ATM'
-            } ,{
-                value:'web_atm',
-                title:'網路ATM'
-            }, {
-                value:'c_code',
-                title:'超商代碼'
-            }, {
-                value:'c_bar_code',
-                title:'超商條碼'
-            }].filter((dd)=>{
-               return  keyData[dd.value] && keyData.TYPE!=='off_line'
-            })
-        })
+        return response.succ(resp, {
+            method: [
+                {
+                    value: 'credit',
+                    title: '信用卡',
+                },
+                {
+                    value: 'atm',
+                    title: 'ATM',
+                },
+                {
+                    value: 'web_atm',
+                    title: '網路ATM',
+                },
+                {
+                    value: 'c_code',
+                    title: '超商代碼',
+                },
+                {
+                    value: 'c_bar_code',
+                    title: '超商條碼',
+                },
+            ].filter((dd) => {
+                return keyData[dd.value] && keyData.TYPE !== 'off_line';
+            }),
+        });
     } catch (err) {
         return response.fail(resp, err);
     }
-})
+});

@@ -70,7 +70,7 @@ export class Shopping {
     public async getProduct(query: {
         page: number;
         limit: number;
-        sku?:string;
+        sku?: string;
         id?: string;
         search?: string;
         collection?: string;
@@ -79,7 +79,7 @@ export class Shopping {
         status?: string;
         order_by?: string;
         id_list?: string;
-        with_hide_index?:string
+        with_hide_index?: string;
     }) {
         try {
             let querySql = [`(content->>'$.type'='product')`];
@@ -94,9 +94,9 @@ export class Shopping {
                         })
                         .join(' or ')})`
                 );
-            console.log(`select content->>'$.product_id' as id from \`${this.app}\`.t_manager_post where content->>'$.sku'=${db.escape(query.sku)}`)
-            query.sku && querySql.push(`id in (select CAST(content->>'$.product_id' AS UNSIGNED) as id from \`${this.app}\`.t_manager_post where content->>'$.sku'=${db.escape(query.sku)})`)
-            if (!query.id && query.status === 'active' && query.with_hide_index!=='true') {
+            console.log(`select content->>'$.product_id' as id from \`${this.app}\`.t_manager_post where content->>'$.sku'=${db.escape(query.sku)}`);
+            query.sku && querySql.push(`id in (select CAST(content->>'$.product_id' AS UNSIGNED) as id from \`${this.app}\`.t_manager_post where content->>'$.sku'=${db.escape(query.sku)})`);
+            if (!query.id && query.status === 'active' && query.with_hide_index !== 'true') {
                 querySql.push(`((content->>'$.hideIndex' is NULL) || (content->>'$.hideIndex'='false'))`);
             }
             query.id_list && querySql.push(`(content->>'$.id' in (${query.id_list}))`);
@@ -140,14 +140,13 @@ export class Shopping {
                 );
                 const trans = await db.Transaction.build();
                 for (const stock of stockList) {
-
                     const product = productList.find((dd) => {
                         return `${dd.id}` === `${stock.product_id}`;
                     });
                     const variant = product.content.variants.find((dd: any) => {
                         return dd.spec.join('-') === stock.spec;
                     });
-                    if (variant){
+                    if (variant) {
                         variant.stock += stock.count;
                         if (stock.status != 1) {
                             //回寫商品訂單
@@ -171,7 +170,6 @@ export class Shopping {
                             [stock.recoverID]
                         );
                     }
-
                 }
                 await trans.commit();
             }
@@ -272,14 +270,16 @@ export class Shopping {
         type: 'add' | 'preview' = 'add'
     ) {
         try {
-
-            if(!(this.token && this.token.userID)&&!data.email&& !(data.user_info && data.user_info.email)){
+            if (!(this.token && this.token.userID) && !data.email && !(data.user_info && data.user_info.email)) {
                 throw exception.BadRequestError('BAD_REQUEST', 'ToCheckout Error:No email address.', null);
             }
 
-            const userData = (this.token && this.token.userID) ? await new User(this.app).getUserData(this.token.userID as any, 'userID'):await new User(this.app).getUserData(data.email! || data.user_info.email, 'account')
-            if(!data.email && (userData && userData.account)){
-                data.email=userData.account
+            const userData =
+                this.token && this.token.userID
+                    ? await new User(this.app).getUserData(this.token.userID as any, 'userID')
+                    : await new User(this.app).getUserData(data.email! || data.user_info.email, 'account');
+            if (!data.email && userData && userData.account) {
+                data.email = userData.account;
             }
             if (!data.email && type !== 'preview') {
                 if (data.user_info && data.user_info.email) {
@@ -288,7 +288,7 @@ export class Shopping {
                     throw exception.BadRequestError('BAD_REQUEST', 'ToCheckout Error:No email address.', null);
                 }
             }
-            if(!data.email){
+            if (!data.email) {
                 throw exception.BadRequestError('BAD_REQUEST', 'ToCheckout Error:No email address.', null);
             }
             //判斷回饋金是否可用
@@ -366,8 +366,8 @@ export class Shopping {
                 orderID: string;
                 shipment_support: string[];
                 use_wallet: number;
-                user_email:string;
-                method:string
+                user_email: string;
+                method: string;
             } = {
                 lineItems: [],
                 total: 0,
@@ -379,8 +379,8 @@ export class Shopping {
                 orderID: `${new Date().getTime()}`,
                 shipment_support: shipment_setting as any,
                 use_wallet: 0,
-                method:data.user_info && data.user_info.method,
-                user_email:(userData && userData.account) || (data.email ?? ((data.user_info && data.user_info.email) || ''))
+                method: data.user_info && data.user_info.method,
+                user_email: (userData && userData.account) || (data.email ?? ((data.user_info && data.user_info.email) || '')),
             };
             for (const b of data.lineItems) {
                 try {
@@ -517,7 +517,7 @@ export class Shopping {
                         1,
                         JSON.stringify({
                             note: '使用錢包購物',
-                            orderData:carData
+                            orderData: carData,
                         }),
                     ]
                 );
@@ -549,7 +549,7 @@ export class Shopping {
                     NotifyURL: `${process.env.DOMAIN}/api-public/v1/ec/notify?g-app=${this.app}`,
                     ReturnURL: `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&return=${id}`,
                     MERCHANT_ID: keyData.MERCHANT_ID,
-                    TYPE: keyData.TYPE
+                    TYPE: keyData.TYPE,
                 }).createOrderPage(carData);
                 //線下付款
                 if (keyData.TYPE === 'off_line') {
@@ -817,7 +817,7 @@ export class Shopping {
     public async getCheckOut(query: { page: number; limit: number; id?: string; search?: string; email?: string; status?: string }) {
         try {
             let querySql = ['1=1'];
-            query.email && querySql.push(`(email=${db.escape(query.email)})`);
+            query.email && querySql.push(`email=${db.escape(query.email)}`);
             query.search &&
                 querySql.push(
                     [
@@ -830,7 +830,7 @@ export class Shopping {
             query.id && querySql.push(`(content->>'$.id'=${query.id})`);
             let sql = `SELECT *
                        FROM \`${this.app}\`.t_checkout
-                       where ${querySql.join(' & ')}
+                       where ${querySql.join(' and ')}
                        order by id desc`;
             if (query.id) {
                 const data = (
@@ -938,22 +938,32 @@ export class Shopping {
     }
     async getOrderToDay() {
         try {
-            const order=await db.query(`SELECT * FROM \`${this.app}\`.t_checkout  WHERE DATE(created_time) = CURDATE()`,[])
+            const order = await db.query(`SELECT * FROM \`${this.app}\`.t_checkout  WHERE DATE(created_time) = CURDATE()`, []);
 
             return {
                 //訂單總數
-                total_count:order.filter((dd:any)=>{return dd.status===1}).length,
+                total_count: order.filter((dd: any) => {
+                    return dd.status === 1;
+                }).length,
                 //未出貨訂單
-                un_shipment:(await db.query(`select count(1) from \`${this.app}\`.t_checkout where (orderData->'$.progress' is null || orderData->'$.progress'='wait') and status=1`,[]))[0]['count(1)'],
+                un_shipment: (await db.query(`select count(1) from \`${this.app}\`.t_checkout where (orderData->'$.progress' is null || orderData->'$.progress'='wait') and status=1`, []))[0][
+                    'count(1)'
+                ],
                 //未付款訂單
-                un_pay:order.filter((dd:any)=>{return dd.status===0}).length,
+                un_pay: order.filter((dd: any) => {
+                    return dd.status === 0;
+                }).length,
                 //今日成交金額
-                total_amount:(()=>{
-                    let amount=0
-                    order.filter((dd:any)=>{return dd.status===1}).map((dd:any)=>{
-                        amount+=dd.orderData.total
-                    })
-                    return amount
+                total_amount: (() => {
+                    let amount = 0;
+                    order
+                        .filter((dd: any) => {
+                            return dd.status === 1;
+                        })
+                        .map((dd: any) => {
+                            amount += dd.orderData.total;
+                        });
+                    return amount;
                 })(),
             };
         } catch (e) {

@@ -186,14 +186,6 @@ body {
     /*border-color: #565db8;*/
 }
 
-.btn-check:checked + .btn-primary-c:focus,
-.btn-check:active + .btn-primary-c:focus,
-.btn-primary-c:active:focus,
-.btn-primary-c.active:focus,
-.show > .btn-primary-c.dropdown-toggle:focus {
-    /*-webkit-box-shadow: 0 0 0 0.2rem rgba(135, 144, 247, 0.5);*/
-    /*box-shadow: 0 0 0 0.2rem rgba(135, 144, 247, 0.5);*/
-}
 
 .btn-primary-c:disabled,
 .btn-primary-c.disabled {
@@ -353,7 +345,6 @@ ul {
     display: inline-flex;
     color: #FFB400;
     font-size: 16px;
-    font-family: Noto Sans;
     font-weight: 700;
     letter-spacing: 0.64px;
     word-wrap: break-word
@@ -361,28 +352,19 @@ ul {
 
 .cms_left_items {
     color: #393939;
-    font-family: "Noto Sans";
     font-size: 16px;
-    font-style: normal;
     font-weight: 700;
-    line-height: normal;
 }
 
 .t_39_normal {
-    font-family: "Noto Sans";
     font-size: 16px;
-    font-style: normal;
     font-weight: 400;
-    line-height: normal;
     letter-spacing: 0.64px;
     color: #393939;
 }
 
 .t_39_16 {
-    font-family: "Noto Sans";
     font-size: 16px;
-    font-style: normal;
-    line-height: normal;
     letter-spacing: 0.64px;
     color: #393939;
 }
@@ -390,19 +372,14 @@ ul {
 
 .t_39_title {
     color: #393939;
-    font-family: 'Noto Sans';
     font-size: 24px;
-    font-style: normal;
     font-weight: 700;
-    line-height: normal;
-
 }
 
 .c_card {
     border-radius: 10px;
     background: #FFF;
     padding: 24px;
-    /* 陰影 */
     box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.08);
 }
 
@@ -426,11 +403,8 @@ ul {
     justify-content: center;
     align-items: center;
     color: #FFF;
-    font-family: "Noto Sans";
     font-size: 16px;
-    font-style: normal;
     font-weight: 700;
-    line-height: normal;
     cursor: pointer;
     min-width: 120px;
 }
@@ -443,13 +417,10 @@ ul {
     justify-content: center;
     align-items: center;
     color: #393939;
-    font-family: "Noto Sans";
     font-size: 16px;
-    font-style: normal;
     font-weight: 700;
     border: 1px solid #393939;
     min-width: 120px;
-    line-height: normal;
     cursor: pointer;
 }
 
@@ -462,11 +433,8 @@ ul {
     align-items: center;
     color: #FFF;
     cursor: pointer;
-    font-family: "Noto Sans";
     font-size: 16px;
-    font-style: normal;
     font-weight: 700;
-    line-height: normal;
 }
 
 .hoverPlace:hover {
@@ -506,4 +474,59 @@ ul {
     font-weight: 500;
     height: 44px;
     cursor: pointer;
+}
+
+.btn-gary {
+    display: flex;
+    padding: 6px 18px;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    border: 0;
+    border-radius: 10px;
+    background: #EAEAEA;
+}
+
+
+.btn-gary:hover {
+    background: #D0D0D0;
+}
+
+.bgw-input {
+    width: 100%;
+    margin-top:8px;
+    display: flex;
+    padding: 9px 12px;
+    align-items: center;
+    border-radius: 10px;
+    border: 1px solid #DDD;
+    background-color: #fff
+}
+
+.bgw-input-readonly{
+    background-color: #f3f6ff;
+}
+
+
+.bgw-input-readonly:focus-visible {
+    outline: 0
+}
+
+.update-bar-container {
+    position: fixed;
+    display: flex;
+    align-items: center;
+    justify-content: end;
+    padding: 14px 16px;
+    background: #FFF;
+    box-shadow: 0px 1px 10px 0px rgba(0, 0, 0, 0.15);
+    gap:10px;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+}
+
+.gray-bottom-line-18 {
+    border-bottom: 1px solid #e2e5f1;
+    padding-bottom: 18px
 }

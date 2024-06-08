@@ -58,7 +58,7 @@ router.get('/product', async (req, resp) => {
                         return `order by id desc`;
                 }
             })(),
-            with_hide_index: req.query.with_hide_index
+            with_hide_index: req.query.with_hide_index,
         });
         return response_1.default.succ(resp, shopping);
     }
@@ -72,17 +72,29 @@ router.get('/rebate', async (req, resp) => {
         let query = [];
         if (await ut_permission_1.UtPermission.isManager(req)) {
             req.query.search && query.push(`(userID in (select userID from \`${app}\`.t_user where (UPPER(JSON_UNQUOTE(JSON_EXTRACT(userData, '$.name')) LIKE UPPER('%${req.query.search}%')))))`);
+            if (req.query.id && `${req.query.id}`.length > 0) {
+                query.push(`userID=${database_js_1.default.escape(req.query.id)}`);
+            }
         }
         else {
             query.push(`userID=${database_js_1.default.escape(req.body.token.userID)}`);
         }
-        query.push(`status in (1,2)`);
+        query.push(`status in (1, 2)`);
+        req.query.dataType === 'all' && delete req.query.id;
         const data = await new ut_database_js_1.UtDatabase(req.get('g-app'), `t_rebate`).querySql(query, req.query);
-        for (const b of data.data) {
+        if (Array.isArray(data.data)) {
+            for (const b of data.data) {
+                let userData = (await database_js_1.default.query(`select userData
+                         from \`${app}\`.t_user
+                         where userID = ?`, [b.userID]))[0];
+                b.userData = userData && userData.userData;
+            }
+        }
+        else {
             let userData = (await database_js_1.default.query(`select userData
                      from \`${app}\`.t_user
-                     where userID = ?`, [b.userID]))[0];
-            b.userData = userData && userData.userData;
+                     where userID = ?`, [data.data.userID]))[0];
+            data.data.userData = userData && userData.userData;
         }
         return response_1.default.succ(resp, data);
     }
@@ -198,6 +210,7 @@ router.get('/order', async (req, resp) => {
                 limit: ((_b = req.query.limit) !== null && _b !== void 0 ? _b : 50),
                 search: req.query.search,
                 id: req.query.id,
+                email: req.query.email,
             }));
         }
         else if (await ut_permission_1.UtPermission.isAppUser(req)) {
@@ -374,9 +387,7 @@ router.post('/notify', upload.single('file'), async (req, resp) => {
                          where cart_token = ?;`, [decodeData['Result']['MerchantOrderNo']]))[0];
                 const userData = await new user_js_1.User(appName).getUserData(cartData.email, 'account');
                 if (cartData.orderData.rebate > 0) {
-                    await database_js_1.default.query(`update \`${appName}\`.t_rebate set status=1 where orderID=?;`, [
-                        cartData.cart_token
-                    ]);
+                    await database_js_1.default.query(`update \`${appName}\`.t_rebate set status=1 where orderID=?;`, [cartData.cart_token]);
                 }
                 try {
                     await new custom_code_js_1.CustomCode(appName).checkOutHook({
@@ -543,24 +554,30 @@ router.get('/payment/method', async (req, resp) => {
             key: 'glitter_finance',
         }))[0].value;
         return response_1.default.succ(resp, {
-            method: [{
+            method: [
+                {
                     value: 'credit',
-                    title: '信用卡'
-                }, {
+                    title: '信用卡',
+                },
+                {
                     value: 'atm',
-                    title: 'ATM'
-                }, {
+                    title: 'ATM',
+                },
+                {
                     value: 'web_atm',
-                    title: '網路ATM'
-                }, {
+                    title: '網路ATM',
+                },
+                {
                     value: 'c_code',
-                    title: '超商代碼'
-                }, {
+                    title: '超商代碼',
+                },
+                {
                     value: 'c_bar_code',
-                    title: '超商條碼'
-                }].filter((dd) => {
+                    title: '超商條碼',
+                },
+            ].filter((dd) => {
                 return keyData[dd.value] && keyData.TYPE !== 'off_line';
-            })
+            }),
         });
     }
     catch (err) {
