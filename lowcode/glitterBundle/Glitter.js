@@ -80,7 +80,7 @@ export class Glitter {
             },
             setQueue: (tag, fun, callback) => {
                 var _a;
-                const queue = Glitter.glitter.ut.queue;
+                const queue = this.ut.queue;
                 queue[tag] = (_a = queue[tag]) !== null && _a !== void 0 ? _a : {
                     callback: [],
                     data: undefined,

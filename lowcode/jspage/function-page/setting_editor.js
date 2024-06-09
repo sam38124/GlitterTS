@@ -526,7 +526,7 @@ export class Setting_editor {
                                 </div>`;
                         })(),
                         `<div
-                            class="bg-white w-100 align-items-center  d-flex editor_item_title  start-0  z-index-9 ps-2  border-bottom border-top position-absolute bottom-0"
+                            class="bg-white w-100 align-items-center  d-flex editor_item_title  start-0  z-index-9 ps-2  border-bottom border-top position-absolute bottom-0 border-end"
                             style="z-index: 999;border:none;"
                         >
                             <div

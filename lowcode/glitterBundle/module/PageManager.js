@@ -108,7 +108,7 @@ export class PageManager {
                         }, 10);
                     }
                 }
-                setTimeout(() => { scroll(); });
+                scroll();
             }
         }
         catch (e) {

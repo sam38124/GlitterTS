@@ -10,6 +10,7 @@ const exception_js_1 = __importDefault(require("../../modules/exception.js"));
 const ut_database_js_1 = require("../utils/ut-database.js");
 const database_js_1 = __importDefault(require("../../modules/database.js"));
 const firebase_js_1 = require("../../modules/firebase.js");
+const config_js_1 = require("../../config.js");
 const router = express_1.default.Router();
 router.post('/add', async (req, resp) => {
     try {
@@ -86,9 +87,20 @@ router.delete('/delete', async (req, resp) => {
         try {
             const isManager = await ut_permission_js_1.UtPermission.isManager(req);
             const isAppUser = await ut_permission_js_1.UtPermission.isAppUser(req);
-            let userData = (isAppUser) ? (await database_js_1.default.query(`SELECT *
+            let userData = await (async () => {
+                if (isAppUser) {
+                    return (await database_js_1.default.query(`SELECT *
                                                           FROM \`${req.get('g-app')}\`.t_user
-                                                          where userID = ?`, [req.body.token.userID]))[0] : undefined;
+                                                          where userID = ?`, [req.body.token.userID]))[0];
+                }
+                if (isManager) {
+                    const brand = (await database_js_1.default.query(`SELECT brand FROM ${config_js_1.saasConfig.SAAS_NAME}.app_config where appName=?;`, [req.get('g-app')]))[0]['brand'];
+                    return (await database_js_1.default.query(`SELECT *
+                                                          FROM \`${brand}\`.t_user
+                                                          where userID = ?`, [req.body.token.userID]))[0];
+                }
+                return undefined;
+            })();
             userData && (userData.pwd = undefined);
             const route = (await database_js_1.default.query(`select *
                                            from \`${req.get('g-app')}\`.t_graph_api

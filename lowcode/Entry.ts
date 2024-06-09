@@ -9,6 +9,8 @@ import {GlobalUser} from "./glitter-base/global/global-user.js";
 export class Entry {
     public static onCreate(glitter: Glitter) {
 
+        glitter.share.GlobalUser=GlobalUser
+        Entry.checkRedirectPage(glitter)
         glitter.share.logID = glitter.getUUID()
         glitter.addStyle(`@media (prefers-reduced-motion: no-preference) {
           :root {
@@ -23,7 +25,7 @@ export class Entry {
 
         (window as any).renderClock = (window as any).renderClock ?? clockF();
         console.log(`Entry-time:`, (window as any).renderClock.stop());
-        glitter.share.editerVersion = "V_7.4.4";
+        glitter.share.editerVersion = "V_7.5.5";
         glitter.share.start = (new Date());
         const vm: {
             appConfig: any
@@ -540,6 +542,15 @@ export class Entry {
                 resolve(true)
             }
         })
+    }
+
+    //判斷是否要重新定義頁面
+    public static checkRedirectPage(glitter:Glitter){
+        const url=new URL(location.href)
+        if(  url.searchParams.get('state')==='google_login'){
+            glitter.setUrlParameter('page','login')
+        }
+
     }
 }
 

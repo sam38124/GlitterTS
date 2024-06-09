@@ -6,6 +6,8 @@ export declare class User {
     updateAccount(account: string, userID: string): Promise<any>;
     login(account: string, pwd: string): Promise<any>;
     loginWithFb(token: string): Promise<any>;
+    loginWithLine(code: string, redirect: string): Promise<any>;
+    loginWithGoogle(code: string, redirect: string): Promise<any>;
     getUserData(query: string, type?: 'userID' | 'account'): Promise<any>;
     checkRebate(userID: string): Promise<void>;
     refreshMember(userData: any): Promise<any>;

@@ -239,6 +239,12 @@ router.post('/login', async (req, resp) => {
         if (req.body.login_type === 'fb') {
             return response_1.default.succ(resp, (await user.loginWithFb(req.body.fb_token)));
         }
+        else if (req.body.login_type === 'line') {
+            return response_1.default.succ(resp, (await user.loginWithLine(req.body.line_token, req.body.redirect)));
+        }
+        else if (req.body.login_type === 'google') {
+            return response_1.default.succ(resp, (await user.loginWithGoogle(req.body.google_token, req.body.redirect)));
+        }
         else {
             return response_1.default.succ(resp, (await user.login(req.body.account, req.body.pwd)));
         }

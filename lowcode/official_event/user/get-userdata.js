@@ -8,7 +8,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 import { TriggerEvent } from '../../glitterBundle/plugins/trigger-event.js';
-import { GlobalUser } from "../../glitter-base/global/global-user.js";
 import { ApiUser } from "../../glitter-base/route/user.js";
 TriggerEvent.createSingleEvent(import.meta.url, () => {
     return {
@@ -19,28 +18,28 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                 },
                 event: () => {
                     return new Promise((resolve, reject) => __awaiter(void 0, void 0, void 0, function* () {
-                        if (!GlobalUser.token) {
-                            GlobalUser.token = '';
+                        if (!gvc.glitter.share.GlobalUser.token) {
+                            gvc.glitter.share.GlobalUser.token = '';
                             resolve(false);
                             return ``;
                         }
-                        if (GlobalUser.userInfo) {
-                            resolve(GlobalUser.userInfo);
+                        if (gvc.glitter.share.GlobalUser.userInfo) {
+                            resolve(gvc.glitter.share.GlobalUser.userInfo);
                         }
                         else {
-                            window.glitterInitialHelper.setQueue(`api-get-user_data`, (callback) => __awaiter(void 0, void 0, void 0, function* () {
-                                callback(yield ApiUser.getUserData(GlobalUser.token, 'me'));
+                            gvc.glitter.ut.setQueue(`api-get-user_data`, (callback) => __awaiter(void 0, void 0, void 0, function* () {
+                                callback(yield ApiUser.getUserData(gvc.glitter.share.GlobalUser.token, 'me'));
                             }), ((r) => {
                                 try {
                                     if (!r.result) {
-                                        GlobalUser.token = '';
+                                        gvc.glitter.share.GlobalUser.token = '';
                                         resolve(false);
                                         gvc.glitter.ut.queue[`api-get-user_data`] = undefined;
                                     }
                                     else {
-                                        GlobalUser.userInfo = r.response;
-                                        GlobalUser.updateUserData = JSON.parse(JSON.stringify(r.response));
-                                        resolve(GlobalUser.userInfo);
+                                        gvc.glitter.share.GlobalUser.userInfo = r.response;
+                                        gvc.glitter.share.GlobalUser.updateUserData = JSON.parse(JSON.stringify(r.response));
+                                        resolve(gvc.glitter.share.GlobalUser.userInfo);
                                     }
                                 }
                                 catch (e) {

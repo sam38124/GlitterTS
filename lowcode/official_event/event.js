@@ -220,10 +220,27 @@ TriggerEvent.create(import.meta.url, {
                     return new Promise((resolve, reject) => __awaiter(void 0, void 0, void 0, function* () {
                         var _a;
                         try {
+                            const queryWhere = `
+                            /*
+      ->Tag->${widget.tag}
+      ->Label->${widget.label}
+      ->ID->${widget.id}
+      */
+                            `;
                             const a = object.codeVersion == 'v2'
-                                ? eval(`(() => {
-                                        ${object.code}
-                                    })()`)
+                                ? eval(`
+                                        (()=>{
+                                            try {
+                                                return (() => {
+                                                    ${queryWhere}
+                                                    ${object.code}
+                                                })()
+                                            }catch (e) {
+                                                console.log(e)
+                                                return undefined
+                                            }
+                                        })()
+                                    `)
                                 : eval(object.code);
                             if (a.then) {
                                 a.then((data) => {
@@ -369,6 +386,10 @@ TriggerEvent.create(import.meta.url, {
     setURl: {
         title: '官方事件 / 開發工具 / 設定URL參數',
         fun: TriggerEvent.setEventRouter(import.meta.url, './glitter-util/set-url.js'),
+    },
+    checkInput: {
+        title: '官方事件 / 開發工具 / 輸入內容過濾',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './glitter-util/check-input.js'),
     },
     event_trigger: {
         title: '官方事件 / 開發工具 / 事件觸發',
@@ -656,6 +677,14 @@ TriggerEvent.create(import.meta.url, {
         title: '電子商務 / 資料分析',
         fun: TriggerEvent.setEventRouter(import.meta.url, './e-commerce/data-analyze.js'),
     },
+    invoiceType: {
+        title: '電子商務 / 取得發票開立方式',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './e-commerce/get-invoice-type.js'),
+    },
+    checkLoginForOrder: {
+        title: '電子商務 / 判斷是否需要登入後付款',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './e-commerce/get-login-for-order.js'),
+    },
     postWallet: {
         title: '電子錢包 / 新增儲值金額',
         fun: TriggerEvent.setEventRouter(import.meta.url, './wallet/add-money.js'),
@@ -703,6 +732,10 @@ TriggerEvent.create(import.meta.url, {
     set_user_data: {
         title: '用戶相關 / 設定用戶資料',
         fun: TriggerEvent.setEventRouter(import.meta.url, './user/set-userdata.js'),
+    },
+    remove_user_memory: {
+        title: '用戶相關 / 清空用戶資料暫存',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './user/clear-userdata.js'),
     },
     get_user_config: {
         title: '用戶相關 / 取得用戶配置檔案',

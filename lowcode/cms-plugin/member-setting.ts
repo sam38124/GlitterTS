@@ -217,7 +217,7 @@ export class MemberSetting {
                                                 src: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1716359248773-icon_google.svg',
                                                 event:gvc.event(()=>{
                                                     EditorElem.openEditorDialog(gvc, (gvc) => {
-                                                        const key = 'login_fb_setting'
+                                                        const key = 'login_google_setting'
                                                         return gvc.bindView(() => {
                                                             const id = gvc.glitter.getUUID()
                                                             const vm: {
@@ -250,8 +250,8 @@ export class MemberSetting {
                                                                         ${[
                                                                         EditorElem.editeInput({
                                                                             gvc: gvc,
-                                                                            title: '應用程式編號',
-                                                                            placeHolder: `請輸入應用程式編號`,
+                                                                            title: '客户端 ID',
+                                                                            placeHolder: `請輸入客户端ID`,
                                                                             default: vm.data.id,
                                                                             callback: (text) => {
                                                                                 vm.data.id = text;
@@ -259,8 +259,8 @@ export class MemberSetting {
                                                                         }),
                                                                         EditorElem.editeInput({
                                                                             gvc: gvc,
-                                                                            title: '應用程式密鑰',
-                                                                            placeHolder: `請輸入應用程式密鑰`,
+                                                                            title: '客户端密鑰',
+                                                                            placeHolder: `請輸入客户端密鑰`,
                                                                             default: vm.data.secret,
                                                                             callback: (text) => {
                                                                                 vm.data.secret = text;
@@ -312,6 +312,7 @@ export class MemberSetting {
                                                                                onchange="${gvc.event((e, event) => {
                                                                                    vm.data[dd.value] = !vm.data[dd.value]
                                                                                    saveEvent()
+                                                                                   gvc.notifyDataChange(id)
                                                                                })}"
                                                                                ${(vm.data[dd.value]) ? `checked` : ``}>
                                                                     </div>
@@ -377,6 +378,7 @@ export class MemberSetting {
                                                                                onchange="${gvc.event((e, event) => {
                                 vm.data.login_in_to_order=!vm.data.login_in_to_order
                                 saveEvent()
+                                gvc.notifyDataChange(id)
                             })}"
                                                                                ${(vm.data.login_in_to_order) ? `checked` : ``}>
                                                                     </div>

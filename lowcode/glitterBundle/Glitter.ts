@@ -630,7 +630,7 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
             }
         },
         setQueue: (tag: string, fun: any, callback: any) => {
-            const queue: any = Glitter.glitter.ut.queue;
+            const queue: any = this.ut.queue;
             queue[tag] = queue[tag] ?? {
                 callback: [],
                 data: undefined,

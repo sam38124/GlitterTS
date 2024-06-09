@@ -261,7 +261,7 @@ export class Chat {
                                     await new Firebase(this.app).sendMessage({
                                         title: `收到訊息`,
                                         userID: dd.userID,
-                                        tag: 'comment',
+                                        tag: 'message',
                                         link: `./?page=message&userID=${user.userID}`,
                                         body: `${user.userData.name}傳送訊息給您:${room.message.text}`
                                     })

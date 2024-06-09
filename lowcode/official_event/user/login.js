@@ -14,12 +14,14 @@ import { ApiUser } from "../../glitter-base/route/user.js";
 TriggerEvent.createSingleEvent(import.meta.url, () => {
     return {
         fun: (gvc, widget, object, subData, element) => {
-            var _a, _b, _c, _d, _e;
+            var _a, _b, _c, _d, _e, _f, _g;
             object.successEvent = (_a = object.successEvent) !== null && _a !== void 0 ? _a : {};
             object.errorEvent = (_b = object.errorEvent) !== null && _b !== void 0 ? _b : {};
             object.account = (_c = object.account) !== null && _c !== void 0 ? _c : {};
             object.password = (_d = object.password) !== null && _d !== void 0 ? _d : {};
             object.loginMethod = (_e = object.loginMethod) !== null && _e !== void 0 ? _e : "normal";
+            object.code = (_f = object.code) !== null && _f !== void 0 ? _f : {};
+            object.redirect = (_g = object.redirect) !== null && _g !== void 0 ? _g : {};
             return {
                 editor: () => {
                     return gvc.bindView(() => {
@@ -38,11 +40,13 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                         },
                                         array: [
                                             { title: "一般登入", value: "normal" },
-                                            { title: "FB登入", value: "fb" }
+                                            { title: "FB登入", value: "fb" },
+                                            { title: "LINE登入", value: "line" },
+                                            { title: "Google登入", value: "google" }
                                         ],
                                     })
                                 ];
-                                if (object.loginMethod !== 'fb') {
+                                if (object.loginMethod !== 'fb' && object.loginMethod !== 'line' && object.loginMethod !== 'google') {
                                     option = option.concat([TriggerEvent.editer(gvc, widget, object.account, {
                                             hover: false,
                                             option: [],
@@ -52,6 +56,20 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                             option: [],
                                             title: "用戶密碼"
                                         })]);
+                                }
+                                if (object.loginMethod === 'line' || (object.loginMethod === 'google')) {
+                                    option = option.concat([
+                                        TriggerEvent.editer(gvc, widget, object.code, {
+                                            hover: false,
+                                            option: [],
+                                            title: "code代碼"
+                                        }),
+                                        TriggerEvent.editer(gvc, widget, object.redirect, {
+                                            hover: false,
+                                            option: [],
+                                            title: "redirect"
+                                        })
+                                    ]);
                                 }
                                 option = option.concat([
                                     TriggerEvent.editer(gvc, widget, object.successEvent, {
@@ -71,43 +89,101 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                     });
                 },
                 event: () => {
+                    function loginCallback(r, resolve) {
+                        var _a;
+                        if (!r.result) {
+                            TriggerEvent.trigger({
+                                gvc: gvc,
+                                widget: widget,
+                                clickEvent: object.errorEvent,
+                                subData: subData,
+                                element: element
+                            });
+                            resolve(false);
+                        }
+                        else {
+                            TriggerEvent.trigger({
+                                gvc: gvc,
+                                widget: widget,
+                                clickEvent: object.successEvent,
+                                subData: subData,
+                                element: element
+                            });
+                            gvc.glitter.share.public_api = (_a = gvc.glitter.share.public_api) !== null && _a !== void 0 ? _a : {};
+                            gvc.glitter.share.public_api.GlobalUser = GlobalUser;
+                            GlobalUser.token = r.response.token;
+                            GlobalUser.userInfo = r.response;
+                            GlobalUser.updateUserData = JSON.parse(JSON.stringify(r.response));
+                            resolve(true);
+                        }
+                    }
                     if (object.loginMethod === 'fb') {
                         return new Promise((resolve, reject) => __awaiter(void 0, void 0, void 0, function* () {
                             window.FB.login(function (response) {
-                                console.log(`FB.login`, response.authResponse.accessToken);
                                 const accessToken = response.authResponse.accessToken;
                                 ApiUser.login({
                                     login_type: 'fb',
                                     fb_token: accessToken
                                 }).then((r) => {
-                                    var _a;
-                                    if (!r.result) {
-                                        TriggerEvent.trigger({
-                                            gvc: gvc,
-                                            widget: widget,
-                                            clickEvent: object.errorEvent,
-                                            subData: subData,
-                                            element: element
-                                        });
-                                        resolve(false);
-                                    }
-                                    else {
-                                        TriggerEvent.trigger({
-                                            gvc: gvc,
-                                            widget: widget,
-                                            clickEvent: object.successEvent,
-                                            subData: subData,
-                                            element: element
-                                        });
-                                        gvc.glitter.share.public_api = (_a = gvc.glitter.share.public_api) !== null && _a !== void 0 ? _a : {};
-                                        gvc.glitter.share.public_api.GlobalUser = GlobalUser;
-                                        GlobalUser.token = r.response.token;
-                                        GlobalUser.userInfo = r.response;
-                                        GlobalUser.updateUserData = JSON.parse(JSON.stringify(r.response));
-                                        resolve(true);
-                                    }
+                                    loginCallback(r, (res) => {
+                                        resolve(res);
+                                    });
                                 });
                             }, { scope: 'public_profile,email' });
+                        }));
+                    }
+                    else if (object.loginMethod === 'line') {
+                        return new Promise((resolve, reject) => __awaiter(void 0, void 0, void 0, function* () {
+                            let code = yield TriggerEvent.trigger({
+                                gvc: gvc,
+                                widget: widget,
+                                clickEvent: object.code,
+                                subData: subData,
+                                element: element
+                            });
+                            let redirect = yield TriggerEvent.trigger({
+                                gvc: gvc,
+                                widget: widget,
+                                clickEvent: object.redirect,
+                                subData: subData,
+                                element: element
+                            });
+                            ApiUser.login({
+                                login_type: 'line',
+                                line_token: code,
+                                redirect: redirect
+                            }).then((r) => {
+                                loginCallback(r, (res) => {
+                                    resolve(res);
+                                });
+                            });
+                        }));
+                    }
+                    else if (object.loginMethod === 'google') {
+                        return new Promise((resolve, reject) => __awaiter(void 0, void 0, void 0, function* () {
+                            let code = yield TriggerEvent.trigger({
+                                gvc: gvc,
+                                widget: widget,
+                                clickEvent: object.code,
+                                subData: subData,
+                                element: element
+                            });
+                            let redirect = yield TriggerEvent.trigger({
+                                gvc: gvc,
+                                widget: widget,
+                                clickEvent: object.redirect,
+                                subData: subData,
+                                element: element
+                            });
+                            ApiUser.login({
+                                login_type: 'google',
+                                google_token: code,
+                                redirect: redirect
+                            }).then((r) => {
+                                loginCallback(r, (res) => {
+                                    resolve(res);
+                                });
+                            });
                         }));
                     }
                     else {
@@ -130,33 +206,9 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                 account: account,
                                 pwd: pwd
                             }).then((r) => {
-                                var _a;
-                                console.log(`login--->`, r);
-                                if (!r.result) {
-                                    TriggerEvent.trigger({
-                                        gvc: gvc,
-                                        widget: widget,
-                                        clickEvent: object.errorEvent,
-                                        subData: subData,
-                                        element: element
-                                    });
-                                    resolve(false);
-                                }
-                                else {
-                                    TriggerEvent.trigger({
-                                        gvc: gvc,
-                                        widget: widget,
-                                        clickEvent: object.successEvent,
-                                        subData: subData,
-                                        element: element
-                                    });
-                                    gvc.glitter.share.public_api = (_a = gvc.glitter.share.public_api) !== null && _a !== void 0 ? _a : {};
-                                    gvc.glitter.share.public_api.GlobalUser = GlobalUser;
-                                    GlobalUser.token = r.response.token;
-                                    GlobalUser.userInfo = r.response;
-                                    GlobalUser.updateUserData = JSON.parse(JSON.stringify(r.response));
-                                    resolve(true);
-                                }
+                                loginCallback(r, (res) => {
+                                    resolve(res);
+                                });
                             });
                         }));
                     }

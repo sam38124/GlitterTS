@@ -129,5 +129,9 @@ router.post('/getInvoice', async (req, resp) => {
         return response_1.default.fail(resp, err);
     }
 });
+router.get('/invoice-type', async (req, resp) => {
+    const config = await app_1.default.getAdConfig(req.get('g-app'), "invoice_setting");
+    return response_1.default.succ(resp, { method: config.fincial });
+});
 module.exports = router;
 //# sourceMappingURL=invoice.js.map

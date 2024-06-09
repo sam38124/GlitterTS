@@ -276,6 +276,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                                     dd.subData = undefined;
                                     dd.appConfig = undefined;
                                     dd.storage = undefined;
+                                    dd.tag = undefined;
                                     dd.bundle = undefined;
                                     dd.share = undefined;
                                     if (haveID.indexOf(dd.id) !== -1) {

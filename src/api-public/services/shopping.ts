@@ -270,16 +270,19 @@ export class Shopping {
         type: 'add' | 'preview' = 'add'
     ) {
         try {
-            if (!(this.token && this.token.userID) && !data.email && !(data.user_info && data.user_info.email)) {
+            if(type!=='preview' && (!(this.token && this.token.userID)&&!data.email&& !(data.user_info && data.user_info.email))){
                 throw exception.BadRequestError('BAD_REQUEST', 'ToCheckout Error:No email address.', null);
             }
 
-            const userData =
-                this.token && this.token.userID
-                    ? await new User(this.app).getUserData(this.token.userID as any, 'userID')
-                    : await new User(this.app).getUserData(data.email! || data.user_info.email, 'account');
-            if (!data.email && userData && userData.account) {
-                data.email = userData.account;
+            const userData = await (async ()=>{
+                if(type!=='preview'){
+                    return ((this.token && this.token.userID) ? await new User(this.app).getUserData(this.token.userID as any, 'userID'):await new User(this.app).getUserData(data.email! || data.user_info.email, 'account'))
+                }else{
+                    return  {}
+                }
+            })()
+            if(!data.email && (userData && userData.account)){
+                data.email=userData.account
             }
             if (!data.email && type !== 'preview') {
                 if (data.user_info && data.user_info.email) {
@@ -288,7 +291,7 @@ export class Shopping {
                     throw exception.BadRequestError('BAD_REQUEST', 'ToCheckout Error:No email address.', null);
                 }
             }
-            if (!data.email) {
+                if(!data.email && type!=='preview'){
                 throw exception.BadRequestError('BAD_REQUEST', 'ToCheckout Error:No email address.', null);
             }
             //判斷回饋金是否可用
@@ -459,7 +462,7 @@ export class Shopping {
                     data: carData,
                 };
             }
-            if (carData.use_rebate) {
+            if (carData.use_rebate && userData && userData.userID) {
                 await db.query(
                     `insert into \`${this.app}\`.t_rebate (orderID, userID, money, status, note)
                                 values (?, ?, ?, ?, ?);`,
@@ -474,37 +477,43 @@ export class Shopping {
                     ]
                 );
             }
-            //判斷錢包是否有餘額
-            const sum =
-                (
-                    await db.query(
-                        `SELECT sum(money)
+            if(userData && userData.userID){
+                //判斷錢包是否有餘額
+                const sum =
+                    (
+                        await db.query(
+                            `SELECT sum(money)
                                          FROM \`${this.app}\`.t_wallet
                                          where status in (1, 2)
                                            and userID = ?`,
-                        [userData.userID]
-                    )
-                )[0]['sum(money)'] || 0;
+                            [userData.userID]
+                        )
+                    )[0]['sum(money)'] || 0;
 
-            if (sum < carData.total) {
-                carData.use_wallet = sum;
-            } else {
-                carData.use_wallet = carData.total;
-            }
-            //消費返還回饋金
-            await db.query(
-                `insert into \`${this.app}\`.t_rebate (orderID, userID, money, status, note)
+                if (sum < carData.total) {
+                    carData.use_wallet = sum;
+                } else {
+                    carData.use_wallet = carData.total;
+                }
+                if(carData.rebate>0){
+                    //消費返還回饋金
+                    await db.query(
+                        `insert into \`${this.app}\`.t_rebate (orderID, userID, money, status, note)
                          values (?, ?, ?, ?, ?);`,
-                [
-                    carData.orderID,
-                    userData.userID,
-                    carData.rebate,
-                    -1,
-                    JSON.stringify({
-                        note: '消費返還回饋金',
-                    }),
-                ]
-            );
+                        [
+                            carData.orderID,
+                            userData.userID,
+                            carData.rebate,
+                            -1,
+                            JSON.stringify({
+                                note: '消費返還回饋金',
+                            }),
+                        ]
+                    );
+                }
+
+            }
+
             //當不需付款時直接寫入，並開發票
             if (carData.use_wallet === carData.total) {
                 await db.query(

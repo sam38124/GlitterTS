@@ -208,6 +208,26 @@ export class ApiShop {
             },
         });
     }
+    static getInvoiceType() {
+        return BaseApi.create({
+            url: getBaseUrl() + `/api-public/v1/invoice/invoice-type`,
+            type: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'g-app': getConfig().config.appName,
+            },
+        });
+    }
+    static getLoginForOrder() {
+        return BaseApi.create({
+            url: getBaseUrl() + `/api-public/v1/ec/check-login-for-order`,
+            type: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'g-app': getConfig().config.appName,
+            },
+        });
+    }
     static setShowList(json) {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/manager/config`,

@@ -674,6 +674,7 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
                                                     class: ``,
                                                     style: ``,
                                                     containerID: id,
+                                                    tag:page_request_config.tag,
                                                     jsFinish: () => {
                                                     },
                                                     onCreate: () => {

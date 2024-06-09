@@ -481,7 +481,7 @@ ${obj.default ?? ''}</textarea
     static linkList(obj: { gvc: GVC; title: string; default: string; placeHolder: string; callback: (path: string) => void; style?: string; readonly?: boolean; pattern?: string }) {
         obj.title = obj.title ?? '';
         const html = String.raw;
-        const appName = (window as any).appName;
+        const appName = (window.parent as any).appName;
         const vm = {
             id: obj.gvc.glitter.getUUID(),
             loading: true,
@@ -502,9 +502,9 @@ ${obj.default ?? ''}</textarea
 
         // 遞迴類別資料的物件
         const setCollectionPath = (target: MenuItem[], data: CollecrtionItem[]) => {
-            data.map((item, index) => {
+            (data || []).map((item, index) => {
                 const { title, array } = item;
-                target.push({ name: title, icon: '', link: `./?appName=${appName}&collection=${title}&page=all_product` });
+                target.push({ name: title, icon: '', link: `./?collection=${title}&page=all_product` });
                 if (array && array.length > 0) {
                     target[index].items = [];
                     setCollectionPath(target[index].items as MenuItem[], array);
@@ -683,9 +683,9 @@ ${obj.default ?? ''}</textarea
                                             })
                                             .map((tag) => {
                                                 h2 += html`
-                                                    <div class="m-3" style="display: flex; align-items: center; justify-content: space-between;">
+                                                    <div class="m-3" style="cursor:pointer;display: flex; align-items: center; justify-content: space-between;">
                                                         <div
-                                                            class="link-item-container ${tag.link && tag.link.length > 0 ? 'hoverF2' : ''}"
+                                                            class="link-item-container ${tag.link && tag.link.length > 0 ? 'hoverF2' : ''}" style="cursor: pointer;"
                                                             onclick=${obj.gvc.event(() => {
                                                                 tag.link && tag.link.length > 0 && callbackEvent(tag);
                                                             })}
@@ -709,7 +709,7 @@ ${obj.default ?? ''}</textarea
                                                             ${tag.name}
                                                         </div>
                                                         <div
-                                                            class="hoverF2"
+                                                            class="hoverF2 pe-2" style=""
                                                             onclick=${obj.gvc.event(() => {
                                                                 dropMenu.prevList.push(dataList);
                                                                 dropMenu.recentParent.push(tag.name);
@@ -752,10 +752,10 @@ ${obj.default ?? ''}</textarea
                         new Promise<void>((resolve) => {
                             ApiShop.getProduct({ page: 0, limit: 50000, search: '' }).then((data: any) => {
                                 if (data.result) {
-                                    data.response.data.map((item: { content: { id: string; title: string; preview_image: string[] } }) => {
+                                    (data.response.data || []).map((item: { content: { id: string; title: string; preview_image: string[] } }) => {
                                         const { id, title, preview_image } = item.content;
                                         const icon = preview_image && preview_image[0] ? preview_image[0] : '';
-                                        productList.push({ name: title, icon: icon, link: `./?appName=${appName}&product_id=${id}&page=product_detail` });
+                                        productList.push({ name: title, icon: icon, link: `./?product_id=${id}&page=product_detail` });
                                     });
                                     resolve();
                                 }
@@ -766,7 +766,7 @@ ${obj.default ?? ''}</textarea
                                 if (data.result) {
                                     data.response.data.map((item: { content: { name: string; tag: string } }) => {
                                         const { name, tag } = item.content;
-                                        acticleList.push({ name: name, icon: '', link: `./?appName=${appName}&article=${tag}&page=article` });
+                                        acticleList.push({ name: name, icon: '', link: `./?article=${tag}&page=article` });
                                     });
                                 }
                                 resolve();

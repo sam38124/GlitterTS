@@ -41,6 +41,9 @@ const ut_database_js_1 = require("../utils/ut-database.js");
 const custom_code_js_1 = require("./custom-code.js");
 const axios_1 = __importDefault(require("axios"));
 const auto_send_email_js_1 = require("./auto-send-email.js");
+const qs_1 = __importDefault(require("qs"));
+const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
+const google_auth_library_1 = require("google-auth-library");
 class User {
     async createUser(account, pwd, userData, req) {
         try {
@@ -181,13 +184,127 @@ class User {
                                              from \`${this.app}\`.t_user
                                              where account = ?
                                                and status = 1`, [fbResponse.email]))[0];
-        data.pwd = undefined;
-        data.token = await UserUtil_1.default.generateToken({
-            user_id: data["userID"],
-            account: data["account"],
+        const usData = await this.getUserData(data.userID, 'userID');
+        usData.pwd = undefined;
+        usData.token = await UserUtil_1.default.generateToken({
+            user_id: usData["userID"],
+            account: usData["account"],
             userData: {}
         });
-        return data;
+        return usData;
+    }
+    async loginWithLine(code, redirect) {
+        try {
+            const lineData = await (this.getConfigV2({
+                key: 'login_line_setting',
+                user_id: 'manager'
+            }));
+            const lineResponse = await new Promise((resolve, reject) => {
+                axios_1.default.request({
+                    method: 'post',
+                    maxBodyLength: Infinity,
+                    url: 'https://api.line.me/oauth2/v2.1/token',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    data: qs_1.default.stringify({
+                        'code': code,
+                        'client_id': lineData.id,
+                        'client_secret': lineData.secret,
+                        'grant_type': 'authorization_code',
+                        'redirect_uri': redirect
+                    })
+                })
+                    .then((response) => {
+                    resolve(response.data);
+                })
+                    .catch((error) => {
+                    resolve(false);
+                });
+            });
+            if (!lineResponse) {
+                throw exception_1.default.BadRequestError('BAD_REQUEST', 'Line Register Error', null);
+            }
+            const userData = jsonwebtoken_1.default.decode(lineResponse.id_token);
+            console.log(userData);
+            if ((await database_1.default.query(`select count(1)
+                             from \`${this.app}\`.t_user
+                             where userData->>'$.lineID'=?`, [userData.sub]))[0]["count(1)"] == 0) {
+                const userID = generateUserID();
+                await database_1.default.execute(`INSERT INTO \`${this.app}\`.\`t_user\` (\`userID\`, \`account\`, \`pwd\`, \`userData\`, \`status\`)
+                              VALUES (?, ?, ?, ?, ?);`, [
+                    userID,
+                    userData.sub,
+                    await tool_1.default.hashPwd(generateUserID()),
+                    {
+                        name: userData.name || '未命名',
+                        lineID: userData.sub
+                    },
+                    1
+                ]);
+            }
+            const data = (await database_1.default.execute(`select *
+                                             from \`${this.app}\`.t_user
+                                             where userData->>'$.lineID'=?`, [userData.sub]))[0];
+            const usData = await this.getUserData(data.userID, 'userID');
+            usData.pwd = undefined;
+            usData.token = await UserUtil_1.default.generateToken({
+                user_id: usData["userID"],
+                account: usData["account"],
+                userData: {}
+            });
+            return usData;
+        }
+        catch (e) {
+            throw exception_1.default.BadRequestError('BAD_REQUEST', e, null);
+        }
+    }
+    async loginWithGoogle(code, redirect) {
+        try {
+            const config = await (this.getConfigV2({
+                key: 'login_google_setting',
+                user_id: 'manager'
+            }));
+            const oauth2Client = new google_auth_library_1.OAuth2Client(config.id, config.secret, redirect);
+            const { tokens } = await oauth2Client.getToken(code);
+            oauth2Client.setCredentials(tokens);
+            const ticket = await oauth2Client.verifyIdToken({
+                idToken: tokens.id_token,
+                audience: config.id,
+            });
+            const payload = ticket.getPayload();
+            if ((await database_1.default.query(`select count(1)
+                             from \`${this.app}\`.t_user
+                             where account = ?`, [payload === null || payload === void 0 ? void 0 : payload.email]))[0]["count(1)"] == 0) {
+                const userID = generateUserID();
+                await database_1.default.execute(`INSERT INTO \`${this.app}\`.\`t_user\` (\`userID\`, \`account\`, \`pwd\`, \`userData\`, \`status\`)
+                              VALUES (?, ?, ?, ?, ?);`, [
+                    userID,
+                    payload === null || payload === void 0 ? void 0 : payload.email,
+                    await tool_1.default.hashPwd(generateUserID()),
+                    {
+                        name: payload === null || payload === void 0 ? void 0 : payload.given_name,
+                        email: payload === null || payload === void 0 ? void 0 : payload.email
+                    },
+                    1
+                ]);
+            }
+            const data = (await database_1.default.execute(`select *
+                                             from \`${this.app}\`.t_user
+                                             where account = ?
+                                               and status = 1`, [payload === null || payload === void 0 ? void 0 : payload.email]))[0];
+            const usData = await this.getUserData(data.userID, 'userID');
+            usData.pwd = undefined;
+            usData.token = await UserUtil_1.default.generateToken({
+                user_id: usData["userID"],
+                account: usData["account"],
+                userData: {}
+            });
+            return usData;
+        }
+        catch (e) {
+            throw exception_1.default.BadRequestError('BAD_REQUEST', e, null);
+        }
     }
     async getUserData(query, type = 'userID') {
         try {

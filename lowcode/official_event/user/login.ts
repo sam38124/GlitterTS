@@ -12,7 +12,9 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
             object.errorEvent = object.errorEvent ?? {}
             object.account = object.account ?? {}
             object.password = object.password ?? {}
-            object.loginMethod=object.loginMethod??"normal"
+            object.loginMethod=object.loginMethod??"normal";
+            object.code=object.code??{};
+            object.redirect=object.redirect??{};
             return {
                 editor: () => {
                     return gvc.bindView(()=>{
@@ -31,11 +33,13 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                         },
                                         array: [
                                             { title: "一般登入", value: "normal" },
-                                            { title: "FB登入", value: "fb" }
+                                            { title: "FB登入", value: "fb" },
+                                            { title: "LINE登入", value: "line" },
+                                            { title: "Google登入", value: "google" }
                                         ],
                                     })
                                 ]
-                                if(object.loginMethod!=='fb'){
+                                if(object.loginMethod!=='fb' && object.loginMethod!=='line' && object.loginMethod!=='google'){
                                     option=option.concat([ TriggerEvent.editer(gvc, widget, object.account, {
                                         hover: false,
                                         option: [],
@@ -45,6 +49,20 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                         option: [],
                                         title: "用戶密碼"
                                     })])
+                                }
+                                if(object.loginMethod==='line' || (object.loginMethod==='google')){
+                                    option=option.concat([
+                                        TriggerEvent.editer(gvc, widget, object.code, {
+                                            hover: false,
+                                            option: [],
+                                            title: "code代碼"
+                                        }),
+                                        TriggerEvent.editer(gvc, widget, object.redirect, {
+                                            hover: false,
+                                            option: [],
+                                            title: "redirect"
+                                        })
+                                    ])
                                 }
                                 option=option.concat([
                                     TriggerEvent.editer(gvc, widget, object.successEvent, {
@@ -65,45 +83,102 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
 
                 },
                 event: () => {
-
+                     function loginCallback(r:any,resolve:(result:boolean)=>void ){
+                         if (!r.result) {
+                             TriggerEvent.trigger({
+                                 gvc: gvc,
+                                 widget: widget,
+                                 clickEvent: object.errorEvent,
+                                 subData: subData,
+                                 element: element
+                             })
+                             resolve(false)
+                         } else {
+                             TriggerEvent.trigger({
+                                 gvc: gvc,
+                                 widget: widget,
+                                 clickEvent: object.successEvent,
+                                 subData: subData,
+                                 element: element
+                             })
+                             gvc.glitter.share.public_api = gvc.glitter.share.public_api ?? {}
+                             gvc.glitter.share.public_api.GlobalUser = GlobalUser
+                             GlobalUser.token = r.response.token
+                             GlobalUser.userInfo = r.response
+                             GlobalUser.updateUserData = JSON.parse(JSON.stringify(r.response))
+                             resolve(true)
+                         }
+                     }
                     if(object.loginMethod==='fb'){
                         return new Promise(async (resolve, reject) => {
                             (window as any).FB.login(function(response:any) {
                                 // handle the response
-                                console.log(`FB.login`,response.authResponse.accessToken)
                                 const accessToken=response.authResponse.accessToken;
                                 ApiUser.login({
                                     login_type:'fb',
                                     fb_token:accessToken
                                 }).then((r) => {
-                                    if (!r.result) {
-                                        TriggerEvent.trigger({
-                                            gvc: gvc,
-                                            widget: widget,
-                                            clickEvent: object.errorEvent,
-                                            subData: subData,
-                                            element: element
-                                        })
-                                        resolve(false)
-                                    } else {
-                                        TriggerEvent.trigger({
-                                            gvc: gvc,
-                                            widget: widget,
-                                            clickEvent: object.successEvent,
-                                            subData: subData,
-                                            element: element
-                                        })
-                                        gvc.glitter.share.public_api = gvc.glitter.share.public_api ?? {}
-                                        gvc.glitter.share.public_api.GlobalUser = GlobalUser
-                                        GlobalUser.token = r.response.token
-                                        GlobalUser.userInfo = r.response
-                                        GlobalUser.updateUserData = JSON.parse(JSON.stringify(r.response))
-                                        resolve(true)
-                                    }
+                                    loginCallback(r,(res)=>{
+                                        resolve(res)
+                                    })
                                 })
                             }, {scope: 'public_profile,email'});
 
                         })
+                    }else  if(object.loginMethod==='line'){
+                        return new Promise(async (resolve, reject)=>{
+                            let code = await TriggerEvent.trigger({
+                                gvc: gvc,
+                                widget: widget,
+                                clickEvent: object.code,
+                                subData: subData,
+                                element: element
+                            })
+                            let redirect = await TriggerEvent.trigger({
+                                gvc: gvc,
+                                widget: widget,
+                                clickEvent: object.redirect,
+                                subData: subData,
+                                element: element
+                            })
+                            ApiUser.login({
+                                login_type:'line',
+                                line_token:code as any,
+                                redirect:redirect as any
+                            }).then((r) => {
+                                loginCallback(r,(res)=>{
+                                    resolve(res)
+                                })
+                            })
+                        })
+
+                    }else  if(object.loginMethod==='google'){
+                        return new Promise(async (resolve, reject)=>{
+                            let code = await TriggerEvent.trigger({
+                                gvc: gvc,
+                                widget: widget,
+                                clickEvent: object.code,
+                                subData: subData,
+                                element: element
+                            })
+                            let redirect = await TriggerEvent.trigger({
+                                gvc: gvc,
+                                widget: widget,
+                                clickEvent: object.redirect,
+                                subData: subData,
+                                element: element
+                            })
+                            ApiUser.login({
+                                login_type:'google',
+                                google_token:code as any,
+                                redirect:redirect as any
+                            }).then((r) => {
+                                loginCallback(r,(res)=>{
+                                    resolve(res)
+                                })
+                            })
+                        })
+
                     }else{
                         return new Promise(async (resolve, reject) => {
                             let account = await TriggerEvent.trigger({
@@ -124,31 +199,9 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                 account: account as string,
                                 pwd: pwd as string
                             }).then((r) => {
-                                console.log(`login--->`, r)
-                                if (!r.result) {
-                                    TriggerEvent.trigger({
-                                        gvc: gvc,
-                                        widget: widget,
-                                        clickEvent: object.errorEvent,
-                                        subData: subData,
-                                        element: element
-                                    })
-                                    resolve(false)
-                                } else {
-                                    TriggerEvent.trigger({
-                                        gvc: gvc,
-                                        widget: widget,
-                                        clickEvent: object.successEvent,
-                                        subData: subData,
-                                        element: element
-                                    })
-                                    gvc.glitter.share.public_api = gvc.glitter.share.public_api ?? {}
-                                    gvc.glitter.share.public_api.GlobalUser = GlobalUser
-                                    GlobalUser.token = r.response.token
-                                    GlobalUser.userInfo = r.response
-                                    GlobalUser.updateUserData = JSON.parse(JSON.stringify(r.response))
-                                    resolve(true)
-                                }
+                                loginCallback(r,(res)=>{
+                                    resolve(res)
+                                })
                             })
                         })
                     }

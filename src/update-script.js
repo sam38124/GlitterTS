@@ -7,13 +7,13 @@ exports.UpdateScript = void 0;
 const database_1 = __importDefault(require("./modules/database"));
 class UpdateScript {
     static async run() {
-        UpdateScript.migrateAccount('3131_shop');
+        UpdateScript.migrateAccount('shop_template_black_style');
     }
     static async migrateAccount(appName) {
         const page_list = (await database_1.default.query(`SELECT *
                                              FROM glitter.page_config
                                              where appName = 'shop-template-clothing-v3'
-                                               and tag in ('account_userinfo','rebate','order_list','wishlist','menu-items')`, []));
+                                               and tag in ('account_userinfo','rebate','order_list','wishlist','register')`, []));
         page_list.map((d) => {
             Object.keys(d).map((dd) => {
                 if (typeof d[dd] === 'object') {

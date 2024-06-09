@@ -218,11 +218,28 @@ TriggerEvent.create(import.meta.url, {
                 event: () => {
                     return new Promise<any>(async (resolve, reject) => {
                         try {
+                            const queryWhere=`
+                            /*
+      ->Tag->${(widget as any).tag}
+      ->Label->${widget.label}
+      ->ID->${widget.id}
+      */
+                            `
                             const a =
                                 object.codeVersion == 'v2'
-                                    ? eval(`(() => {
-                                        ${object.code}
-                                    })()`)
+                                    ? eval(`
+                                        (()=>{
+                                            try {
+                                                return (() => {
+                                                    ${queryWhere}
+                                                    ${object.code}
+                                                })()
+                                            }catch (e) {
+                                                console.log(e)
+                                                return undefined
+                                            }
+                                        })()
+                                    `)
                                     : eval(object.code);
                             if (a.then) {
                                 a.then((data: any) => {
@@ -368,9 +385,14 @@ TriggerEvent.create(import.meta.url, {
             };
         },
     },
+
     setURl: {
         title: '官方事件 / 開發工具 / 設定URL參數',
         fun: TriggerEvent.setEventRouter(import.meta.url, './glitter-util/set-url.js'),
+    },
+    checkInput: {
+        title: '官方事件 / 開發工具 / 輸入內容過濾',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './glitter-util/check-input.js'),
     },
     event_trigger: {
         title: '官方事件 / 開發工具 / 事件觸發',
@@ -535,150 +557,6 @@ TriggerEvent.create(import.meta.url, {
         title: '官方事件 / 推播 / 信箱註冊',
         fun: TriggerEvent.setEventRouter(import.meta.url, './user/email-subscription.js'),
     },
-    // api: {
-    //     title: "官方事件 / API / Glitter-Lambda",
-    //     fun: (gvc, widget, object, subData, element) => {
-    //         object.postEvent = object.postEvent ?? {}
-    //         object.postType = object.postType ?? "POST"
-    //         object.queryParameters = object.queryParameters ?? []
-    //         object.queryExpand = object.queryExpand ?? {}
-    //         return {
-    //             editor: () => {
-    //                 return gvc.bindView(() => {
-    //                     const id = gvc.glitter.getUUID()
-    //                     return {
-    //                         bind: id,
-    //                         view: () => {
-    //                             return gvc.map([
-    //                                 EditorElem.select({
-    //                                     title: "方法",
-    //                                     gvc: gvc,
-    //                                     def: object.postType,
-    //                                     array: ['GET', 'POST', 'PUT', 'DELETE'],
-    //                                     callback: (text) => {
-    //                                         object.postType = text
-    //                                         gvc.notifyDataChange(id)
-    //                                     }
-    //                                 }),
-    //                                 gvc.glitter.htmlGenerate.editeInput({
-    //                                     gvc: gvc,
-    //                                     title: "Router路徑",
-    //                                     default: object.router ?? "",
-    //                                     placeHolder: "",
-    //                                     callback: (text) => {
-    //                                         object.router = text
-    //                                         gvc.notifyDataChange(id)
-    //                                     }
-    //                                 }),
-    //                                 TriggerEvent.editer(gvc, widget, object.postEvent, {
-    //                                     hover: false,
-    //                                     option: [],
-    //                                     title: "傳送給API的資料"
-    //                                 }),
-    //                                 EditorElem.arrayItem({
-    //                                     originalArray: object.queryParameters,
-    //                                     gvc: gvc,
-    //                                     title: "Query參數",
-    //                                     array: object.queryParameters.map((rowData: any, rowIndex: number) => {
-    //                                         return {
-    //                                             title: `第${rowIndex + 1}列參數`,
-    //                                             expand: rowData,
-    //                                             innerHtml: gvc.map([
-    //                                                 gvc.glitter.htmlGenerate.editeInput({
-    //                                                     gvc: gvc,
-    //                                                     title: "Key值",
-    //                                                     default: rowData.key ?? '',
-    //                                                     placeHolder: '請輸入搜索Key值',
-    //                                                     callback: (text) => {
-    //                                                         rowData.key = text
-    //                                                         gvc.notifyDataChange(id)
-    //                                                     }
-    //                                                 }),
-    //                                                 TriggerEvent.editer(gvc, widget, rowData, {
-    //                                                     hover: false,
-    //                                                     option: [],
-    //                                                     title: "參數取得"
-    //                                                 })
-    //                                             ]),
-    //                                             minus: gvc.event(() => {
-    //                                                 object.queryParameters.splice(rowIndex, 1);
-    //                                                 gvc.notifyDataChange(id)
-    //                                             }),
-    //                                         };
-    //                                     }),
-    //                                     expand: object.queryExpand,
-    //                                     plus: {
-    //                                         title: '添加參數',
-    //                                         event: gvc.event(() => {
-    //                                             object.queryParameters.push({key: '', value: ""});
-    //                                             gvc.notifyDataChange(id)
-    //                                         }),
-    //                                     },
-    //                                     refreshComponent: () => {
-    //                                         gvc.notifyDataChange(id)
-    //                                     }
-    //                                 })
-    //                             ])
-    //                         }
-    //                     }
-    //                 })
-    //             },
-    //             event: () => {
-    //                 return new Promise(async (resolve, reject) => {
-    //                     const data = await TriggerEvent.trigger({
-    //                         gvc: gvc,
-    //                         widget: widget,
-    //                         clickEvent: object.postEvent,
-    //                         subData: subData,
-    //                         element: element
-    //                     })
-    //                     let query: any = [];
-    //                     for (const b of object.queryParameters) {
-    //                         query.push({
-    //                             key: b.key,
-    //                             value: (await TriggerEvent.trigger({
-    //                                 gvc: gvc,
-    //                                 widget: widget,
-    //                                 clickEvent: b,
-    //                                 subData: subData,
-    //                                 element: element
-    //                             }))
-    //                         })
-    //                     }
-    //                     let queryString = ""
-    //                     if (query.length > 0) {
-    //                         queryString = '&'
-    //                     }
-    //
-    //                     queryString += query.map((dd: any) => {
-    //                         return `${dd.key}=${dd.value}`
-    //                     }).join('&')
-    //                     BaseApi.create({
-    //                         "url": (object.postType === 'GET') ? `${getBaseUrl()}/api-public/v1/lambda?data=${(typeof data === 'object') ? JSON.stringify(data) : data}&router=${object.router}${queryString}` :
-    //                             `${getBaseUrl()}/api-public/v1/lambda?1=1${queryString}`,
-    //                         "type": object.postType,
-    //                         "timeout": 0,
-    //                         "headers": {
-    //                             "g-app": getConfig().config.appName,
-    //                             "Content-Type": "application/json",
-    //                             "Authorization": GlobalUser.token
-    //                         },
-    //                         "data": (object.postType === 'GET') ? undefined : JSON.stringify({
-    //                             "router": object.router,
-    //                             "data": data
-    //                         }),
-    //                     }).then((res) => {
-    //                         if (res.result) {
-    //                             resolve(res.response)
-    //                         } else {
-    //                             resolve(undefined)
-    //                         }
-    //                     })
-    //                 })
-    //             }
-    //         }
-    //     }
-    // },
     api_graph: {
         title: '官方事件 / API / Graph-API',
         fun: TriggerEvent.setEventRouter(import.meta.url, './api/api-graph.js'),
@@ -803,6 +681,14 @@ TriggerEvent.create(import.meta.url, {
         title: '電子商務 / 資料分析',
         fun: TriggerEvent.setEventRouter(import.meta.url, './e-commerce/data-analyze.js'),
     },
+    invoiceType: {
+        title: '電子商務 / 取得發票開立方式',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './e-commerce/get-invoice-type.js'),
+    },
+    checkLoginForOrder: {
+        title: '電子商務 / 判斷是否需要登入後付款',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './e-commerce/get-login-for-order.js'),
+    },
     postWallet: {
         title: '電子錢包 / 新增儲值金額',
         fun: TriggerEvent.setEventRouter(import.meta.url, './wallet/add-money.js'),
@@ -850,6 +736,10 @@ TriggerEvent.create(import.meta.url, {
     set_user_data: {
         title: '用戶相關 / 設定用戶資料',
         fun: TriggerEvent.setEventRouter(import.meta.url, './user/set-userdata.js'),
+    },
+    remove_user_memory: {
+        title: '用戶相關 / 清空用戶資料暫存',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './user/clear-userdata.js'),
     },
     get_user_config: {
         title: '用戶相關 / 取得用戶配置檔案',

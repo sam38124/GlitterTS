@@ -187,7 +187,24 @@ async function compare_sql_table(scheme, table, sql) {
         CREATE TABLE  \`${scheme}_recover\`.\`${table}_${new Date().getTime()}\` AS SELECT * FROM \`${scheme}\`.\`${table}\`;
         `, []);
             await database_1.default.execute(`DROP TABLE \`${scheme}\`.\`${table}\`;`, []);
-            await database_1.default.execute(`ALTER TABLE \`${scheme}\`.${tempKey} RENAME TO \`${scheme}\`.\`${table}\`;`, []);
+            let fal = 0;
+            async function loopToAlter() {
+                try {
+                    await database_1.default.execute(`ALTER TABLE \`${scheme}\`.${tempKey} RENAME TO \`${scheme}\`.\`${table}\`;`, []);
+                    await new Promise((resolve, reject) => {
+                        setTimeout(() => {
+                            resolve(true);
+                        }, 1000);
+                    });
+                }
+                catch (e) {
+                    fal++;
+                    if (fal < 5) {
+                        await loopToAlter();
+                    }
+                }
+            }
+            await loopToAlter();
         }
         await database_1.default.execute(`DROP TABLE if exists \`${scheme}\`.\`${tempKey}\`;`, []);
         return true;

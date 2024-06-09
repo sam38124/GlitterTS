@@ -127,7 +127,6 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                         if (gBundle.page_config.template) {
                             (window as any).glitterInitialHelper.getPageData(gBundle.page_config.template, (data: any) => {
                                 const template_config = JSON.parse(JSON.stringify(data.response.result[0].config))
-
                                 function findContainer(set: any) {
                                     set.map((dd: any, index: number) => {
                                         if (dd.type === 'glitter_article') {

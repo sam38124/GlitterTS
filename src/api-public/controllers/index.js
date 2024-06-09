@@ -46,6 +46,7 @@ router.use(config_1.config.getRoute(config_1.config.public_route.delivery, 'publ
 router.use(config_1.config.getRoute(config_1.config.public_route.graph_api, 'public'), require('./graph-api'));
 const whiteList = [
     { url: config_1.config.getRoute(config_1.config.public_route.chat, 'public'), method: 'POST' },
+    { url: config_1.config.getRoute(config_1.config.public_route.invoice + '/invoice-type', 'public'), method: 'GET' },
     { url: config_1.config.getRoute(config_1.config.public_route.chat + '/message', 'public'), method: 'POST' },
     { url: config_1.config.getRoute(config_1.config.public_route.chat + '/unread', 'public'), method: 'GET' },
     { url: config_1.config.getRoute(config_1.config.public_route.chat + '/message', 'public'), method: 'GET' },
@@ -79,6 +80,7 @@ const whiteList = [
     { url: config_1.config.getRoute(config_1.config.public_route.ec + "/redirect", 'public'), method: 'POST' },
     { url: config_1.config.getRoute(config_1.config.public_route.ec + "/notify", 'public'), method: 'POST' },
     { url: config_1.config.getRoute(config_1.config.public_route.ec + "/payment/method", 'public'), method: 'GET' },
+    { url: config_1.config.getRoute(config_1.config.public_route.ec + "/check-login-for-order", 'public'), method: 'GET' },
     { url: config_1.config.getRoute(config_1.config.public_route.wallet + "/notify", 'public'), method: 'POST' },
     { url: config_1.config.getRoute(config_1.config.public_route.manager + "/config", 'public'), method: 'GET' },
     { url: config_1.config.getRoute(config_1.config.public_route.article, 'public'), method: 'GET' },

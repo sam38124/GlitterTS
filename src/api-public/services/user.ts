@@ -14,7 +14,9 @@ import {CustomCode} from "./custom-code.js";
 import {IToken} from "../models/Auth.js";
 import axios from "axios";
 import {AutoSendEmail} from "./auto-send-email.js";
-
+import qs from 'qs'
+import jwt from "jsonwebtoken";
+import {OAuth2Client} from "google-auth-library";
 export class User {
     public app: string
 
@@ -171,13 +173,133 @@ export class User {
                                              from \`${this.app}\`.t_user
                                              where account = ?
                                                and status = 1`, [fbResponse.email]) as any)[0]
-        data.pwd = undefined
-        data.token = await UserUtil.generateToken({
-            user_id: data["userID"],
-            account: data["account"],
+        const usData: any = await this.getUserData(data.userID,'userID')
+        usData.pwd = undefined
+        usData.token = await UserUtil.generateToken({
+            user_id: usData["userID"],
+            account: usData["account"],
             userData: {}
         })
-        return data
+        return usData
+    }
+
+    public async loginWithLine(code: string,redirect:string) {
+        try {
+            const lineData=await (this.getConfigV2({
+                key:'login_line_setting',
+                user_id:'manager'
+            }));
+            const lineResponse: any = await new Promise((resolve, reject) => {
+                axios.request({
+                    method: 'post',
+                    maxBodyLength: Infinity,
+                    url: 'https://api.line.me/oauth2/v2.1/token',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    data : qs.stringify({
+                        'code': code,
+                        'client_id': lineData.id,
+                        'client_secret': lineData.secret,
+                        'grant_type': 'authorization_code',
+                        'redirect_uri': redirect
+                    })
+                })
+                    .then((response) => {
+                        resolve(response.data)
+                    })
+                    .catch((error) => {
+                       resolve(false)
+                    });
+
+            })
+            if(!lineResponse){
+                throw exception.BadRequestError('BAD_REQUEST', 'Line Register Error', null);
+            }
+            const userData=jwt.decode(lineResponse.id_token)
+            console.log(userData)
+            if ((await db.query(`select count(1)
+                             from \`${this.app}\`.t_user
+                             where userData->>'$.lineID'=?`, [(userData as any).sub]))[0]["count(1)"] == 0) {
+                const userID = generateUserID();
+                await db.execute(`INSERT INTO \`${this.app}\`.\`t_user\` (\`userID\`, \`account\`, \`pwd\`, \`userData\`, \`status\`)
+                              VALUES (?, ?, ?, ?, ?);`, [
+                    userID,
+                    (userData as any).sub,
+                    await tool.hashPwd(generateUserID()),
+                    {
+                        name: (userData as any).name || '未命名',
+                        lineID:  (userData as any).sub
+                    },
+                    1
+                ])
+            }
+            const data: any = (await db.execute(`select *
+                                             from \`${this.app}\`.t_user
+                                             where userData->>'$.lineID'=?`, [(userData as any).sub]) as any)[0]
+            const usData: any = await this.getUserData(data.userID,'userID')
+            usData.pwd = undefined
+            usData.token = await UserUtil.generateToken({
+                user_id: usData["userID"],
+                account: usData["account"],
+                userData: {}
+            })
+            return usData
+        }catch (e) {
+            throw exception.BadRequestError('BAD_REQUEST',  e as any, null);
+        }
+
+    }
+    public async loginWithGoogle(code: string,redirect:string) {
+        try {
+            const config=await (this.getConfigV2({
+                key:'login_google_setting',
+                user_id:'manager'
+            }));
+            const oauth2Client = new OAuth2Client(config.id, config.secret, redirect);
+            // 使用授权码交换令牌
+            const { tokens } = await oauth2Client.getToken(code);
+            oauth2Client.setCredentials(tokens);
+
+            // 验证 ID 令牌
+            const ticket = await oauth2Client.verifyIdToken({
+                idToken: tokens.id_token as any,
+                audience: config.id,
+            });
+
+            const payload = ticket.getPayload();
+            if ((await db.query(`select count(1)
+                             from \`${this.app}\`.t_user
+                             where account = ?`, [payload?.email]))[0]["count(1)"] == 0) {
+                const userID = generateUserID();
+                await db.execute(`INSERT INTO \`${this.app}\`.\`t_user\` (\`userID\`, \`account\`, \`pwd\`, \`userData\`, \`status\`)
+                              VALUES (?, ?, ?, ?, ?);`, [
+                    userID,
+                    payload?.email,
+                    await tool.hashPwd(generateUserID()),
+                    {
+                        name: payload?.given_name,
+                        email: payload?.email
+                    },
+                    1
+                ])
+            }
+            const data: any = (await db.execute(`select *
+                                             from \`${this.app}\`.t_user
+                                             where account = ?
+                                               and status = 1`, [payload?.email]) as any)[0]
+            const usData: any = await this.getUserData(data.userID,'userID')
+            usData.pwd = undefined
+            usData.token = await UserUtil.generateToken({
+                user_id: usData["userID"],
+                account: usData["account"],
+                userData: {}
+            })
+            return usData
+        }catch (e) {
+            throw exception.BadRequestError('BAD_REQUEST',  e as any, null);
+        }
+
     }
 
     public async getUserData(query: string, type: 'userID' | 'account' = 'userID') {

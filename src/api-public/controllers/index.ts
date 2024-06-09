@@ -47,6 +47,7 @@ router.use(config.getRoute(config.public_route.graph_api, 'public'), require('./
 /******************************/
 const whiteList: {}[] = [
     {url: config.getRoute(config.public_route.chat, 'public'), method: 'POST'},
+    {url: config.getRoute(config.public_route.invoice+'/invoice-type', 'public'), method: 'GET'},
     {url: config.getRoute(config.public_route.chat+'/message', 'public'), method: 'POST'},
     {url: config.getRoute(config.public_route.chat+'/unread', 'public'), method: 'GET'},
     {url: config.getRoute(config.public_route.chat+'/message', 'public'), method: 'GET'},
@@ -80,6 +81,7 @@ const whiteList: {}[] = [
     {url: config.getRoute(config.public_route.ec+"/redirect", 'public'), method: 'POST'},
     {url: config.getRoute(config.public_route.ec+"/notify", 'public'), method: 'POST'},
     {url: config.getRoute(config.public_route.ec+"/payment/method", 'public'), method: 'GET'},
+    {url: config.getRoute(config.public_route.ec+"/check-login-for-order", 'public'), method: 'GET'},
     {url: config.getRoute(config.public_route.wallet+"/notify", 'public'), method: 'POST'},
     {url: config.getRoute(config.public_route.manager+"/config", 'public'), method: 'GET'},
     {url: config.getRoute(config.public_route.article, 'public'), method: 'GET'},
@@ -91,6 +93,7 @@ const whiteList: {}[] = [
     {url: config.getRoute(config.public_route.graph_api, 'public'), method: 'PUT'},
     {url: config.getRoute(config.public_route.graph_api, 'public'), method: 'DELETE'},
     {url: config.getRoute(config.public_route.graph_api, 'public'), method: 'PATCH'},
+
 ];
 
 async function doAuthAction(req: express.Request, resp: express.Response, next: express.NextFunction) {

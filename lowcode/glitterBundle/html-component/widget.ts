@@ -119,6 +119,7 @@ export const widgetComponent = {
                         innerText = ''
                         return htmlGenerate.render(gvc, {
                             containerID: id,
+                            tag:(widget as any).tag,
                             onCreate: () => {
                                 TriggerEvent.trigger({
                                     gvc,

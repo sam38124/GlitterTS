@@ -15,6 +15,7 @@ import {AddComponent} from "../../editor/add-component.js";
 
 export interface HtmlJson {
     route: string;
+    tag?:string
     type: string;
     id: string;
     hashTag: string;
@@ -81,6 +82,7 @@ export class HtmlGenerate {
         class: string; style: string, jsFinish?: () => void, containerID?: string, onCreate?: () => void,
         onInitial?: () => void,
         onDestroy?: () => void,
+        tag?:string,
         attribute?: { key: string, value: string }[], childContainer?: boolean, page_config?: any, app_config?: any,
         document?: any,
         editorSection?: string
@@ -690,6 +692,7 @@ ${obj.gvc.bindView({
             class: string; style: string, jsFinish?: () => void, containerID?: string, onCreate?: () => void,
             onInitial?: () => void,
             onDestroy?: () => void,
+            tag?:string,
             attribute?: { key: string, value: string }[], childContainer?: boolean, page_config?: any, app_config?: any
             document?: any,
             editorSection?: string
@@ -787,6 +790,7 @@ ${obj.gvc.bindView({
                                         }
                                         //Set htmlGenerate content.
                                         const html = setting.map((dd,index) => {
+                                            dd.tag=option.tag
                                             dd.formData = dd.formData || (setting as any).formData;
                                             dd.global = dd.global ?? []
                                             dd.global.gvc = gvc

@@ -231,6 +231,10 @@ router.post('/login', async (req: express.Request, resp: express.Response) => {
         const user = new User(req.get('g-app') as string);
         if(req.body.login_type==='fb'){
             return response.succ(resp, (await user.loginWithFb(req.body.fb_token)));
+        }else if(req.body.login_type==='line'){
+            return response.succ(resp, (await user.loginWithLine(req.body.line_token,req.body.redirect)));
+        }else if(req.body.login_type==='google'){
+            return response.succ(resp, (await user.loginWithGoogle(req.body.google_token,req.body.redirect)));
         }else{
             return response.succ(resp, (await user.login(req.body.account, req.body.pwd)));
         }

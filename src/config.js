@@ -100,6 +100,7 @@ exports.config = {
         fcm: '/fcm',
         lambda: '/lambda',
         ec: '/ec',
+        oauth: '/oauth',
         manager: '/manager',
         app: '/app',
         wallet: '/wallet',

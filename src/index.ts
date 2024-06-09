@@ -28,6 +28,7 @@ import {WebSocket} from "./services/web-socket.js";
 import {UtDatabase} from "./api-public/utils/ut-database.js";
 import {UpdateScript} from "./update-script.js";
 import compression from 'compression'
+import jwt from "jsonwebtoken";
 
 export const app = express();
 const logger = new Logger();
@@ -67,8 +68,8 @@ export async function initial(serverPort: number) {
         if (process.env.firebase) {
             await Firebase.initial();
         }
+        // UpdateScript.run()
         WebSocket.start()
-        await UpdateScript.run()
         logger.info('[Init]', `Server is listening on port: ${serverPort}`);
         console.log('Starting up the server now.');
     })();
@@ -224,6 +225,9 @@ export async function createAPP(dd: any) {
             path: path.resolve(__dirname, '../lowcode'),
             seoManager: async (req, resp) => {
                 try {
+                    if(req.query.state==='google_login'){
+                        req.query.page='login'
+                    }
                     let appName = dd.appName
                     if (req.query.appName) {
                         appName = req.query.appName

@@ -103,7 +103,6 @@ router.delete('/', async (req: express.Request, resp: express.Response) => {
         return response.fail(resp, err);
     }
 });
-
 router.post('/getInvoice', async (req: express.Request, resp: express.Response) => {
     try {
         const config = await app.getAdConfig(req.get('g-app') as string, "invoice_setting");
@@ -131,4 +130,7 @@ router.post('/getInvoice', async (req: express.Request, resp: express.Response) 
     }
 });
 
-
+router.get('/invoice-type',async (req: express.Request, resp: express.Response) =>{
+    const config = await app.getAdConfig(req.get('g-app') as string, "invoice_setting");
+    return response.succ(resp, {method:config.fincial});
+})

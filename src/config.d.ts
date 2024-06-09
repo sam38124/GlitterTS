@@ -43,6 +43,7 @@ export declare const config: {
         fcm: string;
         lambda: string;
         ec: string;
+        oauth: string;
         manager: string;
         app: string;
         wallet: string;

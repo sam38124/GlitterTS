@@ -157,13 +157,18 @@ class Shopping {
     async toCheckout(data, type = 'add') {
         var _a, _b, _c;
         try {
-            if (!(this.token && this.token.userID) && !data.email && !(data.user_info && data.user_info.email)) {
+            if (type !== 'preview' && (!(this.token && this.token.userID) && !data.email && !(data.user_info && data.user_info.email))) {
                 throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'ToCheckout Error:No email address.', null);
             }
-            const userData = this.token && this.token.userID
-                ? await new user_js_1.User(this.app).getUserData(this.token.userID, 'userID')
-                : await new user_js_1.User(this.app).getUserData(data.email || data.user_info.email, 'account');
-            if (!data.email && userData && userData.account) {
+            const userData = await (async () => {
+                if (type !== 'preview') {
+                    return ((this.token && this.token.userID) ? await new user_js_1.User(this.app).getUserData(this.token.userID, 'userID') : await new user_js_1.User(this.app).getUserData(data.email || data.user_info.email, 'account'));
+                }
+                else {
+                    return {};
+                }
+            })();
+            if (!data.email && (userData && userData.account)) {
                 data.email = userData.account;
             }
             if (!data.email && type !== 'preview') {
@@ -174,7 +179,7 @@ class Shopping {
                     throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'ToCheckout Error:No email address.', null);
                 }
             }
-            if (!data.email) {
+            if (!data.email && type !== 'preview') {
                 throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'ToCheckout Error:No email address.', null);
             }
             if (data.use_rebate && data.use_rebate > 0) {
@@ -298,7 +303,7 @@ class Shopping {
                     data: carData,
                 };
             }
-            if (carData.use_rebate) {
+            if (carData.use_rebate && userData && userData.userID) {
                 await database_js_1.default.query(`insert into \`${this.app}\`.t_rebate (orderID, userID, money, status, note)
                                 values (?, ?, ?, ?, ?);`, [
                     carData.orderID,
@@ -310,26 +315,30 @@ class Shopping {
                     }),
                 ]);
             }
-            const sum = (await database_js_1.default.query(`SELECT sum(money)
+            if (userData && userData.userID) {
+                const sum = (await database_js_1.default.query(`SELECT sum(money)
                                          FROM \`${this.app}\`.t_wallet
                                          where status in (1, 2)
                                            and userID = ?`, [userData.userID]))[0]['sum(money)'] || 0;
-            if (sum < carData.total) {
-                carData.use_wallet = sum;
-            }
-            else {
-                carData.use_wallet = carData.total;
-            }
-            await database_js_1.default.query(`insert into \`${this.app}\`.t_rebate (orderID, userID, money, status, note)
+                if (sum < carData.total) {
+                    carData.use_wallet = sum;
+                }
+                else {
+                    carData.use_wallet = carData.total;
+                }
+                if (carData.rebate > 0) {
+                    await database_js_1.default.query(`insert into \`${this.app}\`.t_rebate (orderID, userID, money, status, note)
                          values (?, ?, ?, ?, ?);`, [
-                carData.orderID,
-                userData.userID,
-                carData.rebate,
-                -1,
-                JSON.stringify({
-                    note: '消費返還回饋金',
-                }),
-            ]);
+                        carData.orderID,
+                        userData.userID,
+                        carData.rebate,
+                        -1,
+                        JSON.stringify({
+                            note: '消費返還回饋金',
+                        }),
+                    ]);
+                }
+            }
             if (carData.use_wallet === carData.total) {
                 await database_js_1.default.query(`insert into \`${this.app}\`.t_wallet (orderID, userID, money, status, note)
                                 values (?, ?, ?, ?, ?);`, [

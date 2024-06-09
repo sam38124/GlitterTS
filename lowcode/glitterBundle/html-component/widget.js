@@ -123,6 +123,7 @@ export const widgetComponent = {
                         innerText = '';
                         return htmlGenerate.render(gvc, {
                             containerID: id,
+                            tag: widget.tag,
                             onCreate: () => {
                                 TriggerEvent.trigger({
                                     gvc,

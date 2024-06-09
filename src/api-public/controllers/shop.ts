@@ -610,32 +610,43 @@ router.get('/payment/method', async (req: express.Request, resp: express.Respons
         )[0].value;
 
         return response.succ(resp, {
-            method: [
-                {
-                    value: 'credit',
-                    title: '信用卡',
-                },
-                {
-                    value: 'atm',
-                    title: 'ATM',
-                },
-                {
-                    value: 'web_atm',
-                    title: '網路ATM',
-                },
-                {
-                    value: 'c_code',
-                    title: '超商代碼',
-                },
-                {
-                    value: 'c_bar_code',
-                    title: '超商條碼',
-                },
-            ].filter((dd) => {
-                return keyData[dd.value] && keyData.TYPE !== 'off_line';
-            }),
-        });
+            method: [{
+                value: 'credit',
+                title: '信用卡'
+            }, {
+                value: 'atm',
+                title: 'ATM'
+            }, {
+                value: 'web_atm',
+                title: '網路ATM'
+            }, {
+                value: 'c_code',
+                title: '超商代碼'
+            }, {
+                value: 'c_bar_code',
+                title: '超商條碼'
+            }].filter((dd) => {
+                return keyData[dd.value] && keyData.TYPE !== 'off_line'
+            })
+        })
     } catch (err) {
         return response.fail(resp, err);
     }
-});
+})
+
+router.get('/check-login-for-order', async (req: express.Request, resp: express.Response) => {
+    try {
+        const keyData = (
+            await new User(req.get('g-app') as string).getConfigV2({
+                user_id: 'manager',
+                key: 'login_config',
+            })
+        );
+
+        return response.succ(resp, {
+            result: keyData.login_in_to_order
+        })
+    } catch (err) {
+        return response.fail(resp, err);
+    }
+})

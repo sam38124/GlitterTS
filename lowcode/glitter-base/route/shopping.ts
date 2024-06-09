@@ -242,7 +242,28 @@ export class ApiShop {
         });
     }
 
-    static setShowList(json: any) {
+    public static getInvoiceType() {
+        return BaseApi.create({
+            url: getBaseUrl() + `/api-public/v1/invoice/invoice-type`,
+            type: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'g-app': getConfig().config.appName,
+            },
+        });
+    }
+    public static getLoginForOrder() {
+        return BaseApi.create({
+            url: getBaseUrl() + `/api-public/v1/ec/check-login-for-order`,
+            type: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'g-app': getConfig().config.appName,
+            },
+        });
+    }
+
+    public static setShowList(json: any) {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/manager/config`,
             type: 'PUT',

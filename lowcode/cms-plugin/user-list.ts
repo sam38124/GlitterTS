@@ -114,7 +114,7 @@ export class UserList {
                                 ${BgWidget.title('用戶管理')}
                                 <div class="flex-fill"></div>
                                 <button
-                                    class="btn hoverBtn me-2 px-3"
+                                    class="btn hoverBtn me-2 px-3 d-none"
                                     style="height:35px !important;font-size: 14px;color:black;border:1px solid black;"
                                     onclick="${gvc.event(() => {
                                         UserList.setUserForm(gvc, () => {
@@ -338,8 +338,8 @@ export class UserList {
         function getOrderlist(data: any) {
             return data.map((dd: any) => {
                 return [
-                    { key: '訂單編號', value: html`<span style="color: #4D86DB">${dd.orderData.orderID}</span>` },
-                    { key: '訂單日期', value: gvc.glitter.ut.dateFormat(new Date(dd.created_time), 'yyyy-MM-dd hh:mm') },
+                    { key: '訂單編號', value: html`<div style="max-width: 100px;overflow: hidden;white-space: normal;color: #4D86DB;word-break: break-all;">${dd.orderData.orderID}</div>` },
+                    { key: '訂單日期', value: html`<div style="max-width: 100px;overflow: hidden;white-space: normal;word-break: break-all;">${gvc.glitter.ut.dateFormat(new Date(dd.created_time), 'yyyy-MM-dd hh:mm')}</div>` },
                     { key: '總金額', value: dd.orderData.total },
                     {
                         key: '訂單狀態',
@@ -388,7 +388,7 @@ export class UserList {
                 view: () => {
                     if (vm.loading) {
                         // ! spinner position
-                        return html`<div class="w-100 h-100 d-flex align-items-center"><div class="spinner-border"></div></div>`;
+                        return html`<div class="vw-100 h-100 d-flex align-items-center justify-content-center p-5"><div class="spinner-border"></div></div>`;
                     }
 
                     vm.data.userData = vm.data.userData ?? {};
@@ -462,6 +462,13 @@ export class UserList {
 
                                                                                         let h = '';
                                                                                         data.map((item: any) => {
+                                                                                            if(item.page){
+                                                                                                item.type="form_plugin_v2"
+                                                                                                item.group=''
+                                                                                            }
+                                                                                            if(item.group==='個人履歷'){
+                                                                                                return ``
+                                                                                            }
                                                                                             switch (item.page) {
                                                                                                 case 'input':
                                                                                                     h += html`<div>
@@ -666,12 +673,15 @@ export class UserList {
                                                                                 if (!Array.isArray(data)) {
                                                                                     data = [];
                                                                                 }
-
                                                                                 let h = html`
                                                                                     <div class="gray-bottom-line-18">
                                                                                         <div class="cms_left_items">會員等級</div>
                                                                                         <div style="margin-top: 12px">
-                                                                                            <div class="badge bg-warning fs-7" style="max-height:34px;">高級會員</div>
+                                                                                            <div class="badge bg-warning fs-7" style="max-height:34px;">${
+                                                                                                    (vm.data.member.find((dd:any)=>{
+                                                                                                        return dd.trigger
+                                                                                                    }) || {}).tag_name || '一般會員'
+                                                                                            }</div>
                                                                                         </div>
                                                                                     </div>
                                                                                     ${(() => {
@@ -693,7 +703,7 @@ export class UserList {
                                                                                                         const formatNum = (n: string | number) => parseInt(`${n}`, 10).toLocaleString();
 
                                                                                                         resolve(html`<div class="gray-bottom-line-18">
-                                                                                                            <div class="cms_left_items">消費次數</div>
+                                                                                                            <div class="cms_left_items">消費金額</div>
                                                                                                             <div style="font-size: 32px; font-weight: 400; color: #393939; margin-top: 12px;">
                                                                                                                 ${formatNum(total_price)}
                                                                                                             </div>
@@ -708,7 +718,7 @@ export class UserList {
                                                                                         });
                                                                                     })()}
 
-                                                                                    <div>
+                                                                                    <div class="d-none">
                                                                                         <div class="cms_left_items">所屬分群</div>
                                                                                         <div style="display: flex; gap: 12px; margin-top: 12px; flex-direction: column;">
                                                                                             <div>電子郵件訂閱者</div>

@@ -4,13 +4,13 @@ export class UpdateScript {
     public static async run() {
         // UpdateScript.migrateTermsOfService(['3131_shop', 't_1717152410650', 't_1717141688550', 't_1717129048727', 'shop-template-clothing-v3'])
         // UpdateScript.migrateHeaderAndFooter(['3131_shop','shop-template-clothing-v3','t_1717129048727','t_1717141688550','t_1717152410650','t_1717407696327','t_1717385441550','t_1717386839537','t_1717397588096'])
-        UpdateScript.migrateAccount('3131_shop')
+        UpdateScript.migrateAccount('shop_template_black_style')
     }
     public static async migrateAccount(appName:string){
         const page_list=(await db.query(`SELECT *
                                              FROM glitter.page_config
                                              where appName = 'shop-template-clothing-v3'
-                                               and tag in ('account_userinfo','rebate','order_list','wishlist','menu-items')`, []));
+                                               and tag in ('account_userinfo','rebate','order_list','wishlist','register')`, []));
         page_list.map((d: any) => {
             Object.keys(d).map((dd) => {
                 if (typeof d[dd] === 'object') {

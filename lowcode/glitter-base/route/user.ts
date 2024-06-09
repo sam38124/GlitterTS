@@ -329,7 +329,7 @@ export class ApiUser {
         })
     }
 
-    public static login(json: { account?: string, pwd?: string,login_type?:'fb'|'normal',fb_token?:string }) {
+    public static login(json: { account?: string, pwd?: string,login_type?:'fb'|'normal'|'line'|'google',google_token?:string,fb_token?:string,line_token?:string,redirect?:string }) {
         return BaseApi.create({
             "url": getBaseUrl() + `/api-public/v1/user/login`,
             "type": "POST",

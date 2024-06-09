@@ -9,6 +9,7 @@ import exception from "../../modules/exception.js";
 import {UtDatabase} from "../utils/ut-database.js";
 import db from "../../modules/database.js";
 import {Firebase} from "../../modules/firebase.js";
+import {saasConfig} from "../../config.js";
 
 
 const router: express.Router = express.Router();
@@ -89,9 +90,21 @@ router.delete('/delete', async (req: express.Request, resp: express.Response) =>
         try {
             const isManager = await UtPermission.isManager(req);
             const isAppUser = await UtPermission.isAppUser(req);
-            let userData = (isAppUser) ? (await db.query(`SELECT *
+            let userData:any = await (async ()=>{
+                if(isAppUser){
+                    return (await db.query(`SELECT *
                                                           FROM \`${req.get('g-app')}\`.t_user
-                                                          where userID = ?`, [req.body.token.userID]))[0] : undefined;
+                                                          where userID = ?`, [req.body.token.userID]))[0]
+                }
+                if(isManager){
+                    const brand=(await db.query(`SELECT brand FROM ${saasConfig.SAAS_NAME}.app_config where appName=?;`, [req.get('g-app') as string]))[0]['brand']
+
+                    return (await db.query(`SELECT *
+                                                          FROM \`${brand}\`.t_user
+                                                          where userID = ?`, [req.body.token.userID]))[0]
+                }
+                return  undefined
+            })()
             userData && (userData.pwd = undefined);
             const route = (await db.query(`select *
                                            from \`${req.get('g-app') as string}\`.t_graph_api

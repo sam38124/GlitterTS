@@ -409,7 +409,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
         var _a, _b;
         obj.title = (_a = obj.title) !== null && _a !== void 0 ? _a : '';
         const html = String.raw;
-        const appName = window.appName;
+        const appName = window.parent.appName;
         const vm = {
             id: obj.gvc.glitter.getUUID(),
             loading: true,
@@ -428,9 +428,9 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
             recentParent: [],
         };
         const setCollectionPath = (target, data) => {
-            data.map((item, index) => {
+            (data || []).map((item, index) => {
                 const { title, array } = item;
-                target.push({ name: title, icon: '', link: `./?appName=${appName}&collection=${title}&page=all_product` });
+                target.push({ name: title, icon: '', link: `./?collection=${title}&page=all_product` });
                 if (array && array.length > 0) {
                     target[index].items = [];
                     setCollectionPath(target[index].items, array);
@@ -602,9 +602,9 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                                 })
                                     .map((tag) => {
                                     h2 += html `
-                                                    <div class="m-3" style="display: flex; align-items: center; justify-content: space-between;">
+                                                    <div class="m-3" style="cursor:pointer;display: flex; align-items: center; justify-content: space-between;">
                                                         <div
-                                                            class="link-item-container ${tag.link && tag.link.length > 0 ? 'hoverF2' : ''}"
+                                                            class="link-item-container ${tag.link && tag.link.length > 0 ? 'hoverF2' : ''}" style="cursor: pointer;"
                                                             onclick=${obj.gvc.event(() => {
                                         tag.link && tag.link.length > 0 && callbackEvent(tag);
                                     })}
@@ -628,7 +628,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                                                             ${tag.name}
                                                         </div>
                                                         <div
-                                                            class="hoverF2"
+                                                            class="hoverF2 pe-2" style=""
                                                             onclick=${obj.gvc.event(() => {
                                         dropMenu.prevList.push(dataList);
                                         dropMenu.recentParent.push(tag.name);
@@ -670,10 +670,10 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                         new Promise((resolve) => {
                             ApiShop.getProduct({ page: 0, limit: 50000, search: '' }).then((data) => {
                                 if (data.result) {
-                                    data.response.data.map((item) => {
+                                    (data.response.data || []).map((item) => {
                                         const { id, title, preview_image } = item.content;
                                         const icon = preview_image && preview_image[0] ? preview_image[0] : '';
-                                        productList.push({ name: title, icon: icon, link: `./?appName=${appName}&product_id=${id}&page=product_detail` });
+                                        productList.push({ name: title, icon: icon, link: `./?product_id=${id}&page=product_detail` });
                                     });
                                     resolve();
                                 }
@@ -684,7 +684,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                                 if (data.result) {
                                     data.response.data.map((item) => {
                                         const { name, tag } = item.content;
-                                        acticleList.push({ name: name, icon: '', link: `./?appName=${appName}&article=${tag}&page=article` });
+                                        acticleList.push({ name: name, icon: '', link: `./?article=${tag}&page=article` });
                                     });
                                 }
                                 resolve();

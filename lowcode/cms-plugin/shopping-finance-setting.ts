@@ -75,9 +75,18 @@ export class ShoppingFinanceSetting {
                                             <div class="c_card d-flex flex-column" style="gap:18px;">
                                                 <div class="t_39_16 fw-bold">金流選擇</div>
                                                 ${[
-                                                    {title: '藍新金流', value: 'newWebPay'},
-                                                    {title: '綠界金流', value: 'ecPay'},
-                                                    {title: '線下付款', value: 'off_line'}
+                                                    {title: `<div class="d-flex flex-column">
+藍新金流
+<span class="" style="color:#8D8D8D;font-size: 12px;">透過藍新服務商串接線上付款功能</span>
+</div>`, value: 'newWebPay'},
+                                                    {title: `<div class="d-flex flex-column">
+綠界金流
+<span class="" style="color:#8D8D8D;font-size: 12px;">透過綠界服務商串接線上付款功能</span>
+</div>`, value: 'ecPay'},
+                                                    {title: `<div class="d-flex flex-column">
+線下付款
+<span class="" style="color:#8D8D8D;font-size: 12px;">不執行線上付款，由店家自行與消費者商議付款方式</span>
+</div>`, value: 'off_line'}
                                                 ].map((dd) => {
                                                     return `<div>${[
                                                         html`
@@ -416,9 +425,22 @@ export class ShoppingFinanceSetting {
                                             <div class="c_card d-flex flex-column" style="gap:18px;">
                                                 <div class="t_39_16 fw-bold">服務商選擇</div>
                                                 ${[
-                                                    {title: "藍新發票", value: "ezpay"},
-                                                    {title: "綠界發票", value: "ecpay"},
-                                                    {title: "不開立電子發票", value: "nouse"}
+                                                    {title:  `<div class="d-flex flex-column">
+藍新發票
+<span class="" style="color:#8D8D8D;font-size: 12px;">透過藍新服務商串接，於商品購買時，自動開立電子發票</span>
+</div>`, value: "ezpay"},
+                                                    {title: `<div class="d-flex flex-column">
+綠界發票
+<span class="" style="color:#8D8D8D;font-size: 12px;">透過綠界服務商串接，於商品購買時，自動開立電子發票</span>
+</div>`, value: "ecpay"},
+                                                    {title: `<div class="d-flex flex-column">
+線下開立
+<span class="" style="color:#8D8D8D;font-size: 12px;">顧客需填寫發票資訊，由店家自行開立發票</span>
+</div>`, value: "off_line"},
+                                                    {title: `<div class="d-flex flex-column">
+不開立電子發票
+<span class="" style="color:#8D8D8D;font-size: 12px;">顧客不需填寫發票資訊，不需開立電子發票</span>
+</div>`, value: "nouse"},
                                                 ].map((dd) => {
                                                     return `<div>${[
                                                         html`
@@ -437,7 +459,7 @@ export class ShoppingFinanceSetting {
                                                                 <div class="flex-fill "
                                                                      style="margin-left:30px;max-width: 518px;">
                                                                     ${(() => {
-                                                                        if ((vm.data.fincial) === 'nouse' || (vm.data.fincial !== dd.value)) {
+                                                                        if ((vm.data.fincial) === 'nouse' || (vm.data.fincial) === 'off_line' || (vm.data.fincial !== dd.value)) {
                                                                             return [].join('')
                                                                         } else {
                                                                             return [

@@ -216,6 +216,7 @@ export class HtmlGenerate {
                                             }
                                             const html = setting.map((dd, index) => {
                                                 var _a;
+                                                dd.tag = option.tag;
                                                 dd.formData = dd.formData || setting.formData;
                                                 dd.global = (_a = dd.global) !== null && _a !== void 0 ? _a : [];
                                                 dd.global.gvc = gvc;
