@@ -12,10 +12,6 @@ import {ShareDialog} from "../dialog/ShareDialog.js";
 import {ApiPageConfig} from "../api/pageConfig.js";
 import {PageCodeSetting} from "../editor/page-code-setting.js";
 import {EditorConfig} from "../editor-config.js";
-import {ApiUser} from "../glitter-base/route/user.js";
-import {GlobalUser} from "../glitter-base/global/global-user.js";
-import {TriggerEvent} from "../glitterBundle/plugins/trigger-event.js";
-import {BaseApi} from "../glitterBundle/api/base.js";
 import {SaasViewModel} from "../view-model/saas-view-model.js";
 
 export enum ViewType {

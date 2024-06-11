@@ -847,12 +847,13 @@ export class User {
             }
             if ((await db.query(`select count(1)
                                  from \`${this.app}\`.t_user_public_config
-                                 where \`key\` = ?`, [config.key]))[0]['count(1)'] === 1) {
+                                 where \`key\` = ? and user_id=? `, [config.key,config.user_id  ?? this.token!.userID]))[0]['count(1)'] === 1) {
                 await db.query(`update \`${this.app}\`.t_user_public_config
                                 set value=?
-                                where \`key\` = ?`, [
+                                where \`key\` = ? and user_id=?`, [
                     config.value,
-                    config.key
+                    config.key,
+                    config.user_id  ?? this.token!.userID
                 ])
             } else {
                 await db.query(`insert
@@ -903,6 +904,15 @@ export class User {
         }
     }
 
+    public  async checkEmailExists(email:string){
+        try {
+            const count=(await db.query(`select count(1) from \`${this.app}\`.t_user where account=?`,[email]))[0]['count(1)']
+            return count
+
+        }catch (e) {
+            throw exception.BadRequestError("ERROR", "ERROR." + e, null);
+        }
+    }
     public async getUnreadCount() {
         try {
 

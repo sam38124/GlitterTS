@@ -769,6 +769,10 @@ TriggerEvent.create(import.meta.url, {
         title: '用戶相關 / 取得通知訊息',
         fun: TriggerEvent.setEventRouter(import.meta.url, './user/get-notice.js'),
     },
+    getEmailCount: {
+        title: '用戶相關 / 判斷Email是否已被使用',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './user/check-email-exists.js'),
+    },
     getNoticeUnread: {
         title: '用戶相關 / 取得通知數量',
         fun: TriggerEvent.setEventRouter(import.meta.url, './user/get-notice-unread.js'),
@@ -796,6 +800,10 @@ TriggerEvent.create(import.meta.url, {
     getAutoReply: {
         title: '訊息相關 / 客服 / 取得自動答覆問題',
         fun: TriggerEvent.setEventRouter(import.meta.url, './chat/auto-reply.js'),
+    },
+    messageChange:{
+        title: '訊息相關 / 用戶 / 訊息更新',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './chat/message-change.js'),
     },
     glitterADD: {
         title: 'GLITTER / 建立APP',

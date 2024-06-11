@@ -37,8 +37,8 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                             clickEvent: object.rebate,
                             element: element
                         })) || (await ApiShop.getRebateValue()) || 0;
-
                         ApiShop.getCart().then(async (res: any) => {
+
                             const cartData: {
                                 line_items: {
                                     "sku": string,
@@ -56,6 +56,7 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                 line_items: [],
                                 total: 0
                             }
+
                             for (const b of Object.keys(res)) {
                                 cartData.line_items.push({
                                     id: b.split('-')[0] as any,
@@ -65,7 +66,6 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                     }) as any
                                 } as any)
                             }
-
                             ApiShop.getCheckout({
                                 line_items: cartData.line_items.map((dd) => {
                                     return {
@@ -81,14 +81,18 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                     TriggerEvent.trigger({
                                         gvc: gvc,
                                         widget: widget,
-                                        clickEvent: object.rebateSuccess
+                                        clickEvent: object.rebateSuccess,
+                                        subData:res.response.data,
+                                        element:element
                                     })
                                 } else {
                                     await ApiShop.setRebateValue('')
                                     TriggerEvent.trigger({
                                         gvc: gvc,
                                         widget: widget,
-                                        clickEvent: object.rebateError
+                                        clickEvent: object.rebateError,
+                                        subData:res.response.data,
+                                        element:element
                                     })
                                 }
                                 resolve(res.response.data)

@@ -110,7 +110,6 @@ router.get('/rebate', async (req: express.Request, resp: express.Response) => {
             )[0];
             data.data.userData = userData && userData.userData;
         }
-
         return response.succ(resp, data);
     } catch (err) {
         return response.fail(resp, err);

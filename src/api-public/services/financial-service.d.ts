@@ -60,6 +60,7 @@ export declare class EzPay {
         orderID: string;
         use_wallet: number;
         user_email: string;
+        method?: string;
     }): Promise<string>;
     saveMoney(orderData: {
         total: number;

@@ -96,20 +96,17 @@ function traverseHTML(element, document) {
                     }
                     if (document.querySelector(`[gvc-id="${id}"]`)) {
                         document.querySelector(`[gvc-id="${id}"]`).recreateView = (() => {
-                            if (document.querySelector(`[gvc-id="${id}"]`)) {
-                                const originHeight = document.querySelector(`[gvc-id="${id}"]`).style.height;
-                                if (originHeight !== '0px') {
-                                    document.querySelector(`[gvc-id="${id}"]`).wasRecreate = true;
-                                    document.querySelector(`[gvc-id="${id}"]`).wasRender = false;
-                                    document.querySelector(`[gvc-id="${id}"]`).style.height = `${document.querySelector(`[gvc-id="${id}"]`).offsetHeight}px`;
-                                }
-                                renderBindView();
-                                setTimeout(() => {
-                                    if (document.querySelector(`[gvc-id="${id}"]`) && originHeight !== '0px') {
-                                        document.querySelector(`[gvc-id="${id}"]`).style.height = originHeight;
-                                    }
-                                }, 10);
-                            }
+                            document.querySelector(`[gvc-id="${id}"]`).wasRecreate = true;
+                            document.querySelector(`[gvc-id="${id}"]`).wasRender = false;
+                            const height = document.querySelector(`[gvc-id="${id}"]`).offsetHeight;
+                            glitter.addStyle(`.hc_${height}{
+                                height:${height}px !important;
+                                }`);
+                            document.querySelector(`[gvc-id="${id}"]`).classList.add(`hc_${height}`);
+                            renderBindView();
+                            setTimeout(() => {
+                                document.querySelector(`[gvc-id="${id}"]`).classList.remove(`hc_${height}`);
+                            }, 10);
                         });
                         document.querySelector(`[gvc-id="${id}"]`).wasRender = true;
                     }

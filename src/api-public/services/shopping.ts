@@ -275,7 +275,7 @@ export class Shopping {
             }
 
             const userData = await (async ()=>{
-                if(type!=='preview'){
+                if(type!=='preview' || ((this.token) && (this.token.userID))){
                     return ((this.token && this.token.userID) ? await new User(this.app).getUserData(this.token.userID as any, 'userID'):await new User(this.app).getUserData(data.email! || data.user_info.email, 'account'))
                 }else{
                     return  {}
@@ -294,6 +294,7 @@ export class Shopping {
                 if(!data.email && type!=='preview'){
                 throw exception.BadRequestError('BAD_REQUEST', 'ToCheckout Error:No email address.', null);
             }
+
             //判斷回饋金是否可用
             if (data.use_rebate && data.use_rebate > 0) {
                 if (userData) {
@@ -315,6 +316,7 @@ export class Shopping {
                 }
             }
 
+
             //運費設定
             const shipment: {
                 basic_fee: number;
@@ -328,6 +330,7 @@ export class Shopping {
                     weight: 0,
                 },
             ])[0].value;
+
             //物流設定
             const shipment_setting: string[] = await new Promise(async (resolve, reject) => {
                 try {
@@ -347,6 +350,7 @@ export class Shopping {
                     resolve([]);
                 }
             });
+
             //購物車資料
             const carData: {
                 lineItems: {
@@ -511,7 +515,6 @@ export class Shopping {
                         ]
                     );
                 }
-
             }
 
             //當不需付款時直接寫入，並開發票
@@ -550,7 +553,7 @@ export class Shopping {
                         key: 'glitter_finance',
                     })
                 )[0].value;
-
+console.log(carData);
                 const subMitData = await new FinancialService(this.app, {
                     HASH_IV: keyData.HASH_IV,
                     HASH_KEY: keyData.HASH_KEY,

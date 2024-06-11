@@ -764,19 +764,20 @@ class User {
         }
     }
     async setConfig(config) {
-        var _a;
+        var _a, _b, _c;
         try {
             if (typeof config.value !== 'string') {
                 config.value = JSON.stringify(config.value);
             }
             if ((await database_1.default.query(`select count(1)
                                  from \`${this.app}\`.t_user_public_config
-                                 where \`key\` = ?`, [config.key]))[0]['count(1)'] === 1) {
+                                 where \`key\` = ? and user_id=? `, [config.key, (_a = config.user_id) !== null && _a !== void 0 ? _a : this.token.userID]))[0]['count(1)'] === 1) {
                 await database_1.default.query(`update \`${this.app}\`.t_user_public_config
                                 set value=?
-                                where \`key\` = ?`, [
+                                where \`key\` = ? and user_id=?`, [
                     config.value,
-                    config.key
+                    config.key,
+                    (_b = config.user_id) !== null && _b !== void 0 ? _b : this.token.userID
                 ]);
             }
             else {
@@ -784,7 +785,7 @@ class User {
                                 into \`${this.app}\`.t_user_public_config (\`user_id\`, \`key\`, \`value\`, updated_at)
                                 values (?, ?, ?, ?)
                 `, [
-                    (_a = config.user_id) !== null && _a !== void 0 ? _a : this.token.userID,
+                    (_c = config.user_id) !== null && _c !== void 0 ? _c : this.token.userID,
                     config.key,
                     config.value,
                     new Date()
@@ -820,6 +821,15 @@ class User {
         }
         catch (e) {
             console.log(e);
+            throw exception_1.default.BadRequestError("ERROR", "ERROR." + e, null);
+        }
+    }
+    async checkEmailExists(email) {
+        try {
+            const count = (await database_1.default.query(`select count(1) from \`${this.app}\`.t_user where account=?`, [email]))[0]['count(1)'];
+            return count;
+        }
+        catch (e) {
             throw exception_1.default.BadRequestError("ERROR", "ERROR." + e, null);
         }
     }

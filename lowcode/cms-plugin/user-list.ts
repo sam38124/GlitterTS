@@ -384,6 +384,15 @@ export class UserList {
             type: 'list',
         };
 
+        function regetData(){
+            ApiUser.getPublicUserData(cf.userID).then((dd) => {
+                vm.data = dd.response;
+                vm.userData = vm.data;
+                vm.loading = false;
+                gvc.notifyDataChange(id);
+            });
+        }
+
         function getOrderlist(data: any) {
             return data.map((dd: any) => {
                 return [
@@ -434,7 +443,7 @@ export class UserList {
                 ];
             });
         }
-
+        regetData()
         return gvc.bindView(() => {
             return {
                 bind: id,
@@ -816,9 +825,11 @@ export class UserList {
                                             gvc.event(() => {
                                                 const dialog = new ShareDialog(gvc.glitter);
                                                 dialog.dataLoading({ text: '更新中', visible: true });
+                                            
                                                 ApiUser.updateUserDataManager(vm.data, vm.data.userID).then((response) => {
                                                     dialog.dataLoading({ text: '', visible: false });
                                                     if (response.result) {
+                                                        regetData()
                                                         dialog.successMessage({ text: '更新成功!' });
                                                         vm.loading = true;
                                                         gvc.notifyDataChange(id);

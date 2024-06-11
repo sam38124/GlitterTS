@@ -386,6 +386,7 @@ router.put('/public/config', async (req, resp) => {
     try {
         const post = new user_1.User(req.get('g-app'), req.body.token);
         if (await ut_permission_js_1.UtPermission.isManager(req)) {
+            console.log(`public/config->manager`);
             (await post.setConfig({
                 key: req.body.key,
                 value: req.body.value,
@@ -393,6 +394,7 @@ router.put('/public/config', async (req, resp) => {
             }));
         }
         else {
+            console.log(`public/config->user`);
             (await post.setConfig({
                 key: req.body.key,
                 value: req.body.value
@@ -430,6 +432,16 @@ router.get('/notice', async (req, resp) => {
 router.get('/notice/unread/count', async (req, resp) => {
     try {
         return response_1.default.succ(resp, await new user_1.User(req.get('g-app'), req.body.token).getUnreadCount());
+    }
+    catch (err) {
+        return response_1.default.fail(resp, err);
+    }
+});
+router.get('/check/email/exists', async (req, resp) => {
+    try {
+        return response_1.default.succ(resp, {
+            result: await new user_1.User(req.get('g-app')).checkEmailExists(req.query.email)
+        });
     }
     catch (err) {
         return response_1.default.fail(resp, err);

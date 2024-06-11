@@ -368,12 +368,14 @@ router.put('/public/config', async (req: express.Request, resp: express.Response
     try {
         const post = new User(req.get('g-app') as string,req.body.token);
         if (await UtPermission.isManager(req)) {
+            console.log(`public/config->manager`);
             (await post.setConfig({
                 key: req.body.key,
                 value: req.body.value,
                 user_id:req.body.user_id ?? undefined
             }))
         } else {
+            console.log(`public/config->user`);
             (await post.setConfig({
                 key: req.body.key,
                 value: req.body.value
@@ -409,6 +411,16 @@ router.get('/notice',async (req: express.Request, resp: express.Response) => {
 router.get('/notice/unread/count',async (req: express.Request, resp: express.Response) => {
     try {
         return  response.succ(resp, await new User(req.get('g-app') as string, req.body.token).getUnreadCount())
+    }catch (err) {
+        return response.fail(resp, err);
+    }
+})
+
+router.get('/check/email/exists',async (req: express.Request, resp: express.Response) => {
+    try {
+        return  response.succ(resp, {
+            result:await new User(req.get('g-app') as string).checkEmailExists(req.query.email as string)
+        })
     }catch (err) {
         return response.fail(resp, err);
     }

@@ -14,7 +14,7 @@ export class Invoice {
 
     //判斷發票類型開立
     public async postInvoice(cf: {
-        invoice_data:any
+        invoice_data: any
     }) {
         try {
             const config = await app.getAdConfig(this.appName, "invoice_setting");
@@ -43,16 +43,19 @@ export class Invoice {
     }
 
     //訂單開發票
-    public async postCheckoutInvoice(orderID:string){
-        const order:{
-            user_info:{
+    public async postCheckoutInvoice(orderID: string) {
+        const order: {
+            user_info: {
                 "name": string,
                 "note": string,
                 "email": string,
                 "phone": string,
                 "address": string,
-                "gui_number"?:string,
-                "company"?:string,
+                "gui_number"?: string,
+                "company"?: string,
+                invoice_type: 'company' | 'me' | 'donate',
+                send_type:'email'|'carrier',
+                carrier_num:string
             },
             "total": number,
             "lineItems": [
@@ -67,40 +70,42 @@ export class Invoice {
                     "discount_price": number
                 }
             ],
-            use_wallet:number,
-            use_rebate:number,
-            shipment_fee:number,
-            discount:number
-        }=(await db.query(`SELECT * FROM \`${this.appName}\`.t_checkout where cart_token=?`,[orderID]))[0]['orderData']
+            use_wallet: number,
+            use_rebate: number,
+            shipment_fee: number,
+            discount: number
+        } = (await db.query(`SELECT *
+                             FROM \`${this.appName}\`.t_checkout
+                             where cart_token = ?`, [orderID]))[0]['orderData']
         const config = await app.getAdConfig(this.appName, "invoice_setting");
-        const line_item=order.lineItems.map((dd)=>{
+        const line_item = order.lineItems.map((dd) => {
             return {
-                ItemName: dd.title+(dd.spec.join('-') ? `/${dd.spec.join('-')}`:``),
+                ItemName: dd.title + (dd.spec.join('-') ? `/${dd.spec.join('-')}` : ``),
                 ItemUnit: '件',
                 ItemCount: dd.count,
                 ItemPrice: dd.sale_price,
                 ItemAmt: dd.sale_price * dd.count,
             }
         })
-        if(order.use_rebate){
+        if (order.use_rebate) {
             line_item.push({
                 ItemName: '回饋金',
                 ItemUnit: '-',
                 ItemCount: 1,
-                ItemPrice: order.use_rebate*-1,
+                ItemPrice: order.use_rebate * -1,
                 ItemAmt: order.use_rebate,
             })
         }
-        if(order.discount){
+        if (order.discount) {
             line_item.push({
                 ItemName: '折扣',
                 ItemUnit: '-',
                 ItemCount: 1,
-                ItemPrice: order.discount*-1,
+                ItemPrice: order.discount * -1,
                 ItemAmt: order.discount,
             })
         }
-        if(order.shipment_fee){
+        if (order.shipment_fee) {
             line_item.push({
                 ItemName: '運費',
                 ItemUnit: '趟',
@@ -109,17 +114,17 @@ export class Invoice {
                 ItemAmt: order.shipment_fee,
             })
         }
-        if(config.fincial==='ezpay'){
+        if (config.fincial === 'ezpay') {
             const timeStamp = '' + new Date().getTime();
-            const json={
+            const json = {
                 RespondType: 'JSON',
                 Version: '1.5',
                 TimeStamp: timeStamp.substring(0, timeStamp.length - 3),
                 MerchantOrderNo: orderID,
                 Status: 1,
-                Category: order.user_info.company && order.user_info.gui_number ? 'B2B' : 'B2C',
-                BuyerUBN: order.user_info.gui_number,
-                BuyerName: order.user_info.company || order.user_info.name,
+                Category: order.user_info.invoice_type === 'company' ? 'B2B' : 'B2C',
+                BuyerUBN: order.user_info.invoice_type === 'company' ? order.user_info.gui_number : undefined,
+                BuyerName: order.user_info.invoice_type === 'company' ? order.user_info.company : order.user_info.name,
                 BuyerAddress: order.user_info.address,
                 BuyerEmail: order.user_info.email,
                 PrintFlag: 'Y',
@@ -137,25 +142,27 @@ export class Invoice {
                 ItemTaxType: line_item.map(() => '1').join('|'),
             }
             return await (this.postInvoice({
-                invoice_data:json
+                invoice_data: json
             }))
-        }else if(config.fincial==='ecpay'){
-            const json:EcInvoiceInterface={
-                MerchantID:config.merchNO as string,
-                RelateNumber:orderID as string,
-                CustomerID:order.user_info.email as string,
-                CustomerIdentifier:(order.user_info.gui_number || '') as string,
-                CustomerName:(order.user_info.company || order.user_info.name) as string,
-                CustomerAddr:order.user_info.address as string,
-                CustomerPhone:(order.user_info.phone || undefined) as string,
-                CustomerEmail:order.user_info.email as string,
-                Print:'0',
-                CarrierType:'1',
-                Donation:'0',
-                TaxType:'1',
-                SalesAmount:order.total,
-                InvType:'07',
-                Items:line_item.map((dd,index)=>{
+        } else if (config.fincial === 'ecpay') {
+            const json: EcInvoiceInterface = {
+                MerchantID: config.merchNO as string,
+                RelateNumber: orderID as string,
+                CustomerID: order.user_info.email as string,
+                CustomerIdentifier: (order.user_info.invoice_type === 'company' ? (order.user_info.gui_number || '') : undefined) as string,
+                CustomerName: (order.user_info.invoice_type === 'company' ? (order.user_info.company) : order.user_info.name) as string,
+                CustomerAddr: order.user_info.address as string,
+                CustomerPhone: (order.user_info.phone || undefined) as string,
+                CustomerEmail: order.user_info.email as string,
+                Print: '0',
+                CarrierType: (order.user_info.invoice_type==='me' && order.user_info.send_type==='carrier') ? '3':'1',
+                CarrierNum: (order.user_info.invoice_type==='me' && order.user_info.send_type==='carrier') ? order.user_info.carrier_num:undefined,
+                Donation: (order.user_info.invoice_type === 'donate') ? '1':'0',
+                LoveCode:(order.user_info.invoice_type === 'donate') ? (order.user_info as any).love_code:undefined,
+                TaxType: '1',
+                SalesAmount: order.total,
+                InvType: '07',
+                Items: line_item.map((dd, index) => {
                     return {
                         "ItemSeq": index + 1,
                         "ItemName": dd.ItemName,
@@ -168,9 +175,9 @@ export class Invoice {
                     }
                 })
             }
-            console.log(`invoice_data->`,json)
+            console.log(`invoice_data->`, json)
             return await (this.postInvoice({
-                invoice_data:json
+                invoice_data: json
             }))
         }
 

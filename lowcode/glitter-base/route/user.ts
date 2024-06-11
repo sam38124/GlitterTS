@@ -50,6 +50,17 @@ export class ApiUser {
             },
         });
     }
+
+    public static getEmailCount(email:string) {
+        return BaseApi.create({
+            "url": getBaseUrl() + `/api-public/v1/user/check/email/exists?email=${email}`,
+            "type": "GET",
+            "headers": {
+                "g-app": getConfig().config.appName,
+                "Content-Type": "application/json",
+            }
+        })
+    }
     public static getSaasUserData(token: string, type: 'list' | 'me') {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/user?type=${type}`,
@@ -211,40 +222,58 @@ export class ApiUser {
             },
         }).then(async (data) => {
             const array = data.response.data;
-            for (let index = 0; index < array.length; index++) {
-                const res = array[index];
-                await Promise.all([
-                    new Promise<void>((resolve) => {
-                        ApiUser.getPublicUserData(res.userID).then((dd) => {
-                            array[index].tag_name =
-                                (
-                                    dd.response.member.find((dd: any) => {
-                                        return dd.trigger;
-                                    }) || {}
-                                ).tag_name || '一般會員';
-                            resolve();
-                        });
-                    }),
-                    new Promise<void>((resolve) => {
-                        ApiShop.getOrder({
-                            page: 0,
-                            limit: 99999,
-                            data_from: 'manager',
-                            email: res.account,
-                        }).then((data) => {
-                            array[index].checkout_total = (() => {
-                                let t = 0;
-                                for (const d of data.response.data) {
-                                    t += d.orderData.total;
-                                }
-                                return t;
-                            })();
-                            array[index].checkout_count = data.response.total as number;
-                            resolve();
-                        });
-                    }),
-                ]);
-            }
+
+            //這樣速度會比較快
+            await new Promise((resolve, reject)=>{
+                let pass=0
+                function checkPass(){
+                    pass++
+                    if(pass===array.length){
+                        resolve(true)
+                    }
+                }
+                for (let index = 0; index < array.length; index++) {
+                    function execute(){
+                        const res = array[index];
+                        Promise.all([
+                            new Promise<void>((resolve) => {
+                                ApiUser.getPublicUserData(res.userID).then((dd) => {
+                                    array[index].tag_name =
+                                        (
+                                            dd.response.member.find((dd: any) => {
+                                                return dd.trigger;
+                                            }) || {}
+                                        ).tag_name || '一般會員';
+                                    resolve();
+                                });
+                            }),
+                            new Promise<void>((resolve) => {
+                                ApiShop.getOrder({
+                                    page: 0,
+                                    limit: 99999,
+                                    data_from: 'manager',
+                                    email: res.account,
+                                }).then((data) => {
+                                    if(data.result){
+                                        array[index].checkout_total = (() => {
+                                            let t = 0;
+                                            for (const d of data.response.data) {
+                                                t += d.orderData.total;
+                                            }
+                                            return t;
+                                        })();
+                                        array[index].checkout_count = data.response.total as number;
+                                        checkPass()
+                                    }else{
+                                        execute()
+                                    }
+                                });
+                            }),
+                        ]);
+                    }
+                    execute()
+                }
+            })
             return {
                 response: {
                     data: array,
@@ -255,6 +284,8 @@ export class ApiUser {
 
         return userData;
     }
+
+
 
     public static deleteUser(json: { id: string }) {
         return BaseApi.create({
@@ -369,14 +400,19 @@ export class ApiUser {
         });
     }
 
-    public static setPublicConfig(cf: { key: string; value: any; user_id?: string }) {
+    public static setPublicConfig(cf: {
+        key: string,
+        value: any,
+        user_id?: string,
+        token?:string
+    }) {
         return BaseApi.create({
-            url: getBaseUrl() + `/api-public/v1/user/public/config`,
-            type: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-                'g-app': getConfig().config.appName,
-                Authorization: cf.user_id ? getConfig().config.token : GlobalUser.token,
+            "url": getBaseUrl() + `/api-public/v1/user/public/config`,
+            "type": "PUT",
+            "headers": {
+                "Content-Type": "application/json",
+                "g-app": getConfig().config.appName,
+                "Authorization": cf.token || ((cf.user_id) ? getConfig().config.token : GlobalUser.token)
             },
             data: JSON.stringify({
                 key: cf.key,

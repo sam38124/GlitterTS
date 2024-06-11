@@ -695,10 +695,6 @@ Plugin.createComponent(import.meta.url, (glitter, editMode) => {
                                             subData: subData,
                                             element: element
                                         });
-                                        defineHeight = document.querySelector(`.${config.formID}`).offsetHeight;
-                                        setTimeout(() => {
-                                            document.querySelector(`.${config.formID}`).height = "auto";
-                                        }, 100);
                                         getCodeView();
                                     },
                                     widget: widget,

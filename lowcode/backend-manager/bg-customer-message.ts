@@ -472,17 +472,17 @@ export class BgCustomerMessage {
                             let socket:any = undefined;
 
                             function connect(){
-                                if (gvc.share.close_socket) {
-                                    gvc.share.close_socket()
+                                if (gvc.glitter.share.close_socket) {
+                                    gvc.glitter.share.close_socket()
 
                                 }
                                 socket=(location.href.includes('https://')) ? new WebSocket(`wss://${url.hostname}/websocket`) : new WebSocket(`ws://${url.hostname}:9003`);
-                                gvc.share.close_socket=()=>{
+                                gvc.glitter.share.close_socket=()=>{
                                     vm.close=true
                                     socket.close()
-                                    gvc.share.close_socket=undefined
+                                    gvc.glitter.share.close_socket=undefined
                                 }
-                                gvc.share.socket = socket;
+                                gvc.glitter.share.socket = socket;
                                 socket.addEventListener('open', function (event:any) {
                                     console.log('Connected to server');
                                     socket.send(JSON.stringify({

@@ -105,7 +105,7 @@ class Chat {
         }
     }
     async addMessage(room) {
-        var _a, _b, _c, _d, _e, _f, _g;
+        var _a, _b, _c, _d, _e, _f, _g, _h;
         try {
             const chatRoom = ((await database_1.default.query(`select *
                                                from \`${this.app}\`.t_chat_list
@@ -218,6 +218,11 @@ class Chat {
                 return id.join(',');
             })()});`, []);
             for (const dd of userData) {
+                ((_g = web_socket_js_1.WebSocket.messageChangeMem[`${dd.userID}`]) !== null && _g !== void 0 ? _g : []).map((d2) => {
+                    d2.callback({
+                        type: 'update_message_count'
+                    });
+                });
                 if (dd.userData.email) {
                     if (chatRoom.type === 'user') {
                         if (room.message.text) {
@@ -260,7 +265,7 @@ class Chat {
         }
         catch (e) {
             console.log(e);
-            throw exception_1.default.BadRequestError((_g = e.code) !== null && _g !== void 0 ? _g : 'BAD_REQUEST', 'AddMessage Error:' + e.message, null);
+            throw exception_1.default.BadRequestError((_h = e.code) !== null && _h !== void 0 ? _h : 'BAD_REQUEST', 'AddMessage Error:' + e.message, null);
         }
     }
     async updateLastRead(userID, chat_id) {
@@ -336,6 +341,11 @@ class Chat {
                 dd.user_data = (_a = userDataStorage[dd.user_id]) !== null && _a !== void 0 ? _a : {};
             });
             res.lastRead = await this.getLastRead(qu.chat_id);
+            (web_socket_js_1.WebSocket.messageChangeMem[qu.user_id] || []).map((dd) => {
+                dd.callback({
+                    type: 'update_message_count'
+                });
+            });
             return res;
         }
         catch (e) {

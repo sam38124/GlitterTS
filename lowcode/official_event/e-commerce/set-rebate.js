@@ -73,7 +73,9 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                     TriggerEvent.trigger({
                                         gvc: gvc,
                                         widget: widget,
-                                        clickEvent: object.rebateSuccess
+                                        clickEvent: object.rebateSuccess,
+                                        subData: res.response.data,
+                                        element: element
                                     });
                                 }
                                 else {
@@ -81,7 +83,9 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                     TriggerEvent.trigger({
                                         gvc: gvc,
                                         widget: widget,
-                                        clickEvent: object.rebateError
+                                        clickEvent: object.rebateError,
+                                        subData: res.response.data,
+                                        element: element
                                     });
                                 }
                                 resolve(res.response.data);

@@ -161,7 +161,7 @@ class Shopping {
                 throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'ToCheckout Error:No email address.', null);
             }
             const userData = await (async () => {
-                if (type !== 'preview') {
+                if (type !== 'preview' || ((this.token) && (this.token.userID))) {
                     return ((this.token && this.token.userID) ? await new user_js_1.User(this.app).getUserData(this.token.userID, 'userID') : await new user_js_1.User(this.app).getUserData(data.email || data.user_info.email, 'account'));
                 }
                 else {
@@ -367,6 +367,7 @@ class Shopping {
                     appName: this.app,
                     key: 'glitter_finance',
                 }))[0].value;
+                console.log(carData);
                 const subMitData = await new financial_service_js_1.default(this.app, {
                     HASH_IV: keyData.HASH_IV,
                     HASH_KEY: keyData.HASH_KEY,

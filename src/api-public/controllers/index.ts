@@ -63,6 +63,7 @@ const whiteList: {}[] = [
     {url: config.getRoute(config.public_route.post+'/public/config', 'public'), method: 'GET'},
     {url: config.getRoute(config.public_route.post+'/user', 'public'), method: 'GET'},
     {url: config.getRoute(config.public_route.user + "/checkMail", 'public'), method: 'GET'},
+    {url: config.getRoute(config.public_route.user + "/check/email/exists", 'public'), method: 'GET'},
     {url: config.getRoute(config.public_route.user + "/checkMail/updateAccount", 'public'), method: 'GET'},
     {url: config.getRoute(config.public_route.user+"/userdata", 'public'), method: 'GET'},
     {url: config.getRoute(config.public_route.user+"/subscribe", 'public'), method: 'POST'},

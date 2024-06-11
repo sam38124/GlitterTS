@@ -37,7 +37,8 @@ export class Setting_editor {
                                                 group: '首頁',
                                                 title: '首頁',
                                                 appName: 'cms_system',
-                                                groupIcon: ' https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1716559696051-Component 56.svg',
+                                                groupIcon:
+                                                        ' https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1716559696051-Component 56.svg',
                                                 moduleName: '首頁',
                                             },
                                             {
@@ -136,7 +137,8 @@ export class Setting_editor {
                                                 group: '顧客管理',
                                                 title: '顧客列表',
                                                 appName: 'cms_system',
-                                                groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713360844009-Component 56 (1).svg',
+                                                groupIcon:
+                                                        'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713360844009-Component 56 (1).svg',
                                                 moduleName: '用戶列表',
                                             },
                                             {
@@ -145,26 +147,9 @@ export class Setting_editor {
                                                 group: '顧客管理',
                                                 title: '會員等級',
                                                 appName: 'cms_system',
-                                                groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713360844009-Component 56 (1).svg',
+                                                groupIcon:
+                                                        'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713360844009-Component 56 (1).svg',
                                                 moduleName: '用戶列表',
-                                            },
-                                            {
-                                                icon: '',
-                                                page: 'wallet-list',
-                                                group: '顧客管理',
-                                                title: '電子錢包紀錄',
-                                                appName: 'cms_system',
-                                                groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713371719908-wallet-regular.svg',
-                                                moduleName: '增減紀錄',
-                                            },
-                                            {
-                                                icon: '',
-                                                page: 'withdrawRequest',
-                                                group: '顧客管理',
-                                                title: '錢包提領請求',
-                                                appName: 'cms_system',
-                                                groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713371719908-wallet-regular.svg',
-                                                moduleName: '提領請求',
                                             },
                                             {
                                                 icon: '',
@@ -172,7 +157,8 @@ export class Setting_editor {
                                                 group: '優惠促銷',
                                                 title: '折扣管理',
                                                 appName: 'cms_system',
-                                                groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713370923228-Component 56 (3).svg',
+                                                groupIcon:
+                                                        'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713370923228-Component 56 (3).svg',
                                                 moduleName: '折扣管理',
                                             },
 
@@ -182,7 +168,8 @@ export class Setting_editor {
                                                 group: '優惠促銷',
                                                 title: '回饋金',
                                                 appName: 'cms_system',
-                                                groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713370923228-Component 56 (3).svg',
+                                                groupIcon:
+                                                        'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713370923228-Component 56 (3).svg',
                                                 moduleName: '回饋金',
                                             },
                                             {
@@ -191,7 +178,8 @@ export class Setting_editor {
                                                 group: '數據分析',
                                                 title: '數據總覽',
                                                 appName: 'cms_system',
-                                                groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716653099307-Component 56 (4).svg',
+                                                groupIcon:
+                                                        'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716653099307-Component 56 (4).svg',
                                                 moduleName: 'dashboard_ec',
                                             },
                                             {
@@ -200,7 +188,8 @@ export class Setting_editor {
                                                 group: '信件群發',
                                                 title: '已訂閱郵件',
                                                 appName: 'cms_system',
-                                                groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713375442916-Component 56 (4).svg',
+                                                groupIcon:
+                                                        'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713375442916-Component 56 (4).svg',
                                                 moduleName: '已訂閱郵件',
                                             },
                                             {
@@ -209,7 +198,8 @@ export class Setting_editor {
                                                 group: '信件群發',
                                                 title: '自動寄件',
                                                 appName: 'cms_system',
-                                                groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713375442916-Component 56 (4).svg',
+                                                groupIcon:
+                                                        'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713375442916-Component 56 (4).svg',
                                                 moduleName: '已訂閱郵件',
                                             },
                                             {
@@ -218,7 +208,8 @@ export class Setting_editor {
                                                 group: '電子表單',
                                                 title: '表單設定',
                                                 appName: 'cms_system',
-                                                groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713514549253-calendar-lines-pen-regular.svg',
+                                                groupIcon:
+                                                        'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713514549253-calendar-lines-pen-regular.svg',
                                                 moduleName: '表單管理',
                                             },
                                             {
@@ -227,7 +218,8 @@ export class Setting_editor {
                                                 group: '電子表單',
                                                 title: '已提交表單',
                                                 appName: 'cms_system',
-                                                groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713514549253-calendar-lines-pen-regular.svg',
+                                                groupIcon:
+                                                        'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713514549253-calendar-lines-pen-regular.svg',
                                                 moduleName: '表單管理',
                                             },
                                             {
@@ -236,7 +228,8 @@ export class Setting_editor {
                                                 group: '信件群發',
                                                 title: '群發設定',
                                                 appName: 'cms_system',
-                                                groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713375442916-Component 56 (4).svg',
+                                                groupIcon:
+                                                        'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713375442916-Component 56 (4).svg',
                                                 moduleName: '群發設定',
                                             },
                                             {
@@ -245,7 +238,8 @@ export class Setting_editor {
                                                 group: '品牌官網',
                                                 title: '佈景主題',
                                                 appName: 'cms_system',
-                                                groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716654741305-Component 56 (5).svg',
+                                                groupIcon:
+                                                        'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716654741305-Component 56 (5).svg',
                                                 moduleName: '商店設計',
                                             },
                                             {
@@ -254,7 +248,8 @@ export class Setting_editor {
                                                 group: '品牌官網',
                                                 title: '網誌文章',
                                                 appName: 'cms_system',
-                                                groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716654741305-Component 56 (5).svg',
+                                                groupIcon:
+                                                        'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716654741305-Component 56 (5).svg',
                                                 moduleName: '網誌管理',
                                             },
                                             {
@@ -263,7 +258,8 @@ export class Setting_editor {
                                                 group: '品牌官網',
                                                 title: '頁面 / 條款',
                                                 appName: 'cms_system',
-                                                groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716654741305-Component 56 (5).svg',
+                                                groupIcon:
+                                                        'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716654741305-Component 56 (5).svg',
                                                 moduleName: '網誌管理',
                                             },
                                             {
@@ -272,7 +268,8 @@ export class Setting_editor {
                                                 group: '品牌官網',
                                                 title: '選單管理',
                                                 appName: 'cms_system',
-                                                groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716654741305-Component 56 (5).svg',
+                                                groupIcon:
+                                                        'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716654741305-Component 56 (5).svg',
                                                 moduleName: '網誌管理',
                                             },
                                             {
@@ -281,16 +278,17 @@ export class Setting_editor {
                                                 group: 'APP',
                                                 title: 'IOS應用上架',
                                                 appName: 'cms_system',
-                                                groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716655243577-Component 56 (6).svg',
+                                                groupIcon:
+                                                        'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716655243577-Component 56 (6).svg',
                                                 moduleName: 'IOS應用上架',
-                                            },
-                                            {
+                                            },  {
                                                 icon: '',
                                                 page: 'android_release',
                                                 group: 'APP',
                                                 title: 'Android應用上架',
                                                 appName: 'cms_system',
-                                                groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716655243577-Component 56 (6).svg',
+                                                groupIcon:
+                                                        'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716655243577-Component 56 (6).svg',
                                                 moduleName: 'IOS應用上架',
                                             },
                                             {
@@ -299,7 +297,8 @@ export class Setting_editor {
                                                 group: 'APP',
                                                 title: '推播訂閱裝置',
                                                 appName: 'cms_system',
-                                                groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713414599944-Component 56 (5).svg',
+                                                groupIcon:
+                                                        'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713414599944-Component 56 (5).svg',
                                                 moduleName: '訂閱裝置管理',
                                             },
                                             {
@@ -308,7 +307,8 @@ export class Setting_editor {
                                                 group: 'APP',
                                                 title: '推播訊息管理',
                                                 appName: 'cms_system',
-                                                groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713414599944-Component 56 (5).svg',
+                                                groupIcon:
+                                                        'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713414599944-Component 56 (5).svg',
                                                 moduleName: '推播訊息管理',
                                             },
                                         ];
@@ -319,7 +319,8 @@ export class Setting_editor {
                                                 group: '擴充套件',
                                                 title: '結帳事件',
                                                 appName: 'cms_system',
-                                                groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713419947572-code-solid.svg',
+                                                groupIcon:
+                                                        'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713419947572-code-solid.svg',
                                                 moduleName: '結帳事件',
                                             },
                                             {
@@ -328,7 +329,8 @@ export class Setting_editor {
                                                 group: '擴充套件',
                                                 title: 'Graph api',
                                                 appName: 'cms_system',
-                                                groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713419947572-code-solid.svg',
+                                                groupIcon:
+                                                        'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713419947572-code-solid.svg',
                                                 moduleName: '後端代碼事件',
                                             },
                                             {
@@ -337,10 +339,31 @@ export class Setting_editor {
                                                 group: '擴充套件',
                                                 title: '模板發佈',
                                                 appName: 'cms_system',
-                                                groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713418629944-Component 56 (7).svg',
+                                                groupIcon:
+                                                        'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713418629944-Component 56 (7).svg',
                                                 moduleName: '模板發佈',
-                                            },
-                                        ]);
+                                            }
+                                            // {
+                                            //     icon: '',
+                                            //     page: 'wallet-list',
+                                            //     group: '顧客管理',
+                                            //     title: '電子錢包紀錄',
+                                            //     appName: 'cms_system',
+                                            //     groupIcon:
+                                            //             'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713371719908-wallet-regular.svg',
+                                            //     moduleName: '增減紀錄',
+                                            // },
+                                            // {
+                                            //     icon: '',
+                                            //     page: 'withdrawRequest',
+                                            //     group: '顧客管理',
+                                            //     title: '錢包提領請求',
+                                            //     appName: 'cms_system',
+                                            //     groupIcon:
+                                            //             'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713371719908-wallet-regular.svg',
+                                            //     moduleName: '提領請求',
+                                            // },
+                                        ])
 
                                         ApiPageConfig.getPrivateConfigV2('backend_list').then((res) => {
                                             res.response.result[0] && (items = res.response.result[0].value);

@@ -10,6 +10,7 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
         fun: (gvc, widget, object, subData, element) => {
             object.key = object.key ?? {} ;
             object.value = object.value ?? {} ;
+            object.userID=object.userID??{};
             return {
                 editor: () => {
                     return [
@@ -22,6 +23,11 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                             hover: false,
                             option: [],
                             title: "Value"
+                        }),
+                        TriggerEvent.editer(gvc, widget, object.userID, {
+                            hover: false,
+                            option: [],
+                            title: "用戶ID"
                         })
                     ].join(`<div class="my-2"></div>`)
                 },
@@ -34,9 +40,16 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                         const value=await TriggerEvent.trigger({
                             gvc: gvc, widget: widget, clickEvent: object.value, subData: subData
                         });
+                        const userID:any=await TriggerEvent.trigger({
+                            gvc: gvc, widget: widget, clickEvent: object.userID, subData: subData
+                        });
+
+
                         ApiUser.setPublicConfig({
                             key:key as string,
-                            value:value
+                            value:value,
+                            user_id:userID || 'manager',
+                            token:GlobalUser.token
                         }).then((dd) => {
                             resolve(dd.response.value || {})
                         });

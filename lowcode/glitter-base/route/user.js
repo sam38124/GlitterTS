@@ -56,6 +56,16 @@ export class ApiUser {
             },
         });
     }
+    static getEmailCount(email) {
+        return BaseApi.create({
+            "url": getBaseUrl() + `/api-public/v1/user/check/email/exists?email=${email}`,
+            "type": "GET",
+            "headers": {
+                "g-app": getConfig().config.appName,
+                "Content-Type": "application/json",
+            }
+        });
+    }
     static getSaasUserData(token, type) {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/user?type=${type}`,
@@ -203,38 +213,55 @@ export class ApiUser {
             },
         }).then((data) => __awaiter(this, void 0, void 0, function* () {
             const array = data.response.data;
-            for (let index = 0; index < array.length; index++) {
-                const res = array[index];
-                yield Promise.all([
-                    new Promise((resolve) => {
-                        ApiUser.getPublicUserData(res.userID).then((dd) => {
-                            array[index].tag_name =
-                                (dd.response.member.find((dd) => {
-                                    return dd.trigger;
-                                }) || {}).tag_name || '一般會員';
-                            resolve();
-                        });
-                    }),
-                    new Promise((resolve) => {
-                        ApiShop.getOrder({
-                            page: 0,
-                            limit: 99999,
-                            data_from: 'manager',
-                            email: res.account,
-                        }).then((data) => {
-                            array[index].checkout_total = (() => {
-                                let t = 0;
-                                for (const d of data.response.data) {
-                                    t += d.orderData.total;
-                                }
-                                return t;
-                            })();
-                            array[index].checkout_count = data.response.total;
-                            resolve();
-                        });
-                    }),
-                ]);
-            }
+            yield new Promise((resolve, reject) => {
+                let pass = 0;
+                function checkPass() {
+                    pass++;
+                    if (pass === array.length) {
+                        resolve(true);
+                    }
+                }
+                for (let index = 0; index < array.length; index++) {
+                    function execute() {
+                        const res = array[index];
+                        Promise.all([
+                            new Promise((resolve) => {
+                                ApiUser.getPublicUserData(res.userID).then((dd) => {
+                                    array[index].tag_name =
+                                        (dd.response.member.find((dd) => {
+                                            return dd.trigger;
+                                        }) || {}).tag_name || '一般會員';
+                                    resolve();
+                                });
+                            }),
+                            new Promise((resolve) => {
+                                ApiShop.getOrder({
+                                    page: 0,
+                                    limit: 99999,
+                                    data_from: 'manager',
+                                    email: res.account,
+                                }).then((data) => {
+                                    if (data.result) {
+                                        array[index].checkout_total = (() => {
+                                            let t = 0;
+                                            for (const d of data.response.data) {
+                                                t += d.orderData.total;
+                                            }
+                                            return t;
+                                        })();
+                                        array[index].checkout_count = data.response.total;
+                                        checkPass();
+                                    }
+                                    else {
+                                        execute();
+                                    }
+                                });
+                            }),
+                        ]);
+                    }
+                    execute();
+                }
+            });
             return {
                 response: {
                     data: array,
@@ -351,12 +378,12 @@ export class ApiUser {
     }
     static setPublicConfig(cf) {
         return BaseApi.create({
-            url: getBaseUrl() + `/api-public/v1/user/public/config`,
-            type: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-                'g-app': getConfig().config.appName,
-                Authorization: cf.user_id ? getConfig().config.token : GlobalUser.token,
+            "url": getBaseUrl() + `/api-public/v1/user/public/config`,
+            "type": "PUT",
+            "headers": {
+                "Content-Type": "application/json",
+                "g-app": getConfig().config.appName,
+                "Authorization": cf.token || ((cf.user_id) ? getConfig().config.token : GlobalUser.token)
             },
             data: JSON.stringify({
                 key: cf.key,

@@ -140,24 +140,6 @@ export class Setting_editor {
                                         },
                                         {
                                             icon: '',
-                                            page: 'wallet-list',
-                                            group: '顧客管理',
-                                            title: '電子錢包紀錄',
-                                            appName: 'cms_system',
-                                            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713371719908-wallet-regular.svg',
-                                            moduleName: '增減紀錄',
-                                        },
-                                        {
-                                            icon: '',
-                                            page: 'withdrawRequest',
-                                            group: '顧客管理',
-                                            title: '錢包提領請求',
-                                            appName: 'cms_system',
-                                            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713371719908-wallet-regular.svg',
-                                            moduleName: '提領請求',
-                                        },
-                                        {
-                                            icon: '',
                                             page: 'discount_setting',
                                             group: '優惠促銷',
                                             title: '折扣管理',
@@ -272,8 +254,7 @@ export class Setting_editor {
                                             appName: 'cms_system',
                                             groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716655243577-Component 56 (6).svg',
                                             moduleName: 'IOS應用上架',
-                                        },
-                                        {
+                                        }, {
                                             icon: '',
                                             page: 'android_release',
                                             group: 'APP',
@@ -328,7 +309,7 @@ export class Setting_editor {
                                             appName: 'cms_system',
                                             groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713418629944-Component 56 (7).svg',
                                             moduleName: '模板發佈',
-                                        },
+                                        }
                                     ]);
                                     ApiPageConfig.getPrivateConfigV2('backend_list').then((res) => {
                                         res.response.result[0] && (items = res.response.result[0].value);

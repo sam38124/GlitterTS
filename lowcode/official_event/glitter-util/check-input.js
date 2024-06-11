@@ -38,19 +38,19 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                     }),
                                     ...(() => {
                                         if (object.filterType === 'custom') {
-                                            return EditorElem.editeInput({
-                                                gvc: gvc,
-                                                title: '正則表達式',
-                                                default: object.filterText,
-                                                placeHolder: `請輸入正則表達式`,
-                                                callback: (text) => {
-                                                    object.filterText = text;
-                                                    widget.refreshComponent();
-                                                }
-                                            });
+                                            return [EditorElem.editeInput({
+                                                    gvc: gvc,
+                                                    title: '正則表達式',
+                                                    default: object.filterText,
+                                                    placeHolder: `請輸入正則表達式`,
+                                                    callback: (text) => {
+                                                        object.filterText = text;
+                                                        widget.refreshComponent();
+                                                    }
+                                                })];
                                         }
                                         else {
-                                            return ``;
+                                            return [];
                                         }
                                     })()
                                 ].join('<div class="my-2"></div>');

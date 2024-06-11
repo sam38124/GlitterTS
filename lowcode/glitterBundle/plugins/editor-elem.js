@@ -447,7 +447,7 @@ export class EditorElem {
                 let listener = function (event) {
                     var _a;
                     if (event.data.type === 'initial') {
-                        const childWindow = document.getElementById(frameID).contentWindow;
+                        const childWindow = (document.getElementById(frameID) || (window.parent.document.getElementById(frameID))).contentWindow;
                         childWindow.postMessage({
                             type: 'getData',
                             value: `${obj.structStart ? obj.structStart : `(()=>{`}

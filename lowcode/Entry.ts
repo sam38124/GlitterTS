@@ -8,7 +8,6 @@ import {GlobalUser} from "./glitter-base/global/global-user.js";
 
 export class Entry {
     public static onCreate(glitter: Glitter) {
-
         glitter.share.GlobalUser=GlobalUser
         Entry.checkRedirectPage(glitter)
         glitter.share.logID = glitter.getUUID()
@@ -25,7 +24,7 @@ export class Entry {
 
         (window as any).renderClock = (window as any).renderClock ?? clockF();
         console.log(`Entry-time:`, (window as any).renderClock.stop());
-        glitter.share.editerVersion = "V_7.5.5";
+        glitter.share.editerVersion = "V_7.6.8";
         glitter.share.start = (new Date());
         const vm: {
             appConfig: any

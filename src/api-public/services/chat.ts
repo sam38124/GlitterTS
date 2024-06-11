@@ -243,6 +243,11 @@ export class Chat {
                                              })()});`, [])
 
             for (const dd of userData) {
+                (WebSocket.messageChangeMem[`${dd.userID}`] ?? []).map((d2)=>{
+                    d2.callback({
+                        type:'update_message_count'
+                    })
+                })
                 if (dd.userData.email) {
                     if (chatRoom.type === 'user') {
                         if (room.message.text) {
@@ -387,7 +392,13 @@ export class Chat {
             res.data.map((dd: any) => {
                 dd.user_data = userDataStorage[dd.user_id] ?? {}
             });
-            (res as any).lastRead = await this.getLastRead(qu.chat_id)
+            (res as any).lastRead = await this.getLastRead(qu.chat_id);
+            (WebSocket.messageChangeMem[qu.user_id] || []).map((dd)=>{
+                dd.callback({
+                    type:'update_message_count'
+                })
+            })
+
             return res
         } catch (e: any) {
             throw exception.BadRequestError(e.code ?? 'BAD_REQUEST', 'GetMessage Error:' + e!.message, null);

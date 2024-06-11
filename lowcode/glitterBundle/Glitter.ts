@@ -4,7 +4,6 @@ import {PageConfig, GVCType, PageManager, DefaultSetting} from "./module/PageMan
 import {AppearType} from "./module/Enum.js"
 import {HtmlGenerate} from "./module/html-generate.js"
 
-
 export class Glitter {
     public static glitter: Glitter
     /*ENUM*/
@@ -477,7 +476,6 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
         return checksum;
     }
     public getUrlParameter(sParam: string): any {
-
         let sPageURL = window.location.search.substring(1),
             sURLVariables = sPageURL.split('&'),
             sParameterName,
@@ -490,6 +488,7 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
                 return sParameterName[1] === undefined ? true : decodeURIComponent(sParameterName[1]);
             }
         }
+
     }
 
     public openNewTab(link: string) {

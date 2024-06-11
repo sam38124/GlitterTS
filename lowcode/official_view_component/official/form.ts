@@ -769,10 +769,10 @@ let dyView='';
                                             subData: subData,
                                             element: element
                                         });
-                                      defineHeight=(document.querySelector(`.${config.formID}`)! as any).offsetHeight;
-                                      setTimeout(()=>{
-                                          (document.querySelector(`.${config.formID}`)! as any).height = "auto"
-                                      },100)
+                                      // defineHeight=(document.querySelector(`.${config.formID}`)! as any).offsetHeight;
+                                      // setTimeout(()=>{
+                                      //     (document.querySelector(`.${config.formID}`)! as any).height = "auto"
+                                      // },100)
                                         getCodeView()
                                     },
                                     widget: widget,

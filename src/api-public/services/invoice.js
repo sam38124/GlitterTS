@@ -40,7 +40,9 @@ class Invoice {
         }
     }
     async postCheckoutInvoice(orderID) {
-        const order = (await database_js_1.default.query(`SELECT * FROM \`${this.appName}\`.t_checkout where cart_token=?`, [orderID]))[0]['orderData'];
+        const order = (await database_js_1.default.query(`SELECT *
+                             FROM \`${this.appName}\`.t_checkout
+                             where cart_token = ?`, [orderID]))[0]['orderData'];
         const config = await app_js_1.default.getAdConfig(this.appName, "invoice_setting");
         const line_item = order.lineItems.map((dd) => {
             return {
@@ -86,9 +88,9 @@ class Invoice {
                 TimeStamp: timeStamp.substring(0, timeStamp.length - 3),
                 MerchantOrderNo: orderID,
                 Status: 1,
-                Category: order.user_info.company && order.user_info.gui_number ? 'B2B' : 'B2C',
-                BuyerUBN: order.user_info.gui_number,
-                BuyerName: order.user_info.company || order.user_info.name,
+                Category: order.user_info.invoice_type === 'company' ? 'B2B' : 'B2C',
+                BuyerUBN: order.user_info.invoice_type === 'company' ? order.user_info.gui_number : undefined,
+                BuyerName: order.user_info.invoice_type === 'company' ? order.user_info.company : order.user_info.name,
                 BuyerAddress: order.user_info.address,
                 BuyerEmail: order.user_info.email,
                 PrintFlag: 'Y',
@@ -114,14 +116,16 @@ class Invoice {
                 MerchantID: config.merchNO,
                 RelateNumber: orderID,
                 CustomerID: order.user_info.email,
-                CustomerIdentifier: (order.user_info.gui_number || ''),
-                CustomerName: (order.user_info.company || order.user_info.name),
+                CustomerIdentifier: (order.user_info.invoice_type === 'company' ? (order.user_info.gui_number || '') : undefined),
+                CustomerName: (order.user_info.invoice_type === 'company' ? (order.user_info.company) : order.user_info.name),
                 CustomerAddr: order.user_info.address,
                 CustomerPhone: (order.user_info.phone || undefined),
                 CustomerEmail: order.user_info.email,
                 Print: '0',
-                CarrierType: '1',
-                Donation: '0',
+                CarrierType: (order.user_info.invoice_type === 'me' && order.user_info.send_type === 'carrier') ? '3' : '1',
+                CarrierNum: (order.user_info.invoice_type === 'me' && order.user_info.send_type === 'carrier') ? order.user_info.carrier_num : undefined,
+                Donation: (order.user_info.invoice_type === 'donate') ? '1' : '0',
+                LoveCode: (order.user_info.invoice_type === 'donate') ? order.user_info.love_code : undefined,
                 TaxType: '1',
                 SalesAmount: order.total,
                 InvType: '07',

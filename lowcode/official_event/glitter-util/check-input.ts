@@ -29,7 +29,7 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                     }),
                                     ...(() => {
                                         if (object.filterType === 'custom') {
-                                            return EditorElem.editeInput({
+                                            return [EditorElem.editeInput({
                                                 gvc: gvc,
                                                 title: '正則表達式',
                                                 default: object.filterText,
@@ -38,9 +38,9 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                                     object.filterText = text
                                                     widget.refreshComponent()
                                                 }
-                                            })
+                                            })]
                                         } else {
-                                            return ``
+                                            return []
                                         }
                                     })()
                                 ].join('<div class="my-2"></div>')

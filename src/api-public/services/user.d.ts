@@ -90,6 +90,7 @@ export declare class User {
         key: string;
         user_id: string;
     }): Promise<any>;
+    checkEmailExists(email: string): Promise<any>;
     getUnreadCount(): Promise<{
         count: any;
     }>;

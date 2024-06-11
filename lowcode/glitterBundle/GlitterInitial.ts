@@ -106,22 +106,19 @@ function traverseHTML(element: any, document: any) {
                     }else {
                     }
                     if ((document.querySelector(`[gvc-id="${id}"]`) as any)) {
-                        (document.querySelector(`[gvc-id="${id}"]`) as any).recreateView = (() => {
-                            if ((document.querySelector(`[gvc-id="${id}"]`) as any)) {
-                                const originHeight=(document.querySelector(`[gvc-id="${id}"]`) as any).style.height;
-                      if(originHeight!=='0px'){
-                          (document.querySelector(`[gvc-id="${id}"]`) as any).wasRecreate = true;
-                          (document.querySelector(`[gvc-id="${id}"]`) as any).wasRender = false;
-                          (document.querySelector(`[gvc-id="${id}"]`) as any).style.height=`${(document.querySelector(`[gvc-id="${id}"]`) as any).offsetHeight}px`;
-                      }
 
-                                renderBindView();
-                                setTimeout(()=>{
-                                    if((document.querySelector(`[gvc-id="${id}"]`) as any) && originHeight!=='0px'){
-                                        (document.querySelector(`[gvc-id="${id}"]`) as any).style.height=originHeight
-                                    }
-                                },10)
-                            }
+                        (document.querySelector(`[gvc-id="${id}"]`) as any).recreateView = (() => {
+                            (document.querySelector(`[gvc-id="${id}"]`) as any).wasRecreate = true;
+                            (document.querySelector(`[gvc-id="${id}"]`) as any).wasRender = false;
+                            const height=(document.querySelector(`[gvc-id="${id}"]`) as any).offsetHeight;
+                            glitter.addStyle(`.hc_${height}{
+                                height:${height}px !important;
+                                }`);
+                            (document.querySelector(`[gvc-id="${id}"]`) as any).classList.add(`hc_${height}`);
+                            renderBindView();
+                            setTimeout(()=>{
+                            (document.querySelector(`[gvc-id="${id}"]`) as any).classList.remove(`hc_${height}`);
+                            },10)
                         });
                         (document.querySelector(`[gvc-id="${id}"]`) as any).wasRender = true
                     }

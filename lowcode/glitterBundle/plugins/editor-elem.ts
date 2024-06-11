@@ -479,7 +479,8 @@ export class EditorElem {
                 const domain = 'https://sam38124.github.io/code_component';
                 let listener = function (event: any) {
                     if (event.data.type === 'initial') {
-                        const childWindow = (document.getElementById(frameID)! as any).contentWindow!!;
+
+                        const childWindow = (document.getElementById(frameID) || ((window.parent as any).document.getElementById(frameID))).contentWindow!!;
                         childWindow.postMessage(
                             {
                                 type: 'getData',

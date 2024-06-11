@@ -94,6 +94,36 @@ class EzPay {
             ReturnURL: this.keyData.ReturnURL,
             TradeLimit: 600
         };
+        if (orderData.method && orderData.method !== 'ALL') {
+            [{
+                    value: 'credit',
+                    title: '信用卡',
+                    realKey: 'CREDIT'
+                }, {
+                    value: 'atm',
+                    title: 'ATM',
+                    realKey: 'VACC'
+                }, {
+                    value: 'web_atm',
+                    title: '網路ATM',
+                    realKey: 'WEBATM'
+                }, {
+                    value: 'c_code',
+                    title: '超商代碼',
+                    realKey: 'CVS'
+                }, {
+                    value: 'c_bar_code',
+                    title: '超商條碼',
+                    realKey: 'BARCODE'
+                }].map((dd) => {
+                if (dd.value === orderData.method) {
+                    params[dd.realKey] = 1;
+                }
+                else {
+                    params[dd.realKey] = 0;
+                }
+            });
+        }
         const appName = this.appName;
         await database_js_1.default.execute(`insert into \`${appName}\`.t_checkout (cart_token, status, email, orderData)
                           values (?, ?, ?, ?)`, [

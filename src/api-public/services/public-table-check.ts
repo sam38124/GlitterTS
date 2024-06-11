@@ -229,19 +229,19 @@ export class ApiPublic {
                 {
                     scheme: appName,
                     table: 't_rebate',
-                    sql: ` (
+                    sql: `(
   \`id\` int NOT NULL AUTO_INCREMENT,
-  \`orderID\` varchar(45) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  \`userID\` varchar(45) COLLATE utf8mb4_unicode_ci NOT NULL,
+  \`orderID\` varchar(45) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  \`userID\` varchar(45) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   \`money\` int NOT NULL,
   \`status\` int NOT NULL DEFAULT '0',
   \`note\` json DEFAULT NULL,
   \`created_time\` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (\`id\`),
-  UNIQUE KEY \`orderID_UNIQUE\` (\`orderID\`),
+  KEY \`index1\` (\`orderID\`),
   KEY \`index2\` (\`userID\`),
   KEY \`index3\` (\`status\`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`
                 },
                 {
                     scheme: appName,

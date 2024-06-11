@@ -12,12 +12,14 @@ export interface EcInvoiceInterface {
     "CustomerAddr": string,
     "CustomerPhone": string,
     "CustomerEmail": string,
+    LoveCode?:string,
     "Print": string,
     "Donation": string,
     "TaxType": string,
     "SalesAmount": number,
     "InvType": string,
     CarrierType: string
+    CarrierNum?:string
     "Items": {
         "ItemSeq": number,
         "ItemName": string,
