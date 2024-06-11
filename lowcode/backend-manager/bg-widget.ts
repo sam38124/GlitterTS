@@ -15,6 +15,8 @@ interface CollecrtionItem {
     array?: CollecrtionItem[];
 }
 
+const html = String.raw;
+
 export class BgWidget {
     static table(obj: {
         gvc: GVC;
@@ -28,7 +30,6 @@ export class BgWidget {
         obj.style = obj.style || [];
         const gvc = obj.gvc;
         const glitter = obj.gvc.glitter;
-        const html = String.raw;
         return gvc.bindView(() => {
             const id = glitter.getUUID();
             const ps = new PageSplit(gvc);
@@ -180,7 +181,6 @@ ${(obj.style || []) && obj.style![index] ? obj.style![index] : ``}
         obj.style = obj.style || [];
         const gvc = obj.gvc;
         const glitter = obj.gvc.glitter;
-        const html = String.raw;
         return gvc.bindView(() => {
             const id = glitter.getUUID();
             const ps = new PageSplit(gvc);
@@ -215,10 +215,10 @@ ${(obj.style || []) && obj.style![index] ? obj.style![index] : ``}
                     if (vm.loading) {
                         return html` <div class="fs-2 text-center" style="padding-bottom: 32px;">${vm.stateText}</div>`;
                     } else {
-                        return html` <div class="m-0 p-0">
+                        return html` <div class="m-0 p-0" style="${obj.table_style ?? ''}">
                             <div style="overflow-x:scroll;">
-                                <table class="table table-centered table-nowrap text-center table-hover fw-400 fs-7" style="overflow-x:scroll; ${obj.table_style ?? ''}">
-                                    ${obj.filter ? html`<div style="padding: 16px 32px;">${obj.filter}</div>` : ''}
+                                <table class="table table-centered table-nowrap text-center table-hover fw-400 fs-7" style="overflow-x:scroll; ">
+                                    ${obj.filter ? html`<div style="padding: 32px 12px;">${obj.filter}</div>` : ''}
                                     <thead>
                                         ${vm.data.length === 0
                                             ? ''
@@ -344,7 +344,6 @@ ${html}
     }
 
     static goBack(event: string) {
-        const html = String.raw;
         return html`<div class="d-flex align-items-center justify-content-center" style="width: 5px; height: 11px; cursor:pointer; margin-right: 10px;" onclick="${event}">
             <i class="fa-solid fa-angle-left" style="color: #393939;"></i>
         </div>`;
@@ -358,7 +357,6 @@ ${html}
         callback: (text: string) => void;
         type?: 'single' | 'multiple';
     }) {
-        const html = String.raw;
         obj.type = obj.type ?? 'single';
         const gvc = obj.gvc;
         return html`
@@ -424,7 +422,6 @@ ${html}
 
     static editeInput(obj: { gvc: GVC; title: string; default: string; placeHolder: string; callback: (text: string) => void; style?: string; type?: string; readonly?: boolean; pattern?: string }) {
         obj.title = obj.title ?? '';
-        const html = String.raw;
         return html`${obj.title ? html`<div class="t_39_16 fw-normal">${obj.title}</div>` : ``}
             <input
                 class="bgw-input ${obj.readonly ? `bgw-input-readonly` : ``}"
@@ -452,7 +449,6 @@ ${html}
 
     static textArea(obj: { gvc: GVC; title: string; default: string; placeHolder: string; callback: (text: string) => void; style?: string; type?: string; readonly?: boolean; pattern?: string }) {
         obj.title = obj.title ?? '';
-        const html = String.raw;
         return html`${obj.title ? html`<div class="t_39_16 fw-normal">${obj.title}</div>` : ''}
             <div class="w-100 px-1" style="margin-top:8px;">
                 <textarea
@@ -470,9 +466,8 @@ ${obj.default ?? ''}</textarea
             </div>`;
     }
 
-    static searchPlace(event: string, vale: string, placeholder: string) {
-        const html = String.raw;
-        return html`<div class="w-100 position-relative" style="margin-top: 16px;">
+    static searchPlace(event: string, vale: string, placeholder: string, margin: string = '16px 0 0 0') {
+        return html`<div class="w-100 position-relative" style="margin: ${margin};">
             <i class=" fa-regular fa-magnifying-glass" style=" font-size: 18px;color: #A0A0A0;position: absolute;left:20px;top:50%;transform: translateY(-50%);" aria-hidden="true"></i>
             <input class="form-control h-100 " style="border-radius: 10px; border: 1px solid #DDD; padding-left: 50px;" placeholder="${placeholder}" onchange="${event}" value="${vale}" />
         </div>`;
@@ -480,7 +475,6 @@ ${obj.default ?? ''}</textarea
 
     static linkList(obj: { gvc: GVC; title: string; default: string; placeHolder: string; callback: (path: string) => void; style?: string; readonly?: boolean; pattern?: string }) {
         obj.title = obj.title ?? '';
-        const html = String.raw;
         const appName = (window.parent as any).appName;
         const vm = {
             id: obj.gvc.glitter.getUUID(),
@@ -685,7 +679,8 @@ ${obj.default ?? ''}</textarea
                                                 h2 += html`
                                                     <div class="m-3" style="cursor:pointer;display: flex; align-items: center; justify-content: space-between;">
                                                         <div
-                                                            class="link-item-container ${tag.link && tag.link.length > 0 ? 'hoverF2' : ''}" style="cursor: pointer;"
+                                                            class="link-item-container ${tag.link && tag.link.length > 0 ? 'hoverF2' : ''}"
+                                                            style="cursor: pointer;"
                                                             onclick=${obj.gvc.event(() => {
                                                                 tag.link && tag.link.length > 0 && callbackEvent(tag);
                                                             })}
@@ -709,7 +704,8 @@ ${obj.default ?? ''}</textarea
                                                             ${tag.name}
                                                         </div>
                                                         <div
-                                                            class="hoverF2 pe-2" style=""
+                                                            class="hoverF2 pe-2"
+                                                            style=""
                                                             onclick=${obj.gvc.event(() => {
                                                                 dropMenu.prevList.push(dataList);
                                                                 dropMenu.recentParent.push(tag.name);
@@ -730,7 +726,7 @@ ${obj.default ?? ''}</textarea
                                         `;
                                     }
                                 },
-                                divCreate: { style: 'position: absolute; top: 42.5px; left: 0;' },
+                                divCreate: { style: 'position: absolute; top: 42.5px; left: 0; z-index: 1; background-color: #fff;' },
                             })}
                         </div>`;
                 }
@@ -794,13 +790,94 @@ ${obj.default ?? ''}</textarea
     }
 
     static grayNote(text: string) {
-        const html = String.raw;
         return html`<span style="color: #8D8D8D; font-size: 16px; font-weight: 400;">${text}</span>`;
     }
 
     static grayButton(text: string, event: string) {
-        const html = String.raw;
         return html`<button class="btn-gary" type="button" onclick="${event}">${text}</button>`;
+    }
+
+    static selectFilter(obj: { gvc: GVC; callback: (value: any) => void }) {
+        obj.gvc.addStyle(`
+            .c_select {
+                display: flex;
+                padding: 6px 12px;
+                min-width: 120px;
+                height: 38.75px;
+                align-items: center;
+                gap: 6px;
+                border-radius: 10px;
+                border: 1px solid #ddd;
+                -webkit-appearance: none;
+                -moz-appearance: none;
+                background: transparent;
+                background-image: url('https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1718100926212-Vector 89.png');
+                background-repeat: no-repeat;
+                background-position-x: 87.5%;
+                background-position-y: 16px;
+            }
+
+            .c_select_option {
+                font-size: 16px;
+                color: #393939;
+            } 
+        `);
+        return html`<select
+            class="c_select"
+            onchange="${obj.gvc.event((e) => {
+                obj.callback(e.value);
+            })}"
+        >
+            <option class="c_select_option">顧客名稱</option>
+            <option class="c_select_option">2</option>
+            <option class="c_select_option">3</option>
+        </select>`;
+    }
+
+    static funnelFilter(obj: { gvc: GVC; callback: (value: any) => void }) {
+        obj.gvc.addStyle(`
+            .c_funnel {
+                display: flex;
+                padding: 9px;
+                min-width: 40px;
+                min-height: 40px;
+                align-items: center;
+                justify-content: center;
+                border-radius: 10px;
+                border: 1px solid #ddd;
+            }
+        `);
+        return html`<div
+            class="c_funnel"
+            onclick="${obj.gvc.event((e) => {
+                obj.callback('c_funnel');
+            })}"
+        >
+            <i class="fa-regular fa-filter"></i>
+        </div>`;
+    }
+
+    static updownFilter(obj: { gvc: GVC; callback: (value: any) => void }) {
+        obj.gvc.addStyle(`
+            .c_updown {
+                display: flex;
+                padding: 9px;
+                min-width: 40px;
+                min-height: 40px;
+                align-items: center;
+                justify-content: center;
+                border-radius: 10px;
+                border: 1px solid #ddd;
+            }
+        `);
+        return html`<div
+            class="c_updown"
+            onclick="${obj.gvc.event((e) => {
+                obj.callback('c_updown');
+            })}"
+        >
+            <i class="fa-regular fa-arrow-up-arrow-down"></i>
+        </div>`;
     }
 }
 

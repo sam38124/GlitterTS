@@ -109,7 +109,7 @@ export class PathSelect {
                             if (linkComp.loading) {
                                 return html `<div
                                             class="form-control"
-                                            style="${(_a = obj.style) !== null && _a !== void 0 ? _a : ''} margin-top:8px;"
+                                            style="${(_a = obj.style) !== null && _a !== void 0 ? _a : ''} margin-top:8px; white-space: normal; word-break: break-all"
                                             onclick="${obj.gvc.event(() => {
                                     componentFresh();
                                 })}"
@@ -245,7 +245,7 @@ export class PathSelect {
                                         `;
                             }
                         },
-                        divCreate: { style: 'position: absolute; top: 42.5px; left: 0;' },
+                        divCreate: { style: 'position: absolute; top: 42.5px; left: 0; z-index: 1; background-color: #fff;' },
                     })}
                         </div>`;
                 }

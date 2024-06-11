@@ -16,9 +16,8 @@ export class Setting_editor {
                     Storage.select_bg_btn = 'custom';
                     return [
                         (() => {
-                            return html `
-                                <div class="w-100" style="overflow-y:auto;max-height:calc(100vh - 100px);">
-                                    ${(() => {
+                            return html ` <div class="w-100" style="overflow-y:auto;max-height:calc(100vh - 100px);">
+                                ${(() => {
                                 return gvc.bindView(() => {
                                     const id = gvc.glitter.getUUID();
                                     let items = [];
@@ -125,7 +124,7 @@ export class Setting_editor {
                                             icon: '',
                                             page: 'user_list',
                                             group: '顧客管理',
-                                            title: '用戶列表',
+                                            title: '顧客列表',
                                             appName: 'cms_system',
                                             groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713360844009-Component 56 (1).svg',
                                             moduleName: '用戶列表',
@@ -273,7 +272,8 @@ export class Setting_editor {
                                             appName: 'cms_system',
                                             groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716655243577-Component 56 (6).svg',
                                             moduleName: 'IOS應用上架',
-                                        }, {
+                                        },
+                                        {
                                             icon: '',
                                             page: 'android_release',
                                             group: 'APP',
@@ -328,7 +328,7 @@ export class Setting_editor {
                                             appName: 'cms_system',
                                             groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713418629944-Component 56 (7).svg',
                                             moduleName: '模板發佈',
-                                        }
+                                        },
                                     ]);
                                     ApiPageConfig.getPrivateConfigV2('backend_list').then((res) => {
                                         res.response.result[0] && (items = res.response.result[0].value);
@@ -337,7 +337,7 @@ export class Setting_editor {
                                         });
                                         items.map((d1) => {
                                             if (!mustItem.find((dd) => {
-                                                return (`${dd.appName}-${dd.page}` === `${d1.appName}-${d1.page}`);
+                                                return `${dd.appName}-${dd.page}` === `${d1.appName}-${d1.page}`;
                                             })) {
                                                 mustItem.push(d1);
                                             }
@@ -376,14 +376,16 @@ export class Setting_editor {
                                                         $('#editerCenter').html(`<iframe src="${url.href}" style="border: none;height: calc(100vh - 56px);"></iframe>`);
                                                     }
                                                 }
-                                                items.filter((dd) => {
+                                                items
+                                                    .filter((dd) => {
                                                     if (window.memberType === 'noLimit') {
                                                         return true;
                                                     }
                                                     else {
                                                         return ['code_info', 'web_hook_checkout', 'template_upload'].indexOf(dd.page) === -1;
                                                     }
-                                                }).map((dd, index) => {
+                                                })
+                                                    .map((dd, index) => {
                                                     let container = list;
                                                     const group = dd.group.split('/');
                                                     if (dd.group) {
@@ -452,14 +454,12 @@ export class Setting_editor {
                                                                 return list
                                                                     .map((dd, index) => {
                                                                     return html `
-                                                                                        ${(dd.title === '品牌官網') ? `<div class="my-4 border-top"></div>` : ``}
-                                                                                        <li>
-                                                                                            <div
-                                                                                                    class="w-100 fw-500 d-flex align-items-center  fs-6 hoverBtn h_item  rounded px-2 cms_left_items"
-                                                                                                    style="gap:7px;color:#393939;${dd.toggle
-                                                                        ? `border-radius: 5px;background: #F2F2F2;`
-                                                                        : ``}"
-                                                                                                    onclick="${gvc.event(() => {
+                                                                                ${dd.title === '品牌官網' ? `<div class="my-4 border-top"></div>` : ``}
+                                                                                <li>
+                                                                                    <div
+                                                                                        class="w-100 fw-500 d-flex align-items-center  fs-6 hoverBtn h_item  rounded px-2 cms_left_items"
+                                                                                        style="gap:7px;color:#393939;${dd.toggle ? `border-radius: 5px;background: #F2F2F2;` : ``}"
+                                                                                        onclick="${gvc.event(() => {
                                                                         if (dd.type === 'container') {
                                                                             dd.toggle = !dd.toggle;
                                                                             gvc.notifyDataChange(id);
@@ -472,32 +472,25 @@ export class Setting_editor {
                                                                             }
                                                                         }
                                                                     })}"
-                                                                                            >
-                                                                                                ${dd.icon
-                                                                        ? `<img src="${dd.icon}" style="width:18px;height:18px;">`
-                                                                        : ``}
-                                                                                                <span>${dd.title}</span>
-                                                                                                <div class="flex-fill"></div>
-                                                                                                ${dd.type === 'container'
+                                                                                    >
+                                                                                        ${dd.icon ? `<img src="${dd.icon}" style="width:18px;height:18px;">` : ``}
+                                                                                        <span>${dd.title}</span>
+                                                                                        <div class="flex-fill"></div>
+                                                                                        ${dd.type === 'container'
                                                                         ? !dd.toggle
                                                                             ? `
                                             <i class="fa-regular fa-angle-right hoverBtn me-1" aria-hidden="true"></i>
                                             `
                                                                             : `<i class="fa-regular fa-angle-down hoverBtn me-1" aria-hidden="true"></i>`
                                                                         : `
-                                               ${dd.info && dd.info.icon
-                                                                            ? `<img src="${dd.info.icon}" style="width:18px;height:18px;">`
-                                                                            : ``}
+                                               ${dd.info && dd.info.icon ? `<img src="${dd.info.icon}" style="width:18px;height:18px;">` : ``}
                                             `}
-                                                                                            </div>
-                                                                                            ${dd.type === 'container'
-                                                                        ? html `
-                                                                                                        <div class="ps-4 pt-2 pb-2 ${dd.toggle ? `` : `d-none`}">
-                                                                                                            ${renderItems(dd.child)}
-                                                                                                        </div>`
+                                                                                    </div>
+                                                                                    ${dd.type === 'container'
+                                                                        ? html ` <div class="ps-4 pt-2 pb-2 ${dd.toggle ? `` : `d-none`}">${renderItems(dd.child)}</div>`
                                                                         : ``}
-                                                                                        </li>
-                                                                                    `;
+                                                                                </li>
+                                                                            `;
                                                                 })
                                                                     .join('<div class="my-1"></div>');
                                                             },
@@ -511,8 +504,7 @@ export class Setting_editor {
                                                                     },
                                                                 ],
                                                             },
-                                                            onCreate: () => {
-                                                            },
+                                                            onCreate: () => { },
                                                         };
                                                     });
                                                 }
@@ -523,7 +515,7 @@ export class Setting_editor {
                                     };
                                 });
                             })()}
-                                </div>`;
+                            </div>`;
                         })(),
                         `<div
                             class="bg-white w-100 align-items-center  d-flex editor_item_title  start-0  z-index-9 ps-2  border-bottom border-top position-absolute bottom-0 border-end"
@@ -540,15 +532,14 @@ export class Setting_editor {
                             >
                                 <i class="fa-solid fa-puzzle-piece-simple" aria-hidden="true"></i>
                             </div>
-                        </div>`
+                        </div>`,
                     ].join('');
                 },
                 divCreate: { style: `` },
             };
         });
     }
-    static center(gvc, viewModel, createID) {
-    }
+    static center(gvc, viewModel, createID) { }
     static addPlugin(gvc, callback) {
         const saasConfig = window.saasConfig;
         const html = String.raw;
@@ -571,14 +562,12 @@ export class Setting_editor {
                     view: () => {
                         return html `
                             <div class=" position-relative bgf6 d-flex align-items-center   p-2 border-bottom shadow">
-                                <span class="fs-6 fw-bold " style="color:black;"
-                                >${updateModel ? `插件設定` : '新增插件'}</span
-                                >
+                                <span class="fs-6 fw-bold " style="color:black;">${updateModel ? `插件設定` : '新增插件'}</span>
                                 <div class="flex-fill"></div>
                                 <button
-                                        class="btn btn-primary-c ${updateModel ? `d-none` : ``}"
-                                        style="height: 28px;width:40px;font-size:14px;"
-                                        onclick="${gvc.event(() => {
+                                    class="btn btn-primary-c ${updateModel ? `d-none` : ``}"
+                                    style="height: 28px;width:40px;font-size:14px;"
+                                    onclick="${gvc.event(() => {
                             items.push(postMd);
                             NormalPageEditor.back();
                         })}"
@@ -673,15 +662,10 @@ export class Setting_editor {
             view: (() => {
                 const viewComponent = {
                     add_plus: (title, event) => {
-                        return html `
-                            <div
-                                    class="w-100 fw-500 d-flex align-items-center justify-content-center fs-6 hoverBtn h_item border rounded"
-                                    style="gap:5px;color:#3366BB;"
-                                    onclick="${event}"
-                            >
-                                <i class="fa-solid fa-plus"></i>
-                                <span>${title}</span>
-                            </div>`;
+                        return html ` <div class="w-100 fw-500 d-flex align-items-center justify-content-center fs-6 hoverBtn h_item border rounded" style="gap:5px;color:#3366BB;" onclick="${event}">
+                            <i class="fa-solid fa-plus"></i>
+                            <span>${title}</span>
+                        </div>`;
                     },
                 };
                 return gvc.bindView(() => {
@@ -748,9 +732,9 @@ export class Setting_editor {
                                                 return html `
                                                         <li>
                                                             <div
-                                                                    class="w-100 fw-500 d-flex align-items-center  fs-6 hoverBtn h_item  rounded px-2"
-                                                                    style="gap:5px;color:#393939;"
-                                                                    onclick="${gvc.event(() => {
+                                                                class="w-100 fw-500 d-flex align-items-center  fs-6 hoverBtn h_item  rounded px-2"
+                                                                style="gap:5px;color:#393939;"
+                                                                onclick="${gvc.event(() => {
                                                     if (dd.type === 'container') {
                                                         dd.toggle = !dd.toggle;
                                                         gvc.notifyDataChange(id);
@@ -766,13 +750,9 @@ export class Setting_editor {
                                             `
                                                         : `<i class="fa-regular fa-angle-down hoverBtn me-1" aria-hidden="true"></i>`
                                                     : `
-                                               ${dd.info && dd.info.icon
-                                                        ? `<img src="${dd.info.icon}" style="width:18px;height:18px;">`
-                                                        : ``}
+                                               ${dd.info && dd.info.icon ? `<img src="${dd.info.icon}" style="width:18px;height:18px;">` : ``}
                                             `}
-                                                                ${dd.icon
-                                                    ? `<img src="${dd.icon}" style="width:18px;height:18px;">`
-                                                    : ``}
+                                                                ${dd.icon ? `<img src="${dd.icon}" style="width:18px;height:18px;">` : ``}
                                                                 <span>${dd.title}</span>
                                                                 <div class="flex-fill"></div>
                                                                 ${dd.type === 'container'
@@ -809,9 +789,7 @@ export class Setting_editor {
 `}
                                                                 <i class="fa-solid fa-grip-dots-vertical"></i>
                                                             </div>
-                                                            ${dd.type === 'container'
-                                                    ? `<div class="ps-2 ${dd.toggle ? `` : `d-none`}">${renderItems(dd.child)}</div>`
-                                                    : ``}
+                                                            ${dd.type === 'container' ? `<div class="ps-2 ${dd.toggle ? `` : `d-none`}">${renderItems(dd.child)}</div>` : ``}
                                                         </li>
                                                     `;
                                             })
@@ -871,15 +849,13 @@ export class Setting_editor {
                                 });
                             }
                             return html `
-                                <div
-                                        class=" position-relative bgf6 d-flex align-items-center   p-2 border-bottom shadow"
-                                >
+                                <div class=" position-relative bgf6 d-flex align-items-center   p-2 border-bottom shadow">
                                     <span class="fs-6 fw-bold " style="color:black;">插件設定</span>
                                     <div class="flex-fill"></div>
                                     <button
-                                            class="btn btn-primary-c "
-                                            style="height: 28px;width:40px;font-size:14px;"
-                                            onclick="${gvc.event(() => {
+                                        class="btn btn-primary-c "
+                                        style="height: 28px;width:40px;font-size:14px;"
+                                        onclick="${gvc.event(() => {
                                 dialog.dataLoading({ visible: true });
                                 ApiPageConfig.setPrivateConfigV2({
                                     key: 'backend_list',

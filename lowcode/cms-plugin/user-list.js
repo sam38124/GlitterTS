@@ -74,12 +74,24 @@ export class UserList {
                         }),
                     },
                     {
-                        key: '用戶名稱',
+                        key: '顧客名稱',
                         value: `<span class="fs-7">${dd.userData.name}</span>`,
                     },
                     {
-                        key: '用戶信箱',
+                        key: '電子信箱',
                         value: `<span class="fs-7">${dd.userData.email}</span>`,
+                    },
+                    {
+                        key: '訂單',
+                        value: `<span class="fs-7">${dd.checkout_count} 筆</span>`,
+                    },
+                    {
+                        key: '會員等級',
+                        value: `<span class="fs-7">${dd.tag_name}</span>`,
+                    },
+                    {
+                        key: '累積消費',
+                        value: `<span class="fs-7">$ ${parseInt(`${dd.checkout_total}`, 10).toLocaleString()}</span>`,
                     },
                     {
                         key: '建立時間',
@@ -107,27 +119,27 @@ export class UserList {
                 view: () => {
                     if (vm.type === 'list') {
                         return BgWidget.container(html `
-                            <div class="d-flex w-100 align-items-center mb-3">
-                                ${BgWidget.title('用戶管理')}
-                                <div class="flex-fill"></div>
-                                <button
-                                    class="btn hoverBtn me-2 px-3 d-none"
-                                    style="height:35px !important;font-size: 14px;color:black;border:1px solid black;"
-                                    onclick="${gvc.event(() => {
+                                <div class="d-flex w-100 align-items-center">
+                                    ${BgWidget.title('顧客列表')}
+                                    <div class="flex-fill"></div>
+                                    <button
+                                        class="btn hoverBtn me-2 px-3 d-none"
+                                        style="height:35px !important;font-size: 14px;color:black;border:1px solid black;"
+                                        onclick="${gvc.event(() => {
                             UserList.setUserForm(gvc, () => {
                                 gvc.notifyDataChange(id);
                             });
                         })}"
-                                >
-                                    <i class="fa-regular fa-gear me-2 "></i>
-                                    自訂資料
-                                </button>
-                            </div>
-                            ${BgWidget.table({
+                                    >
+                                        <i class="fa-regular fa-gear me-2 "></i>
+                                        自訂資料
+                                    </button>
+                                </div>
+                                ${BgWidget.tableV2({
                             gvc: gvc,
                             getData: (vd) => {
                                 vmi = vd;
-                                ApiUser.getUserList({
+                                ApiUser.getUserListOrders({
                                     page: vmi.page - 1,
                                     limit: 20,
                                     search: vm.query || undefined,
@@ -144,17 +156,40 @@ export class UserList {
                                 vm.type = 'replace';
                             },
                             filter: html `
-                                    ${BgWidget.searchPlace(gvc.event((e, event) => {
+                                        <div style="display: flex; align-items: center; gap: 10px;">
+                                            <!-- ${BgWidget.selectFilter({
+                                gvc,
+                                callback: (value) => {
+                                    console.log(value);
+                                },
+                            })} -->
+                                            ${BgWidget.searchPlace(gvc.event((e, event) => {
                                 vm.query = e.value;
                                 gvc.notifyDataChange(id);
-                            }), vm.query || '', '搜尋所有用戶')}
-                                    ${gvc.bindView(() => {
+                            }), vm.query || '', '搜尋所有用戶', '0')}
+                                            <!-- ${BgWidget.funnelFilter({
+                                gvc,
+                                callback: (value) => {
+                                    console.log(value);
+                                },
+                            })}
+                                            ${BgWidget.updownFilter({
+                                gvc,
+                                callback: (value) => {
+                                    console.log(value);
+                                },
+                            })} -->
+                                        </div>
+                                        ${gvc.bindView(() => {
                                 return {
                                     bind: filterID,
                                     view: () => {
                                         return [
-                                            `<span class="fs-7 fw-bold">操作選項</span>`,
-                                            `<button class="btn btn-danger fs-7 px-2" style="height:30px;border:none;" onclick="${gvc.event(() => {
+                                            html `<span class="fs-7 fw-bold">操作選項</span
+                                                            ><button
+                                                                class="btn btn-danger fs-7 px-2"
+                                                                style="height:30px;border:none;"
+                                                                onclick="${gvc.event(() => {
                                                 const dialog = new ShareDialog(gvc.glitter);
                                                 dialog.checkYesOrNot({
                                                     text: '是否確認移除所選項目?',
@@ -183,7 +218,10 @@ export class UserList {
                                                         }
                                                     },
                                                 });
-                                            })}">批量移除</button>`,
+                                            })}"
+                                                            >
+                                                                批量移除
+                                                            </button>`,
                                         ].join(``);
                                     },
                                     divCreate: () => {
@@ -199,9 +237,17 @@ export class UserList {
                                     },
                                 };
                             })}
-                                `,
+                                    `,
+                            table_style: `
+                                        background-color: #fff;
+                                        margin: 24px 0 !important;
+                                        padding: 32px 42px !important;
+                                        border-radius: 10px;
+                                        background: #fff;
+                                        box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.08);
+                                    `,
                         })}
-                        `);
+                            `, 1200);
                     }
                     else if (vm.type == 'replace') {
                         return this.userInformationDetail({
@@ -217,7 +263,7 @@ export class UserList {
                     }
                 },
                 divCreate: {
-                    class: `w-100`,
+                    style: 'margin: 0 32px;',
                 },
             };
         });
@@ -323,7 +369,12 @@ export class UserList {
             return data.map((dd) => {
                 return [
                     { key: '訂單編號', value: html `<div style="max-width: 100px;overflow: hidden;white-space: normal;color: #4D86DB;word-break: break-all;">${dd.orderData.orderID}</div>` },
-                    { key: '訂單日期', value: html `<div style="max-width: 100px;overflow: hidden;white-space: normal;word-break: break-all;">${gvc.glitter.ut.dateFormat(new Date(dd.created_time), 'yyyy-MM-dd hh:mm')}</div>` },
+                    {
+                        key: '訂單日期',
+                        value: html `<div style="max-width: 100px;overflow: hidden;white-space: normal;word-break: break-all;">
+                            ${gvc.glitter.ut.dateFormat(new Date(dd.created_time), 'yyyy-MM-dd hh:mm')}
+                        </div>`,
+                    },
                     { key: '總金額', value: dd.orderData.total },
                     {
                         key: '訂單狀態',
@@ -367,11 +418,7 @@ export class UserList {
                 view: () => {
                     var _a, _b;
                     if (vm.loading) {
-<<<<<<< HEAD
-                        return html `<div class="vw-100 h-100 d-flex align-items-center justify-content-center p-5"><div class="spinner-border"></div></div>`;
-=======
-                        return html `<div class="w-100 d-flex align-items-center"><div class="spinner-border"></div></div>`;
->>>>>>> 595b1595 (create: path list select component)
+                        return html `<div class="w-100 h-100 d-flex align-items-center"><div class="spinner-border"></div></div>`;
                     }
                     vm.data.userData = (_a = vm.data.userData) !== null && _a !== void 0 ? _a : {};
                     const saasConfig = window.parent.saasConfig;
@@ -426,7 +473,7 @@ export class UserList {
                                                                     let h = '';
                                                                     data.map((item) => {
                                                                         if (item.page) {
-                                                                            item.type = "form_plugin_v2";
+                                                                            item.type = 'form_plugin_v2';
                                                                             item.group = '';
                                                                         }
                                                                         if (item.group === '個人履歷') {
@@ -629,9 +676,11 @@ export class UserList {
                                                                                     <div class="gray-bottom-line-18">
                                                                                         <div class="cms_left_items">會員等級</div>
                                                                                         <div style="margin-top: 12px">
-                                                                                            <div class="badge bg-warning fs-7" style="max-height:34px;">${(vm.data.member.find((dd) => {
+                                                                                            <div class="badge bg-warning fs-7" style="max-height:34px;">
+                                                                                                ${(vm.data.member.find((dd) => {
                                                                 return dd.trigger;
-                                                            }) || {}).tag_name || '一般會員'}</div>
+                                                            }) || {}).tag_name || '一般會員'}
+                                                                                            </div>
                                                                                         </div>
                                                                                     </div>
                                                                                     ${(() => {
@@ -652,13 +701,7 @@ export class UserList {
                                                                                 });
                                                                                 const formatNum = (n) => parseInt(`${n}`, 10).toLocaleString();
                                                                                 resolve(html `<div class="gray-bottom-line-18">
-<<<<<<< HEAD
-                                                                                                            <div class="cms_left_items">消費金額</div>
-                                                                                                            <div style="font-size: 32px; font-weight: 400; color: #393939; margin-top: 12px;">
-                                                                                                                ${formatNum(total_price)}
-                                                                                                            </div>
-=======
-                                                                                                            <div class="cms_left_items">消費次數</div>
+                                                                                                            <div class="cms_left_items">消費總金額</div>
                                                                                                             ${total_price === 0
                                                                                     ? html `<div
                                                                                                                       style="font-size: 14px; font-weight: 400; color: #393939; margin-top: 12px;"
@@ -670,7 +713,6 @@ export class UserList {
                                                                                                                   >
                                                                                                                       ${formatNum(total_price)}
                                                                                                                   </div>`}
->>>>>>> 595b1595 (create: path list select component)
                                                                                                             <div class="cms_left_items" style="margin-top: 18px">消費次數</div>
                                                                                                             <div style="font-size: 32px; font-weight: 400; color: #393939; margin-top: 12px;">
                                                                                                                 ${formatNum(data.response.total)}

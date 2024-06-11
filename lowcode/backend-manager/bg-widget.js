@@ -1,12 +1,12 @@
 import { PageSplit } from './splitPage.js';
 import { ApiShop } from '../glitter-base/route/shopping.js';
 import { ApiPost } from '../glitter-base/route/post.js';
+const html = String.raw;
 export class BgWidget {
     static table(obj) {
         obj.style = obj.style || [];
         const gvc = obj.gvc;
         const glitter = obj.gvc.glitter;
-        const html = String.raw;
         return gvc.bindView(() => {
             const id = glitter.getUUID();
             const ps = new PageSplit(gvc);
@@ -31,9 +31,10 @@ export class BgWidget {
                 view: () => {
                     var _a, _b;
                     if (vm.loading) {
-                        return html` <div class=" fs-2 text-center" style="padding-bottom:32px;">${vm.stateText}</div>`;
-                    } else {
-                        return html` <div class=" p-0 " style="">
+                        return html ` <div class=" fs-2 text-center" style="padding-bottom:32px;">${vm.stateText}</div>`;
+                    }
+                    else {
+                        return html ` <div class=" p-0 " style="">
                             <div class="" style="overflow-x:scroll;">
                                 <table
                                     class="table table-centered table-nowrap  text-center table-hover fw-500 fs-7"
@@ -43,76 +44,71 @@ export class BgWidget {
 
                                     <thead class="" style="">
                                         ${vm.data.length === 0
-                                            ? ''
-                                            : html` <tr>
+                            ? ''
+                            : html ` <tr>
                                                   ${vm.data[0]
-                                                      .map((dd, index) => {
-                                                          var _a;
-                                                          return html` <th
-                                                              class="${(_a = dd.position) !== null && _a !== void 0 ? _a : 'text-start'} t_39_16 fw-bold"
-                                                              style="border:none;padding-bottom: 30px;color:#393939 !important;${(obj.style || []) && obj.style[index] ? obj.style[index] : ``}"
-                                                          >
-                                                              ${dd.key}
-                                                          </th>`;
-                                                      })
-                                                      .join('')}
+                                .map((dd, index) => {
+                                var _a;
+                                return html ` <th
+                                                                  class="${(_a = dd.position) !== null && _a !== void 0 ? _a : 'text-start'} t_39_16 fw-bold"
+                                                                  style="border:none;padding-bottom: 30px;color:#393939 !important;${(obj.style || []) && obj.style[index] ? obj.style[index] : ``}"
+                                                              >
+                                                                  ${dd.key}
+                                                              </th>`;
+                            })
+                                .join('')}
                                               </tr>`}
                                     </thead>
 
                                     <tbody>
                                         ${vm.data.length === 0
-                                            ? html` <div class=" fs-2 text-center" style="padding-bottom:32px;">${vm.stateText}</div>`
-                                            : html`${vm.data
-                                                  .map((dd, index) => {
-                                                      const pencilId = gvc.glitter.getUUID();
-                                                      return html` <tr
+                            ? html ` <div class=" fs-2 text-center" style="padding-bottom:32px;">${vm.stateText}</div>`
+                            : html `${vm.data
+                                .map((dd, index) => {
+                                const pencilId = gvc.glitter.getUUID();
+                                return html ` <tr
                                                           style="${obj.rowClick ? `cursor:pointer;` : ``};color:#303030;position: relative;"
                                                           onclick="${gvc.event(() => {
-                                                              obj.rowClick && obj.rowClick(dd, index);
-                                                          })}"
+                                    obj.rowClick && obj.rowClick(dd, index);
+                                })}"
                                                           onmouseover="${gvc.event(() => {
-                                                              $('#' + pencilId).removeClass('d-none');
-                                                          })}"
+                                    $('#' + pencilId).removeClass('d-none');
+                                })}"
                                                           onmouseout="${gvc.event(() => {
-                                                              $('#' + pencilId).addClass('d-none');
-                                                          })}"
+                                    $('#' + pencilId).addClass('d-none');
+                                })}"
                                                       >
                                                           ${dd
-                                                              .map((d3, index) => {
-                                                                  var _a;
-                                                                  return html` <td
-                                                                      class="${(_a = d3.position) !== null && _a !== void 0 ? _a : 'text-start'}  t_39_16"
-                                                                      ${d3.key === '●' || d3.stopDialog ? '' : html` onclick="${gvc.event(() => {})}"`}
-                                                                      style="color:#393939 !important;border:none;
+                                    .map((d3, index) => {
+                                    var _a;
+                                    return html ` <td
+                                                                          class="${(_a = d3.position) !== null && _a !== void 0 ? _a : 'text-start'}  t_39_16"
+                                                                          ${d3.key === '●' || d3.stopDialog ? '' : html ` onclick="${gvc.event(() => { })}"`}
+                                                                          style="color:#393939 !important;border:none;
 ${(obj.style || []) && obj.style[index] ? obj.style[index] : ``}
 "
-                                                                  >
-                                                                      <div class="my-auto" style="${(obj.style || []) && obj.style[index] ? obj.style[index] : ``}">${d3.value}</div>
-                                                                      ${index === dd.length - 1 && obj.editable
-                                                                          ? `
+                                                                      >
+                                                                          <div class="my-auto" style="${(obj.style || []) && obj.style[index] ? obj.style[index] : ``}">${d3.value}</div>
+                                                                          ${index === dd.length - 1 && obj.editable
+                                        ? `
                                                                                                       <i id="${pencilId}" class="fa-regular fa-pencil position-absolute d-none me-2" style="right: 5px;transform: translateY(-50%);top:50%;"></i>
                                                                                                     `
-                                                                          : ``}
-                                                                  </td>`;
-                                                              })
-                                                              .join('')}
+                                        : ``}
+                                                                      </td>`;
+                                })
+                                    .join('')}
                                                       </tr>`;
-                                                  })
-                                                  .join('')}`}
+                            })
+                                .join('')}`}
                                     </tbody>
                                 </table>
                                 <div>
                                     ${vm.data.length === 0
-                                        ? ''
-                                        : ps.pageSplit(
-                                              vm.pageSize,
-                                              vm.page,
-                                              (page) => {
-                                                  (vm.data = []), (vm.editData = []), (vm.page = page);
-                                                  (vm.loading = true), gvc.notifyDataChange(id);
-                                              },
-                                              false
-                                          )}
+                            ? ''
+                            : ps.pageSplit(vm.pageSize, vm.page, (page) => {
+                                (vm.data = []), (vm.editData = []), (vm.page = page);
+                                (vm.loading = true), gvc.notifyDataChange(id);
+                            }, false)}
                                 </div>
                             </div>
                         </div>`;
@@ -140,7 +136,6 @@ ${(obj.style || []) && obj.style[index] ? obj.style[index] : ``}
         obj.style = obj.style || [];
         const gvc = obj.gvc;
         const glitter = obj.gvc.glitter;
-        const html = String.raw;
         return gvc.bindView(() => {
             const id = glitter.getUUID();
             const ps = new PageSplit(gvc);
@@ -165,88 +160,81 @@ ${(obj.style || []) && obj.style[index] ? obj.style[index] : ``}
                 view: () => {
                     var _a;
                     if (vm.loading) {
-                        return html` <div class="fs-2 text-center" style="padding-bottom: 32px;">${vm.stateText}</div>`;
-                    } else {
-                        return html` <div class="m-0 p-0">
+                        return html ` <div class="fs-2 text-center" style="padding-bottom: 32px;">${vm.stateText}</div>`;
+                    }
+                    else {
+                        return html ` <div class="m-0 p-0" style="${(_a = obj.table_style) !== null && _a !== void 0 ? _a : ''}">
                             <div style="overflow-x:scroll;">
-                                <table
-                                    class="table table-centered table-nowrap text-center table-hover fw-400 fs-7"
-                                    style="overflow-x:scroll; ${(_a = obj.table_style) !== null && _a !== void 0 ? _a : ''}"
-                                >
-                                    ${obj.filter ? html`<div style="padding: 16px 32px;">${obj.filter}</div>` : ''}
+                                <table class="table table-centered table-nowrap text-center table-hover fw-400 fs-7" style="overflow-x:scroll; ">
+                                    ${obj.filter ? html `<div style="padding: 32px 12px;">${obj.filter}</div>` : ''}
                                     <thead>
                                         ${vm.data.length === 0
-                                            ? ''
-                                            : html` <tr>
+                            ? ''
+                            : html ` <tr>
                                                   ${vm.data[0]
-                                                      .map((dd, index) => {
-                                                          var _a;
-                                                          return html` <th
-                                                              class="${(_a = dd.position) !== null && _a !== void 0 ? _a : 'text-start'} t_39_16"
-                                                              style="border:none; color:#393939 !important; ${(obj.style || []) && obj.style[index] ? obj.style[index] : ``}"
-                                                          >
-                                                              ${dd.key}
-                                                          </th>`;
-                                                      })
-                                                      .join('')}
+                                .map((dd, index) => {
+                                var _a;
+                                return html ` <th
+                                                                  class="${(_a = dd.position) !== null && _a !== void 0 ? _a : 'text-start'} t_39_16"
+                                                                  style="border:none; color:#393939 !important; ${(obj.style || []) && obj.style[index] ? obj.style[index] : ``}"
+                                                              >
+                                                                  ${dd.key}
+                                                              </th>`;
+                            })
+                                .join('')}
                                               </tr>`}
                                     </thead>
                                     <tbody>
                                         ${vm.data.length === 0
-                                            ? html` <div class="fs-2 text-center" style="padding-bottom:32px;">${vm.stateText}</div>`
-                                            : html`${vm.data
-                                                  .map((dd, index) => {
-                                                      const pencilId = gvc.glitter.getUUID();
-                                                      return html` <tr
+                            ? html ` <div class="fs-2 text-center" style="padding-bottom:32px;">${vm.stateText}</div>`
+                            : html `${vm.data
+                                .map((dd, index) => {
+                                const pencilId = gvc.glitter.getUUID();
+                                return html ` <tr
                                                           style="${obj.rowClick ? `cursor:pointer;` : ``};color:#303030;position: relative;"
                                                           onclick="${gvc.event(() => {
-                                                              obj.rowClick && obj.rowClick(dd, index);
-                                                          })}"
+                                    obj.rowClick && obj.rowClick(dd, index);
+                                })}"
                                                           onmouseover="${gvc.event(() => {
-                                                              $('#' + pencilId).removeClass('d-none');
-                                                          })}"
+                                    $('#' + pencilId).removeClass('d-none');
+                                })}"
                                                           onmouseout="${gvc.event(() => {
-                                                              $('#' + pencilId).addClass('d-none');
-                                                          })}"
+                                    $('#' + pencilId).addClass('d-none');
+                                })}"
                                                       >
                                                           ${dd
-                                                              .map((d3, index) => {
-                                                                  var _a;
-                                                                  return html` <td
-                                                                      class="${(_a = d3.position) !== null && _a !== void 0 ? _a : 'text-start'} t_39_16"
-                                                                      ${d3.key === '●' || d3.stopDialog ? '' : html` onclick="${gvc.event(() => {})}"`}
-                                                                      style="color:#393939 !important;border:none;${(obj.style || []) && obj.style[index] ? obj.style[index] : ``}"
-                                                                  >
-                                                                      <div class="my-auto" style="${(obj.style || []) && obj.style[index] ? obj.style[index] : ``}">${d3.value}</div>
-                                                                      ${index === dd.length - 1 && obj.editable
-                                                                          ? html`
-                                                                                <i
-                                                                                    id="${pencilId}"
-                                                                                    class="fa-regular fa-pencil position-absolute d-none me-2"
-                                                                                    style="right: 5px;transform: translateY(-50%);top:50%;"
-                                                                                ></i>
-                                                                            `
-                                                                          : ``}
-                                                                  </td>`;
-                                                              })
-                                                              .join('')}
+                                    .map((d3, index) => {
+                                    var _a;
+                                    return html ` <td
+                                                                          class="${(_a = d3.position) !== null && _a !== void 0 ? _a : 'text-start'} t_39_16"
+                                                                          ${d3.key === '●' || d3.stopDialog ? '' : html ` onclick="${gvc.event(() => { })}"`}
+                                                                          style="color:#393939 !important;border:none;${(obj.style || []) && obj.style[index] ? obj.style[index] : ``}"
+                                                                      >
+                                                                          <div class="my-auto" style="${(obj.style || []) && obj.style[index] ? obj.style[index] : ``}">${d3.value}</div>
+                                                                          ${index === dd.length - 1 && obj.editable
+                                        ? html `
+                                                                                    <i
+                                                                                        id="${pencilId}"
+                                                                                        class="fa-regular fa-pencil position-absolute d-none me-2"
+                                                                                        style="right: 5px;transform: translateY(-50%);top:50%;"
+                                                                                    ></i>
+                                                                                `
+                                        : ``}
+                                                                      </td>`;
+                                })
+                                    .join('')}
                                                       </tr>`;
-                                                  })
-                                                  .join('')}`}
+                            })
+                                .join('')}`}
                                     </tbody>
                                 </table>
                                 <div>
                                     ${vm.data.length === 0
-                                        ? ''
-                                        : ps.pageSplitV2(
-                                              vm.pageSize,
-                                              vm.page,
-                                              (page) => {
-                                                  (vm.data = []), (vm.editData = []), (vm.page = page);
-                                                  (vm.loading = true), gvc.notifyDataChange(id);
-                                              },
-                                              false
-                                          )}
+                            ? ''
+                            : ps.pageSplitV2(vm.pageSize, vm.page, (page) => {
+                                (vm.data = []), (vm.editData = []), (vm.page = page);
+                                (vm.loading = true), gvc.notifyDataChange(id);
+                            }, false)}
                                 </div>
                             </div>
                         </div>`;
@@ -292,57 +280,56 @@ ${html}
         return ` <h3 class="my-auto t_39_title" >${title}</h3>`;
     }
     static goBack(event) {
-        const html = String.raw;
-        return html`<div class="d-flex align-items-center justify-content-center" style="width: 5px; height: 11px; cursor:pointer; margin-right: 10px;" onclick="${event}">
+        return html `<div class="d-flex align-items-center justify-content-center" style="width: 5px; height: 11px; cursor:pointer; margin-right: 10px;" onclick="${event}">
             <i class="fa-solid fa-angle-left" style="color: #393939;"></i>
         </div>`;
     }
     static inlineCheckBox(obj) {
         var _a;
-        const html = String.raw;
         obj.type = (_a = obj.type) !== null && _a !== void 0 ? _a : 'single';
         const gvc = obj.gvc;
-        return html`
+        return html `
             ${obj.title ? `<div class="t_39_16 fw-normal">${obj.title}</div>` : ``}
             ${obj.gvc.bindView(() => {
-                const id = obj.gvc.glitter.getUUID();
-                return {
-                    bind: id,
-                    view: () => {
-                        return obj.array
-                            .map((dd) => {
-                                function isSelect() {
-                                    if (obj.type === 'multiple') {
-                                        return obj.def.find((d2) => {
-                                            return d2 === dd.value;
-                                        });
-                                    } else {
-                                        return obj.def === dd.value;
-                                    }
-                                }
-                                return html`
+            const id = obj.gvc.glitter.getUUID();
+            return {
+                bind: id,
+                view: () => {
+                    return obj.array
+                        .map((dd) => {
+                        function isSelect() {
+                            if (obj.type === 'multiple') {
+                                return obj.def.find((d2) => {
+                                    return d2 === dd.value;
+                                });
+                            }
+                            else {
+                                return obj.def === dd.value;
+                            }
+                        }
+                        return html `
                                     <div
                                         class="d-flex align-items-center cursor_it"
                                         onclick="${obj.gvc.event(() => {
-                                            if (obj.type === 'multiple') {
-                                                if (
-                                                    obj.def.find((d2) => {
-                                                        return d2 === dd.value;
-                                                    })
-                                                ) {
-                                                    obj.def = obj.def.filter((d2) => {
-                                                        return d2 !== dd.value;
-                                                    });
-                                                } else {
-                                                    obj.def.push(dd.value);
-                                                }
-                                                obj.callback(obj.def);
-                                            } else {
-                                                obj.def = dd.value;
-                                                obj.callback(dd.value);
-                                            }
-                                            gvc.notifyDataChange(id);
-                                        })}"
+                            if (obj.type === 'multiple') {
+                                if (obj.def.find((d2) => {
+                                    return d2 === dd.value;
+                                })) {
+                                    obj.def = obj.def.filter((d2) => {
+                                        return d2 !== dd.value;
+                                    });
+                                }
+                                else {
+                                    obj.def.push(dd.value);
+                                }
+                                obj.callback(obj.def);
+                            }
+                            else {
+                                obj.def = dd.value;
+                                obj.callback(dd.value);
+                            }
+                            gvc.notifyDataChange(id);
+                        })}"
                                         style="gap:6px;"
                                     >
                                         ${isSelect() ? `<i class="fa-sharp fa-solid fa-circle-dot cl_39"></i>` : ` <div class="c_39_checkbox"></div>`}
@@ -350,40 +337,39 @@ ${html}
                                     </div>
                                     ${obj.def === dd.value && dd.innerHtml ? `<div class="mt-1">${dd.innerHtml}</div>` : ``}
                                 `;
-                            })
-                            .join('');
-                    },
-                    divCreate: {
-                        class: `ps-1 d-flex`,
-                        style: `gap:10px;margin-top:10px;`,
-                    },
-                };
-            })}
+                    })
+                        .join('');
+                },
+                divCreate: {
+                    class: `ps-1 d-flex`,
+                    style: `gap:10px;margin-top:10px;`,
+                },
+            };
+        })}
         `;
     }
     static editeInput(obj) {
         var _a, _b, _c, _d;
         obj.title = (_a = obj.title) !== null && _a !== void 0 ? _a : '';
-        const html = String.raw;
-        return html`${obj.title ? html`<div class="t_39_16 fw-normal">${obj.title}</div>` : ``}
+        return html `${obj.title ? html `<div class="t_39_16 fw-normal">${obj.title}</div>` : ``}
             <input
                 class="bgw-input ${obj.readonly ? `bgw-input-readonly` : ``}"
                 style="${(_b = obj.style) !== null && _b !== void 0 ? _b : ''}"
                 type="${(_c = obj.type) !== null && _c !== void 0 ? _c : 'text'}"
                 placeholder="${obj.placeHolder}"
                 onchange="${obj.gvc.event((e) => {
-                    obj.callback(e.value);
-                })}"
+            obj.callback(e.value);
+        })}"
                 oninput="${obj.gvc.event((e) => {
-                    if (obj.pattern) {
-                        const value = e.value;
-                        const regex = new RegExp(`[^${obj.pattern}]`, 'g');
-                        const validValue = value.replace(regex, '');
-                        if (value !== validValue) {
-                            e.value = validValue;
-                        }
-                    }
-                })}"
+            if (obj.pattern) {
+                const value = e.value;
+                const regex = new RegExp(`[^${obj.pattern}]`, 'g');
+                const validValue = value.replace(regex, '');
+                if (value !== validValue) {
+                    e.value = validValue;
+                }
+            }
+        })}"
                 value="${(_d = obj.default) !== null && _d !== void 0 ? _d : ''}"
                 ${obj.readonly ? `readonly` : ``}
             />`;
@@ -391,16 +377,15 @@ ${html}
     static textArea(obj) {
         var _a, _b, _c;
         obj.title = (_a = obj.title) !== null && _a !== void 0 ? _a : '';
-        const html = String.raw;
-        return html`${obj.title ? html`<div class="t_39_16 fw-normal">${obj.title}</div>` : ''}
+        return html `${obj.title ? html `<div class="t_39_16 fw-normal">${obj.title}</div>` : ''}
             <div class="w-100 px-1" style="margin-top:8px;">
                 <textarea
                     class="form-control border rounded"
                     style="font-size: 16px; color: #393939;"
                     rows="4"
                     onchange="${obj.gvc.event((e) => {
-                        obj.callback(e.value);
-                    })}"
+            obj.callback(e.value);
+        })}"
                     placeholder="${(_b = obj.placeHolder) !== null && _b !== void 0 ? _b : ''}"
                     ${obj.readonly ? `readonly` : ``}
                 >
@@ -408,9 +393,8 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                 >
             </div>`;
     }
-    static searchPlace(event, vale, placeholder) {
-        const html = String.raw;
-        return html`<div class="w-100 position-relative" style="margin-top: 16px;">
+    static searchPlace(event, vale, placeholder, margin = '16px 0 0 0') {
+        return html `<div class="w-100 position-relative" style="margin: ${margin};">
             <i class=" fa-regular fa-magnifying-glass" style=" font-size: 18px;color: #A0A0A0;position: absolute;left:20px;top:50%;transform: translateY(-50%);" aria-hidden="true"></i>
             <input class="form-control h-100 " style="border-radius: 10px; border: 1px solid #DDD; padding-left: 50px;" placeholder="${placeholder}" onchange="${event}" value="${vale}" />
         </div>`;
@@ -418,7 +402,6 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
     static linkList(obj) {
         var _a, _b;
         obj.title = (_a = obj.title) !== null && _a !== void 0 ? _a : '';
-        const html = String.raw;
         const appName = window.parent.appName;
         const vm = {
             id: obj.gvc.glitter.getUUID(),
@@ -455,7 +438,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                 if (item.items) {
                     const path = findMenuItemPathByLink(item.items, link);
                     if (path === null || path === void 0 ? void 0 : path.nameMap) {
-                        return { icon: item.icon, nameMap: [item.name, ...(path === null || path === void 0 ? void 0 : path.nameMap)] };
+                        return { icon: item.icon, nameMap: [item.name, ...path === null || path === void 0 ? void 0 : path.nameMap] };
                     }
                 }
             }
@@ -464,9 +447,9 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
         const formatLinkHTML = (icon, pathList) => {
             let pathHTML = '';
             pathList.map((path, index) => {
-                pathHTML += html`<span class="mx-1">${path}</span>${index === pathList.length - 1 ? '' : html`<i class="fa-solid fa-chevron-right"></i>`}`;
+                pathHTML += html `<span class="mx-1">${path}</span>${index === pathList.length - 1 ? '' : html `<i class="fa-solid fa-chevron-right"></i>`}`;
             });
-            return html` <div style="display: flex; flex-wrap: wrap; align-items: center; font-size: 16px; font-weight: 500; gap: 6px; line-height: 140%;cursor: default;">
+            return html ` <div style="display: flex; flex-wrap: wrap; align-items: center; font-size: 16px; font-weight: 500; gap: 6px; line-height: 140%;cursor: default;">
                 <div style="width: 28px;height: 28px;display: flex; align-items: center; justify-content:center;">
                     <i class="${icon.length > 0 ? icon : 'fa-regular fa-image'}"></i>
                 </div>
@@ -500,7 +483,8 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
             view: () => {
                 if (vm.loading) {
                     return '';
-                } else {
+                }
+                else {
                     obj.gvc.addStyle(`
                         .link-item-container {
                             display: flex;
@@ -513,69 +497,71 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                         }
                     `);
                     let dataList = JSON.parse(JSON.stringify(dropMenu.recentList));
-                    return html`${obj.title ? html`<div class="t_39_16 fw-normal">${obj.title}</div>` : ``}
+                    return html `${obj.title ? html `<div class="t_39_16 fw-normal">${obj.title}</div>` : ``}
                         <div style="position: relative">
                             ${obj.gvc.bindView({
-                                bind: linkComp.id,
-                                view: () => {
-                                    var _a, _b;
-                                    if (linkComp.loading) {
-                                        return html`<div
+                        bind: linkComp.id,
+                        view: () => {
+                            var _a, _b;
+                            if (linkComp.loading) {
+                                return html `<div
                                             class="form-control"
                                             style="${(_a = obj.style) !== null && _a !== void 0 ? _a : ''} margin-top:8px;"
                                             onclick="${obj.gvc.event(() => {
-                                                componentFresh();
-                                            })}"
+                                    componentFresh();
+                                })}"
                                         >
                                             ${linkComp.text.length > 0 ? formatLinkText(linkComp.text) : `<span style="color: #b4b7c9">${obj.placeHolder}</span>`}
                                         </div>`;
-                                    } else {
-                                        return html`
+                            }
+                            else {
+                                return html `
                                             <input
                                                 class="form-control"
                                                 style="${(_b = obj.style) !== null && _b !== void 0 ? _b : ''} margin-top:8px;"
                                                 type="text"
                                                 placeholder="${obj.placeHolder}"
                                                 onchange="${obj.gvc.event((e) => {
-                                                    callbackEvent({ link: e.value });
-                                                })}"
+                                    callbackEvent({ link: e.value });
+                                })}"
                                                 oninput="${obj.gvc.event((e) => {
-                                                    if (obj.pattern) {
-                                                        const value = e.value;
-                                                        const regex = new RegExp(`[^${obj.pattern}]`, 'g');
-                                                        const validValue = value.replace(regex, '');
-                                                        if (value !== validValue) {
-                                                            e.value = validValue;
-                                                        }
-                                                    }
-                                                })}"
+                                    if (obj.pattern) {
+                                        const value = e.value;
+                                        const regex = new RegExp(`[^${obj.pattern}]`, 'g');
+                                        const validValue = value.replace(regex, '');
+                                        if (value !== validValue) {
+                                            e.value = validValue;
+                                        }
+                                    }
+                                })}"
                                                 value="${linkComp.text}"
                                                 ${obj.readonly ? `readonly` : ``}
                                             />
                                         `;
-                                    }
-                                },
-                                divCreate: {},
-                                onCreate: () => {},
-                            })}
+                            }
+                        },
+                        divCreate: {},
+                        onCreate: () => { },
+                    })}
                             ${obj.gvc.bindView({
-                                bind: dropMenu.id,
-                                view: () => {
-                                    if (dropMenu.loading) {
-                                        return html``;
-                                    } else {
-                                        let h1 = '';
-                                        if (dropMenu.prevList.length > 0) {
-                                            h1 += html` <div
+                        bind: dropMenu.id,
+                        view: () => {
+                            if (dropMenu.loading) {
+                                return html ``;
+                            }
+                            else {
+                                let h1 = '';
+                                if (dropMenu.prevList.length > 0) {
+                                    h1 += html ` <div
                                                     class="m-3"
                                                     style="font-size: 16px; font-weight: 500; gap: 6px; line-height: 140%;cursor: pointer;"
                                                     onclick=${obj.gvc.event(() => {
-                                                        dataList = dropMenu.prevList[dropMenu.prevList.length - 1];
-                                                        dropMenu.prevList.pop();
-                                                        dropMenu.recentParent.pop();
-                                                        dropMenu.search = '';
-                                                        obj.gvc.notifyDataChange(dropMenu.id);
-                                                    })}
+                                        dataList = dropMenu.prevList[dropMenu.prevList.length - 1];
+                                        dropMenu.prevList.pop();
+                                        dropMenu.recentParent.pop();
+                                        dropMenu.search = '';
+                                        obj.gvc.notifyDataChange(dropMenu.id);
+                                    })}
                                                 >
                                                     <i class="fa-solid fa-chevron-left me-2 hoverF2"></i>
                                                     <span>${dropMenu.recentParent[dropMenu.recentParent.length - 1]}</span>
@@ -586,41 +572,41 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                                                     type="text"
                                                     placeholder="搜尋"
                                                     onchange="${obj.gvc.event((e) => {
-                                                        dropMenu.search = e.value;
-                                                        obj.gvc.notifyDataChange(dropMenu.id);
-                                                    })}"
+                                        dropMenu.search = e.value;
+                                        obj.gvc.notifyDataChange(dropMenu.id);
+                                    })}"
                                                     oninput="${obj.gvc.event((e) => {
-                                                        if (obj.pattern) {
-                                                            const value = e.value;
-                                                            const regex = new RegExp(`[^${obj.pattern}]`, 'g');
-                                                            const validValue = value.replace(regex, '');
-                                                            if (value !== validValue) {
-                                                                e.value = validValue;
-                                                            }
-                                                        }
-                                                    })}"
+                                        if (obj.pattern) {
+                                            const value = e.value;
+                                            const regex = new RegExp(`[^${obj.pattern}]`, 'g');
+                                            const validValue = value.replace(regex, '');
+                                            if (value !== validValue) {
+                                                e.value = validValue;
+                                            }
+                                        }
+                                    })}"
                                                     value="${dropMenu.search}"
                                                 />`;
-                                        }
-                                        let h2 = '';
-                                        dataList
-                                            .filter((item) => {
-                                                return item.name.includes(dropMenu.search);
-                                            })
-                                            .map((tag) => {
-                                                h2 += html`
+                                }
+                                let h2 = '';
+                                dataList
+                                    .filter((item) => {
+                                    return item.name.includes(dropMenu.search);
+                                })
+                                    .map((tag) => {
+                                    h2 += html `
                                                     <div class="m-3" style="cursor:pointer;display: flex; align-items: center; justify-content: space-between;">
                                                         <div
                                                             class="link-item-container ${tag.link && tag.link.length > 0 ? 'hoverF2' : ''}"
                                                             style="cursor: pointer;"
                                                             onclick=${obj.gvc.event(() => {
-                                                                tag.link && tag.link.length > 0 && callbackEvent(tag);
-                                                            })}
+                                        tag.link && tag.link.length > 0 && callbackEvent(tag);
+                                    })}
                                                         >
                                                             <div style="width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;">
                                                                 ${(() => {
-                                                                    if (tag.icon.includes('https://')) {
-                                                                        return html`<div
+                                        if (tag.icon.includes('https://')) {
+                                            return html `<div
                                                                             style="
                                                                                 width: 25px; height: 25px;
                                                                                 background-image: url('${tag.icon}');
@@ -629,9 +615,9 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                                                                                 background-repeat: no-repeat;
                                                                             "
                                                                         ></div>`;
-                                                                    }
-                                                                    return html`<i class="${tag.icon.length > 0 ? tag.icon : 'fa-regular fa-image'}"></i>`;
-                                                                })()}
+                                        }
+                                        return html `<i class="${tag.icon.length > 0 ? tag.icon : 'fa-regular fa-image'}"></i>`;
+                                    })()}
                                                             </div>
                                                             ${tag.name}
                                                         </div>
@@ -639,27 +625,27 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                                                             class="hoverF2 pe-2"
                                                             style=""
                                                             onclick=${obj.gvc.event(() => {
-                                                                dropMenu.prevList.push(dataList);
-                                                                dropMenu.recentParent.push(tag.name);
-                                                                tag.items && (dataList = tag.items);
-                                                                obj.gvc.notifyDataChange(dropMenu.id);
-                                                            })}
+                                        dropMenu.prevList.push(dataList);
+                                        dropMenu.recentParent.push(tag.name);
+                                        tag.items && (dataList = tag.items);
+                                        obj.gvc.notifyDataChange(dropMenu.id);
+                                    })}
                                                         >
                                                             <i class="fa-solid fa-chevron-right ${tag.items && tag.items.length > 0 ? '' : 'd-none'}" style="cursor: pointer;"></i>
                                                         </div>
                                                     </div>
                                                 `;
-                                            });
-                                        return html`
+                                });
+                                return html `
                                             <div class="border border-2 rounded-2 p-2" style="width: 310px;">
                                                 ${h1}
                                                 <div style="overflow-y: auto; max-height: 42.5vh;">${h2}</div>
                                             </div>
                                         `;
-                                    }
-                                },
-                                divCreate: { style: 'position: absolute; top: 42.5px; left: 0;' },
-                            })}
+                            }
+                        },
+                        divCreate: { style: 'position: absolute; top: 42.5px; left: 0; z-index: 1; background-color: #fff;' },
+                    })}
                         </div>`;
                 }
             },
@@ -709,7 +695,8 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                             { name: '網誌文章', icon: 'fa-regular fa-newspaper', link: './?page=blog_list', items: acticleList },
                             { name: '關於我們', icon: 'fa-regular fa-user-group', link: './?page=aboutus' },
                         ].filter((menu) => {
-                            if (menu.items === undefined) return true;
+                            if (menu.items === undefined)
+                                return true;
                             return menu.items.length > 0 || menu.link.length > 0;
                         });
                         vm.loading = false;
@@ -720,12 +707,90 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
         });
     }
     static grayNote(text) {
-        const html = String.raw;
-        return html`<span style="color: #8D8D8D; font-size: 16px; font-weight: 400;">${text}</span>`;
+        return html `<span style="color: #8D8D8D; font-size: 16px; font-weight: 400;">${text}</span>`;
     }
     static grayButton(text, event) {
-        const html = String.raw;
-        return html`<button class="btn-gary" type="button" onclick="${event}">${text}</button>`;
+        return html `<button class="btn-gary" type="button" onclick="${event}">${text}</button>`;
+    }
+    static selectFilter(obj) {
+        obj.gvc.addStyle(`
+            .c_select {
+                display: flex;
+                padding: 6px 12px;
+                min-width: 120px;
+                height: 38.75px;
+                align-items: center;
+                gap: 6px;
+                border-radius: 10px;
+                border: 1px solid #ddd;
+                -webkit-appearance: none;
+                -moz-appearance: none;
+                background: transparent;
+                background-image: url('https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1718100926212-Vector 89.png');
+                background-repeat: no-repeat;
+                background-position-x: 87.5%;
+                background-position-y: 16px;
+            }
+
+            .c_select_option {
+                font-size: 16px;
+                color: #393939;
+            } 
+        `);
+        return html `<select
+            class="c_select"
+            onchange="${obj.gvc.event((e) => {
+            obj.callback(e.value);
+        })}"
+        >
+            <option class="c_select_option">顧客名稱</option>
+            <option class="c_select_option">2</option>
+            <option class="c_select_option">3</option>
+        </select>`;
+    }
+    static funnelFilter(obj) {
+        obj.gvc.addStyle(`
+            .c_funnel {
+                display: flex;
+                padding: 9px;
+                min-width: 40px;
+                min-height: 40px;
+                align-items: center;
+                justify-content: center;
+                border-radius: 10px;
+                border: 1px solid #ddd;
+            }
+        `);
+        return html `<div
+            class="c_funnel"
+            onclick="${obj.gvc.event((e) => {
+            obj.callback('c_funnel');
+        })}"
+        >
+            <i class="fa-regular fa-filter"></i>
+        </div>`;
+    }
+    static updownFilter(obj) {
+        obj.gvc.addStyle(`
+            .c_updown {
+                display: flex;
+                padding: 9px;
+                min-width: 40px;
+                min-height: 40px;
+                align-items: center;
+                justify-content: center;
+                border-radius: 10px;
+                border: 1px solid #ddd;
+            }
+        `);
+        return html `<div
+            class="c_updown"
+            onclick="${obj.gvc.event((e) => {
+            obj.callback('c_updown');
+        })}"
+        >
+            <i class="fa-regular fa-arrow-up-arrow-down"></i>
+        </div>`;
     }
 }
 window.glitter.setModule(import.meta.url, BgWidget);
