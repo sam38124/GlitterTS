@@ -281,23 +281,29 @@ export class UserList {
                             };
                         }),
                         `<div class="d-flex">
-<div class="flex-fill"></div>
-<div class=" btn-primary-c btn my-2 me-2" style="margin-left: 10px;height:35px;" onclick="${gvc.event(() => {
-                            dialog.dataLoading({ text: '設定中', visible: true });
-                            saasConfig.api.setPrivateConfig(saasConfig.config.appName, 'glitterUserForm', data).then((r: { response: any; result: boolean }) => {
-                                setTimeout(() => {
-                                    dialog.dataLoading({ visible: false });
-                                    if (r.response) {
-                                        dialog.successMessage({ text: '設定成功' });
-                                        callback();
-                                    } else {
-                                        dialog.errorMessage({ text: '設定失敗' });
-                                    }
-                                }, 1000);
-                            });
-                            gvc.closeDialog();
-                        })}">儲存設定</div>
-</div>`,
+                            <div class="flex-fill"></div>
+                            <div
+                                class=" btn-primary-c btn my-2 me-2"
+                                style="margin-left: 10px;height:35px;"
+                                onclick="${gvc.event(() => {
+                                    dialog.dataLoading({ text: '設定中', visible: true });
+                                    saasConfig.api.setPrivateConfig(saasConfig.config.appName, 'glitterUserForm', data).then((r: { response: any; result: boolean }) => {
+                                        setTimeout(() => {
+                                            dialog.dataLoading({ visible: false });
+                                            if (r.response) {
+                                                dialog.successMessage({ text: '設定成功' });
+                                                callback();
+                                            } else {
+                                                dialog.errorMessage({ text: '設定失敗' });
+                                            }
+                                        }, 1000);
+                                    });
+                                    gvc.closeDialog();
+                                })}"
+                            >
+                                儲存設定
+                            </div>
+                        </div>`,
                     ].join('');
                 },
                 () => {
@@ -328,18 +334,16 @@ export class UserList {
             type: 'list',
         };
 
-        ApiUser.getPublicUserData(cf.userID).then((dd) => {
-            vm.data = dd.response;
-            vm.userData = vm.data;
-            vm.loading = false;
-            gvc.notifyDataChange(id);
-        });
-
         function getOrderlist(data: any) {
             return data.map((dd: any) => {
                 return [
                     { key: '訂單編號', value: html`<div style="max-width: 100px;overflow: hidden;white-space: normal;color: #4D86DB;word-break: break-all;">${dd.orderData.orderID}</div>` },
-                    { key: '訂單日期', value: html`<div style="max-width: 100px;overflow: hidden;white-space: normal;word-break: break-all;">${gvc.glitter.ut.dateFormat(new Date(dd.created_time), 'yyyy-MM-dd hh:mm')}</div>` },
+                    {
+                        key: '訂單日期',
+                        value: html`<div style="max-width: 100px;overflow: hidden;white-space: normal;word-break: break-all;">
+                            ${gvc.glitter.ut.dateFormat(new Date(dd.created_time), 'yyyy-MM-dd hh:mm')}
+                        </div>`,
+                    },
                     { key: '總金額', value: dd.orderData.total },
                     {
                         key: '訂單狀態',
@@ -388,7 +392,7 @@ export class UserList {
                 view: () => {
                     if (vm.loading) {
                         // ! spinner position
-                        return html`<div class="vw-100 h-100 d-flex align-items-center justify-content-center p-5"><div class="spinner-border"></div></div>`;
+                        return html`<div class="w-100 d-flex align-items-center"><div class="spinner-border"></div></div>`;
                     }
 
                     vm.data.userData = vm.data.userData ?? {};
@@ -462,12 +466,12 @@ export class UserList {
 
                                                                                         let h = '';
                                                                                         data.map((item: any) => {
-                                                                                            if(item.page){
-                                                                                                item.type="form_plugin_v2"
-                                                                                                item.group=''
+                                                                                            if (item.page) {
+                                                                                                item.type = 'form_plugin_v2';
+                                                                                                item.group = '';
                                                                                             }
-                                                                                            if(item.group==='個人履歷'){
-                                                                                                return ``
+                                                                                            if (item.group === '個人履歷') {
+                                                                                                return ``;
                                                                                             }
                                                                                             switch (item.page) {
                                                                                                 case 'input':
@@ -541,7 +545,7 @@ export class UserList {
                                                                             return {
                                                                                 bind: id,
                                                                                 view: () => {
-                                                                                    const limit = 15;
+                                                                                    const limit = 10;
                                                                                     return new Promise(async (resolve, reject) => {
                                                                                         const h = BgWidget.tableV2({
                                                                                             gvc: gvc,
@@ -563,6 +567,9 @@ export class UserList {
                                                                                             filter: '',
                                                                                             style: new Array(5).fill('').map(() => {
                                                                                                 return 'text-wrap: nowrap; align-content: center;';
+                                                                                            }),
+                                                                                            tableHeader: getOrderlist([{}]).map((item: { key: string }) => {
+                                                                                                return item.key;
                                                                                             }),
                                                                                         });
                                                                                         resolve(html`<div style="display:flex; gap: 18px; flex-direction: column;">${h}</div>`);
@@ -614,7 +621,7 @@ export class UserList {
                                                                             return {
                                                                                 bind: id,
                                                                                 view: () => {
-                                                                                    const limit = 15;
+                                                                                    const limit = 10;
                                                                                     return new Promise(async (resolve, reject) => {
                                                                                         const h = BgWidget.tableV2({
                                                                                             gvc: gvc,
@@ -677,11 +684,13 @@ export class UserList {
                                                                                     <div class="gray-bottom-line-18">
                                                                                         <div class="cms_left_items">會員等級</div>
                                                                                         <div style="margin-top: 12px">
-                                                                                            <div class="badge bg-warning fs-7" style="max-height:34px;">${
-                                                                                                    (vm.data.member.find((dd:any)=>{
-                                                                                                        return dd.trigger
-                                                                                                    }) || {}).tag_name || '一般會員'
-                                                                                            }</div>
+                                                                                            <div class="badge bg-warning fs-7" style="max-height:34px;">
+                                                                                                ${(
+                                                                                                    vm.data.member.find((dd: any) => {
+                                                                                                        return dd.trigger;
+                                                                                                    }) || {}
+                                                                                                ).tag_name || '一般會員'}
+                                                                                            </div>
                                                                                         </div>
                                                                                     </div>
                                                                                     ${(() => {
@@ -703,10 +712,18 @@ export class UserList {
                                                                                                         const formatNum = (n: string | number) => parseInt(`${n}`, 10).toLocaleString();
 
                                                                                                         resolve(html`<div class="gray-bottom-line-18">
-                                                                                                            <div class="cms_left_items">消費金額</div>
-                                                                                                            <div style="font-size: 32px; font-weight: 400; color: #393939; margin-top: 12px;">
-                                                                                                                ${formatNum(total_price)}
-                                                                                                            </div>
+                                                                                                            <div class="cms_left_items">消費次數</div>
+                                                                                                            ${total_price === 0
+                                                                                                                ? html`<div
+                                                                                                                      style="font-size: 14px; font-weight: 400; color: #393939; margin-top: 12px;"
+                                                                                                                  >
+                                                                                                                      此顧客還沒有任何消費紀錄
+                                                                                                                  </div>`
+                                                                                                                : html`<div
+                                                                                                                      style="font-size: 32px; font-weight: 400; color: #393939; margin-top: 12px;"
+                                                                                                                  >
+                                                                                                                      ${formatNum(total_price)}
+                                                                                                                  </div>`}
                                                                                                             <div class="cms_left_items" style="margin-top: 18px">消費次數</div>
                                                                                                             <div style="font-size: 32px; font-weight: 400; color: #393939; margin-top: 12px;">
                                                                                                                 ${formatNum(data.response.total)}
@@ -753,6 +770,7 @@ export class UserList {
                                                     dialog.dataLoading({ text: '', visible: false });
                                                     if (response.result) {
                                                         dialog.successMessage({ text: '更新成功!' });
+                                                        vm.loading = true;
                                                         gvc.notifyDataChange(id);
                                                     } else {
                                                         dialog.errorMessage({ text: '更新異常!' });
@@ -764,6 +782,16 @@ export class UserList {
                                 ].join(html`<div style="margin-top: 24px"></div>`),
                                 1000
                             );
+                    }
+                },
+                onCreate: () => {
+                    if (vm.loading) {
+                        ApiUser.getPublicUserData(cf.userID).then((dd) => {
+                            vm.data = dd.response;
+                            vm.userData = vm.data;
+                            vm.loading = false;
+                            gvc.notifyDataChange(id);
+                        });
                     }
                 },
             };

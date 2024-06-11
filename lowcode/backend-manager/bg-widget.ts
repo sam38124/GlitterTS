@@ -2,7 +2,6 @@ import { PageSplit } from './splitPage.js';
 import { ApiShop } from '../glitter-base/route/shopping.js';
 import { ApiPost } from '../glitter-base/route/post.js';
 import { GVC } from '../glitterBundle/GVController.js';
-import { BgShopping } from './bg-shopping.js';
 
 interface MenuItem {
     name: string;
@@ -176,6 +175,7 @@ ${(obj.style || []) && obj.style![index] ? obj.style![index] : ``}
         style?: string[];
         table_style?: string;
         editable?: boolean;
+        tableHeader?: string[];
     }) {
         obj.style = obj.style || [];
         const gvc = obj.gvc;
@@ -195,7 +195,7 @@ ${(obj.style || []) && obj.style![index] ? obj.style![index] : ``}
             } = {
                 loading: true,
                 callback: () => {
-                    vm.stateText = vm.data.length > 0 ? '資料載入中 ....' : '尚未新增內容';
+                    vm.stateText = vm.data.length > 0 ? '資料載入中 ....' : '暫無資料';
                     vm.loading = false;
                     gvc.notifyDataChange(id);
                 },
@@ -745,7 +745,7 @@ ${obj.default ?? ''}</textarea
                     Promise.all([
                         new Promise<void>((resolve) => {
                             ApiShop.getCollection().then((data: any) => {
-                                setCollectionPath(collectionList, data.response.value);
+                                setCollectionPath(collectionList, data.length > 0 ? data.response.value : []);
                                 resolve();
                             });
                         }),
@@ -766,7 +766,9 @@ ${obj.default ?? ''}</textarea
                                 if (data.result) {
                                     data.response.data.map((item: { content: { name: string; tag: string } }) => {
                                         const { name, tag } = item.content;
-                                        acticleList.push({ name: name, icon: '', link: `./?article=${tag}&page=article` });
+                                        if (name) {
+                                            acticleList.push({ name: name, icon: '', link: `./?appName=${appName}&article=${tag}&page=article` });
+                                        }
                                     });
                                 }
                                 resolve();
@@ -779,7 +781,10 @@ ${obj.default ?? ''}</textarea
                             { name: '商品分類', icon: 'fa-regular fa-tags', link: '', items: collectionList },
                             { name: '網誌文章', icon: 'fa-regular fa-newspaper', link: './?page=blog_list', items: acticleList },
                             { name: '關於我們', icon: 'fa-regular fa-user-group', link: './?page=aboutus' },
-                        ];
+                        ].filter((menu) => {
+                            if (menu.items === undefined) return true;
+                            return menu.items.length > 0 || menu.link.length > 0;
+                        });
                         vm.loading = false;
                         obj.gvc.notifyDataChange(vm.id);
                     });
