@@ -277,7 +277,7 @@ export class ApiUser {
             return {
                 response: {
                     data: array,
-                    total: array.length,
+                    total: data.response.total,
                 },
             };
         });

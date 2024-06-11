@@ -125,7 +125,7 @@ export class PageSplit {
         };
         this.pageSplitV2 = (countPage: number, nowPage: number, callback: (p: number) => void, gotoInput?: boolean) => {
             const generator = (n: number) => {
-                return html`<li class="page-item my-0">
+                return html`<li class="page-item my-0 mx-0">
                     <div class="page-link-v2" onclick="${gvc.event(() => callback(n))}">${n}</div>
                 </li>`;
             };
@@ -147,6 +147,7 @@ export class PageSplit {
                     gap: 10px;
                     cursor: pointer;
                     background: #fff;
+                    border:1px solid #393939;
                     color: #393939;
                 }
 
