@@ -45,10 +45,12 @@ export class Seo{
         }
 
         return `
+<head>
 ${(() => {
             data.page_config = data.page_config ?? {}
             const d = data.page_config.seo ?? {}
-            return `<title>${d.title ?? "尚未設定標題"}</title>
+            return `
+<title>${d.title ?? "尚未設定標題"}</title>
     <link rel="canonical" href="./?page=${data.tag}">
     <meta name="keywords" content="${d.keywords ?? "尚未設定關鍵字"}" />
     <link id="appImage" rel="shortcut icon" href="${d.logo ?? ""}" type="image/x-icon">
@@ -61,7 +63,10 @@ ${(() => {
 `
         })()}
 <script>
-window.location.href='?page=${redirect}';
-</script>`
+window.glitter_page='${req.query.page}';
+window.redirct_tohome='?page=${redirect}';
+</script>
+</head>
+`
     }
 }

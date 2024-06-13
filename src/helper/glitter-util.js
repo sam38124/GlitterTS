@@ -26,6 +26,36 @@ class GlitterUtil {
             });
         }
     }
+    static async set_frontend_v2(express, rout) {
+        for (const dd of rout) {
+            express.use(dd.rout, async (req, resp, next) => {
+                console.log(`req.baseUrl->`, req.baseUrl);
+                console.log(`dd.root_path->`, dd.root_path);
+                const fileURL = (() => {
+                    if (req.baseUrl.startsWith(dd.root_path)) {
+                        return dd.path + '/' + req.baseUrl.replace(dd.root_path, '');
+                    }
+                    else {
+                        return dd.path + '/' + req.baseUrl.replace(`/${dd.app_name}/`, '');
+                    }
+                })();
+                console.log(req.baseUrl.replace(dd.root_path, ''));
+                if (!fs_1.default.existsSync(fileURL)) {
+                    if (req.baseUrl.startsWith(dd.root_path)) {
+                        req.query.page = req.baseUrl.replace(dd.root_path, '');
+                    }
+                    const seo = await dd.seoManager(req, resp);
+                    let fullPath = dd.path + "/index.html";
+                    const data = fs_1.default.readFileSync(fullPath, 'utf8');
+                    resp.header('Content-Type', 'text/html; charset=UTF-8');
+                    return resp.send(data.replace(data.substring(data.indexOf(`<head>`), data.indexOf(`</head>`) + 7), seo));
+                }
+                else {
+                    return resp.sendFile(decodeURI(fileURL));
+                }
+            });
+        }
+    }
 }
 exports.GlitterUtil = GlitterUtil;
 //# sourceMappingURL=glitter-util.js.map

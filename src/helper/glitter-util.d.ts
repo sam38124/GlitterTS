@@ -6,4 +6,11 @@ export declare class GlitterUtil {
         path: string;
         seoManager: (req: express.Request, resp: express.Response) => Promise<string>;
     }[]): Promise<void>;
+    static set_frontend_v2(express: core.Express, rout: {
+        app_name: string;
+        rout: string;
+        path: string;
+        root_path: string;
+        seoManager: (req: express.Request, resp: express.Response) => Promise<string>;
+    }[]): Promise<void>;
 }

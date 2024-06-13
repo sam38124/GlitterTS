@@ -29,10 +29,10 @@ import {UtDatabase} from "./api-public/utils/ut-database.js";
 import {UpdateScript} from "./update-script.js";
 import compression from 'compression'
 import jwt from "jsonwebtoken";
+import {User} from "./api-public/services/user.js";
 
 export const app = express();
 const logger = new Logger();
-
 
 
 app.options('/*', (req, res) => {
@@ -165,7 +165,7 @@ async function setDNS(domainName: string) {
     });
 }
 
-async function changeDNSRecord(){
+async function changeDNSRecord() {
     const route53 = new AWS.Route53();
 
     const params = {
@@ -190,7 +190,7 @@ async function changeDNSRecord(){
         HostedZoneId: 'Z06668613MA008TSZJ1HW' // 您的托管區域 ID
     };
 
-    route53.changeResourceRecordSets(params, function(err, data) {
+    route53.changeResourceRecordSets(params, function (err, data) {
         if (err) {
             console.log(err, err.stack); // 錯誤處理
         } else {
@@ -218,15 +218,19 @@ async function createAppRoute() {
 
 
 export async function createAPP(dd: any) {
+    const html = String.raw
     Live_source.liveAPP.push(dd.appName)
-    return await GlitterUtil.set_frontend(app, [
+    const file_path = path.resolve(__dirname, '../lowcode')
+    return await GlitterUtil.set_frontend_v2(app, [
         {
-            rout: '/' + encodeURI(dd.appName),
-            path: path.resolve(__dirname, '../lowcode'),
+            rout: '/' + encodeURI(dd.appName) + '/*',
+            path: file_path,
+            app_name: dd.appName,
+            root_path: '/' + encodeURI(dd.appName) + '/',
             seoManager: async (req, resp) => {
                 try {
-                    if(req.query.state==='google_login'){
-                        req.query.page='login'
+                    if (req.query.state === 'google_login') {
+                        req.query.page = 'login'
                     }
                     let appName = dd.appName
                     if (req.query.appName) {
@@ -234,78 +238,74 @@ export async function createAPP(dd: any) {
                     }
                     //SAAS品牌和用戶類型
                     const brandAndMemberType = await App.checkBrandAndMemberType(appName)
-                    let data = await Seo.getPageInfo(appName,req.query.page as string);
+                    let data = await Seo.getPageInfo(appName, req.query.page as string);
+                    let customCode=await (new User(appName)).getConfigV2({
+                        key:'ga4_config',
+                        user_id:'manager'
+                    })
                     if (data && data.page_config) {
                         data.page_config = data.page_config ?? {}
                         const d = data.page_config.seo ?? {}
-                        if(data.page_type==='article' && data.page_config.template_type==='product'){
-                            const pd=(await new Shopping(appName,undefined).getProduct({
-                                page:0,
-                                limit:1,
-                                id:req.query.product_id as string
+                        if (data.page_type === 'article' && data.page_config.template_type === 'product') {
+                            const pd = (await new Shopping(appName, undefined).getProduct({
+                                page: 0,
+                                limit: 1,
+                                id: req.query.product_id as string
                             }))
-                            if(pd.data.content){
-                                const productSeo=pd.data.content.seo ?? {}
-                                data =await Seo.getPageInfo(appName,data.config.homePage);
+                            if (pd.data.content) {
+                                const productSeo = pd.data.content.seo ?? {}
+                                data = await Seo.getPageInfo(appName, data.config.homePage);
                                 data.page_config = data.page_config ?? {}
-                                data.page_config.seo=data.page_config.seo??{}
-                                data.page_config.seo.title=productSeo.title;
-                                data.page_config.seo.content=productSeo.content;
-                            }else{
-                                data =await Seo.getPageInfo(appName,data.config.homePage);
+                                data.page_config.seo = data.page_config.seo ?? {}
+                                data.page_config.seo.title = productSeo.title;
+                                data.page_config.seo.content = productSeo.content;
+                            } else {
+                                data = await Seo.getPageInfo(appName, data.config.homePage);
                             }
-                        }else  if(data.page_type==='article' && data.page_config.template_type==='blog'){
+                        } else if (data.page_type === 'article' && data.page_config.template_type === 'blog') {
                             let query = [
                                 `(content->>'$.type'='article')`,
                                 `(content->>'$.tag'='${req.query.article}')`,
                             ]
-                            const article:any=await new UtDatabase(appName, `t_manager_post`).querySql(query, {page:0,limit:1});
-                            data =await Seo.getPageInfo(appName,data.config.homePage);
+                            const article: any = await new UtDatabase(appName, `t_manager_post`).querySql(query, {
+                                page: 0,
+                                limit: 1
+                            });
+                            data = await Seo.getPageInfo(appName, data.config.homePage);
                             data.page_config = data.page_config ?? {}
-                            data.page_config.seo=data.page_config.seo??{}
-                            if(article.data[0]){
-                                data.page_config.seo.title=article.data[0].content.seo.title;
-                                data.page_config.seo.content=article.data[0].content.seo.content;
-                                data.page_config.seo.keywords=article.data[0].content.seo.keywords;
+                            data.page_config.seo = data.page_config.seo ?? {}
+                            if (article.data[0]) {
+                                data.page_config.seo.title = article.data[0].content.seo.title;
+                                data.page_config.seo.content = article.data[0].content.seo.content;
+                                data.page_config.seo.keywords = article.data[0].content.seo.keywords;
                             }
                         } else if (d.type !== 'custom') {
-                            data =await Seo.getPageInfo(appName,data.config.homePage);
+                            data = await Seo.getPageInfo(appName, data.config.homePage);
                         }
-                        const preload=(req.query.type === 'editor' || req.query.isIframe === 'true') ? {} : await App.preloadPageData(appName,data.tag);
+                        const relative_root = (req.query.page as string).split('/').map((dd, index) => {
+                            if (index === 0) {
+                                return './'
+                            } else {
+                                return '../'
+                            }
+                        }).join('');
+                        const preload = (req.query.type === 'editor' || req.query.isIframe === 'true') ? {} : await App.preloadPageData(appName, data.tag);
                         return `${(() => {
                             data.page_config = data.page_config ?? {}
                             const d = data.page_config.seo ?? {}
-                            return `<title>${d.title ?? "尚未設定標題"}</title>
-    <link rel="canonical" href="./?page=${data.tag}">
-    <meta name="keywords" content="${d.keywords ?? "尚未設定關鍵字"}" />
-    <link id="appImage" rel="shortcut icon" href="${d.logo ?? ""}" type="image/x-icon">
-    <link rel="icon" href="${d.logo ?? ""}" type="image/png" sizes="128x128">
-    <meta property="og:image" content="${d.image ?? ""}">
-    <meta property="og:title" content="${(d.title ?? "").replace(/\n/g,'')}">
-    <meta name="description" content="${(d.content ?? "").replace(/\n/g,'')}">
-    <meta name="og:description" content="${(d.content ?? "").replace(/\n/g,'')}">
-     ${d.code ?? ''}
-  ${(() => {
-      return  ``
-                                if (req.query.type === 'editor') {
-                                    return ``
-                                } else {
-                                    return `${(data.config.globalStyle ?? []).map((dd: any) => {
-                                        try {
-                                            if (dd.data.elem === 'link') {
-                                                return `<link type="text/css" rel="stylesheet" href="${dd.data.attr.find((dd: any) => {
-                                                    return dd.attr === 'href'
-                                                }).value}">`
-                                            }
-                                        } catch (e) {
-                                            return ``
-                                        }
-                                    }).join('')}`
-                                }
-                            })()}
-
-
-`
+                            return html`
+                                <head>
+                                    <title>${d.title ?? "尚未設定標題"}</title>
+                                    <link rel="canonical" href="${relative_root}${data.tag}">
+                                    <meta name="keywords" content="${d.keywords ?? "尚未設定關鍵字"}"/>
+                                    <link id="appImage" rel="shortcut icon" href="${d.logo ?? ""}" type="image/x-icon">
+                                    <link rel="icon" href="${d.logo ?? ""}" type="image/png" sizes="128x128">
+                                    <meta property="og:image" content="${d.image ?? ""}">
+                                    <meta property="og:title" content="${(d.title ?? "").replace(/\n/g, '')}">
+                                    <meta name="description" content="${(d.content ?? "").replace(/\n/g, '')}">
+                                    <meta name="og:description" content="${(d.content ?? "").replace(/\n/g, '')}">
+                                    ${d.code ?? ''}
+                            `
                         })()}
                         <script>
 window.appName='${appName}';
@@ -313,12 +313,40 @@ window.glitterBase='${brandAndMemberType.brand}';
 window.memberType='${brandAndMemberType.memberType}';
 window.glitterBackend='${config.domain}';
 window.preloadData=${JSON.stringify(preload)};
+window.glitter_page='${req.query.page}';
 </script>
-                         
+              </head>
+              ${(()=>{
+                  if(req.query.type==='editor'){
+                      return ``
+                  }else{
+                      return ` ${(customCode.ga4 || []).map((dd:any)=>{
+                          return `<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=${dd.code}"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', '${dd.code}');
+</script>`
+                      }).join('')}    
+                ${(customCode.g_tag || []).map((dd:any)=>{
+                          return `<!-- Google tag (gtag.js) -->
+<!-- Google Tag Manager -->
+<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','${dd.code}');</script>
+<!-- End Google Tag Manager -->`
+                      }).join('')}  `
+                  }
+                        })()}     
                         `
                     } else {
                         console.log(`brandAndMemberType->redirect`)
-                       return  await Seo.redirectToHomePage(appName,req);
+                        return await Seo.redirectToHomePage(appName, req);
                     }
                 } catch (e: any) {
                     console.log(e)

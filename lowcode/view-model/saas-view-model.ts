@@ -226,8 +226,11 @@ export class SaasViewModel {
                                                                                             <div class=" btn btn-primary-c btn-sm"
                                                                                                  style="margin-left: 10px;color: white;height: 28px; "
                                                                                                  onclick="${gvc.event(() => {
-                                                                                                     gvc.glitter.setUrlParameter('appName', dd.appName)
-                                                                                                     location.reload()
+                                                                                                     const url = new URL(gvc.glitter.root_path);
+                                                                                                     url.searchParams.set('type','editor')
+                                                                                                     url.searchParams.set('function','backend-manger')
+                                                                                                     url.searchParams.set('appName', dd.appName)
+                                                                                                     location.href=url.href
                                                                                                  })}"
                                                                                             >
                                                                                                 更換商店
