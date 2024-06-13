@@ -443,6 +443,7 @@ export class BgCustomerMessage {
                                 if (gvc.glitter.share.close_socket) {
                                     gvc.glitter.share.close_socket();
                                 }
+                                vm.close = false;
                                 socket = (location.href.includes('https://')) ? new WebSocket(`wss://${url.hostname}/websocket`) : new WebSocket(`ws://${url.hostname}:9003`);
                                 gvc.glitter.share.close_socket = () => {
                                     vm.close = true;

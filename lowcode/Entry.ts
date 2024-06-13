@@ -8,7 +8,6 @@ import {GlobalUser} from "./glitter-base/global/global-user.js";
 
 export class Entry {
     public static onCreate(glitter: Glitter) {
-        glitter.page=glitter.page || (window as any).glitter_page
         glitter.share.GlobalUser=GlobalUser
         Entry.checkRedirectPage(glitter)
         glitter.share.logID = glitter.getUUID()
