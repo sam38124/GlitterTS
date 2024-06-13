@@ -15,9 +15,13 @@ import { HtmlGenerate } from "./module/html-generate.js";
 export class Glitter {
     constructor(window) {
         var _a;
+        this.root_path = (() => {
+            return new URL('../', import.meta.url).href;
+        })();
         this.gvcType = GVCType;
         this.deviceTypeEnum = AppearType;
         this.animation = Animation;
+        this.page = '';
         this.defaultSetting = new DefaultSetting({
             pageBgColor: "white",
             pageAnimation: this.animation.none,
@@ -530,7 +534,7 @@ export class Glitter {
     }
     set href(value) {
         const link = new URL(value, location.href);
-        if ((location.origin + location.pathname) === (link.origin + link.pathname)) {
+        if ((location.origin) === (link.origin)) {
             window.history.replaceState({}, document.title, link.search || '');
             this.getModule(new URL('../official_event/page/change-page.js', import.meta.url).href, (cl) => {
                 setTimeout(() => {
@@ -705,12 +709,24 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
         }
     }
     setUrlParameter(tag, value) {
-        var search = (value !== undefined) ? this.setSearchParam(this.removeSearchParam(window.location.search, tag), tag, value) :
-            this.removeSearchParam(window.location.search, tag);
-        try {
-            window.history.replaceState({}, document.title, search);
+        if (tag === 'page' && value) {
+            try {
+                this.page = value;
+                const url = new URL(this.root_path + value + window.location.search);
+                url.searchParams.delete('page');
+                window.history.replaceState({}, document.title, url.href);
+            }
+            catch (e) {
+            }
         }
-        catch (e) {
+        else {
+            let search = (value !== undefined) ? this.setSearchParam(this.removeSearchParam(window.location.search, tag), tag, value) :
+                this.removeSearchParam(window.location.search, tag);
+            try {
+                window.history.replaceState({}, document.title, search);
+            }
+            catch (e) {
+            }
         }
     }
     setDrawer(src, callback) {
@@ -902,12 +918,22 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
         return checksum;
     }
     getUrlParameter(sParam) {
-        let sPageURL = window.location.search.substring(1), sURLVariables = sPageURL.split('&'), sParameterName, i;
-        for (i = 0; i < sURLVariables.length; i++) {
-            sParameterName = sURLVariables[i].split('=');
-            if (sParameterName[0] === sParam) {
-                return sParameterName[1] === undefined ? true : decodeURIComponent(sParameterName[1]);
+        function next() {
+            let sPageURL = window.location.search.substring(1), sURLVariables = sPageURL.split('&'), sParameterName, i;
+            for (i = 0; i < sURLVariables.length; i++) {
+                sParameterName = sURLVariables[i].split('=');
+                if (sParameterName[0] === sParam) {
+                    return sParameterName[1] === undefined ? true : decodeURIComponent(sParameterName[1]);
+                }
             }
+        }
+        if (sParam === 'page') {
+            this.page = this.page || next();
+            this.setUrlParameter('page', undefined);
+            return this.page;
+        }
+        else {
+            return next();
         }
     }
     openNewTab(link) {

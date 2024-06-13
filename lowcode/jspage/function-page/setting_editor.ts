@@ -405,11 +405,9 @@ export class Setting_editor {
                                                         } else {
                                                             Storage.select_item = index;
                                                             (window as any).editerData = undefined;
-                                                            const url = new URL(location.href);
-                                                            url.searchParams.set('page', items[parseInt(index)].page);
-                                                            url.searchParams.delete('type');
+                                                            const url = new URL('./'+items[parseInt(index)].page,glitter.root_path);
+                                                            url.searchParams.set('appName', items[parseInt(index)].appName)
                                                             url.searchParams.set('cms', 'true');
-                                                            url.searchParams.set('appName', items[parseInt(index)].appName);
                                                             $('#editerCenter').html(`<iframe src="${url.href}" style="border: none;height: calc(100vh - 56px);"></iframe>`);
                                                         }
                                                     }

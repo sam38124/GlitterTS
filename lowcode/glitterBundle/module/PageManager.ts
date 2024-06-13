@@ -205,6 +205,9 @@ export class PageManager {
                     gvFunction({
                         pageConfig:pageConfig
                     })
+                    if((window as any).gtag){
+                        (window as any).gtag('event', 'page_view', {'page_title': document.title, page_location: document.location.href});
+                    }
                 }
             }
         ],'GVControllerList')
@@ -324,6 +327,10 @@ export class PageManager {
                             pageConfig:pageConfig
                         })
                     }
+                    if((window as any).gtag){
+                        (window as any).gtag('event', 'page_view', {'page_title': document.title, page_location: document.location.href});
+                    }
+
                 }
             }
         ],'GVControllerList')

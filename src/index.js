@@ -56,6 +56,7 @@ const shopping_js_1 = require("./api-public/services/shopping.js");
 const web_socket_js_1 = require("./services/web-socket.js");
 const ut_database_js_1 = require("./api-public/utils/ut-database.js");
 const compression_1 = __importDefault(require("compression"));
+const user_js_1 = require("./api-public/services/user.js");
 exports.app = (0, express_1.default)();
 const logger = new logger_1.default();
 exports.app.options('/*', (req, res) => {
@@ -220,11 +221,15 @@ async function createAppRoute() {
     }
 }
 async function createAPP(dd) {
+    const html = String.raw;
     live_source_1.Live_source.liveAPP.push(dd.appName);
-    return await glitter_util_js_1.GlitterUtil.set_frontend(exports.app, [
+    const file_path = path_1.default.resolve(__dirname, '../lowcode');
+    return await glitter_util_js_1.GlitterUtil.set_frontend_v2(exports.app, [
         {
-            rout: '/' + encodeURI(dd.appName),
-            path: path_1.default.resolve(__dirname, '../lowcode'),
+            rout: '/' + encodeURI(dd.appName) + '/*',
+            path: file_path,
+            app_name: dd.appName,
+            root_path: '/' + encodeURI(dd.appName) + '/',
             seoManager: async (req, resp) => {
                 var _a, _b, _c, _d, _e, _f, _g;
                 try {
@@ -237,6 +242,10 @@ async function createAPP(dd) {
                     }
                     const brandAndMemberType = await app_js_1.App.checkBrandAndMemberType(appName);
                     let data = await seo_js_1.Seo.getPageInfo(appName, req.query.page);
+                    let customCode = await (new user_js_1.User(appName)).getConfigV2({
+                        key: 'ga4_config',
+                        user_id: 'manager'
+                    });
                     if (data && data.page_config) {
                         data.page_config = (_a = data.page_config) !== null && _a !== void 0 ? _a : {};
                         const d = (_b = data.page_config.seo) !== null && _b !== void 0 ? _b : {};
@@ -263,7 +272,10 @@ async function createAPP(dd) {
                                 `(content->>'$.type'='article')`,
                                 `(content->>'$.tag'='${req.query.article}')`,
                             ];
-                            const article = await new ut_database_js_1.UtDatabase(appName, `t_manager_post`).querySql(query, { page: 0, limit: 1 });
+                            const article = await new ut_database_js_1.UtDatabase(appName, `t_manager_post`).querySql(query, {
+                                page: 0,
+                                limit: 1
+                            });
                             data = await seo_js_1.Seo.getPageInfo(appName, data.config.homePage);
                             data.page_config = (_f = data.page_config) !== null && _f !== void 0 ? _f : {};
                             data.page_config.seo = (_g = data.page_config.seo) !== null && _g !== void 0 ? _g : {};
@@ -276,45 +288,32 @@ async function createAPP(dd) {
                         else if (d.type !== 'custom') {
                             data = await seo_js_1.Seo.getPageInfo(appName, data.config.homePage);
                         }
+                        const relative_root = req.query.page.split('/').map((dd, index) => {
+                            if (index === 0) {
+                                return './';
+                            }
+                            else {
+                                return '../';
+                            }
+                        }).join('');
                         const preload = (req.query.type === 'editor' || req.query.isIframe === 'true') ? {} : await app_js_1.App.preloadPageData(appName, data.tag);
                         return `${(() => {
                             var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l;
                             data.page_config = (_a = data.page_config) !== null && _a !== void 0 ? _a : {};
                             const d = (_b = data.page_config.seo) !== null && _b !== void 0 ? _b : {};
-                            return `<title>${(_c = d.title) !== null && _c !== void 0 ? _c : "尚未設定標題"}</title>
-    <link rel="canonical" href="./?page=${data.tag}">
-    <meta name="keywords" content="${(_d = d.keywords) !== null && _d !== void 0 ? _d : "尚未設定關鍵字"}" />
-    <link id="appImage" rel="shortcut icon" href="${(_e = d.logo) !== null && _e !== void 0 ? _e : ""}" type="image/x-icon">
-    <link rel="icon" href="${(_f = d.logo) !== null && _f !== void 0 ? _f : ""}" type="image/png" sizes="128x128">
-    <meta property="og:image" content="${(_g = d.image) !== null && _g !== void 0 ? _g : ""}">
-    <meta property="og:title" content="${((_h = d.title) !== null && _h !== void 0 ? _h : "").replace(/\n/g, '')}">
-    <meta name="description" content="${((_j = d.content) !== null && _j !== void 0 ? _j : "").replace(/\n/g, '')}">
-    <meta name="og:description" content="${((_k = d.content) !== null && _k !== void 0 ? _k : "").replace(/\n/g, '')}">
-     ${(_l = d.code) !== null && _l !== void 0 ? _l : ''}
-  ${(() => {
-                                var _a;
-                                return ``;
-                                if (req.query.type === 'editor') {
-                                    return ``;
-                                }
-                                else {
-                                    return `${((_a = data.config.globalStyle) !== null && _a !== void 0 ? _a : []).map((dd) => {
-                                        try {
-                                            if (dd.data.elem === 'link') {
-                                                return `<link type="text/css" rel="stylesheet" href="${dd.data.attr.find((dd) => {
-                                                    return dd.attr === 'href';
-                                                }).value}">`;
-                                            }
-                                        }
-                                        catch (e) {
-                                            return ``;
-                                        }
-                                    }).join('')}`;
-                                }
-                            })()}
-
-
-`;
+                            return html `
+                                <head>
+                                    <title>${(_c = d.title) !== null && _c !== void 0 ? _c : "尚未設定標題"}</title>
+                                    <link rel="canonical" href="${relative_root}${data.tag}">
+                                    <meta name="keywords" content="${(_d = d.keywords) !== null && _d !== void 0 ? _d : "尚未設定關鍵字"}"/>
+                                    <link id="appImage" rel="shortcut icon" href="${(_e = d.logo) !== null && _e !== void 0 ? _e : ""}" type="image/x-icon">
+                                    <link rel="icon" href="${(_f = d.logo) !== null && _f !== void 0 ? _f : ""}" type="image/png" sizes="128x128">
+                                    <meta property="og:image" content="${(_g = d.image) !== null && _g !== void 0 ? _g : ""}">
+                                    <meta property="og:title" content="${((_h = d.title) !== null && _h !== void 0 ? _h : "").replace(/\n/g, '')}">
+                                    <meta name="description" content="${((_j = d.content) !== null && _j !== void 0 ? _j : "").replace(/\n/g, '')}">
+                                    <meta name="og:description" content="${((_k = d.content) !== null && _k !== void 0 ? _k : "").replace(/\n/g, '')}">
+                                    ${(_l = d.code) !== null && _l !== void 0 ? _l : ''}
+                            `;
                         })()}
                         <script>
 window.appName='${appName}';
@@ -322,8 +321,30 @@ window.glitterBase='${brandAndMemberType.brand}';
 window.memberType='${brandAndMemberType.memberType}';
 window.glitterBackend='${config_1.config.domain}';
 window.preloadData=${JSON.stringify(preload)};
+window.glitter_page='${req.query.page}';
 </script>
-                         
+              </head>
+              ${(customCode.ga4 || []).map((dd) => {
+                            return `<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=${dd.code}"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', '${dd.code}');
+</script>`;
+                        }).join('')}    
+                ${(customCode.g_tag || []).map((dd) => {
+                            return `<!-- Google tag (gtag.js) -->
+<!-- Google Tag Manager -->
+<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','${dd.code}');</script>
+<!-- End Google Tag Manager -->`;
+                        }).join('')}       
                         `;
                     }
                     else {

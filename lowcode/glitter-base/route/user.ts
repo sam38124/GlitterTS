@@ -227,10 +227,10 @@ export class ApiUser {
             await new Promise((resolve, reject)=>{
                 let pass=0
                 function checkPass(){
-                    pass++
                     if(pass===array.length){
                         resolve(true)
                     }
+                    pass++
                 }
                 for (let index = 0; index < array.length; index++) {
                     function execute(){
@@ -273,6 +273,7 @@ export class ApiUser {
                     }
                     execute()
                 }
+                checkPass()
             })
             return {
                 response: {

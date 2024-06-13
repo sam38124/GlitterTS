@@ -49,11 +49,13 @@ class Seo {
             redirect += `&function=${req.query.function}`;
         }
         return `
+<head>
 ${(() => {
             var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l;
             data.page_config = (_a = data.page_config) !== null && _a !== void 0 ? _a : {};
             const d = (_b = data.page_config.seo) !== null && _b !== void 0 ? _b : {};
-            return `<title>${(_c = d.title) !== null && _c !== void 0 ? _c : "尚未設定標題"}</title>
+            return `
+<title>${(_c = d.title) !== null && _c !== void 0 ? _c : "尚未設定標題"}</title>
     <link rel="canonical" href="./?page=${data.tag}">
     <meta name="keywords" content="${(_d = d.keywords) !== null && _d !== void 0 ? _d : "尚未設定關鍵字"}" />
     <link id="appImage" rel="shortcut icon" href="${(_e = d.logo) !== null && _e !== void 0 ? _e : ""}" type="image/x-icon">
@@ -66,8 +68,11 @@ ${(() => {
 `;
         })()}
 <script>
-window.location.href='?page=${redirect}';
-</script>`;
+window.glitter_page='${req.query.page}';
+window.redirct_tohome='?page=${redirect}';
+</script>
+</head>
+`;
     }
 }
 exports.Seo = Seo;
