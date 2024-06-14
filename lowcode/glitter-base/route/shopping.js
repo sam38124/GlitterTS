@@ -110,6 +110,7 @@ export class ApiShop {
                     json.search && par.push(`search=${json.search}`);
                     json.id && par.push(`id=${json.id}`);
                     json.email && par.push(`email=${json.email}`);
+                    json.status && par.push(`status=${json.status}`);
                     return par.join('&');
                 })()}`,
             type: 'GET',

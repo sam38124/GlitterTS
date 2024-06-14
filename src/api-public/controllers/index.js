@@ -51,9 +51,9 @@ const whiteList = [
     { url: config_1.config.getRoute(config_1.config.public_route.chat + '/unread', 'public'), method: 'GET' },
     { url: config_1.config.getRoute(config_1.config.public_route.chat + '/message', 'public'), method: 'GET' },
     { url: config_1.config.getRoute(config_1.config.public_route.chat, 'public'), method: 'GET' },
-    { url: config_1.config.getRoute(config_1.config.public_route.user + "/register", 'public'), method: 'POST' },
-    { url: config_1.config.getRoute(config_1.config.public_route.user + "/login", 'public'), method: 'POST' },
-    { url: config_1.config.getRoute(config_1.config.public_route.user + "/forget", 'public'), method: 'POST' },
+    { url: config_1.config.getRoute(config_1.config.public_route.user + '/register', 'public'), method: 'POST' },
+    { url: config_1.config.getRoute(config_1.config.public_route.user + '/login', 'public'), method: 'POST' },
+    { url: config_1.config.getRoute(config_1.config.public_route.user + '/forget', 'public'), method: 'POST' },
     { url: config_1.config.getRoute(config_1.config.public_route.post, 'public'), method: 'GET' },
     { url: config_1.config.getRoute(config_1.config.public_route.post, 'public'), method: 'POST' },
     { url: config_1.config.getRoute(config_1.config.public_route.post + '/user', 'public'), method: 'GET' },
@@ -61,29 +61,29 @@ const whiteList = [
     { url: config_1.config.getRoute(config_1.config.public_route.post, 'public'), method: 'POST' },
     { url: config_1.config.getRoute(config_1.config.public_route.post + '/public/config', 'public'), method: 'GET' },
     { url: config_1.config.getRoute(config_1.config.public_route.post + '/user', 'public'), method: 'GET' },
-    { url: config_1.config.getRoute(config_1.config.public_route.user + "/checkMail", 'public'), method: 'GET' },
-    { url: config_1.config.getRoute(config_1.config.public_route.user + "/check/email/exists", 'public'), method: 'GET' },
-    { url: config_1.config.getRoute(config_1.config.public_route.user + "/checkMail/updateAccount", 'public'), method: 'GET' },
-    { url: config_1.config.getRoute(config_1.config.public_route.user + "/userdata", 'public'), method: 'GET' },
-    { url: config_1.config.getRoute(config_1.config.public_route.user + "/subscribe", 'public'), method: 'POST' },
-    { url: config_1.config.getRoute(config_1.config.public_route.user + "/fcm", 'public'), method: 'POST' },
-    { url: config_1.config.getRoute(config_1.config.public_route.user + "/public/config", 'public'), method: 'GET' },
-    { url: config_1.config.getRoute(config_1.config.public_route.user + "/forget", 'public'), method: 'POST' },
+    { url: config_1.config.getRoute(config_1.config.public_route.user + '/checkMail', 'public'), method: 'GET' },
+    { url: config_1.config.getRoute(config_1.config.public_route.user + '/check/email/exists', 'public'), method: 'GET' },
+    { url: config_1.config.getRoute(config_1.config.public_route.user + '/checkMail/updateAccount', 'public'), method: 'GET' },
+    { url: config_1.config.getRoute(config_1.config.public_route.user + '/userdata', 'public'), method: 'GET' },
+    { url: config_1.config.getRoute(config_1.config.public_route.user + '/subscribe', 'public'), method: 'POST' },
+    { url: config_1.config.getRoute(config_1.config.public_route.user + '/fcm', 'public'), method: 'POST' },
+    { url: config_1.config.getRoute(config_1.config.public_route.user + '/public/config', 'public'), method: 'GET' },
+    { url: config_1.config.getRoute(config_1.config.public_route.user + '/forget', 'public'), method: 'POST' },
     { url: config_1.config.getRoute(config_1.config.public_route.sql_api, 'public'), method: 'GET' },
     { url: config_1.config.getRoute(config_1.config.public_route.sql_api, 'public'), method: 'POST' },
     { url: config_1.config.getRoute(config_1.config.public_route.lambda, 'public'), method: 'POST' },
     { url: config_1.config.getRoute(config_1.config.public_route.lambda, 'public'), method: 'GET' },
     { url: config_1.config.getRoute(config_1.config.public_route.lambda, 'public'), method: 'DELETE' },
     { url: config_1.config.getRoute(config_1.config.public_route.lambda, 'public'), method: 'PUT' },
-    { url: config_1.config.getRoute(config_1.config.public_route.ec + "/product", 'public'), method: 'GET' },
-    { url: config_1.config.getRoute(config_1.config.public_route.ec + "/checkout", 'public'), method: 'POST' },
-    { url: config_1.config.getRoute(config_1.config.public_route.ec + "/checkout/preview", 'public'), method: 'POST' },
-    { url: config_1.config.getRoute(config_1.config.public_route.ec + "/redirect", 'public'), method: 'POST' },
-    { url: config_1.config.getRoute(config_1.config.public_route.ec + "/notify", 'public'), method: 'POST' },
-    { url: config_1.config.getRoute(config_1.config.public_route.ec + "/payment/method", 'public'), method: 'GET' },
-    { url: config_1.config.getRoute(config_1.config.public_route.ec + "/check-login-for-order", 'public'), method: 'GET' },
-    { url: config_1.config.getRoute(config_1.config.public_route.wallet + "/notify", 'public'), method: 'POST' },
-    { url: config_1.config.getRoute(config_1.config.public_route.manager + "/config", 'public'), method: 'GET' },
+    { url: config_1.config.getRoute(config_1.config.public_route.ec + '/product', 'public'), method: 'GET' },
+    { url: config_1.config.getRoute(config_1.config.public_route.ec + '/checkout', 'public'), method: 'POST' },
+    { url: config_1.config.getRoute(config_1.config.public_route.ec + '/checkout/preview', 'public'), method: 'POST' },
+    { url: config_1.config.getRoute(config_1.config.public_route.ec + '/redirect', 'public'), method: 'POST' },
+    { url: config_1.config.getRoute(config_1.config.public_route.ec + '/notify', 'public'), method: 'POST' },
+    { url: config_1.config.getRoute(config_1.config.public_route.ec + '/payment/method', 'public'), method: 'GET' },
+    { url: config_1.config.getRoute(config_1.config.public_route.ec + '/check-login-for-order', 'public'), method: 'GET' },
+    { url: config_1.config.getRoute(config_1.config.public_route.wallet + '/notify', 'public'), method: 'POST' },
+    { url: config_1.config.getRoute(config_1.config.public_route.manager + '/config', 'public'), method: 'GET' },
     { url: config_1.config.getRoute(config_1.config.public_route.article, 'public'), method: 'GET' },
     { url: config_1.config.getRoute(config_1.config.public_route.article + '/manager', 'public'), method: 'GET' },
     { url: config_1.config.getRoute(config_1.config.public_route.delivery + '/c2cMap', 'public'), method: 'POST' },
@@ -103,7 +103,7 @@ async function doAuthAction(req, resp, next) {
     const refer_app = public_table_check_js_1.ApiPublic.checkApp.find((dd) => {
         return dd.app_name === req.headers['g-app'];
     });
-    req.headers['g-app'] = refer_app && refer_app.refer_app || ((_c = req.get('g-app')) !== null && _c !== void 0 ? _c : req.query['g-app']);
+    req.headers['g-app'] = (refer_app && refer_app.refer_app) || ((_c = req.get('g-app')) !== null && _c !== void 0 ? _c : req.query['g-app']);
     const logger = new logger_1.default();
     const TAG = '[DoAuthAction]';
     const url = req.baseUrl;
@@ -113,9 +113,7 @@ async function doAuthAction(req, resp, next) {
         try {
             req.body.token = jsonwebtoken_1.default.verify(token, config_1.config.SECRET_KEY);
             if (req.body.token) {
-                await database_1.default.execute(`update \`${(_e = req.get('g-app')) !== null && _e !== void 0 ? _e : req.query['g-app']}\`.t_user set online_time=NOW() where userID=?`, [
-                    req.body.token.userID || '-1'
-                ]);
+                await database_1.default.execute(`update \`${(_e = req.get('g-app')) !== null && _e !== void 0 ? _e : req.query['g-app']}\`.t_user set online_time=NOW() where userID=?`, [req.body.token.userID || '-1']);
             }
         }
         catch (e) {
@@ -127,9 +125,7 @@ async function doAuthAction(req, resp, next) {
     try {
         req.body.token = jsonwebtoken_1.default.verify(token, config_1.config.SECRET_KEY);
         if (req.body.token) {
-            await database_1.default.execute(`update \`${(_f = req.get('g-app')) !== null && _f !== void 0 ? _f : req.query['g-app']}\`.t_user set online_time=NOW() where userID=?`, [
-                req.body.token.userID || '-1'
-            ]);
+            await database_1.default.execute(`update \`${(_f = req.get('g-app')) !== null && _f !== void 0 ? _f : req.query['g-app']}\`.t_user set online_time=NOW() where userID=?`, [req.body.token.userID || '-1']);
         }
         const redisToken = await redis_1.default.getValue(token);
         if (!redisToken) {

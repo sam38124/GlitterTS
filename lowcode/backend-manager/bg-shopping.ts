@@ -17,12 +17,15 @@ export class BgShopping {
             data: any;
             dataList: any;
             query?: string;
+            queryType?: string;
         } = {
             type: 'list',
             data: undefined,
             dataList: undefined,
             query: undefined,
+            queryType: undefined,
         };
+
         return gvc.bindView(() => {
             const id = glitter.getUUID();
             return {
@@ -149,7 +152,9 @@ export class BgShopping {
                                     vm.data = vm.dataList[index];
                                     vm.type = 'replace';
                                 },
-                                filter: html` ${BgWidget.searchPlace(
+                                filter: html`
+                                    
+                                    ${BgWidget.searchPlace(
                                     gvc.event((e, event) => {
                                         vm.query = e.value;
                                         gvc.notifyDataChange(id);

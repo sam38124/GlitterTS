@@ -61,15 +61,15 @@ class Post {
     }
     async sqlApi(router, datasource) {
         try {
-            const apConfig = await app_js_1.App.getAdConfig(this.app, "sql_api_config_post");
+            const apConfig = await app_js_1.App.getAdConfig(this.app, 'sql_api_config_post');
             const sq = apConfig.apiList.find((dd) => {
                 return dd.route === router;
             });
-            const sql = ((() => {
+            const sql = (() => {
                 return eval(sq.sql);
-            })()).replaceAll('$app', `\`${this.app}\``);
+            })().replaceAll('$app', `\`${this.app}\``);
             console.log(`sqlApi:`, sql);
-            (await database_1.default.query(sql, []));
+            await database_1.default.query(sql, []);
         }
         catch (e) {
             throw exception_1.default.BadRequestError('BAD_REQUEST', 'SqlApi Error:' + e, null);
@@ -78,10 +78,10 @@ class Post {
     async lambda(query, router, datasource, type) {
         try {
             return await database_1.default.queryLambada({
-                database: this.app
+                database: this.app,
             }, async (sql) => {
                 var _a, _b;
-                const apConfig = await app_js_1.App.getAdConfig(this.app, "sql_api_config_post");
+                const apConfig = await app_js_1.App.getAdConfig(this.app, 'sql_api_config_post');
                 console.log(apConfig.apiList);
                 const sq = apConfig.apiList.find((dd) => {
                     return dd.route === router && dd.type === type;
@@ -91,31 +91,31 @@ class Post {
                 }
                 let user = undefined;
                 if (this.token) {
-                    user = (_b = (await sql.query(`select *
+                    user =
+                        (_b = (await sql.query(`select *
                                              from t_user
                                              where userID = ${(_a = this.token.userID) !== null && _a !== void 0 ? _a : 0}`, []))[0]) !== null && _b !== void 0 ? _b : user;
                 }
                 const html = String.raw;
-                const myFunction = new Function(html `try {
-                return ${sq.sql.replace(/new\s*Promise\s*\(\s*async\s*\(\s*resolve\s*,\s*reject\s*\)\s*=>\s*\{([\s\S]*)\}\s*\)/i, 'new Promise(async (resolve, reject) => { try { $1 } catch (error) { console.log(error);reject(error); } })')}
-                } catch (error) {
-                return 'error';
-                }`);
-                const sqlType = ((() => {
+                const myFunction = new Function(html `try { return
+                    ${sq.sql.replace(/new\s*Promise\s*\(\s*async\s*\(\s*resolve\s*,\s*reject\s*\)\s*=>\s*\{([\s\S]*)\}\s*\)/i, 'new Promise(async (resolve, reject) => { try { $1 } catch (error) { console.log(error);reject(error); } })')}
+                    } catch (error) { return 'error'; }`);
+                const sqlType = (() => {
                     try {
                         return myFunction();
                     }
                     catch (e) {
                         throw exception_1.default.BadRequestError('BAD_REQUEST', 'SqlApi Error', null);
                     }
-                })());
+                })();
                 if (!sqlType) {
                     throw exception_1.default.BadRequestError('BAD_REQUEST', 'SqlApi Error', null);
                 }
                 else {
                     return new Promise(async (resolve, reject) => {
                         try {
-                            (sqlType.execute(sql, {
+                            sqlType
+                                .execute(sql, {
                                 user: user,
                                 data: datasource,
                                 app: this.app,
@@ -123,11 +123,13 @@ class Post {
                                 firebase: {
                                     sendMessage: (message) => {
                                         (0, message_js_1.sendMessage)(apConfig.firebase, message, this.app);
-                                    }
-                                }
-                            })).then((data) => {
+                                    },
+                                },
+                            })
+                                .then((data) => {
                                 resolve({ result: true, data: data });
-                            }).catch((e) => {
+                            })
+                                .catch((e) => {
                                 resolve({ result: false, message: e });
                             });
                         }
@@ -154,9 +156,7 @@ class Post {
                                          SET ?
                                          where 1 = 1 
                                            and userID = ${this.token.userID}
-                                           and id = ${reContent.id}`, [
-                content
-            ]);
+                                           and id = ${reContent.id}`, [content]);
             return data;
         }
         catch (e) {
@@ -170,21 +170,22 @@ class Post {
             query.limit = (_b = query.limit) !== null && _b !== void 0 ? _b : 10;
             let querySql = [];
             query.id && querySql.push(`id=${query.id}`);
-            query.search && query.search.split(',').map((dd) => {
-                if (dd.includes('->')) {
-                    const qu = dd.split('->');
-                    querySql.push(`(content->>'$.${qu[0]}'='${qu[1]}')`);
-                }
-                else if (dd.includes('-|>')) {
-                    const qu = dd.split('-|>');
-                    querySql.push(`(content->>'$.${qu[0]}' like '%${qu[1]}%')`);
-                }
-                else if (dd.includes('-[]>')) {
-                    const qu = dd.split('-[]>');
-                    querySql.push(`(JSON_CONTAINS(content, '"${qu[1]}"', '$.${qu[0]}'))`);
-                }
-            });
-            return await new ut_database_js_1.UtDatabase(this.app, (manager) ? `t_manager_post` : `t_post`).querySql(querySql, query);
+            query.search &&
+                query.search.split(',').map((dd) => {
+                    if (dd.includes('->')) {
+                        const qu = dd.split('->');
+                        querySql.push(`(content->>'$.${qu[0]}'='${qu[1]}')`);
+                    }
+                    else if (dd.includes('-|>')) {
+                        const qu = dd.split('-|>');
+                        querySql.push(`(content->>'$.${qu[0]}' like '%${qu[1]}%')`);
+                    }
+                    else if (dd.includes('-[]>')) {
+                        const qu = dd.split('-[]>');
+                        querySql.push(`(JSON_CONTAINS(content, '"${qu[1]}"', '$.${qu[0]}'))`);
+                    }
+                });
+            return await new ut_database_js_1.UtDatabase(this.app, manager ? `t_manager_post` : `t_post`).querySql(querySql, query);
         }
         catch (e) {
             throw exception_1.default.BadRequestError('BAD_REQUEST', 'GetContentV2 Error:' + e, null);
@@ -192,13 +193,13 @@ class Post {
     }
     async getContent(content) {
         return await (0, database_1.queryLambada)({
-            database: this.app
+            database: this.app,
         }, async (v) => {
             var _a;
             try {
-                const apConfig = await app_js_1.App.getAdConfig(this.app, "sql_api_config");
+                const apConfig = await app_js_1.App.getAdConfig(this.app, 'sql_api_config');
                 let userData = {};
-                let countSql = "";
+                let countSql = '';
                 let sql = (() => {
                     if (content.queryType === 'sql') {
                         const datasource = JSON.parse(content.datasource);
@@ -219,17 +220,21 @@ class Post {
                             if (dd.type === 'relative_post') {
                                 dd.query = (_a = dd.query) !== null && _a !== void 0 ? _a : [];
                                 return ` and JSON_EXTRACT(content, '$.${dd.key}') in (SELECT JSON_EXTRACT(content, '$.${dd.value}') AS datakey
- from \`${app}\`.t_post where 1=1 ${dd.query.map((dd) => {
+ from \`${app}\`.t_post where 1=1 ${dd.query
+                                    .map((dd) => {
                                     return getQueryString(dd);
-                                }).join(`  `)})`;
+                                })
+                                    .join(`  `)})`;
                             }
                             else if (dd.type === 'in') {
-                                return `and JSON_EXTRACT(content, '$.${dd.key}') in (${dd.query.map((dd) => {
-                                    return (typeof dd.value === 'string') ? `'${dd.value}'` : dd.value;
-                                }).join(',')})`;
+                                return `and JSON_EXTRACT(content, '$.${dd.key}') in (${dd.query
+                                    .map((dd) => {
+                                    return typeof dd.value === 'string' ? `'${dd.value}'` : dd.value;
+                                })
+                                    .join(',')})`;
                             }
                             else if (dd.type) {
-                                return ` and JSON_EXTRACT(content, '$.${dd.key}') ${dd.type} ${(typeof dd.value === 'string') ? `'${dd.value}'` : dd.value}`;
+                                return ` and JSON_EXTRACT(content, '$.${dd.key}') ${dd.type} ${typeof dd.value === 'string' ? `'${dd.value}'` : dd.value}`;
                             }
                             else {
                                 return ` and JSON_EXTRACT(content, '$.${dd.key}') LIKE '%${dd.value}%'`;
@@ -271,9 +276,11 @@ class Post {
                         if (content.datasource) {
                             content.datasource = JSON.parse(content.datasource);
                             if (content.datasource.length > 0) {
-                                query += ` and userID in ('${content.datasource.map((dd) => {
+                                query += ` and userID in ('${content.datasource
+                                    .map((dd) => {
                                     return dd;
-                                }).join("','")}')`;
+                                })
+                                    .join("','")}')`;
                             }
                         }
                         countSql = `select count(1)
@@ -289,7 +296,7 @@ class Post {
                     }
                 })();
                 console.log(`sql---${sql.replace('$countIndex', '')}`);
-                const data = (await v.query(sql.replace('$countIndex', ''), []));
+                const data = await v.query(sql.replace('$countIndex', ''), []);
                 for (const dd of data) {
                     if (!dd.userID) {
                         continue;
@@ -300,8 +307,7 @@ class Post {
                                                                   from \`${this.app}\`.\`t_user\`
                                                                   where userID = ${dd.userID}`, []))[0]['userData'];
                         }
-                        catch (e) {
-                        }
+                        catch (e) { }
                     }
                     dd.userData = userData[dd.userID];
                 }
@@ -321,11 +327,7 @@ class Post {
                 console.log(`countSql:${countSql}`);
                 return {
                     data: data,
-                    count: (countSql) ? (await v.query(countSql, [content]))[0]["count(1)"]
-                        :
-                            (await v.query(countText, [
-                                content
-                            ]))[0]["count(1)"]
+                    count: countSql ? (await v.query(countSql, [content]))[0]['count(1)'] : (await v.query(countText, [content]))[0]['count(1)'],
                 };
             }
             catch (e) {

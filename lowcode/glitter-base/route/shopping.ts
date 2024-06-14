@@ -126,7 +126,7 @@ export class ApiShop {
         });
     }
 
-    static getOrder(json: { limit: number; page: number; search?: string; email?: string; id?: string; data_from?: 'user' | 'manager' }) {
+    static getOrder(json: { limit: number; page: number; search?: string; email?: string; id?: string; data_from?: 'user' | 'manager'; status?: number; order?: string }) {
         return BaseApi.create({
             url:
                 getBaseUrl() +
@@ -135,6 +135,7 @@ export class ApiShop {
                     json.search && par.push(`search=${json.search}`);
                     json.id && par.push(`id=${json.id}`);
                     json.email && par.push(`email=${json.email}`);
+                    json.status && par.push(`status=${json.status}`);
                     return par.join('&');
                 })()}`,
             type: 'GET',
