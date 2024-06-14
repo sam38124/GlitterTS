@@ -793,6 +793,13 @@ ${obj.default ?? ''}</textarea
         return html`<button class="btn-gary" type="button" onclick="${event}">${text}</button>`;
     }
 
+    static searchFilter(event: string, vale: string, placeholder: string, margin?: string) {
+        return html`<div class="w-100 position-relative" style="margin: ${margin ?? 0};">
+            <i class=" fa-regular fa-magnifying-glass" style=" font-size: 18px;color: #A0A0A0;position: absolute;left:20px;top:50%;transform: translateY(-50%);" aria-hidden="true"></i>
+            <input class="form-control h-100 " style="border-radius: 10px; border: 1px solid #DDD; padding-left: 50px;" placeholder="${placeholder}" onchange="${event}" value="${vale}" />
+        </div>`;
+    }
+
     static selectFilter(obj: { gvc: GVC; callback: (value: any) => void; default: string; options: { key: string; value: string }[] }) {
         obj.gvc.addStyle(`
             .c_select {

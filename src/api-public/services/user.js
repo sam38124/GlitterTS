@@ -174,10 +174,6 @@ class User {
                 },
                 1,
             ]);
-            const data = await auto_send_email_js_1.AutoSendEmail.getDefCompare(this.app, 'auto-email-welcome');
-            if (data.toggle) {
-                (0, ses_js_1.sendmail)(`${data.name} <${process_1.default.env.smtp}>`, fbResponse.email, data.title, data.content);
-            }
         }
         const data = (await database_1.default.execute(`select *
                                              from \`${this.app}\`.t_user
@@ -287,10 +283,6 @@ class User {
                     },
                     1,
                 ]);
-                const data = await auto_send_email_js_1.AutoSendEmail.getDefCompare(this.app, 'auto-email-welcome');
-                if (data.toggle) {
-                    (0, ses_js_1.sendmail)(`${data.name} <${process_1.default.env.smtp}>`, payload === null || payload === void 0 ? void 0 : payload.email, data.title, data.content);
-                }
             }
             const data = (await database_1.default.execute(`select *
                                              from \`${this.app}\`.t_user
@@ -501,10 +493,10 @@ class User {
                 (SELECT 
                     email, 
                     COUNT(*) AS order_count, 
-                    SUM(CASE WHEN status = 1 THEN CAST(JSON_EXTRACT(orderData, '$.total') AS DECIMAL(10, 2)) 
-                        ELSE 0 END) AS total_amount
+                    SUM(CAST(JSON_EXTRACT(orderData, '$.total') AS DECIMAL(10, 2))) AS total_amount
                 FROM 
                     \`${this.app}\`.t_checkout
+                WHERE status = 1
                 GROUP BY email) as o
             RIGHT JOIN 
                 \`${this.app}\`.t_user u ON o.email = u.account
@@ -532,11 +524,10 @@ class User {
         })()} 
             ${obj.page !== undefined && obj.limit !== undefined ? `LIMIT ${obj.page * obj.limit}, ${obj.limit}` : ''};
         `;
-        console.log(sql);
         return sql;
     }
     async getUserList(query) {
-        var _a, _b, _c;
+        var _a, _b, _c, _d;
         try {
             const querySql = ['1=1'];
             query.page = (_a = query.page) !== null && _a !== void 0 ? _a : 0;
@@ -583,12 +574,18 @@ class User {
                 })
                     .join(` || `));
             }
-            const sqlObject = {
+            const dataSQL = this.getUserAndOrderSQL({
+                select: 'o.email, o.order_count, o.total_amount, u.*',
                 where: querySql,
                 orderBy: (_c = query.order_string) !== null && _c !== void 0 ? _c : '',
-            };
-            const dataSQL = this.getUserAndOrderSQL(Object.assign(Object.assign({}, sqlObject), { select: 'o.email, o.order_count, o.total_amount, u.*', page: query.page, limit: query.limit }));
-            const countSQL = this.getUserAndOrderSQL(Object.assign(Object.assign({}, sqlObject), { select: 'count(1)' }));
+                page: query.page,
+                limit: query.limit,
+            });
+            const countSQL = this.getUserAndOrderSQL({
+                select: 'count(1)',
+                where: querySql,
+                orderBy: (_d = query.order_string) !== null && _d !== void 0 ? _d : '',
+            });
             return {
                 data: (await database_1.default.query(dataSQL, [])).map((dd) => {
                     dd.pwd = undefined;

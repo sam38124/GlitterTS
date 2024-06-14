@@ -9,37 +9,18 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 import { EditorElem } from '../glitterBundle/plugins/editor-elem.js';
 import { BgWidget } from '../backend-manager/bg-widget.js';
+import { BgListComponent } from '../backend-manager/bg-list-component.js';
 import { ApiUser } from '../glitter-base/route/user.js';
 import { ShareDialog } from '../glitterBundle/dialog/ShareDialog.js';
 import { FormWidget } from '../official_view_component/official/form.js';
 import { ApiWallet } from '../glitter-base/route/wallet.js';
 import { ApiShop } from '../glitter-base/route/shopping.js';
 import { ShoppingOrderManager } from './shopping-order-manager.js';
+import { FilterOptions } from './filter-options.js';
 const html = String.raw;
 export class UserList {
     static main(gvc) {
         const glitter = gvc.glitter;
-        const callback = (data) => { };
-        const getFilterObject = (select) => {
-            const obj = {
-                created_time: ['', ''],
-                birth: [],
-                rank: [],
-                rebate: { key: '', value: '' },
-                total_amount: { key: '', value: '' },
-            };
-            if (!select) {
-                return obj;
-            }
-            if (typeof select === 'string') {
-                return obj[select];
-            }
-            const result = {};
-            for (const key of select) {
-                result[key] = obj[key];
-            }
-            return result;
-        };
         const vm = {
             id: glitter.getUUID(),
             type: 'list',
@@ -48,9 +29,11 @@ export class UserList {
             query: '',
             queryType: '',
             orderString: '',
-            filter: getFilterObject(),
+            filter: {},
             filterId: glitter.getUUID(),
         };
+        const ListComp = new BgListComponent(gvc, vm, FilterOptions.userFilterFrame);
+        vm.filter = ListComp.getFilterObject();
         let vmi = undefined;
         function getDatalist() {
             return vm.dataList.map((dd) => {
@@ -68,9 +51,6 @@ export class UserList {
                                 vmi.data = getDatalist();
                                 vmi.callback();
                                 gvc.notifyDataChange(vm.filterId);
-                                callback(vm.dataList.filter((dd) => {
-                                    return dd.checked;
-                                }));
                             },
                         }),
                         value: EditorElem.checkBoxOnly({
@@ -81,9 +61,6 @@ export class UserList {
                                 vmi.data = getDatalist();
                                 vmi.callback();
                                 gvc.notifyDataChange(vm.filterId);
-                                callback(vm.dataList.filter((dd) => {
-                                    return dd.checked;
-                                }));
                             },
                             style: 'height:25px;',
                         }),
@@ -126,238 +103,6 @@ export class UserList {
                 ];
             });
         }
-        function tagBadge(key, name, value) {
-            gvc.addStyle(`
-                .c_filter_tag {
-                    display: flex;
-                    padding: 4px 10px;
-                    justify-content: center;
-                    align-items: center;
-                    gap: 4px;
-                    border-radius: 7px;
-                    background: #f7f7f7;
-                    color: #8d8d8d;
-                    font-size: 16px;
-                }
-            `);
-            return html `<div class="c_filter_tag">
-                ${name}：${value}
-                <i
-                    class="fa-solid fa-xmark ms-1"
-                    style="cursor: pointer"
-                    onclick="${gvc.event(() => {
-                vm.filter[key] = getFilterObject(key);
-                gvc.notifyDataChange(vm.id);
-            })}"
-                ></i>
-            </div>`;
-        }
-        function getFilterTags(items) {
-            let h = '';
-            items.map((item) => {
-                const data = vm.filter[item.key];
-                if (data) {
-                    switch (item.type) {
-                        case 'during':
-                            h += data[0].length > 0 && data[1].length > 0 ? tagBadge(item.key, item.name, `${data.join(` ${item.data.centerText} `)}`) : '';
-                            break;
-                        case 'multi_checkbox':
-                            h +=
-                                data.length > 0
-                                    ? tagBadge(item.key, item.name, item.data
-                                        .filter((d) => {
-                                        return data.includes(d.key);
-                                    })
-                                        .map((d) => {
-                                        return d.name;
-                                    })
-                                        .join(', '))
-                                    : '';
-                            break;
-                        case 'radio_and_input':
-                            h +=
-                                data.value.length > 0
-                                    ? (() => {
-                                        const obj = item.data.find((d) => data.key === d.key);
-                                        return tagBadge(item.key, item.name, [obj.name, data.value, obj.unit].join(' '));
-                                    })()
-                                    : '';
-                            break;
-                    }
-                }
-            });
-            return html `<div style="display: flex; gap: 12px; margin-top: 8px">${h}</div>`;
-        }
-        function duringInputVerify(during) {
-            const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
-            if (during.length === 2 && dateRegex.test(during[0]) && dateRegex.test(during[1])) {
-                const jsDate1 = new Date(during[0]);
-                const jsDate2 = new Date(during[1]);
-                return jsDate2 >= jsDate1;
-            }
-            return true;
-        }
-        function showRightMenu(items) {
-            const glitter = window.parent.glitter;
-            const gvc = glitter.pageConfig[0].gvc;
-            const menu = glitter.share.NormalPageEditor;
-            const vmShow = { id: gvc.glitter.getUUID() };
-            menu.closeEvent = () => gvc.notifyDataChange(vm.id);
-            return menu.toggle({
-                visible: true,
-                title: '篩選',
-                view: gvc.bindView(() => {
-                    return {
-                        bind: vmShow.id,
-                        view: () => {
-                            return html `<!-- Accordion: 篩選 -->
-                                <div class="accordion" id="accordion${vmShow.id}">
-                                    ${gvc.map(items.map((item) => {
-                                let contentHTML = '';
-                                switch (item.type) {
-                                    case 'during':
-                                        contentHTML += BgWidget.duringInputContainer(gvc, item.data, vm.filter[item.key], (value) => {
-                                            vm.filter[item.key] = value;
-                                        });
-                                        break;
-                                    case 'multi_checkbox':
-                                        contentHTML += BgWidget.multiCheckboxContainer(gvc, item.data, vm.filter[item.key], (value) => {
-                                            vm.filter[item.key] = value;
-                                        });
-                                        break;
-                                    case 'radio_and_input':
-                                        contentHTML += BgWidget.radioInputContainer(gvc, item.data, vm.filter[item.key], (value) => {
-                                            vm.filter[item.key] = value;
-                                        });
-                                        break;
-                                }
-                                return html `<!-- Item -->
-                                                <div class="accordion-item border-0 rounded-3 mb-3">
-                                                    <h3 class="accordion-header" id="heading${item.key}">
-                                                        <button
-                                                            class="accordion-button shadow-none rounded-3 p-0 collapsed"
-                                                            type="button"
-                                                            data-bs-toggle="collapse"
-                                                            data-bs-target="#collapse${item.key}"
-                                                            aria-expanded="false"
-                                                            aria-controls="collapse${item.key}"
-                                                        >
-                                                            ${item.name}
-                                                        </button>
-                                                    </h3>
-                                                    <div class="accordion-collapse collapse" id="collapse${item.key}" aria-labelledby="heading${item.key}" data-bs-parent="#accordion${vmShow.id}">
-                                                        <div class="accordion-body p-0 pt-1">${contentHTML}</div>
-                                                    </div>
-                                                </div> `;
-                            }))}
-                                </div>
-                                <div class="position-absolute bottom-0 left-0 w-100 d-flex align-items-center justify-content-end p-3 border-top pe-4" style="gap:10px;">
-                                    ${BgWidget.cancel(gvc.event(() => {
-                                vm.filter = getFilterObject();
-                                menu.toggle({ visible: false });
-                                vm.type = 'list';
-                                gvc.notifyDataChange(vm.id);
-                            }), '清除')}
-                                    ${BgWidget.save(gvc.event(() => {
-                                for (const name of Object.keys(vm.filter)) {
-                                    const obj = items.find((item) => item.key === name);
-                                    if (obj && obj.type === 'during' && !duringInputVerify(vm.filter[name])) {
-                                        alert(`${obj.name}欄位，結束日期不得早於開始日期`);
-                                        return;
-                                    }
-                                }
-                                menu.toggle({ visible: false });
-                                vm.type = 'list';
-                                gvc.notifyDataChange(vm.id);
-                            }), '完成')}
-                                </div>`;
-                        },
-                        divCreate: { style: 'padding: 20px;' },
-                        onCreate: () => {
-                            gvc.addStyle(`
-                                .accordion-button:not(.collapsed)::after {
-                                    box-shadow: none !important;
-                                    color: #000 !important;
-                                    background-color: #fff !important;
-                                    background-image: url(${BgWidget.arrowDownDataImage('#000')}) !important;
-                                }
-
-                                .accordion-button::after {
-                                    background-color: #fff !important;
-                                }
-                            `);
-                        },
-                    };
-                }),
-                right: true,
-            });
-        }
-        const filterItems = [
-            {
-                key: 'created_time',
-                type: 'during',
-                name: '註冊日期',
-                data: {
-                    centerText: '至',
-                    list: [
-                        { key: 'start', type: 'date', placeHolder: '請選擇開始時間' },
-                        { key: 'end', type: 'date', placeHolder: '請選擇結束時間' },
-                    ],
-                },
-            },
-            {
-                key: 'birth',
-                type: 'multi_checkbox',
-                name: '生日月份',
-                data: [
-                    { key: 1, name: '一月' },
-                    { key: 2, name: '二月' },
-                    { key: 3, name: '三月' },
-                    { key: 4, name: '四月' },
-                    { key: 5, name: '五月' },
-                    { key: 6, name: '六月' },
-                    { key: 7, name: '七月' },
-                    { key: 8, name: '八月' },
-                    { key: 9, name: '九月' },
-                    { key: 10, name: '十月' },
-                    { key: 11, name: '十一月' },
-                    { key: 12, name: '十二月' },
-                ],
-            },
-            {
-                key: 'rebate',
-                type: 'radio_and_input',
-                name: '持有回饋金',
-                data: [
-                    { key: 'lessThan', name: '小於', type: 'number', placeHolder: '請輸入數值', unit: '元' },
-                    { key: 'moreThan', name: '大於', type: 'number', placeHolder: '請輸入數值', unit: '元' },
-                ],
-            },
-            {
-                key: 'total_amount',
-                type: 'radio_and_input',
-                name: '累積消費金額',
-                data: [
-                    { key: 'lessThan', name: '小於', type: 'number', placeHolder: '請輸入數值', unit: '元' },
-                    { key: 'moreThan', name: '大於', type: 'number', placeHolder: '請輸入數值', unit: '元' },
-                ],
-            },
-        ];
-        const orderByList = [
-            { key: 'default', value: '預設' },
-            { key: 'name', value: '顧客名稱' },
-            { key: 'created_time_desc', value: '註冊時間新 > 舊' },
-            { key: 'created_time_asc', value: '註冊時間舊 > 新' },
-            { key: 'order_total_desc', value: '消費金額高 > 低' },
-            { key: 'order_total_asc', value: '消費金額低 > 高' },
-            { key: 'order_count_desc', value: '訂單數量多 > 少' },
-            { key: 'order_count_asc', value: '訂單數量少 > 多' },
-        ];
-        const selectList = [
-            { key: 'name', value: '顧客名稱' },
-            { key: 'email', value: '電子信箱' },
-            { key: 'phone', value: '電話號碼' },
-        ];
         return gvc.bindView(() => {
             return {
                 bind: vm.id,
@@ -414,15 +159,15 @@ export class UserList {
                                     gvc.notifyDataChange(vm.id);
                                 },
                                 default: vm.queryType || 'name',
-                                options: selectList,
+                                options: FilterOptions.userSelect,
                             })}
-                                                ${BgWidget.searchPlace(gvc.event((e, event) => {
+                                                ${BgWidget.searchFilter(gvc.event((e, event) => {
                                 vm.query = e.value;
                                 gvc.notifyDataChange(vm.id);
-                            }), vm.query || '', '搜尋所有用戶', '0')}
+                            }), vm.query || '', '搜尋所有用戶')}
                                                 ${BgWidget.funnelFilter({
                                 gvc,
-                                callback: () => showRightMenu(filterItems),
+                                callback: () => ListComp.showRightMenu(FilterOptions.userFunnel),
                             })}
                                                 ${BgWidget.updownFilter({
                                 gvc,
@@ -431,10 +176,10 @@ export class UserList {
                                     gvc.notifyDataChange(vm.id);
                                 },
                                 default: vm.orderString || 'default',
-                                options: orderByList,
+                                options: FilterOptions.userOrderBy,
                             })}
                                             </div>
-                                            <div>${getFilterTags(filterItems)}</div>
+                                            <div>${ListComp.getFilterTags(FilterOptions.userFunnel)}</div>
                                         </div>
                                         ${gvc.bindView(() => {
                                 return {

@@ -595,10 +595,10 @@ export class User {
                 (SELECT 
                     email, 
                     COUNT(*) AS order_count, 
-                    SUM(CASE WHEN status = 1 THEN CAST(JSON_EXTRACT(orderData, '$.total') AS DECIMAL(10, 2)) 
-                        ELSE 0 END) AS total_amount
+                    SUM(CAST(JSON_EXTRACT(orderData, '$.total') AS DECIMAL(10, 2))) AS total_amount
                 FROM 
                     \`${this.app}\`.t_checkout
+                WHERE status = 1
                 GROUP BY email) as o
             RIGHT JOIN 
                 \`${this.app}\`.t_user u ON o.email = u.account
