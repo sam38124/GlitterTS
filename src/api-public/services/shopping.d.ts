@@ -129,20 +129,24 @@ export declare class Shopping {
             method: string;
         };
         is_free?: undefined;
+        orderID?: undefined;
         off_line?: undefined;
         form?: undefined;
     } | {
         is_free: boolean;
+        orderID: string;
         data?: undefined;
         off_line?: undefined;
         form?: undefined;
     } | {
         off_line: boolean;
+        orderID: string;
         data?: undefined;
         is_free?: undefined;
         form?: undefined;
     } | {
         form: any;
+        orderID: string;
         data?: undefined;
         is_free?: undefined;
         off_line?: undefined;

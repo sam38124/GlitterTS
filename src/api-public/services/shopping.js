@@ -358,6 +358,7 @@ class Shopping {
                 }
                 return {
                     is_free: true,
+                    orderID: carData.orderID
                 };
             }
             else {
@@ -380,10 +381,12 @@ class Shopping {
                 if (keyData.TYPE === 'off_line') {
                     return {
                         off_line: true,
+                        orderID: carData.orderID
                     };
                 }
                 return {
                     form: subMitData,
+                    orderID: carData.orderID
                 };
             }
         }

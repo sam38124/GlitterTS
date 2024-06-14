@@ -110,6 +110,41 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                         const rebate = (yield ApiShop.getRebateValue()) || 0;
                         function checkout() {
                             const href = new URL(redirect, location.href);
+                            let emptyArray = [];
+                            let shipment_fee = gvc.share.cartData.shipment_fee;
+                            let amount = gvc.share.cartData.total - shipment_fee;
+                            if (window.gtag) {
+                                cartData.line_items.map((data) => {
+                                    let temp = {};
+                                    temp.item_id = data.sku;
+                                    temp.item_name = data.title;
+                                    temp.quantity = data.count;
+                                    temp.price = data.sale_price;
+                                    emptyArray.push(temp);
+                                });
+                                window.gtag("event", "add_shipping_info", {
+                                    currency: "USD",
+                                    value: amount,
+                                    coupon: voucher,
+                                    shipping_tier: userInfo.shipment,
+                                    items: emptyArray
+                                });
+                                ;
+                                window.gtag("event", "begin_checkout", {
+                                    currency: "USD",
+                                    value: amount,
+                                    coupon: voucher,
+                                    items: emptyArray
+                                });
+                                ;
+                                window.gtag("event", "add_payment_info", {
+                                    currency: "USD",
+                                    value: amount,
+                                    coupon: voucher,
+                                    payment_type: userInfo.method,
+                                    items: emptyArray
+                                });
+                            }
                             ApiShop.toCheckout({
                                 line_items: cartData.line_items.map((dd) => {
                                     return {
@@ -123,6 +158,19 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                 code: voucher,
                                 use_rebate: parseInt(rebate, 10)
                             }).then((res) => {
+                                const orderID = res.response.orderID;
+                                if (window.gtag) {
+                                    ;
+                                    window.gtag("event", "purchase:", {
+                                        transaction_id: orderID,
+                                        currency: "TWD",
+                                        value: amount,
+                                        coupon: voucher,
+                                        payment_type: userInfo.method,
+                                        shipping: shipment_fee,
+                                        items: emptyArray
+                                    });
+                                }
                                 if (object.payType === 'offline' || res.response.off_line || res.response.is_free) {
                                     ApiShop.clearCart();
                                     resolve(true);

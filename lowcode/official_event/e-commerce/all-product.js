@@ -121,6 +121,26 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                 clickEvent: object.orderBy,
                                 subData: subData
                             });
+                            if (window.gtag && titleMatch) {
+                                ;
+                                window.gtag("event", "search", {
+                                    search_term: titleMatch !== null && titleMatch !== void 0 ? titleMatch : "",
+                                    maxPrice: maxPrice,
+                                    minPrice: minPrice,
+                                    search: titleMatch,
+                                    orderBy: orderBy,
+                                });
+                            }
+                            if (window.gtag && collection) {
+                                ;
+                                window.gtag("event", "search", {
+                                    collection: collection,
+                                    maxPrice: maxPrice,
+                                    minPrice: minPrice,
+                                    search: titleMatch,
+                                    orderBy: orderBy,
+                                });
+                            }
                             ApiShop.getProduct({
                                 page: page,
                                 limit: limit,

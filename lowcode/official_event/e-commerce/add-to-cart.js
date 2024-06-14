@@ -45,6 +45,45 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                             subData: subData,
                             element: element
                         })) || 1;
+                        if (window.gtag) {
+                            let itemID = pdid.split("-");
+                            let data = yield ApiShop.getProduct({ page: 0, limit: 50, id: itemID[0] }).then((data) => {
+                                var _a, _b;
+                                if (data.result && data.response.result) {
+                                    let variants = data.response.data.content.variants;
+                                    let product = data.response.data.content;
+                                    let target = {};
+                                    function arraysEqualSet(arr1, arr2) {
+                                        arr2 = arr2.slice(1);
+                                        if (arr1.length !== arr2.length)
+                                            return false;
+                                        let set1 = new Set(arr1);
+                                        let set2 = new Set(arr2);
+                                        if (set1.size !== set2.size)
+                                            return false;
+                                        return [...set1].every(value => set2.has(value));
+                                    }
+                                    variants.map((data) => {
+                                        if (arraysEqualSet(data.spec, itemID)) {
+                                            target = data;
+                                        }
+                                    });
+                                    window.gtag("event", "add_to_cart", {
+                                        currency: "TWD",
+                                        value: count * target.sale_price,
+                                        items: [
+                                            {
+                                                item_id: (_a = target === null || target === void 0 ? void 0 : target.sku) !== null && _a !== void 0 ? _a : "",
+                                                item_name: (_b = product === null || product === void 0 ? void 0 : product.title) !== null && _b !== void 0 ? _b : "unknown name",
+                                                price: target === null || target === void 0 ? void 0 : target.sale_price,
+                                                quantity: count,
+                                                item_variant: itemID.slice(1),
+                                            }
+                                        ]
+                                    });
+                                }
+                            });
+                        }
                         ApiShop.addToCart(pdid, count);
                         ApiShop.getCart().then((resolve) => { });
                         resolve(pdid);

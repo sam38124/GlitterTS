@@ -543,6 +543,7 @@ export class Shopping {
                 }
                 return {
                     is_free: true,
+                    orderID:carData.orderID
                 };
             } else {
                 const id = 'redirect_' + Tool.randomString(6);
@@ -567,10 +568,12 @@ console.log(carData);
                 if (keyData.TYPE === 'off_line') {
                     return {
                         off_line: true,
+                        orderID:carData.orderID
                     };
                 }
                 return {
                     form: subMitData,
+                    orderID:carData.orderID
                 };
             }
         } catch (e) {

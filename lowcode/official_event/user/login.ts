@@ -83,7 +83,7 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
 
                 },
                 event: () => {
-                     function loginCallback(r:any,resolve:(result:boolean)=>void ){
+                     function loginCallback(method:string,r:any,resolve:(result:boolean)=>void ){
                          if (!r.result) {
                              TriggerEvent.trigger({
                                  gvc: gvc,
@@ -106,9 +106,16 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                              GlobalUser.token = r.response.token
                              GlobalUser.userInfo = r.response
                              GlobalUser.updateUserData = JSON.parse(JSON.stringify(r.response))
+                             if((window as any).gtag){
+                                 (window as any).gtag("event", "login", {
+                                     method: method
+                                 });
+                             }
+
                              resolve(true)
                          }
                      }
+
                     if(object.loginMethod==='fb'){
                         return new Promise(async (resolve, reject) => {
                             (window as any).FB.login(function(response:any) {
@@ -118,7 +125,7 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                     login_type:'fb',
                                     fb_token:accessToken
                                 }).then((r) => {
-                                    loginCallback(r,(res)=>{
+                                    loginCallback('fb',r,(res)=>{
                                         resolve(res)
                                     })
                                 })
@@ -146,7 +153,7 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                 line_token:code as any,
                                 redirect:redirect as any
                             }).then((r) => {
-                                loginCallback(r,(res)=>{
+                                loginCallback('line',r,(res)=>{
                                     resolve(res)
                                 })
                             })
@@ -173,7 +180,7 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                 google_token:code as any,
                                 redirect:redirect as any
                             }).then((r) => {
-                                loginCallback(r,(res)=>{
+                                loginCallback('google',r,(res)=>{
                                     resolve(res)
                                 })
                             })
@@ -199,7 +206,7 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                 account: account as string,
                                 pwd: pwd as string
                             }).then((r) => {
-                                loginCallback(r,(res)=>{
+                                loginCallback('normal',r,(res)=>{
                                     resolve(res)
                                 })
                             })

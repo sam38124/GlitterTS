@@ -49,7 +49,7 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                 subData:subData
                             })
                         }):ApiShop.getCart))().then(async (res: any) => {
-                            console.log(`ApiShop.getCart->`, res);
+
                             const cartData: {
                                 line_items: {
                                     "sku": string,
@@ -76,6 +76,58 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                     }) as any
                                 } as any)
                             }
+
+                            if((window as any).gtag){
+                                console.log(" cartData -- " , res);
+                                let value = 0
+                                let count=0
+                                function checkPass(){
+                                    let emptyArray:any[] = [];
+                                    let amount = 0;
+
+                                    if(++count===cartData.line_items.length){
+
+                                        cartData.line_items.map((data )=>{
+                                            let temp:any = {};
+                                            temp.item_id = data.sku;
+                                            temp.item_name = data.title;
+                                            temp.quantity = data.count;
+                                            temp.price = data.sale_price;
+                                            amount += temp.price * temp.quantity;
+                                            emptyArray.push(temp)
+                                        })
+                                        ;(window as any).gtag("event", "view_cart", {
+                                            currency: "TWD",
+                                            value: amount,
+                                            items: emptyArray
+                                        });
+                                    }
+                                }
+
+                                cartData.line_items.map((product)=>{
+                                    value += product.sale_price
+                                    ApiShop.getProduct({page: 0, limit: 50, id: product.id as any}).then((data) => {
+                                        if(data.result && data.response.result){
+                                            let variants = data.response.data.content.variants;
+                                            let target:any = {}
+                                            const find=variants.find((dd:any)=>{
+                                                return dd.spec.join('') === product.spec.join('')
+                                            });
+
+                                            if(find){
+                                                product.title=data.response.data.content.title;
+                                                product.sale_price=find.sale_price;
+                                                product.sku = find.sku;
+                                            }
+                                            checkPass()
+                                        }else{
+                                            checkPass()
+                                        }
+                                    })
+                                })
+
+                            }
+
                             const voucher = await ApiShop.getVoucherCode()
                             const rebate = (await ApiShop.getRebateValue()) || 0
                             ApiShop.getCheckout({

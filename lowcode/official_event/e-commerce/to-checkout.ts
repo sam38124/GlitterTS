@@ -102,9 +102,11 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                 "stock": number,
                                 "sale_price": number,
                                 "compare_price": number,
+                                "shipment_fee" : number,
                                 "preview_image": string,
                                 "title": string,
                                 "id": number,
+
                                 "count": number
                             }[],
                             total: number
@@ -117,6 +119,47 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
 
                         function checkout() {
                             const href = new URL(redirect as any,location.href)
+
+                            let emptyArray:any[] = [];
+                            let shipment_fee = gvc.share.cartData.shipment_fee;
+                            let amount = gvc.share.cartData.total - shipment_fee;
+
+                            if((window as any).gtag){
+                                // format line items
+                                cartData.line_items.map((data )=>{
+                                    let temp:any = {};
+                                    temp.item_id = data.sku;
+                                    temp.item_name = data.title;
+                                    temp.quantity = data.count;
+                                    temp.price = data.sale_price;
+                                    emptyArray.push(temp)
+                                })
+                                ;(window as any).gtag("event", "add_shipping_info", {
+                                    currency: "USD",
+                                    value: amount,
+                                    coupon: voucher as string,
+                                    shipping_tier: (userInfo as any).shipment as string,
+                                    items: emptyArray
+                                });
+
+                                ;(window as any).gtag("event", "begin_checkout", {
+                                    currency: "USD",
+                                    value: amount,
+                                    coupon: voucher as string,
+                                    items: emptyArray
+                                });
+
+                                ;(window as any).gtag("event", "add_payment_info", {
+                                    currency: "USD",
+                                    value: amount,
+                                    coupon: voucher as string,
+                                    payment_type : (userInfo as any).method,
+                                    items: emptyArray
+                                });
+
+                            }
+
+
                             ApiShop.toCheckout({
                                 line_items: cartData.line_items.map((dd) => {
                                     return {
@@ -130,6 +173,19 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                 code: voucher as string,
                                 use_rebate: parseInt(rebate as string, 10)
                             }).then((res) => {
+                                const orderID=res.response.orderID
+                                if((window as any).gtag){
+                                    ;(window as any).gtag("event", "purchase:", {
+                                        transaction_id:orderID,
+                                        currency: "TWD",
+                                        value: amount,
+                                        coupon: voucher as string,
+                                        payment_type : (userInfo as any).method,
+                                        shipping: shipment_fee,
+                                        items: emptyArray
+                                    });
+                                }
+
                                 if (object.payType === 'offline' || res.response.off_line || res.response.is_free) {
                                     ApiShop.clearCart()
                                     resolve(true)

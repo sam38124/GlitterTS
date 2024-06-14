@@ -135,6 +135,11 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                     GlobalUser.token = r.response.token
                                     GlobalUser.userInfo = r.response
                                     GlobalUser.updateUserData = JSON.parse(JSON.stringify(r.response))
+                                    if((window as any).gtag){
+                                        (window as any).gtag("event", "sign_up", {
+                                            method: "normal"
+                                        });
+                                    }
                                     resolve(true)
                                 }
                             }

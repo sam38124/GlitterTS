@@ -113,6 +113,26 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                 clickEvent: object.orderBy,
                                 subData: subData
                             })
+
+                            if((window as any).gtag && titleMatch){
+                                ;(window as any).gtag("event", "search", {
+                                    search_term: titleMatch??"",
+                                    maxPrice: maxPrice as string,
+                                    minPrice: minPrice as string,
+                                    search: titleMatch as string,
+                                    orderBy:orderBy as string,
+                                });
+                            }
+
+                            if((window as any).gtag && collection){
+                                ;(window as any).gtag("event", "search", {
+                                    collection: collection as string,
+                                    maxPrice: maxPrice as string,
+                                    minPrice: minPrice as string,
+                                    search: titleMatch as string,
+                                    orderBy:orderBy as string,
+                                });
+                            }
                             ApiShop.getProduct({
                                 page: page as any,
                                 limit: limit as any,

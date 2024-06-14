@@ -58,7 +58,6 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                 subData: subData
                             });
                         }) : ApiShop.getCart))().then((res) => __awaiter(void 0, void 0, void 0, function* () {
-                            console.log(`ApiShop.getCart->`, res);
                             const cartData = {
                                 line_items: [],
                                 total: 0
@@ -70,6 +69,52 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                     spec: b.split('-').filter((dd, index) => {
                                         return index !== 0;
                                     })
+                                });
+                            }
+                            if (window.gtag) {
+                                console.log(" cartData -- ", res);
+                                let value = 0;
+                                let count = 0;
+                                function checkPass() {
+                                    let emptyArray = [];
+                                    let amount = 0;
+                                    if (++count === cartData.line_items.length) {
+                                        cartData.line_items.map((data) => {
+                                            let temp = {};
+                                            temp.item_id = data.sku;
+                                            temp.item_name = data.title;
+                                            temp.quantity = data.count;
+                                            temp.price = data.sale_price;
+                                            amount += temp.price * temp.quantity;
+                                            emptyArray.push(temp);
+                                        });
+                                        window.gtag("event", "view_cart", {
+                                            currency: "TWD",
+                                            value: amount,
+                                            items: emptyArray
+                                        });
+                                    }
+                                }
+                                cartData.line_items.map((product) => {
+                                    value += product.sale_price;
+                                    ApiShop.getProduct({ page: 0, limit: 50, id: product.id }).then((data) => {
+                                        if (data.result && data.response.result) {
+                                            let variants = data.response.data.content.variants;
+                                            let target = {};
+                                            const find = variants.find((dd) => {
+                                                return dd.spec.join('') === product.spec.join('');
+                                            });
+                                            if (find) {
+                                                product.title = data.response.data.content.title;
+                                                product.sale_price = find.sale_price;
+                                                product.sku = find.sku;
+                                            }
+                                            checkPass();
+                                        }
+                                        else {
+                                            checkPass();
+                                        }
+                                    });
                                 });
                             }
                             const voucher = yield ApiShop.getVoucherCode();

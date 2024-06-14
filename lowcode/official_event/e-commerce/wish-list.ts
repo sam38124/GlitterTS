@@ -17,6 +17,21 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                 },
                 event: () => {
                     return new Promise(async (resolve, reject) => {
+                        let pdInf = subData.content
+                        console.log(" subData -- " , subData);
+                        if((window as any).gtag){
+                            ;(window as any).gtag("event", "add_to_wishlist", {
+                                currency: "TWD",
+                                value: pdInf.variants[0].sale_price,
+                                items: [
+                                    {
+                                        item_id: pdInf.variants[0].sale_price,
+                                        item_name: pdInf.title,
+
+                                    }
+                                ],
+                            });
+                        }
                         const id:any=await TriggerEvent.trigger({
                             gvc:gvc,
                             widget:widget,
