@@ -168,6 +168,15 @@ export class User {
                 },
                 1
             ])
+            const data = await AutoSendEmail.getDefCompare(this.app, 'auto-email-welcome')
+            if(data.toggle){
+                sendmail(
+                    `${data.name} <${process.env.smtp}>`,
+                    fbResponse.email,
+                    data.title,
+                    data.content
+                );
+            }
         }
         const data: any = (await db.execute(`select *
                                              from \`${this.app}\`.t_user
@@ -283,6 +292,15 @@ export class User {
                     },
                     1
                 ])
+                const data = await AutoSendEmail.getDefCompare(this.app, 'auto-email-welcome')
+                if(data.toggle){
+                    sendmail(
+                        `${data.name} <${process.env.smtp}>`,
+                        payload?.email,
+                        data.title,
+                        data.content
+                    );
+                }
             }
             const data: any = (await db.execute(`select *
                                              from \`${this.app}\`.t_user

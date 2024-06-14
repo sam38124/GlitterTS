@@ -219,7 +219,7 @@ ${dd.title}
                     class: `px-3` ,style:``
                 }
             }
-        })),`<div style="height: 70px;"></div>`,`<div class="position-fixed bottom-0 left-0 w-100 d-flex align-items-center justify-content-end p-3 border-top bg-white border" style="gap:10px;left: 0;background: #FFF;
+        })),`<div style="height: 70px;"></div>`,`<div class="position-fixed bottom-0 left-0 w-100 d-flex align-items-center justify-content-end p-3 border-top bg-white border" style="z-index:999;gap:10px;left: 0;background: #FFF;
 box-shadow: 0px 1px 10px 0px rgba(0, 0, 0, 0.15);">
 ${BgWidget.cancel(gvc.event(() => {
             back()

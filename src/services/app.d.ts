@@ -50,6 +50,10 @@ export declare class App {
         name: string;
     }): Promise<boolean>;
     addDNSRecord(domain: string): Promise<unknown>;
+    setSubDomain(config: {
+        appName: string;
+        domain: string;
+    }): Promise<any>;
     setDomain(config: {
         appName: string;
         domain: string;

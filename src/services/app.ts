@@ -519,7 +519,7 @@ export class App {
                              FROM \`${saasConfig.SAAS_NAME}\`.app_config
                              where domain =${db.escape(domain_name)}`, []))[0]['count(1)'] === 0) {
             const result = await this.addDNSRecord(domain_name);
-            (await this.setDomain({
+            (await this.setSubDomain({
                 appName: cf.app_name,
                 domain:domain_name
             }));
@@ -555,13 +555,80 @@ export class App {
                 HostedZoneId: config.AWS_HostedZoneId // 您的托管區域 ID
             };
             route53.changeResourceRecordSets(params, function (err, data) {
-             setTimeout(()=>{
-                 resolve(true)
-             },10 * 1000)
+                resolve(true)
             });
         })
     }
 
+    public async setSubDomain(config: {
+        appName: string,
+        domain: string
+    }) {
+        let checkExists = (await db.query(`select count(1)
+                                           from \`${saasConfig.SAAS_NAME}\`.app_config
+                                           where domain =?
+                                             and user !=?`, [config.domain, this.token!.userID]))['count(1)'] > 0;
+        if (checkExists) {
+            throw exception.BadRequestError('BAD_REQUEST', 'this domain already on use.', null);
+        }
+        try {
+            const data = await Ssh.readFile('/etc/nginx/sites-enabled/default.conf')
+            let result: string = await new Promise((resolve, reject) => {
+                NginxConfFile.createFromSource(data as string, (err, conf) => {
+                    const server: any = []
+                    for (const b of conf!.nginx.server as any) {
+                        if (b.server_name.toString().indexOf(config.domain) === -1) {
+                            server.push(b)
+                        }
+                    }
+                    conf!.nginx.server = server
+                    resolve(conf!.toString())
+                })
+            })
+result += `\n\nserver {
+    server_name ${config.domain};
+    location / {
+       proxy_pass http://127.0.0.1:3080/${config.appName}/;
+       proxy_set_header X-Real-IP $remote_addr;
+       proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+       proxy_set_header X-Forwarded-Proto $http_x_forwarded_proto;
+    }
+    listen 443 ssl;
+    ssl_certificate ${process.env.ssl_certificate};
+    ssl_certificate_key ${process.env.ssl_certificate_key};
+}
+server {
+    if ($host = ${config.domain}) {
+        return 301 https://$host$request_uri;
+    }
+    server_name ${config.domain};
+    listen 80;
+    return 404;
+}
+`
+            fs.writeFileSync('/nginx.config', result);
+            const response = await new Promise((resolve, reject) => {
+                Ssh.exec([
+                    `sudo docker cp $(sudo docker ps --filter "expose=3080" --format "{{.ID}}"):/nginx.config /etc/nginx/sites-enabled/default.conf`,
+                    `sudo nginx -s reload`
+                ]).then((res: any) => {
+                    resolve(res && res.join('').indexOf('Successfully') !== -1)
+                })
+            });
+            ((await db.execute(`
+                update \`${saasConfig.SAAS_NAME}\`.app_config
+                set domain=?
+                where domain = ?
+            `, [null, config.domain])))
+            return ((await db.execute(`
+                update \`${saasConfig.SAAS_NAME}\`.app_config
+                set domain=?
+                where appName = ?
+            `, [config.domain, config.appName])))
+        } catch (e: any) {
+            throw exception.BadRequestError(e.code ?? 'BAD_REQUEST', e, null);
+        }
+    }
     public async setDomain(config: {
         appName: string,
         domain: string
@@ -587,6 +654,7 @@ export class App {
                     resolve(conf!.toString())
                 })
             })
+
             result += `\n\nserver {
        server_name ${config.domain};
     location / {

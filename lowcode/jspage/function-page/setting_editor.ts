@@ -408,6 +408,7 @@ export class Setting_editor {
                                                             const url = new URL('./'+items[parseInt(index)].page,glitter.root_path);
                                                             url.searchParams.set('appName', items[parseInt(index)].appName)
                                                             url.searchParams.set('cms', 'true');
+                                                            url.searchParams.set('page', items[parseInt(index)].page);
                                                             $('#editerCenter').html(`<iframe src="${url.href}" style="border: none;height: calc(100vh - 56px);"></iframe>`);
                                                         }
                                                     }

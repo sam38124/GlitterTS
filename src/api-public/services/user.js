@@ -179,6 +179,10 @@ class User {
                 },
                 1
             ]);
+            const data = await auto_send_email_js_1.AutoSendEmail.getDefCompare(this.app, 'auto-email-welcome');
+            if (data.toggle) {
+                (0, ses_js_1.sendmail)(`${data.name} <${process_1.default.env.smtp}>`, fbResponse.email, data.title, data.content);
+            }
         }
         const data = (await database_1.default.execute(`select *
                                              from \`${this.app}\`.t_user
@@ -288,6 +292,10 @@ class User {
                     },
                     1
                 ]);
+                const data = await auto_send_email_js_1.AutoSendEmail.getDefCompare(this.app, 'auto-email-welcome');
+                if (data.toggle) {
+                    (0, ses_js_1.sendmail)(`${data.name} <${process_1.default.env.smtp}>`, payload === null || payload === void 0 ? void 0 : payload.email, data.title, data.content);
+                }
             }
             const data = (await database_1.default.execute(`select *
                                              from \`${this.app}\`.t_user

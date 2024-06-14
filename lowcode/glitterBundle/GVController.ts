@@ -410,7 +410,8 @@ export function init(metaURL: string, fun: (gvc: GVC, glitter: Glitter, gBundle:
 }) {
     GVC.glitter.share.GVControllerList = GVC.glitter.share.GVControllerList ?? {}
     GVC.glitter.share.GVControllerList[metaURL] = (cf: {
-        pageConfig: PageConfig
+        pageConfig: PageConfig,
+        c_type:string
     }) => {
         if ((window as any).glitter.pageConfig.length - 2 >= 0) {
             localStorage.setItem('g_l_top',JSON.stringify({
@@ -474,7 +475,6 @@ ${lifeCycle.onCreateView()}
         gvc.glitter.setAnimation(cf.pageConfig)
         lifeCycle.onCreate()
         gvc.glitter.defaultSetting.pageLoadingFinish()
-
-        PageManager.setHistory(GVC.glitter.getUrlParameter('page'))
+        PageManager.setHistory(GVC.glitter.getUrlParameter('page'),cf.c_type)
     }
 }

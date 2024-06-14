@@ -21,6 +21,7 @@ export var GVCType;
 export class PageConfig {
     constructor(par) {
         this.scrollTop = 0;
+        this.search = par.search || '';
         this.tag = par.tag;
         this.id = par.id;
         this.obj = par.obj;
@@ -93,7 +94,6 @@ export class PageManager {
                     try {
                         const scroll = JSON.parse(localStorage.getItem('g_l_top'));
                         if (scroll.id === id) {
-                            console.log(`scrollTO->`, scroll.y);
                             window.scrollTo({
                                 top: scroll.y,
                                 behavior: 'auto'
@@ -109,6 +109,7 @@ export class PageManager {
                     }
                 }
                 scroll();
+                glitter.window.history.replaceState({}, glitter.document.title, glitter.pageConfig[index].search);
             }
         }
         catch (e) {
@@ -164,12 +165,13 @@ export class PageManager {
                     });
                     glitter.pageConfig.push(pageConfig);
                     glitter.defaultSetting.pageLoading();
-                    gvFunction({
-                        pageConfig: pageConfig
-                    });
-                    if (window.gtag) {
+                    if (window.gtag && !GVC.initial) {
                         window.gtag('event', 'page_view', { 'page_title': document.title, page_location: document.location.href });
                     }
+                    gvFunction({
+                        pageConfig: pageConfig,
+                        c_type: 'home'
+                    });
                 }
             }
         ], 'GVControllerList');
@@ -223,20 +225,29 @@ export class PageManager {
             }, 100);
         });
     }
-    static setHistory(tag) {
+    static setHistory(tag, type) {
         const glitter = Glitter.glitter;
-        const search = glitter.setSearchParam(glitter.removeSearchParam(glitter.window.location.search, 'page'), 'page', tag);
+        const search = glitter.root_path + tag + glitter.window.location.search;
         try {
             if (GVC.initial) {
                 GVC.initial = false;
             }
             else {
-                glitter.window.history.pushState({}, glitter.document.title, search);
+                if (type === 'home') {
+                    glitter.window.history.replaceState({}, glitter.document.title, search);
+                }
+                else if (type === 'page') {
+                    glitter.window.history.pushState({}, glitter.document.title, search);
+                }
+            }
+            if (['home', 'page'].find((dd) => {
+                return dd === type;
+            })) {
+                glitter.pageConfig[glitter.pageConfig.length - 1].search = search;
             }
         }
         catch (e) {
         }
-        glitter.setUrlParameter('page', tag);
     }
     static changePage(url, tag, goBack, obj, option = {}) {
         var _a, _b;
@@ -271,7 +282,8 @@ export class PageManager {
                         return dd === pageConfig;
                     })) {
                         gvFunction({
-                            pageConfig: pageConfig
+                            pageConfig: pageConfig,
+                            c_type: 'page'
                         });
                     }
                     if (window.gtag) {

@@ -446,6 +446,6 @@ ${lifeCycle.onCreateView()}
         gvc.glitter.setAnimation(cf.pageConfig);
         lifeCycle.onCreate();
         gvc.glitter.defaultSetting.pageLoadingFinish();
-        PageManager.setHistory(GVC.glitter.getUrlParameter('page'));
+        PageManager.setHistory(GVC.glitter.getUrlParameter('page'), cf.c_type);
     };
 }

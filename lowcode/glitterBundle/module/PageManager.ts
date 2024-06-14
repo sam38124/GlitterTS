@@ -33,6 +33,7 @@ export enum GVCType {
 }
 
 export class PageConfig {
+    public search:string;
     public id: string;
     public obj: any;
     public goBack: boolean;
@@ -54,8 +55,10 @@ export class PageConfig {
     public gvc?:GVC
     constructor(par: {
         id: string, obj: any, goBack: boolean, src: string, tag: string, createResource: () => void, deleteResource: (destroy: boolean) => void,
-        type: GVCType, animation: AnimationConfig, backGroundColor: string, dismiss: () => void,renderFinish:()=>void
+        type: GVCType, animation: AnimationConfig, backGroundColor: string, dismiss: () => void,renderFinish:()=>void,
+        search?:string
     }) {
+        this.search=par.search || '';
         this.tag = par.tag;
         this.id = par.id;
         this.obj = par.obj;
@@ -128,7 +131,6 @@ export class PageManager {
                     try {
                         const scroll= JSON.parse(localStorage.getItem('g_l_top') as string)
                         if(scroll.id===id){
-                            console.log(`scrollTO->`,scroll.y)
                             window.scrollTo({
                                 top: scroll.y,
                                 behavior: 'auto' // 'auto' 表示无滚动动画
@@ -145,7 +147,7 @@ export class PageManager {
                 }
                 scroll()
 
-
+                glitter.window.history.replaceState({}, glitter.document.title, glitter.pageConfig[index].search);
             }
         } catch (e) {
         }
@@ -202,12 +204,13 @@ export class PageManager {
                     })
                     glitter.pageConfig.push(pageConfig)
                     glitter.defaultSetting.pageLoading();
-                    gvFunction({
-                        pageConfig:pageConfig
-                    })
-                    if((window as any).gtag){
+                    if((window as any).gtag && !GVC.initial){
                         (window as any).gtag('event', 'page_view', {'page_title': document.title, page_location: document.location.href});
                     }
+                    gvFunction({
+                        pageConfig:pageConfig,
+                        c_type:'home'
+                    })
                 }
             }
         ],'GVControllerList')
@@ -278,18 +281,27 @@ export class PageManager {
         }
     };
 
-    public static setHistory(tag:string){
+    public static setHistory(tag:string,type:string){
         const glitter = Glitter.glitter;
-        const search = glitter.setSearchParam(glitter.removeSearchParam(glitter.window.location.search, 'page'), 'page', tag);
+        const search = glitter.root_path+tag+glitter.window.location.search;
+
         try {
             if(GVC.initial){
                 GVC.initial=false
             }else{
-                glitter.window.history.pushState({}, glitter.document.title, search);
+                if(type === 'home'){
+                    glitter.window.history.replaceState({}, glitter.document.title, search);
+                }else if(type==='page'){
+                    glitter.window.history.pushState({}, glitter.document.title, search);
+                }
+            }
+            if(['home','page'].find((dd)=>{
+                return dd===type
+            })){
+                glitter.pageConfig[glitter.pageConfig.length-1].search=search
             }
         } catch (e) {
         }
-        glitter.setUrlParameter('page', tag);
     }
     public static changePage(url: string, tag: string, goBack: boolean, obj: any, option: { animation?: AnimationConfig, backGroundColor?: string, dismiss?: () => void } = {}) {
         const glitter = Glitter.glitter;
@@ -324,7 +336,8 @@ export class PageManager {
                         return dd===pageConfig
                     })){
                         gvFunction({
-                            pageConfig:pageConfig
+                            pageConfig:pageConfig,
+                            c_type:'page'
                         })
                     }
                     if((window as any).gtag){
