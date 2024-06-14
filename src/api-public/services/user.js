@@ -47,13 +47,13 @@ const google_auth_library_1 = require("google-auth-library");
 class User {
     async createUser(account, pwd, userData, req) {
         try {
-            const login_config = (await this.getConfigV2({
+            const login_config = await this.getConfigV2({
                 key: 'login_config',
-                user_id: 'manager'
-            }));
+                user_id: 'manager',
+            });
             const userID = generateUserID();
             if (userData.verify_code) {
-                if ((userData.verify_code !== (await redis_js_1.default.getValue(`verify-${account}`)))) {
+                if (userData.verify_code !== (await redis_js_1.default.getValue(`verify-${account}`))) {
                     throw exception_1.default.BadRequestError('BAD_REQUEST', 'Verify code error.', null);
                 }
             }
@@ -68,7 +68,7 @@ class User {
                 data.content = data.content.replace(`@{{code}}`, code);
                 (0, ses_js_1.sendmail)(`${data.name} <${process_1.default.env.smtp}>`, account, data.title, data.content);
                 return {
-                    verify: 'mail'
+                    verify: 'mail',
                 };
             }
             const data = await auto_send_email_js_1.AutoSendEmail.getDefCompare(this.app, 'auto-email-welcome');
@@ -76,19 +76,13 @@ class User {
                 (0, ses_js_1.sendmail)(`${data.name} <${process_1.default.env.smtp}>`, account, data.title, data.content);
             }
             await database_1.default.execute(`INSERT INTO \`${this.app}\`.\`t_user\` (\`userID\`, \`account\`, \`pwd\`, \`userData\`, \`status\`)
-                              VALUES (?, ?, ?, ?, ?);`, [
-                userID,
-                account,
-                await tool_1.default.hashPwd(pwd),
-                userData !== null && userData !== void 0 ? userData : {},
-                1
-            ]);
+                              VALUES (?, ?, ?, ?, ?);`, [userID, account, await tool_1.default.hashPwd(pwd), userData !== null && userData !== void 0 ? userData : {}, 1]);
             const usData = await this.getUserData(userID, 'userID');
             usData.pwd = undefined;
             usData.token = await UserUtil_1.default.generateToken({
-                user_id: usData["userID"],
-                account: usData["account"],
-                userData: {}
+                user_id: usData['userID'],
+                account: usData['account'],
+                userData: {},
             });
             return usData;
         }
@@ -109,11 +103,11 @@ class User {
                     return {
                         type: 'mail',
                         mailVerify: checkToken,
-                        updateAccount: account
+                        updateAccount: account,
                     };
                 default:
                     return {
-                        type: ''
+                        type: '',
                     };
             }
         }
@@ -131,9 +125,9 @@ class User {
             if (await tool_1.default.compareHash(pwd, data.pwd)) {
                 data.pwd = undefined;
                 data.token = await UserUtil_1.default.generateToken({
-                    user_id: data["userID"],
-                    account: data["account"],
-                    userData: {}
+                    user_id: data['userID'],
+                    account: data['account'],
+                    userData: {},
                 });
                 return data;
             }
@@ -151,11 +145,12 @@ class User {
             maxBodyLength: Infinity,
             url: `https://graph.facebook.com/v19.0/me?access_token=${token}&__cppo=1&debug=all&fields=id%2Cname%2Cemail&format=json&method=get&origin_graph_explorer=1&pretty=0&suppress_http_code=1&transport=cors`,
             headers: {
-                'Cookie': 'sb=UysEY1hZJvSZxgxk_g316pK-'
-            }
+                Cookie: 'sb=UysEY1hZJvSZxgxk_g316pK-',
+            },
         };
         const fbResponse = await new Promise((resolve, reject) => {
-            axios_1.default.request(config)
+            axios_1.default
+                .request(config)
                 .then((response) => {
                 resolve(response.data);
             })
@@ -165,7 +160,7 @@ class User {
         });
         if ((await database_1.default.query(`select count(1)
                              from \`${this.app}\`.t_user
-                             where account = ?`, [fbResponse.email]))[0]["count(1)"] == 0) {
+                             where account = ?`, [fbResponse.email]))[0]['count(1)'] == 0) {
             const userID = generateUserID();
             await database_1.default.execute(`INSERT INTO \`${this.app}\`.\`t_user\` (\`userID\`, \`account\`, \`pwd\`, \`userData\`, \`status\`)
                               VALUES (?, ?, ?, ?, ?);`, [
@@ -175,9 +170,9 @@ class User {
                 {
                     name: fbResponse.name,
                     fb_id: fbResponse.id,
-                    email: fbResponse.email
+                    email: fbResponse.email,
                 },
-                1
+                1,
             ]);
             const data = await auto_send_email_js_1.AutoSendEmail.getDefCompare(this.app, 'auto-email-welcome');
             if (data.toggle) {
@@ -191,33 +186,34 @@ class User {
         const usData = await this.getUserData(data.userID, 'userID');
         usData.pwd = undefined;
         usData.token = await UserUtil_1.default.generateToken({
-            user_id: usData["userID"],
-            account: usData["account"],
-            userData: {}
+            user_id: usData['userID'],
+            account: usData['account'],
+            userData: {},
         });
         return usData;
     }
     async loginWithLine(code, redirect) {
         try {
-            const lineData = await (this.getConfigV2({
+            const lineData = await this.getConfigV2({
                 key: 'login_line_setting',
-                user_id: 'manager'
-            }));
+                user_id: 'manager',
+            });
             const lineResponse = await new Promise((resolve, reject) => {
-                axios_1.default.request({
+                axios_1.default
+                    .request({
                     method: 'post',
                     maxBodyLength: Infinity,
                     url: 'https://api.line.me/oauth2/v2.1/token',
                     headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded'
+                        'Content-Type': 'application/x-www-form-urlencoded',
                     },
                     data: qs_1.default.stringify({
-                        'code': code,
-                        'client_id': lineData.id,
-                        'client_secret': lineData.secret,
-                        'grant_type': 'authorization_code',
-                        'redirect_uri': redirect
-                    })
+                        code: code,
+                        client_id: lineData.id,
+                        client_secret: lineData.secret,
+                        grant_type: 'authorization_code',
+                        redirect_uri: redirect,
+                    }),
                 })
                     .then((response) => {
                     resolve(response.data);
@@ -230,10 +226,9 @@ class User {
                 throw exception_1.default.BadRequestError('BAD_REQUEST', 'Line Register Error', null);
             }
             const userData = jsonwebtoken_1.default.decode(lineResponse.id_token);
-            console.log(userData);
             if ((await database_1.default.query(`select count(1)
                              from \`${this.app}\`.t_user
-                             where userData->>'$.lineID'=?`, [userData.sub]))[0]["count(1)"] == 0) {
+                             where userData->>'$.lineID'=?`, [userData.sub]))[0]['count(1)'] == 0) {
                 const userID = generateUserID();
                 await database_1.default.execute(`INSERT INTO \`${this.app}\`.\`t_user\` (\`userID\`, \`account\`, \`pwd\`, \`userData\`, \`status\`)
                               VALUES (?, ?, ?, ?, ?);`, [
@@ -242,9 +237,9 @@ class User {
                     await tool_1.default.hashPwd(generateUserID()),
                     {
                         name: userData.name || '未命名',
-                        lineID: userData.sub
+                        lineID: userData.sub,
                     },
-                    1
+                    1,
                 ]);
             }
             const data = (await database_1.default.execute(`select *
@@ -253,9 +248,9 @@ class User {
             const usData = await this.getUserData(data.userID, 'userID');
             usData.pwd = undefined;
             usData.token = await UserUtil_1.default.generateToken({
-                user_id: usData["userID"],
-                account: usData["account"],
-                userData: {}
+                user_id: usData['userID'],
+                account: usData['account'],
+                userData: {},
             });
             return usData;
         }
@@ -265,10 +260,10 @@ class User {
     }
     async loginWithGoogle(code, redirect) {
         try {
-            const config = await (this.getConfigV2({
+            const config = await this.getConfigV2({
                 key: 'login_google_setting',
-                user_id: 'manager'
-            }));
+                user_id: 'manager',
+            });
             const oauth2Client = new google_auth_library_1.OAuth2Client(config.id, config.secret, redirect);
             const { tokens } = await oauth2Client.getToken(code);
             oauth2Client.setCredentials(tokens);
@@ -279,7 +274,7 @@ class User {
             const payload = ticket.getPayload();
             if ((await database_1.default.query(`select count(1)
                              from \`${this.app}\`.t_user
-                             where account = ?`, [payload === null || payload === void 0 ? void 0 : payload.email]))[0]["count(1)"] == 0) {
+                             where account = ?`, [payload === null || payload === void 0 ? void 0 : payload.email]))[0]['count(1)'] == 0) {
                 const userID = generateUserID();
                 await database_1.default.execute(`INSERT INTO \`${this.app}\`.\`t_user\` (\`userID\`, \`account\`, \`pwd\`, \`userData\`, \`status\`)
                               VALUES (?, ?, ?, ?, ?);`, [
@@ -288,9 +283,9 @@ class User {
                     await tool_1.default.hashPwd(generateUserID()),
                     {
                         name: payload === null || payload === void 0 ? void 0 : payload.given_name,
-                        email: payload === null || payload === void 0 ? void 0 : payload.email
+                        email: payload === null || payload === void 0 ? void 0 : payload.email,
                     },
-                    1
+                    1,
                 ]);
                 const data = await auto_send_email_js_1.AutoSendEmail.getDefCompare(this.app, 'auto-email-welcome');
                 if (data.toggle) {
@@ -304,9 +299,9 @@ class User {
             const usData = await this.getUserData(data.userID, 'userID');
             usData.pwd = undefined;
             usData.token = await UserUtil_1.default.generateToken({
-                user_id: usData["userID"],
-                account: usData["account"],
-                userData: {}
+                user_id: usData['userID'],
+                account: usData['account'],
+                userData: {},
             });
             return usData;
         }
@@ -330,9 +325,9 @@ class User {
             })()}`;
             const data = (await database_1.default.execute(sql, []))[0];
             let cf = {
-                userData: data
+                userData: data,
             };
-            await (new custom_code_js_1.CustomCode(this.app).loginHook(cf));
+            await new custom_code_js_1.CustomCode(this.app).loginHook(cf);
             if (data) {
                 data.pwd = undefined;
                 data.member = await this.refreshMember(data);
@@ -370,7 +365,7 @@ class User {
     async refreshMember(userData) {
         const member_list = (await this.getConfigV2({
             key: 'member_level_config',
-            user_id: 'manager'
+            user_id: 'manager',
         })).levels || [];
         const order_list = (await database_1.default.query(`SELECT orderData ->> '$.total' as total, created_time
                                             FROM \`${this.app}\`.t_checkout
@@ -393,7 +388,7 @@ class User {
                             trigger: true,
                             tag_name: dd.tag_name,
                             dead_line: dead_line,
-                            og: dd
+                            og: dd,
                         };
                     }
                     else {
@@ -403,7 +398,7 @@ class User {
                             trigger: true,
                             tag_name: dd.tag_name,
                             dead_line: dead_line,
-                            og: dd
+                            og: dd,
                         };
                     }
                 }
@@ -413,14 +408,14 @@ class User {
                         id: dd.id,
                         tag_name: dd.tag_name,
                         dead_line: '',
-                        trigger: (leak === 0),
+                        trigger: leak === 0,
                         og: dd,
                         leak: leak,
                     };
                 }
             }
             else {
-                const date = this.find30DayPeriodWith3000Spent(order_list, parseInt(dd.condition.value, 10), ((dd.duration.type === 'noLimit')) ? 365 * 10 : dd.duration.value, 365 * 10);
+                const date = this.find30DayPeriodWith3000Spent(order_list, parseInt(dd.condition.value, 10), dd.duration.type === 'noLimit' ? 365 * 10 : dd.duration.value, 365 * 10);
                 if (date) {
                     const latest = new Date(date.end_date);
                     if (dd.dead_line.type === 'noLimit') {
@@ -430,7 +425,7 @@ class User {
                             trigger: true,
                             tag_name: dd.tag_name,
                             dead_line: latest,
-                            og: dd
+                            og: dd,
                         };
                     }
                     else {
@@ -440,7 +435,7 @@ class User {
                             trigger: true,
                             tag_name: dd.tag_name,
                             dead_line: latest,
-                            og: dd
+                            og: dd,
                         };
                     }
                 }
@@ -448,7 +443,7 @@ class User {
                     let leak = parseInt(dd.condition.value, 10);
                     let sum = 0;
                     const compareDate = new Date();
-                    compareDate.setDate(compareDate.getDate() - (((dd.duration.type === 'noLimit')) ? 365 * 10 : dd.duration.value));
+                    compareDate.setDate(compareDate.getDate() - (dd.duration.type === 'noLimit' ? 365 * 10 : dd.duration.value));
                     order_list.map((dd) => {
                         if (new Date().getTime() > compareDate.getTime()) {
                             leak = leak - dd.total_amount;
@@ -462,7 +457,7 @@ class User {
                         trigger: leak === 0,
                         leak: leak,
                         sum: sum,
-                        og: dd
+                        og: dd,
                     };
                 }
             }
@@ -473,7 +468,7 @@ class User {
         const ONE_YEAR_MS = dead_line * 24 * 60 * 60 * 1000;
         const THIRTY_DAYS_MS = duration * 24 * 60 * 60 * 1000;
         const NOW = new Date().getTime();
-        const recentTransactions = transactions.filter(transaction => {
+        const recentTransactions = transactions.filter((transaction) => {
             const transactionDate = new Date(transaction.date);
             return NOW - transactionDate.getTime() <= ONE_YEAR_MS;
         });
@@ -488,7 +483,7 @@ class User {
                     if (sum >= total) {
                         return {
                             start_date: recentTransactions[j].date,
-                            end_date: recentTransactions[i].date
+                            end_date: recentTransactions[i].date,
                         };
                     }
                 }
@@ -499,23 +494,108 @@ class User {
         }
         return null;
     }
+    getUserAndOrderSQL(obj) {
+        const sql = `
+            SELECT ${obj.select}
+            FROM 
+                (SELECT 
+                    email, 
+                    COUNT(*) AS order_count, 
+                    SUM(CASE WHEN status = 1 THEN CAST(JSON_EXTRACT(orderData, '$.total') AS DECIMAL(10, 2)) 
+                        ELSE 0 END) AS total_amount
+                FROM 
+                    \`${this.app}\`.t_checkout
+                GROUP BY email) as o
+            RIGHT JOIN 
+                \`${this.app}\`.t_user u ON o.email = u.account
+            WHERE
+                (${obj.where.join(' AND ')})
+            ORDER BY ${(() => {
+            switch (obj.orderBy) {
+                case 'order_total_desc':
+                    return 'o.total_amount DESC';
+                case 'order_total_asc':
+                    return 'o.total_amount';
+                case 'order_count_desc':
+                    return 'o.order_count DESC';
+                case 'order_count_asc':
+                    return 'o.order_count';
+                case 'name':
+                    return 'JSON_EXTRACT(u.userData, "$.name")';
+                case 'created_time_desc':
+                    return 'u.created_time DESC';
+                case 'created_time_asc':
+                    return 'u.created_time';
+                default:
+                    return 'u.id DESC';
+            }
+        })()} 
+            ${obj.page !== undefined && obj.limit !== undefined ? `LIMIT ${obj.page * obj.limit}, ${obj.limit}` : ''};
+        `;
+        console.log(sql);
+        return sql;
+    }
     async getUserList(query) {
-        var _a, _b;
+        var _a, _b, _c;
         try {
+            const querySql = ['1=1'];
             query.page = (_a = query.page) !== null && _a !== void 0 ? _a : 0;
             query.limit = (_b = query.limit) !== null && _b !== void 0 ? _b : 50;
-            const querySql = [];
-            console.log(query.search);
-            query.search && querySql.push([
-                `(UPPER(JSON_UNQUOTE(JSON_EXTRACT(userData, '$.name')) LIKE UPPER('%${query.search}%')))`,
-                `(UPPER(JSON_UNQUOTE(JSON_EXTRACT(userData, '$.email')) LIKE UPPER('%${query.search}%')))`,
-                `(UPPER(JSON_UNQUOTE(JSON_EXTRACT(userData, '$.phone')) LIKE UPPER('%${query.search}%')))`
-            ].join(` || `));
-            const data = await new ut_database_js_1.UtDatabase(this.app, `t_user`).querySql(querySql, query);
-            data.data.map((dd) => {
-                dd.pwd = undefined;
-            });
-            return data;
+            if (query.created_time) {
+                const created_time = query.created_time.split(',');
+                if (created_time.length > 1) {
+                    querySql.push(`
+                        (u.created_time BETWEEN ${database_1.default.escape(`${created_time[0]} 00:00:00`)} 
+                        AND ${database_1.default.escape(`${created_time[1]} 23:59:59`)})
+                    `);
+                }
+            }
+            if (query.birth && query.birth.length > 0) {
+                const birth = query.birth.split(',');
+                const birthMap = birth.map((month) => parseInt(`${month}`, 10));
+                if (birthMap.every((n) => typeof n === 'number' && !isNaN(n))) {
+                    querySql.push(`(MONTH(JSON_EXTRACT(u.userData, '$.birth')) IN (${birthMap.join(',')}))`);
+                }
+            }
+            if (query.total_amount) {
+                const totalAmount = query.total_amount.split(',');
+                if (totalAmount.length > 1) {
+                    if (totalAmount[0] === 'lessThan') {
+                        querySql.push(`(o.total_amount < ${totalAmount[1]} OR o.total_amount is null)`);
+                    }
+                    if (totalAmount[0] === 'moreThan') {
+                        querySql.push(`(o.total_amount > ${totalAmount[1]})`);
+                    }
+                }
+            }
+            if (query.search) {
+                querySql.push([
+                    `(UPPER(JSON_UNQUOTE(JSON_EXTRACT(u.userData, '$.name')) LIKE UPPER('%${query.search}%')))`,
+                    `(JSON_UNQUOTE(JSON_EXTRACT(u.userData, '$.email')) LIKE '%${query.search}%')`,
+                    `(UPPER(JSON_UNQUOTE(JSON_EXTRACT(u.userData, '$.phone')) LIKE UPPER('%${query.search}%')))`,
+                ]
+                    .filter((text) => {
+                    if (query.searchType === undefined)
+                        return true;
+                    if (text.includes(`(userData, '$.${query.searchType}')`))
+                        return true;
+                    return false;
+                })
+                    .join(` || `));
+            }
+            const sqlObject = {
+                where: querySql,
+                orderBy: (_c = query.order_string) !== null && _c !== void 0 ? _c : '',
+            };
+            const dataSQL = this.getUserAndOrderSQL(Object.assign(Object.assign({}, sqlObject), { select: 'o.email, o.order_count, o.total_amount, u.*', page: query.page, limit: query.limit }));
+            const countSQL = this.getUserAndOrderSQL(Object.assign(Object.assign({}, sqlObject), { select: 'count(1)' }));
+            return {
+                data: (await database_1.default.query(dataSQL, [])).map((dd) => {
+                    dd.pwd = undefined;
+                    return dd;
+                }),
+                total: (await database_1.default.query(countSQL, []))[0]['count(1)'],
+            };
         }
         catch (e) {
             throw exception_1.default.BadRequestError('BAD_REQUEST', 'Login Error:' + e, null);
@@ -524,7 +604,7 @@ class User {
     async subscribe(email, tag) {
         try {
             await database_1.default.queryLambada({
-                database: this.app
+                database: this.app,
             }, async (sql) => {
                 await sql.query(`replace
                 into t_subscribe (email,tag) values (?,?)`, [email, tag]);
@@ -537,7 +617,7 @@ class User {
     async registerFcm(userID, deviceToken) {
         try {
             await database_1.default.queryLambada({
-                database: this.app
+                database: this.app,
             }, async (sql) => {
                 await sql.query(`replace
                 into t_fcm (userID,deviceToken) values (?,?)`, [userID, deviceToken]);
@@ -553,7 +633,7 @@ class User {
                             FROM \`${this.app}\`.t_subscribe
                             where email in (?)`, [email.split(',')]);
             return {
-                result: true
+                result: true,
             };
         }
         catch (e) {
@@ -566,10 +646,7 @@ class User {
             query.page = (_a = query.page) !== null && _a !== void 0 ? _a : 0;
             query.limit = (_b = query.limit) !== null && _b !== void 0 ? _b : 50;
             const querySql = [];
-            query.search && querySql.push([
-                `(email LIKE '%${query.search}%') && (tag != ${database_1.default.escape(query.search)})`,
-                `(tag = ${database_1.default.escape(query.search)})`
-            ].join(` || `));
+            query.search && querySql.push([`(email LIKE '%${query.search}%') && (tag != ${database_1.default.escape(query.search)})`, `(tag = ${database_1.default.escape(query.search)})`].join(` || `));
             const data = await new ut_database_js_1.UtDatabase(this.app, `t_subscribe`).querySql(querySql, query);
             data.data.map((dd) => {
                 dd.pwd = undefined;
@@ -586,15 +663,14 @@ class User {
             query.page = (_a = query.page) !== null && _a !== void 0 ? _a : 0;
             query.limit = (_b = query.limit) !== null && _b !== void 0 ? _b : 50;
             const querySql = [];
-            query.search && querySql.push([
-                `(userID in (select userID from \`${this.app}\`.t_user where (UPPER(JSON_UNQUOTE(JSON_EXTRACT(userData, '$.name')) LIKE UPPER('%${query.search}%')))))`,
-            ].join(` || `));
+            query.search &&
+                querySql.push([`(userID in (select userID from \`${this.app}\`.t_user where (UPPER(JSON_UNQUOTE(JSON_EXTRACT(userData, '$.name')) LIKE UPPER('%${query.search}%')))))`].join(` || `));
             const data = await new ut_database_js_1.UtDatabase(this.app, `t_fcm`).querySql(querySql, query);
             for (const b of data.data) {
                 let userData = (await database_1.default.query(`select userData
                                                 from \`${this.app}\`.t_user
                                                 where userID = ?`, [b.userID]))[0];
-                b.userData = (userData) && userData.userData;
+                b.userData = userData && userData.userData;
             }
             return data;
         }
@@ -608,7 +684,7 @@ class User {
                             FROM \`${this.app}\`.t_user
                             where id in (?)`, [query.id.split(',')]);
             return {
-                result: true
+                result: true,
             };
         }
         catch (e) {
@@ -621,13 +697,16 @@ class User {
                                               from \`${this.app}\`.\`t_user\`
                                               where userID = ${database_1.default.escape(userID)}`, []))[0];
             const configAd = await app_js_1.default.getAdConfig(this.app, 'glitter_loginConfig');
-            if ((!manager) && par.userData.email && (par.userData.email !== userData.account) && (!par.userData.verify_code || (par.userData.verify_code !== (await redis_js_1.default.getValue(`verify-${par.userData.email}`))))) {
+            if (!manager &&
+                par.userData.email &&
+                par.userData.email !== userData.account &&
+                (!par.userData.verify_code || par.userData.verify_code !== (await redis_js_1.default.getValue(`verify-${par.userData.email}`)))) {
                 if (!par.userData.verify_code) {
                     const code = tool_js_1.default.randomNumber(6);
                     await redis_js_1.default.setValue(`verify-${par.userData.email}`, code);
                     (0, ses_js_1.sendmail)(`${configAd.name} <${process_1.default.env.smtp}>`, par.userData.email, '信箱驗證', `請輸入驗證碼「 ${code} 」。並於1分鐘內輸入並完成驗證。`);
                     return {
-                        data: 'emailVerify'
+                        data: 'emailVerify',
                     };
                 }
                 else {
@@ -638,30 +717,27 @@ class User {
                 await database_1.default.query(`update \`${this.app}\`.t_checkout
                                 set email=?
                                 where id > 0
-                                  and email = ?`, [
-                    par.userData.email,
-                    userData.account
-                ]);
+                                  and email = ?`, [par.userData.email, userData.account]);
                 userData.account = par.userData.email;
             }
             par.userData = await this.checkUpdate({
                 updateUserData: par.userData,
                 userID: userID,
-                manager: manager
+                manager: manager,
             });
             delete par.userData.verify_code;
             par = {
                 account: userData.account,
-                userData: JSON.stringify(par.userData)
+                userData: JSON.stringify(par.userData),
             };
             if (!par.account) {
                 delete par.account;
             }
             return {
-                data: await database_1.default.query(`update \`${this.app}\`.t_user
+                data: (await database_1.default.query(`update \`${this.app}\`.t_user
                                        SET ?
                                        WHERE 1 = 1
-                                         and userID = ?`, [par, userID])
+                                         and userID = ?`, [par, userID])),
             };
         }
         catch (e) {
@@ -681,9 +757,11 @@ class User {
         }
         function mapUserData(userData, originUserData) {
             Object.keys(userData).map((dd) => {
-                if (cf.manager || config.find((d2) => {
-                    return (d2.key === dd && d2.auth !== 'manager');
-                }) || dd === 'fcmToken') {
+                if (cf.manager ||
+                    config.find((d2) => {
+                        return d2.key === dd && d2.auth !== 'manager';
+                    }) ||
+                    dd === 'fcmToken') {
                     originUserData[dd] = userData[dd];
                 }
             });
@@ -693,14 +771,17 @@ class User {
     }
     async resetPwd(userID, newPwd) {
         try {
-            const result = await database_1.default.query(`update \`${this.app}\`.t_user
+            const result = (await database_1.default.query(`update \`${this.app}\`.t_user
                                             SET ?
                                             WHERE 1 = 1
-                                              and userID = ?`, [{
-                    pwd: await tool_1.default.hashPwd(newPwd)
-                }, userID]);
+                                              and userID = ?`, [
+                {
+                    pwd: await tool_1.default.hashPwd(newPwd),
+                },
+                userID,
+            ]));
             return {
-                result: true
+                result: true,
             };
         }
         catch (e) {
@@ -714,14 +795,17 @@ class User {
                                                  where userID = ?
                                                    and status = 1`, [userID]))[0];
             if (await tool_1.default.compareHash(pwd, data.pwd)) {
-                const result = await database_1.default.query(`update \`${this.app}\`.t_user
+                const result = (await database_1.default.query(`update \`${this.app}\`.t_user
                                                 SET ?
                                                 WHERE 1 = 1
-                                                  and userID = ?`, [{
-                        pwd: await tool_1.default.hashPwd(newPwd)
-                    }, userID]);
+                                                  and userID = ?`, [
+                    {
+                        pwd: await tool_1.default.hashPwd(newPwd),
+                    },
+                    userID,
+                ]));
                 return {
-                    result: true
+                    result: true,
                 };
             }
             else {
@@ -749,12 +833,12 @@ class User {
     async verifyPASS(token) {
         try {
             const par = {
-                status: 1
+                status: 1,
             };
-            return await database_1.default.query(`update \`${this.app}\`.t_user
+            return (await database_1.default.query(`update \`${this.app}\`.t_user
                                     SET ?
                                     WHERE 1 = 1
-                                      and JSON_EXTRACT(userData, '$.mailVerify') = ?`, [par, token]);
+                                      and JSON_EXTRACT(userData, '$.mailVerify') = ?`, [par, token]));
         }
         catch (e) {
             throw exception_1.default.BadRequestError('BAD_REQUEST', 'Verify Error:' + e, null);
@@ -762,10 +846,10 @@ class User {
     }
     async checkUserExists(account) {
         try {
-            return (await database_1.default.execute(`select count(1)
+            return ((await database_1.default.execute(`select count(1)
                                       from \`${this.app}\`.t_user
                                       where account = ?
-                                        and status!=0`, [account]))[0]["count(1)"] == 1;
+                                        and status!=0`, [account]))[0]['count(1)'] == 1);
         }
         catch (e) {
             throw exception_1.default.BadRequestError('BAD_REQUEST', 'CheckUserExists Error:' + e, null);
@@ -782,27 +866,18 @@ class User {
                                  where \`key\` = ? and user_id=? `, [config.key, (_a = config.user_id) !== null && _a !== void 0 ? _a : this.token.userID]))[0]['count(1)'] === 1) {
                 await database_1.default.query(`update \`${this.app}\`.t_user_public_config
                                 set value=?
-                                where \`key\` = ? and user_id=?`, [
-                    config.value,
-                    config.key,
-                    (_b = config.user_id) !== null && _b !== void 0 ? _b : this.token.userID
-                ]);
+                                where \`key\` = ? and user_id=?`, [config.value, config.key, (_b = config.user_id) !== null && _b !== void 0 ? _b : this.token.userID]);
             }
             else {
                 await database_1.default.query(`insert
                                 into \`${this.app}\`.t_user_public_config (\`user_id\`, \`key\`, \`value\`, updated_at)
                                 values (?, ?, ?, ?)
-                `, [
-                    (_c = config.user_id) !== null && _c !== void 0 ? _c : this.token.userID,
-                    config.key,
-                    config.value,
-                    new Date()
-                ]);
+                `, [(_c = config.user_id) !== null && _c !== void 0 ? _c : this.token.userID, config.key, config.value, new Date()]);
             }
         }
         catch (e) {
             console.log(e);
-            throw exception_1.default.BadRequestError("ERROR", "ERROR." + e, null);
+            throw exception_1.default.BadRequestError('ERROR', 'ERROR.' + e, null);
         }
     }
     async getConfig(config) {
@@ -815,7 +890,7 @@ class User {
         }
         catch (e) {
             console.log(e);
-            throw exception_1.default.BadRequestError("ERROR", "ERROR." + e, null);
+            throw exception_1.default.BadRequestError('ERROR', 'ERROR.' + e, null);
         }
     }
     async getConfigV2(config) {
@@ -829,7 +904,7 @@ class User {
         }
         catch (e) {
             console.log(e);
-            throw exception_1.default.BadRequestError("ERROR", "ERROR." + e, null);
+            throw exception_1.default.BadRequestError('ERROR', 'ERROR.' + e, null);
         }
     }
     async checkEmailExists(email) {
@@ -838,7 +913,7 @@ class User {
             return count;
         }
         catch (e) {
-            throw exception_1.default.BadRequestError("ERROR", "ERROR." + e, null);
+            throw exception_1.default.BadRequestError('ERROR', 'ERROR.' + e, null);
         }
     }
     async getUnreadCount() {
@@ -847,20 +922,18 @@ class User {
             const last_read_time = await database_1.default.query(`SELECT value
                                                    FROM \`${this.app}\`.t_user_public_config
                                                    where \`key\` = 'notice_last_read'
-                                                     and user_id = ?;`, [
-                (_a = this.token) === null || _a === void 0 ? void 0 : _a.userID
-            ]);
-            const date = (!last_read_time[0]) ? new Date('2022-01-29') : new Date(last_read_time[0].value.time);
+                                                     and user_id = ?;`, [(_a = this.token) === null || _a === void 0 ? void 0 : _a.userID]);
+            const date = !last_read_time[0] ? new Date('2022-01-29') : new Date(last_read_time[0].value.time);
             const count = (await database_1.default.query(`select count(1)
                                            from \`${this.app}\`.t_notice
                                            where user_id = ?
                                              and created_time > ?`, [(_b = this.token) === null || _b === void 0 ? void 0 : _b.userID, date]))[0]['count(1)'];
             return {
-                count: count
+                count: count,
             };
         }
         catch (e) {
-            throw exception_1.default.BadRequestError("ERROR", "ERROR." + e, null);
+            throw exception_1.default.BadRequestError('ERROR', 'ERROR.' + e, null);
         }
     }
     async getNotice(cf) {
@@ -871,26 +944,17 @@ class User {
             const last_read_time = await database_1.default.query(`SELECT value
                                                    FROM \`${this.app}\`.t_user_public_config
                                                    where \`key\` = 'notice_last_read'
-                                                     and user_id = ?;`, [
-                (_b = this.token) === null || _b === void 0 ? void 0 : _b.userID
-            ]);
+                                                     and user_id = ?;`, [(_b = this.token) === null || _b === void 0 ? void 0 : _b.userID]);
             if (!last_read_time[0]) {
                 await database_1.default.query(`insert into \`${this.app}\`.t_user_public_config (user_id, \`key\`, value, updated_at)
-                                values (?, ?, ?, ?)`, [
-                    (_c = this.token) === null || _c === void 0 ? void 0 : _c.userID,
-                    'notice_last_read',
-                    JSON.stringify({ time: new Date() }),
-                    new Date()
-                ]);
+                                values (?, ?, ?, ?)`, [(_c = this.token) === null || _c === void 0 ? void 0 : _c.userID, 'notice_last_read', JSON.stringify({ time: new Date() }), new Date()]);
             }
             else {
-                last_time_read = (new Date(last_read_time[0].value.time)).getTime();
+                last_time_read = new Date(last_read_time[0].value.time).getTime();
                 await database_1.default.query(`update \`${this.app}\`.t_user_public_config
                                 set \`value\`=?
                                 where user_id = ?
-                                  and \`key\` = ?`, [
-                    JSON.stringify({ time: new Date() }), `${(_d = this.token) === null || _d === void 0 ? void 0 : _d.userID}`, 'notice_last_read'
-                ]);
+                                  and \`key\` = ?`, [JSON.stringify({ time: new Date() }), `${(_d = this.token) === null || _d === void 0 ? void 0 : _d.userID}`, 'notice_last_read']);
             }
             const response = await new ut_database_js_1.UtDatabase(this.app, `t_notice`).querySql(query, cf.query);
             response.last_time_read = last_time_read;
@@ -898,7 +962,7 @@ class User {
         }
         catch (e) {
             console.log(e);
-            throw exception_1.default.BadRequestError("ERROR", "ERROR." + e, null);
+            throw exception_1.default.BadRequestError('ERROR', 'ERROR.' + e, null);
         }
     }
     constructor(app, token) {

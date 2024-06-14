@@ -216,9 +216,9 @@ ${(obj.style || []) && obj.style![index] ? obj.style![index] : ``}
                         return html` <div class="fs-2 text-center" style="padding-bottom: 32px;">${vm.stateText}</div>`;
                     } else {
                         return html` <div class="m-0 p-0" style="${obj.table_style ?? ''}">
-                            <div style="overflow-x:scroll;">
+                            ${obj.filter ? html`<div style="padding: 0 12px 36px;">${obj.filter}</div>` : ''}
+                            <div style="overflow-x:scroll; z-index: 1;">
                                 <table class="table table-centered table-nowrap text-center table-hover fw-400 fs-7" style="overflow-x:scroll; ">
-                                    ${obj.filter ? html`<div style="padding: 32px 12px;">${obj.filter}</div>` : ''}
                                     <thead>
                                         ${vm.data.length === 0
                                             ? ''
@@ -313,16 +313,12 @@ ${html}
 </div>`;
     }
 
-    static cancel(event: string) {
-        return `<div class="cursor_it bt_c39_w" onclick="${event}">
-取消
-</div>`;
+    static cancel(event: string, text: string = '取消') {
+        return html`<div class="cursor_it bt_c39_w" onclick="${event}">${text}</div>`;
     }
 
-    static save(event: string) {
-        return `<div class="cursor_it bt_c39" onclick="${event}">
-儲存
-</div>`;
+    static save(event: string, text: string = '儲存') {
+        return html`<div class="cursor_it bt_c39" onclick="${event}">${text}</div>`;
     }
 
     static card_main(html: string) {
@@ -797,7 +793,7 @@ ${obj.default ?? ''}</textarea
         return html`<button class="btn-gary" type="button" onclick="${event}">${text}</button>`;
     }
 
-    static selectFilter(obj: { gvc: GVC; callback: (value: any) => void }) {
+    static selectFilter(obj: { gvc: GVC; callback: (value: any) => void; default: string; options: { key: string; value: string }[] }) {
         obj.gvc.addStyle(`
             .c_select {
                 display: flex;
@@ -828,9 +824,7 @@ ${obj.default ?? ''}</textarea
                 obj.callback(e.value);
             })}"
         >
-            <option class="c_select_option">顧客名稱</option>
-            <option class="c_select_option">2</option>
-            <option class="c_select_option">3</option>
+            ${obj.gvc.map(obj.options.map((opt) => html` <option class="c_select_option" value="${opt.key}" ${obj.default === opt.key ? 'selected' : ''}>${opt.value}</option>`))}
         </select>`;
     }
 
@@ -857,7 +851,7 @@ ${obj.default ?? ''}</textarea
         </div>`;
     }
 
-    static updownFilter(obj: { gvc: GVC; callback: (value: any) => void }) {
+    static updownFilter(obj: { gvc: GVC; callback: (value: any) => void; default: string; options: { key: string; value: string }[] }) {
         obj.gvc.addStyle(`
             .c_updown {
                 display: flex;
@@ -869,15 +863,238 @@ ${obj.default ?? ''}</textarea
                 border-radius: 10px;
                 border: 1px solid #ddd;
             }
+
+            .c_fixed {
+                position: fixed;
+                width: 250px;
+                height: 300px;
+                overflow-y: auto;
+                padding: 24px;
+                border-radius: 10px;
+                border: 1px solid #ddd;
+                background: #fff;
+                box-shadow: 2px 2px 10px 0px rgba(0, 0, 0, 0.15);
+                z-index: 2;
+            }
+
+            .form-check-input:checked[type='radio'] {
+                border: 2px solid #000;
+                background-color: #fff;
+                background-image: url(${this.dotDataImage('#000')});
+                background-position: center center;
+            }
+
+            .c_updown_label {
+                color: #393939;
+                font-size: 16px;
+                font-weight: 400;
+            }
         `);
+
+        const vm = {
+            id: obj.gvc.glitter.getUUID(),
+            show: false,
+            top: 0,
+            right: 0,
+        };
+
         return html`<div
-            class="c_updown"
-            onclick="${obj.gvc.event((e) => {
-                obj.callback('c_updown');
-            })}"
-        >
-            <i class="fa-regular fa-arrow-up-arrow-down"></i>
-        </div>`;
+                class="c_updown"
+                onclick="${obj.gvc.event((e) => {
+                    vm.show = !vm.show;
+
+                    const element = document.querySelector('.c_updown');
+                    const rect = element?.getBoundingClientRect();
+                    if (rect) {
+                        vm.top = rect.top + 40;
+                        vm.right = rect.right;
+                    }
+
+                    obj.gvc.notifyDataChange(vm.id);
+                })}"
+            >
+                <i class="fa-regular fa-arrow-up-arrow-down"></i>
+            </div>
+            ${obj.gvc.bindView({
+                bind: vm.id,
+                view: () => {
+                    if (vm.show) {
+                        return html` <div class="c_fixed" style="top: ${vm.top}px; right: calc(100vw - ${vm.right}px)">
+                            <div class="form-check d-flex flex-column" style="gap: 16px">
+                                ${obj.gvc.map(
+                                    obj.options.map((opt) => {
+                                        return html`<div>
+                                            <input
+                                                class="form-check-input"
+                                                type="radio"
+                                                id="${opt.key}"
+                                                name="radio_${vm.id}"
+                                                onclick="${obj.gvc.event((e) => {
+                                                    vm.show = !vm.show;
+                                                    obj.callback(e.id);
+                                                    obj.gvc.notifyDataChange(vm.id);
+                                                })}"
+                                                ${obj.default === opt.key ? 'checked' : ''}
+                                            />
+                                            <label class="form-check-label c_updown_label" for="${opt.key}" style="">${opt.value}</label>
+                                        </div>`;
+                                    })
+                                )}
+                            </div>
+                        </div>`;
+                    }
+                    return '';
+                },
+            })}`;
+    }
+
+    static arrowDownDataImage(color: string): string {
+        color = color.replace('#', '%23');
+        return `"data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256' fill='${color}'%3e%3cpath d='M225.813 48.907L128 146.72 30.187 48.907 0 79.093l128 128 128-128z'/%3e%3c/svg%3e"`;
+    }
+
+    static checkedDataImage(color: string): string {
+        color = color.replace('#', '%23');
+        return `"data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3e%3cpath fill='none' stroke='${color}' stroke-linecap='round' stroke-linejoin='round' stroke-width='3' d='M6 10l3 3l6-6'/%3e%3c/svg%3e"`;
+    }
+
+    static dotDataImage(color: string): string {
+        color = color.replace('#', '%23');
+        return `"data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='2' fill='${color}'/%3e%3c/svg%3e"`;
+    }
+
+    static duringInputContainer(gvc: GVC, obj: { centerText: string; list: { key: string; type: string; placeHolder: string }[] }, def: string[], callback: (value: string[]) => void) {
+        const defualt = def.length > 1 ? def : ['', ''];
+        if (obj.list.length > 1) {
+            const first = obj.list[0];
+            const second = obj.list[1];
+            return html`
+                <div style="width: 100%; display: flex; flex-direction: column; gap: 6px;">
+                    <input
+                        class="form-control"
+                        type="${first.type ?? 'text'}"
+                        style="border-radius: 10px; border: 1px solid #DDD; padding-left: 18px;"
+                        placeholder="${first.placeHolder ?? ''}"
+                        onchange="${gvc.event((e, ele) => {
+                            defualt[0] = e.value;
+                            callback(defualt);
+                        })}"
+                        value="${defualt[0]}"
+                    />
+                    <span>${obj.centerText}</span>
+                    <input
+                        class="form-control"
+                        type="${second.type ?? 'text'}"
+                        style="border-radius: 10px; border: 1px solid #DDD; padding-left: 18px;"
+                        placeholder="${second.placeHolder ?? ''}"
+                        onchange="${gvc.event((e, ele) => {
+                            defualt[1] = e.value;
+                            callback(defualt);
+                        })}"
+                        value="${defualt[1]}"
+                    />
+                </div>
+            `;
+        }
+        return '';
+    }
+
+    static multiCheckboxContainer(gvc: GVC, data: { key: string; name: string }[], def: string[], callback: (value: string[]) => void) {
+        gvc.addStyle(`
+            .form-check-input:checked[type='checkbox'] {
+                border: 2px solid #000;
+                background-color: #fff;
+                background-image: url(${this.checkedDataImage('#000')});
+                background-position: center center;
+            }
+        `);
+
+        const id = gvc.glitter.getUUID();
+        let checkboxHTML = '';
+        data.map((item) => {
+            checkboxHTML += html`
+                <div class="form-check">
+                    <input
+                        class="form-check-input"
+                        type="checkbox"
+                        id="${id}_${item.key}"
+                        onchange="${gvc.event((e) => {
+                            if (e.checked) {
+                                def.push(item.key);
+                            } else {
+                                def = def.filter((d) => d !== item.key);
+                            }
+                            callback(def);
+                        })}"
+                        ${def.includes(item.key) ? 'checked' : ''}
+                    />
+                    <label class="form-check-label" for="${id}_${item.key}" style="font-size: 16px; color: #393939;">${item.name}</label>
+                </div>
+            `;
+        });
+
+        return html` <div style="width: 100%; display: flex; flex-direction: column; gap: 6px;">${checkboxHTML}</div> `;
+    }
+
+    static radioInputContainer(
+        gvc: GVC,
+        data: { key: string; name: string; type: string; placeHolder: string; unit?: string }[],
+        def: { key: string; value: string },
+        callback: (value: { key: string; value: string }) => void
+    ) {
+        gvc.addStyle(`
+            .form-check-input:checked[type='radio'] {
+                border: 2px solid #000;
+                background-color: #fff;
+                background-image: url(${this.dotDataImage('#000')});
+                background-position: center center;
+            }
+        `);
+
+        const id = gvc.glitter.getUUID();
+        return gvc.bindView({
+            bind: id,
+            view: () => {
+                let radioInputHTML = '';
+                data.map((item) => {
+                    radioInputHTML += html`
+                        <div class="m-1">
+                            <div class="form-check">
+                                <input
+                                    class="form-check-input"
+                                    type="radio"
+                                    id="${id}_${item.key}"
+                                    name="radio_${id}"
+                                    onchange="${gvc.event(() => {
+                                        def.key = item.key;
+                                        gvc.notifyDataChange(id);
+                                    })}"
+                                    ${def.key === item.key ? 'checked' : ''}
+                                />
+                                <label class="form-check-label" for="${id}_${item.key}" style="font-size: 16px; color: #393939;">${item.name}</label>
+                            </div>
+                            <div class="d-flex align-items-center border rounded-3">
+                                <input
+                                    class="form-control border-0 bg-transparent shadow-none"
+                                    type="${item.type ?? 'text'}"
+                                    style="border-radius: 10px; border: 1px solid #DDD; padding-left: 18px;"
+                                    placeholder="${item.placeHolder ?? ''}"
+                                    onchange="${gvc.event((e) => {
+                                        def.value = e.value;
+                                        callback(def);
+                                    })}"
+                                    value="${def.key === item.key ? def.value : ''}"
+                                    ${def.key === item.key ? '' : 'disabled'}
+                                />
+                                ${item.unit ? html`<div class="py-2 pe-3">${item.unit}</div>` : ''}
+                            </div>
+                        </div>
+                    `;
+                });
+
+                return html` <div style="width: 100%; display: flex; flex-direction: column; gap: 6px;">${radioInputHTML}</div> `;
+            },
+        });
     }
 }
 

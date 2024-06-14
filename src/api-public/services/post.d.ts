@@ -1,4 +1,4 @@
-import { IToken } from "../models/Auth.js";
+import { IToken } from '../models/Auth.js';
 export declare class Post {
     app: string;
     token: IToken;

@@ -51,15 +51,15 @@ export class ApiUser {
         });
     }
 
-    public static getEmailCount(email:string) {
+    public static getEmailCount(email: string) {
         return BaseApi.create({
-            "url": getBaseUrl() + `/api-public/v1/user/check/email/exists?email=${email}`,
-            "type": "GET",
-            "headers": {
-                "g-app": getConfig().config.appName,
-                "Content-Type": "application/json",
-            }
-        })
+            url: getBaseUrl() + `/api-public/v1/user/check/email/exists?email=${email}`,
+            type: 'GET',
+            headers: {
+                'g-app': getConfig().config.appName,
+                'Content-Type': 'application/json',
+            },
+        });
     }
     public static getSaasUserData(token: string, type: 'list' | 'me') {
         return BaseApi.create({
@@ -185,13 +185,14 @@ export class ApiUser {
         });
     }
 
-    public static getUserList(json: { limit: number; page: number; search?: string; id?: string }) {
+    public static getUserList(json: { limit: number; page: number; search?: string; id?: string; search_type?: string }) {
         return BaseApi.create({
             url:
                 getBaseUrl() +
                 `/api-public/v1/user?${(() => {
                     let par = [`type=list`, `limit=${json.limit}`, `page=${json.page}`];
                     json.search && par.push(`search=${json.search}`);
+                    json.search_type && par.push(`search=${json.search}`);
                     json.id && par.push(`id=${json.id}`);
                     return par.join('&');
                 })()}`,
@@ -204,7 +205,28 @@ export class ApiUser {
         });
     }
 
-    public static getUserListOrders(json: { limit: number; page: number; search?: string; id?: string }) {
+    public static userListFilterString(obj: any): string[] {
+        let list = [] as string[];
+        if (obj.created_time.length > 1 && obj.created_time[0].length > 0 && obj.created_time[1].length > 0) {
+            list.push(`created_time=${obj.created_time[0]},${obj.created_time[1]}`);
+        }
+        if (obj.birth.length > 0) {
+            list.push(`birth=${obj.birth.join(',')}`);
+        }
+        if (obj.rank.length > 0) {
+            list.push(`rank=${obj.rank.join(',')}`);
+        }
+        if (obj.rebate.key && obj.rebate.value) {
+            list.push(`rebate=${obj.rebate.key},${obj.rebate[1].value}`);
+        }
+        if (obj.total_amount.key && obj.total_amount.value) {
+            list.push(`total_amount=${obj.total_amount.key},${obj.total_amount.value}`);
+        }
+        return list;
+    }
+
+    public static getUserListOrders(json: { limit: number; page: number; search?: string; id?: string; searchType?: string; orderString?: string; filter?: any; status?: number }) {
+        const filterString = this.userListFilterString(json.filter);
         const userData = BaseApi.create({
             url:
                 getBaseUrl() +
@@ -212,6 +234,9 @@ export class ApiUser {
                     let par = [`type=list`, `limit=${json.limit}`, `page=${json.page}`];
                     json.search && par.push(`search=${json.search}`);
                     json.id && par.push(`id=${json.id}`);
+                    json.searchType && par.push(`searchType=${json.searchType}`);
+                    json.orderString && par.push(`order_string=${json.orderString}`);
+                    filterString.length > 0 && par.push(filterString.join('&'));
                     return par.join('&');
                 })()}`,
             type: 'GET',
@@ -223,58 +248,65 @@ export class ApiUser {
         }).then(async (data) => {
             const array = data.response.data;
 
-            //這樣速度會比較快
-            await new Promise((resolve, reject)=>{
-                let pass=0
-                function checkPass(){
-                    if(pass===array.length){
-                        resolve(true)
+            if (array.length > 0) {
+                await new Promise((resolve, reject) => {
+                    let pass = 0;
+                    function checkPass() {
+                        pass++;
+                        if (pass === array.length) {
+                            resolve(true);
+                        }
                     }
-                    pass++
-                }
-                for (let index = 0; index < array.length; index++) {
-                    function execute(){
-                        const res = array[index];
-                        Promise.all([
-                            new Promise<void>((resolve) => {
-                                ApiUser.getPublicUserData(res.userID).then((dd) => {
-                                    array[index].tag_name =
-                                        (
-                                            dd.response.member.find((dd: any) => {
-                                                return dd.trigger;
-                                            }) || {}
-                                        ).tag_name || '一般會員';
-                                    resolve();
-                                });
-                            }),
-                            new Promise<void>((resolve) => {
-                                ApiShop.getOrder({
-                                    page: 0,
-                                    limit: 99999,
-                                    data_from: 'manager',
-                                    email: res.account,
-                                }).then((data) => {
-                                    if(data.result){
-                                        array[index].checkout_total = (() => {
-                                            let t = 0;
-                                            for (const d of data.response.data) {
-                                                t += d.orderData.total;
-                                            }
-                                            return t;
-                                        })();
-                                        array[index].checkout_count = data.response.total as number;
-                                        checkPass()
-                                    }else{
-                                        execute()
-                                    }
-                                });
-                            }),
-                        ]);
+                    for (let index = 0; index < array.length; index++) {
+                        function execute() {
+                            Promise.all([
+                                new Promise<void>((resolve) => {
+                                    ApiUser.getPublicUserData(array[index].userID).then((dd) => {
+                                        if (dd.result) {
+                                            array[index].tag_name =
+                                                (
+                                                    dd.response.member.find((dd: any) => {
+                                                        return dd.trigger;
+                                                    }) || {}
+                                                ).tag_name || '一般會員';
+                                            resolve();
+                                        } else {
+                                            execute();
+                                        }
+                                    });
+                                }),
+                                new Promise<void>((resolve) => {
+                                    ApiShop.getOrder({
+                                        page: 0,
+                                        limit: 99999,
+                                        data_from: 'manager',
+                                        email: array[index].account,
+                                        status: 1,
+                                    }).then((data) => {
+                                        if (data.result) {
+                                            array[index].checkout_total = (() => {
+                                                let t = 0;
+                                                for (const d of data.response.data) {
+                                                    t += d.orderData.total;
+                                                }
+                                                return t;
+                                            })();
+                                            array[index].checkout_count = data.response.total as number;
+                                            resolve();
+                                        } else {
+                                            execute();
+                                        }
+                                    });
+                                }),
+                            ]).then(() => {
+                                checkPass();
+                            });
+                        }
+                        execute();
                     }
-                    execute()
-                }
-                checkPass()
-            })
+                });
+            }
+
             return {
                 response: {
                     data: array,
@@ -285,8 +317,6 @@ export class ApiUser {
 
         return userData;
     }
-
-
 
     public static deleteUser(json: { id: string }) {
         return BaseApi.create({
@@ -401,19 +431,14 @@ export class ApiUser {
         });
     }
 
-    public static setPublicConfig(cf: {
-        key: string,
-        value: any,
-        user_id?: string,
-        token?:string
-    }) {
+    public static setPublicConfig(cf: { key: string; value: any; user_id?: string; token?: string }) {
         return BaseApi.create({
-            "url": getBaseUrl() + `/api-public/v1/user/public/config`,
-            "type": "PUT",
-            "headers": {
-                "Content-Type": "application/json",
-                "g-app": getConfig().config.appName,
-                "Authorization": cf.token || ((cf.user_id) ? getConfig().config.token : GlobalUser.token)
+            url: getBaseUrl() + `/api-public/v1/user/public/config`,
+            type: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'g-app': getConfig().config.appName,
+                Authorization: cf.token || (cf.user_id ? getConfig().config.token : GlobalUser.token),
             },
             data: JSON.stringify({
                 key: cf.key,

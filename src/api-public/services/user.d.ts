@@ -1,4 +1,17 @@
-import { IToken } from "../models/Auth.js";
+import { IToken } from '../models/Auth.js';
+interface UserQuery {
+    page?: number;
+    limit?: number;
+    id?: string;
+    search?: string;
+    searchType?: string;
+    order_string?: string;
+    created_time?: string;
+    birth?: string;
+    rank?: string;
+    rebate?: string;
+    total_amount?: string;
+}
 export declare class User {
     app: string;
     token?: IToken;
@@ -18,19 +31,16 @@ export declare class User {
         start_date: string;
         end_date: string;
     } | null;
-    getUserList(query: {
+    getUserAndOrderSQL(obj: {
+        select: string;
+        where: string[];
+        orderBy: string;
         page?: number;
         limit?: number;
-        id?: string;
-        search?: string;
-    }): Promise<{
-        data: any;
-        result: boolean;
-        total?: undefined;
-    } | {
+    }): string;
+    getUserList(query: UserQuery): Promise<{
         data: any;
         total: any;
-        result?: undefined;
     }>;
     subscribe(email: string, tag: string): Promise<void>;
     registerFcm(userID: string, deviceToken: string): Promise<void>;
@@ -99,3 +109,4 @@ export declare class User {
     }): Promise<any>;
     constructor(app: string, token?: IToken);
 }
+export {};

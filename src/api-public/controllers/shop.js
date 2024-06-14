@@ -211,6 +211,7 @@ router.get('/order', async (req, resp) => {
                 search: req.query.search,
                 id: req.query.id,
                 email: req.query.email,
+                status: req.query.status,
             }));
         }
         else if (await ut_permission_1.UtPermission.isAppUser(req)) {
@@ -221,6 +222,7 @@ router.get('/order', async (req, resp) => {
                 search: req.query.search,
                 id: req.query.id,
                 email: user_data.account,
+                status: req.query.status,
             }));
         }
         else {
@@ -554,24 +556,30 @@ router.get('/payment/method', async (req, resp) => {
             key: 'glitter_finance',
         }))[0].value;
         return response_1.default.succ(resp, {
-            method: [{
+            method: [
+                {
                     value: 'credit',
-                    title: '信用卡'
-                }, {
+                    title: '信用卡',
+                },
+                {
                     value: 'atm',
-                    title: 'ATM'
-                }, {
+                    title: 'ATM',
+                },
+                {
                     value: 'web_atm',
-                    title: '網路ATM'
-                }, {
+                    title: '網路ATM',
+                },
+                {
                     value: 'c_code',
-                    title: '超商代碼'
-                }, {
+                    title: '超商代碼',
+                },
+                {
                     value: 'c_bar_code',
-                    title: '超商條碼'
-                }].filter((dd) => {
+                    title: '超商條碼',
+                },
+            ].filter((dd) => {
                 return keyData[dd.value] && keyData.TYPE !== 'off_line';
-            })
+            }),
         });
     }
     catch (err) {
@@ -580,12 +588,12 @@ router.get('/payment/method', async (req, resp) => {
 });
 router.get('/check-login-for-order', async (req, resp) => {
     try {
-        const keyData = (await new user_js_1.User(req.get('g-app')).getConfigV2({
+        const keyData = await new user_js_1.User(req.get('g-app')).getConfigV2({
             user_id: 'manager',
             key: 'login_config',
-        }));
+        });
         return response_1.default.succ(resp, {
-            result: keyData.login_in_to_order
+            result: keyData.login_in_to_order,
         });
     }
     catch (err) {
