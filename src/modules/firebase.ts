@@ -96,7 +96,19 @@ export class Firebase {
                 })!.messaging().send({
                     notification: {
                         title: cf.title,
-                        body: cf.body
+                        body: cf.body,
+                    },
+                    android: {
+                        notification: {
+                            sound: 'default'
+                        },
+                    },
+                    apns: {
+                        payload: {
+                            aps: {
+                                sound: 'default'
+                            },
+                        },
                     },
                     data:{
                         link:cf.link

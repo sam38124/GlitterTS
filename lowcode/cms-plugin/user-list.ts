@@ -176,7 +176,7 @@ export class UserList {
                                                 '搜尋所有用戶',
                                                 '0'
                                             )}
-                                            <!-- ${BgWidget.funnelFilter({
+                                             ${BgWidget.funnelFilter({
                                                 gvc,
                                                 callback: (value: any) => {
                                                     console.log(value);

@@ -363,6 +363,27 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
                     console.log(e);
                     return e.message;
                 }
+            },
+            sitemap: async (req, resp) => {
+                let appName = dd.appName;
+                if (req.query.appName) {
+                    appName = req.query.appName;
+                }
+                const domain = (await database_2.default.query(`select \`domain\` from \`${config_1.saasConfig.SAAS_NAME}\`.app_config where appName=?`, [appName]))[0]['domain'];
+                return `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+${(await database_2.default.query(`select page_config,tag from \`${config_1.saasConfig.SAAS_NAME}\`.page_config where appName=?
+                                                                                                  and page_config->>'$.seo.type'='custom'
+                `, [
+                    appName
+                ])).map((d2) => {
+                    return `<url>
+<loc>https://${domain}/${d2.tag}</loc>
+<lastmod>${d2.updated_time}</lastmod>
+<changefreq>weekly</changefreq>
+</url>`;
+                })}
+</urlset>
+`;
             }
         },
     ]);

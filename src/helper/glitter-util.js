@@ -39,8 +39,10 @@ class GlitterUtil {
                         return dd.path + '/' + req.baseUrl.replace(`/${dd.app_name}/`, '');
                     }
                 })();
-                console.log(req.baseUrl.replace(dd.root_path, ''));
-                if (!fs_1.default.existsSync(fileURL)) {
+                if (req.baseUrl.replace(`/${dd.app_name}/`, '') === 'sitemap.xml') {
+                    return resp.send(await dd.sitemap(req, resp));
+                }
+                else if (!fs_1.default.existsSync(fileURL)) {
                     if (req.baseUrl.startsWith(dd.root_path)) {
                         req.query.page = req.baseUrl.replace(dd.root_path, '');
                     }

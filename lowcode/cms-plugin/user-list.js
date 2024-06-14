@@ -167,7 +167,7 @@ export class UserList {
                                 vm.query = e.value;
                                 gvc.notifyDataChange(id);
                             }), vm.query || '', '搜尋所有用戶', '0')}
-                                            <!-- ${BgWidget.funnelFilter({
+                                             ${BgWidget.funnelFilter({
                                 gvc,
                                 callback: (value) => {
                                     console.log(value);

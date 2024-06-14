@@ -353,6 +353,27 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
                     return e.message
                 }
 
+            },
+            sitemap:async (req, resp) =>{
+                let appName = dd.appName
+                if (req.query.appName) {
+                    appName = req.query.appName
+                }
+const domain=(await db.query(`select \`domain\` from \`${saasConfig.SAAS_NAME}\`.app_config where appName=?`,[appName]))[0]['domain'];
+                return `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+${(await db.query(`select page_config,tag from \`${saasConfig.SAAS_NAME}\`.page_config where appName=?
+                                                                                                  and page_config->>'$.seo.type'='custom'
+                `,[
+                    appName
+                ])).map((d2:any)=>{
+                    return `<url>
+<loc>https://${domain}/${d2.tag}</loc>
+<lastmod>${d2.updated_time}</lastmod>
+<changefreq>weekly</changefreq>
+</url>`
+                })}
+</urlset>
+`
             }
         },
     ]);

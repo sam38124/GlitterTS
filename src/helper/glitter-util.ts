@@ -15,7 +15,7 @@ export class GlitterUtil {
                     let fullPath = dd.path + "/index.html"
                     const data = fs.readFileSync(fullPath, 'utf8');
                     resp.header('Content-Type', 'text/html; charset=UTF-8')
-                    return resp.send(data.replace(data.substring(data.indexOf(`<head>`)+6, data.indexOf(`</head>`)), seo))
+                    return resp.send(data.replace(data.substring(data.indexOf(`<head>`) + 6, data.indexOf(`</head>`)), seo))
                 } else {
                     return resp.sendFile(decodeURI((dd.path + path)))
                 }
@@ -23,30 +23,31 @@ export class GlitterUtil {
         }
     }
 
-    public static async set_frontend_v2(express: core.Express, rout: {app_name:string, rout: string, path: string,root_path:string, seoManager: (req: express.Request, resp: express.Response) => Promise<string> }[]) {
+    public static async set_frontend_v2(express: core.Express, rout: { app_name: string, rout: string, path: string, root_path: string, seoManager: (req: express.Request, resp: express.Response) => Promise<string>, sitemap:(req: express.Request, resp: express.Response) => Promise<string>}[]) {
         for (const dd of rout) {
             express.use(dd.rout, async (req: express.Request, resp: express.Response, next) => {
-                console.log(`req.baseUrl->`,req.baseUrl)
-                console.log(`dd.root_path->`,dd.root_path)
+                console.log(`req.baseUrl->`, req.baseUrl)
+                console.log(`dd.root_path->`, dd.root_path)
                 //判斷是檔案路徑則直接返回檔案
-                const fileURL = (()=>{
+                const fileURL = (() => {
                     if (req.baseUrl.startsWith(dd.root_path)) {
-                        return dd.path +'/'+ req.baseUrl.replace(dd.root_path,'');
-                    }else{
-                        return dd.path +'/'+ req.baseUrl.replace(`/${dd.app_name}/`, '')
+                        return dd.path + '/' + req.baseUrl.replace(dd.root_path, '');
+                    } else {
+                        return dd.path + '/' + req.baseUrl.replace(`/${dd.app_name}/`, '')
                     }
                 })()
-                console.log(req.baseUrl.replace(dd.root_path,''))
-                if (!fs.existsSync(fileURL)) {
+                if (req.baseUrl.replace(`/${dd.app_name}/`, '') === 'sitemap.xml') {
+                    return resp.send(await dd.sitemap(req, resp))
+                } else if (!fs.existsSync(fileURL)) {
                     if (req.baseUrl.startsWith(dd.root_path)) {
-                        req.query.page=req.baseUrl.replace(dd.root_path,'');
+                        req.query.page = req.baseUrl.replace(dd.root_path, '');
                     }
                     const seo = await dd.seoManager(req, resp)
                     let fullPath = dd.path + "/index.html"
                     const data = fs.readFileSync(fullPath, 'utf8');
                     resp.header('Content-Type', 'text/html; charset=UTF-8')
 
-                    return resp.send(data.replace(data.substring(data.indexOf(`<head>`), data.indexOf(`</head>`)+7), seo))
+                    return resp.send(data.replace(data.substring(data.indexOf(`<head>`), data.indexOf(`</head>`) + 7), seo))
                 } else {
                     return resp.sendFile(decodeURI(fileURL))
                 }
