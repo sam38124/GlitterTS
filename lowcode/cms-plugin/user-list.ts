@@ -166,7 +166,7 @@ export class UserList {
                                                 callback: (value: any) => {
                                                     console.log(value);
                                                 },
-                                            })} -->
+                                            })} 
                                             ${BgWidget.searchPlace(
                                                 gvc.event((e, event) => {
                                                     vm.query = e.value;
