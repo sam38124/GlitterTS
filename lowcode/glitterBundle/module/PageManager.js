@@ -105,11 +105,11 @@ export class PageManager {
                     if (clock.stop() < 250) {
                         setTimeout(() => {
                             scroll();
+                            glitter.window.history.replaceState({}, glitter.document.title, glitter.pageConfig[index].search);
                         }, 10);
                     }
                 }
                 scroll();
-                glitter.window.history.replaceState({}, glitter.document.title, glitter.pageConfig[index].search);
             }
         }
         catch (e) {
