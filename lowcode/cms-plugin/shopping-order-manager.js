@@ -31,7 +31,7 @@ export class ShoppingOrderManager {
                     if (vm.type === 'list') {
                         return BgWidget.container(html `
                             <div class="d-flex w-100 align-items-center mb-3 ">
-                                ${BgWidget.title('訂單管理')}
+                                ${BgWidget.title('訂單管理2')}
                                 <div class="flex-fill"></div>
                                 <button
                                     class="btn btn-primary-c d-none"
