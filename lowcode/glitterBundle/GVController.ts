@@ -475,6 +475,7 @@ ${lifeCycle.onCreateView()}
         gvc.glitter.setAnimation(cf.pageConfig)
         lifeCycle.onCreate()
         gvc.glitter.defaultSetting.pageLoadingFinish()
-        PageManager.setHistory(GVC.glitter.getUrlParameter('page'),cf.c_type)
+        PageManager.setHistory(GVC.glitter.getUrlParameter('page'), cf.c_type)
+        console.log(`cf.c_type`,cf.c_type)
     }
 }

@@ -30,6 +30,7 @@ exports.SaasScheme = {
   \`favorite\` int NOT NULL DEFAULT '0',
   \`template_config\` json DEFAULT NULL,
   \`template_type\` int NOT NULL DEFAULT '0',
+  \`updated_time\` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (\`id\`),
   UNIQUE KEY \`page_index\` (\`appName\`,\`tag\`),
   KEY \`app_index\` (\`userID\`,\`appName\`),

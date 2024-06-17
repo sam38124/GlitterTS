@@ -176,7 +176,7 @@ background: ${config!.backGroundColor};display: none;z-index: 9999;overflow: hid
             module.create(glitter);
             const search = glitter.setSearchParam(glitter.removeSearchParam(glitter.window.location.search, 'page'), 'page', tag);
             try {
-                glitter.window.history.pushState({}, glitter.document.title, search);
+                window.history.pushState({}, glitter.document.title, search);
             } catch (e) {
             }
             glitter.pageConfig = [];
@@ -190,7 +190,7 @@ background: ${config!.backGroundColor};display: none;z-index: 9999;overflow: hid
             }], () => {
                 const search = glitter.setSearchParam(glitter.removeSearchParam(glitter.window.location.search, 'page'), 'page', tag);
                 try {
-                    glitter.window.history.pushState({}, glitter.document.title, search);
+                    window.history.pushState({}, glitter.document.title, search);
                 } catch (e) {
                 }
                 glitter.pageConfig = [];
@@ -322,7 +322,7 @@ background: transparent;background: ${config!.backGroundColor};display: none;pos
         });
         if (module) {
             const search = glitter.setSearchParam(glitter.removeSearchParam(glitter.window.location.search, 'page'), 'page', tag);
-            glitter.window.history.pushState({}, glitter.document.title, search);
+            window.history.pushState({}, glitter.document.title, search);
             glitter.pageConfig.push(config);
             glitter.setUrlParameter('page', tag);
             module.create(glitter);
@@ -333,7 +333,7 @@ background: transparent;background: ${config!.backGroundColor};display: none;pos
                 id: config.id
             }], () => {
                 const search = glitter.setSearchParam(glitter.removeSearchParam(glitter.window.location.search, 'page'), 'page', tag);
-                glitter.window.history.pushState({}, glitter.document.title, search);
+                window.history.pushState({}, glitter.document.title, search);
                 glitter.pageConfig.push(config);
             }, () => {
                 console.log('can\'t find script src:' + url);

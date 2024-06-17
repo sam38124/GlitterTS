@@ -9,6 +9,7 @@ const database_js_1 = __importDefault(require("../../modules/database.js"));
 const ut_permission_js_1 = require("../utils/ut-permission.js");
 const exception_js_1 = __importDefault(require("../../modules/exception.js"));
 const article_js_1 = require("../services/article.js");
+const user_js_1 = require("../services/user.js");
 const router = express_1.default.Router();
 router.get('/', async (req, resp) => {
     try {
@@ -50,10 +51,40 @@ router.get('/manager', async (req, resp) => {
         }
         req.query.tag && query.push(`(content->>'$.tag' = ${database_js_1.default.escape(req.query.tag)})`);
         req.query.label && query.push(`JSON_CONTAINS(content->'$.collection', '"${req.query.label}"')`);
-        if (req.query.search) {
-            query.push(`content->>'$.name' like '%${req.query.search}%'`);
+        if (req.query.status) {
+            req.query.status && query.push(`status in (${req.query.status})`);
         }
+        else {
+            query.push(`status = 1`);
+        }
+        if (req.query.search) {
+            query.push(`(content->>'$.name' like '%${req.query.search}%') || (content->>'$.title' like '%${req.query.search}%')`);
+        }
+        const collection_list_value = await (new user_js_1.User(req.get('g-app')).getConfigV2({
+            key: 'blog_collection',
+            user_id: 'manager'
+        }));
+        const collection_title_map = [];
+        if (Array.isArray(collection_list_value)) {
+            function loop(list) {
+                list.map((dd) => {
+                    loop(dd.items);
+                    collection_title_map.push({
+                        link: dd.link,
+                        title: dd.title
+                    });
+                });
+            }
+            loop(collection_list_value);
+        }
+        console.log(`collection_title_map->`, collection_list_value);
         const data = await new ut_database_js_1.UtDatabase(req.get('g-app'), `t_manager_post`).querySql(query, req.query);
+        data.data.map((dd) => {
+            dd.content.collection = dd.content.collection || [];
+            dd.content.collection = collection_title_map.filter((d1) => {
+                return dd.content.collection.find((d2) => { return d2 === d1.link; });
+            });
+        });
         return response_js_1.default.succ(resp, data);
     }
     catch (err) {
@@ -62,8 +93,11 @@ router.get('/manager', async (req, resp) => {
 });
 router.post('/manager', async (req, resp) => {
     try {
+        if ((!await ut_permission_js_1.UtPermission.isManager(req))) {
+            return response_js_1.default.fail(resp, exception_js_1.default.BadRequestError('BAD_REQUEST', 'No permission.', null));
+        }
         return response_js_1.default.succ(resp, {
-            result: await (new article_js_1.Article(req.get('g-app'), req.body.token).addArticle(req.body.data))
+            result: await (new article_js_1.Article(req.get('g-app'), req.body.token).addArticle(req.body.data, req.body.status))
         });
     }
     catch (err) {
@@ -72,6 +106,9 @@ router.post('/manager', async (req, resp) => {
 });
 router.put('/manager', async (req, resp) => {
     try {
+        if ((!await ut_permission_js_1.UtPermission.isManager(req))) {
+            return response_js_1.default.fail(resp, exception_js_1.default.BadRequestError('BAD_REQUEST', 'No permission.', null));
+        }
         return response_js_1.default.succ(resp, {
             result: await (new article_js_1.Article(req.get('g-app'), req.body.token).putArticle(req.body.data))
         });

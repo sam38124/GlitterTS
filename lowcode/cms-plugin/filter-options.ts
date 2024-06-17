@@ -45,15 +45,15 @@ export class FilterOptions {
         //     name: '會員等級',
         //     data: [],
         // },
-        {
-            key: 'rebate',
-            type: 'radio_and_input',
-            name: '持有回饋金',
-            data: [
-                { key: 'lessThan', name: '小於', type: 'number', placeHolder: '請輸入數值', unit: '元' },
-                { key: 'moreThan', name: '大於', type: 'number', placeHolder: '請輸入數值', unit: '元' },
-            ],
-        },
+        // {
+        //     key: 'rebate',
+        //     type: 'radio_and_input',
+        //     name: '持有回饋金',
+        //     data: [
+        //         { key: 'lessThan', name: '小於', type: 'number', placeHolder: '請輸入數值', unit: '元' },
+        //         { key: 'moreThan', name: '大於', type: 'number', placeHolder: '請輸入數值', unit: '元' },
+        //     ],
+        // },
         {
             key: 'total_amount',
             type: 'radio_and_input',

@@ -6,15 +6,15 @@ import {HtmlGenerate} from "./module/html-generate.js"
 
 
 export class Glitter {
-    public  root_path=(()=>{
-        return new URL('../',import.meta.url).href
+    public root_path = (() => {
+        return new URL('../', import.meta.url).href
     })()
     public static glitter: Glitter
     /*ENUM*/
     public gvcType = GVCType
     public deviceTypeEnum = AppearType;
     public animation = Animation;
-    public page:string=''
+    public page: string = ''
     /*DefaultSetting*/
     public defaultSetting = new DefaultSetting({
         pageBgColor: "white",
@@ -280,19 +280,22 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
     }
 
     public setUrlParameter(tag: string, value?: string) {
-        if(tag==='page' && value){
+        if (tag === 'page' && value) {
             try {
-                this.page=value;
-                const url=new URL(this.root_path+value+window.location.search)
+                this.page = value;
+                const url = new URL(this.root_path + value + window.location.search)
                 url.searchParams.delete('page')
                 window.history.replaceState({}, document.title, url.href);
             } catch (e) {
             }
-        }else{
-            let search = (value !== undefined) ? this.setSearchParam(this.removeSearchParam(window.location.search, tag), tag, value) :
-                this.removeSearchParam(window.location.search, tag)
+        } else {
+            const url = new URL(location.href)
+            url.searchParams.delete(tag)
+            if (value) {
+                url.searchParams.set(tag, value)
+            }
             try {
-                window.history.replaceState({}, document.title, search);
+                window.history.replaceState({}, document.title, url.href);
             } catch (e) {
             }
         }
@@ -492,7 +495,7 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
     }
 
     public getUrlParameter(sParam: string): any {
-        function next():any {
+        function next(): any {
             let sPageURL = window.location.search.substring(1),
                 sURLVariables = sPageURL.split('&'),
                 sParameterName,
@@ -506,9 +509,10 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
                 }
             }
         }
+
         if (sParam === 'page') {
-            this.page=this.page || next()
-            this.setUrlParameter('page',undefined)
+            this.page = this.page || next()
+            this.setUrlParameter('page', undefined)
             return this.page
         } else {
             return next()

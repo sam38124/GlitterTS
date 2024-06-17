@@ -9,6 +9,7 @@ TriggerEvent.createSingleEvent(import.meta.url, (glitter) => {
             object.limit = object.limit ?? {}
             object.pageCount = object.pageCount ?? {}
             object.label = object.label ?? {}
+            object.search = object.search ?? {}
             return {
                 editor: () => {
                     return [
@@ -19,7 +20,8 @@ TriggerEvent.createSingleEvent(import.meta.url, (glitter) => {
                             hover: false,
                             option: []
                         }),
-                        TriggerEvent.editer(gvc, widget, object.label, {title: "文章標籤", hover: false, option: []})
+                        TriggerEvent.editer(gvc, widget, object.label, {title: "文章標籤", hover: false, option: []}),
+                        TriggerEvent.editer(gvc, widget, object.search, {title: "內容搜尋", hover: false, option: []})
                     ].join('<div class="my-2"></div>')
                 },
                 event: () => {
@@ -44,10 +46,18 @@ TriggerEvent.createSingleEvent(import.meta.url, (glitter) => {
                             clickEvent: object.label,
                             subData: subData
                         })
+
+                        const search= await TriggerEvent.trigger({
+                            gvc: gvc,
+                            widget: widget,
+                            clickEvent: object.search,
+                            subData: subData
+                        })
                         Article.get({
                             page: page as any,
                             limit: limit as any,
                             label:label as string,
+                            search:search as any,
                             for_index:"true"
                         }).then(async (data) => {
                             await TriggerEvent.trigger({

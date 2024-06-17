@@ -9,6 +9,7 @@ import {Shopping} from "../services/shopping.js";
 import exception from "../../modules/exception.js";
 import {IToken} from "../models/Auth.js";
 import {Article} from "../services/article.js";
+import {User} from "../services/user.js";
 
 const router: express.Router = express.Router();
 export = router;
@@ -55,10 +56,41 @@ router.get('/manager', async (req: express.Request, resp: express.Response) => {
         }
         req.query.tag && query.push(`(content->>'$.tag' = ${db.escape(req.query.tag)})`);
         req.query.label && query.push(`JSON_CONTAINS(content->'$.collection', '"${req.query.label}"')`);
-        if (req.query.search) {
-            query.push(`content->>'$.name' like '%${req.query.search}%'`)
+        if(req.query.status){
+            req.query.status && query.push(`status in (${req.query.status})`)
+        }else{
+            query.push(`status = 1`)
         }
+
+        if (req.query.search) {
+            query.push(`(content->>'$.name' like '%${req.query.search}%') || (content->>'$.title' like '%${req.query.search}%')`)
+        }
+
+        const collection_list_value=await (new User(req.get('g-app') as string).getConfigV2({
+            key:'blog_collection',
+            user_id:'manager'
+        }));
+        const collection_title_map:any=[]
+        if(Array.isArray(collection_list_value)){
+            function loop(list:any){
+                list.map((dd:any)=>{
+                    loop(dd.items)
+                    collection_title_map.push({
+                        link:dd.link,
+                        title:dd.title
+                    })
+                })
+            }
+            loop(collection_list_value)
+        }
+        console.log(`collection_title_map->`,collection_list_value)
         const data = await new UtDatabase(req.get('g-app') as string, `t_manager_post`).querySql(query, req.query as any);
+        data.data.map((dd:any)=>{
+            dd.content.collection=dd.content.collection || []
+            dd.content.collection=collection_title_map.filter((d1:any)=>{
+                return dd.content.collection.find((d2:any)=>{return d2===d1.link})
+            })
+        })
         return response.succ(resp, data);
     } catch (err) {
         return response.fail(resp, err);
@@ -66,8 +98,12 @@ router.get('/manager', async (req: express.Request, resp: express.Response) => {
 });
 router.post('/manager', async (req: express.Request, resp: express.Response) => {
     try {
+        if((!await UtPermission.isManager(req))){
+            return response.fail(resp, exception.BadRequestError('BAD_REQUEST', 'No permission.', null));
+        }
+
         return response.succ(resp, {
-            result: await (new Article(req.get('g-app') as string, (req.body.token as IToken)).addArticle(req.body.data))
+            result: await (new Article(req.get('g-app') as string, (req.body.token as IToken)).addArticle(req.body.data,req.body.status))
         });
     } catch (err) {
         return response.fail(resp, err);
@@ -76,6 +112,9 @@ router.post('/manager', async (req: express.Request, resp: express.Response) => 
 
 router.put('/manager', async (req: express.Request, resp: express.Response) => {
     try {
+        if((!await UtPermission.isManager(req))){
+            return response.fail(resp, exception.BadRequestError('BAD_REQUEST', 'No permission.', null));
+        }
         return response.succ(resp, {
             result: await (new Article(req.get('g-app') as string, (req.body.token as IToken)).putArticle(req.body.data))
         });

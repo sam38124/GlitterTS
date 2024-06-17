@@ -86,7 +86,12 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                             const formData = (yield TriggerEvent.trigger({
                                 gvc: gvc, widget: widget, clickEvent: object.valueData, subData: subData, element: element
                             }));
-                            gvc.glitter.setUrlParameter(object.key, formData || undefined);
+                            if (formData) {
+                                gvc.glitter.setUrlParameter(object.key, formData || undefined);
+                            }
+                            else {
+                                gvc.glitter.setUrlParameter(object.key, formData || undefined);
+                            }
                             resolve(true);
                         }
                     }));

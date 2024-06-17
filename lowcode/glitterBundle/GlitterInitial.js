@@ -26,6 +26,32 @@ function listenElementChange(query) {
 let scrollInterval = undefined;
 function traverseHTML(element, document) {
     var _a, _b;
+    try {
+        if ((element.tagName.toLowerCase() === 'page-box')) {
+            const pageConfig = glitter.pageConfig.find((dd) => {
+                return `page${dd.id}` === element.getAttribute('id');
+            });
+            if (pageConfig && pageConfig.initial) {
+                const scroll = JSON.parse(localStorage.getItem('g_l_top'));
+                console.log(`isPage-BOX-Return`, scroll.y);
+                document.querySelector('html').scrollTop = scroll.y;
+                let count = 0;
+                const loopScroll = setInterval(() => {
+                    count++;
+                    if (count < 100) {
+                        document.querySelector('html').scrollTop = scroll.y;
+                    }
+                    else {
+                        clearInterval(loopScroll);
+                    }
+                }, 1);
+                return;
+            }
+            (pageConfig) && (pageConfig.initial = true);
+        }
+    }
+    catch (e) {
+    }
     let children = element.children;
     if (children && children.length > 0) {
         for (let j = 0; j < children.length; j++) {
@@ -90,7 +116,9 @@ function traverseHTML(element, document) {
                         }
                     }
                     else if (document.querySelector(`[gvc-id="${id}"]`).onResumeEvent) {
-                        document.querySelector(`[gvc-id="${id}"]`).onResumeEvent();
+                        setTimeout(() => {
+                            document.querySelector(`[gvc-id="${id}"]`).onResumeEvent();
+                        });
                     }
                     else {
                     }

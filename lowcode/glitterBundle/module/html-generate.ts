@@ -880,6 +880,9 @@ ${obj.gvc.bindView({
                                                                     const target: any = (document as any).querySelector(`[gvc-id="${gvc.id(tempView)}"]`)
 
                                                                     if (dd.gCount === 'multiple') {
+                                                                        target.innerHTML=`<div class="w-100  d-flex align-items-center justify-content-center p-3">
+<div class="spinner-border"></div>
+</div>`
                                                                         new Promise(async (resolve, reject) => {
                                                                             let data: any = (await TriggerEvent.trigger({
                                                                                 gvc,

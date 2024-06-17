@@ -720,10 +720,13 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
             }
         }
         else {
-            let search = (value !== undefined) ? this.setSearchParam(this.removeSearchParam(window.location.search, tag), tag, value) :
-                this.removeSearchParam(window.location.search, tag);
+            const url = new URL(location.href);
+            url.searchParams.delete(tag);
+            if (value) {
+                url.searchParams.set(tag, value);
+            }
             try {
-                window.history.replaceState({}, document.title, search);
+                window.history.replaceState({}, document.title, url.href);
             }
             catch (e) {
             }

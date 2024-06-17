@@ -12,6 +12,7 @@ export class Article {
                 json.tag && par.push(`tag=${json.tag}`);
                 json.label && par.push(`label=${json.label}`);
                 json.for_index && par.push(`for_index=${json.for_index}`);
+                json.status && par.push(`status=${json.status}`);
                 return par.join('&');
             })()}`,
             "type": "GET",
@@ -46,7 +47,7 @@ export class Article {
             data: JSON.stringify(json)
         });
     }
-    static post(tData) {
+    static post(tData, status = 1) {
         return BaseApi.create({
             "url": getBaseUrl() + `/api-public/v1/article/manager`,
             "type": "POST",
@@ -56,6 +57,7 @@ export class Article {
                 "Authorization": getConfig().config.token
             },
             data: JSON.stringify({
+                status: status,
                 "data": tData
             })
         });

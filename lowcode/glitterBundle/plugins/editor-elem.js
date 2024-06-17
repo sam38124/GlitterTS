@@ -618,7 +618,7 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                         <div style="" class="" id="${richID}">${obj.def}</div>`;
                 },
                 divCreate: {
-                    style: `${obj.style || `overflow-y: auto;`}`,
+                    style: `${obj.style || `overflow-y: auto;`}position:relative;`,
                 },
                 onCreate: () => {
                     const interval = setInterval(() => {

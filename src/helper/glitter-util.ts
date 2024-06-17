@@ -23,7 +23,11 @@ export class GlitterUtil {
         }
     }
 
-    public static async set_frontend_v2(express: core.Express, rout: { app_name: string, rout: string, path: string, root_path: string, seoManager: (req: express.Request, resp: express.Response) => Promise<string>, sitemap:(req: express.Request, resp: express.Response) => Promise<string>}[]) {
+    public static async set_frontend_v2(express: core.Express, rout: { app_name: string, rout: string, path: string, root_path: string, seoManager: (req: express.Request, resp: express.Response) => Promise<string>, sitemap: (req: express.Request, resp: express.Response) => Promise<string> ,
+        sitemap_test: (req: express.Request, resp: express.Response) => Promise<string>
+        sitemap_list: (req: express.Request, resp: express.Response) => Promise<string>
+        robots:(req: express.Request, resp: express.Response) => Promise<string>
+    }[]) {
         for (const dd of rout) {
             express.use(dd.rout, async (req: express.Request, resp: express.Response, next) => {
                 console.log(`req.baseUrl->`, req.baseUrl)
@@ -36,7 +40,14 @@ export class GlitterUtil {
                         return dd.path + '/' + req.baseUrl.replace(`/${dd.app_name}/`, '')
                     }
                 })()
-                if (req.baseUrl.replace(`/${dd.app_name}/`, '') === 'sitemap.xml') {
+                if(req.baseUrl.replace(`/${dd.app_name}/`, '') === 'robots.txt'){
+                    resp.set('Content-Type', 'plan/text');
+                    return resp.send(await dd.robots(req, resp))
+                }else if (req.baseUrl.replace(`/${dd.app_name}/`, '') === 'sitemap.xml') {
+                    resp.set('Content-Type', 'application/xml');
+                    return resp.send(await dd.sitemap(req, resp))
+                } else if (req.baseUrl.replace(`/${dd.app_name}/`, '') === 'sitemap_detail.xml') {
+                    resp.set('Content-Type', 'application/xml');
                     return resp.send(await dd.sitemap(req, resp))
                 } else if (!fs.existsSync(fileURL)) {
                     if (req.baseUrl.startsWith(dd.root_path)) {
@@ -46,7 +57,6 @@ export class GlitterUtil {
                     let fullPath = dd.path + "/index.html"
                     const data = fs.readFileSync(fullPath, 'utf8');
                     resp.header('Content-Type', 'text/html; charset=UTF-8')
-
                     return resp.send(data.replace(data.substring(data.indexOf(`<head>`), data.indexOf(`</head>`) + 7), seo))
                 } else {
                     return resp.sendFile(decodeURI(fileURL))

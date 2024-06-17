@@ -130,7 +130,7 @@ export class UserList {
                             gvc: gvc,
                             getData: (vd) => {
                                 vmi = vd;
-                                const limit = 2;
+                                const limit = 20;
                                 ApiUser.getUserListOrders({
                                     page: vmi.page - 1,
                                     limit: limit,
@@ -856,10 +856,10 @@ export class UserList {
                         key: '用戶狀態',
                         value: (() => {
                             if (dd.status === 1) {
-                                return `<div class="badge bg-info fs-7" style="max-height:34px;">啟用中</div>`;
+                                return html `<div class="badge bg-info fs-7" style="max-height:34px;">啟用中</div>`;
                             }
                             else {
-                                return `<div class="badge bg-danger fs-7" style="max-height:34px;">已停用</div>`;
+                                return html `<div class="badge bg-danger fs-7" style="max-height:34px;">已停用</div>`;
                             }
                         })(),
                     },

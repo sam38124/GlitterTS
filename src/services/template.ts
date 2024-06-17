@@ -62,7 +62,8 @@ export class Template {
         appName: string, tag: string, group: string, name: string, config: any, page_config: any, id?: string,
         page_type: string,
         preview_image: string,
-        favorite: number
+        favorite: number,
+        updated_time:any
     }) {
         if (!(await this.verifyPermission(config.appName))) {
             throw exception.BadRequestError("Forbidden", "No Permission.", null);
@@ -78,6 +79,7 @@ export class Template {
             config.preview_image && (params['preview_image'] = config.preview_image)
             config.page_config && (params["page_config"] = JSON.stringify(config.page_config))
             config.favorite && (params['favorite'] = config.favorite)
+            config.updated_time=new Date()
             let sql = `
                 UPDATE \`${saasConfig.SAAS_NAME}\`.page_config
                 SET ?

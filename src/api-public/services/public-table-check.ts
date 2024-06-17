@@ -136,12 +136,13 @@ export class ApiPublic {
                 {
                     scheme: appName,
                     table: 't_manager_post',
-                    sql: `(
+                    sql: ` (
   \`id\` int NOT NULL AUTO_INCREMENT,
   \`userID\` int NOT NULL,
   \`content\` json DEFAULT NULL,
   \`created_time\` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   \`updated_time\` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  \`status\` int NOT NULL DEFAULT '1',
   PRIMARY KEY (\`id\`),
   KEY \`index2\` (\`userID\`)
 ) ENGINE=InnoDB AUTO_INCREMENT=287 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`

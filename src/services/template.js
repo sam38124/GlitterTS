@@ -70,6 +70,7 @@ class Template {
             config.preview_image && (params['preview_image'] = config.preview_image);
             config.page_config && (params["page_config"] = JSON.stringify(config.page_config));
             config.favorite && (params['favorite'] = config.favorite);
+            config.updated_time = new Date();
             let sql = `
                 UPDATE \`${config_1.saasConfig.SAAS_NAME}\`.page_config
                 SET ?
