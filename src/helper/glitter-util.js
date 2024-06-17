@@ -39,7 +39,16 @@ class GlitterUtil {
                         return dd.path + '/' + req.baseUrl.replace(`/${dd.app_name}/`, '');
                     }
                 })();
-                if (req.baseUrl.replace(`/${dd.app_name}/`, '') === 'sitemap.xml') {
+                if (req.baseUrl.replace(`/${dd.app_name}/`, '') === 'robots.txt') {
+                    resp.set('Content-Type', 'plan/text');
+                    return resp.send(await dd.robots(req, resp));
+                }
+                else if (req.baseUrl.replace(`/${dd.app_name}/`, '') === 'sitemap.xml') {
+                    resp.set('Content-Type', 'application/xml');
+                    return resp.send(await dd.sitemap(req, resp));
+                }
+                else if (req.baseUrl.replace(`/${dd.app_name}/`, '') === 'sitemap_detail.xml') {
+                    resp.set('Content-Type', 'application/xml');
                     return resp.send(await dd.sitemap(req, resp));
                 }
                 else if (!fs_1.default.existsSync(fileURL)) {

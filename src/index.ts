@@ -30,6 +30,9 @@ import {UpdateScript} from "./update-script.js";
 import compression from 'compression'
 import jwt from "jsonwebtoken";
 import {User} from "./api-public/services/user.js";
+import response from "./modules/response.js";
+import {Private_config} from "./services/private_config.js";
+import moment from "moment/moment.js";
 
 export const app = express();
 const logger = new Logger();
@@ -236,12 +239,13 @@ export async function createAPP(dd: any) {
                     if (req.query.appName) {
                         appName = req.query.appName
                     }
+
                     //SAAS品牌和用戶類型
                     const brandAndMemberType = await App.checkBrandAndMemberType(appName)
                     let data = await Seo.getPageInfo(appName, req.query.page as string);
-                    let customCode=await (new User(appName)).getConfigV2({
-                        key:'ga4_config',
-                        user_id:'manager'
+                    let customCode = await (new User(appName)).getConfigV2({
+                        key: 'ga4_config',
+                        user_id: 'manager'
                     })
                     if (data && data.page_config) {
                         data.page_config = data.page_config ?? {}
@@ -290,9 +294,16 @@ export async function createAPP(dd: any) {
                             }
                         }).join('');
                         const preload = (req.query.type === 'editor' || req.query.isIframe === 'true') ? {} : await App.preloadPageData(appName, data.tag);
+                        data.page_config = data.page_config ?? {}
+                        data.page_config.seo=data.page_config.seo??{}
+                        const seo_detail=await getSeoDetail(appName,req);
+                        if(seo_detail){
+                            Object.keys(seo_detail).map((dd)=>{
+                                data.page_config.seo[dd]=seo_detail[dd]
+                            })
+                        }
                         return `${(() => {
-                            data.page_config = data.page_config ?? {}
-                            const d = data.page_config.seo ?? {}
+                            const d = data.page_config.seo 
                             return html`
                                 <head>
                                     <title>${d.title ?? "尚未設定標題"}</title>
@@ -316,12 +327,12 @@ window.preloadData=${JSON.stringify(preload)};
 window.glitter_page='${req.query.page}';
 </script>
               </head>
-              ${(()=>{
-                  if(req.query.type==='editor'){
-                      return ``
-                  }else{
-                      return ` ${(customCode.ga4 || []).map((dd:any)=>{
-                          return `<!-- Google tag (gtag.js) -->
+              ${(() => {
+                            if (req.query.type === 'editor') {
+                                return ``
+                            } else {
+                                return ` ${(customCode.ga4 || []).map((dd: any) => {
+                                    return `<!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=${dd.code}"></script>
 <script>
   window.dataLayer = window.dataLayer || [];
@@ -330,9 +341,9 @@ window.glitter_page='${req.query.page}';
 
   gtag('config', '${dd.code}');
 </script>`
-                      }).join('')}    
-                ${(customCode.g_tag || []).map((dd:any)=>{
-                          return `<!-- Google tag (gtag.js) -->
+                                }).join('')}    
+                ${(customCode.g_tag || []).map((dd: any) => {
+                                    return `<!-- Google tag (gtag.js) -->
 <!-- Google Tag Manager -->
 <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
 new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
@@ -340,8 +351,8 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
 })(window,document,'script','dataLayer','${dd.code}');</script>
 <!-- End Google Tag Manager -->`
-                      }).join('')}  `
-                  }
+                                }).join('')}  `
+                            }
                         })()}     
                         `
                     } else {
@@ -354,29 +365,189 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
                 }
 
             },
-            sitemap:async (req, resp) =>{
+            sitemap: async (req, resp) => {
                 let appName = dd.appName
                 if (req.query.appName) {
                     appName = req.query.appName
                 }
-const domain=(await db.query(`select \`domain\` from \`${saasConfig.SAAS_NAME}\`.app_config where appName=?`,[appName]))[0]['domain'];
-                return `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
-${(await db.query(`select page_config,tag from \`${saasConfig.SAAS_NAME}\`.page_config where appName=?
-                                                                                                  and page_config->>'$.seo.type'='custom'
-                `,[
-                    appName
-                ])).map((d2:any)=>{
-                    return `<url>
-<loc>https://${domain}/${d2.tag}</loc>
-<lastmod>${d2.updated_time}</lastmod>
+                let query = [
+                    `(content->>'$.type'='article')`
+                ]
+                const article: any = await new UtDatabase(appName, `t_manager_post`).querySql(query, {
+                    page: 0,
+                    limit: 10000
+                });
+                const domain = (await db.query(`select \`domain\`
+                                                from \`${saasConfig.SAAS_NAME}\`.app_config
+                                                where appName = ?`, [appName]))[0]['domain'];
+
+                const site_map=await getSeoSiteMap(appName,req);
+                return html`<?xml version="1.0" encoding="UTF-8"?>
+                <urlset  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd http://www.google.com/schemas/sitemap-image/1.1 http://www.google.com/schemas/sitemap-image/1.1/sitemap-image.xsd" xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+                    ${(await db.query(`select page_config, tag, updated_time
+                                       from \`${saasConfig.SAAS_NAME}\`.page_config
+                                       where appName = ?
+                                         and page_config ->>'$.seo.type'='custom'
+                    `, [
+                        appName
+                    ])).map((d2: any) => {
+                        
+                        return `<url>
+<loc>${`https://${domain}/${d2.tag}`.replace(/ /g,'+')}</loc>
+<lastmod>${moment(new Date(d2.updated_time)).format('YYYY-MM-DDTHH:mm:SS+00:00')}</lastmod>
 <changefreq>weekly</changefreq>
 </url>`
-                })}
-</urlset>
-`
-            }
+                    }).join('')}
+                    ${article.data.map((d2: any) => {
+                        if(!d2.content.template){
+                            return  ``
+                        }
+                        
+                        return `<url>
+<loc>${`https://${domain}/${d2.content.template}?article=${d2.content.tag}`.replace(/ /g,'+')}</loc>
+<lastmod>${moment(new Date(d2.updated_time)).format('YYYY-MM-DDTHH:mm:SS+00:00')}</lastmod>
+<changefreq>weekly</changefreq>
+</url>`
+                    }).join('')}
+                    ${(site_map || []).map((d2:any)=>{
+                        return `<url>
+<loc>${`https://${domain}/${d2.url}`.replace(/ /g,'+')}</loc>
+<lastmod>${d2.updated_time ? moment(new Date(d2.updated_time)).format('YYYY-MM-DDTHH:mm:SS+00:00') : moment(new Date()).format('YYYY-MM-DDTHH:mm:SS+00:00')}</lastmod>
+<changefreq>weekly</changefreq>
+</url>`
+                    })}
+                </urlset>
+                `
+            },
+            sitemap_list: async (req, resp) => {
+                let appName = dd.appName
+                if (req.query.appName) {
+                    appName = req.query.appName
+                }
+                const domain = (await db.query(`select \`domain\`
+                                                from \`${saasConfig.SAAS_NAME}\`.app_config
+                                                where appName = ?`, [appName]))[0]['domain'];
+                return html`<?xml version="1.0" encoding="UTF-8"?>
+                <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+                    <!-- This is the parent sitemap linking to additional sitemaps for products, collections and pages as shown below. The sitemap can not be edited manually, but is kept up to date in real time. -->
+                    <sitemap>
+                        <loc>https://${domain}/sitemap_detail.xml</loc>
+                    </sitemap>
+                </sitemapindex>
+                `
+            },
+            robots:async (req, resp) => {
+                let appName = dd.appName
+                if (req.query.appName) {
+                    appName = req.query.appName
+                }
+                const domain = (await db.query(`select \`domain\`
+                                                from \`${saasConfig.SAAS_NAME}\`.app_config
+                                                where appName = ?`, [appName]))[0]['domain'];
+                return html`# we use SHOPNEX as our ecommerce platform
+                
+User-agent: *
+Sitemap: https://${domain}/sitemap.xml
+                `
+            },
         },
     ]);
+}
+
+async function getSeoDetail(appName:string,req:any){
+    const sqlData=(await Private_config.getConfig({
+        appName: appName, key: 'seo_webhook'
+    }))
+    if(!sqlData[0] || !sqlData[0].value){
+        return undefined
+    }
+    const html=String.raw
+    return await db.queryLambada({
+        database: appName
+    }, async (db) => {
+        (db as any).execute = (db as any).query;
+        const functionValue: { key: string, data: () => any }[] = [
+            {
+                key: 'db', data: () => {
+                    return db
+                }
+            },
+            {
+                key:'req',data:()=>{
+                    return req
+                }
+            }
+        ];
+        const evalString = html`
+                        return {
+                        execute:(${functionValue.map((d2) => {
+            return d2.key
+        }).join(',')})=>{
+                        try {
+                        ${sqlData[0].value.value.replace(
+            /new\s*Promise\s*\(\s*async\s*\(\s*resolve\s*,\s*reject\s*\)\s*=>\s*\{([\s\S]*)\}\s*\)/i,
+            'new Promise(async (resolve, reject) => { try { $1 } catch (error) { console.log(error);reject(error); } })'
+        )}
+                        }catch (e) {
+                        console.log(e)
+                        }
+                        }
+                        }
+                    `
+        const myFunction = new Function(evalString);
+        return (await (myFunction().execute(
+            functionValue[0].data(),
+            functionValue[1].data()
+        )));
+    })
+}
+
+async function getSeoSiteMap(appName:string,req:any){
+    const sqlData=(await Private_config.getConfig({
+        appName: appName, key: 'sitemap_webhook'
+    }))
+    if(!sqlData[0] || !sqlData[0].value){
+        return undefined
+    }
+    const html=String.raw
+    return await db.queryLambada({
+        database: appName
+    }, async (db) => {
+        (db as any).execute = (db as any).query;
+        const functionValue: { key: string, data: () => any }[] = [
+            {
+                key: 'db', data: () => {
+                    return db
+                }
+            },
+            {
+                key:'req',data:()=>{
+                    return req
+                }
+            }
+        ];
+        const evalString = html`
+                        return {
+                        execute:(${functionValue.map((d2) => {
+            return d2.key
+        }).join(',')})=>{
+                        try {
+                        ${sqlData[0].value.value.replace(
+            /new\s*Promise\s*\(\s*async\s*\(\s*resolve\s*,\s*reject\s*\)\s*=>\s*\{([\s\S]*)\}\s*\)/i,
+            'new Promise(async (resolve, reject) => { try { $1 } catch (error) { console.log(error);reject(error); } })'
+        )}
+                        }catch (e) {
+                        console.log(e)
+                        }
+                        }
+                        }
+                    `
+        const myFunction = new Function(evalString);
+        return (await (myFunction().execute(
+            functionValue[0].data(),
+            functionValue[1].data()
+        )));
+    })
 }
 
 

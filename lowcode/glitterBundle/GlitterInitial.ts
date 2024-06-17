@@ -39,6 +39,35 @@ function listenElementChange(query: string) {
 let scrollInterval: any = undefined
 
 function traverseHTML(element: any, document: any) {
+
+    try {
+        if( (element.tagName.toLowerCase() === 'page-box')){
+          const pageConfig=glitter.pageConfig.find((dd)=>{
+              return `page${dd.id}`===element.getAttribute('id')
+          })
+            if(pageConfig && pageConfig.initial){
+                const scroll= JSON.parse(localStorage.getItem('g_l_top') as string);
+                console.log(`isPage-BOX-Return`,scroll.y);
+                (document.querySelector('html') as any).scrollTop=scroll.y;
+                let count=0
+                const loopScroll=setInterval(()=>{
+                    count++
+                    if(count<100){
+                        (document.querySelector('html') as any).scrollTop=scroll.y
+                    }else{
+                        clearInterval(loopScroll)
+                    }
+                },1)
+
+                return
+            }
+            (pageConfig) && (pageConfig.initial=true)
+
+        }
+    }catch (e) {
+
+    }
+
     // 取得元素的子元素
     let children = element.children;
     if (children && children.length > 0) {
@@ -102,7 +131,10 @@ function traverseHTML(element: any, document: any) {
                             })
                         }
                     } else if( (document.querySelector(`[gvc-id="${id}"]`) as any).onResumeEvent){
-                        (document.querySelector(`[gvc-id="${id}"]`) as any).onResumeEvent()
+                        setTimeout(()=>{
+                            (document.querySelector(`[gvc-id="${id}"]`) as any).onResumeEvent()
+                        })
+
                     }else {
                     }
                     if ((document.querySelector(`[gvc-id="${id}"]`) as any)) {

@@ -325,9 +325,20 @@ export class Setting_editor {
                                             },
                                             {
                                                 icon: '',
-                                                page: 'code_info',
+                                                page: 'seo_custom',
                                                 group: '擴充套件',
-                                                title: 'Graph api',
+                                                title: 'SEO自訂',
+                                                appName: 'cms_system',
+                                                groupIcon:
+                                                        'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713419947572-code-solid.svg',
+                                                moduleName: '結帳事件',
+                                            },
+                                                
+                                            {
+                                                icon: '',
+                                                page: 'site_map',
+                                                group: '擴充套件',
+                                                title: 'SiteMap自訂',
                                                 appName: 'cms_system',
                                                 groupIcon:
                                                         'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713419947572-code-solid.svg',

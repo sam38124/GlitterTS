@@ -620,6 +620,71 @@ ${BgWidget.save(
             right: true,
         });
     }
+
+    public static collectionEvent(data: MenuItem, save: (data: MenuItem) => boolean){
+        const gvc: GVC = (window.parent as any).glitter.pageConfig[0].gvc;
+        const rightMenu = (window.parent as any).glitter.share.NormalPageEditor;
+        const id = gvc.glitter.getUUID();
+        // const data: MenuItem = {
+        //     link: '',
+        //     title: '',
+        //     items: []
+        // }
+        rightMenu.toggle({
+            visible: true,
+            title: '新增分類',
+            view: [
+                gvc.bindView(() => {
+                    return {
+                        bind: id,
+                        view: () => {
+                            return [
+                                BgWidget.editeInput({
+                                    gvc: gvc,
+                                    title: '分類名稱',
+                                    default: data.title || '',
+                                    placeHolder: '請輸入分類名稱',
+                                    callback: (text) => {
+                                        data.title = text;
+                                    },
+                                }),
+                                BgWidget.editeInput({
+                                    gvc: gvc,
+                                    title: '',
+                                    default: data.link || '',
+                                    placeHolder: '請輸入分類標籤',
+                                    callback: (text) => {
+                                        data.link = text;
+                                    },
+                                }),
+                            ].join('');
+                        },
+                        divCreate: {
+                            style: `padding:20px;`,
+                        },
+                    };
+                }),
+                `<div class="position-absolute bottom-0 left-0 w-100 d-flex align-items-center justify-content-end p-3 border-top" style="gap:10px;">
+${BgWidget.cancel(
+                    gvc.event(() => {
+                        rightMenu.toggle({ visible: false });
+                    })
+                )}
+${BgWidget.save(
+                    gvc.event(() => {
+                        if(save(data) !== false){
+                            rightMenu.toggle({ visible: false });
+                        }else{
+                            gvc.notifyDataChange(id)
+                        }
+                       
+                    })
+                )}
+</div>`,
+            ].join(''),
+            right: true,
+        });
+    }
 }
 
 (window as any).glitter.setModule(import.meta.url, MenusSetting);

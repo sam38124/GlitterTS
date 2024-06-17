@@ -298,6 +298,9 @@ export class HtmlGenerate {
                                                                         }
                                                                         const target = document.querySelector(`[gvc-id="${gvc.id(tempView)}"]`);
                                                                         if (dd.gCount === 'multiple') {
+                                                                            target.innerHTML = `<div class="w-100  d-flex align-items-center justify-content-center p-3">
+<div class="spinner-border"></div>
+</div>`;
                                                                             new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
                                                                                 let data = (yield TriggerEvent.trigger({
                                                                                     gvc,

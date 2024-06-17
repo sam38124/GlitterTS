@@ -11,12 +11,12 @@ class Article {
         this.app_name = app_name;
         this.token = token;
     }
-    async addArticle(tData) {
+    async addArticle(tData, status) {
         try {
             if ((await database_js_1.default.query(`select count(1) from \`${this.app_name}\`.t_manager_post where (content->>'$.type'='article') and (content->>'$.tag'='${tData.tag}')`, []))[0]['count(1)'] === 0) {
                 tData.type = 'article';
-                await database_js_1.default.query(`insert into \`${this.app_name}\`.t_manager_post (userID,content) values (${this.token.userID},?)`, [JSON.stringify(tData)]);
-                return true;
+                const data = (await database_js_1.default.query(`insert into \`${this.app_name}\`.t_manager_post (userID,content,status) values (${this.token.userID},?,?)`, [JSON.stringify(tData), status || 0]));
+                return data.insertId;
             }
             else {
                 throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'Already exists.', null);
@@ -28,7 +28,7 @@ class Article {
     }
     async putArticle(tData) {
         try {
-            await database_js_1.default.query(`update \`${this.app_name}\`.t_manager_post set content=? where id=? and userID=${this.token.userID}`, [JSON.stringify(tData.content), tData.id]);
+            await database_js_1.default.query(`update \`${this.app_name}\`.t_manager_post set content=? , updated_time=? ,status=? where id=? `, [JSON.stringify(tData.content), new Date(), tData.status || 1, tData.id]);
             return true;
         }
         catch (e) {

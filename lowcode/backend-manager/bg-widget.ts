@@ -747,7 +747,7 @@ ${obj.default ?? ''}</textarea
                                     (data.response.data || []).map((item: { content: { id: string; title: string; preview_image: string[] } }) => {
                                         const { id, title, preview_image } = item.content;
                                         const icon = preview_image && preview_image[0] ? preview_image[0] : '';
-                                        productList.push({ name: title, icon: icon, link: `./?product_id=${id}&page=product_detail` });
+                                        productList.push({ name: title, icon: icon, link: `./product_detail?product_id=${id}` });
                                     });
                                     resolve();
                                 }
@@ -759,7 +759,7 @@ ${obj.default ?? ''}</textarea
                                     data.response.data.map((item: { content: { name: string; tag: string } }) => {
                                         const { name, tag } = item.content;
                                         if (name) {
-                                            acticleList.push({ name: name, icon: '', link: `./?appName=${appName}&article=${tag}&page=article` });
+                                            acticleList.push({ name: name, icon: '', link: `./article?appName=${appName}&article=${tag}` });
                                         }
                                     });
                                 }
@@ -768,11 +768,11 @@ ${obj.default ?? ''}</textarea
                         }),
                     ]).then(() => {
                         dropMenu.recentList = [
-                            { name: '首頁', icon: 'fa-regular fa-house', link: './?page=index' },
-                            { name: '商品', icon: 'fa-regular fa-tag', link: './?page=all_product', items: productList },
+                            { name: '首頁', icon: 'fa-regular fa-house', link: './index' },
+                            { name: '商品', icon: 'fa-regular fa-tag', link: './all_product', items: productList },
                             { name: '商品分類', icon: 'fa-regular fa-tags', link: '', items: collectionList },
-                            { name: '網誌文章', icon: 'fa-regular fa-newspaper', link: './?page=blog_list', items: acticleList },
-                            { name: '關於我們', icon: 'fa-regular fa-user-group', link: './?page=aboutus' },
+                            { name: '網誌文章', icon: 'fa-regular fa-newspaper', link: './blog_list', items: acticleList },
+                            { name: '關於我們', icon: 'fa-regular fa-user-group', link: './aboutus' },
                         ].filter((menu) => {
                             if (menu.items === undefined) return true;
                             return menu.items.length > 0 || menu.link.length > 0;

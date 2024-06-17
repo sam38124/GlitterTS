@@ -100,6 +100,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                             if (vm.loading) {
                                 vm.loading = false;
                                 gvc.notifyDataChange(mainId);
+                                window.history.replaceState({}, glitter.document.title, location.href);
                             }
                         });
                     }

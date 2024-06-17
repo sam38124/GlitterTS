@@ -33,6 +33,7 @@ export enum GVCType {
 }
 
 export class PageConfig {
+    public initial:boolean;
     public search:string;
     public id: string;
     public obj: any;
@@ -58,6 +59,7 @@ export class PageConfig {
         type: GVCType, animation: AnimationConfig, backGroundColor: string, dismiss: () => void,renderFinish:()=>void,
         search?:string
     }) {
+        this.initial=false
         this.search=par.search || '';
         this.tag = par.tag;
         this.id = par.id;
@@ -126,28 +128,6 @@ export class PageManager {
             glitter.pageConfig[index].createResource();
             glitter.setUrlParameter('page', glitter.pageConfig[index].tag);
             if (glitter.pageConfig[index].type === GVCType.Page) {
-               const clock=glitter.ut.clock()
-                function scroll() {
-                    try {
-                        const scroll= JSON.parse(localStorage.getItem('g_l_top') as string)
-                        if(scroll.id===id){
-                            window.scrollTo({
-                                top: scroll.y,
-                                behavior: 'auto' // 'auto' 表示无滚动动画
-                            });
-                        }
-                    }catch (e) {
-
-                    }
-                    if(clock.stop()<250){
-                        setTimeout(()=>{
-                            scroll()
-                            glitter.window.history.replaceState({}, glitter.document.title, glitter.pageConfig[index].search);
-                        },10)
-                    }
-                }
-                scroll()
-
 
             }
         } catch (e) {
@@ -171,50 +151,53 @@ export class PageManager {
 
     public static setHome(url: string, tag: string, obj: any, option: { animation?: AnimationConfig, backGroundColor?: string, dismiss?: () => void } = {}) {
         const glitter = Glitter.glitter;
-        console.log(`setHome-time:`, (window as any).renderClock.stop())
-        glitter.htmlGenerate.loadScript(glitter,[
-            {
-                src:PageManager.getRelativeUrl(url),
-                callback:(gvFunction)=>{
-                    glitter.setUrlParameter('page',tag)
-                    const pageConfig=new PageConfig({
-                        id: glitter.getUUID(),
-                        obj: obj,
-                        goBack: true,
-                        src: url,
-                        tag: tag,
-                        deleteResource: () => {
-                        },
-                        createResource: () => {
-                        },
-                        backGroundColor: option.backGroundColor ?? 'white',
-                        type: GVCType.Page,
-                        animation: option.animation ?? glitter.animation.none,
-                        dismiss: option.dismiss ?? (() => {
-                        }),
-                        renderFinish:()=>{
-                            //僅保留首頁和彈跳視窗。
-                            glitter.pageConfig=glitter.pageConfig.filter((dd)=>{
-                                const isHome=(dd.id===pageConfig.id)
-                                if(!isHome){
-                                    glitter.hidePageView(dd.id, true);
-                                }
-                                return isHome || (dd.type===GVCType.Dialog)
-                            })
+        window.history.pushState({}, glitter.document.title, location.href);
+        setTimeout(()=>{
+            glitter.htmlGenerate.loadScript(glitter,[
+                {
+                    src:PageManager.getRelativeUrl(url),
+                    callback:(gvFunction)=>{
+                        glitter.setUrlParameter('page',tag)
+                        const pageConfig=new PageConfig({
+                            id: glitter.getUUID(),
+                            obj: obj,
+                            goBack: true,
+                            src: url,
+                            tag: tag,
+                            deleteResource: () => {
+                            },
+                            createResource: () => {
+                            },
+                            backGroundColor: option.backGroundColor ?? 'white',
+                            type: GVCType.Page,
+                            animation: option.animation ?? glitter.animation.none,
+                            dismiss: option.dismiss ?? (() => {
+                            }),
+                            renderFinish:()=>{
+                                //僅保留首頁和彈跳視窗。
+                                glitter.pageConfig=glitter.pageConfig.filter((dd)=>{
+                                    const isHome=(dd.id===pageConfig.id)
+                                    if(!isHome){
+                                        glitter.hidePageView(dd.id, true);
+                                    }
+                                    return isHome || (dd.type===GVCType.Dialog)
+                                })
+                            }
+                        })
+                        glitter.pageConfig.push(pageConfig)
+                        glitter.defaultSetting.pageLoading();
+                        if((window as any).gtag && !GVC.initial){
+                            (window as any).gtag('event', 'page_view', {'page_title': document.title, page_location: document.location.href});
                         }
-                    })
-                    glitter.pageConfig.push(pageConfig)
-                    glitter.defaultSetting.pageLoading();
-                    if((window as any).gtag && !GVC.initial){
-                        (window as any).gtag('event', 'page_view', {'page_title': document.title, page_location: document.location.href});
+                        gvFunction({
+                            pageConfig:pageConfig,
+                            c_type:'home'
+                        })
                     }
-                    gvFunction({
-                        pageConfig:pageConfig,
-                        c_type:'home'
-                    })
                 }
-            }
-        ],'GVControllerList')
+            ],'GVControllerList')
+        })
+
     };
 
     public static setLoadingView(link: string) {
@@ -291,9 +274,9 @@ export class PageManager {
                 GVC.initial=false
             }else{
                 if(type === 'home'){
-                    glitter.window.history.replaceState({}, glitter.document.title, search);
+                    window.history.replaceState({}, glitter.document.title, search);
                 }else if(type==='page'){
-                    glitter.window.history.pushState({}, glitter.document.title, search);
+                    window.history.pushState({}, glitter.document.title, search);
                 }
             }
             if(['home','page'].find((dd)=>{
@@ -307,47 +290,51 @@ export class PageManager {
     public static changePage(url: string, tag: string, goBack: boolean, obj: any, option: { animation?: AnimationConfig, backGroundColor?: string, dismiss?: () => void } = {}) {
         const glitter = Glitter.glitter;
         console.log(`changePage-time:`, (window as any).renderClock.stop());
-        const pageConfig=new PageConfig({
-            id: glitter.getUUID(),
-            obj: obj,
-            goBack: goBack,
-            src: url,
-            tag: tag,
-            deleteResource: () => {
-            },
-            createResource: () => {
-            },
-            backGroundColor: option.backGroundColor ?? 'white',
-            type: GVCType.Page,
-            animation: option.animation || glitter.defaultSetting.pageAnimation || glitter.animation.none,
-            dismiss: option.dismiss ?? (() => {
-            }),
-            renderFinish:()=>{
-
-            }
-        })
-        glitter.pageConfig.push(pageConfig);
-        glitter.defaultSetting.pageLoading();
-        glitter.htmlGenerate.loadScript(glitter,[
-            {
-                src:PageManager.getRelativeUrl(url),
-                callback:(gvFunction)=>{
-                    glitter.setUrlParameter('page',tag)
-                    if(glitter.pageConfig.find((dd)=>{
-                        return dd===pageConfig
-                    })){
-                        gvFunction({
-                            pageConfig:pageConfig,
-                            c_type:'page'
-                        })
-                    }
-                    if((window as any).gtag){
-                        (window as any).gtag('event', 'page_view', {'page_title': document.title, page_location: document.location.href});
-                    }
+        glitter.window.history.replaceState({}, glitter.document.title, location.href);
+        setTimeout(()=>{
+            const pageConfig=new PageConfig({
+                id: glitter.getUUID(),
+                obj: obj,
+                goBack: goBack,
+                src: url,
+                tag: tag,
+                deleteResource: () => {
+                },
+                createResource: () => {
+                },
+                backGroundColor: option.backGroundColor ?? 'white',
+                type: GVCType.Page,
+                animation: option.animation || glitter.defaultSetting.pageAnimation || glitter.animation.none,
+                dismiss: option.dismiss ?? (() => {
+                }),
+                renderFinish:()=>{
 
                 }
-            }
-        ],'GVControllerList')
+            })
+            glitter.pageConfig.push(pageConfig);
+            glitter.defaultSetting.pageLoading();
+            glitter.htmlGenerate.loadScript(glitter,[
+                {
+                    src:PageManager.getRelativeUrl(url),
+                    callback:(gvFunction)=>{
+                        glitter.setUrlParameter('page',tag)
+                        if(glitter.pageConfig.find((dd)=>{
+                            return dd===pageConfig
+                        })){
+                            gvFunction({
+                                pageConfig:pageConfig,
+                                c_type:'page'
+                            })
+                        }
+                        if((window as any).gtag){
+                            (window as any).gtag('event', 'page_view', {'page_title': document.title, page_location: document.location.href});
+                        }
+
+                    }
+                }
+            ],'GVControllerList')
+        })
+
     }
 
     public static removePage(tag: string) {

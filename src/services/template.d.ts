@@ -25,6 +25,7 @@ export declare class Template {
         page_type: string;
         preview_image: string;
         favorite: number;
+        updated_time: any;
     }): Promise<boolean>;
     deletePage(config: {
         appName: string;

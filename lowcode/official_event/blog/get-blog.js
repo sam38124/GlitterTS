@@ -12,11 +12,12 @@ import { Article } from "../../glitter-base/route/article.js";
 TriggerEvent.createSingleEvent(import.meta.url, (glitter) => {
     return {
         fun: (gvc, widget, object, subData, element) => {
-            var _a, _b, _c, _d;
+            var _a, _b, _c, _d, _e;
             object.page = (_a = object.page) !== null && _a !== void 0 ? _a : {};
             object.limit = (_b = object.limit) !== null && _b !== void 0 ? _b : {};
             object.pageCount = (_c = object.pageCount) !== null && _c !== void 0 ? _c : {};
             object.label = (_d = object.label) !== null && _d !== void 0 ? _d : {};
+            object.search = (_e = object.search) !== null && _e !== void 0 ? _e : {};
             return {
                 editor: () => {
                     return [
@@ -27,7 +28,8 @@ TriggerEvent.createSingleEvent(import.meta.url, (glitter) => {
                             hover: false,
                             option: []
                         }),
-                        TriggerEvent.editer(gvc, widget, object.label, { title: "文章標籤", hover: false, option: [] })
+                        TriggerEvent.editer(gvc, widget, object.label, { title: "文章標籤", hover: false, option: [] }),
+                        TriggerEvent.editer(gvc, widget, object.search, { title: "內容搜尋", hover: false, option: [] })
                     ].join('<div class="my-2"></div>');
                 },
                 event: () => {
@@ -50,10 +52,17 @@ TriggerEvent.createSingleEvent(import.meta.url, (glitter) => {
                             clickEvent: object.label,
                             subData: subData
                         });
+                        const search = yield TriggerEvent.trigger({
+                            gvc: gvc,
+                            widget: widget,
+                            clickEvent: object.search,
+                            subData: subData
+                        });
                         Article.get({
                             page: page,
                             limit: limit,
                             label: label,
+                            search: search,
                             for_index: "true"
                         }).then((data) => __awaiter(void 0, void 0, void 0, function* () {
                             yield TriggerEvent.trigger({

@@ -57,6 +57,8 @@ const web_socket_js_1 = require("./services/web-socket.js");
 const ut_database_js_1 = require("./api-public/utils/ut-database.js");
 const compression_1 = __importDefault(require("compression"));
 const user_js_1 = require("./api-public/services/user.js");
+const private_config_js_1 = require("./services/private_config.js");
+const moment_js_1 = __importDefault(require("moment/moment.js"));
 exports.app = (0, express_1.default)();
 const logger = new logger_1.default();
 exports.app.options('/*', (req, res) => {
@@ -231,7 +233,7 @@ async function createAPP(dd) {
             app_name: dd.appName,
             root_path: '/' + encodeURI(dd.appName) + '/',
             seoManager: async (req, resp) => {
-                var _a, _b, _c, _d, _e, _f, _g;
+                var _a, _b, _c, _d, _e, _f, _g, _h, _j;
                 try {
                     if (req.query.state === 'google_login') {
                         req.query.page = 'login';
@@ -297,22 +299,29 @@ async function createAPP(dd) {
                             }
                         }).join('');
                         const preload = (req.query.type === 'editor' || req.query.isIframe === 'true') ? {} : await app_js_1.App.preloadPageData(appName, data.tag);
+                        data.page_config = (_h = data.page_config) !== null && _h !== void 0 ? _h : {};
+                        data.page_config.seo = (_j = data.page_config.seo) !== null && _j !== void 0 ? _j : {};
+                        const seo_detail = await getSeoDetail(appName, req);
+                        if (seo_detail) {
+                            Object.keys(seo_detail).map((dd) => {
+                                data.page_config.seo[dd] = seo_detail[dd];
+                            });
+                        }
                         return `${(() => {
-                            var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l;
-                            data.page_config = (_a = data.page_config) !== null && _a !== void 0 ? _a : {};
-                            const d = (_b = data.page_config.seo) !== null && _b !== void 0 ? _b : {};
+                            var _a, _b, _c, _d, _e, _f, _g, _h, _j;
+                            const d = data.page_config.seo;
                             return html `
                                 <head>
-                                    <title>${(_c = d.title) !== null && _c !== void 0 ? _c : "尚未設定標題"}</title>
+                                    <title>${(_a = d.title) !== null && _a !== void 0 ? _a : "尚未設定標題"}</title>
                                     <link rel="canonical" href="${relative_root}${data.tag}">
-                                    <meta name="keywords" content="${(_d = d.keywords) !== null && _d !== void 0 ? _d : "尚未設定關鍵字"}"/>
-                                    <link id="appImage" rel="shortcut icon" href="${(_e = d.logo) !== null && _e !== void 0 ? _e : ""}" type="image/x-icon">
-                                    <link rel="icon" href="${(_f = d.logo) !== null && _f !== void 0 ? _f : ""}" type="image/png" sizes="128x128">
-                                    <meta property="og:image" content="${(_g = d.image) !== null && _g !== void 0 ? _g : ""}">
-                                    <meta property="og:title" content="${((_h = d.title) !== null && _h !== void 0 ? _h : "").replace(/\n/g, '')}">
-                                    <meta name="description" content="${((_j = d.content) !== null && _j !== void 0 ? _j : "").replace(/\n/g, '')}">
-                                    <meta name="og:description" content="${((_k = d.content) !== null && _k !== void 0 ? _k : "").replace(/\n/g, '')}">
-                                    ${(_l = d.code) !== null && _l !== void 0 ? _l : ''}
+                                    <meta name="keywords" content="${(_b = d.keywords) !== null && _b !== void 0 ? _b : "尚未設定關鍵字"}"/>
+                                    <link id="appImage" rel="shortcut icon" href="${(_c = d.logo) !== null && _c !== void 0 ? _c : ""}" type="image/x-icon">
+                                    <link rel="icon" href="${(_d = d.logo) !== null && _d !== void 0 ? _d : ""}" type="image/png" sizes="128x128">
+                                    <meta property="og:image" content="${(_e = d.image) !== null && _e !== void 0 ? _e : ""}">
+                                    <meta property="og:title" content="${((_f = d.title) !== null && _f !== void 0 ? _f : "").replace(/\n/g, '')}">
+                                    <meta name="description" content="${((_g = d.content) !== null && _g !== void 0 ? _g : "").replace(/\n/g, '')}">
+                                    <meta name="og:description" content="${((_h = d.content) !== null && _h !== void 0 ? _h : "").replace(/\n/g, '')}">
+                                    ${(_j = d.code) !== null && _j !== void 0 ? _j : ''}
                             `;
                         })()}
                         <script>
@@ -369,24 +378,166 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
                 if (req.query.appName) {
                     appName = req.query.appName;
                 }
-                const domain = (await database_2.default.query(`select \`domain\` from \`${config_1.saasConfig.SAAS_NAME}\`.app_config where appName=?`, [appName]))[0]['domain'];
-                return `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
-${(await database_2.default.query(`select page_config,tag from \`${config_1.saasConfig.SAAS_NAME}\`.page_config where appName=?
-                                                                                                  and page_config->>'$.seo.type'='custom'
-                `, [
+                let query = [
+                    `(content->>'$.type'='article')`
+                ];
+                const article = await new ut_database_js_1.UtDatabase(appName, `t_manager_post`).querySql(query, {
+                    page: 0,
+                    limit: 10000
+                });
+                const domain = (await database_2.default.query(`select \`domain\`
+                                                from \`${config_1.saasConfig.SAAS_NAME}\`.app_config
+                                                where appName = ?`, [appName]))[0]['domain'];
+                const site_map = await getSeoSiteMap(appName, req);
+                return html `<?xml version="1.0" encoding="UTF-8"?>
+                <urlset  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd http://www.google.com/schemas/sitemap-image/1.1 http://www.google.com/schemas/sitemap-image/1.1/sitemap-image.xsd" xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+                    ${(await database_2.default.query(`select page_config, tag, updated_time
+                                       from \`${config_1.saasConfig.SAAS_NAME}\`.page_config
+                                       where appName = ?
+                                         and page_config ->>'$.seo.type'='custom'
+                    `, [
                     appName
                 ])).map((d2) => {
                     return `<url>
-<loc>https://${domain}/${d2.tag}</loc>
-<lastmod>${d2.updated_time}</lastmod>
+<loc>${`https://${domain}/${d2.tag}`.replace(/ /g, '+')}</loc>
+<lastmod>${(0, moment_js_1.default)(new Date(d2.updated_time)).format('YYYY-MM-DDTHH:mm:SS+00:00')}</lastmod>
+<changefreq>weekly</changefreq>
+</url>`;
+                }).join('')}
+                    ${article.data.map((d2) => {
+                    if (!d2.content.template) {
+                        return ``;
+                    }
+                    return `<url>
+<loc>${`https://${domain}/${d2.content.template}?article=${d2.content.tag}`.replace(/ /g, '+')}</loc>
+<lastmod>${(0, moment_js_1.default)(new Date(d2.updated_time)).format('YYYY-MM-DDTHH:mm:SS+00:00')}</lastmod>
+<changefreq>weekly</changefreq>
+</url>`;
+                }).join('')}
+                    ${(site_map || []).map((d2) => {
+                    return `<url>
+<loc>${`https://${domain}/${d2.url}`.replace(/ /g, '+')}</loc>
+<lastmod>${d2.updated_time ? (0, moment_js_1.default)(new Date(d2.updated_time)).format('YYYY-MM-DDTHH:mm:SS+00:00') : (0, moment_js_1.default)(new Date()).format('YYYY-MM-DDTHH:mm:SS+00:00')}</lastmod>
 <changefreq>weekly</changefreq>
 </url>`;
                 })}
-</urlset>
-`;
-            }
+                </urlset>
+                `;
+            },
+            sitemap_list: async (req, resp) => {
+                let appName = dd.appName;
+                if (req.query.appName) {
+                    appName = req.query.appName;
+                }
+                const domain = (await database_2.default.query(`select \`domain\`
+                                                from \`${config_1.saasConfig.SAAS_NAME}\`.app_config
+                                                where appName = ?`, [appName]))[0]['domain'];
+                return html `<?xml version="1.0" encoding="UTF-8"?>
+                <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+                    <!-- This is the parent sitemap linking to additional sitemaps for products, collections and pages as shown below. The sitemap can not be edited manually, but is kept up to date in real time. -->
+                    <sitemap>
+                        <loc>https://${domain}/sitemap_detail.xml</loc>
+                    </sitemap>
+                </sitemapindex>
+                `;
+            },
+            robots: async (req, resp) => {
+                let appName = dd.appName;
+                if (req.query.appName) {
+                    appName = req.query.appName;
+                }
+                const domain = (await database_2.default.query(`select \`domain\`
+                                                from \`${config_1.saasConfig.SAAS_NAME}\`.app_config
+                                                where appName = ?`, [appName]))[0]['domain'];
+                return html `# we use SHOPNEX as our ecommerce platform
+                User-agent: *
+                Sitemap: https://${domain}/sitemap.xml
+                `;
+            },
         },
     ]);
 }
 exports.createAPP = createAPP;
+async function getSeoDetail(appName, req) {
+    const sqlData = (await private_config_js_1.Private_config.getConfig({
+        appName: appName, key: 'seo_webhook'
+    }));
+    if (!sqlData[0] || !sqlData[0].value) {
+        return undefined;
+    }
+    const html = String.raw;
+    return await database_2.default.queryLambada({
+        database: appName
+    }, async (db) => {
+        db.execute = db.query;
+        const functionValue = [
+            {
+                key: 'db', data: () => {
+                    return db;
+                }
+            },
+            {
+                key: 'req', data: () => {
+                    return req;
+                }
+            }
+        ];
+        const evalString = html `
+                        return {
+                        execute:(${functionValue.map((d2) => {
+            return d2.key;
+        }).join(',')})=>{
+                        try {
+                        ${sqlData[0].value.value.replace(/new\s*Promise\s*\(\s*async\s*\(\s*resolve\s*,\s*reject\s*\)\s*=>\s*\{([\s\S]*)\}\s*\)/i, 'new Promise(async (resolve, reject) => { try { $1 } catch (error) { console.log(error);reject(error); } })')}
+                        }catch (e) {
+                        console.log(e)
+                        }
+                        }
+                        }
+                    `;
+        const myFunction = new Function(evalString);
+        return (await (myFunction().execute(functionValue[0].data(), functionValue[1].data())));
+    });
+}
+async function getSeoSiteMap(appName, req) {
+    const sqlData = (await private_config_js_1.Private_config.getConfig({
+        appName: appName, key: 'sitemap_webhook'
+    }));
+    if (!sqlData[0] || !sqlData[0].value) {
+        return undefined;
+    }
+    const html = String.raw;
+    return await database_2.default.queryLambada({
+        database: appName
+    }, async (db) => {
+        db.execute = db.query;
+        const functionValue = [
+            {
+                key: 'db', data: () => {
+                    return db;
+                }
+            },
+            {
+                key: 'req', data: () => {
+                    return req;
+                }
+            }
+        ];
+        const evalString = html `
+                        return {
+                        execute:(${functionValue.map((d2) => {
+            return d2.key;
+        }).join(',')})=>{
+                        try {
+                        ${sqlData[0].value.value.replace(/new\s*Promise\s*\(\s*async\s*\(\s*resolve\s*,\s*reject\s*\)\s*=>\s*\{([\s\S]*)\}\s*\)/i, 'new Promise(async (resolve, reject) => { try { $1 } catch (error) { console.log(error);reject(error); } })')}
+                        }catch (e) {
+                        console.log(e)
+                        }
+                        }
+                        }
+                    `;
+        const myFunction = new Function(evalString);
+        return (await (myFunction().execute(functionValue[0].data(), functionValue[1].data())));
+    });
+}
 //# sourceMappingURL=index.js.map

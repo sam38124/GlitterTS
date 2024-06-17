@@ -437,6 +437,10 @@ ul {
     font-weight: 700;
 }
 
+.bg_orange{
+    background: linear-gradient(143deg, #FFB400 -22.7%, #FF6C02 114.57%)
+}
+
 .hoverPlace:hover {
     opacity: 1 !important;
     display: flex;

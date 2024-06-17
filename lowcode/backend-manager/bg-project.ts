@@ -1905,6 +1905,146 @@ ${BgWidget.card(
         );
     }
 
+    public static seoHook(gvc: GVC) {
+        const saasConfig: {
+            config: any;
+            api: any;
+        } = (window.parent as any).saasConfig;
+        let keyData = {
+            value: '',
+        };
+        return BgWidget.container(
+            html`
+                <div class="d-flex w-100 align-items-center mb-3 ">
+                    ${BgWidget.title(`SEO設定事件`)}
+                    <div class="flex-fill"></div>
+                    <button
+                        class="btn btn-primary-c"
+                        style="height:38px;font-size: 14px;"
+                        onclick="${gvc.event(() => {
+                const dialog = new ShareDialog(gvc.glitter);
+                dialog.dataLoading({ text: '設定中', visible: true });
+                saasConfig.api.setPrivateConfig((window.parent as any).appName, `seo_webhook`, keyData).then((r: { response: any; result: boolean }) => {
+                    dialog.dataLoading({ visible: false });
+                    if (r.response) {
+                        dialog.successMessage({ text: '設定成功' });
+                    } else {
+                        dialog.errorMessage({ text: '設定失敗' });
+                    }
+                });
+            })}"
+                    >
+                        儲存事件設定
+                    </button>
+                </div>
+                <div class="w-100 alert alert-info p-2">
+                    <div class="border-bottom pb-2 mb-2"><strong>自訂義頁面SEO。</strong></div>
+                </div>
+                ${gvc.bindView(() => {
+                const id = gvc.glitter.getUUID();
+                return {
+                    bind: id,
+                    view: () => {
+                        return new Promise(async (resolve, reject) => {
+                            const data = await saasConfig.api.getPrivateConfig((window.parent as any).appName, `seo_webhook`);
+                            if (data.response.result[0]) {
+                                keyData = data.response.result[0].value;
+                            }
+                            resolve(` <div style="width:900px;max-width:100%;"> ${BgWidget.card(
+                                [
+                                    EditorElem.codeEditor({
+                                        gvc: gvc,
+                                        height: 600,
+                                        structStart:`((db,req)=>{`,
+                                        initial: keyData.value,
+                                        title: `區段代碼`,
+                                        callback: (text) => {
+                                            keyData.value = text;
+                                        },
+                                    }),
+                                ].join('<div class="my-2"></div>')
+                            )}
+                </div>`);
+                        });
+                    },
+                    divCreate: { class: `d-flex flex-column flex-column-reverse  flex-md-row`, style: `gap:10px;` },
+                };
+            })}
+            `,
+            900
+        );
+    }
+
+    public static siteMapHook(gvc: GVC) {
+        const saasConfig: {
+            config: any;
+            api: any;
+        } = (window.parent as any).saasConfig;
+        let keyData = {
+            value: '',
+        };
+        return BgWidget.container(
+            html`
+                <div class="d-flex w-100 align-items-center mb-3 ">
+                    ${BgWidget.title(`SiteMap設定`)}
+                    <div class="flex-fill"></div>
+                    <button
+                        class="btn btn-primary-c"
+                        style="height:38px;font-size: 14px;"
+                        onclick="${gvc.event(() => {
+                const dialog = new ShareDialog(gvc.glitter);
+                dialog.dataLoading({ text: '設定中', visible: true });
+                saasConfig.api.setPrivateConfig((window.parent as any).appName, `sitemap_webhook`, keyData).then((r: { response: any; result: boolean }) => {
+                    dialog.dataLoading({ visible: false });
+                    if (r.response) {
+                        dialog.successMessage({ text: '設定成功' });
+                    } else {
+                        dialog.errorMessage({ text: '設定失敗' });
+                    }
+                });
+            })}"
+                    >
+                        儲存事件設定
+                    </button>
+                </div>
+                <div class="w-100 alert alert-info p-2">
+                    <div class="border-bottom pb-2 mb-2"><strong>自訂義SiteMap。</strong></div>
+                </div>
+                ${gvc.bindView(() => {
+                const id = gvc.glitter.getUUID();
+                return {
+                    bind: id,
+                    view: () => {
+                        return new Promise(async (resolve, reject) => {
+                            const data = await saasConfig.api.getPrivateConfig((window.parent as any).appName, `sitemap_webhook`);
+                            if (data.response.result[0]) {
+                                keyData = data.response.result[0].value;
+                            }
+                            resolve(` <div style="width:900px;max-width:100%;"> ${BgWidget.card(
+                                [
+                                    EditorElem.codeEditor({
+                                        gvc: gvc,
+                                        height: 600,
+                                        structStart:`((db,req)=>{`,
+                                        initial: keyData.value,
+                                        title: `區段代碼`,
+                                        callback: (text) => {
+                                            keyData.value = text;
+                                        },
+                                    }),
+                                ].join('<div class="my-2"></div>')
+                            )}
+                </div>`);
+                        });
+                    },
+                    divCreate: { class: `d-flex flex-column flex-column-reverse  flex-md-row`, style: `gap:10px;` },
+                };
+            })}
+            `,
+            900
+        );
+    }
+
     public static loginHook(gvc: GVC) {
         const saasConfig: {
             config: any;
