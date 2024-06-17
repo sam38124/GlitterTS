@@ -217,7 +217,7 @@ export class ApiUser {
             list.push(`rank=${obj.rank.join(',')}`);
         }
         if (obj.rebate.key && obj.rebate.value) {
-            list.push(`rebate=${obj.rebate.key},${obj.rebate[1].value}`);
+            list.push(`rebate=${obj.rebate.key},${obj.rebate.value}`);
         }
         if (obj.total_amount.key && obj.total_amount.value) {
             list.push(`total_amount=${obj.total_amount.key},${obj.total_amount.value}`);

@@ -141,10 +141,14 @@ export class ShoppingProductSetting {
                                         vm.status = 'replace';
                                     },
                                     filter: html`
-                                        ${BgWidget.searchPlace(gvc.event((e, event) => {
-                                            vm.query = e.value;
-                                            gvc.notifyDataChange(id);
-                                        }),vm.query,'搜尋所有商品')}
+                                        ${BgWidget.searchPlace(
+                                            gvc.event((e, event) => {
+                                                vm.query = e.value;
+                                                gvc.notifyDataChange(id);
+                                            }),
+                                            vm.query,
+                                            '搜尋所有商品'
+                                        )}
                                         ${gvc.bindView(() => {
                                             return {
                                                 bind: filterID,
@@ -1192,7 +1196,7 @@ export class ShoppingProductSetting {
                                                 },
                                                 () => {},
                                                 400,
-                                                    '設定商品分類'
+                                                '設定商品分類'
                                             );
                                         });
                                     }
