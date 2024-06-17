@@ -450,6 +450,7 @@ User-agent: *
 Sitemap: https://${domain}/sitemap.xml
                 `
             },
+            sitemap_test:async
         },
     ]);
 }

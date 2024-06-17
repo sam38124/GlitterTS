@@ -24,6 +24,7 @@ export class GlitterUtil {
     }
 
     public static async set_frontend_v2(express: core.Express, rout: { app_name: string, rout: string, path: string, root_path: string, seoManager: (req: express.Request, resp: express.Response) => Promise<string>, sitemap: (req: express.Request, resp: express.Response) => Promise<string> ,
+        sitemap_test: (req: express.Request, resp: express.Response) => Promise<string>
         sitemap_list: (req: express.Request, resp: express.Response) => Promise<string>
         robots:(req: express.Request, resp: express.Response) => Promise<string>
     }[]) {

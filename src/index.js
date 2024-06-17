@@ -450,10 +450,12 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
                                                 from \`${config_1.saasConfig.SAAS_NAME}\`.app_config
                                                 where appName = ?`, [appName]))[0]['domain'];
                 return html `# we use SHOPNEX as our ecommerce platform
-                User-agent: *
-                Sitemap: https://${domain}/sitemap.xml
+                
+User-agent: *
+Sitemap: https://${domain}/sitemap.xml
                 `;
             },
+            sitemap_test: async
         },
     ]);
 }
