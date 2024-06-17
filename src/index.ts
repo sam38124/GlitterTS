@@ -450,7 +450,23 @@ User-agent: *
 Sitemap: https://${domain}/sitemap.xml
                 `
             },
-            sitemap_test:async
+            sitemap_test:async (req, resp) =>{
+                let appName = dd.appName
+                if (req.query.appName) {
+                    appName = req.query.appName
+                }
+                const domain = (await db.query(`select \`domain\`
+                                                from \`${saasConfig.SAAS_NAME}\`.app_config
+                                                where appName = ?`, [appName]))[0]['domain'];
+                return `<?xml version="1.0" encoding="UTF-8"?>
+<urlset  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd http://www.google.com/schemas/sitemap-image/1.1 http://www.google.com/schemas/sitemap-image/1.1/sitemap-image.xsd" xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+    <url>
+        <loc>https://${domain}/index</loc>
+        <lastmod>2024-06-17T02:53:00+00:00</lastmod>
+        <changefreq>weekly</changefreq>
+    </url>
+</urlset>`
+            }
         },
     ]);
 }
