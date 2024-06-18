@@ -503,7 +503,7 @@ export class UserList {
                                                             view: () => {
                                                                 return BgWidget.card_main(
                                                                     html`<div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                                                                        <span class="cms_left_items">顧客資訊</span>
+                                                                        <span class="tx_700">顧客資訊</span>
                                                                         <div style="display: flex; gap: 8px;">
                                                                             ${BgWidget.grayButton(
                                                                                 vmi.mode === 'edit' ? '修改關閉' : '修改啟用',
@@ -548,7 +548,7 @@ export class UserList {
                                                                                             switch (item.page) {
                                                                                                 case 'input':
                                                                                                     h += html`<div>
-                                                                                                        <div class="t_39_16">${item.title}</div>
+                                                                                                        <div class="tx_normal">${item.title}</div>
                                                                                                         <div>
                                                                                                             ${BgWidget.editeInput({
                                                                                                                 gvc: gvc,
@@ -566,7 +566,7 @@ export class UserList {
                                                                                                     break;
                                                                                                 case 'multiple_line_text':
                                                                                                     h += html`<div>
-                                                                                                        <div class="t_39_16">${item.title}</div>
+                                                                                                        <div class="tx_normal">${item.title}</div>
                                                                                                         ${BgWidget.textArea({
                                                                                                             gvc: gvc,
                                                                                                             title: '',
@@ -610,7 +610,7 @@ export class UserList {
                                                             view: () => {
                                                                 return BgWidget.card_main(
                                                                     html`<div style="display: flex; margin-bottom: 8px;">
-                                                                        <span class="cms_left_items">訂單記錄</span>
+                                                                        <span class="tx_700">訂單記錄</span>
                                                                     </div>` +
                                                                         gvc.bindView(() => {
                                                                             const id = gvc.glitter.getUUID();
@@ -662,10 +662,10 @@ export class UserList {
                                                             view: () => {
                                                                 return BgWidget.card_main(
                                                                     html`<div style="display: flex; margin-bottom: 12px;">
-                                                                        <span class="cms_left_items">回饋金</span>
+                                                                        <span class="tx_700">回饋金</span>
                                                                     </div>` +
                                                                         html`<div style="display: flex; margin-bottom: 18px; align-items: center; gap: 18px">
-                                                                            <span class="cms_left_items">現有回饋金</span>
+                                                                            <span class="tx_700">現有回饋金</span>
                                                                             <span style="font-size: 24px; font-weight: 400; color: #393939;"
                                                                                 >${gvc.bindView({
                                                                                     bind: vm.id,
@@ -685,7 +685,7 @@ export class UserList {
                                                                             >
                                                                         </div>` +
                                                                         html`<div style="display: flex; margin-bottom: 18px;">
-                                                                            <span class="cms_left_items">回饋金紀錄</span>
+                                                                            <span class="tx_700">回饋金紀錄</span>
                                                                         </div>` +
                                                                         gvc.bindView(() => {
                                                                             const id = gvc.glitter.getUUID();
@@ -753,7 +753,7 @@ export class UserList {
                                                                                 }
                                                                                 let h = html`
                                                                                     <div class="gray-bottom-line-18">
-                                                                                        <div class="cms_left_items">會員等級</div>
+                                                                                        <div class="tx_700">會員等級</div>
                                                                                         <div style="margin-top: 12px">
                                                                                             <div class="badge bg-warning fs-7" style="max-height:34px;">
                                                                                                 ${(
@@ -784,7 +784,7 @@ export class UserList {
                                                                                                         const formatNum = (n: string | number) => parseInt(`${n}`, 10).toLocaleString();
 
                                                                                                         resolve(html`<div class="gray-bottom-line-18">
-                                                                                                            <div class="cms_left_items">消費總金額</div>
+                                                                                                            <div class="tx_700">消費總金額</div>
                                                                                                             ${total_price === 0
                                                                                                                 ? html`<div
                                                                                                                       style="font-size: 14px; font-weight: 400; color: #393939; margin-top: 12px;"
@@ -796,7 +796,7 @@ export class UserList {
                                                                                                                   >
                                                                                                                       ${formatNum(total_price)}
                                                                                                                   </div>`}
-                                                                                                            <div class="cms_left_items" style="margin-top: 18px">消費次數</div>
+                                                                                                            <div class="tx_700" style="margin-top: 18px">消費次數</div>
                                                                                                             <div style="font-size: 32px; font-weight: 400; color: #393939; margin-top: 12px;">
                                                                                                                 ${formatNum(data.response.total)}
                                                                                                             </div>
@@ -806,9 +806,8 @@ export class UserList {
                                                                                             },
                                                                                         });
                                                                                     })()}
-
                                                                                     <div class="d-none">
-                                                                                        <div class="cms_left_items">所屬分群</div>
+                                                                                        <div class="tx_700">所屬分群</div>
                                                                                         <div style="display: flex; gap: 12px; margin-top: 12px; flex-direction: column;">
                                                                                             <div>電子郵件訂閱者</div>
                                                                                             <div>已購買多次的顧客</div>

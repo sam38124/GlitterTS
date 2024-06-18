@@ -80,7 +80,7 @@ export class BgWidget {
                                                       .map(
                                                           (dd: any, index: number) =>
                                                               html` <th
-                                                                  class="${dd.position ?? 'text-start'} t_39_16 fw-bold"
+                                                                  class="${dd.position ?? 'text-start'} tx_normal fw-bold"
                                                                   style="border:none;padding-bottom: 30px;color:#393939 !important;${(obj.style || []) && obj.style![index] ? obj.style![index] : ``}"
                                                               >
                                                                   ${dd.key}
@@ -112,7 +112,7 @@ export class BgWidget {
                                                               .map(
                                                                   (d3: any, index: number) =>
                                                                       html` <td
-                                                                          class="${d3.position ?? 'text-start'}  t_39_16"
+                                                                          class="${d3.position ?? 'text-start'}  tx_normal"
                                                                           ${d3.key === '●' || d3.stopDialog ? '' : html` onclick="${gvc.event(() => {})}"`}
                                                                           style="color:#393939 !important;border:none;
 ${(obj.style || []) && obj.style![index] ? obj.style![index] : ``}
@@ -227,7 +227,7 @@ ${(obj.style || []) && obj.style![index] ? obj.style![index] : ``}
                                                       .map(
                                                           (dd: any, index: number) =>
                                                               html` <th
-                                                                  class="${dd.position ?? 'text-start'} t_39_16"
+                                                                  class="${dd.position ?? 'text-start'} tx_normal"
                                                                   style="border:none; color:#393939 !important; ${(obj.style || []) && obj.style![index] ? obj.style![index] : ``}"
                                                               >
                                                                   ${dd.key}
@@ -258,7 +258,7 @@ ${(obj.style || []) && obj.style![index] ? obj.style![index] : ``}
                                                               .map(
                                                                   (d3: any, index: number) =>
                                                                       html` <td
-                                                                          class="${d3.position ?? 'text-start'} t_39_16"
+                                                                          class="${d3.position ?? 'text-start'} tx_normal"
                                                                           ${d3.key === '●' || d3.stopDialog ? '' : html` onclick="${gvc.event(() => {})}"`}
                                                                           style="color:#393939 !important;border:none;${(obj.style || []) && obj.style![index] ? obj.style![index] : ``}"
                                                                       >
@@ -307,10 +307,8 @@ ${(obj.style || []) && obj.style![index] ? obj.style![index] : ``}
         });
     }
 
-    static card(html: string, classStyle: string = 'p-3 bg-white rounded-3 shadow border w-100 ') {
-        return `<div class="${classStyle}" style="">
-${html}
-</div>`;
+    static card(htmlString: string, classStyle: string = 'p-3 bg-white rounded-3 shadow border w-100') {
+        return html`<div class="${classStyle}" style="">${htmlString}</div>`;
     }
 
     static cancel(event: string, text: string = '取消') {
@@ -321,14 +319,8 @@ ${html}
         return html`<div class="cursor_it bt_c39" onclick="${event}">${text}</div>`;
     }
 
-    static card_main(html: string) {
-        return `<div  class="w-100" style="border-radius: 10px;
-padding: 20px;
-background: #FFF;
-/* 陰影 */
-box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.08);">
-${html}
-</div>`;
+    static card_main(htmlString: string) {
+        return html`<div class="w-100" style="border-radius: 10px; padding: 20px; background: #FFF; box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.08);">${htmlString}</div>`;
     }
 
     static container(html: string, width?: number, style?: string) {
@@ -336,7 +328,7 @@ ${html}
     }
 
     static title(title: string) {
-        return ` <h3 class="my-auto t_39_title" >${title}</h3>`;
+        return html` <h3 class="my-auto tx_title">${title}</h3>`;
     }
 
     static goBack(event: string) {
@@ -356,7 +348,7 @@ ${html}
         obj.type = obj.type ?? 'single';
         const gvc = obj.gvc;
         return html`
-            ${obj.title ? `<div class="t_39_16 fw-normal">${obj.title}</div>` : ``}
+            ${obj.title ? `<div class="tx_normal fw-normal">${obj.title}</div>` : ``}
             ${obj.gvc.bindView(() => {
                 const id = obj.gvc.glitter.getUUID();
                 return {
@@ -400,7 +392,7 @@ ${html}
                                         style="gap:6px;"
                                     >
                                         ${isSelect() ? `<i class="fa-sharp fa-solid fa-circle-dot cl_39"></i>` : ` <div class="c_39_checkbox"></div>`}
-                                        <span class="t_39_16">${dd.title}</span>
+                                        <span class="tx_normal">${dd.title}</span>
                                     </div>
                                     ${obj.def === dd.value && dd.innerHtml ? `<div class="mt-1">${dd.innerHtml}</div>` : ``}
                                 `;
@@ -418,7 +410,7 @@ ${html}
 
     static editeInput(obj: { gvc: GVC; title: string; default: string; placeHolder: string; callback: (text: string) => void; style?: string; type?: string; readonly?: boolean; pattern?: string }) {
         obj.title = obj.title ?? '';
-        return html`${obj.title ? html`<div class="t_39_16 fw-normal">${obj.title}</div>` : ``}
+        return html`${obj.title ? html`<div class="tx_normal fw-normal">${obj.title}</div>` : ``}
             <input
                 class="bgw-input ${obj.readonly ? `bgw-input-readonly` : ``}"
                 style="${obj.style ?? ''}"
@@ -445,7 +437,7 @@ ${html}
 
     static textArea(obj: { gvc: GVC; title: string; default: string; placeHolder: string; callback: (text: string) => void; style?: string; type?: string; readonly?: boolean; pattern?: string }) {
         obj.title = obj.title ?? '';
-        return html`${obj.title ? html`<div class="t_39_16 fw-normal">${obj.title}</div>` : ''}
+        return html`${obj.title ? html`<div class="tx_normal fw-normal">${obj.title}</div>` : ''}
             <div class="w-100 px-1" style="margin-top:8px;">
                 <textarea
                     class="form-control border rounded"
@@ -566,19 +558,8 @@ ${obj.default ?? ''}</textarea
                 if (vm.loading) {
                     return '';
                 } else {
-                    obj.gvc.addStyle(`
-                        .link-item-container {
-                            display: flex;
-                            align-items: center;
-                            font-size: 16px;
-                            font-weight: 500;
-                            gap: 6px;
-                            line-height: 140%;
-                            cursor: default;
-                        }
-                    `);
                     let dataList = JSON.parse(JSON.stringify(dropMenu.recentList)) as MenuItem[];
-                    return html`${obj.title ? html`<div class="t_39_16 fw-normal">${obj.title}</div>` : ``}
+                    return html`${obj.title ? html`<div class="tx_normal fw-normal">${obj.title}</div>` : ``}
                         <div style="position: relative">
                             ${obj.gvc.bindView({
                                 bind: linkComp.id,
@@ -785,8 +766,16 @@ ${obj.default ?? ''}</textarea
         });
     }
 
-    static grayNote(text: string) {
-        return html`<span style="color: #8D8D8D; font-size: 16px; font-weight: 400;">${text}</span>`;
+    static grayNote(text: string, style?: string): string {
+        return html`<span style="color: #8D8D8D; font-size: 16px; font-weight: 400; ${style}">${text}</span>`;
+    }
+
+    static blueNote(text: string, event: () => void, style?: string): string {
+        return html`<span style="color: #4D86DB; font-size: 16px; font-weight: 400; cursor:pointer; ${style}" onclick="${event()}">${text}</span>`;
+    }
+
+    static leftLineBar() {
+        return html`<div class="ms-2 border-end position-absolute h-100" style="left: 0px;"></div>`;
     }
 
     static grayButton(text: string, event: string) {
@@ -801,30 +790,6 @@ ${obj.default ?? ''}</textarea
     }
 
     static selectFilter(obj: { gvc: GVC; callback: (value: any) => void; default: string; options: { key: string; value: string }[] }) {
-        obj.gvc.addStyle(`
-            .c_select {
-                display: flex;
-                padding: 6px 12px;
-                min-width: 120px;
-                height: 38.75px;
-                align-items: center;
-                gap: 6px;
-                border-radius: 10px;
-                border: 1px solid #ddd;
-                -webkit-appearance: none;
-                -moz-appearance: none;
-                background: transparent;
-                background-image: url('https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1718100926212-Vector 89.png');
-                background-repeat: no-repeat;
-                background-position-x: 87.5%;
-                background-position-y: 16px;
-            }
-
-            .c_select_option {
-                font-size: 16px;
-                color: #393939;
-            } 
-        `);
         return html`<select
             class="c_select"
             onchange="${obj.gvc.event((e) => {
@@ -836,18 +801,6 @@ ${obj.default ?? ''}</textarea
     }
 
     static funnelFilter(obj: { gvc: GVC; callback: (value: any) => void }) {
-        obj.gvc.addStyle(`
-            .c_funnel {
-                display: flex;
-                padding: 9px;
-                min-width: 40px;
-                min-height: 40px;
-                align-items: center;
-                justify-content: center;
-                border-radius: 10px;
-                border: 1px solid #ddd;
-            }
-        `);
         return html`<div
             class="c_funnel"
             onclick="${obj.gvc.event((e) => {
@@ -860,41 +813,11 @@ ${obj.default ?? ''}</textarea
 
     static updownFilter(obj: { gvc: GVC; callback: (value: any) => void; default: string; options: { key: string; value: string }[] }) {
         obj.gvc.addStyle(`
-            .c_updown {
-                display: flex;
-                padding: 9px;
-                min-width: 40px;
-                min-height: 40px;
-                align-items: center;
-                justify-content: center;
-                border-radius: 10px;
-                border: 1px solid #ddd;
-            }
-
-            .c_fixed {
-                position: fixed;
-                width: 250px;
-                height: 300px;
-                overflow-y: auto;
-                padding: 24px;
-                border-radius: 10px;
-                border: 1px solid #ddd;
-                background: #fff;
-                box-shadow: 2px 2px 10px 0px rgba(0, 0, 0, 0.15);
-                z-index: 2;
-            }
-
             .form-check-input:checked[type='radio'] {
                 border: 2px solid #000;
                 background-color: #fff;
                 background-image: url(${this.dotDataImage('#000')});
                 background-position: center center;
-            }
-
-            .c_updown_label {
-                color: #393939;
-                font-size: 16px;
-                font-weight: 400;
             }
         `);
 

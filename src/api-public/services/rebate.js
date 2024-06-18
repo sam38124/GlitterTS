@@ -96,7 +96,6 @@ class Rebate {
                     dataArray.push(Object.assign(Object.assign({}, user), getOne));
                 }
             }
-            console.log(dataArray);
             const data = query.type === 'download' ? dataArray : dataArray.slice(start, end);
             const total = dataArray.length;
             return { total, data, sum };

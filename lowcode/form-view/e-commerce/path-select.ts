@@ -125,7 +125,7 @@ export class PathSelect {
                         }
                     `);
                     let dataList = JSON.parse(JSON.stringify(dropMenu.recentList)) as MenuItem[];
-                    return html`${obj.title ? html`<div class="t_39_16 fw-normal">${obj.title}</div>` : ``}
+                    return html`${obj.title ? html`<div class="tx_normal fw-normal">${obj.title}</div>` : ``}
                         <div style="position: relative">
                             ${obj.gvc.bindView({
                                 bind: linkComp.id,

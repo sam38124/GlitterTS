@@ -139,7 +139,6 @@ export class Rebate {
                     dataArray.push({ ...user, ...getOne });
                 }
             }
-            console.log(dataArray);
             const data = query.type === 'download' ? dataArray : dataArray.slice(start, end);
             const total = dataArray.length;
 
