@@ -31,10 +31,10 @@ class Rebate {
     }
     async getOneRebate(obj) {
         const nowTime = Rebate.nowTime();
-        let pending = 0;
-        let recycle = 0;
-        let point = 0;
         let user_id = 0;
+        let point = 0;
+        let recycle = 0;
+        let pending = 0;
         if (obj.user_id && !isNaN(obj.user_id)) {
             user_id = obj.user_id;
         }
@@ -66,8 +66,10 @@ class Rebate {
             return { user_id, point, recycle, pending };
         }
         catch (error) {
-            error instanceof Error && exception_1.default.BadRequestError('BAD_REQUEST', error.message, null);
             console.error(error);
+            if (error instanceof Error) {
+                throw exception_1.default.BadRequestError('Get One Rebate Error: ', error.message, null);
+            }
         }
     }
     async getRebateList(query) {
@@ -89,18 +91,21 @@ class Rebate {
             const users = await database_1.default.query(getUsersSQL, []);
             for (const user of users) {
                 delete user.pwd;
-                const getOne = await this.getOneRebate(user.userID);
-                if (getOne && getOne.point >= low) {
-                    getOne.point <= high && dataArray.push(Object.assign(Object.assign({}, user), getOne));
+                const getOne = await this.getOneRebate({ user_id: user.userID });
+                if (getOne && getOne.point >= low && getOne.point <= high) {
+                    dataArray.push(Object.assign(Object.assign({}, user), getOne));
                 }
             }
+            console.log(dataArray);
             const data = query.type === 'download' ? dataArray : dataArray.slice(start, end);
             const total = dataArray.length;
             return { total, data, sum };
         }
         catch (error) {
-            error instanceof Error && exception_1.default.BadRequestError('BAD_REQUEST', error.message, null);
             console.error(error);
+            if (error instanceof Error) {
+                throw exception_1.default.BadRequestError('Get Rebate List Error: ', error.message, null);
+            }
         }
     }
     async totalRebateValue() {
@@ -127,8 +132,10 @@ class Rebate {
             return { point, recycle, pending };
         }
         catch (error) {
-            error instanceof Error && exception_1.default.BadRequestError('BAD_REQUEST', error.message, null);
             console.error(error);
+            if (error instanceof Error) {
+                throw exception_1.default.BadRequestError('Total Rebate Value Error: ', error.message, null);
+            }
         }
     }
     async getCustomerRebateHistory(email) {
@@ -150,23 +157,10 @@ class Rebate {
             }
         }
         catch (error) {
-            throw exception_1.default.BadRequestError('BAD_REQUEST', 'getCustomerRebateHistory has Failed.', null);
-        }
-    }
-    async getCustomerRebateOptions(params) {
-        const SQL = `
-            SELECT id, userID, account, userData
-            FROM \`${this.app}\`.t_user
-            WHERE email LIKE '%${params}%'
-               OR first_name LIKE '%${params}%'
-               OR last_name LIKE '%${params}%';
-        `;
-        const result = await database_1.default.query(SQL, []);
-        try {
-            return result;
-        }
-        catch (error) {
-            throw exception_1.default.BadRequestError('BAD_REQUEST', 'getCustomerRebateOptions has Failed.', null);
+            console.error(error);
+            if (error instanceof Error) {
+                throw exception_1.default.BadRequestError('Get Customer Rebate History Error: ', error.message, null);
+            }
         }
     }
     async updateOldestRebate(user_id, originMinus) {
@@ -194,8 +188,10 @@ class Rebate {
             return;
         }
         catch (error) {
-            error instanceof Error && exception_1.default.BadRequestError('BAD_REQUEST', error.message, null);
             console.error(error);
+            if (error instanceof Error) {
+                throw exception_1.default.BadRequestError('Update Oldest Rebate Error: ', error.message, null);
+            }
         }
     }
     async insertRebate(user_id, amount, note, proof) {
@@ -242,8 +238,10 @@ class Rebate {
             };
         }
         catch (error) {
-            error instanceof Error && exception_1.default.BadRequestError('BAD_REQUEST', error.message, null);
             console.error(error);
+            if (error instanceof Error) {
+                throw exception_1.default.BadRequestError('Insert Rebate Error: ', error.message, null);
+            }
         }
     }
 }
@@ -251,11 +249,4 @@ exports.Rebate = Rebate;
 Rebate.nowTime = (timeZone) => (0, moment_timezone_1.default)()
     .tz(timeZone !== null && timeZone !== void 0 ? timeZone : 'Asia/Taipei')
     .format('YYYY-MM-DD HH:mm:ss');
-Rebate.checkStringTurnNumber = (str) => {
-    if (str === undefined || /[^0-9]/.test(str)) {
-        return undefined;
-    }
-    const t = parseInt(str, 10);
-    return isNaN(t) ? undefined : t;
-};
 //# sourceMappingURL=rebate.js.map

@@ -134,11 +134,12 @@ export class Rebate {
             const users = await db.query(getUsersSQL, []);
             for (const user of users) {
                 delete user.pwd;
-                const getOne = await this.getOneRebate(user.userID);
-                if (getOne && getOne.point >= low) {
-                    getOne.point <= high && dataArray.push({ ...user, ...getOne });
+                const getOne = await this.getOneRebate({ user_id: user.userID });
+                if (getOne && getOne.point >= low && getOne.point <= high) {
+                    dataArray.push({ ...user, ...getOne });
                 }
             }
+            console.log(dataArray);
             const data = query.type === 'download' ? dataArray : dataArray.slice(start, end);
             const total = dataArray.length;
 

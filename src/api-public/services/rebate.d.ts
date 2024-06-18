@@ -19,7 +19,6 @@ export declare class Rebate {
     constructor(app: string, token?: IToken);
     static isValidDateTimeString(dateTimeString: string): boolean;
     static nowTime: (timeZone?: string) => string;
-    static checkStringTurnNumber: (str: string | undefined) => number | undefined;
     getOneRebate(obj: {
         user_id?: number;
         email?: string;
@@ -46,8 +45,7 @@ export declare class Rebate {
         result: boolean;
         message: string;
         data?: undefined;
-    }>;
-    getCustomerRebateOptions(params: string): Promise<any>;
+    } | undefined>;
     updateOldestRebate(user_id: number, originMinus: number): Promise<void>;
     insertRebate(user_id: number, amount: number, note: string, proof?: {
         cart_token?: string;
