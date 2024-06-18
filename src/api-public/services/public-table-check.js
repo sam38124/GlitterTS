@@ -17,7 +17,7 @@ class ApiPublic {
         }
         ApiPublic.checkApp.push({
             app_name: appName,
-            refer_app: (await database_1.default.query(`select refer_app from \`${config_js_1.saasConfig.SAAS_NAME}\`.app_config where appName=?`, [appName]))[0]['refer_app']
+            refer_app: (await database_1.default.query(`select refer_app from \`${config_js_1.saasConfig.SAAS_NAME}\`.app_config where appName=?`, [appName]))[0]['refer_app'],
         });
         try {
             await database_1.default.execute(`CREATE SCHEMA if not exists \`${appName}\` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;`, []);
@@ -37,7 +37,7 @@ class ApiPublic {
   KEY \`index2\` (\`chat_id\`),
   KEY \`index3\` (\`user_id\`),
   KEY \`index4\` (\`created_time\`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
                 },
                 {
                     scheme: appName,
@@ -53,7 +53,7 @@ class ApiPublic {
   PRIMARY KEY (\`id\`),
   UNIQUE KEY \`name_UNIQUE\` (\`name\`),
   UNIQUE KEY \`port_UNIQUE\` (\`port\`)
-) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
                 },
                 {
                     scheme: appName,
@@ -66,7 +66,7 @@ class ApiPublic {
   PRIMARY KEY (\`id\`),
   UNIQUE KEY \`domain_UNIQUE\` (\`domain\`),
   UNIQUE KEY \`port_UNIQUE\` (\`port\`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
                 },
                 {
                     scheme: appName,
@@ -78,7 +78,7 @@ class ApiPublic {
   \`updated_at\` datetime NOT NULL,
   PRIMARY KEY (\`id\`),
   UNIQUE KEY \`index2\` (\`key\`)
-) ENGINE=InnoDB AUTO_INCREMENT=295 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`
+) ENGINE=InnoDB AUTO_INCREMENT=295 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
                 },
                 {
                     scheme: appName,
@@ -91,7 +91,7 @@ class ApiPublic {
                 \`updated_at\` datetime NOT NULL,
                 PRIMARY KEY (\`id\`),
                 UNIQUE KEY \`index2\` (\`user_id\`,\`key\`)
-        ) ENGINE=InnoDB AUTO_INCREMENT=309 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`
+        ) ENGINE=InnoDB AUTO_INCREMENT=309 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
                 },
                 {
                     scheme: appName,
@@ -107,7 +107,7 @@ class ApiPublic {
   UNIQUE KEY \`index2\` (\`chat_id\`),
   KEY \`index3\` (\`type\`),
   KEY \`index4\` (\`updated_time\`)
-) ENGINE=InnoDB AUTO_INCREMENT=71 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`
+) ENGINE=InnoDB AUTO_INCREMENT=71 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
                 },
                 {
                     scheme: appName,
@@ -120,7 +120,7 @@ class ApiPublic {
   \`updated_time\` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (\`id\`),
   UNIQUE KEY \`index2\` (\`chat_id\`,\`user_id\`)
-) ENGINE=InnoDB AUTO_INCREMENT=92 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`
+) ENGINE=InnoDB AUTO_INCREMENT=92 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
                 },
                 {
                     scheme: appName,
@@ -133,7 +133,7 @@ class ApiPublic {
   \`updated_time\` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (\`id\`),
   KEY \`index2\` (\`userID\`)
-) ENGINE=InnoDB AUTO_INCREMENT=287 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`
+) ENGINE=InnoDB AUTO_INCREMENT=287 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
                 },
                 {
                     scheme: appName,
@@ -147,7 +147,7 @@ class ApiPublic {
   \`status\` int NOT NULL DEFAULT '1',
   PRIMARY KEY (\`id\`),
   KEY \`index2\` (\`userID\`)
-) ENGINE=InnoDB AUTO_INCREMENT=287 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`
+) ENGINE=InnoDB AUTO_INCREMENT=287 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
                 },
                 {
                     scheme: appName,
@@ -170,7 +170,7 @@ class ApiPublic {
   KEY \`index5\` (\`company\`),
   KEY \`index6\` (\`role\`),
   KEY \`index4\` (\`status\`)
-) ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`
+) ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
                 },
                 {
                     scheme: appName,
@@ -186,7 +186,7 @@ class ApiPublic {
   UNIQUE KEY \`cart_token_UNIQUE\` (\`cart_token\`),
   KEY \`index3\` (\`email\`),
   KEY \`index4\` (\`created_time\`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
                 },
                 {
                     scheme: appName,
@@ -197,7 +197,7 @@ class ApiPublic {
   \`tag\` varchar(100) COLLATE utf8mb4_general_ci NOT NULL,
   PRIMARY KEY (\`id\`),
   UNIQUE KEY \`index2\` (\`email\`,\`tag\`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci         `
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci         `,
                 },
                 {
                     scheme: appName,
@@ -210,7 +210,7 @@ class ApiPublic {
   INDEX \`index2\` (\`userID\` ASC) VISIBLE,
   PRIMARY KEY (\`id\`)
   ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-  `
+  `,
                 },
                 {
                     scheme: appName,
@@ -227,24 +227,25 @@ class ApiPublic {
   UNIQUE KEY \`orderID_UNIQUE\` (\`orderID\`),
   KEY \`index2\` (\`userID\`),
   KEY \`index3\` (\`status\`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
                 },
                 {
                     scheme: appName,
-                    table: 't_rebate',
+                    table: 't_rebate_point',
                     sql: `(
-  \`id\` int NOT NULL AUTO_INCREMENT,
-  \`orderID\` varchar(45) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  \`userID\` varchar(45) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  \`money\` int NOT NULL,
-  \`status\` int NOT NULL DEFAULT '0',
-  \`note\` json DEFAULT NULL,
-  \`created_time\` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (\`id\`),
-  KEY \`index1\` (\`orderID\`),
-  KEY \`index2\` (\`userID\`),
-  KEY \`index3\` (\`status\`)
-) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`
+                        \`id\` int NOT NULL AUTO_INCREMENT,
+                        \`user_id\` int NOT NULL COMMENT '用戶 ID',
+                        \`origin\` int NOT NULL COMMENT '原始點數',
+                        \`remain\` int NOT NULL COMMENT '剩餘點數',
+                        \`note\` varchar(100) DEFAULT NULL COMMENT '使用描述',
+                        \`orderNO\` varchar(100) DEFAULT NULL COMMENT '訂單編號',
+                        \`sku\` varchar(100) DEFAULT NULL COMMENT '商品SKU',
+                        \`quantity\` int DEFAULT NULL COMMENT '數量',
+                        \`created_at\` datetime NOT NULL COMMENT '建立時間',
+                        \`updated_at\` datetime NOT NULL COMMENT '更新時間',
+                        \`deadline\` datetime DEFAULT NULL COMMENT '過期時間',
+                        PRIMARY KEY (\`id\`)
+                      ) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
                 },
                 {
                     scheme: appName,
@@ -257,7 +258,7 @@ class ApiPublic {
   \`note\` JSON NULL DEFAULT NULL,
   \`created_time\` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (\`id\`),
-  INDEX \`index2\` (\`userID\` ASC) VISIBLE) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;`
+  INDEX \`index2\` (\`userID\` ASC) VISIBLE) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;`,
                 },
                 {
                     scheme: appName,
@@ -270,7 +271,7 @@ class ApiPublic {
   \`created_time\` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (\`id\`),
   UNIQUE INDEX \`tag_UNIQUE\` (\`tag\` ASC) VISIBLE) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-`
+`,
                 },
                 {
                     scheme: appName,
@@ -286,7 +287,7 @@ class ApiPublic {
   KEY \`index2\` (\`dead_line\`),
   KEY \`index3\` (\`product_id\`)
 ) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-`
+`,
                 },
                 {
                     scheme: appName,
@@ -299,7 +300,7 @@ class ApiPublic {
   PRIMARY KEY (\`id\`),
   UNIQUE KEY \`index2\` (\`user_id\`,\`chat_id\`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-`
+`,
                 },
                 {
                     scheme: appName,
@@ -312,7 +313,7 @@ class ApiPublic {
   \`created_time\` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (\`id\`),
   UNIQUE INDEX \`index2\` (\`route\` ASC, \`method\` ASC) VISIBLE);
-`
+`,
                 },
                 {
                     scheme: appName,
@@ -326,8 +327,8 @@ class ApiPublic {
   \`link\` VARCHAR(100) NOT NULL,
   \`created_time\` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (\`id\`),
-  INDEX \`index2\` (\`user_id\` ASC) VISIBLE);`
-                }
+  INDEX \`index2\` (\`user_id\` ASC) VISIBLE);`,
+                },
             ];
             for (const b of chunkArray(sqlArray, groupSize)) {
                 let check = b.length;
@@ -360,16 +361,12 @@ class ApiPublic {
                 sql_info.sql_pwd = tool_js_1.default.randomString(12);
                 const trans = await database_1.default.Transaction.build();
                 await trans.execute(`CREATE USER '${sql_info.sql_admin}'@'%' IDENTIFIED BY '${sql_info.sql_pwd}';`, []);
-                await trans.execute(`update \`${config_js_1.saasConfig.SAAS_NAME}\`.app_config set sql_admin=? , sql_pwd=? where appName = ${database_1.default.escape(appName)}`, [
-                    sql_info.sql_admin,
-                    sql_info.sql_pwd
-                ]);
+                await trans.execute(`update \`${config_js_1.saasConfig.SAAS_NAME}\`.app_config set sql_admin=? , sql_pwd=? where appName = ${database_1.default.escape(appName)}`, [sql_info.sql_admin, sql_info.sql_pwd]);
                 await trans.execute(`GRANT ALL PRIVILEGES ON \`${appName}\`.* TO '${sql_info.sql_admin}'@'*';`, []);
                 await trans.commit();
                 await trans.release();
             }
-            catch (e) {
-            }
+            catch (e) { }
         }
     }
 }
