@@ -1,15 +1,16 @@
 import { IToken } from '../models/Auth.js';
-import response from '../../modules/response.js';
 import exception from '../../modules/exception.js';
 import db from '../../modules/database.js';
 import FinancialService from './financial-service.js';
 import { Private_config } from '../../services/private_config.js';
 import redis from '../../modules/redis.js';
 import { User } from './user.js';
-import { Post } from './post.js';
 import Tool from '../../modules/tool.js';
 import { Invoice } from './invoice.js';
 import e from 'express';
+import { Rebate } from './rebate.js';
+import { CustomCode } from '../services/custom-code.js';
+import moment from 'moment';
 
 interface VoucherData {
     title: string;
@@ -57,9 +58,9 @@ export class Shopping {
     public async deleteRebate(cf: { id: string }) {
         try {
             await db.query(
-                `update \`${this.app}\`.t_rebate
+                `UPDATE \`${this.app}\`.t_rebate
                             set status= -2
-                            where id in (?)`,
+                            WHERE id in (?)`,
                 [cf.id.split(',')]
             );
         } catch (e: any) {
@@ -94,8 +95,7 @@ export class Shopping {
                         })
                         .join(' or ')})`
                 );
-            console.log(`select content->>'$.product_id' as id from \`${this.app}\`.t_manager_post where content->>'$.sku'=${db.escape(query.sku)}`);
-            query.sku && querySql.push(`id in (select CAST(content->>'$.product_id' AS UNSIGNED) as id from \`${this.app}\`.t_manager_post where content->>'$.sku'=${db.escape(query.sku)})`);
+            query.sku && querySql.push(`id in (SELECT CAST(content->>'$.product_id' AS UNSIGNED) as id from \`${this.app}\`.t_manager_post WHERE content->>'$.sku'=${db.escape(query.sku)})`);
             if (!query.id && query.status === 'active' && query.with_hide_index !== 'true') {
                 querySql.push(`((content->>'$.hideIndex' is NULL) || (content->>'$.hideIndex'='false'))`);
             }
@@ -104,38 +104,38 @@ export class Shopping {
             query.min_price && querySql.push(`(CAST(JSON_UNQUOTE(JSON_EXTRACT(content, '$.variants[0].sale_price')) AS SIGNED)>=${query.min_price}) `);
             query.max_price && querySql.push(`(CAST(JSON_UNQUOTE(JSON_EXTRACT(content, '$.variants[0].sale_price')) AS SIGNED)<=${query.max_price}) `);
             const data = await this.querySql(querySql, query);
-            //產品清單
+
+            // 產品清單
             const productList = Array.isArray(data.data) ? data.data : [data.data];
-            //許願清單判斷
+
+            // 許願清單判斷
             if (this.token && this.token.userID) {
                 for (const b of productList) {
                     b.content.in_wish_list =
                         (
                             await db.query(
-                                `select count(1)
-                                                               FROM \`${this.app}\`.t_post
-                                                               where (content ->>'$.type'='wishlist')
-                                                                 and userID = ${this.token.userID}
-                                                                 and (content ->>'$.product_id'=${b.id})
-                    `,
+                                `SELECT count(1) FROM \`${this.app}\`.t_post
+                                      WHERE (content ->>'$.type'='wishlist')
+                                        and userID = ${this.token.userID}
+                                        and (content ->>'$.product_id'=${b.id})`,
                                 []
                             )
                         )[0]['count(1)'] == '1';
                 }
             }
+
+            // 尋找過期訂單
             if (productList.length > 0) {
-                //尋找過期訂單
                 const stockList = await db.query(
                     `SELECT *, \`${this.app}\`.t_stock_recover.id as recoverID
-                                                    FROM \`${this.app}\`.t_stock_recover,
-                                                         \`${this.app}\`.t_checkout
-                                                    where product_id in (${productList
-                                                        .map((dd) => {
-                                                            return dd.id;
-                                                        })
-                                                        .join(',')})
-                                                      and order_id = cart_token
-                                                      and dead_line < ?;`,
+                          FROM \`${this.app}\`.t_stock_recover, \`${this.app}\`.t_checkout
+                          WHERE product_id in (${productList
+                              .map((dd) => {
+                                  return dd.id;
+                              })
+                              .join(',')})
+                           and order_id = cart_token
+                           and dead_line < ?;`,
                     [new Date()]
                 );
                 const trans = await db.Transaction.build();
@@ -149,24 +149,18 @@ export class Shopping {
                     if (variant) {
                         variant.stock += stock.count;
                         if (stock.status != 1) {
-                            //回寫商品訂單
+                            // 回寫商品訂單
                             await trans.execute(
-                                `update \`${this.app}\`.\`t_manager_post\`
-                                             SET ?
-                                             where 1 = 1
-                                               and id = ${stock.product_id}`,
-                                [
-                                    {
-                                        content: JSON.stringify(product.content),
-                                    },
-                                ]
+                                `UPDATE \`${this.app}\`.\`t_manager_post\`
+                                      SET ?
+                                      WHERE 1 = 1 and id = ${stock.product_id}`,
+                                [{ content: JSON.stringify(product.content) }]
                             );
                         }
-                        //移除紀錄
+                        // 移除紀錄
                         await trans.execute(
-                            `delete
-                                         from \`${this.app}\`.t_stock_recover
-                                         where id = ?`,
+                            `DELETE FROM \`${this.app}\`.t_stock_recover 
+                                WHERE id = ?`,
                             [stock.recoverID]
                         );
                     }
@@ -183,34 +177,25 @@ export class Shopping {
     public async querySql(querySql: string[], query: { page: number; limit: number; id?: string; order_by?: string }) {
         let sql = `SELECT *
                    FROM \`${this.app}\`.t_manager_post
-                   where ${querySql.join(' and ')} ${query.order_by || `order by id desc`}
+                   WHERE ${querySql.join(' and ')} ${query.order_by || `order by id desc`}
         `;
         if (query.id) {
             const data = (
                 await db.query(
-                    `SELECT *
-                                          FROM (${sql}) as subqyery limit ${query.page * query.limit}, ${query.limit}`,
+                    `SELECT * FROM (${sql}) as subqyery 
+                          limit ${query.page * query.limit}, ${query.limit}`,
                     []
                 )
             )[0];
-            return {
-                data: data,
-                result: !!data,
-            };
+            return { data: data, result: !!data };
         } else {
             return {
                 data: await db.query(
-                    `SELECT *
-                                       FROM (${sql}) as subqyery limit ${query.page * query.limit}, ${query.limit}`,
+                    `SELECT * FROM (${sql}) as subqyery 
+                          limit ${query.page * query.limit}, ${query.limit}`,
                     []
                 ),
-                total: (
-                    await db.query(
-                        `SELECT count(1)
-                                        FROM (${sql}) as subqyery`,
-                        []
-                    )
-                )[0]['count(1)'],
+                total: (await db.query(`SELECT count(1) FROM (${sql}) as subqyery`, []))[0]['count(1)'],
             };
         }
     }
@@ -218,9 +203,8 @@ export class Shopping {
     public async deleteProduct(query: { id: string }) {
         try {
             await db.query(
-                `delete
-                            FROM \`${this.app}\`.t_manager_post
-                            where id in (?)`,
+                `DELETE FROM \`${this.app}\`.t_manager_post
+                      WHERE id in (?)`,
                 [query.id.split(',')]
             );
             return {
@@ -234,9 +218,8 @@ export class Shopping {
     public async deleteVoucher(query: { id: string }) {
         try {
             await db.query(
-                `delete
-                            FROM \`${this.app}\`.t_manager_post
-                            where id in (?)`,
+                `DELETE FROM \`${this.app}\`.t_manager_post
+                    WHERE id in (?)`,
                 [query.id.split(',')]
             );
             return {
@@ -270,19 +253,21 @@ export class Shopping {
         type: 'add' | 'preview' = 'add'
     ) {
         try {
-            if(type!=='preview' && (!(this.token && this.token.userID)&&!data.email&& !(data.user_info && data.user_info.email))){
+            const rebateClass = new Rebate(this.app);
+            if (type !== 'preview' && !(this.token && this.token.userID) && !data.email && !(data.user_info && data.user_info.email)) {
                 throw exception.BadRequestError('BAD_REQUEST', 'ToCheckout Error:No email address.', null);
             }
-
-            const userData = await (async ()=>{
-                if(type!=='preview' || ((this.token) && (this.token.userID))){
-                    return ((this.token && this.token.userID) ? await new User(this.app).getUserData(this.token.userID as any, 'userID'):await new User(this.app).getUserData(data.email! || data.user_info.email, 'account'))
-                }else{
-                    return  {}
+            const userData = await (async () => {
+                if (type !== 'preview' || (this.token && this.token.userID)) {
+                    return this.token && this.token.userID
+                        ? await new User(this.app).getUserData(this.token.userID as any, 'userID')
+                        : await new User(this.app).getUserData(data.email! || data.user_info.email, 'account');
+                } else {
+                    return {};
                 }
-            })()
-            if(!data.email && (userData && userData.account)){
-                data.email=userData.account
+            })();
+            if (!data.email && userData && userData.account) {
+                data.email = userData.account;
             }
             if (!data.email && type !== 'preview') {
                 if (data.user_info && data.user_info.email) {
@@ -291,23 +276,27 @@ export class Shopping {
                     throw exception.BadRequestError('BAD_REQUEST', 'ToCheckout Error:No email address.', null);
                 }
             }
-                if(!data.email && type!=='preview'){
+            if (!data.email && type !== 'preview') {
                 throw exception.BadRequestError('BAD_REQUEST', 'ToCheckout Error:No email address.', null);
             }
 
-            //判斷回饋金是否可用
+            // 判斷回饋金是否可用
             if (data.use_rebate && data.use_rebate > 0) {
                 if (userData) {
-                    const sum =
-                        (
-                            await db.query(
-                                `SELECT sum(money)
-                                                 FROM \`${this.app}\`.t_rebate
-                                                 where status in (1, 2)
-                                                   and userID = ?`,
-                                [userData.userID]
-                            )
-                        )[0]['sum(money)'] || 0;
+                    //! Older Rebate
+                    // const sum =
+                    //     (
+                    //         await db.query(
+                    //             `SELECT sum(money)
+                    //                              FROM \`${this.app}\`.t_rebate
+                    //                              WHERE status in (1, 2)
+                    //                                and userID = ?`,
+                    //             [userData.userID]
+                    //         )
+                    //     )[0]['sum(money)'] || 0;
+
+                    const userRebate = await rebateClass.getOneRebate({ user_id: userData.userID });
+                    const sum = userRebate ? userRebate.point : 0;
                     if (sum < data.use_rebate) {
                         data.use_rebate = 0;
                     }
@@ -316,8 +305,7 @@ export class Shopping {
                 }
             }
 
-
-            //運費設定
+            // 運費設定
             const shipment: {
                 basic_fee: number;
                 weight: number;
@@ -331,7 +319,7 @@ export class Shopping {
                 },
             ])[0].value;
 
-            //物流設定
+            // 物流設定
             const shipment_setting: string[] = await new Promise(async (resolve, reject) => {
                 try {
                     resolve(
@@ -351,7 +339,7 @@ export class Shopping {
                 }
             });
 
-            //購物車資料
+            // 購物車資料
             const carData: {
                 lineItems: {
                     id: string;
@@ -428,22 +416,17 @@ export class Shopping {
                                 const countless = variant.stock - b.count;
                                 variant.stock = countless > 0 ? countless : 0;
                                 await db.query(
-                                    `update \`${this.app}\`.\`t_manager_post\`
-                                                SET ?
-                                                where 1 = 1
-                                                  and id = ${pdDqlData.id}`,
-                                    [
-                                        {
-                                            content: JSON.stringify(pd),
-                                        },
-                                    ]
+                                    `UPDATE \`${this.app}\`.\`t_manager_post\`
+                                          SET ?
+                                          WHERE 1 = 1 and id = ${pdDqlData.id}`,
+                                    [{ content: JSON.stringify(pd) }]
                                 );
                                 // 獲取當前時間
                                 let deadTime = new Date();
                                 // 添加10分鐘
                                 deadTime.setMinutes(deadTime.getMinutes() + 15);
                                 // 設定15分鐘後回寫訂單庫存
-                                await db.query(`insert into \`${this.app}\`.\`t_stock_recover\` set ?`, [
+                                await db.query(`INSERT INTO \`${this.app}\`.\`t_stock_recover\` set ?`, [
                                     {
                                         product_id: pdDqlData.id,
                                         spec: variant.spec.join('-'),
@@ -460,35 +443,37 @@ export class Shopping {
             carData.total += carData.shipment_fee!;
             carData.total -= carData.use_rebate;
             carData.code = data.code;
-            const voucherList = await this.checkVoucher(carData);
+            await this.checkVoucher(carData);
             if (type === 'preview') {
-                return {
-                    data: carData,
-                };
+                return { data: carData };
             }
             if (carData.use_rebate && userData && userData.userID) {
-                await db.query(
-                    `insert into \`${this.app}\`.t_rebate (orderID, userID, money, status, note)
-                                values (?, ?, ?, ?, ?);`,
-                    [
-                        carData.orderID,
-                        userData.userID,
-                        carData.use_rebate * -1,
-                        1,
-                        JSON.stringify({
-                            note: '使用回饋金購物',
-                        }),
-                    ]
-                );
+                //! Older Rebate
+                // await db.query(
+                //     `INSERT INTO \`${this.app}\`.t_rebate (orderID, userID, money, status, note)
+                //                 values (?, ?, ?, ?, ?);`,
+                //     [
+                //         carData.orderID,
+                //         userData.userID,
+                //         carData.use_rebate * -1,
+                //         1,
+                //         JSON.stringify({
+                //             note: '使用回饋金購物',
+                //         }),
+                //     ]
+                // );
+                await rebateClass.insertRebate(userData.userID, carData.use_rebate * -1, '使用回饋金購物', {
+                    order_id: carData.orderID,
+                });
             }
-            if(userData && userData.userID){
-                //判斷錢包是否有餘額
+            if (userData && userData.userID) {
+                // 判斷錢包是否有餘額
                 const sum =
                     (
                         await db.query(
                             `SELECT sum(money)
                                          FROM \`${this.app}\`.t_wallet
-                                         where status in (1, 2)
+                                         WHERE status in (1, 2)
                                            and userID = ?`,
                             [userData.userID]
                         )
@@ -499,29 +484,30 @@ export class Shopping {
                 } else {
                     carData.use_wallet = carData.total;
                 }
-                if(carData.rebate>0){
-                    //消費返還回饋金
-                    await db.query(
-                        `insert into \`${this.app}\`.t_rebate (orderID, userID, money, status, note)
-                         values (?, ?, ?, ?, ?);`,
-                        [
-                            carData.orderID,
-                            userData.userID,
-                            carData.rebate,
-                            -1,
-                            JSON.stringify({
-                                note: '消費返還回饋金',
-                            }),
-                        ]
-                    );
+                if (carData.rebate > 0) {
+                    //! Older Rebate
+                    // 消費返還回饋金
+                    // await db.query(
+                    //     `INSERT INTO \`${this.app}\`.t_rebate (orderID, userID, money, status, note)
+                    //      values (?, ?, ?, ?, ?);`,
+                    //     [
+                    //         carData.orderID,
+                    //         userData.userID,
+                    //         carData.rebate,
+                    //         -1,
+                    //         JSON.stringify({
+                    //             note: '消費返還回饋金',
+                    //         }),
+                    //     ]
+                    // );
                 }
             }
 
-            //當不需付款時直接寫入，並開發票
+            // 當不需付款時直接寫入，並開發票
             if (carData.use_wallet === carData.total) {
                 await db.query(
-                    `insert into \`${this.app}\`.t_wallet (orderID, userID, money, status, note)
-                                values (?, ?, ?, ?, ?);`,
+                    `INSERT INTO \`${this.app}\`.t_wallet (orderID, userID, money, status, note)
+                          values (?, ?, ?, ?, ?);`,
                     [
                         carData.orderID,
                         userData.userID,
@@ -534,8 +520,8 @@ export class Shopping {
                     ]
                 );
                 await db.execute(
-                    `insert into \`${this.app}\`.t_checkout (cart_token, status, email, orderData)
-                                  values (?, ?, ?, ?)`,
+                    `INSERT INTO \`${this.app}\`.t_checkout (cart_token, status, email, orderData)
+                          values (?, ?, ?, ?)`,
                     [carData.orderID, 1, carData.email, carData]
                 );
                 if (carData.use_wallet > 0) {
@@ -553,7 +539,6 @@ export class Shopping {
                         key: 'glitter_finance',
                     })
                 )[0].value;
-console.log(carData);
                 const subMitData = await new FinancialService(this.app, {
                     HASH_IV: keyData.HASH_IV,
                     HASH_KEY: keyData.HASH_KEY,
@@ -563,7 +548,7 @@ console.log(carData);
                     MERCHANT_ID: keyData.MERCHANT_ID,
                     TYPE: keyData.TYPE,
                 }).createOrderPage(carData);
-                //線下付款
+                // 線下付款
                 if (keyData.TYPE === 'off_line') {
                     return {
                         off_line: true,
@@ -796,9 +781,9 @@ console.log(carData);
             data.orderData && (update.orderData = JSON.stringify(data.orderData));
             data.status && (update.status = data.status);
             await db.query(
-                `update \`${this.app}\`.t_checkout
+                `UPDATE \`${this.app}\`.t_checkout
                             set ?
-                            where id = ?`,
+                            WHERE id = ?`,
                 [update, data.id]
             );
             return {
@@ -813,9 +798,9 @@ console.log(carData);
     public async deleteOrder(req: { id: string }) {
         try {
             await db.query(
-                `delete
+                `DELETE
                             FROM \`${this.app}\`.t_checkout
-                            where id in (?)`,
+                            WHERE id in (?)`,
                 [req.id.split(',')]
             );
             return {
@@ -842,7 +827,7 @@ console.log(carData);
             query.id && querySql.push(`(content->>'$.id'=${query.id})`);
             let sql = `SELECT *
                        FROM \`${this.app}\`.t_checkout
-                       where ${querySql.join(' and ')}
+                       WHERE ${querySql.join(' and ')}
                        order by id desc`;
             if (query.id) {
                 const data = (
@@ -877,13 +862,98 @@ console.log(carData);
         }
     }
 
+    public async releaseCheckout(status: 1 | 0 | -1, order_id: string) {
+        try {
+            if (status === -1) {
+                await db.execute(
+                    `UPDATE \`${this.app}\`.t_checkout 
+                    SET status = ? WHERE cart_token = ?`,
+                    [-1, order_id]
+                );
+            }
+
+            if (status === 1) {
+                const notProgress = (
+                    await db.query(
+                        `SELECT count(1) FROM \`${this.app}\`.t_checkout
+                        WHERE cart_token = ? AND status = 0;`,
+                        [order_id]
+                    )
+                )[0]['count(1)'];
+
+                if (!notProgress) {
+                    return;
+                }
+
+                await db.execute(
+                    `UPDATE \`${this.app}\`.t_checkout
+                    SET status = ? WHERE cart_token = ?`,
+                    [1, order_id]
+                );
+
+                const cartData = (
+                    await db.query(
+                        `SELECT * FROM \`${this.app}\`.t_checkout
+                        WHERE cart_token = ?;`,
+                        [order_id]
+                    )
+                )[0];
+                const userData = await new User(this.app).getUserData(cartData.email, 'account');
+
+                if (userData && cartData.orderData.rebate > 0) {
+                    const rebateClass = new Rebate(this.app);
+                    for (let i = 0; i < cartData.orderData.voucherList.length; i++) {
+                        const orderVoucher = cartData.orderData.voucherList[i];
+
+                        const voucherRow = await db.query(
+                            `SELECT * FROM \`${this.app}\`.t_manager_post
+                            WHERE JSON_EXTRACT(content, '$.type') = 'voucher' AND id = ?;`,
+                            [orderVoucher.id]
+                        );
+
+                        if (voucherRow[0]) {
+                            for (const item of orderVoucher.bind) {
+                                const useCheck = await rebateClass.canUseRebate(userData.userID, 'voucher', {
+                                    voucher_id: orderVoucher.id,
+                                    order_id: order_id,
+                                    sku: item.sku,
+                                    quantity: item.count,
+                                });
+                                if (item.rebate > 0 && useCheck?.result) {
+                                    const content = voucherRow[0].content;
+                                    await rebateClass.insertRebate(userData.userID, item.rebate * item.count, `優惠券購物金：${content.title}`, {
+                                        voucher_id: orderVoucher.id,
+                                        order_id: order_id,
+                                        sku: item.sku,
+                                        quantity: item.count,
+                                        deadTime: content.rebateEndDay ? moment().add(content.rebateEndDay, 'd').format('YYYY-MM-DD HH:mm:ss') : undefined,
+                                    });
+                                }
+                            }
+                        }
+                    }
+
+                    await db.query(`UPDATE \`${this.app}\`.t_rebate SET status = 1 WHERE orderID = ?;`, [cartData.cart_token]);
+                }
+                try {
+                    await new CustomCode(this.app).checkOutHook({ userData, cartData });
+                } catch (e) {
+                    console.error(e);
+                }
+                new Invoice(this.app).postCheckoutInvoice(order_id);
+            }
+        } catch (error) {
+            throw exception.BadRequestError('BAD_REQUEST', 'Release Checkout Error:' + e, null);
+        }
+    }
+
     public async postVariantsAndPriceValue(content: any) {
         content.variants = content.variants ?? [];
         content.id &&
             (await db.query(
-                `delete
+                `DELETE
                                        from \`${this.app}\`.t_manager_post
-                                       where (content ->>'$.product_id'=${content.id})`,
+                                       WHERE (content ->>'$.product_id'=${content.id})`,
                 []
             ));
         for (const a of content.variants) {
@@ -898,7 +968,7 @@ console.log(carData);
             a.type = 'variants';
             a.product_id = content.id;
             await db.query(
-                `insert into \`${this.app}\`.t_manager_post
+                `INSERT INTO \`${this.app}\`.t_manager_post
                             SET ?`,
                 [
                     {
@@ -948,6 +1018,7 @@ console.log(carData);
             throw exception.BadRequestError('BAD_REQUEST', 'getDataAnalyze Error:' + e, null);
         }
     }
+
     async getOrderToDay() {
         try {
             const order = await db.query(`SELECT * FROM \`${this.app}\`.t_checkout  WHERE DATE(created_time) = CURDATE()`, []);
@@ -958,7 +1029,7 @@ console.log(carData);
                     return dd.status === 1;
                 }).length,
                 //未出貨訂單
-                un_shipment: (await db.query(`select count(1) from \`${this.app}\`.t_checkout where (orderData->'$.progress' is null || orderData->'$.progress'='wait') and status=1`, []))[0][
+                un_shipment: (await db.query(`SELECT count(1) from \`${this.app}\`.t_checkout WHERE (orderData->'$.progress' is null || orderData->'$.progress'='wait') and status=1`, []))[0][
                     'count(1)'
                 ],
                 //未付款訂單
@@ -982,6 +1053,7 @@ console.log(carData);
             throw exception.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
         }
     }
+
     async getRecentActiveUser() {
         try {
             const recentSQL = `

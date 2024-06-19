@@ -11,9 +11,7 @@ const ut_permission_1 = require("../utils/ut-permission");
 const financial_service_js_1 = require("../services/financial-service.js");
 const private_config_js_1 = require("../../services/private_config.js");
 const database_js_1 = __importDefault(require("../../modules/database.js"));
-const invoice_js_1 = require("../services/invoice.js");
 const user_js_1 = require("../services/user.js");
-const custom_code_js_1 = require("../services/custom-code.js");
 const ut_database_js_1 = require("../utils/ut-database.js");
 const post_js_1 = require("../services/post.js");
 const crypto_1 = __importDefault(require("crypto"));
@@ -376,38 +374,23 @@ router.post('/notify', upload.single('file'), async (req, resp) => {
             }).decode(url.searchParams.get('TradeInfo')));
         }
         if (decodeData['Status'] === 'SUCCESS') {
-            const notProgress = (await database_js_1.default.query(`SELECT count(1)
-                     FROM \`${appName}\`.t_checkout
-                     where cart_token = ?
-                       and status = 0;`, [decodeData['Result']['MerchantOrderNo']]))[0]['count(1)'];
-            if (notProgress) {
-                await database_js_1.default.execute(`update \`${appName}\`.t_checkout
-                     set status=?
-                     where cart_token = ?`, [1, decodeData['Result']['MerchantOrderNo']]);
-                const cartData = (await database_js_1.default.query(`SELECT *
-                         FROM \`${appName}\`.t_checkout
-                         where cart_token = ?;`, [decodeData['Result']['MerchantOrderNo']]))[0];
-                const userData = await new user_js_1.User(appName).getUserData(cartData.email, 'account');
-                if (cartData.orderData.rebate > 0) {
-                    await database_js_1.default.query(`update \`${appName}\`.t_rebate set status=1 where orderID=?;`, [cartData.cart_token]);
-                }
-                try {
-                    await new custom_code_js_1.CustomCode(appName).checkOutHook({
-                        userData: userData,
-                        cartData: cartData,
-                    });
-                }
-                catch (e) {
-                    console.log(`webHookError`);
-                    console.log(e);
-                }
-                new invoice_js_1.Invoice(appName).postCheckoutInvoice(decodeData['Result']['MerchantOrderNo']);
-            }
+            await new shopping_1.Shopping(appName).releaseCheckout(1, decodeData['Result']['MerchantOrderNo']);
         }
         else {
-            await database_js_1.default.execute(`update \`${appName}\`.t_checkout
-                 set status=?
-                 where cart_token = ?`, [-1, decodeData['Result']['MerchantOrderNo']]);
+            await new shopping_1.Shopping(appName).releaseCheckout(-1, decodeData['Result']['MerchantOrderNo']);
+        }
+        return response_1.default.succ(resp, {});
+    }
+    catch (err) {
+        return response_1.default.fail(resp, err);
+    }
+});
+router.get('/testRelease', async (req, resp) => {
+    try {
+        const test = true;
+        const appName = req.get('g-app');
+        if (test) {
+            await new shopping_1.Shopping(appName).releaseCheckout(1, req.query.orderId + '');
         }
         return response_1.default.succ(resp, {});
     }

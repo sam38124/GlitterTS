@@ -7,6 +7,7 @@ exports.Rebate = void 0;
 const moment_timezone_1 = __importDefault(require("moment-timezone"));
 const database_1 = __importDefault(require("../../modules/database"));
 const exception_1 = __importDefault(require("../../modules/exception"));
+const user_js_1 = require("./user.js");
 class Rebate {
     constructor(app, token) {
         this.app = app;
@@ -164,7 +165,7 @@ class Rebate {
     }
     async updateOldestRebate(user_id, originMinus) {
         const nowTime = Rebate.nowTime();
-        const getSQL = `SELECT * FROM \`${this.app}\`.t_rebate_point WHERE user_id = ? AND deadline > ? AND remain > 0 ORDER BY created_at`;
+        const getSQL = `SELECT * FROM \`${this.app}\`.t_rebate_point WHERE user_id = ? AND deadline > ? AND remain > 0 ORDER BY deadline`;
         const updateSQL = `UPDATE \`${this.app}\`.t_rebate_point SET remain = ?, updated_at = ? WHERE id = ?`;
         const get = await database_1.default.query(getSQL, [user_id, nowTime]);
         let n = 0;
@@ -198,34 +199,27 @@ class Rebate {
         const deadTime = (proof === null || proof === void 0 ? void 0 : proof.deadTime) && Rebate.isValidDateTimeString(proof === null || proof === void 0 ? void 0 : proof.deadTime) ? (0, moment_timezone_1.default)(proof === null || proof === void 0 ? void 0 : proof.deadTime).format('YYYY-MM-DD HH:mm:ss') : '2999-12-31 00:00:00';
         const insertSQL = `
             insert into \`${this.app}\`.t_rebate_point
-            (user_id, origin, remain, note, orderNO, sku, quantity, created_at, updated_at, deadline)
-            values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            (user_id, origin, remain, note, content, created_at, updated_at, deadline)
+            values (?, ?, ?, ?, ?, ?, ?, ?)
         `;
         try {
             const getUserRebate = await this.getOneRebate({ user_id });
             const recentRebate = getUserRebate ? getUserRebate.point : 0;
             const errorObj = { result: false, total: recentRebate, msg: '' };
             if (recentRebate + amount < 0) {
-                errorObj.msg = (proof === null || proof === void 0 ? void 0 : proof.cart_token) ? '回饋金餘額不足' : '扣除金額請勿大於餘額';
+                errorObj.msg = (proof === null || proof === void 0 ? void 0 : proof.order_id) ? '購物金餘額不足' : '扣除金額請勿大於餘額';
                 return errorObj;
             }
             if (amount > 0) {
-                await database_1.default.execute(insertSQL, [
-                    user_id,
-                    amount,
-                    amount,
-                    note,
-                    proof && proof.orderNO ? proof.orderNO : null,
-                    proof && proof.sku ? proof.sku : null,
-                    proof && proof.quantity ? proof.quantity : null,
-                    nowTime,
-                    nowTime,
-                    deadTime,
-                ]);
+                if (proof) {
+                    delete proof.deadTime;
+                    delete proof.setCreatedAt;
+                }
+                await database_1.default.execute(insertSQL, [user_id, amount, amount, note, proof !== null && proof !== void 0 ? proof : {}, nowTime, nowTime, deadTime]);
             }
             else {
                 await this.updateOldestRebate(user_id, amount);
-                await database_1.default.execute(insertSQL, [user_id, amount, 0, note, null, null, null, nowTime, nowTime, null]);
+                await database_1.default.execute(insertSQL, [user_id, amount, 0, note, {}, nowTime, nowTime, null]);
             }
             return {
                 result: true,
@@ -233,13 +227,51 @@ class Rebate {
                 amount,
                 after_point: recentRebate + amount,
                 deadTime: amount > 0 ? deadTime : undefined,
-                msg: `${amount > 0 ? '增加' : '扣除'}回饋金成功`,
+                msg: `${amount > 0 ? '增加' : '扣除'}購物金成功`,
             };
         }
         catch (error) {
             console.error(error);
             if (error instanceof Error) {
                 throw exception_1.default.BadRequestError('Insert Rebate Error: ', error.message, null);
+            }
+        }
+    }
+    async canUseRebate(user_id, type, search) {
+        try {
+            const userExist = await new user_js_1.User(this.app).checkUserIdExists(user_id);
+            console.log('userExist');
+            console.log(userExist);
+            if (!userExist) {
+                return { result: false, msg: '此使用者不存在' };
+            }
+            const SQL = `SELECT * FROM \`${this.app}\`.t_rebate_point WHERE user_id = ${user_id} AND origin > 0`;
+            if (type === 'voucher' && search) {
+                const { voucher_id, order_id, sku, quantity } = search;
+                const data = await database_1.default.query(`${SQL} 
+                        AND JSON_EXTRACT(content, '$.voucher_id') = ?
+                        AND JSON_EXTRACT(content, '$.order_id') = ?
+                        AND JSON_EXTRACT(content, '$.sku') = ?
+                        AND JSON_EXTRACT(content, '$.quantity') = ?;`, [voucher_id, order_id, sku, quantity]);
+                if (data.length > 0)
+                    return { result: false, msg: '此優惠券已使用過' };
+            }
+            if (type === 'birth') {
+                const data = await database_1.default.query(`${SQL} AND JSON_EXTRACT(content, '$.type') = 'birth';`, []);
+                if (data.length > 0)
+                    return { result: false, msg: '生日購物金已發放過' };
+            }
+            if (type === 'first_regiser') {
+                const data = await database_1.default.query(`${SQL} AND JSON_EXTRACT(content, '$.type') = 'first_regiser';`, []);
+                if (data.length > 0)
+                    return { result: false, msg: '首次註冊購物金已發放過' };
+            }
+            return { result: true, msg: '此優惠券可使用' };
+        }
+        catch (error) {
+            console.error(error);
+            if (error instanceof Error) {
+                throw exception_1.default.BadRequestError('Check Rebate Error: ', error.message, null);
             }
         }
     }

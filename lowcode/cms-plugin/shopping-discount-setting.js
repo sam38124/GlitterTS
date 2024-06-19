@@ -227,6 +227,7 @@ export class ShoppingDiscountSetting {
             start_ISO_Date: '',
             end_ISO_Date: '',
             reBackType: 'discount',
+            rebateEndDay: '0',
         };
         gvc.addStyle(`
             .bg-warning {
@@ -397,6 +398,25 @@ export class ShoppingDiscountSetting {
                                     },
                                     oneLine: true,
                                 })}`,
+                                html ` <div class="${voucherData.reBackType === 'rebate' ? 'd-block' : 'd-none'}">
+                                                    <h3 class="tx_700">購物金使用期限</h3>
+                                                    <div class="d-flex align-items-center">
+                                                        ${EditorElem.editeInput({
+                                    gvc: gvc,
+                                    type: 'number',
+                                    style: `width:125px;`,
+                                    title: '',
+                                    default: voucherData.rebateEndDay,
+                                    placeHolder: '',
+                                    callback: (text) => {
+                                        voucherData.rebateEndDay = text;
+                                    },
+                                })}
+                                                        <div style="width: 32px;" class="d-flex align-items-center justify-content-center">
+                                                            <span style="font-size: 16px;">天</span>
+                                                        </div>
+                                                    </div>
+                                                </div>`,
                                 (() => {
                                     if (voucherData.reBackType === 'shipment_free') {
                                         return ``;

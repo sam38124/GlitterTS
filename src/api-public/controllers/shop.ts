@@ -7,10 +7,8 @@ import { UtPermission } from '../utils/ut-permission';
 import { EcPay, EzPay } from '../services/financial-service.js';
 import { Private_config } from '../../services/private_config.js';
 import db from '../../modules/database.js';
-import { IToken } from '../models/Auth.js';
 import { Invoice } from '../services/invoice.js';
 import { User } from '../services/user.js';
-import { CustomCode } from '../services/custom-code.js';
 import { UtDatabase } from '../utils/ut-database.js';
 import { Post } from '../services/post.js';
 import crypto from 'crypto';
@@ -396,59 +394,31 @@ router.post('/notify', upload.single('file'), async (req: express.Request, resp:
             );
         }
 
+        // 執行付款完成之訂單事件
         if (decodeData['Status'] === 'SUCCESS') {
-            const notProgress = (
-                await db.query(
-                    `SELECT count(1)
-                     FROM \`${appName}\`.t_checkout
-                     where cart_token = ?
-                       and status = 0;`,
-                    [decodeData['Result']['MerchantOrderNo']]
-                )
-            )[0]['count(1)'];
-            if (notProgress) {
-                await db.execute(
-                    `update \`${appName}\`.t_checkout
-                     set status=?
-                     where cart_token = ?`,
-                    [1, decodeData['Result']['MerchantOrderNo']]
-                );
-                const cartData = (
-                    await db.query(
-                        `SELECT *
-                         FROM \`${appName}\`.t_checkout
-                         where cart_token = ?;`,
-                        [decodeData['Result']['MerchantOrderNo']]
-                    )
-                )[0];
-                const userData = await new User(appName).getUserData(cartData.email, 'account');
-                if (cartData.orderData.rebate > 0) {
-                    await db.query(`update \`${appName}\`.t_rebate set status=1 where orderID=?;`, [cartData.cart_token]);
-                }
-                try {
-                    await new CustomCode(appName).checkOutHook({
-                        userData: userData,
-                        cartData: cartData,
-                    });
-                } catch (e) {
-                    console.log(`webHookError`);
-                    console.log(e);
-                }
-                new Invoice(appName).postCheckoutInvoice(decodeData['Result']['MerchantOrderNo']);
-            }
+            await new Shopping(appName).releaseCheckout(1, decodeData['Result']['MerchantOrderNo']);
         } else {
-            await db.execute(
-                `update \`${appName}\`.t_checkout
-                 set status=?
-                 where cart_token = ?`,
-                [-1, decodeData['Result']['MerchantOrderNo']]
-            );
+            await new Shopping(appName).releaseCheckout(-1, decodeData['Result']['MerchantOrderNo']);
         }
         return response.succ(resp, {});
     } catch (err) {
         return response.fail(resp, err);
     }
 });
+
+router.get('/testRelease', async (req: express.Request, resp: express.Response) => {
+    try {
+        const test = true;
+        const appName = req.get('g-app') as string;
+        if (test) {
+            await new Shopping(appName).releaseCheckout(1, req.query.orderId + '');
+        }
+        return response.succ(resp, {});
+    } catch (err) {
+        return response.fail(resp, err);
+    }
+});
+
 router.get('/wishlist', async (req: express.Request, resp: express.Response) => {
     try {
         let query = [`(content->>'$.type'='wishlist')`, `userID = ${req.body.token.userID}`];

@@ -87,6 +87,7 @@ export declare class User {
     updateAccountBack(token: string): Promise<void>;
     verifyPASS(token: string): Promise<any>;
     checkUserExists(account: string): Promise<boolean>;
+    checkUserIdExists(id: number): Promise<any>;
     setConfig(config: {
         key: string;
         value: any;

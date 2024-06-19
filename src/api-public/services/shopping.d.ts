@@ -242,6 +242,7 @@ export declare class Shopping {
         total: any;
         result?: undefined;
     }>;
+    releaseCheckout(status: 1 | 0 | -1, order_id: string): Promise<void>;
     postVariantsAndPriceValue(content: any): Promise<void>;
     getDataAnalyze(tags: string[]): Promise<any>;
     getOrderToDay(): Promise<{

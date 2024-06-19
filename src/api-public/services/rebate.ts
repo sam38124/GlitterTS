@@ -2,6 +2,7 @@ import moment from 'moment-timezone';
 import db from '../../modules/database';
 import exception from '../../modules/exception';
 import { IToken } from '../models/Auth.js';
+import { User } from './user.js';
 
 interface OneUserRebate {
     user_id: number;
@@ -64,7 +65,7 @@ export class Rebate {
             .tz(timeZone ?? 'Asia/Taipei')
             .format('YYYY-MM-DD HH:mm:ss');
 
-    // 單一會員回饋金
+    // 單一會員購物金
     async getOneRebate(obj: { user_id?: number; email?: string }): Promise<OneUserRebate | undefined> {
         const nowTime = Rebate.nowTime();
         let user_id = 0;
@@ -114,7 +115,7 @@ export class Rebate {
         }
     }
 
-    // 取得回饋金列表
+    // 取得購物金列表
     async getRebateList(query: IRebateSearch) {
         const limit = query.limit ?? 20;
         const start = ((query.page ?? 1) - 1) * limit;
@@ -181,7 +182,7 @@ export class Rebate {
         }
     }
 
-    // 單一會員回饋金歷史紀錄
+    // 單一會員購物金歷史紀錄
     async getCustomerRebateHistory(email: string) {
         const searchSQL = `SELECT userID FROM \`${this.app}\`.t_user where JSON_EXTRACT(userData, '$.email') = ?`;
         const rebateSQL = `SELECT * FROM \`${this.app}\`.t_rebate_point where user_id = ? order by id desc`;
@@ -210,7 +211,7 @@ export class Rebate {
     // 減少最舊一筆的餘額並更新
     async updateOldestRebate(user_id: number, originMinus: number) {
         const nowTime = Rebate.nowTime();
-        const getSQL = `SELECT * FROM \`${this.app}\`.t_rebate_point WHERE user_id = ? AND deadline > ? AND remain > 0 ORDER BY created_at`;
+        const getSQL = `SELECT * FROM \`${this.app}\`.t_rebate_point WHERE user_id = ? AND deadline > ? AND remain > 0 ORDER BY deadline`;
         const updateSQL = `UPDATE \`${this.app}\`.t_rebate_point SET remain = ?, updated_at = ? WHERE id = ?`;
         const get = await db.query(getSQL, [user_id, nowTime]);
         let n = 0;
@@ -238,14 +239,14 @@ export class Rebate {
         }
     }
 
-    // 增加或減少會員回饋金
+    // 增加或減少會員購物金
     async insertRebate(
         user_id: number,
         amount: number,
         note: string,
         proof?: {
-            cart_token?: string;
-            orderNO?: string;
+            voucher_id?: string;
+            order_id?: string;
             sku?: string;
             quantity?: number;
             setCreatedAt?: string;
@@ -256,8 +257,8 @@ export class Rebate {
         const deadTime = proof?.deadTime && Rebate.isValidDateTimeString(proof?.deadTime) ? moment(proof?.deadTime).format('YYYY-MM-DD HH:mm:ss') : '2999-12-31 00:00:00';
         const insertSQL = `
             insert into \`${this.app}\`.t_rebate_point
-            (user_id, origin, remain, note, orderNO, sku, quantity, created_at, updated_at, deadline)
-            values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            (user_id, origin, remain, note, content, created_at, updated_at, deadline)
+            values (?, ?, ?, ?, ?, ?, ?, ?)
         `;
 
         try {
@@ -265,25 +266,18 @@ export class Rebate {
             const recentRebate = getUserRebate ? getUserRebate.point : 0;
             const errorObj = { result: false, total: recentRebate, msg: '' };
             if (recentRebate + amount < 0) {
-                errorObj.msg = proof?.cart_token ? '回饋金餘額不足' : '扣除金額請勿大於餘額';
+                errorObj.msg = proof?.order_id ? '購物金餘額不足' : '扣除金額請勿大於餘額';
                 return errorObj;
             }
             if (amount > 0) {
-                await db.execute(insertSQL, [
-                    user_id,
-                    amount,
-                    amount,
-                    note,
-                    proof && proof.orderNO ? proof.orderNO : null,
-                    proof && proof.sku ? proof.sku : null,
-                    proof && proof.quantity ? proof.quantity : null,
-                    nowTime,
-                    nowTime,
-                    deadTime,
-                ]);
+                if (proof) {
+                    delete proof.deadTime;
+                    delete proof.setCreatedAt;
+                }
+                await db.execute(insertSQL, [user_id, amount, amount, note, proof ?? {}, nowTime, nowTime, deadTime]);
             } else {
                 await this.updateOldestRebate(user_id, amount);
-                await db.execute(insertSQL, [user_id, amount, 0, note, null, null, null, nowTime, nowTime, null]);
+                await db.execute(insertSQL, [user_id, amount, 0, note, {}, nowTime, nowTime, null]);
             }
 
             return {
@@ -292,12 +286,63 @@ export class Rebate {
                 amount,
                 after_point: recentRebate + amount,
                 deadTime: amount > 0 ? deadTime : undefined,
-                msg: `${amount > 0 ? '增加' : '扣除'}回饋金成功`,
+                msg: `${amount > 0 ? '增加' : '扣除'}購物金成功`,
             };
         } catch (error) {
             console.error(error);
             if (error instanceof Error) {
                 throw exception.BadRequestError('Insert Rebate Error: ', error.message, null);
+            }
+        }
+    }
+
+    // 確認是否增加過購物金
+    async canUseRebate(
+        user_id: number,
+        type: 'voucher' | 'birth' | 'first_regiser',
+        search?: {
+            voucher_id?: string;
+            order_id?: string;
+            sku?: string;
+            quantity?: number;
+        }
+    ) {
+        try {
+            const userExist = await new User(this.app).checkUserIdExists(user_id);
+            if (!userExist) {
+                return { result: false, msg: '此使用者不存在' };
+            }
+
+            const SQL = `SELECT * FROM \`${this.app}\`.t_rebate_point WHERE user_id = ${user_id} AND origin > 0`;
+
+            if (type === 'voucher' && search) {
+                const { voucher_id, order_id, sku, quantity } = search;
+                const data = await db.query(
+                    `${SQL} 
+                        AND JSON_EXTRACT(content, '$.voucher_id') = ?
+                        AND JSON_EXTRACT(content, '$.order_id') = ?
+                        AND JSON_EXTRACT(content, '$.sku') = ?
+                        AND JSON_EXTRACT(content, '$.quantity') = ?;`,
+                    [voucher_id, order_id, sku, quantity]
+                );
+                if (data.length > 0) return { result: false, msg: '此優惠券已使用過' };
+            }
+
+            if (type === 'birth') {
+                const data = await db.query(`${SQL} AND JSON_EXTRACT(content, '$.type') = 'birth';`, []);
+                if (data.length > 0) return { result: false, msg: '生日購物金已發放過' };
+            }
+
+            if (type === 'first_regiser') {
+                const data = await db.query(`${SQL} AND JSON_EXTRACT(content, '$.type') = 'first_regiser';`, []);
+                if (data.length > 0) return { result: false, msg: '首次註冊購物金已發放過' };
+            }
+
+            return { result: true, msg: '此優惠券可使用' };
+        } catch (error) {
+            console.error(error);
+            if (error instanceof Error) {
+                throw exception.BadRequestError('Check Rebate Error: ', error.message, null);
             }
         }
     }

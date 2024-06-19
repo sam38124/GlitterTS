@@ -62,9 +62,9 @@ export class BgWidget {
                 bind: id,
                 view: () => {
                     if (vm.loading) {
-                        return html` <div class=" fs-2 text-center" style="padding-bottom:32px;">${vm.stateText}</div>`;
+                        return html` <div class="fs-2 text-center" style="padding:32px;">${vm.stateText}</div>`;
                     } else {
-                        return html` <div class=" p-0 " style="">
+                        return html` <div class="p-0" style="">
                             <div class="" style="overflow-x:scroll;">
                                 <table
                                     class="table table-centered table-nowrap  text-center table-hover fw-500 fs-7"
@@ -213,7 +213,7 @@ ${(obj.style || []) && obj.style![index] ? obj.style![index] : ``}
                 bind: id,
                 view: () => {
                     if (vm.loading) {
-                        return html` <div class="fs-2 text-center" style="padding-bottom: 32px;">${vm.stateText}</div>`;
+                        return html` <div class="fs-2 text-center" style="padding: 32px;">${vm.stateText}</div>`;
                     } else {
                         return html` <div class="m-0 p-0" style="${obj.table_style ?? ''}">
                             ${obj.filter ? html`<div style="padding: 12px;">${obj.filter}</div>` : ''}

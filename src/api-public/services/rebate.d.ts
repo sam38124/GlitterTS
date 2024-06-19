@@ -48,8 +48,8 @@ export declare class Rebate {
     } | undefined>;
     updateOldestRebate(user_id: number, originMinus: number): Promise<void>;
     insertRebate(user_id: number, amount: number, note: string, proof?: {
-        cart_token?: string;
-        orderNO?: string;
+        voucher_id?: string;
+        order_id?: string;
         sku?: string;
         quantity?: number;
         setCreatedAt?: string;
@@ -64,6 +64,15 @@ export declare class Rebate {
         amount: number;
         after_point: number;
         deadTime: string | undefined;
+        msg: string;
+    } | undefined>;
+    canUseRebate(user_id: number, type: 'voucher' | 'birth' | 'first_regiser', search?: {
+        voucher_id?: string;
+        order_id?: string;
+        sku?: string;
+        quantity?: number;
+    }): Promise<{
+        result: boolean;
         msg: string;
     } | undefined>;
 }

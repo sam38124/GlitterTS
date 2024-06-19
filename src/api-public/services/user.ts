@@ -1040,6 +1040,15 @@ export class User {
         }
     }
 
+    public async checkUserIdExists(id: number) {
+        try {
+            const count = (await db.query(`select count(1) from \`${this.app}\`.t_user where userID = ?`, [id]))[0]['count(1)'];
+            return count;
+        } catch (e) {
+            throw exception.BadRequestError('BAD_REQUEST', 'CheckUserExists Error:' + e, null);
+        }
+    }
+
     public async setConfig(config: { key: string; value: any; user_id?: string }) {
         try {
             if (typeof config.value !== 'string') {

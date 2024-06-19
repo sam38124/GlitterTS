@@ -13,6 +13,9 @@ const user_js_1 = require("./user.js");
 const tool_js_1 = __importDefault(require("../../modules/tool.js"));
 const invoice_js_1 = require("./invoice.js");
 const express_1 = __importDefault(require("express"));
+const rebate_js_1 = require("./rebate.js");
+const custom_code_js_1 = require("../services/custom-code.js");
+const moment_1 = __importDefault(require("moment"));
 class Shopping {
     constructor(app, token) {
         this.app = app;
@@ -20,9 +23,9 @@ class Shopping {
     }
     async deleteRebate(cf) {
         try {
-            await database_js_1.default.query(`update \`${this.app}\`.t_rebate
+            await database_js_1.default.query(`UPDATE \`${this.app}\`.t_rebate
                             set status= -2
-                            where id in (?)`, [cf.id.split(',')]);
+                            WHERE id in (?)`, [cf.id.split(',')]);
         }
         catch (e) {
             throw exception_js_1.default.BadRequestError('BAD_REQUEST', e.message, null);
@@ -40,8 +43,7 @@ class Shopping {
                     return `(JSON_EXTRACT(content, '$.collection') LIKE '%${dd}%')`;
                 })
                     .join(' or ')})`);
-            console.log(`select content->>'$.product_id' as id from \`${this.app}\`.t_manager_post where content->>'$.sku'=${database_js_1.default.escape(query.sku)}`);
-            query.sku && querySql.push(`id in (select CAST(content->>'$.product_id' AS UNSIGNED) as id from \`${this.app}\`.t_manager_post where content->>'$.sku'=${database_js_1.default.escape(query.sku)})`);
+            query.sku && querySql.push(`id in (SELECT CAST(content->>'$.product_id' AS UNSIGNED) as id from \`${this.app}\`.t_manager_post WHERE content->>'$.sku'=${database_js_1.default.escape(query.sku)})`);
             if (!query.id && query.status === 'active' && query.with_hide_index !== 'true') {
                 querySql.push(`((content->>'$.hideIndex' is NULL) || (content->>'$.hideIndex'='false'))`);
             }
@@ -51,28 +53,28 @@ class Shopping {
             query.max_price && querySql.push(`(CAST(JSON_UNQUOTE(JSON_EXTRACT(content, '$.variants[0].sale_price')) AS SIGNED)<=${query.max_price}) `);
             const data = await this.querySql(querySql, query);
             const productList = Array.isArray(data.data) ? data.data : [data.data];
+            console.log('get productList');
+            console.log(productList);
+            console.log('================================');
             if (this.token && this.token.userID) {
                 for (const b of productList) {
                     b.content.in_wish_list =
-                        (await database_js_1.default.query(`select count(1)
-                                                               FROM \`${this.app}\`.t_post
-                                                               where (content ->>'$.type'='wishlist')
-                                                                 and userID = ${this.token.userID}
-                                                                 and (content ->>'$.product_id'=${b.id})
-                    `, []))[0]['count(1)'] == '1';
+                        (await database_js_1.default.query(`SELECT count(1) FROM \`${this.app}\`.t_post
+                                      WHERE (content ->>'$.type'='wishlist')
+                                        and userID = ${this.token.userID}
+                                        and (content ->>'$.product_id'=${b.id})`, []))[0]['count(1)'] == '1';
                 }
             }
             if (productList.length > 0) {
                 const stockList = await database_js_1.default.query(`SELECT *, \`${this.app}\`.t_stock_recover.id as recoverID
-                                                    FROM \`${this.app}\`.t_stock_recover,
-                                                         \`${this.app}\`.t_checkout
-                                                    where product_id in (${productList
+                          FROM \`${this.app}\`.t_stock_recover, \`${this.app}\`.t_checkout
+                          WHERE product_id in (${productList
                     .map((dd) => {
                     return dd.id;
                 })
                     .join(',')})
-                                                      and order_id = cart_token
-                                                      and dead_line < ?;`, [new Date()]);
+                           and order_id = cart_token
+                           and dead_line < ?;`, [new Date()]);
                 const trans = await database_js_1.default.Transaction.build();
                 for (const stock of stockList) {
                     const product = productList.find((dd) => {
@@ -84,18 +86,12 @@ class Shopping {
                     if (variant) {
                         variant.stock += stock.count;
                         if (stock.status != 1) {
-                            await trans.execute(`update \`${this.app}\`.\`t_manager_post\`
-                                             SET ?
-                                             where 1 = 1
-                                               and id = ${stock.product_id}`, [
-                                {
-                                    content: JSON.stringify(product.content),
-                                },
-                            ]);
+                            await trans.execute(`UPDATE \`${this.app}\`.\`t_manager_post\`
+                                      SET ?
+                                      WHERE 1 = 1 and id = ${stock.product_id}`, [{ content: JSON.stringify(product.content) }]);
                         }
-                        await trans.execute(`delete
-                                         from \`${this.app}\`.t_stock_recover
-                                         where id = ?`, [stock.recoverID]);
+                        await trans.execute(`DELETE FROM \`${this.app}\`.t_stock_recover 
+                                WHERE id = ?`, [stock.recoverID]);
                     }
                 }
                 await trans.commit();
@@ -109,30 +105,25 @@ class Shopping {
     async querySql(querySql, query) {
         let sql = `SELECT *
                    FROM \`${this.app}\`.t_manager_post
-                   where ${querySql.join(' and ')} ${query.order_by || `order by id desc`}
+                   WHERE ${querySql.join(' and ')} ${query.order_by || `order by id desc`}
         `;
         if (query.id) {
-            const data = (await database_js_1.default.query(`SELECT *
-                                          FROM (${sql}) as subqyery limit ${query.page * query.limit}, ${query.limit}`, []))[0];
-            return {
-                data: data,
-                result: !!data,
-            };
+            const data = (await database_js_1.default.query(`SELECT * FROM (${sql}) as subqyery 
+                          limit ${query.page * query.limit}, ${query.limit}`, []))[0];
+            return { data: data, result: !!data };
         }
         else {
             return {
-                data: await database_js_1.default.query(`SELECT *
-                                       FROM (${sql}) as subqyery limit ${query.page * query.limit}, ${query.limit}`, []),
-                total: (await database_js_1.default.query(`SELECT count(1)
-                                        FROM (${sql}) as subqyery`, []))[0]['count(1)'],
+                data: await database_js_1.default.query(`SELECT * FROM (${sql}) as subqyery 
+                          limit ${query.page * query.limit}, ${query.limit}`, []),
+                total: (await database_js_1.default.query(`SELECT count(1) FROM (${sql}) as subqyery`, []))[0]['count(1)'],
             };
         }
     }
     async deleteProduct(query) {
         try {
-            await database_js_1.default.query(`delete
-                            FROM \`${this.app}\`.t_manager_post
-                            where id in (?)`, [query.id.split(',')]);
+            await database_js_1.default.query(`DELETE FROM \`${this.app}\`.t_manager_post
+                      WHERE id in (?)`, [query.id.split(',')]);
             return {
                 result: true,
             };
@@ -143,9 +134,8 @@ class Shopping {
     }
     async deleteVoucher(query) {
         try {
-            await database_js_1.default.query(`delete
-                            FROM \`${this.app}\`.t_manager_post
-                            where id in (?)`, [query.id.split(',')]);
+            await database_js_1.default.query(`DELETE FROM \`${this.app}\`.t_manager_post
+                    WHERE id in (?)`, [query.id.split(',')]);
             return {
                 result: true,
             };
@@ -157,18 +147,21 @@ class Shopping {
     async toCheckout(data, type = 'add') {
         var _a, _b, _c;
         try {
-            if (type !== 'preview' && (!(this.token && this.token.userID) && !data.email && !(data.user_info && data.user_info.email))) {
+            const rebateClass = new rebate_js_1.Rebate(this.app);
+            if (type !== 'preview' && !(this.token && this.token.userID) && !data.email && !(data.user_info && data.user_info.email)) {
                 throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'ToCheckout Error:No email address.', null);
             }
             const userData = await (async () => {
-                if (type !== 'preview' || ((this.token) && (this.token.userID))) {
-                    return ((this.token && this.token.userID) ? await new user_js_1.User(this.app).getUserData(this.token.userID, 'userID') : await new user_js_1.User(this.app).getUserData(data.email || data.user_info.email, 'account'));
+                if (type !== 'preview' || (this.token && this.token.userID)) {
+                    return this.token && this.token.userID
+                        ? await new user_js_1.User(this.app).getUserData(this.token.userID, 'userID')
+                        : await new user_js_1.User(this.app).getUserData(data.email || data.user_info.email, 'account');
                 }
                 else {
                     return {};
                 }
             })();
-            if (!data.email && (userData && userData.account)) {
+            if (!data.email && userData && userData.account) {
                 data.email = userData.account;
             }
             if (!data.email && type !== 'preview') {
@@ -184,10 +177,8 @@ class Shopping {
             }
             if (data.use_rebate && data.use_rebate > 0) {
                 if (userData) {
-                    const sum = (await database_js_1.default.query(`SELECT sum(money)
-                                                 FROM \`${this.app}\`.t_rebate
-                                                 where status in (1, 2)
-                                                   and userID = ?`, [userData.userID]))[0]['sum(money)'] || 0;
+                    const userRebate = await rebateClass.getOneRebate({ user_id: userData.userID });
+                    const sum = userRebate ? userRebate.point : 0;
                     if (sum < data.use_rebate) {
                         data.use_rebate = 0;
                     }
@@ -269,17 +260,12 @@ class Shopping {
                             if (type !== 'preview') {
                                 const countless = variant.stock - b.count;
                                 variant.stock = countless > 0 ? countless : 0;
-                                await database_js_1.default.query(`update \`${this.app}\`.\`t_manager_post\`
-                                                SET ?
-                                                where 1 = 1
-                                                  and id = ${pdDqlData.id}`, [
-                                    {
-                                        content: JSON.stringify(pd),
-                                    },
-                                ]);
+                                await database_js_1.default.query(`UPDATE \`${this.app}\`.\`t_manager_post\`
+                                          SET ?
+                                          WHERE 1 = 1 and id = ${pdDqlData.id}`, [{ content: JSON.stringify(pd) }]);
                                 let deadTime = new Date();
                                 deadTime.setMinutes(deadTime.getMinutes() + 15);
-                                await database_js_1.default.query(`insert into \`${this.app}\`.\`t_stock_recover\` set ?`, [
+                                await database_js_1.default.query(`INSERT INTO \`${this.app}\`.\`t_stock_recover\` set ?`, [
                                     {
                                         product_id: pdDqlData.id,
                                         spec: variant.spec.join('-'),
@@ -297,28 +283,19 @@ class Shopping {
             carData.total += carData.shipment_fee;
             carData.total -= carData.use_rebate;
             carData.code = data.code;
-            const voucherList = await this.checkVoucher(carData);
+            await this.checkVoucher(carData);
             if (type === 'preview') {
-                return {
-                    data: carData,
-                };
+                return { data: carData };
             }
             if (carData.use_rebate && userData && userData.userID) {
-                await database_js_1.default.query(`insert into \`${this.app}\`.t_rebate (orderID, userID, money, status, note)
-                                values (?, ?, ?, ?, ?);`, [
-                    carData.orderID,
-                    userData.userID,
-                    carData.use_rebate * -1,
-                    1,
-                    JSON.stringify({
-                        note: '使用回饋金購物',
-                    }),
-                ]);
+                await rebateClass.insertRebate(userData.userID, carData.use_rebate * -1, '使用回饋金購物', {
+                    order_id: carData.orderID,
+                });
             }
             if (userData && userData.userID) {
                 const sum = (await database_js_1.default.query(`SELECT sum(money)
                                          FROM \`${this.app}\`.t_wallet
-                                         where status in (1, 2)
+                                         WHERE status in (1, 2)
                                            and userID = ?`, [userData.userID]))[0]['sum(money)'] || 0;
                 if (sum < carData.total) {
                     carData.use_wallet = sum;
@@ -327,21 +304,11 @@ class Shopping {
                     carData.use_wallet = carData.total;
                 }
                 if (carData.rebate > 0) {
-                    await database_js_1.default.query(`insert into \`${this.app}\`.t_rebate (orderID, userID, money, status, note)
-                         values (?, ?, ?, ?, ?);`, [
-                        carData.orderID,
-                        userData.userID,
-                        carData.rebate,
-                        -1,
-                        JSON.stringify({
-                            note: '消費返還回饋金',
-                        }),
-                    ]);
                 }
             }
             if (carData.use_wallet === carData.total) {
-                await database_js_1.default.query(`insert into \`${this.app}\`.t_wallet (orderID, userID, money, status, note)
-                                values (?, ?, ?, ?, ?);`, [
+                await database_js_1.default.query(`INSERT INTO \`${this.app}\`.t_wallet (orderID, userID, money, status, note)
+                          values (?, ?, ?, ?, ?);`, [
                     carData.orderID,
                     userData.userID,
                     carData.use_wallet * -1,
@@ -351,8 +318,8 @@ class Shopping {
                         orderData: carData,
                     }),
                 ]);
-                await database_js_1.default.execute(`insert into \`${this.app}\`.t_checkout (cart_token, status, email, orderData)
-                                  values (?, ?, ?, ?)`, [carData.orderID, 1, carData.email, carData]);
+                await database_js_1.default.execute(`INSERT INTO \`${this.app}\`.t_checkout (cart_token, status, email, orderData)
+                          values (?, ?, ?, ?)`, [carData.orderID, 1, carData.email, carData]);
                 if (carData.use_wallet > 0) {
                     new invoice_js_1.Invoice(this.app).postCheckoutInvoice(carData.orderID);
                 }
@@ -367,7 +334,6 @@ class Shopping {
                     appName: this.app,
                     key: 'glitter_finance',
                 }))[0].value;
-                console.log(carData);
                 const subMitData = await new financial_service_js_1.default(this.app, {
                     HASH_IV: keyData.HASH_IV,
                     HASH_KEY: keyData.HASH_KEY,
@@ -542,9 +508,9 @@ class Shopping {
             const update = {};
             data.orderData && (update.orderData = JSON.stringify(data.orderData));
             data.status && (update.status = data.status);
-            await database_js_1.default.query(`update \`${this.app}\`.t_checkout
+            await database_js_1.default.query(`UPDATE \`${this.app}\`.t_checkout
                             set ?
-                            where id = ?`, [update, data.id]);
+                            WHERE id = ?`, [update, data.id]);
             return {
                 result: 'success',
                 orderData: data.orderData,
@@ -556,9 +522,9 @@ class Shopping {
     }
     async deleteOrder(req) {
         try {
-            await database_js_1.default.query(`delete
+            await database_js_1.default.query(`DELETE
                             FROM \`${this.app}\`.t_checkout
-                            where id in (?)`, [req.id.split(',')]);
+                            WHERE id in (?)`, [req.id.split(',')]);
             return {
                 result: true,
             };
@@ -581,7 +547,7 @@ class Shopping {
             query.id && querySql.push(`(content->>'$.id'=${query.id})`);
             let sql = `SELECT *
                        FROM \`${this.app}\`.t_checkout
-                       where ${querySql.join(' and ')}
+                       WHERE ${querySql.join(' and ')}
                        order by id desc`;
             if (query.id) {
                 const data = (await database_js_1.default.query(`SELECT *
@@ -604,13 +570,94 @@ class Shopping {
             throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'GetProduct Error:' + e, null);
         }
     }
+    async releaseCheckout(status, order_id) {
+        try {
+            if (status === -1) {
+                await database_js_1.default.execute(`UPDATE \`${this.app}\`.t_checkout 
+                    SET status = ? WHERE cart_token = ?`, [-1, order_id]);
+            }
+            if (status === 1) {
+                const notProgress = (await database_js_1.default.query(`SELECT count(1) FROM \`${this.app}\`.t_checkout
+                        WHERE cart_token = ? AND status = 0;`, [order_id]))[0]['count(1)'];
+                console.log(`notProgress: ${notProgress}`);
+                if (notProgress) {
+                    await database_js_1.default.execute(`UPDATE \`${this.app}\`.t_checkout
+                        SET status = ? WHERE cart_token = ?`, [1, order_id]);
+                    const cartData = (await database_js_1.default.query(`SELECT * FROM \`${this.app}\`.t_checkout
+                            WHERE cart_token = ?;`, [order_id]))[0];
+                    const userData = await new user_js_1.User(this.app).getUserData(cartData.email, 'account');
+                    console.log(`userData`);
+                    console.log(userData);
+                    if (userData && cartData.orderData.rebate > 0) {
+                        const rebateClass = new rebate_js_1.Rebate(this.app);
+                        for (let i = 0; i < cartData.orderData.voucherList.length; i++) {
+                            const orderVoucher = cartData.orderData.voucherList[i];
+                            console.log('orderVoucher');
+                            console.log(orderVoucher);
+                            const voucherRow = await database_js_1.default.query(`SELECT * FROM \`${this.app}\`.t_manager_post
+                                WHERE JSON_EXTRACT(content, '$.type') = 'voucher' AND id = ?;`, [orderVoucher.id]);
+                            console.log('voucherRow[0]');
+                            console.log(voucherRow[0]);
+                            if (voucherRow[0]) {
+                                for (const item of orderVoucher.bind) {
+                                    const useCheck = await rebateClass.canUseRebate(userData.userID, 'voucher', {
+                                        voucher_id: orderVoucher.id,
+                                        order_id: order_id,
+                                        sku: item.sku,
+                                        quantity: item.count,
+                                    });
+                                    console.log('useCheck');
+                                    console.log(useCheck);
+                                    console.log('item.rebate');
+                                    console.log(item.rebate);
+                                    if (item.rebate > 0 && (useCheck === null || useCheck === void 0 ? void 0 : useCheck.result)) {
+                                        const content = voucherRow[0].content;
+                                        console.log([
+                                            userData.userID,
+                                            item.rebate * item.count,
+                                            `優惠券購物金：${content.title}`,
+                                            {
+                                                voucher_id: orderVoucher.id,
+                                                order_id: order_id,
+                                                sku: item.sku,
+                                                quantity: item.count,
+                                                deadTime: content.rebateEndDay ? (0, moment_1.default)().add(content.rebateEndDay, 'd').format('YYYY-MM-DD HH:mm:ss') : undefined,
+                                            },
+                                        ]);
+                                        await rebateClass.insertRebate(userData.userID, item.rebate * item.count, `優惠券購物金：${content.title}`, {
+                                            voucher_id: orderVoucher.id,
+                                            order_id: order_id,
+                                            sku: item.sku,
+                                            quantity: item.count,
+                                            deadTime: content.rebateEndDay ? (0, moment_1.default)().add(content.rebateEndDay, 'd').format('YYYY-MM-DD HH:mm:ss') : undefined,
+                                        });
+                                    }
+                                }
+                            }
+                        }
+                        await database_js_1.default.query(`update \`${this.app}\`.t_rebate set status=1 where orderID=?;`, [cartData.cart_token]);
+                    }
+                    try {
+                        await new custom_code_js_1.CustomCode(this.app).checkOutHook({ userData, cartData });
+                    }
+                    catch (e) {
+                        console.error(e);
+                    }
+                    new invoice_js_1.Invoice(this.app).postCheckoutInvoice(order_id);
+                }
+            }
+        }
+        catch (error) {
+            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'Release Checkout Error:' + express_1.default, null);
+        }
+    }
     async postVariantsAndPriceValue(content) {
         var _a, _b, _c;
         content.variants = (_a = content.variants) !== null && _a !== void 0 ? _a : [];
         content.id &&
-            (await database_js_1.default.query(`delete
+            (await database_js_1.default.query(`DELETE
                                        from \`${this.app}\`.t_manager_post
-                                       where (content ->>'$.product_id'=${content.id})`, []));
+                                       WHERE (content ->>'$.product_id'=${content.id})`, []));
         for (const a of content.variants) {
             content.min_price = (_b = content.min_price) !== null && _b !== void 0 ? _b : a.sale_price;
             content.max_price = (_c = content.max_price) !== null && _c !== void 0 ? _c : a.sale_price;
@@ -622,7 +669,7 @@ class Shopping {
             }
             a.type = 'variants';
             a.product_id = content.id;
-            await database_js_1.default.query(`insert into \`${this.app}\`.t_manager_post
+            await database_js_1.default.query(`INSERT INTO \`${this.app}\`.t_manager_post
                             SET ?`, [
                 {
                     content: JSON.stringify(a),
@@ -677,7 +724,7 @@ class Shopping {
                 total_count: order.filter((dd) => {
                     return dd.status === 1;
                 }).length,
-                un_shipment: (await database_js_1.default.query(`select count(1) from \`${this.app}\`.t_checkout where (orderData->'$.progress' is null || orderData->'$.progress'='wait') and status=1`, []))[0]['count(1)'],
+                un_shipment: (await database_js_1.default.query(`SELECT count(1) from \`${this.app}\`.t_checkout WHERE (orderData->'$.progress' is null || orderData->'$.progress'='wait') and status=1`, []))[0]['count(1)'],
                 un_pay: order.filter((dd) => {
                     return dd.status === 0;
                 }).length,

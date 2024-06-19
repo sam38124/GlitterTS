@@ -112,7 +112,7 @@ class User {
             }
         }
         catch (e) {
-            console.log(e);
+            console.error(e);
             throw exception_1.default.BadRequestError('BAD_REQUEST', 'SendMail Error:' + e, null);
         }
     }
@@ -487,8 +487,6 @@ class User {
         return null;
     }
     getUserAndOrderSQL(obj) {
-        console.log('obj.where');
-        console.log(obj.where);
         const sql = `
             SELECT ${obj.select}
             FROM 
@@ -526,7 +524,6 @@ class User {
         })()} 
             ${obj.page !== undefined && obj.limit !== undefined ? `LIMIT ${obj.page * obj.limit}, ${obj.limit}` : ''};
         `;
-        console.log(sql);
         return sql;
     }
     async getUserList(query) {
@@ -562,8 +559,6 @@ class User {
                     }
                 }
             }
-            console.log('query');
-            console.log(query);
             if (query.search) {
                 querySql.push([
                     `(UPPER(JSON_UNQUOTE(JSON_EXTRACT(u.userData, '$.name')) LIKE UPPER('%${query.search}%')))`,
@@ -579,8 +574,6 @@ class User {
                 })
                     .join(` || `));
             }
-            console.log('querySql');
-            console.log(querySql);
             const dataSQL = this.getUserAndOrderSQL({
                 select: 'o.email, o.order_count, o.total_amount, u.*',
                 where: querySql,
@@ -859,6 +852,15 @@ class User {
             throw exception_1.default.BadRequestError('BAD_REQUEST', 'CheckUserExists Error:' + e, null);
         }
     }
+    async checkUserIdExists(id) {
+        try {
+            const count = (await database_1.default.query(`select count(1) from \`${this.app}\`.t_user where userID = ?`, [id]))[0]['count(1)'];
+            return count;
+        }
+        catch (e) {
+            throw exception_1.default.BadRequestError('BAD_REQUEST', 'CheckUserExists Error:' + e, null);
+        }
+    }
     async setConfig(config) {
         var _a, _b, _c;
         try {
@@ -880,7 +882,7 @@ class User {
             }
         }
         catch (e) {
-            console.log(e);
+            console.error(e);
             throw exception_1.default.BadRequestError('ERROR', 'ERROR.' + e, null);
         }
     }
@@ -893,7 +895,7 @@ class User {
             `, []);
         }
         catch (e) {
-            console.log(e);
+            console.error(e);
             throw exception_1.default.BadRequestError('ERROR', 'ERROR.' + e, null);
         }
     }
@@ -907,7 +909,7 @@ class User {
             return (data[0] && data[0].value) || {};
         }
         catch (e) {
-            console.log(e);
+            console.error(e);
             throw exception_1.default.BadRequestError('ERROR', 'ERROR.' + e, null);
         }
     }
@@ -965,7 +967,7 @@ class User {
             return response;
         }
         catch (e) {
-            console.log(e);
+            console.error(e);
             throw exception_1.default.BadRequestError('ERROR', 'ERROR.' + e, null);
         }
     }
