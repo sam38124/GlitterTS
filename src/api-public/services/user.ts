@@ -109,7 +109,7 @@ export class User {
                     };
             }
         } catch (e) {
-            console.log(e);
+            console.error(e);
             throw exception.BadRequestError('BAD_REQUEST', 'SendMail Error:' + e, null);
         }
     }
@@ -603,7 +603,7 @@ export class User {
             RIGHT JOIN 
                 \`${this.app}\`.t_user u ON o.email = u.account
             WHERE
-                (${obj.where.join(' AND ')})
+                (${obj.where.filter((str) => str.length > 0).join(' AND ')})
             ORDER BY ${(() => {
                 switch (obj.orderBy) {
                     case 'order_total_desc':
@@ -681,7 +681,7 @@ export class User {
                     ]
                         .filter((text) => {
                             if (query.searchType === undefined) return true;
-                            if (text.includes(`(userData, '$.${query.searchType}')`)) return true;
+                            if (text.includes(`$.${query.searchType}`)) return true;
                             return false;
                         })
                         .join(` || `)
@@ -983,16 +983,6 @@ export class User {
             } else {
                 throw exception.BadRequestError('BAD_REQUEST', 'Auth failed', null);
             }
-            // par = {
-            //     account: par.account,
-            //     userData: JSON.stringify(par.userData)
-            // }
-            // console.log(userID)
-            //await tool.hashPwd(pwd)
-            // return (await db.query(`update \`${this.app}\`.t_user
-            //                         SET ?
-            //                         WHERE 1 = 1
-            //                           and userID = ?`, [par, userID]) as any)
         } catch (e) {
             throw exception.BadRequestError('BAD_REQUEST', 'Login Error:' + e, null);
         }
@@ -1081,7 +1071,7 @@ export class User {
                 );
             }
         } catch (e) {
-            console.log(e);
+            console.error(e);
             throw exception.BadRequestError('ERROR', 'ERROR.' + e, null);
         }
     }
@@ -1097,7 +1087,7 @@ export class User {
                 []
             );
         } catch (e) {
-            console.log(e);
+            console.error(e);
             throw exception.BadRequestError('ERROR', 'ERROR.' + e, null);
         }
     }
@@ -1114,7 +1104,7 @@ export class User {
             );
             return (data[0] && data[0].value) || {};
         } catch (e) {
-            console.log(e);
+            console.error(e);
             throw exception.BadRequestError('ERROR', 'ERROR.' + e, null);
         }
     }
@@ -1186,7 +1176,7 @@ export class User {
             response.last_time_read = last_time_read;
             return response;
         } catch (e) {
-            console.log(e);
+            console.error(e);
             throw exception.BadRequestError('ERROR', 'ERROR.' + e, null);
         }
     }

@@ -487,6 +487,8 @@ class User {
         return null;
     }
     getUserAndOrderSQL(obj) {
+        console.log('obj.where');
+        console.log(obj.where);
         const sql = `
             SELECT ${obj.select}
             FROM 
@@ -501,7 +503,7 @@ class User {
             RIGHT JOIN 
                 \`${this.app}\`.t_user u ON o.email = u.account
             WHERE
-                (${obj.where.join(' AND ')})
+                (${obj.where.filter((str) => str.length > 0).join(' AND ')})
             ORDER BY ${(() => {
             switch (obj.orderBy) {
                 case 'order_total_desc':
@@ -524,6 +526,7 @@ class User {
         })()} 
             ${obj.page !== undefined && obj.limit !== undefined ? `LIMIT ${obj.page * obj.limit}, ${obj.limit}` : ''};
         `;
+        console.log(sql);
         return sql;
     }
     async getUserList(query) {
@@ -559,6 +562,8 @@ class User {
                     }
                 }
             }
+            console.log('query');
+            console.log(query);
             if (query.search) {
                 querySql.push([
                     `(UPPER(JSON_UNQUOTE(JSON_EXTRACT(u.userData, '$.name')) LIKE UPPER('%${query.search}%')))`,
@@ -568,12 +573,14 @@ class User {
                     .filter((text) => {
                     if (query.searchType === undefined)
                         return true;
-                    if (text.includes(`(userData, '$.${query.searchType}')`))
+                    if (text.includes(`$.${query.searchType}`))
                         return true;
                     return false;
                 })
                     .join(` || `));
             }
+            console.log('querySql');
+            console.log(querySql);
             const dataSQL = this.getUserAndOrderSQL({
                 select: 'o.email, o.order_count, o.total_amount, u.*',
                 where: querySql,

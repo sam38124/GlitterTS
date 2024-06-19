@@ -216,7 +216,7 @@ ${(obj.style || []) && obj.style![index] ? obj.style![index] : ``}
                         return html` <div class="fs-2 text-center" style="padding-bottom: 32px;">${vm.stateText}</div>`;
                     } else {
                         return html` <div class="m-0 p-0" style="${obj.table_style ?? ''}">
-                            ${obj.filter ? html`<div style="padding: 0 12px 36px;">${obj.filter}</div>` : ''}
+                            ${obj.filter ? html`<div style="padding: 12px;">${obj.filter}</div>` : ''}
                             <div style="overflow-x:scroll; z-index: 1;">
                                 <table class="table table-centered table-nowrap text-center table-hover fw-400 fs-7" style="overflow-x:scroll; ">
                                     <thead>

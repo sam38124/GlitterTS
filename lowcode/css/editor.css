@@ -542,6 +542,9 @@ ul {
     background-repeat: no-repeat;
     background-position-x: 87.5%;
     background-position-y: 16px;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
 }
 
 .c_select_option {

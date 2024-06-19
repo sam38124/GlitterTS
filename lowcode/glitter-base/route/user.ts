@@ -192,7 +192,7 @@ export class ApiUser {
                 `/api-public/v1/user?${(() => {
                     let par = [`type=list`, `limit=${json.limit}`, `page=${json.page}`];
                     json.search && par.push(`search=${json.search}`);
-                    json.search_type && par.push(`search=${json.search}`);
+                    json.search_type && par.push(`searchType=${json.search_type}`);
                     json.id && par.push(`id=${json.id}`);
                     return par.join('&');
                 })()}`,
