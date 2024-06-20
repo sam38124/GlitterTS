@@ -3,6 +3,8 @@ import response from '../../modules/response';
 import exception from '../../modules/exception';
 import { UtPermission } from '../utils/ut-permission';
 import { Rebate, IRebateSearch } from '../services/rebate.js';
+import { User } from '../services/user';
+import moment from 'moment';
 
 const router: express.Router = express.Router();
 
@@ -40,7 +42,10 @@ router.get('/history', async (req: express.Request, resp: express.Response) => {
             const app = req.get('g-app') as string;
             return response.succ(resp, {
                 result: true,
-                data: await new Rebate(app).getCustomerRebateHistory(req.query.email as string),
+                data: await new Rebate(app).getCustomerRebateHistory({
+                    user_id: parseInt(`${req.query.user_id ?? 0}`, 10),
+                    email: req.query.email as string,
+                }),
             });
         } else {
             return response.fail(resp, exception.BadRequestError('BAD_REQUEST', 'No permission.', null));
@@ -63,6 +68,40 @@ router.post('/', async (req: express.Request, resp: express.Response) => {
                 }
             }
             return response.succ(resp, { result: false, msg: '發生錯誤' });
+        } else {
+            return response.fail(resp, exception.BadRequestError('BAD_REQUEST', 'No permission.', null));
+        }
+    } catch (err) {
+        return response.fail(resp, err);
+    }
+});
+
+router.post('/batch', async (req: express.Request, resp: express.Response) => {
+    try {
+        if (await UtPermission.isManager(req)) {
+            const app = req.get('g-app') as string;
+            const note = req.body.note ?? '';
+            const amount = req.body.total ?? 0;
+            const deadline = req.body.rebateEndDay !== '0' ? moment().add(req.body.rebateEndDay, 'd').format('YYYY-MM-DD HH:mm:ss') : undefined;
+            const rebateClass = new Rebate(app);
+
+            if (amount < 0) {
+                for (const userID of req.body.userID) {
+                    if (!(await rebateClass.minusCheck(userID, amount))) {
+                        const user = await new User(app).getUserData(userID, 'userID');
+                        return response.succ(resp, { result: false, msg: `信箱 ${user.userData.email}<br/>餘額不足，減少失敗` });
+                    }
+                }
+            }
+
+            for (const userID of req.body.userID) {
+                await rebateClass.insertRebate(userID, amount, note && note.length > 0 ? note : '手動增減回饋金', {
+                    type: 'manual',
+                    deadTime: deadline,
+                });
+            }
+
+            return response.succ(resp, { result: true });
         } else {
             return response.fail(resp, exception.BadRequestError('BAD_REQUEST', 'No permission.', null));
         }

@@ -374,9 +374,8 @@ export class User {
             if (data) {
                 data.pwd = undefined;
                 data.member = await this.refreshMember(data);
-                await this.checkRebate(data.userID);
+                // await this.checkRebate(data.userID);
             }
-
             return data;
         } catch (e) {
             throw exception.BadRequestError('BAD_REQUEST', 'GET USER DATA Error:' + e, null);
@@ -928,11 +927,6 @@ export class User {
 
     public async resetPwd(userID: string, newPwd: string) {
         try {
-            // const data: any = (await db.execute(`select *
-            //                                      from \`${this.app}\`.t_user
-            //                                      where userID = ?
-            //                                        and status = 1`, [userID]) as any)[0]
-            //
             const result = (await db.query(
                 `update \`${this.app}\`.t_user
                                             SET ?

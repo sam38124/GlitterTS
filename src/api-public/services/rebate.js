@@ -108,6 +108,47 @@ class Rebate {
             }
         }
     }
+    async getRebateListByRow(query) {
+        var _a, _b, _c, _d, _e, _f;
+        const page = (_a = query.page) !== null && _a !== void 0 ? _a : 0;
+        const limit = (_b = query.limit) !== null && _b !== void 0 ? _b : 20;
+        const low = (_c = query.low) !== null && _c !== void 0 ? _c : 0;
+        const high = (_d = query.high) !== null && _d !== void 0 ? _d : 10000000000;
+        let rebateSearchSQL = '';
+        const getUsersSQL = `
+            SELECT userID, JSON_EXTRACT(userData, '$.name') as name 
+            FROM \`${this.app}\`.t_user 
+            WHERE 
+                (JSON_EXTRACT(userData, '$.name') LIKE '%${(_e = query.search) !== null && _e !== void 0 ? _e : ''}%'
+                OR JSON_EXTRACT(userData, '$.email') LIKE '%${(_f = query.search) !== null && _f !== void 0 ? _f : ''}%');
+        `;
+        try {
+            if (query.search) {
+                const users = (await database_1.default.query(getUsersSQL, [])).map((user) => user.userID);
+                rebateSearchSQL = `AND r.user_id in (${users.join(',')})`;
+            }
+            const rebateCountSQL = `SELECT count(r.id) as c FROM \`${this.app}\`.t_rebate_point as r
+                                    WHERE 1 = 1 ${rebateSearchSQL};`;
+            const rebateSQL = `
+                SELECT r.*, JSON_EXTRACT(u.userData, '$.name') as name
+                FROM \`${this.app}\`.t_rebate_point as r 
+                JOIN \`${this.app}\`.t_user as u 
+                ON r.user_id = u.userID
+                WHERE 1 = 1 ${rebateSearchSQL} 
+                ORDER BY created_at DESC
+                LIMIT ${page * limit}, ${limit};
+            `;
+            const data = await database_1.default.query(rebateSQL, []);
+            const total = (await database_1.default.query(rebateCountSQL, []))[0].c;
+            return { total, data };
+        }
+        catch (error) {
+            console.error(error);
+            if (error instanceof Error) {
+                throw exception_1.default.BadRequestError('Get Rebate List Error: ', error.message, null);
+            }
+        }
+    }
     async totalRebateValue() {
         const nowTime = Rebate.nowTime();
         const remainsSQL = `SELECT remain, created_at, deadline FROM \`${this.app}\`.t_rebate_point WHERE remain > 0;`;
@@ -138,11 +179,12 @@ class Rebate {
             }
         }
     }
-    async getCustomerRebateHistory(email) {
-        const searchSQL = `SELECT userID FROM \`${this.app}\`.t_user where JSON_EXTRACT(userData, '$.email') = ?`;
+    async getCustomerRebateHistory(obj) {
+        const searchSQL = `SELECT userID FROM \`${this.app}\`.t_user 
+                            WHERE JSON_EXTRACT(userData, '$.email') = ? OR userID = ?`;
         const rebateSQL = `SELECT * FROM \`${this.app}\`.t_rebate_point where user_id = ? order by id desc`;
         try {
-            const search = await database_1.default.query(searchSQL, [email]);
+            const search = await database_1.default.query(searchSQL, [obj.email, obj.user_id]);
             if (search.length == 1) {
                 const data = (await database_1.default.query(rebateSQL, [search[0].userID])).map((x) => {
                     x.created_at = (0, moment_timezone_1.default)(x.created_at).format('YYYY-MM-DD HH:mm:ss');
@@ -194,6 +236,10 @@ class Rebate {
             }
         }
     }
+    async minusCheck(user_id, amount) {
+        const getUserRebate = await this.getOneRebate({ user_id });
+        return getUserRebate && getUserRebate.point + amount > 0;
+    }
     async insertRebate(user_id, amount, note, proof) {
         const nowTime = (proof === null || proof === void 0 ? void 0 : proof.setCreatedAt) ? proof.setCreatedAt : Rebate.nowTime();
         const deadTime = (proof === null || proof === void 0 ? void 0 : proof.deadTime) && Rebate.isValidDateTimeString(proof === null || proof === void 0 ? void 0 : proof.deadTime) ? (0, moment_timezone_1.default)(proof === null || proof === void 0 ? void 0 : proof.deadTime).format('YYYY-MM-DD HH:mm:ss') : '2999-12-31 00:00:00';
@@ -205,7 +251,13 @@ class Rebate {
         try {
             const getUserRebate = await this.getOneRebate({ user_id });
             const recentRebate = getUserRebate ? getUserRebate.point : 0;
-            const errorObj = { result: false, total: recentRebate, msg: '' };
+            const errorObj = {
+                result: false,
+                user_id: user_id,
+                before_point: recentRebate,
+                amount,
+                msg: '',
+            };
             if (recentRebate + amount < 0) {
                 errorObj.msg = (proof === null || proof === void 0 ? void 0 : proof.order_id) ? '購物金餘額不足' : '扣除金額請勿大於餘額';
                 return errorObj;
@@ -223,6 +275,7 @@ class Rebate {
             }
             return {
                 result: true,
+                user_id: user_id,
                 before_point: recentRebate,
                 amount,
                 after_point: recentRebate + amount,
@@ -240,8 +293,6 @@ class Rebate {
     async canUseRebate(user_id, type, search) {
         try {
             const userExist = await new user_js_1.User(this.app).checkUserIdExists(user_id);
-            console.log('userExist');
-            console.log(userExist);
             if (!userExist) {
                 return { result: false, msg: '此使用者不存在' };
             }

@@ -1584,31 +1584,35 @@ ${obj.gvc.bindView(() => {
         type?: string;
         readonly?: boolean;
         pattern?: string;
+        unit?: string;
     }) {
         obj.title = obj.title ?? '';
         return html`${obj.title ? EditorElem.h3(obj.title) : ``}
-            <input
-                class="form-control"
-                style="${obj.style ?? ''}"
-                type="${obj.type ?? 'text'}"
-                placeholder="${obj.placeHolder}"
-                onchange="${obj.gvc.event((e) => {
-                    obj.callback(e.value);
-                })}"
-                oninput="${obj.gvc.event((e) => {
-                    if (obj.pattern) {
-                        const value = e.value;
-                        // 只允許英文字符、數字和連字符
-                        const regex = new RegExp(`[^${obj.pattern}]`, 'g');
-                        const validValue = value.replace(regex, '');
-                        if (value !== validValue) {
-                            e.value = validValue;
+            <div class="d-flex align-items-center">
+                <input
+                    class="form-control"
+                    style="${obj.style ?? ''}"
+                    type="${obj.type ?? 'text'}"
+                    placeholder="${obj.placeHolder}"
+                    onchange="${obj.gvc.event((e) => {
+                        obj.callback(e.value);
+                    })}"
+                    oninput="${obj.gvc.event((e) => {
+                        if (obj.pattern) {
+                            const value = e.value;
+                            // 只允許英文字符、數字和連字符
+                            const regex = new RegExp(`[^${obj.pattern}]`, 'g');
+                            const validValue = value.replace(regex, '');
+                            if (value !== validValue) {
+                                e.value = validValue;
+                            }
                         }
-                    }
-                })}"
-                value="${obj.default ?? ''}"
-                ${obj.readonly ? `readonly` : ``}
-            />`;
+                    })}"
+                    value="${obj.default ?? ''}"
+                    ${obj.readonly ? `readonly` : ``}
+                />
+                ${obj.unit ? html`<div class="p-2">${obj.unit}</div>` : ''}
+            </div> `;
     }
 
     public static container(array: string[]) {

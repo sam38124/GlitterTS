@@ -20,6 +20,16 @@ export interface IRebateSearch {
     type?: string;
 }
 
+export interface RebateProof {
+    type?: string;
+    voucher_id?: string;
+    order_id?: string;
+    sku?: string;
+    quantity?: number;
+    setCreatedAt?: string;
+    deadTime?: string;
+}
+
 export class Rebate {
     public app: string;
 
@@ -152,6 +162,52 @@ export class Rebate {
         }
     }
 
+    // 取得購物金列表 (逐筆)
+    async getRebateListByRow(query: IRebateSearch) {
+        const page = query.page ?? 0;
+        const limit = query.limit ?? 20;
+        const low = query.low ?? 0;
+        const high = query.high ?? 10000000000;
+        let rebateSearchSQL = '';
+
+        const getUsersSQL = `
+            SELECT userID, JSON_EXTRACT(userData, '$.name') as name 
+            FROM \`${this.app}\`.t_user 
+            WHERE 
+                (JSON_EXTRACT(userData, '$.name') LIKE '%${query.search ?? ''}%'
+                OR JSON_EXTRACT(userData, '$.email') LIKE '%${query.search ?? ''}%');
+        `;
+
+        try {
+            if (query.search) {
+                const users = (await db.query(getUsersSQL, [])).map((user: { userID: number }) => user.userID);
+                rebateSearchSQL = `AND r.user_id in (${users.join(',')})`;
+            }
+
+            const rebateCountSQL = `SELECT count(r.id) as c FROM \`${this.app}\`.t_rebate_point as r
+                                    WHERE 1 = 1 ${rebateSearchSQL};`;
+            const rebateSQL = `
+                SELECT r.*, JSON_EXTRACT(u.userData, '$.name') as name
+                FROM \`${this.app}\`.t_rebate_point as r 
+                JOIN \`${this.app}\`.t_user as u 
+                ON r.user_id = u.userID
+                WHERE 1 = 1 ${rebateSearchSQL} 
+                ORDER BY created_at DESC
+                LIMIT ${page * limit}, ${limit};
+            `;
+
+            const data = await db.query(rebateSQL, []);
+            const total = (await db.query(rebateCountSQL, []))[0].c;
+
+            return { total, data };
+        } catch (error) {
+            console.error(error);
+            if (error instanceof Error) {
+                throw exception.BadRequestError('Get Rebate List Error: ', error.message, null);
+            }
+        }
+    }
+
     // 取得總計項目
     async totalRebateValue() {
         const nowTime = Rebate.nowTime();
@@ -183,12 +239,13 @@ export class Rebate {
     }
 
     // 單一會員購物金歷史紀錄
-    async getCustomerRebateHistory(email: string) {
-        const searchSQL = `SELECT userID FROM \`${this.app}\`.t_user where JSON_EXTRACT(userData, '$.email') = ?`;
+    async getCustomerRebateHistory(obj: { user_id?: number; email?: string }) {
+        const searchSQL = `SELECT userID FROM \`${this.app}\`.t_user 
+                            WHERE JSON_EXTRACT(userData, '$.email') = ? OR userID = ?`;
         const rebateSQL = `SELECT * FROM \`${this.app}\`.t_rebate_point where user_id = ? order by id desc`;
 
         try {
-            const search = await db.query(searchSQL, [email]);
+            const search = await db.query(searchSQL, [obj.email, obj.user_id]);
             if (search.length == 1) {
                 const data = (await db.query(rebateSQL, [search[0].userID])).map((x: any) => {
                     x.created_at = moment(x.created_at).format('YYYY-MM-DD HH:mm:ss');
@@ -239,20 +296,14 @@ export class Rebate {
         }
     }
 
+    // 確認是否可減少會員購物金
+    async minusCheck(user_id: number, amount: number) {
+        const getUserRebate = await this.getOneRebate({ user_id });
+        return getUserRebate && getUserRebate.point + amount > 0;
+    }
+
     // 增加或減少會員購物金
-    async insertRebate(
-        user_id: number,
-        amount: number,
-        note: string,
-        proof?: {
-            voucher_id?: string;
-            order_id?: string;
-            sku?: string;
-            quantity?: number;
-            setCreatedAt?: string;
-            deadTime?: string;
-        }
-    ) {
+    async insertRebate(user_id: number, amount: number, note: string, proof?: RebateProof) {
         const nowTime = proof?.setCreatedAt ? proof.setCreatedAt : Rebate.nowTime();
         const deadTime = proof?.deadTime && Rebate.isValidDateTimeString(proof?.deadTime) ? moment(proof?.deadTime).format('YYYY-MM-DD HH:mm:ss') : '2999-12-31 00:00:00';
         const insertSQL = `
@@ -264,7 +315,13 @@ export class Rebate {
         try {
             const getUserRebate = await this.getOneRebate({ user_id });
             const recentRebate = getUserRebate ? getUserRebate.point : 0;
-            const errorObj = { result: false, total: recentRebate, msg: '' };
+            const errorObj = {
+                result: false,
+                user_id: user_id,
+                before_point: recentRebate,
+                amount,
+                msg: '',
+            };
             if (recentRebate + amount < 0) {
                 errorObj.msg = proof?.order_id ? '購物金餘額不足' : '扣除金額請勿大於餘額';
                 return errorObj;
@@ -282,6 +339,7 @@ export class Rebate {
 
             return {
                 result: true,
+                user_id: user_id,
                 before_point: recentRebate,
                 amount,
                 after_point: recentRebate + amount,
@@ -299,7 +357,7 @@ export class Rebate {
     // 確認是否增加過購物金
     async canUseRebate(
         user_id: number,
-        type: 'voucher' | 'birth' | 'first_regiser',
+        type: 'voucher' | 'birth' | 'first_regiser' | 'manual',
         search?: {
             voucher_id?: string;
             order_id?: string;

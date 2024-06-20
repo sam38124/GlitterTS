@@ -428,10 +428,41 @@ export class UserList {
             return data.map((dd) => {
                 var _a;
                 return [
-                    { key: '日期', value: gvc.glitter.ut.dateFormat(new Date(dd.created_time), 'yyyy-MM-dd hh:mm') },
-                    { key: '回饋金項目', value: (_a = dd.note.note) !== null && _a !== void 0 ? _a : '' },
-                    { key: '款項', value: dd.money },
-                    { key: '到期日', value: dd.money > 0 ? '永不到期' : '-' },
+                    { key: '建立日期', value: gvc.glitter.ut.dateFormat(new Date(dd.created_at), 'yyyy-MM-dd hh:mm') },
+                    {
+                        key: '到期日期',
+                        value: (() => {
+                            if (dd.origin < 0) {
+                                return html `<span class="tx_700">-</span>`;
+                            }
+                            if (dd.deadline.includes('2999-')) {
+                                return '無期限';
+                            }
+                            return gvc.glitter.ut.dateFormat(new Date(dd.deadline), 'yyyy-MM-dd hh:mm');
+                        })(),
+                    },
+                    { key: '回饋金項目', value: (_a = dd.note) !== null && _a !== void 0 ? _a : '' },
+                    {
+                        key: '增減金額',
+                        value: (() => {
+                            if (dd.origin > 0) {
+                                return html `<span class="tx_700 text-success">+ ${dd.origin}</span>`;
+                            }
+                            return html `<span class="tx_700 text-danger">- ${dd.origin * -1}</span>`;
+                        })(),
+                    },
+                    {
+                        key: '剩餘金額',
+                        value: (() => {
+                            if (dd.origin < 0) {
+                                return html `<span class="tx_700">-</span>`;
+                            }
+                            if (dd.remain > 0) {
+                                return html `<span class="tx_700 text-success">+ ${dd.remain}</span>`;
+                            }
+                            return html `<span class="tx_700">0</span>`;
+                        })(),
+                    },
                 ];
             });
         }
@@ -653,8 +684,7 @@ export class UserList {
                                                                             ApiWallet.getRebate({
                                                                                 page: vd.page - 1,
                                                                                 limit: limit,
-                                                                                id: vm.data.userID,
-                                                                                dataType: 'all',
+                                                                                search: vm.data.userData.email,
                                                                             }).then((data) => {
                                                                                 vd.pageSize = Math.ceil(data.response.total / limit);
                                                                                 vm.dataList = data.response.data;
@@ -899,7 +929,7 @@ export class UserList {
                                     自訂資料
                                 </button>
                             </div>
-                            ${BgWidget.table({
+                            ${BgWidget.tableV2({
                             gvc: gvc,
                             getData: (vd) => {
                                 vmi = vd;

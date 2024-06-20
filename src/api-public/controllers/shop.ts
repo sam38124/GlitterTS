@@ -13,6 +13,7 @@ import { UtDatabase } from '../utils/ut-database.js';
 import { Post } from '../services/post.js';
 import crypto from 'crypto';
 import redis from '../../modules/redis.js';
+import { Rebate, IRebateSearch } from '../services/rebate';
 
 const router: express.Router = express.Router();
 
@@ -21,19 +22,8 @@ export = router;
 router.get('/rebate/sum', async (req: express.Request, resp: express.Response) => {
     try {
         const app = req.get('g-app') as string;
-        await new User(app).checkRebate(req.query.userID || req.body.token.userID);
-        return response.succ(resp, {
-            sum:
-                (
-                    await db.query(
-                        `SELECT sum(money)
-                         FROM \`${app}\`.t_rebate
-                         where status in (1, 2)
-                           and userID = ?`,
-                        [req.query.userID || req.body.token.userID]
-                    )
-                )[0]['sum(money)'] || 0,
-        });
+        const data = await new Rebate(app).getOneRebate({ user_id: req.query.userID || req.body.token.userID });
+        return response.succ(resp, { sum: data ? data.point : 0 });
     } catch (err) {
         return response.fail(resp, err);
     }
@@ -71,44 +61,33 @@ router.get('/product', async (req: express.Request, resp: express.Response) => {
 router.get('/rebate', async (req: express.Request, resp: express.Response) => {
     try {
         const app = req.get('g-app') as string;
-        let query: any = [];
+        const rebateClass = new Rebate(app);
 
         if (await UtPermission.isManager(req)) {
-            req.query.search && query.push(`(userID in (select userID from \`${app}\`.t_user where (UPPER(JSON_UNQUOTE(JSON_EXTRACT(userData, '$.name')) LIKE UPPER('%${req.query.search}%')))))`);
-            if (req.query.id && `${req.query.id}`.length > 0) {
-                query.push(`userID=${db.escape(req.query.id)}`);
-            }
-        } else {
-            query.push(`userID=${db.escape(req.body.token.userID)}`);
+            return response.succ(resp, await rebateClass.getRebateListByRow(req.query as unknown as IRebateSearch));
         }
-        query.push(`status in (1, 2)`);
-        req.query.dataType === 'all' && delete req.query.id;
-        const data = await new UtDatabase(req.get('g-app') as string, `t_rebate`).querySql(query, req.query as any);
 
-        if (Array.isArray(data.data)) {
-            for (const b of data.data) {
-                let userData = (
-                    await db.query(
-                        `select userData
-                         from \`${app}\`.t_user
-                         where userID = ?`,
-                        [b.userID]
-                    )
-                )[0];
-                b.userData = userData && userData.userData;
-            }
-        } else {
-            let userData = (
-                await db.query(
-                    `select userData
-                     from \`${app}\`.t_user
-                     where userID = ?`,
-                    [data.data.userID]
-                )
-            )[0];
-            data.data.userData = userData && userData.userData;
+        const user = await new User(app).getUserData(req.body.token.userID, 'userID');
+        if (user.id) {
+            const historyList = await rebateClass.getCustomerRebateHistory({ user_id: req.body.token.userID });
+            const historyMaps = historyList
+                ? historyList.data.map((item: any) => {
+                      return {
+                          id: item.id,
+                          orderID: item.content.order_id ?? '',
+                          userID: item.user_id,
+                          money: item.origin,
+                          status: 1,
+                          note: item.note,
+                          created_time: item.created_at,
+                          deadline: item.deadline,
+                          userData: user.userData,
+                      };
+                  })
+                : [];
+            return response.succ(resp, { data: historyMaps });
         }
-        return response.succ(resp, data);
+        return response.fail(resp, '使用者不存在');
     } catch (err) {
         return response.fail(resp, err);
     }

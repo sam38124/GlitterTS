@@ -1286,15 +1286,16 @@ ${obj.gvc.bindView(() => {
         var _a, _b, _c, _d;
         obj.title = (_a = obj.title) !== null && _a !== void 0 ? _a : '';
         return html `${obj.title ? EditorElem.h3(obj.title) : ``}
-            <input
-                class="form-control"
-                style="${(_b = obj.style) !== null && _b !== void 0 ? _b : ''}"
-                type="${(_c = obj.type) !== null && _c !== void 0 ? _c : 'text'}"
-                placeholder="${obj.placeHolder}"
-                onchange="${obj.gvc.event((e) => {
+            <div class="d-flex align-items-center">
+                <input
+                    class="form-control"
+                    style="${(_b = obj.style) !== null && _b !== void 0 ? _b : ''}"
+                    type="${(_c = obj.type) !== null && _c !== void 0 ? _c : 'text'}"
+                    placeholder="${obj.placeHolder}"
+                    onchange="${obj.gvc.event((e) => {
             obj.callback(e.value);
         })}"
-                oninput="${obj.gvc.event((e) => {
+                    oninput="${obj.gvc.event((e) => {
             if (obj.pattern) {
                 const value = e.value;
                 const regex = new RegExp(`[^${obj.pattern}]`, 'g');
@@ -1304,9 +1305,11 @@ ${obj.gvc.bindView(() => {
                 }
             }
         })}"
-                value="${(_d = obj.default) !== null && _d !== void 0 ? _d : ''}"
-                ${obj.readonly ? `readonly` : ``}
-            />`;
+                    value="${(_d = obj.default) !== null && _d !== void 0 ? _d : ''}"
+                    ${obj.readonly ? `readonly` : ``}
+                />
+                ${obj.unit ? html `<div class="p-2">${obj.unit}</div>` : ''}
+            </div> `;
     }
     static container(array) {
         return array.join(`<div class="my-2"></div>`);

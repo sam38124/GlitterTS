@@ -16,17 +16,13 @@ const ut_database_js_1 = require("../utils/ut-database.js");
 const post_js_1 = require("../services/post.js");
 const crypto_1 = __importDefault(require("crypto"));
 const redis_js_1 = __importDefault(require("../../modules/redis.js"));
+const rebate_1 = require("../services/rebate");
 const router = express_1.default.Router();
 router.get('/rebate/sum', async (req, resp) => {
     try {
         const app = req.get('g-app');
-        await new user_js_1.User(app).checkRebate(req.query.userID || req.body.token.userID);
-        return response_1.default.succ(resp, {
-            sum: (await database_js_1.default.query(`SELECT sum(money)
-                         FROM \`${app}\`.t_rebate
-                         where status in (1, 2)
-                           and userID = ?`, [req.query.userID || req.body.token.userID]))[0]['sum(money)'] || 0,
-        });
+        const data = await new rebate_1.Rebate(app).getOneRebate({ user_id: req.query.userID || req.body.token.userID });
+        return response_1.default.succ(resp, { sum: data ? data.point : 0 });
     }
     catch (err) {
         return response_1.default.fail(resp, err);
@@ -67,34 +63,32 @@ router.get('/product', async (req, resp) => {
 router.get('/rebate', async (req, resp) => {
     try {
         const app = req.get('g-app');
-        let query = [];
+        const rebateClass = new rebate_1.Rebate(app);
         if (await ut_permission_1.UtPermission.isManager(req)) {
-            req.query.search && query.push(`(userID in (select userID from \`${app}\`.t_user where (UPPER(JSON_UNQUOTE(JSON_EXTRACT(userData, '$.name')) LIKE UPPER('%${req.query.search}%')))))`);
-            if (req.query.id && `${req.query.id}`.length > 0) {
-                query.push(`userID=${database_js_1.default.escape(req.query.id)}`);
-            }
+            return response_1.default.succ(resp, await rebateClass.getRebateListByRow(req.query));
         }
-        else {
-            query.push(`userID=${database_js_1.default.escape(req.body.token.userID)}`);
+        const user = await new user_js_1.User(app).getUserData(req.body.token.userID, 'userID');
+        if (user.id) {
+            const historyList = await rebateClass.getCustomerRebateHistory({ user_id: req.body.token.userID });
+            const historyMaps = historyList
+                ? historyList.data.map((item) => {
+                    var _a;
+                    return {
+                        id: item.id,
+                        orderID: (_a = item.content.order_id) !== null && _a !== void 0 ? _a : '',
+                        userID: item.user_id,
+                        money: item.origin,
+                        status: 1,
+                        note: item.note,
+                        created_time: item.created_at,
+                        deadline: item.deadline,
+                        userData: user.userData,
+                    };
+                })
+                : [];
+            return response_1.default.succ(resp, { data: historyMaps });
         }
-        query.push(`status in (1, 2)`);
-        req.query.dataType === 'all' && delete req.query.id;
-        const data = await new ut_database_js_1.UtDatabase(req.get('g-app'), `t_rebate`).querySql(query, req.query);
-        if (Array.isArray(data.data)) {
-            for (const b of data.data) {
-                let userData = (await database_js_1.default.query(`select userData
-                         from \`${app}\`.t_user
-                         where userID = ?`, [b.userID]))[0];
-                b.userData = userData && userData.userData;
-            }
-        }
-        else {
-            let userData = (await database_js_1.default.query(`select userData
-                     from \`${app}\`.t_user
-                     where userID = ?`, [data.data.userID]))[0];
-            data.data.userData = userData && userData.userData;
-        }
-        return response_1.default.succ(resp, data);
+        return response_1.default.fail(resp, '使用者不存在');
     }
     catch (err) {
         return response_1.default.fail(resp, err);

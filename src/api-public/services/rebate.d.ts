@@ -13,6 +13,15 @@ export interface IRebateSearch {
     high?: number;
     type?: string;
 }
+export interface RebateProof {
+    type?: string;
+    voucher_id?: string;
+    order_id?: string;
+    sku?: string;
+    quantity?: number;
+    setCreatedAt?: string;
+    deadTime?: string;
+}
 export declare class Rebate {
     app: string;
     token?: IToken;
@@ -32,12 +41,19 @@ export declare class Rebate {
             pending: number;
         } | undefined;
     } | undefined>;
+    getRebateListByRow(query: IRebateSearch): Promise<{
+        total: any;
+        data: any;
+    } | undefined>;
     totalRebateValue(): Promise<{
         point: number;
         recycle: number;
         pending: number;
     } | undefined>;
-    getCustomerRebateHistory(email: string): Promise<{
+    getCustomerRebateHistory(obj: {
+        user_id?: number;
+        email?: string;
+    }): Promise<{
         result: boolean;
         data: any;
         message?: undefined;
@@ -47,26 +63,23 @@ export declare class Rebate {
         data?: undefined;
     } | undefined>;
     updateOldestRebate(user_id: number, originMinus: number): Promise<void>;
-    insertRebate(user_id: number, amount: number, note: string, proof?: {
-        voucher_id?: string;
-        order_id?: string;
-        sku?: string;
-        quantity?: number;
-        setCreatedAt?: string;
-        deadTime?: string;
-    }): Promise<{
+    minusCheck(user_id: number, amount: number): Promise<boolean | undefined>;
+    insertRebate(user_id: number, amount: number, note: string, proof?: RebateProof): Promise<{
         result: boolean;
-        total: number;
+        user_id: number;
+        before_point: number;
+        amount: number;
         msg: string;
     } | {
         result: boolean;
+        user_id: number;
         before_point: number;
         amount: number;
         after_point: number;
         deadTime: string | undefined;
         msg: string;
     } | undefined>;
-    canUseRebate(user_id: number, type: 'voucher' | 'birth' | 'first_regiser', search?: {
+    canUseRebate(user_id: number, type: 'voucher' | 'birth' | 'first_regiser' | 'manual', search?: {
         voucher_id?: string;
         order_id?: string;
         sku?: string;

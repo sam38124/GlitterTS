@@ -323,7 +323,6 @@ class User {
             if (data) {
                 data.pwd = undefined;
                 data.member = await this.refreshMember(data);
-                await this.checkRebate(data.userID);
             }
             return data;
         }
