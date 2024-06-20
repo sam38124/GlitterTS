@@ -112,7 +112,6 @@ router.post('/rebate/manager', async (req: express.Request, resp: express.Respon
 router.delete('/rebate', async (req: express.Request, resp: express.Response) => {
     try {
         if (await UtPermission.isManager(req)) {
-
             return response.succ(resp, {
                 result: true,
             });

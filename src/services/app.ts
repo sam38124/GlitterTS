@@ -71,7 +71,7 @@ export class App {
                                                                                   template_config)
                               values (?, ?, ?, ${db.escape(JSON.stringify((copyAppData && copyAppData.config) || {}))},
                                       ${db.escape(cf.brand ?? saasConfig.SAAS_NAME)},
-                                      ${db.escape(JSON.stringify((copyAppData && copyAppData.theme_config) ?? {name: cf.name}))},
+                                      ${db.escape(JSON.stringify((copyAppData && copyAppData.theme_config) ?? {name: (copyAppData && copyAppData.template_config && copyAppData.template_config.name) || cf.name}))},
                                       ${(cf.theme) ? db.escape(cf.theme) : 'null'},
                                       ${db.escape(JSON.stringify((copyAppData && copyAppData.template_config) || {}))})`, [
                 this.token!.userID,
