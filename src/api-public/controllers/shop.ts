@@ -98,13 +98,7 @@ router.post('/rebate/manager', async (req: express.Request, resp: express.Respon
         if (await UtPermission.isManager(req)) {
             const app = req.get('g-app') as string;
             let orderID = new Date().getTime();
-            for (const b of req.body.userID) {
-                await db.execute(
-                    `insert into \`${app}\`.t_rebate (orderID, userID, money, status, note)
-                     values (?, ?, ?, ?, ?)`,
-                    [orderID++, b, req.body.total, 2, req.body.note]
-                );
-            }
+
             return response.succ(resp, {
                 result: true,
             });
@@ -118,9 +112,7 @@ router.post('/rebate/manager', async (req: express.Request, resp: express.Respon
 router.delete('/rebate', async (req: express.Request, resp: express.Response) => {
     try {
         if (await UtPermission.isManager(req)) {
-            await new Shopping(req.get('g-app') as string, req.body.token).deleteRebate({
-                id: req.body.id,
-            });
+
             return response.succ(resp, {
                 result: true,
             });

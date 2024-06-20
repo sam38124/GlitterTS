@@ -286,6 +286,15 @@ export class Setting_editor {
                                     mustItem = mustItem.concat([
                                         {
                                             icon: '',
+                                            page: 'code_info',
+                                            group: '擴充套件',
+                                            title: 'Graph Api',
+                                            appName: 'cms_system',
+                                            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713419947572-code-solid.svg',
+                                            moduleName: '結帳事件',
+                                        },
+                                        {
+                                            icon: '',
                                             page: 'web_hook_checkout',
                                             group: '擴充套件',
                                             title: '結帳事件',

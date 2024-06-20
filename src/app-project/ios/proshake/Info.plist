@@ -2,6 +2,20 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>CFBundleAllowMixedLocalizations</key>
+	<true/>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>使用定位追蹤您的場景掃描路徑</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>取得你的位置來發布貼文</string>
+	<key>NSCameraUsageDescription</key>
+	<string>使用相機來拍攝照片</string>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>$(DEVELOPMENT_LANGUAGE)</string>
+	<key>CFBundleLocalizations</key>
+	<array>
+		<string>en</string>
+	</array>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

@@ -339,7 +339,6 @@
             data: {}
         },
         getPageData: (cf, callback) => {
-            console.log(`cf-->`,cf)
             let tag = cf;
             let appName = window.appName;
             if (typeof cf === 'object') {
@@ -410,30 +409,9 @@
 </script>
 
 <script>
-    const hoseName=(location.origin+location.pathname).split('').reverse().join('')
-    const glitterPage=window.glitter_page.split('').reverse().join('')
-    let fileSource=''
-    if(hoseName.startsWith(glitterPage)){
-         fileSource=(hoseName.replace(glitterPage,'')).split('').reverse().join('')
-    }
+
     if(window.redirct_tohome){
-        location.href=fileSource+window.redirct_tohome
-    }
-    for (const b of [
-        {src: 'glitterBundle/GlitterInitial.js',type:'module'},
-        {src: 'glitterBundle/module/html-generate.js',type:'module'},
-        {src: 'glitterBundle/html-component/widget.js',type:'module'},
-        {src: 'glitterBundle/plugins/trigger-event.js',type:'module'},
-        {src: 'api/pageConfig.js',type:'module'},
-        // 'glitterBundle/Glitter.css'
-    ]){
-        b.src=fileSource+b.src;
-        let script = document.createElement('script');
-        if(b.type){
-            script.setAttribute('type', b.type);
-        }
-        script.setAttribute('src', b.src);
-        document.getElementsByTagName("head")[0].appendChild(script);
+        location.href=window.redirct_tohome
     }
 </script>
 <body>

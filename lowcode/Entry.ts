@@ -5,9 +5,11 @@ import {config} from "./config.js";
 import {ApiPageConfig} from "./api/pageConfig.js";
 import {BaseApi} from "./glitterBundle/api/base.js";
 import {GlobalUser} from "./glitter-base/global/global-user.js";
+import {GVCType, PageConfig} from "./glitterBundle/module/PageManager.js";
 
 export class Entry {
     public static onCreate(glitter: Glitter) {
+
 
         glitter.page=(window as any).glitter_page
         glitter.share.GlobalUser=GlobalUser
@@ -26,7 +28,7 @@ export class Entry {
 
         (window as any).renderClock = (window as any).renderClock ?? clockF();
         console.log(`Entry-time:`, (window as any).renderClock.stop());
-        glitter.share.editerVersion = "V_8.0.6";
+        glitter.share.editerVersion = "V_8.3.3";
         glitter.share.start = (new Date());
         const vm: {
             appConfig: any

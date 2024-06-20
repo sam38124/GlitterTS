@@ -267,7 +267,7 @@ export class UserList {
                                             });
                                         },
                                     }),
-                                ].join(),
+                                ].join(''),
                                 1200,
                                 `
                                     background-color: #fff;

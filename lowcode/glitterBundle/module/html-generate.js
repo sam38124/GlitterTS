@@ -1474,6 +1474,8 @@ ${obj.gvc.bindView({
         const event = cf.event;
         function active() {
             try {
+                Storage.page_setting_item = 'layout';
+                (window.parent.glitter.pageConfig[gvc.glitter.pageConfig.length - 1]).gvc.notifyDataChange('left_sm_bar');
                 gvc.glitter.$('.editorItemActive').removeClass('editorItemActive');
                 gvc.glitter.$(`.editor_it_${widgetComponentID}`).addClass('editorItemActive');
                 window.parent.glitter.share.editorViewModel.selectItem = dd;

@@ -73,7 +73,6 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                             type: WebConfigSetting.tag,
                             search: [`key-|>${tag}`]
                         }).then((data) => {
-                            console.log(`get-web-config`, data.response.data[0]);
                             resolve(data.response.data[0]);
                         });
                     }));

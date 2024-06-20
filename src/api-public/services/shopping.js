@@ -21,16 +21,6 @@ class Shopping {
         this.app = app;
         this.token = token;
     }
-    async deleteRebate(cf) {
-        try {
-            await database_js_1.default.query(`UPDATE \`${this.app}\`.t_rebate
-                            set status= -2
-                            WHERE id in (?)`, [cf.id.split(',')]);
-        }
-        catch (e) {
-            throw exception_js_1.default.BadRequestError('BAD_REQUEST', e.message, null);
-        }
-    }
     async getProduct(query) {
         try {
             let querySql = [`(content->>'$.type'='product')`];
@@ -611,7 +601,6 @@ class Shopping {
                             }
                         }
                     }
-                    await database_js_1.default.query(`UPDATE \`${this.app}\`.t_rebate SET status = 1 WHERE orderID = ?;`, [cartData.cart_token]);
                 }
                 try {
                     await new custom_code_js_1.CustomCode(this.app).checkOutHook({ userData, cartData });

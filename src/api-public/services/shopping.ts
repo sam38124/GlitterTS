@@ -55,18 +55,7 @@ export class Shopping {
         this.token = token;
     }
 
-    public async deleteRebate(cf: { id: string }) {
-        try {
-            await db.query(
-                `UPDATE \`${this.app}\`.t_rebate
-                            set status= -2
-                            WHERE id in (?)`,
-                [cf.id.split(',')]
-            );
-        } catch (e: any) {
-            throw exception.BadRequestError('BAD_REQUEST', e.message, null);
-        }
-    }
+
 
     public async getProduct(query: {
         page: number;
@@ -447,6 +436,7 @@ export class Shopping {
             if (type === 'preview') {
                 return { data: carData };
             }
+
             if (carData.use_rebate && userData && userData.userID) {
                 //! Older Rebate
                 // await db.query(
@@ -933,7 +923,7 @@ export class Shopping {
                         }
                     }
 
-                    await db.query(`UPDATE \`${this.app}\`.t_rebate SET status = 1 WHERE orderID = ?;`, [cartData.cart_token]);
+
                 }
                 try {
                     await new CustomCode(this.app).checkOutHook({ userData, cartData });

@@ -251,7 +251,7 @@ export class UserList {
                                 });
                             },
                         }),
-                    ].join(), 1200, `
+                    ].join(''), 1200, `
                                     background-color: #fff;
                                     margin: 24px 0 !important;
                                     padding: 32px 42px !important;

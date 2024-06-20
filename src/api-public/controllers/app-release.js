@@ -4,6 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 const express_1 = __importDefault(require("express"));
 const response_1 = __importDefault(require("../../modules/response"));
+const database_1 = __importDefault(require("../../modules/database"));
 const config_1 = require("../../config");
 const exception_1 = __importDefault(require("../../modules/exception"));
 const shopping_js_1 = require("../services/shopping.js");
@@ -34,12 +35,16 @@ router.post('/release/ios/download', async (req, resp) => {
             const file = new Date().getTime();
             const copyFile = path_1.default.resolve(__filename, `../../../app-project/work-space/${file}`);
             release_js_1.Release.copyFolderSync(path_1.default.resolve(__filename, '../../../app-project/ios'), copyFile);
+            const domain = (await database_1.default.query(`select \`domain\`
+                                                from \`${config_1.saasConfig.SAAS_NAME}\`.app_config
+                                                where appName = ?`, [req.get('g-app')]))[0]['domain'];
             await release_js_1.Release.ios({
                 appName: req.body.app_name,
                 bundleID: req.body.bundle_id,
                 glitter_domain: config_1.config.domain,
                 appDomain: req.get('g-app'),
-                project_router: copyFile + '/proshake.xcodeproj/project.pbxproj'
+                project_router: copyFile + '/proshake.xcodeproj/project.pbxproj',
+                domain_url: domain
             });
             await release_js_1.Release.compressFiles(copyFile, `${copyFile}.zip`);
             const url = await release_js_1.Release.uploadFile(`${copyFile}.zip`, `${copyFile}.zip`);
@@ -63,12 +68,16 @@ router.post('/release/android/download', async (req, resp) => {
             const file = new Date().getTime();
             const copyFile = path_1.default.resolve(__filename, `../../../app-project/work-space/${file}`);
             release_js_1.Release.copyFolderSync(path_1.default.resolve(__filename, '../../../app-project/android'), copyFile);
+            const domain = (await database_1.default.query(`select \`domain\`
+                                                from \`${config_1.saasConfig.SAAS_NAME}\`.app_config
+                                                where appName = ?`, [req.get('g-app')]))[0]['domain'];
             await release_js_1.Release.android({
                 appName: req.body.app_name,
                 bundleID: req.body.bundle_id,
                 glitter_domain: config_1.config.domain,
                 appDomain: req.get('g-app'),
-                project_router: copyFile
+                project_router: copyFile,
+                domain_url: domain
             });
             await release_js_1.Release.compressFiles(copyFile, `${copyFile}.zip`);
             const url = await release_js_1.Release.uploadFile(`${copyFile}.zip`, `${copyFile}.zip`);

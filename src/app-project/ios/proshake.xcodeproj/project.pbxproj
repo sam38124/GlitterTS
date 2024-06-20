@@ -19,10 +19,13 @@
 		CA6D467C2A5A9D8C00DBA4F3 /* FirebaseInAppMessaging-Beta in Frameworks */ = {isa = PBXBuildFile; productRef = CA6D467B2A5A9D8C00DBA4F3 /* FirebaseInAppMessaging-Beta */; };
 		CA6D467E2A5A9D8C00DBA4F3 /* FirebaseInAppMessagingSwift-Beta in Frameworks */ = {isa = PBXBuildFile; productRef = CA6D467D2A5A9D8C00DBA4F3 /* FirebaseInAppMessagingSwift-Beta */; };
 		CA6D46802A5A9D8C00DBA4F3 /* FirebaseMessaging in Frameworks */ = {isa = PBXBuildFile; productRef = CA6D467F2A5A9D8C00DBA4F3 /* FirebaseMessaging */; };
-		CA6D468A2A5AAF6100DBA4F3 /* getInset.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA6D46892A5AAF6100DBA4F3 /* getInset.swift */; };
+		CA6D468A2A5AAF6100DBA4F3 /* GetInset.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA6D46892A5AAF6100DBA4F3 /* GetInset.swift */; };
 		CA88EEBD2B240279003BC9F9 /* Notification.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA88EEBC2B240279003BC9F9 /* Notification.swift */; };
 		CA88EEBF2B2402A3003BC9F9 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = CA88EEBE2B2402A2003BC9F9 /* GoogleService-Info.plist */; };
 		CA88EEC62B2409E0003BC9F9 /* GlitterUI in Resources */ = {isa = PBXBuildFile; fileRef = CA88EEC52B2409E0003BC9F9 /* GlitterUI */; };
+		CAA358BC2C173F69002D815E /* BasicUtil.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAA358BB2C173F69002D815E /* BasicUtil.swift */; };
+		CAA358BF2C1740DE002D815E /* Public.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAA358BE2C1740DE002D815E /* Public.swift */; };
+		CAA358C12C174136002D815E /* ConversionJson.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAA358C02C174136002D815E /* ConversionJson.swift */; };
 		CAC5EE102B249BF3008E695D /* Fastfile in Resources */ = {isa = PBXBuildFile; fileRef = CAC5EE0F2B249BF3008E695D /* Fastfile */; };
 		CAC5EE132B249DFE008E695D /* Deliverfile in Resources */ = {isa = PBXBuildFile; fileRef = CAC5EE112B249DFE008E695D /* Deliverfile */; };
 		CAC5EE142B249DFE008E695D /* Appfile in Resources */ = {isa = PBXBuildFile; fileRef = CAC5EE122B249DFE008E695D /* Appfile */; };
@@ -38,10 +41,13 @@
 		CA6D46672A5A936200DBA4F3 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		CA6D46692A5A936200DBA4F3 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		CA6D46772A5A97C100DBA4F3 /* proshake.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = proshake.entitlements; sourceTree = "<group>"; };
-		CA6D46892A5AAF6100DBA4F3 /* getInset.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = getInset.swift; sourceTree = "<group>"; };
+		CA6D46892A5AAF6100DBA4F3 /* GetInset.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GetInset.swift; sourceTree = "<group>"; };
 		CA88EEBC2B240279003BC9F9 /* Notification.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Notification.swift; sourceTree = "<group>"; };
 		CA88EEBE2B2402A2003BC9F9 /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		CA88EEC52B2409E0003BC9F9 /* GlitterUI */ = {isa = PBXFileReference; lastKnownFileType = folder; path = GlitterUI; sourceTree = "<group>"; };
+		CAA358BB2C173F69002D815E /* BasicUtil.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BasicUtil.swift; sourceTree = "<group>"; };
+		CAA358BE2C1740DE002D815E /* Public.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Public.swift; sourceTree = "<group>"; };
+		CAA358C02C174136002D815E /* ConversionJson.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversionJson.swift; sourceTree = "<group>"; };
 		CAC5EE0F2B249BF3008E695D /* Fastfile */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = Fastfile; path = fastlane/Fastfile; sourceTree = SOURCE_ROOT; };
 		CAC5EE112B249DFE008E695D /* Deliverfile */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = Deliverfile; path = fastlane/Deliverfile; sourceTree = SOURCE_ROOT; };
 		CAC5EE122B249DFE008E695D /* Appfile */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = Appfile; path = fastlane/Appfile; sourceTree = SOURCE_ROOT; };
@@ -83,12 +89,13 @@
 		CA6D465A2A5A936100DBA4F3 /* proshake */ = {
 			isa = PBXGroup;
 			children = (
+				CAA358BD2C1740C1002D815E /* extension */,
 				CAC5EE122B249DFE008E695D /* Appfile */,
 				CAC5EE112B249DFE008E695D /* Deliverfile */,
 				CAC5EE0F2B249BF3008E695D /* Fastfile */,
 				CA88EEC52B2409E0003BC9F9 /* GlitterUI */,
 				CA88EEBE2B2402A2003BC9F9 /* GoogleService-Info.plist */,
-				CA6D46862A5AADD500DBA4F3 /* glitter_interface */,
+				CA6D46862A5AADD500DBA4F3 /* glitter-interface */,
 				CA6D46772A5A97C100DBA4F3 /* proshake.entitlements */,
 				CA6D465B2A5A936100DBA4F3 /* AppDelegate.swift */,
 				CA6D465D2A5A936100DBA4F3 /* SceneDelegate.swift */,
@@ -101,13 +108,23 @@
 			path = proshake;
 			sourceTree = "<group>";
 		};
-		CA6D46862A5AADD500DBA4F3 /* glitter_interface */ = {
+		CA6D46862A5AADD500DBA4F3 /* glitter-interface */ = {
 			isa = PBXGroup;
 			children = (
 				CA88EEBC2B240279003BC9F9 /* Notification.swift */,
-				CA6D46892A5AAF6100DBA4F3 /* getInset.swift */,
+				CA6D46892A5AAF6100DBA4F3 /* GetInset.swift */,
+				CAA358BB2C173F69002D815E /* BasicUtil.swift */,
 			);
-			path = glitter_interface;
+			path = "glitter-interface";
+			sourceTree = "<group>";
+		};
+		CAA358BD2C1740C1002D815E /* extension */ = {
+			isa = PBXGroup;
+			children = (
+				CAA358BE2C1740DE002D815E /* Public.swift */,
+				CAA358C02C174136002D815E /* ConversionJson.swift */,
+			);
+			path = extension;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -201,9 +218,12 @@
 			files = (
 				CA6D46602A5A936100DBA4F3 /* ViewController.swift in Sources */,
 				CA88EEBD2B240279003BC9F9 /* Notification.swift in Sources */,
-				CA6D468A2A5AAF6100DBA4F3 /* getInset.swift in Sources */,
+				CA6D468A2A5AAF6100DBA4F3 /* GetInset.swift in Sources */,
 				CA6D465C2A5A936100DBA4F3 /* AppDelegate.swift in Sources */,
+				CAA358BF2C1740DE002D815E /* Public.swift in Sources */,
 				CA6D465E2A5A936100DBA4F3 /* SceneDelegate.swift in Sources */,
+				CAA358BC2C173F69002D815E /* BasicUtil.swift in Sources */,
+				CAA358C12C174136002D815E /* ConversionJson.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -349,12 +369,13 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = proshake/proshake.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 8;
+				CURRENT_PROJECT_VERSION = 28;
 				DEVELOPMENT_TEAM = UMT5SK6MNZ;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = proshake/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = shop33cc;
+				INFOPLIST_KEY_CFBundleDisplayName = "Proshake媒合平台";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UIMainStoryboardFile = Main;
@@ -364,9 +385,10 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 3.0;
-				PRODUCT_BUNDLE_IDENTIFIER = shopcc.com;
+				MARKETING_VERSION = 3.1;
+				PRODUCT_BUNDLE_IDENTIFIER = Jianzhi.wang.cleander;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
@@ -383,12 +405,13 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = proshake/proshake.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 8;
+				CURRENT_PROJECT_VERSION = 28;
 				DEVELOPMENT_TEAM = UMT5SK6MNZ;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = proshake/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = shop33cc;
+				INFOPLIST_KEY_CFBundleDisplayName = "Proshake媒合平台";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UIMainStoryboardFile = Main;
@@ -398,9 +421,10 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 3.0;
-				PRODUCT_BUNDLE_IDENTIFIER = shopcc.com;
+				MARKETING_VERSION = 3.1;
+				PRODUCT_BUNDLE_IDENTIFIER = Jianzhi.wang.cleander;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;

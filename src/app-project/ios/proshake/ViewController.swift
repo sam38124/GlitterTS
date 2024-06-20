@@ -10,14 +10,20 @@ import Glitter_IOS
 import FirebaseMessaging
 class ViewController: UIViewController {
     
-    public static var vc:UIViewController? = nil
-    
-    let webView = GlitterActivity.create(glitterConfig: GlitterActivity.GlitterConfig(parameters:"?page=index",projectRout: Bundle.main.url(forResource: "index", withExtension: "html", subdirectory: "GlitterUI")! )).initWkWebView()
-    
+    public static var vc:ViewController? = nil
+    public static var redirect:String = ""
+    public let webView = GlitterActivity.create(glitterConfig: GlitterActivity.GlitterConfig(parameters:"?page=index",projectRout: URL(string: "https://proshake.tw/index")! )).initWkWebView()
+//    public let webView = GlitterActivity.create(glitterConfig: GlitterActivity.GlitterConfig(parameters:"?page=index",projectRout: Bundle.main.url(forResource: "index", withExtension: "html", subdirectory: "GlitterUI")! )).initWkWebView()
     override func viewDidLoad() {
+        webView.webView!.allowsBackForwardNavigationGestures = true;
         NotificationCenter.default.addObserver(self, selector: #selector(keyBoardWillShow(notification:)), name: UIResponder.keyboardWillShowNotification, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(keyBoardWillHide(notification:)), name: UIResponder.keyboardWillHideNotification, object: nil)
         ViewController.vc=self
+        if(ViewController.redirect != ""){
+            webView.webView!.evaluateJavaScript("""
+location.href=new URL("\(ViewController.redirect)",location.href)
+""")
+        }
         super.viewDidLoad()
     }
     

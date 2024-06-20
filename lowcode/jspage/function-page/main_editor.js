@@ -389,130 +389,45 @@ export class Main_editor {
                             return html ` <div class="px-3   border-bottom pb-3 fw-bold mt-2 pt-2" style="cursor: pointer;color:#393939;">
                                             <span>配色設定</span>
                                         </div>
-                                        <div class="row ${globalValue.color_theme.length === 0 ? `d-none` : ``}" style="margin:18px;">
-                                            ${globalValue.color_theme
-                                .map((dd, index) => {
+                                    <div class="row ${(globalValue.color_theme.length === 0) ? `d-none` : ``}"
+                                         style="margin:18px;">
+                                        ${globalValue.color_theme.map((dd, index) => {
                                 return `<div class="col-6 mb-3" style="cursor: pointer;" onclick="${gvc.event(() => {
                                     vm.type = 'detail';
                                     vm.data = globalValue.color_theme[index];
                                     vm.index = index;
                                     gvc.notifyDataChange(id);
                                 })}">
-                                                <div style="width:100%;padding: 11px 18px;background: white; border-radius: 7px; overflow: hidden; border: 1px #DDDDDD solid; justify-content: center; align-items: center; display: flex">
-                                                    <div style="align-self: stretch; flex-direction: column; justify-content: flex-start; align-items: center; gap: 2px; display: inline-flex">
-                                                        <div style="color: #554233; font-size: 16px;  font-weight: 400; word-wrap: break-word">Aa</div>
-                                                        <div style=" justify-content: flex-start; align-items: flex-start; gap: 4px; display: inline-flex">
-                                                            <div style="width: 26px; height: 13px; position: relative; background: white; border-radius: 7px; border: 1px #554233 solid"></div>
-                                                            <div style="width: 26px;height: 13px; position: relative; background: #554233; border-radius: 7px; border: 1px #554233 solid"></div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="w-100 tx_normal mt-2" style="text-align: center;">配色${index + 1}</div>
+                                                ${Main_editor.colorCard(globalValue.color_theme[index])}
+                                                <div class="w-100 t_39_16 mt-2" style="text-align: center;">配色${index + 1}</div>
                                             </div>`;
-                            })
-                                .join('')}
-                                        </div>
-                                        <div style="padding: 0px 24px 24px;${globalValue.color_theme.length === 0 ? `margin-top:24px;` : ``}">
-                                            <div
-                                                class="bt_border_editor"
-                                                onclick="${gvc.event(() => {
+                            }).join('')}
+                                    </div>
+                                    <div style="padding: 0px 24px 24px;${(globalValue.color_theme.length === 0) ? `margin-top:24px;` : ``}">
+                                        <div class="bt_border_editor"
+                                             onclick="${gvc.event(() => {
                                 vm.data = { id: gvc.glitter.getUUID() };
                                 globalValue.color_theme.push(vm.data);
-                                vm.name = '配色' + globalValue.color_theme.length;
+                                vm.name = ('配色' + globalValue.color_theme.length);
                                 vm.type = 'detail';
-                                vm.index = globalValue.color_theme.length;
+                                vm.index = globalValue.color_theme.length - 1;
                                 gvc.notifyDataChange(id);
-                            })}"
-                                            >
+                            })}">
                                                 新增配色
                                             </div>
                                         </div>`;
                         }
                         else {
-                            return [
-                                `
- <div class="px-3   border-bottom pb-3 fw-bold mt-2 pt-2" style="cursor: pointer;color:#393939;" onclick="${gvc.event(() => {
+                            return Main_editor.color_detail({
+                                gvc: gvc,
+                                back: () => {
                                     vm.type = 'list';
                                     gvc.notifyDataChange(id);
-                                })}">
- <i class="fa-solid fa-angle-left"></i>
-                            <span>${vm.name} 編輯</span>
-                        </div>
-                                    <div class="border-bottom w-100" style="padding: 24px;width: 100%; justify-content: flex-start; align-items: center; gap: 10px; display: inline-flex">
-  <div style="width:93px;padding: 11px 18px;background: white; border-radius: 7px; overflow: hidden; border: 1px #DDDDDD solid; justify-content: center; align-items: center; display: flex">
-    <div style="align-self: stretch; flex-direction: column; justify-content: flex-start; align-items: center; gap: 2px; display: inline-flex">
-      <div style="color: #554233; font-size: 16px;  font-weight: 400; word-wrap: break-word">Aa</div>
-      <div style=" justify-content: flex-start; align-items: flex-start; gap: 4px; display: inline-flex">
-        <div style="width: 26px; height: 13px; position: relative; background: white; border-radius: 7px; border: 1px #554233 solid"></div>
-        <div style="width: 26px;height: 13px; position: relative; background: #554233; border-radius: 7px; border: 1px #554233 solid"></div>
-      </div>
-    </div>
-  </div>
-  <div style="flex: 1 1 0; flex-direction: column; justify-content: center; align-items: flex-start; gap: 4px; display: inline-flex">
-    <div style="align-self: stretch; color: #393939; font-size: 16px;  font-weight: 400; word-wrap: break-word">${vm.name}</div>
-  </div>
-</div>
-                                    `,
-                                `<div style="padding: 18px 24px 24px;">${[
-                                    {
-                                        key: 'background',
-                                        title: '背景顏色',
-                                    },
-                                    {
-                                        key: 'title',
-                                        title: '標題顏色',
-                                    },
-                                    {
-                                        key: 'content',
-                                        title: '內文',
-                                    },
-                                    {
-                                        key: 'solid-button-bg',
-                                        title: '純色按鈕',
-                                    },
-                                    {
-                                        key: 'solid-button-text',
-                                        title: '純色按鈕文字',
-                                    },
-                                    {
-                                        key: 'border-button-bg',
-                                        title: '邊框按鈕',
-                                    },
-                                    {
-                                        key: 'border-button-text',
-                                        title: '邊框按鈕文字',
-                                    },
-                                ]
-                                    .map((dd) => {
-                                    vm.data[dd.key] = vm.data[dd.key] || '#FFFFFF';
-                                    return EditorElem.colorSelect({
-                                        title: dd.title,
-                                        callback: (text) => {
-                                            vm.data[dd.key] = text;
-                                            gvc.glitter.share.globalValue[`theme_color.${vm.index}.${dd.key}`] = text;
-                                            const lastScrollY = document.querySelector('iframe').contentWindow.scrollY;
-                                            document.querySelector('iframe').contentWindow.glitter.share.globalValue = gvc.glitter.share.globalValue;
-                                            const element = document.querySelector('iframe').contentWindow.glitter.elementCallback;
-                                            Object.keys(element).map((dd) => {
-                                                element[dd].updateAttribute();
-                                            });
-                                        },
-                                        gvc: gvc,
-                                        def: vm.data[dd.key],
-                                    });
-                                })
-                                    .join('<div style="height: 15px;"></div>')}</div>`,
-                                `<div style="padding: 0px 24px 24px;"> <div class="bt_border_editor"
-                                                 onclick="${gvc.event(() => {
-                                    globalValue.color_theme = globalValue.color_theme.filter((dd) => {
-                                        return dd !== vm.data;
-                                    });
-                                    vm.type = 'list';
-                                    gvc.notifyDataChange(id);
-                                })}" >
-                                                刪除配色
-                                            </div></div>`,
-                            ].join('');
+                                },
+                                name: `配色${vm.index + 1}`,
+                                data: vm.data,
+                                index: vm.index
+                            });
                         }
                     })()}
                         </div>
@@ -523,6 +438,96 @@ export class Main_editor {
                 },
             };
         });
+    }
+    static color_detail(vm) {
+        var _a;
+        const gvc = vm.gvc;
+        const globalValue = gvc.glitter.share.editorViewModel.appConfig;
+        globalValue.color_theme = (_a = globalValue.color_theme) !== null && _a !== void 0 ? _a : [];
+        return gvc.bindView(() => {
+            const vId = gvc.glitter.getUUID();
+            return {
+                bind: vId,
+                view: () => {
+                    return [
+                        `
+ <div class="px-3   border-bottom pb-3 fw-bold mt-2 pt-2" style="cursor: pointer;color:#393939;" onclick="${vm.gvc.event(() => {
+                            vm.back();
+                        })}">
+ <i class="fa-solid fa-angle-left"></i>
+                            <span>${vm.name} 編輯</span>
+                        </div>
+                                    <div class="border-bottom w-100" style="padding: 24px;width: 100%; justify-content: flex-start; align-items: center; gap: 10px; display: inline-flex">
+  <div style="width: 93px;">
+  ${Main_editor.colorCard(vm.data)}
+</div>
+  <div style="flex: 1 1 0; flex-direction: column; justify-content: center; align-items: flex-start; gap: 4px; display: inline-flex">
+    <div style="align-self: stretch; color: #393939; font-size: 16px;  font-weight: 400; word-wrap: break-word">${vm.name}</div>
+  </div>
+</div>
+                                    `,
+                        `<div style="padding: 18px 24px 24px;">${[
+                            {
+                                key: 'background', title: '背景顏色'
+                            }, {
+                                key: 'title', title: '標題顏色'
+                            }, {
+                                key: 'content', title: '內文'
+                            }, {
+                                key: 'solid-button-bg', title: '純色按鈕'
+                            }, {
+                                key: 'solid-button-text', title: '純色按鈕文字',
+                            }, {
+                                key: 'border-button-bg', title: '邊框按鈕'
+                            }, {
+                                key: 'border-button-text', title: '邊框按鈕文字'
+                            }
+                        ].map((dd) => {
+                            vm.data[dd.key] = vm.data[dd.key] || '#FFFFFF';
+                            return EditorElem.colorSelect({
+                                title: dd.title,
+                                callback: (text) => {
+                                    vm.data[dd.key] = text;
+                                    gvc.glitter.share.globalValue[`theme_color.${vm.index}.${dd.key}`] = text;
+                                    const lastScrollY = document.querySelector('iframe').contentWindow.scrollY;
+                                    document.querySelector('iframe').contentWindow.glitter.share.globalValue = gvc.glitter.share.globalValue;
+                                    const element = document.querySelector('iframe').contentWindow.glitter.elementCallback;
+                                    Object.keys(element).map((dd) => {
+                                        element[dd].updateAttribute();
+                                    });
+                                    gvc.notifyDataChange(vId);
+                                },
+                                gvc: gvc,
+                                def: vm.data[dd.key]
+                            });
+                        }).join('<div style="height: 15px;"></div>')}</div>`,
+                        `<div style="padding: 0px 24px 24px;"> <div class="bt_border_editor"
+                                                 onclick="${gvc.event(() => {
+                            globalValue.color_theme = globalValue.color_theme.filter((dd) => {
+                                return dd !== vm.data;
+                            });
+                            vm.back();
+                        })}" >
+                                                刪除配色
+                                            </div></div>`
+                    ].join('');
+                }
+            };
+        });
+    }
+    static colorCard(cf) {
+        return `<div style="width:100%;padding: 11px 18px;background: ${cf.background || 'white'}; border-radius: 7px; overflow: hidden; border: 1px #DDDDDD solid; justify-content: center; align-items: center; display: flex">
+    <div style="align-self: stretch; flex-direction: column; justify-content: flex-start; align-items: center; gap: 2px; display: inline-flex">
+      <div style="font-size: 16px;  font-weight: 400; word-wrap: break-word">
+      <span style="color:${cf.title || '#554233'};">A</span>
+      <span style="color:${cf.content || '#554233'};">a</span>
+      </div>
+      <div style=" justify-content: flex-start; align-items: flex-start; gap: 4px; display: inline-flex">
+        <div style="width: 26px; height: 13px; position: relative; background: ${cf['solid-button-bg'] || '#554233'}; border-radius: 7px;"></div>
+        <div style="width: 26px;height: 13px; position: relative;  border-radius: 7px; border: 1px solid ${cf['border-button-bg'] || '#554233'};"></div>
+      </div>
+    </div>
+  </div>`;
     }
     static right(gvc, viewModel, createID, gBundle) {
         const glitter = gvc.glitter;

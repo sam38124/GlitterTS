@@ -20,6 +20,13 @@ export class Seo{
 
     public static async redirectToHomePage(appName:string,req:any){
         let redirect=''
+        const relative_root = (req.query.page as string ?? "").split('/').map((dd, index) => {
+            if (index === 0) {
+                return './'
+            } else {
+                return '../'
+            }
+        }).join('');
         const config = await Seo.getAppConfig(appName);
         if (config && ((await db.execute(`SELECT count(1)
                                                           FROM \`${saasConfig.SAAS_NAME}\`.page_config
@@ -64,7 +71,7 @@ ${(() => {
         })()}
 <script>
 window.glitter_page='${req.query.page}';
-window.redirct_tohome='?page=${redirect}';
+window.redirct_tohome='./?page=${redirect}';
 </script>
 </head>
 `

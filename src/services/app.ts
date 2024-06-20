@@ -71,7 +71,7 @@ export class App {
                                                                                   template_config)
                               values (?, ?, ?, ${db.escape(JSON.stringify((copyAppData && copyAppData.config) || {}))},
                                       ${db.escape(cf.brand ?? saasConfig.SAAS_NAME)},
-                                      ${db.escape(JSON.stringify({name: cf.name}))},
+                                      ${db.escape(JSON.stringify((copyAppData && copyAppData.theme_config) ?? {name: cf.name}))},
                                       ${(cf.theme) ? db.escape(cf.theme) : 'null'},
                                       ${db.escape(JSON.stringify((copyAppData && copyAppData.template_config) || {}))})`, [
                 this.token!.userID,
@@ -333,7 +333,7 @@ export class App {
     }) {
         try {
             return (await db.execute(`
-                SELECT user, appName, created_time, dead_line, brand, template_config, template_type
+                SELECT user, appName, created_time, dead_line, brand, template_config, template_type,domain
                 FROM \`${saasConfig.SAAS_NAME}\`.app_config
                 where ${(() => {
                     const sql = []

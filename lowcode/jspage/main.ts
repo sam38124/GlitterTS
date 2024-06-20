@@ -391,20 +391,22 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                             const doc = new Editor(gvc, viewModel);
                             return doc.create(html`
                                         <div class="d-flex overflow-hidden border-end" style="height:100vh;background:white;">
-                                            <div style="width:60px;gap:20px;padding-top: 15px;"
-                                                 class="${(Storage.select_function === 'user-editor' || Storage.select_function === 'page-editor') ? `` : `d-none`} h-100 border-end d-flex flex-column align-items-center">
-                                                ${[
-                                                    {
-                                                        src: `fa-duotone fa-window`,
-                                                        index: 'layout',
-                                                        hint: '頁面編輯',
-                                                    }, {
-                                                        src: `fa-sharp fa-regular fa-palette`,
-                                                        index: 'color',
-                                                        hint: '配色設定'
-                                                    }
-                                                ].map((da: any) => {
-                                                    return html`<i
+                                            ${gvc.bindView(()=>{
+                                                return {
+                                                    bind:'left_sm_bar',
+                                                    view:()=>{
+                                                        return `      ${[
+                                                            {
+                                                                src: `fa-duotone fa-window`,
+                                                                index: 'layout',
+                                                                hint: '頁面編輯',
+                                                            }, {
+                                                                src: `fa-sharp fa-regular fa-palette`,
+                                                                index: 'color',
+                                                                hint: '配色設定'
+                                                            }
+                                                        ].map((da: any) => {
+                                                            return html`<i
                                                             class=" ${da.src} fs-5 fw-bold   p-2 rounded"
                                                             data-bs-toggle="tooltip"
                                                             data-bs-placement="top"
@@ -419,8 +421,14 @@ ${(Storage.page_setting_item === `${da.index}`) ? `background:${EditorConfig.edi
                                                                 Storage.page_setting_item = da.index
                                                                 gvc.notifyDataChange(editorContainerID)
                                                             })}"></i>`
-                                                }).join('')}
-                                            </div>
+                                                        }).join('')}`
+                                                    },
+                                                    divCreate:{
+                                                        style:`width:60px;gap:20px;padding-top: 15px;`,
+                                                        class:`${(Storage.select_function === 'user-editor' || Storage.select_function === 'page-editor') ? `` : `d-none`} h-100 border-end d-flex flex-column align-items-center`
+                                                    }
+                                                }
+                                            })}
                                             <div class="offcanvas-body swiper scrollbar-hover  w-100 ${(() => {
                                                 switch (Storage.select_function) {
                                                     case 'backend-manger':

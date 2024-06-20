@@ -330,29 +330,6 @@ class User {
             throw exception_1.default.BadRequestError('BAD_REQUEST', 'GET USER DATA Error:' + e, null);
         }
     }
-    async checkRebate(userID) {
-        await database_1.default.query(`update \`${this.app}\`.t_rebate
-             set status = -1
-             where userID = ?
-               and status = 1
-               and orderID in (select cart_token
-                               from \`${this.app}\`.t_checkout
-                               where (
-                                   status!=1 and created_time < (CURRENT_TIMESTAMP - INTERVAL 10 MINUTE)
-                                   )
-                                  or (
-                                   status = -2
-                                   ))`, [userID]);
-        await database_1.default.query(`update \`${this.app}\`.t_rebate
-             set status = 1
-             where userID = ?
-               and status = -1
-               and orderID in (select cart_token
-                               from \`${this.app}\`.t_checkout
-                               where (
-                                         status = 1
-                                         ))`, [userID]);
-    }
     async refreshMember(userData) {
         const member_list = (await this.getConfigV2({
             key: 'member_level_config',

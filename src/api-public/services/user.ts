@@ -382,37 +382,6 @@ export class User {
         }
     }
 
-    public async checkRebate(userID: string) {
-        //超過繳費期限退還購物金
-        await db.query(
-            `update \`${this.app}\`.t_rebate
-             set status = -1
-             where userID = ?
-               and status = 1
-               and orderID in (select cart_token
-                               from \`${this.app}\`.t_checkout
-                               where (
-                                   status!=1 and created_time < (CURRENT_TIMESTAMP - INTERVAL 10 MINUTE)
-                                   )
-                                  or (
-                                   status = -2
-                                   ))`,
-            [userID]
-        );
-        //手動訂單返還購物金。
-        await db.query(
-            `update \`${this.app}\`.t_rebate
-             set status = 1
-             where userID = ?
-               and status = -1
-               and orderID in (select cart_token
-                               from \`${this.app}\`.t_checkout
-                               where (
-                                         status = 1
-                                         ))`,
-            [userID]
-        );
-    }
 
     public async refreshMember(userData: any) {
         //分級配置檔案

@@ -39,7 +39,11 @@ class GlitterUtil {
                         return dd.path + '/' + req.baseUrl.replace(`/${dd.app_name}/`, '');
                     }
                 })();
-                if (req.baseUrl.replace(`/${dd.app_name}/`, '') === 'robots.txt') {
+                if (req.baseUrl.replace(`/${dd.app_name}/`, '') === 'sitemap_test.xml') {
+                    resp.set('Content-Type', 'application/xml');
+                    return resp.send(await dd.sitemap_test(req, resp));
+                }
+                else if (req.baseUrl.replace(`/${dd.app_name}/`, '') === 'robots.txt') {
                     resp.set('Content-Type', 'plan/text');
                     return resp.send(await dd.robots(req, resp));
                 }

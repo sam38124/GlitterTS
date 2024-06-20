@@ -5,6 +5,7 @@ export declare class Release {
         appDomain: string;
         project_router: string;
         glitter_domain: string;
+        domain_url: string;
     }): Promise<void>;
     static android(cf: {
         appName: string;
@@ -12,7 +13,13 @@ export declare class Release {
         appDomain: string;
         project_router: string;
         glitter_domain: string;
+        domain_url: string;
     }): Promise<void>;
+    static resetProjectRouter(cf: {
+        project_router: string;
+        targetString: string;
+        replacementString: string;
+    }): Promise<unknown>;
     static getHtml(cf: {
         appName: string;
         bundleID: string;

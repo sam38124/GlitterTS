@@ -5,6 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 const express_1 = __importDefault(require("express"));
 const response_1 = __importDefault(require("../../modules/response"));
 const delivery_js_1 = require("../services/delivery.js");
+const redis_js_1 = __importDefault(require("../../modules/redis.js"));
 const router = express_1.default.Router();
 router.post('/c2cMap', async (req, resp) => {
     try {
@@ -18,7 +19,7 @@ router.post('/c2cMap', async (req, resp) => {
 router.post('/c2cRedirect', async (req, resp) => {
     try {
         let query = req.body.toString();
-        let return_url = new URL(req.query.return);
+        let return_url = new URL((await redis_js_1.default.getValue(req.query.return)));
         query.split('&').map((dd) => {
             return_url.searchParams.set(dd.split('=')[0], dd.split('=')[1]);
         });

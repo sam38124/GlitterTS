@@ -7,10 +7,10 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import { BgWidget } from '../backend-manager/bg-widget.js';
-import { ApiUser } from '../glitter-base/route/user.js';
-import { EditorElem } from '../glitterBundle/plugins/editor-elem.js';
-import { ShareDialog } from '../dialog/ShareDialog.js';
+import { BgWidget } from "../backend-manager/bg-widget.js";
+import { ApiUser } from "../glitter-base/route/user.js";
+import { EditorElem } from "../glitterBundle/plugins/editor-elem.js";
+import { ShareDialog } from "../dialog/ShareDialog.js";
 const html = String.raw;
 export class AutoReply {
     static main(gvc, widget) {

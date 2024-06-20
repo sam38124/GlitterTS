@@ -11,6 +11,7 @@ import {Firebase} from "../../modules/firebase";
 import app from "../../app.js";
 import {Delivery} from "../services/delivery.js";
 import path from "path";
+import redis from "../../modules/redis.js";
 
 const router: express.Router = express.Router();
 
@@ -29,7 +30,7 @@ router.post('/c2cMap', async (req: express.Request, resp: express.Response) => {
 router.post('/c2cRedirect', async (req: express.Request, resp: express.Response) => {
     try {
         let query=req.body.toString()
-        let return_url=new URL(req.query.return as string)
+        let return_url=new URL((await redis.getValue(req.query.return as string)) as string)
         query.split('&').map((dd:any)=>{
             return_url.searchParams.set(dd.split('=')[0],dd.split('=')[1])
         })

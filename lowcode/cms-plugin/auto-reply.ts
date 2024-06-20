@@ -1,13 +1,8 @@
-import { GVC } from '../glitterBundle/GVController.js';
-import { BgWidget } from '../backend-manager/bg-widget.js';
-import { ApiUser } from '../glitter-base/route/user.js';
-import { EditorElem } from '../glitterBundle/plugins/editor-elem.js';
-import { ShareDialog } from '../dialog/ShareDialog.js';
-import { ApiPost } from '../glitter-base/route/post.js';
-import { ApiSmtp } from '../glitter-base/route/smtp.js';
-import { ApiFcm } from '../glitter-base/route/fcm.js';
-import { FormWidget } from '../official_view_component/official/form.js';
-import { Chat } from '../glitter-base/route/chat.js';
+import {GVC} from "../glitterBundle/GVController.js";
+import {BgWidget} from "../backend-manager/bg-widget.js";
+import {ApiUser} from "../glitter-base/route/user.js";
+import {EditorElem} from "../glitterBundle/plugins/editor-elem.js";
+import {ShareDialog} from "../dialog/ShareDialog.js";
 
 const html = String.raw;
 
