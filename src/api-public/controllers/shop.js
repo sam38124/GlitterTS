@@ -70,6 +70,7 @@ router.get('/rebate', async (req, resp) => {
         const user = await new user_js_1.User(app).getUserData(req.body.token.userID, 'userID');
         if (user.id) {
             const historyList = await rebateClass.getCustomerRebateHistory({ user_id: req.body.token.userID });
+            const oldest = await rebateClass.getOldestRebate(req.body.token.userID);
             const historyMaps = historyList
                 ? historyList.data.map((item) => {
                     var _a;
@@ -86,7 +87,7 @@ router.get('/rebate', async (req, resp) => {
                     };
                 })
                 : [];
-            return response_1.default.succ(resp, { data: historyMaps });
+            return response_1.default.succ(resp, { data: historyMaps, oldest: oldest === null || oldest === void 0 ? void 0 : oldest.data });
         }
         return response_1.default.fail(resp, '使用者不存在');
     }

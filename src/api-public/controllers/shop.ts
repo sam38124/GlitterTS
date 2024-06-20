@@ -70,6 +70,7 @@ router.get('/rebate', async (req: express.Request, resp: express.Response) => {
         const user = await new User(app).getUserData(req.body.token.userID, 'userID');
         if (user.id) {
             const historyList = await rebateClass.getCustomerRebateHistory({ user_id: req.body.token.userID });
+            const oldest = await rebateClass.getOldestRebate(req.body.token.userID);
             const historyMaps = historyList
                 ? historyList.data.map((item: any) => {
                       return {
@@ -85,7 +86,7 @@ router.get('/rebate', async (req: express.Request, resp: express.Response) => {
                       };
                   })
                 : [];
-            return response.succ(resp, { data: historyMaps });
+            return response.succ(resp, { data: historyMaps, oldest: oldest?.data });
         }
         return response.fail(resp, '使用者不存在');
     } catch (err) {

@@ -265,18 +265,32 @@ export class Rebate {
         }
     }
 
+    // 取得最舊一筆的餘額並更新
+    async getOldestRebate(user_id: number) {
+        const nowTime = Rebate.nowTime();
+        const getSQL = `SELECT * FROM \`${this.app}\`.t_rebate_point WHERE user_id = ? AND deadline > ? AND remain > 0 ORDER BY deadline`;
+        try {
+            const get = await db.query(getSQL, [user_id, nowTime]);
+            return { data: get.length > 0 ? get[0] : {} };
+        } catch (error) {
+            console.error(error);
+            if (error instanceof Error) {
+                throw exception.BadRequestError('Update Oldest Rebate Error: ', error.message, null);
+            }
+        }
+    }
+
     // 減少最舊一筆的餘額並更新
     async updateOldestRebate(user_id: number, originMinus: number) {
         const nowTime = Rebate.nowTime();
-        const getSQL = `SELECT * FROM \`${this.app}\`.t_rebate_point WHERE user_id = ? AND deadline > ? AND remain > 0 ORDER BY deadline`;
         const updateSQL = `UPDATE \`${this.app}\`.t_rebate_point SET remain = ?, updated_at = ? WHERE id = ?`;
-        const get = await db.query(getSQL, [user_id, nowTime]);
-        let n = 0;
-        let minus = -originMinus;
         try {
-            if (get.length > 0) {
+            const oldest = await this.getOldestRebate(user_id);
+            if (oldest?.data) {
+                let n = 0;
+                let minus = -originMinus;
                 do {
-                    const { id, remain } = get[n];
+                    const { id, remain } = oldest?.data;
                     if (remain - minus > 0) {
                         await db.execute(updateSQL, [remain - minus, nowTime, id]);
                         minus = 0;

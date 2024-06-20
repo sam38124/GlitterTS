@@ -202,9 +202,8 @@ TriggerEvent.create(import.meta.url, {
                 editor: () => {
                     object.codeVersion = 'v2';
                     const html = String.raw;
-                    return html `
-                        <div class="w-100">
-                            ${EditorElem.codeEditor({
+                    return html ` <div class="w-100">
+                        ${EditorElem.codeEditor({
                         gvc: gvc,
                         height: 500,
                         initial: object.code,
@@ -214,7 +213,7 @@ TriggerEvent.create(import.meta.url, {
                         },
                         structStart: `((gvc,widget,object,subData,element)=>{`,
                     })}
-                        </div>`;
+                    </div>`;
                 },
                 event: () => {
                     return new Promise((resolve, reject) => __awaiter(void 0, void 0, void 0, function* () {
@@ -482,15 +481,13 @@ TriggerEvent.create(import.meta.url, {
                             if (typeof topic != 'object') {
                                 gvc.glitter.runJsInterFace('regNotification', {
                                     topic: topic,
-                                }, (response) => {
-                                });
+                                }, (response) => { });
                             }
                             else {
                                 topic.map((dd) => {
                                     gvc.glitter.runJsInterFace('regNotification', {
                                         topic: dd,
-                                    }, (response) => {
-                                    });
+                                    }, (response) => { });
                                 });
                             }
                             resolve(true);
@@ -852,7 +849,7 @@ TriggerEvent.create(import.meta.url, {
     getBlogTag: {
         title: 'Blog / 標籤取得網誌',
         fun: TriggerEvent.setEventRouter(import.meta.url, './blog/get-blog-tag.js'),
-    }
+    },
 });
 function questionText(data) {
     return `<div class="bg-secondary rounded-3 py-2 px-2 ">

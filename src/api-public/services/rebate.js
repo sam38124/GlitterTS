@@ -205,17 +205,30 @@ class Rebate {
             }
         }
     }
-    async updateOldestRebate(user_id, originMinus) {
+    async getOldestRebate(user_id) {
         const nowTime = Rebate.nowTime();
         const getSQL = `SELECT * FROM \`${this.app}\`.t_rebate_point WHERE user_id = ? AND deadline > ? AND remain > 0 ORDER BY deadline`;
-        const updateSQL = `UPDATE \`${this.app}\`.t_rebate_point SET remain = ?, updated_at = ? WHERE id = ?`;
-        const get = await database_1.default.query(getSQL, [user_id, nowTime]);
-        let n = 0;
-        let minus = -originMinus;
         try {
-            if (get.length > 0) {
+            const get = await database_1.default.query(getSQL, [user_id, nowTime]);
+            return { data: get.length > 0 ? get[0] : {} };
+        }
+        catch (error) {
+            console.error(error);
+            if (error instanceof Error) {
+                throw exception_1.default.BadRequestError('Update Oldest Rebate Error: ', error.message, null);
+            }
+        }
+    }
+    async updateOldestRebate(user_id, originMinus) {
+        const nowTime = Rebate.nowTime();
+        const updateSQL = `UPDATE \`${this.app}\`.t_rebate_point SET remain = ?, updated_at = ? WHERE id = ?`;
+        try {
+            const oldest = await this.getOldestRebate(user_id);
+            if (oldest === null || oldest === void 0 ? void 0 : oldest.data) {
+                let n = 0;
+                let minus = -originMinus;
                 do {
-                    const { id, remain } = get[n];
+                    const { id, remain } = oldest === null || oldest === void 0 ? void 0 : oldest.data;
                     if (remain - minus > 0) {
                         await database_1.default.execute(updateSQL, [remain - minus, nowTime, id]);
                         minus = 0;

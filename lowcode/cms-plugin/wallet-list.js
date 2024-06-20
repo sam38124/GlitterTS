@@ -7,29 +7,29 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import { ShareDialog } from "../dialog/ShareDialog.js";
-import { EditorElem } from "../glitterBundle/plugins/editor-elem.js";
-import { ApiWallet } from "../glitter-base/route/wallet.js";
-import { BgWidget } from "../backend-manager/bg-widget.js";
-import { UserList } from "./user-list.js";
+import { ShareDialog } from '../dialog/ShareDialog.js';
+import { EditorElem } from '../glitterBundle/plugins/editor-elem.js';
+import { ApiWallet } from '../glitter-base/route/wallet.js';
+import { BgWidget } from '../backend-manager/bg-widget.js';
+import { UserList } from './user-list.js';
 const html = String.raw;
 export class WalletList {
     static walletList(gvc) {
         const glitter = gvc.glitter;
         const vm = {
-            type: "list",
+            type: 'list',
             data: {
-                "id": 61,
-                "userID": 549313940,
-                "account": "jianzhi.wang@homee.ai",
-                "userData": { "name": "王建智", "email": "jianzhi.wang@homee.ai", "phone": "0978028739" },
-                "created_time": "2023-11-26T02:14:09.000Z",
-                "role": 0,
-                "company": null,
-                "status": 1
+                id: 61,
+                userID: 549313940,
+                account: 'jianzhi.wang@homee.ai',
+                userData: { name: '王建智', email: 'jianzhi.wang@homee.ai', phone: '0978028739' },
+                created_time: '2023-11-26T02:14:09.000Z',
+                role: 0,
+                company: null,
+                status: 1,
             },
             dataList: undefined,
-            query: ''
+            query: '',
         };
         const filterID = gvc.glitter.getUUID();
         return gvc.bindView(() => {
@@ -47,72 +47,81 @@ export class WalletList {
                             <div class="d-flex w-100 align-items-center mb-3 ">
                                 ${BgWidget.title('用戶錢包紀錄')}
                                 <div class="flex-fill"></div>
-                                <button class="btn hoverBtn me-2 px-3"
-                                        style="height:35px !important;font-size: 14px;color:black;border:1px solid black;"
-                                        onclick="${gvc.event(() => {
+                                <button
+                                    class="btn hoverBtn me-2 px-3"
+                                    style="height:35px !important;font-size: 14px;color:black;border:1px solid black;"
+                                    onclick="${gvc.event(() => {
                             gvc.glitter.innerDialog((gvc2) => {
                                 const vm = {
                                     type: 'add',
                                     value: '0',
-                                    note: ''
+                                    note: '',
                                 };
-                                return `<div class="modal-content bg-white rounded-3 p-2" style="max-width:90%;width:400px;">
-                                <div class="">
-                                           ${gvc.bindView(() => {
+                                return html `<div class="modal-content bg-white rounded-3 p-2" style="max-width:90%;width:400px;">
+                                                <div class="">
+                                                    ${gvc.bindView(() => {
                                     const id = gvc.glitter.getUUID();
                                     return {
                                         bind: id,
                                         view: () => {
                                             return [
-                                                `<div style="height: 50px;" class="d-flex align-items-center  border-bottom">
-<h3 class="m-0 fs-6">新增紀錄</h3>
-</div>`,
+                                                html `<div style="height: 50px;" class="d-flex align-items-center  border-bottom">
+                                                                        <h3 class="m-0 fs-6">新增紀錄</h3>
+                                                                    </div>`,
                                                 EditorElem.checkBox({
-                                                    title: "類型",
+                                                    title: '類型',
                                                     gvc: gvc,
                                                     def: vm.type,
                                                     array: [
                                                         { title: '新增', value: 'add' },
-                                                        { title: '減少', value: 'minus' }
+                                                        { title: '減少', value: 'minus' },
                                                     ],
                                                     callback: (text) => {
                                                         vm.type = text;
                                                         gvc.notifyDataChange(id);
-                                                    }
+                                                    },
                                                 }),
                                                 EditorElem.editeInput({
-                                                    title: "數值",
+                                                    title: '數值',
                                                     gvc: gvc,
                                                     default: vm.value,
                                                     placeHolder: '設定數值',
                                                     callback: (text) => {
                                                         vm.value = text;
                                                         gvc.notifyDataChange(id);
-                                                    }
+                                                    },
                                                 }),
                                                 EditorElem.editeText({
-                                                    title: "備註",
+                                                    title: '備註',
                                                     gvc: gvc,
                                                     default: vm.note,
                                                     placeHolder: '輸入備註',
                                                     callback: (text) => {
                                                         vm.note = text;
                                                         gvc.notifyDataChange(id);
-                                                    }
-                                                })
+                                                    },
+                                                }),
                                             ].join(``);
                                         },
                                         divCreate: {
-                                            class: `ps-1 pe-1`
-                                        }
+                                            class: `ps-1 pe-1`,
+                                        },
                                     };
                                 })}
-                                    <div class="modal-footer mb-0 pb-0 mt-2 pt-1">
-                                        <button type="button" class="btn btn-outline-dark me-2" onclick="${gvc.event(() => {
+                                                    <div class="modal-footer mb-0 pb-0 mt-2 pt-1">
+                                                        <button
+                                                            type="button"
+                                                            class="btn btn-outline-dark me-2"
+                                                            onclick="${gvc.event(() => {
                                     gvc2.closeDialog();
-                                })}">取消
-                                        </button>
-                                        <button type="button" class="btn btn-primary-c" onclick="${gvc.event(() => {
+                                })}"
+                                                        >
+                                                            取消
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            class="btn btn-primary-c"
+                                                            onclick="${gvc.event(() => {
                                     gvc.glitter.innerDialog((gvc) => {
                                         let dataList = [];
                                         return `
@@ -125,14 +134,15 @@ export class WalletList {
                                             }))}
                                                                                     ${BgWidget.title(`選擇變動對象`)}
                                                                                     <div class="flex-fill"></div>
-                                                                                    <button class="btn btn-primary-c"
-                                                                                            style="height:38px;font-size: 14px;"
-                                                                                            onclick="${gvc.event(() => {
+                                                                                    <button
+                                                                                        class="btn btn-primary-c"
+                                                                                        style="height:38px;font-size: 14px;"
+                                                                                        onclick="${gvc.event(() => {
                                                 const dialog = new ShareDialog(gvc.glitter);
                                                 if (dataList.length > 0) {
                                                     dialog.dataLoading({
                                                         text: '發送中...',
-                                                        visible: true
+                                                        visible: true,
                                                     });
                                                     ApiWallet.storeByManager({
                                                         userID: dataList.map((dd) => {
@@ -144,15 +154,13 @@ export class WalletList {
                                                             }
                                                             else {
                                                                 const minus = parseInt(vm.value, 10);
-                                                                return (minus) ? minus * -1 : minus;
+                                                                return minus ? minus * -1 : minus;
                                                             }
                                                         })(),
-                                                        note: {
-                                                            note: vm.note
-                                                        }
+                                                        note: vm.note,
                                                     }).then(() => {
                                                         dialog.dataLoading({
-                                                            visible: false
+                                                            visible: false,
                                                         });
                                                         dialog.successMessage({ text: `設定成功!` });
                                                         gvc.closeDialog();
@@ -161,26 +169,31 @@ export class WalletList {
                                                     });
                                                 }
                                                 else {
-                                                    dialog.errorMessage({ text: "請選擇變動對象!" });
+                                                    dialog.errorMessage({ text: '請選擇變動對象!' });
                                                 }
-                                            })}">確認並發送
+                                            })}"
+                                                                                    >
+                                                                                        確認並發送
                                                                                     </button>
                                                                                 </div>
                                                                             ` +
                                                 `<div class="mx-n2">${UserList.userManager(gvc, 'select', (data) => {
                                                     dataList = data;
-                                                })}<div>`
+                                                })}<div>`,
                                         ].join('')), 900)}
                                                                 <div>
                                                                 `;
                                     }, 'email');
-                                })}">下一步 => 選擇用戶
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>`;
+                                })}"
+                                                        >
+                                                            下一步 => 選擇用戶
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>`;
                             }, 'add');
-                        })}">
+                        })}"
+                                >
                                     <i class="fa-regular fa-circle-plus me-2"></i>
                                     新增紀錄
                                 </button>
@@ -191,7 +204,7 @@ export class WalletList {
                                 ApiWallet.get({
                                     page: vmi.page - 1,
                                     limit: 20,
-                                    search: vm.query || undefined
+                                    search: vm.query || undefined,
                                 }).then((data) => {
                                     vmi.pageSize = Math.ceil(data.response.total / 20);
                                     vm.dataList = data.response.data;
@@ -202,9 +215,9 @@ export class WalletList {
                                                 {
                                                     key: EditorElem.checkBoxOnly({
                                                         gvc: gvc,
-                                                        def: (!data.response.data.find((dd) => {
+                                                        def: !data.response.data.find((dd) => {
                                                             return !dd.checked;
-                                                        })),
+                                                        }),
                                                         callback: (result) => {
                                                             data.response.data.map((dd) => {
                                                                 dd.checked = result;
@@ -212,7 +225,7 @@ export class WalletList {
                                                             vmi.data = getDatalist();
                                                             vmi.callback();
                                                             gvc.notifyDataChange(filterID);
-                                                        }
+                                                        },
                                                     }),
                                                     value: EditorElem.checkBoxOnly({
                                                         gvc: gvc,
@@ -223,31 +236,29 @@ export class WalletList {
                                                             vmi.callback();
                                                             gvc.notifyDataChange(filterID);
                                                         },
-                                                        style: "height:25px;"
-                                                    })
+                                                        style: 'height:25px;',
+                                                    }),
                                                 },
                                                 {
                                                     key: '用戶名稱',
-                                                    value: `<span class="fs-7">${(_a = (dd.userData && dd.userData.name)) !== null && _a !== void 0 ? _a : "資料異常"}</span>`
+                                                    value: `<span class="fs-7">${(_a = (dd.userData && dd.userData.name)) !== null && _a !== void 0 ? _a : '資料異常'}</span>`,
                                                 },
                                                 {
                                                     key: '金流單號',
-                                                    value: `<span class="fs-7">${(dd.status === 2) ? `手動新增` : dd.orderID}</span>`
+                                                    value: `<span class="fs-7">${dd.status === 2 ? `手動新增` : dd.orderID}</span>`,
                                                 },
                                                 {
                                                     key: '異動金額',
-                                                    value: `${(dd.money > 0) ? `<span class="fs-7 text-success">+ ${dd.money}</span>`
-                                                        :
-                                                            `<span class="fs-7 text-danger">- ${dd.money * -1}</span>`}`
+                                                    value: `${dd.money > 0 ? `<span class="fs-7 text-success">+ ${dd.money}</span>` : `<span class="fs-7 text-danger">- ${dd.money * -1}</span>`}`,
                                                 },
                                                 {
                                                     key: '備註',
-                                                    value: `<span class="fs-7">${(typeof dd.note === 'string') ? dd.note : (_b = (dd.note && dd.note.note)) !== null && _b !== void 0 ? _b : "尚未填寫備註"}</span>`
+                                                    value: `<span class="fs-7">${typeof dd.note === 'string' ? dd.note : (_b = (dd.note && dd.note.note)) !== null && _b !== void 0 ? _b : '尚未填寫備註'}</span>`,
                                                 },
                                                 {
                                                     key: '異動時間',
-                                                    value: `<span class="fs-7">${glitter.ut.dateFormat(new Date(dd.created_time), 'yyyy-MM-dd hh:mm')}</span>`
-                                                }
+                                                    value: `<span class="fs-7">${glitter.ut.dateFormat(new Date(dd.created_time), 'yyyy-MM-dd hh:mm')}</span>`,
+                                                },
                                             ];
                                         });
                                     }
@@ -258,7 +269,7 @@ export class WalletList {
                             },
                             rowClick: (data, index) => {
                                 vm.data = vm.dataList[index];
-                                vm.type = "replace";
+                                vm.type = 'replace';
                             },
                             filter: html `
                                     ${BgWidget.searchPlace(gvc.event((e, event) => {
@@ -269,9 +280,10 @@ export class WalletList {
                                 return {
                                     bind: filterID,
                                     view: () => {
-                                        if (!vm.dataList || !vm.dataList.find((dd) => {
-                                            return dd.checked;
-                                        })) {
+                                        if (!vm.dataList ||
+                                            !vm.dataList.find((dd) => {
+                                                return dd.checked;
+                                            })) {
                                             return ``;
                                         }
                                         else {
@@ -285,11 +297,14 @@ export class WalletList {
                                                             if (response) {
                                                                 dialog.dataLoading({ visible: true });
                                                                 ApiWallet.delete({
-                                                                    id: vm.dataList.filter((dd) => {
+                                                                    id: vm.dataList
+                                                                        .filter((dd) => {
                                                                         return dd.checked;
-                                                                    }).map((dd) => {
+                                                                    })
+                                                                        .map((dd) => {
                                                                         return dd.id;
-                                                                    }).join(`,`)
+                                                                    })
+                                                                        .join(`,`),
                                                                 }).then((res) => {
                                                                     dialog.dataLoading({ visible: false });
                                                                     if (res.result) {
@@ -297,27 +312,30 @@ export class WalletList {
                                                                         gvc.notifyDataChange(id);
                                                                     }
                                                                     else {
-                                                                        dialog.errorMessage({ text: "刪除失敗" });
+                                                                        dialog.errorMessage({ text: '刪除失敗' });
                                                                     }
                                                                 });
                                                             }
-                                                        }
+                                                        },
                                                     });
-                                                })}">批量移除</button>`
+                                                })}">批量移除</button>`,
                                             ].join(``);
                                         }
                                     },
                                     divCreate: () => {
                                         return {
-                                            class: `d-flex align-items-center p-2 py-3 ${(!vm.dataList || !vm.dataList.find((dd) => {
-                                                return dd.checked;
-                                            })) ? `d-none` : ``}`,
-                                            style: `height:40px;gap:10px;margin-top:10px;`
+                                            class: `d-flex align-items-center p-2 py-3 ${!vm.dataList ||
+                                                !vm.dataList.find((dd) => {
+                                                    return dd.checked;
+                                                })
+                                                ? `d-none`
+                                                : ``}`,
+                                            style: `height:40px;gap:10px;margin-top:10px;`,
                                         };
-                                    }
+                                    },
                                 };
                             })}
-                                `
+                                `,
                         })}
                         `);
                     }
@@ -328,32 +346,32 @@ export class WalletList {
                                 vm.type = 'list';
                                 gvc.notifyDataChange(id);
                             },
-                            gvc: gvc
+                            gvc: gvc,
                         });
                     }
                     else {
                         return ``;
                     }
-                }
+                },
             };
         });
     }
     static withdrawRequest(gvc) {
         const glitter = gvc.glitter;
         const vm = {
-            type: "list",
+            type: 'list',
             data: {
-                "id": 61,
-                "userID": 549313940,
-                "account": "jianzhi.wang@homee.ai",
-                "userData": { "name": "王建智", "email": "jianzhi.wang@homee.ai", "phone": "0978028739" },
-                "created_time": "2023-11-26T02:14:09.000Z",
-                "role": 0,
-                "company": null,
-                "status": 1
+                id: 61,
+                userID: 549313940,
+                account: 'jianzhi.wang@homee.ai',
+                userData: { name: '王建智', email: 'jianzhi.wang@homee.ai', phone: '0978028739' },
+                created_time: '2023-11-26T02:14:09.000Z',
+                role: 0,
+                company: null,
+                status: 1,
             },
             dataList: undefined,
-            query: ''
+            query: '',
         };
         const filterID = gvc.glitter.getUUID();
         return gvc.bindView(() => {
@@ -378,7 +396,7 @@ export class WalletList {
                                 ApiWallet.getWithdraw({
                                     page: vmi.page - 1,
                                     limit: 20,
-                                    search: vm.query || undefined
+                                    search: vm.query || undefined,
                                 }).then((data) => {
                                     vmi.pageSize = Math.ceil(data.response.total / 20);
                                     vm.dataList = data.response.data;
@@ -389,9 +407,9 @@ export class WalletList {
                                                 {
                                                     key: EditorElem.checkBoxOnly({
                                                         gvc: gvc,
-                                                        def: (!data.response.data.find((dd) => {
+                                                        def: !data.response.data.find((dd) => {
                                                             return !dd.checked;
-                                                        })),
+                                                        }),
                                                         callback: (result) => {
                                                             data.response.data.map((dd) => {
                                                                 dd.checked = result;
@@ -399,7 +417,7 @@ export class WalletList {
                                                             vmi.data = getDatalist();
                                                             vmi.callback();
                                                             gvc.notifyDataChange(filterID);
-                                                        }
+                                                        },
                                                     }),
                                                     value: EditorElem.checkBoxOnly({
                                                         gvc: gvc,
@@ -410,16 +428,16 @@ export class WalletList {
                                                             vmi.callback();
                                                             gvc.notifyDataChange(filterID);
                                                         },
-                                                        style: "height:25px;"
-                                                    })
+                                                        style: 'height:25px;',
+                                                    }),
                                                 },
                                                 {
                                                     key: '用戶名稱',
-                                                    value: `<span class="fs-7">${(_a = (dd.userData && dd.userData.name)) !== null && _a !== void 0 ? _a : "資料異常"}</span>`
+                                                    value: `<span class="fs-7">${(_a = (dd.userData && dd.userData.name)) !== null && _a !== void 0 ? _a : '資料異常'}</span>`,
                                                 },
                                                 {
                                                     key: '提領金額',
-                                                    value: `<span class="fs-7">${dd.money}</span>`
+                                                    value: `<span class="fs-7">${dd.money}</span>`,
                                                 },
                                                 {
                                                     key: '狀態',
@@ -432,16 +450,16 @@ export class WalletList {
                                                             case 1:
                                                                 return `<div class="badge  fs-7" style="background:#0000000f;color:black;">已撥款</div>`;
                                                         }
-                                                    })()
+                                                    })(),
                                                 },
                                                 {
                                                     key: '備註',
-                                                    value: `<span class="fs-7">${(typeof dd.note === 'string') ? dd.note : (_b = (dd.note && dd.note.note)) !== null && _b !== void 0 ? _b : "尚未填寫備註"}</span>`
+                                                    value: `<span class="fs-7">${typeof dd.note === 'string' ? dd.note : (_b = (dd.note && dd.note.note)) !== null && _b !== void 0 ? _b : '尚未填寫備註'}</span>`,
                                                 },
                                                 {
                                                     key: '申請時間',
-                                                    value: `<span class="fs-7">${glitter.ut.dateFormat(new Date(dd.created_time), 'yyyy-MM-dd hh:mm')}</span>`
-                                                }
+                                                    value: `<span class="fs-7">${glitter.ut.dateFormat(new Date(dd.created_time), 'yyyy-MM-dd hh:mm')}</span>`,
+                                                },
                                             ];
                                         });
                                     }
@@ -453,19 +471,18 @@ export class WalletList {
                             rowClick: (data, index) => {
                                 vm.data = vm.dataList[index];
                                 gvc.glitter.innerDialog((gvc2) => {
-                                    return `<div class="modal-content bg-white rounded-3 p-2" style="max-width:90%;width:400px;">
-                                <div class="">
-                                           ${gvc.bindView(() => {
+                                    return html `<div class="modal-content bg-white rounded-3 p-2" style="max-width:90%;width:400px;">
+                                            <div class="">
+                                                ${gvc.bindView(() => {
                                         const id = gvc.glitter.getUUID();
                                         return {
                                             bind: id,
                                             view: () => {
                                                 return [
-                                                    `<div style="height: 50px;" class="d-flex align-items-center  border-bottom">
-<h3 class="m-0 fs-6">提領請求</h3>
-</div>`,
-                                                    `
-   ${gvc.bindView(() => {
+                                                    html `<div style="height: 50px;" class="d-flex align-items-center  border-bottom">
+                                                                    <h3 class="m-0 fs-6">提領請求</h3>
+                                                                </div>`,
+                                                    html ` ${gvc.bindView(() => {
                                                         return {
                                                             bind: gvc.glitter.getUUID(),
                                                             view: () => {
@@ -480,28 +497,32 @@ export class WalletList {
                                                                 }));
                                                             },
                                                             divCreate: {
-                                                                class: `fs-7 text-success mt-2`
-                                                            }
+                                                                class: `fs-7 text-success mt-2`,
+                                                            },
                                                         };
                                                     })}
-<button type="button" class="btn btn-primary-c w-100 " onclick="${gvc.event(() => {
-                                                        console.log(`open`);
+                                                                    <button
+                                                                        type="button"
+                                                                        class="btn btn-primary-c w-100 "
+                                                                        onclick="${gvc.event(() => {
                                                         gvc2.glitter.innerDialog((gvc) => {
-                                                            return `<div style="width:700px;">
-${BgWidget.card(UserList.userInformationDetail({
+                                                            return html `<div style="width:700px;">
+                                                                                    ${BgWidget.card(UserList.userInformationDetail({
                                                                 userID: vm.data.userID,
                                                                 gvc: gvc,
                                                                 callback: () => {
                                                                     gvc.closeDialog();
                                                                 },
-                                                                type: 'readonly'
+                                                                type: 'readonly',
                                                             }), `p-0 bg-white rounded`)}
-</div>`;
+                                                                                </div>`;
                                                         }, `detail`);
-                                                    })}">查看用戶詳細資料
-                                        </button>`,
+                                                    })}"
+                                                                    >
+                                                                        查看用戶詳細資料
+                                                                    </button>`,
                                                     EditorElem.select({
-                                                        title: "審核結果",
+                                                        title: '審核結果',
                                                         gvc: gvc,
                                                         def: `${vm.data.status}`,
                                                         array: [
@@ -512,19 +533,18 @@ ${BgWidget.card(UserList.userInformationDetail({
                                                         callback: (text) => {
                                                             vm.data.status = text;
                                                         },
-                                                        readonly: `${vm.data.status}` === '1'
+                                                        readonly: `${vm.data.status}` === '1',
                                                     }),
                                                     EditorElem.editeInput({
-                                                        title: "提領金額",
+                                                        title: '提領金額',
                                                         gvc: gvc,
                                                         default: vm.data.money,
                                                         placeHolder: '',
-                                                        callback: (text) => {
-                                                        },
-                                                        readonly: true
+                                                        callback: (text) => { },
+                                                        readonly: true,
                                                     }),
                                                     EditorElem.editeInput({
-                                                        title: "撥款銀行代號",
+                                                        title: '撥款銀行代號',
                                                         gvc: gvc,
                                                         default: vm.data.note.code,
                                                         placeHolder: '',
@@ -532,10 +552,10 @@ ${BgWidget.card(UserList.userInformationDetail({
                                                             vm.data.note.note = text;
                                                             gvc.notifyDataChange(id);
                                                         },
-                                                        readonly: true
+                                                        readonly: true,
                                                     }),
                                                     EditorElem.editeInput({
-                                                        title: "撥款銀行帳戶",
+                                                        title: '撥款銀行帳戶',
                                                         gvc: gvc,
                                                         default: vm.data.note.number,
                                                         placeHolder: '',
@@ -543,43 +563,51 @@ ${BgWidget.card(UserList.userInformationDetail({
                                                             vm.data.note.number = text;
                                                             gvc.notifyDataChange(id);
                                                         },
-                                                        readonly: true
+                                                        readonly: true,
                                                     }),
                                                     EditorElem.editeText({
-                                                        title: "備註欄位",
+                                                        title: '備註欄位',
                                                         gvc: gvc,
                                                         default: vm.data.note.note,
                                                         placeHolder: '輸入備註',
                                                         callback: (text) => {
                                                             vm.data.note.note = text;
                                                             gvc.notifyDataChange(id);
-                                                        }
-                                                    })
+                                                        },
+                                                    }),
                                                 ].join(``);
                                             },
                                             divCreate: {
-                                                class: `ps-1 pe-1`
-                                            }
+                                                class: `ps-1 pe-1`,
+                                            },
                                         };
                                     })}
-                                    <div class="modal-footer mb-0 pb-0 mt-2 pt-1">
-                                        <button type="button" class="btn btn-outline-dark me-2" onclick="${gvc.event(() => {
+                                                <div class="modal-footer mb-0 pb-0 mt-2 pt-1">
+                                                    <button
+                                                        type="button"
+                                                        class="btn btn-outline-dark me-2"
+                                                        onclick="${gvc.event(() => {
                                         gvc2.closeDialog();
-                                    })}">取消
-                                        </button>
-                                        <button type="button" class="btn btn-primary-c" onclick="${gvc.event(() => {
+                                    })}"
+                                                    >
+                                                        取消
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        class="btn btn-primary-c"
+                                                        onclick="${gvc.event(() => {
                                         const dialog = new ShareDialog(gvc.glitter);
                                         dialog.dataLoading({
                                             text: '變更中...',
-                                            visible: true
+                                            visible: true,
                                         });
                                         ApiWallet.withdrawPut({
                                             id: vm.data.id,
                                             status: vm.data.status,
-                                            note: vm.data.note
+                                            note: vm.data.note,
                                         }).then((res) => {
                                             dialog.dataLoading({
-                                                visible: false
+                                                visible: false,
                                             });
                                             if (!res.result) {
                                                 dialog.errorMessage({ text: `撥款失敗，用戶錢包金額不足!` });
@@ -593,11 +621,13 @@ ${BgWidget.card(UserList.userInformationDetail({
                                                 refresh();
                                             }
                                         });
-                                    })}">確認變更
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>`;
+                                    })}"
+                                                    >
+                                                        確認變更
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>`;
                                 }, 'add');
                             },
                             filter: html `
@@ -609,15 +639,19 @@ ${BgWidget.card(UserList.userInformationDetail({
                                 return {
                                     bind: filterID,
                                     view: () => {
-                                        if (!vm.dataList || !vm.dataList.find((dd) => {
-                                            return dd.checked;
-                                        })) {
+                                        if (!vm.dataList ||
+                                            !vm.dataList.find((dd) => {
+                                                return dd.checked;
+                                            })) {
                                             return ``;
                                         }
                                         else {
                                             return [
-                                                `<span class="fs-7 fw-bold">操作選項</span>`,
-                                                `<button class="btn btn-danger fs-7 px-2" style="height:30px;border:none;" onclick="${gvc.event(() => {
+                                                html `<span class="fs-7 fw-bold">操作選項</span>`,
+                                                html `<button
+                                                            class="btn btn-danger fs-7 px-2"
+                                                            style="height:30px;border:none;"
+                                                            onclick="${gvc.event(() => {
                                                     const dialog = new ShareDialog(gvc.glitter);
                                                     dialog.checkYesOrNot({
                                                         text: '是否確認移除所選項目?',
@@ -625,11 +659,14 @@ ${BgWidget.card(UserList.userInformationDetail({
                                                             if (response) {
                                                                 dialog.dataLoading({ visible: true });
                                                                 ApiWallet.deleteWithdraw({
-                                                                    id: vm.dataList.filter((dd) => {
+                                                                    id: vm.dataList
+                                                                        .filter((dd) => {
                                                                         return dd.checked;
-                                                                    }).map((dd) => {
+                                                                    })
+                                                                        .map((dd) => {
                                                                         return dd.id;
-                                                                    }).join(`,`)
+                                                                    })
+                                                                        .join(`,`),
                                                                 }).then((res) => {
                                                                     dialog.dataLoading({ visible: false });
                                                                     if (res.result) {
@@ -637,27 +674,33 @@ ${BgWidget.card(UserList.userInformationDetail({
                                                                         gvc.notifyDataChange(id);
                                                                     }
                                                                     else {
-                                                                        dialog.errorMessage({ text: "刪除失敗" });
+                                                                        dialog.errorMessage({ text: '刪除失敗' });
                                                                     }
                                                                 });
                                                             }
-                                                        }
+                                                        },
                                                     });
-                                                })}">批量移除</button>`
+                                                })}"
+                                                        >
+                                                            批量移除
+                                                        </button>`,
                                             ].join(``);
                                         }
                                     },
                                     divCreate: () => {
                                         return {
-                                            class: `d-flex align-items-center p-2 py-3 ${(!vm.dataList || !vm.dataList.find((dd) => {
-                                                return dd.checked;
-                                            })) ? `d-none` : ``}`,
-                                            style: `height:40px;gap:10px;margin-top:10px;`
+                                            class: `d-flex align-items-center p-2 py-3 ${!vm.dataList ||
+                                                !vm.dataList.find((dd) => {
+                                                    return dd.checked;
+                                                })
+                                                ? `d-none`
+                                                : ``}`,
+                                            style: `height:40px;gap:10px;margin-top:10px;`,
                                         };
-                                    }
+                                    },
                                 };
                             })}
-                                `
+                                `,
                         })}
                         `);
                     }
@@ -667,26 +710,26 @@ ${BgWidget.card(UserList.userInformationDetail({
                     else {
                         return ``;
                     }
-                }
+                },
             };
         });
     }
     static rebateList(gvc) {
         const glitter = gvc.glitter;
         const vm = {
-            type: "list",
+            type: 'list',
             data: {
-                "id": 61,
-                "userID": 549313940,
-                "account": "jianzhi.wang@homee.ai",
-                "userData": { "name": "王建智", "email": "jianzhi.wang@homee.ai", "phone": "0978028739" },
-                "created_time": "2023-11-26T02:14:09.000Z",
-                "role": 0,
-                "company": null,
-                "status": 1
+                id: 61,
+                userID: 549313940,
+                account: 'jianzhi.wang@homee.ai',
+                userData: { name: '王建智', email: 'jianzhi.wang@homee.ai', phone: '0978028739' },
+                created_time: '2023-11-26T02:14:09.000Z',
+                role: 0,
+                company: null,
+                status: 1,
             },
             dataList: undefined,
-            query: ''
+            query: '',
         };
         const filterID = gvc.glitter.getUUID();
         return gvc.bindView(() => {
@@ -704,14 +747,15 @@ ${BgWidget.card(UserList.userInformationDetail({
                             <div class="d-flex w-100 align-items-center mb-3 ">
                                 ${BgWidget.title('回饋金紀錄')}
                                 <div class="flex-fill"></div>
-                                <button class="btn hoverBtn me-2 px-3"
-                                        style="height:35px !important;font-size: 14px;color:black;border:1px solid black;"
-                                        onclick="${gvc.event(() => {
+                                <button
+                                    class="btn hoverBtn me-2 px-3"
+                                    style="height:35px !important;font-size: 14px;color:black;border:1px solid black;"
+                                    onclick="${gvc.event(() => {
                             gvc.glitter.innerDialog((gvc2) => {
                                 const vm = {
                                     type: 'add',
                                     value: '0',
-                                    note: ''
+                                    note: '',
                                 };
                                 return `<div class="modal-content bg-white rounded-3 p-2" style="max-width:90%;width:400px;">
                                 <div class="">
@@ -725,43 +769,43 @@ ${BgWidget.card(UserList.userInformationDetail({
 <h3 class="m-0 fs-6">新增紀錄</h3>
 </div>`,
                                                 EditorElem.checkBox({
-                                                    title: "類型",
+                                                    title: '類型',
                                                     gvc: gvc,
                                                     def: vm.type,
                                                     array: [
                                                         { title: '新增', value: 'add' },
-                                                        { title: '減少', value: 'minus' }
+                                                        { title: '減少', value: 'minus' },
                                                     ],
                                                     callback: (text) => {
                                                         vm.type = text;
                                                         gvc.notifyDataChange(id);
-                                                    }
+                                                    },
                                                 }),
                                                 EditorElem.editeInput({
-                                                    title: "數值",
+                                                    title: '數值',
                                                     gvc: gvc,
                                                     default: vm.value,
                                                     placeHolder: '設定數值',
                                                     callback: (text) => {
                                                         vm.value = text;
                                                         gvc.notifyDataChange(id);
-                                                    }
+                                                    },
                                                 }),
                                                 EditorElem.editeText({
-                                                    title: "備註",
+                                                    title: '備註',
                                                     gvc: gvc,
                                                     default: vm.note,
                                                     placeHolder: '輸入備註',
                                                     callback: (text) => {
                                                         vm.note = text;
                                                         gvc.notifyDataChange(id);
-                                                    }
-                                                })
+                                                    },
+                                                }),
                                             ].join(``);
                                         },
                                         divCreate: {
-                                            class: `ps-1 pe-1`
-                                        }
+                                            class: `ps-1 pe-1`,
+                                        },
                                     };
                                 })}
                                     <div class="modal-footer mb-0 pb-0 mt-2 pt-1">
@@ -782,14 +826,15 @@ ${BgWidget.card(UserList.userInformationDetail({
                                             }))}
                                                                                     ${BgWidget.title(`選擇變動對象`)}
                                                                                     <div class="flex-fill"></div>
-                                                                                    <button class="btn btn-primary-c"
-                                                                                            style="height:38px;font-size: 14px;"
-                                                                                            onclick="${gvc.event(() => {
+                                                                                    <button
+                                                                                        class="btn btn-primary-c"
+                                                                                        style="height:38px;font-size: 14px;"
+                                                                                        onclick="${gvc.event(() => {
                                                 const dialog = new ShareDialog(gvc.glitter);
                                                 if (dataList.length > 0) {
                                                     dialog.dataLoading({
                                                         text: '發送中...',
-                                                        visible: true
+                                                        visible: true,
                                                     });
                                                     ApiWallet.storeRebateByManager({
                                                         userID: dataList.map((dd) => {
@@ -801,15 +846,13 @@ ${BgWidget.card(UserList.userInformationDetail({
                                                             }
                                                             else {
                                                                 const minus = parseInt(vm.value, 10);
-                                                                return (minus) ? minus * -1 : minus;
+                                                                return minus ? minus * -1 : minus;
                                                             }
                                                         })(),
-                                                        note: {
-                                                            note: vm.note
-                                                        }
+                                                        note: vm.note,
                                                     }).then(() => {
                                                         dialog.dataLoading({
-                                                            visible: false
+                                                            visible: false,
                                                         });
                                                         dialog.successMessage({ text: `設定成功!` });
                                                         gvc.closeDialog();
@@ -818,15 +861,17 @@ ${BgWidget.card(UserList.userInformationDetail({
                                                     });
                                                 }
                                                 else {
-                                                    dialog.errorMessage({ text: "請選擇變動對象!" });
+                                                    dialog.errorMessage({ text: '請選擇變動對象!' });
                                                 }
-                                            })}">確認並發送
+                                            })}"
+                                                                                    >
+                                                                                        確認並發送
                                                                                     </button>
                                                                                 </div>
                                                                             ` +
                                                 `<div class="mx-n2">${UserList.userManager(gvc, 'select', (data) => {
                                                     dataList = data;
-                                                })}<div>`
+                                                })}<div>`,
                                         ].join('')), 900)}
                                                                 <div>
                                                                 `;
@@ -837,7 +882,8 @@ ${BgWidget.card(UserList.userInformationDetail({
                                 </div>
                             </div>`;
                             }, 'add');
-                        })}">
+                        })}"
+                                >
                                     <i class="fa-regular fa-circle-plus me-2"></i>
                                     新增紀錄
                                 </button>
@@ -848,7 +894,7 @@ ${BgWidget.card(UserList.userInformationDetail({
                                 ApiWallet.getRebate({
                                     page: vmi.page - 1,
                                     limit: 20,
-                                    search: vm.query || undefined
+                                    search: vm.query || undefined,
                                 }).then((data) => {
                                     vmi.pageSize = Math.ceil(data.response.total / 20);
                                     vm.dataList = data.response.data;
@@ -859,9 +905,9 @@ ${BgWidget.card(UserList.userInformationDetail({
                                                 {
                                                     key: EditorElem.checkBoxOnly({
                                                         gvc: gvc,
-                                                        def: (!data.response.data.find((dd) => {
+                                                        def: !data.response.data.find((dd) => {
                                                             return !dd.checked;
-                                                        })),
+                                                        }),
                                                         callback: (result) => {
                                                             data.response.data.map((dd) => {
                                                                 dd.checked = result;
@@ -869,7 +915,7 @@ ${BgWidget.card(UserList.userInformationDetail({
                                                             vmi.data = getDatalist();
                                                             vmi.callback();
                                                             gvc.notifyDataChange(filterID);
-                                                        }
+                                                        },
                                                     }),
                                                     value: EditorElem.checkBoxOnly({
                                                         gvc: gvc,
@@ -880,31 +926,29 @@ ${BgWidget.card(UserList.userInformationDetail({
                                                             vmi.callback();
                                                             gvc.notifyDataChange(filterID);
                                                         },
-                                                        style: "height:25px;"
-                                                    })
+                                                        style: 'height:25px;',
+                                                    }),
                                                 },
                                                 {
                                                     key: '用戶名稱',
-                                                    value: `<span class="fs-7">${(_a = (dd.userData && dd.userData.name)) !== null && _a !== void 0 ? _a : "資料異常"}</span>`
+                                                    value: `<span class="fs-7">${(_a = (dd.userData && dd.userData.name)) !== null && _a !== void 0 ? _a : '資料異常'}</span>`,
                                                 },
                                                 {
                                                     key: '訂單編號',
-                                                    value: `<span class="fs-7">${(dd.status === 2) ? `手動新增` : dd.orderID}</span>`
+                                                    value: `<span class="fs-7">${dd.status === 2 ? `手動新增` : dd.orderID}</span>`,
                                                 },
                                                 {
                                                     key: '異動金額',
-                                                    value: `${(dd.money > 0) ? `<span class="fs-7 text-success">+ ${dd.money}</span>`
-                                                        :
-                                                            `<span class="fs-7 text-danger">- ${dd.money * -1}</span>`}`
+                                                    value: `${dd.money > 0 ? `<span class="fs-7 text-success">+ ${dd.money}</span>` : `<span class="fs-7 text-danger">- ${dd.money * -1}</span>`}`,
                                                 },
                                                 {
                                                     key: '備註',
-                                                    value: `<span class="fs-7">${(typeof dd.note === 'string') ? dd.note : (_b = (dd.note && dd.note.note)) !== null && _b !== void 0 ? _b : "尚未填寫備註"}</span>`
+                                                    value: `<span class="fs-7">${typeof dd.note === 'string' ? dd.note : (_b = (dd.note && dd.note.note)) !== null && _b !== void 0 ? _b : '尚未填寫備註'}</span>`,
                                                 },
                                                 {
                                                     key: '異動時間',
-                                                    value: `<span class="fs-7">${glitter.ut.dateFormat(new Date(dd.created_time), 'yyyy-MM-dd hh:mm')}</span>`
-                                                }
+                                                    value: `<span class="fs-7">${glitter.ut.dateFormat(new Date(dd.created_time), 'yyyy-MM-dd hh:mm')}</span>`,
+                                                },
                                             ];
                                         });
                                     }
@@ -915,7 +959,7 @@ ${BgWidget.card(UserList.userInformationDetail({
                             },
                             rowClick: (data, index) => {
                                 vm.data = vm.dataList[index];
-                                vm.type = "replace";
+                                vm.type = 'replace';
                             },
                             filter: html `
                                     ${BgWidget.searchPlace(gvc.event((e, event) => {
@@ -926,9 +970,10 @@ ${BgWidget.card(UserList.userInformationDetail({
                                 return {
                                     bind: filterID,
                                     view: () => {
-                                        if (!vm.dataList || !vm.dataList.find((dd) => {
-                                            return dd.checked;
-                                        })) {
+                                        if (!vm.dataList ||
+                                            !vm.dataList.find((dd) => {
+                                                return dd.checked;
+                                            })) {
                                             return ``;
                                         }
                                         else {
@@ -942,11 +987,14 @@ ${BgWidget.card(UserList.userInformationDetail({
                                                             if (response) {
                                                                 dialog.dataLoading({ visible: true });
                                                                 ApiWallet.deleteRebate({
-                                                                    id: vm.dataList.filter((dd) => {
+                                                                    id: vm.dataList
+                                                                        .filter((dd) => {
                                                                         return dd.checked;
-                                                                    }).map((dd) => {
+                                                                    })
+                                                                        .map((dd) => {
                                                                         return dd.id;
-                                                                    }).join(`,`)
+                                                                    })
+                                                                        .join(`,`),
                                                                 }).then((res) => {
                                                                     dialog.dataLoading({ visible: false });
                                                                     if (res.result) {
@@ -954,27 +1002,30 @@ ${BgWidget.card(UserList.userInformationDetail({
                                                                         gvc.notifyDataChange(id);
                                                                     }
                                                                     else {
-                                                                        dialog.errorMessage({ text: "刪除失敗" });
+                                                                        dialog.errorMessage({ text: '刪除失敗' });
                                                                     }
                                                                 });
                                                             }
-                                                        }
+                                                        },
                                                     });
-                                                })}">批量移除</button>`
+                                                })}">批量移除</button>`,
                                             ].join(``);
                                         }
                                     },
                                     divCreate: () => {
                                         return {
-                                            class: `d-flex align-items-center p-2 py-3 ${(!vm.dataList || !vm.dataList.find((dd) => {
-                                                return dd.checked;
-                                            })) ? `d-none` : ``}`,
-                                            style: `height:40px;gap:10px;margin-top:10px;`
+                                            class: `d-flex align-items-center p-2 py-3 ${!vm.dataList ||
+                                                !vm.dataList.find((dd) => {
+                                                    return dd.checked;
+                                                })
+                                                ? `d-none`
+                                                : ``}`,
+                                            style: `height:40px;gap:10px;margin-top:10px;`,
                                         };
-                                    }
+                                    },
                                 };
                             })}
-                                `
+                                `,
                         })}
                         `);
                     }
@@ -985,13 +1036,13 @@ ${BgWidget.card(UserList.userInformationDetail({
                                 vm.type = 'list';
                                 gvc.notifyDataChange(id);
                             },
-                            gvc: gvc
+                            gvc: gvc,
                         });
                     }
                     else {
                         return ``;
                     }
-                }
+                },
             };
         });
     }

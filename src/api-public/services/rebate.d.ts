@@ -62,6 +62,9 @@ export declare class Rebate {
         message: string;
         data?: undefined;
     } | undefined>;
+    getOldestRebate(user_id: number): Promise<{
+        data: any;
+    } | undefined>;
     updateOldestRebate(user_id: number, originMinus: number): Promise<void>;
     minusCheck(user_id: number, amount: number): Promise<boolean | undefined>;
     insertRebate(user_id: number, amount: number, note: string, proof?: RebateProof): Promise<{
