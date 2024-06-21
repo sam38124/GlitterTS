@@ -378,8 +378,8 @@ export class ShoppingOrderManager {
         };
         ApiUser.getUsersDataWithEmail(orderData.email)
             .then((res) => {
-            console.log("userData -- ", res);
             userData = res.response;
+            gvc.notifyDataChange(mainViewID);
         });
         const child_vm = {
             type: 'order',
@@ -393,7 +393,7 @@ export class ShoppingOrderManager {
                 }
             ],
             view: () => {
-                var _a, _b, _c, _d, _e, _f;
+                var _a, _b, _c, _d, _e, _f, _g;
                 if (child_vm.type === 'user') {
                     return UserList.userInformationDetail({
                         userID: child_vm.userID,
@@ -512,7 +512,7 @@ export class ShoppingOrderManager {
                                                                         ${EditorElem.select({
                         title: ``,
                         gvc: gvc,
-                        def: orderData.orderData.orderStatus,
+                        def: (_a = orderData.orderData.orderStatus) !== null && _a !== void 0 ? _a : '0',
                         array: [{
                                 title: '變更訂單狀態',
                                 value: ''
@@ -837,11 +837,21 @@ export class ShoppingOrderManager {
                                             <div class="d-flex align-items-center" style="color: #4D86DB;font-weight: 400; gap:8px;cursor:pointer;" onclick="${gvc.event(() => {
                         child_vm.userID = userData.userID;
                         child_vm.type = 'user';
-                    })}">${(_b = (_a = userData === null || userData === void 0 ? void 0 : userData.userData) === null || _a === void 0 ? void 0 : _a.name) !== null && _b !== void 0 ? _b : "訪客"}
-                                                <div class="d-flex align-items-center justify-content-center" style="padding: 4px 6px;border-radius: 7px;background: #393939;color: #FFF;">高級會員</div>
+                    })}">${(_c = (_b = userData === null || userData === void 0 ? void 0 : userData.userData) === null || _b === void 0 ? void 0 : _b.name) !== null && _c !== void 0 ? _c : "訪客"}
+                                                ${(() => {
+                        if (userData === null || userData === void 0 ? void 0 : userData.member) {
+                            for (let i = 0; i < userData.member.length; i++) {
+                                if (userData.member[i].trigger) {
+                                    return `<div class="d-flex align-items-center justify-content-center" style="padding: 4px 6px;border-radius: 7px;background: #393939;color: #FFF;">${userData.member[i].tag_name}</div>`;
+                                }
+                            }
+                        }
+                        return `<div style="border-radius: 7px;background: #EAEAEA;padding: 4px 6px;color:#393939;font-weight: 700;">訪客</div>`;
+                    })()}
+                                                
                                             </div>
-                                            <div class="" style="color: #393939;font-weight: 400;">${(_d = (_c = userData === null || userData === void 0 ? void 0 : userData.userData) === null || _c === void 0 ? void 0 : _c.phone) !== null && _d !== void 0 ? _d : orderData.orderData.user_info.phone}</div>
-                                            <div class="" style="color: #393939;font-weight: 400;">${(_f = (_e = userData === null || userData === void 0 ? void 0 : userData.userData) === null || _e === void 0 ? void 0 : _e.email) !== null && _f !== void 0 ? _f : orderData.orderData.user_info.email}</div>
+                                            <div class="" style="color: #393939;font-weight: 400;">${(_e = (_d = userData === null || userData === void 0 ? void 0 : userData.userData) === null || _d === void 0 ? void 0 : _d.phone) !== null && _e !== void 0 ? _e : orderData.orderData.user_info.phone}</div>
+                                            <div class="" style="color: #393939;font-weight: 400;">${(_g = (_f = userData === null || userData === void 0 ? void 0 : userData.userData) === null || _f === void 0 ? void 0 : _f.email) !== null && _g !== void 0 ? _g : orderData.orderData.user_info.email}</div>
                                         </div>`,
                     `<div class="bgf6" style="height: 1px;margin: 8px 0"></div>`,
                     `<div class="" style="font-size: 16px;font-weight: 700;">收件人資料</div>`,
@@ -1058,7 +1068,7 @@ export class ShoppingOrderManager {
                         dialog.dataLoading({ text: '上傳中', visible: false });
                         if (response.result) {
                             dialog.successMessage({ text: '更新成功!' });
-                            gvc.notifyDataChange(id);
+                            gvc.notifyDataChange(mainViewID);
                         }
                         else {
                             dialog.errorMessage({ text: '更新異常!' });

@@ -478,9 +478,9 @@ export class ShoppingOrderManager {
         };
         ApiUser.getUsersDataWithEmail(orderData.email)
             .then((res) => {
-                console.log("userData -- ", res)
-                // if ()
+
                 userData = res.response
+                gvc.notifyDataChange(mainViewID)
             })
         const child_vm:{
             type:'order'|'user',
@@ -619,7 +619,7 @@ export class ShoppingOrderManager {
                                                                         ${EditorElem.select({
                                                                             title: ``,
                                                                             gvc: gvc,
-                                                                            def: orderData.orderData.orderStatus,
+                                                                            def: orderData.orderData.orderStatus??'0',
                                                                             array: [{
                                                                                 title: '變更訂單狀態',
                                                                                 value: ''
@@ -949,7 +949,21 @@ export class ShoppingOrderManager {
                                                                     child_vm.userID=userData.userID
                                                                     child_vm.type='user'
                                                                 })}">${userData?.userData?.name??"訪客"}
-                                                <div class="d-flex align-items-center justify-content-center" style="padding: 4px 6px;border-radius: 7px;background: #393939;color: #FFF;">高級會員</div>
+                                                ${(()=>{
+                                                            
+                                                    if (userData?.member){
+                                                        
+                                                        for (let i = 0 ; i < userData.member.length ; i++){
+                                                    
+                                                            if (userData.member[i].trigger){
+                                                                return`<div class="d-flex align-items-center justify-content-center" style="padding: 4px 6px;border-radius: 7px;background: #393939;color: #FFF;">${userData.member[i].tag_name}</div>`
+                                                            }
+                                                        }
+                                                    }
+                                                    
+                                                    return `<div style="border-radius: 7px;background: #EAEAEA;padding: 4px 6px;color:#393939;font-weight: 700;">訪客</div>`
+                                                })()}
+                                                
                                             </div>
                                             <div class="" style="color: #393939;font-weight: 400;">${userData?.userData?.phone??orderData.orderData.user_info.phone}</div>
                                             <div class="" style="color: #393939;font-weight: 400;">${userData?.userData?.email??orderData.orderData.user_info.email}</div>
@@ -1175,7 +1189,7 @@ export class ShoppingOrderManager {
                                                 dialog.dataLoading({text: '上傳中', visible: false});
                                                 if (response.result) {
                                                     dialog.successMessage({text: '更新成功!'});
-                                                    gvc.notifyDataChange(id);
+                                                    gvc.notifyDataChange(mainViewID)
                                                 } else {
                                                     dialog.errorMessage({text: '更新異常!'});
                                                 }
