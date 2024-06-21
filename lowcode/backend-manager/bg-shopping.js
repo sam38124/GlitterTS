@@ -327,28 +327,12 @@ export class BgShopping {
                                 title: ``,
                                 gvc: gvc,
                                 def: '',
-                                array: [{ title: '變更出貨狀態', value: '' }].concat(ApiShop.getShippingStatusArray()),
+                                array: [{ title: '變更訂單狀態', value: '' }].concat(ApiShop.getOrderStatusArray()),
                                 callback: (text) => {
-                                    orderData.orderData.progress = orderData.orderData.progress || 'wait';
-                                    if (text && text !== orderData.orderData.progress) {
-                                        const dialog = new ShareDialog(gvc.glitter);
+                                    orderData.orderData.orderStatus = orderData.orderData.orderStatus || '0';
+                                    if (text && text !== orderData.orderData.orderStatus) {
                                         const copy = JSON.parse(JSON.stringify(orderData.orderData));
-                                        copy.progress = text;
-                                        dialog.dataLoading({ text: '上傳中', visible: true });
-                                        ApiShop.putOrder({
-                                            id: `${orderData.id}`,
-                                            order_data: copy,
-                                        }).then((response) => {
-                                            dialog.dataLoading({ text: '上傳中', visible: false });
-                                            if (response.result) {
-                                                dialog.successMessage({ text: '更新成功!' });
-                                                orderData.orderData = copy;
-                                                gvc.notifyDataChange(id);
-                                            }
-                                            else {
-                                                dialog.errorMessage({ text: '更新異常!' });
-                                            }
-                                        });
+                                        copy.orderStatus = text;
                                     }
                                 },
                             })}
@@ -411,23 +395,7 @@ export class BgShopping {
                             ],
                             callback: (text) => {
                                 if (text && text !== `${orderData.status}`) {
-                                    const dialog = new ShareDialog(gvc.glitter);
-                                    dialog.dataLoading({ text: '上傳中', visible: true });
-                                    ApiShop.putOrder({
-                                        id: `${orderData.id}`,
-                                        order_data: orderData.orderData,
-                                        status: text,
-                                    }).then((response) => {
-                                        dialog.dataLoading({ text: '上傳中', visible: false });
-                                        if (response.result) {
-                                            orderData.status = parseInt(text, 10);
-                                            dialog.successMessage({ text: '更新成功!' });
-                                            gvc.notifyDataChange(id);
-                                        }
-                                        else {
-                                            dialog.errorMessage({ text: '更新異常!' });
-                                        }
-                                    });
+                                    orderData.status = parseInt(text, 10);
                                 }
                             },
                         })}

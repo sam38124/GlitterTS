@@ -102,7 +102,27 @@ export class ApiShop {
             },
         });
     }
+    static orderListFilterString(obj) {
+        let list = [];
+        if (obj.created_time && obj.created_time.length > 1 && (obj === null || obj === void 0 ? void 0 : obj.created_time[0].length) > 0 && (obj === null || obj === void 0 ? void 0 : obj.created_time[1].length) > 0) {
+            list.push(`created_time=${obj.created_time[0]},${obj.created_time[1]}`);
+        }
+        if (obj.shipment.length > 0) {
+            list.push(`shipment=${obj.shipment.join(',')}`);
+        }
+        if (obj.progress.length > 0) {
+            list.push(`progress=${obj.progress.join(',')}`);
+        }
+        if (obj.payload.length > 0) {
+            list.push(`status=${obj.payload.join(',')}`);
+        }
+        if (obj.orderStatus.length > 0) {
+            list.push(`orderStatus=${obj.orderStatus.join(',')}`);
+        }
+        return list;
+    }
     static getOrder(json) {
+        const filterString = this.orderListFilterString(json.filter);
         return BaseApi.create({
             url: getBaseUrl() +
                 `/api-public/v1/ec/order?${(() => {
@@ -111,6 +131,9 @@ export class ApiShop {
                     json.id && par.push(`id=${json.id}`);
                     json.email && par.push(`email=${json.email}`);
                     json.status && par.push(`status=${json.status}`);
+                    json.searchType && par.push(`searchType=${json.searchType}`);
+                    json.orderString && par.push(`orderString=${json.orderString}`);
+                    filterString.length > 0 && par.push(filterString.join('&'));
                     return par.join('&');
                 })()}`,
             type: 'GET',
@@ -359,6 +382,13 @@ export class ApiShop {
             { title: '未出貨', value: 'wait' },
             { title: '配送中', value: 'shipping' },
             { title: '已送達', value: 'finish' },
+        ];
+    }
+    static getOrderStatusArray() {
+        return [
+            { title: '已完成', value: '1' },
+            { title: '處理中', value: '0' },
+            { title: '已取消', value: '-1' },
         ];
     }
 }

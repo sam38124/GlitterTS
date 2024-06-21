@@ -115,7 +115,7 @@ export class UserList {
             });
         }
 
-        return gvc.bindView({
+ return gvc.bindView({
             bind: vm.id,
             dataList: [{ obj: vm, key: 'type' }],
             view: () => {

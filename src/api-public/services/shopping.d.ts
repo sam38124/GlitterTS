@@ -190,7 +190,7 @@ export declare class Shopping {
             created_time: string;
             progress: 'finish' | 'wait' | 'shipping';
         };
-        status: number;
+        status: any;
     }): Promise<{
         result: string;
         orderData: {
@@ -230,6 +230,12 @@ export declare class Shopping {
         search?: string;
         email?: string;
         status?: string;
+        searchType?: string;
+        shipment?: string;
+        progress?: string;
+        orderStatus?: string;
+        created_time?: string;
+        orderString?: string;
     }): Promise<{
         data: any;
         result: boolean;

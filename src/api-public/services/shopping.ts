@@ -764,12 +764,12 @@ export class Shopping {
             created_time: string;
             progress: 'finish' | 'wait' | 'shipping';
         };
-        status: number;
+        status: any;
     }) {
         try {
             const update: any = {};
             data.orderData && (update.orderData = JSON.stringify(data.orderData));
-            data.status && (update.status = data.status);
+            update.status = data.status ?? 0
             await db.query(
                 `UPDATE \`${this.app}\`.t_checkout
                             set ?
@@ -801,29 +801,96 @@ export class Shopping {
         }
     }
 
-    public async getCheckOut(query: { page: number; limit: number; id?: string; search?: string; email?: string; status?: string }) {
+    public async getCheckOut(query: { page: number; limit: number; id?: string; search?: string; email?: string; status?: string; searchType?:string; shipment?:string ;progress?:string; orderStatus?:string; created_time?:string; orderString?:string}) {
         try {
+            // 訂單編號(Cart_token) 訂購人(orderData.user_info.name) 手機(orderData.user_info.phone) 商品名稱(orderData.lineItems[array].title) 商品編號(orderData.lineItems[array].sku) 發票號碼(orderData.invoice_number)
+
             let querySql = ['1=1'];
+            let orderString = "order by id desc"
+            if (query.search ){
+                switch (query.searchType){
+                    case "cart_token" :
+                        querySql.push(`(cart_token like '%${query.search}%')`);
+                        break;
+                    case "name":
+                    case "invoice_number":
+                    case "phone":
+                        querySql.push(`(UPPER(JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.user_info.${query.searchType}')) LIKE ('%${query.search}%')))`);
+                        break
+                    default :{
+                        querySql.push(`JSON_CONTAINS_PATH(orderData, 'one', '$.lineItems[*].title') AND JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.lineItems[*].${query.searchType}')) REGEXP '${query.search}'`);
+                    }
+                }
+
+            }
+            if (query.orderStatus){
+                let orderArray = query.orderStatus.split(",")
+                let temp = ""
+                if(orderArray.includes("0")){
+                    temp+="JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) IS NULL OR "
+                }
+                temp += `JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) IN (${query.orderStatus})`
+                querySql.push(`(${temp})`);
+            }
+            if (query.progress){
+                let newArray = query.progress.split(",")
+                let temp = ""
+                if(newArray.includes("wait")){
+                    temp+="JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.progress')) IS NULL OR "
+                }
+                temp += `JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.progress')) IN (${newArray.map(status => `"${status}"`).join(',')})`;
+                querySql.push(`(${temp})`);
+            }
+
+            if (query.shipment){
+                let shipment = query.shipment.split(",")
+                let temp = ""
+                if(shipment.includes("normal")){
+                    temp+="JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.user_info.shipment')) IS NULL OR "
+                }
+                temp += `JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.user_info.shipment')) IN (${shipment.map(status => `"${status}"`).join(',')})`
+                querySql.push(`(${temp})`);
+            }
+
+            if (query.created_time) {
+                const created_time = query.created_time.split(',');
+                if (created_time.length > 1) {
+                    querySql.push(`
+                        (created_time BETWEEN ${db.escape(`${created_time[0]} 00:00:00`)} 
+                        AND ${db.escape(`${created_time[1]} 23:59:59`)})
+                    `);
+                }
+            }
+
+            if(query.orderString){
+                switch (query.orderString){
+                    case "created_time_desc":
+                        orderString = "order by created_time desc"
+                        break
+                    case "created_time_asc":
+                        orderString = "order by created_time asc"
+                        break
+                    case "order_total_desc":
+                        orderString = "order by CAST(JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.total')) AS SIGNED) desc"
+                        break
+                    case "order_total_asc":
+                        orderString = "order by CAST(JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.total')) AS SIGNED) asc"
+                        break
+                }
+                console.log(" query.orderString --" , query.orderString);
+            }
+            query.status && querySql.push(`status IN (${query.status})`);
             query.email && querySql.push(`email=${db.escape(query.email)}`);
-            query.search &&
-                querySql.push(
-                    [
-                        `((UPPER(Cart_token) LIKE UPPER('%${query.search}%'))`,
-                        `(UPPER(JSON_UNQUOTE(orderData->>'$.email')) LIKE UPPER('%${query.search}%')))`,
-                        `(UPPER(JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.user_info.name')) LIKE UPPER('%${query.search}%')))`,
-                    ].join('||')
-                );
-            query.status && querySql.push(`status=${query.status}`);
             query.id && querySql.push(`(content->>'$.id'=${query.id})`);
             let sql = `SELECT *
                        FROM \`${this.app}\`.t_checkout
-                       WHERE ${querySql.join(' and ')}
-                       order by id desc`;
+   where ${querySql.join(' and ')}
+                       ${orderString}`;
             if (query.id) {
                 const data = (
                     await db.query(
                         `SELECT *
-                                              FROM (${sql}) as subqyery limit ${query.page * query.limit}, ${query.limit}`,
+                              FROM (${sql}) as subqyery limit ${query.page * query.limit}, ${query.limit}`,
                         []
                     )
                 )[0];
@@ -835,7 +902,7 @@ export class Shopping {
                 return {
                     data: await db.query(
                         `SELECT *
-                                           FROM (${sql}) as subqyery limit ${query.page * query.limit}, ${query.limit}`,
+                                   FROM (${sql}) as subqyery limit ${query.page * query.limit}, ${query.limit}`,
                         []
                     ),
                     total: (

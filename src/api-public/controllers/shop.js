@@ -198,6 +198,12 @@ router.get('/order', async (req, resp) => {
                 id: req.query.id,
                 email: req.query.email,
                 status: req.query.status,
+                searchType: req.query.searchType,
+                shipment: req.query.shipment,
+                progress: req.query.progress,
+                orderStatus: req.query.orderStatus,
+                created_time: req.query.created_time,
+                orderString: req.query.orderString
             }));
         }
         else if (await ut_permission_1.UtPermission.isAppUser(req)) {

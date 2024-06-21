@@ -81,4 +81,90 @@ export class FilterOptions {
         { key: 'email', value: '電子信箱' },
         { key: 'phone', value: '電話號碼' },
     ];
+    // --------------------------order Filter-------------------
+    static orderFilterFrame = {
+        orderStatus: [],
+        payload:[],
+        progress:[],
+        shipment:[],
+        created_time: ['', ''],
+    };
+
+    static orderFunnel = [
+        {
+            key: 'orderStatus',
+            type: 'multi_checkbox',
+            name: '訂單狀態',
+            data: [
+                { key: "1", name: '已完成' },
+                { key: "0", name: '處理中' },
+                { key: "-1", name: '已取消' },
+            ],
+        },
+        {
+            key: 'payload',
+            type: 'multi_checkbox',
+            name: '付款狀態',
+            data: [
+                { key: "-1", name: '付款失敗' },
+                { key: "1", name: '已付款' },
+                { key: "0", name: '未付款' },
+                { key: "-2", name: '已退款' },
+            ],
+        },
+        {
+            key: 'progress',
+            type: 'multi_checkbox',
+            name: '出貨狀況',
+            data: [
+                { key: "shipping", name: '配送中' },
+                { key: "wait", name: '未出貨' },
+                { key: "finish", name: '已取貨' },
+                { key: "returns", name: '已退貨' },
+                { key: "arrived", name: '已到貨' },
+            ],
+        },
+        {
+            key: 'shipment',
+            type: 'multi_checkbox',
+            name: '運送方式',
+            data: [
+                { key: "normal", name: '宅配' },
+                { key: "UNIMARTC2C", name: '7-11店到店' },
+                { key: "FAMIC2C", name: '全家店到店' },
+                { key: "OKMARTC2C", name: 'OK店到店' },
+                { key: "HILIFEC2C", name: '萊爾富店到店' },
+
+            ],
+        },
+        {
+            key: 'created_time',
+            type: 'during',
+            name: '訂單日期',
+            data: {
+                centerText: '至',
+                list: [
+                    { key: 'start', type: 'date', placeHolder: '請選擇開始時間' },
+                    { key: 'end', type: 'date', placeHolder: '請選擇結束時間' },
+                ],
+            },
+        },
+    ];
+
+    static orderOrderBy = [
+        { key: 'created_time_desc', value: '訂單時間新 > 舊' },
+        { key: 'created_time_asc', value: '訂單時間舊 > 新' },
+        { key: 'order_total_desc', value: '訂單金額高 > 低' },
+        { key: 'order_total_asc', value: '訂單金額低 > 高' },
+    ];
+
+    static orderSelect = [
+        { key: 'cart_token', value: '訂單編號' },
+        { key: 'name', value: '訂購人' },
+        { key: 'phone', value: '手機' },
+        { key: 'title', value: '商品名稱' },
+        { key: 'sku', value: '商品編號' },
+        { key: 'invoice_number', value: '發票號碼' },
+
+    ];
 }

@@ -894,10 +894,13 @@ ${obj.default ?? ''}</textarea
     }
 
     static duringInputContainer(gvc: GVC, obj: { centerText: string; list: { key: string; type: string; placeHolder: string }[] }, def: string[], callback: (value: string[]) => void) {
-        const defualt = def.length > 1 ? def : ['', ''];
+
+        const defualt = (def && def.length) > 1 ? def : ['', ''];
         if (obj.list.length > 1) {
+
             const first = obj.list[0];
             const second = obj.list[1];
+
             return html`
                 <div style="width: 100%; display: flex; flex-direction: column; gap: 6px;">
                     <input
@@ -926,6 +929,7 @@ ${obj.default ?? ''}</textarea
                 </div>
             `;
         }
+
         return '';
     }
 

@@ -84,6 +84,17 @@ export class ApiUser {
             },
         });
     }
+    public static getUsersDataWithEmail(email: string) {
+        return BaseApi.create({
+            url: getBaseUrl() + `/api-public/v1/user?email=${email}&type=account`,
+            type: 'GET',
+            headers: {
+                'g-app': getConfig().config.appName,
+                'Content-Type': 'application/json',
+                Authorization: getConfig().config.token || GlobalUser.token,
+            },
+        });
+    }
 
     public static subScribe(email: string, tag: string) {
         return BaseApi.create({
@@ -226,6 +237,7 @@ export class ApiUser {
     }
 
     public static getUserListOrders(json: { limit: number; page: number; search?: string; id?: string; searchType?: string; orderString?: string; filter?: any; status?: number }) {
+
         const filterString = this.userListFilterString(json.filter);
         const userData = BaseApi.create({
             url:
