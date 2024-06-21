@@ -94,7 +94,7 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                     "Authorization": GlobalUser.saas_token
                                 },
                                 "data": JSON.stringify({
-                                    "domain": '',
+                                    "sub_domain": `tem-${new Date().getTime()}`,
                                     "appName": appName,
                                     "copyApp": createAPP,
                                     "brand": window.parent.glitterBase,

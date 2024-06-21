@@ -1814,6 +1814,9 @@ ${e.line}
 
         function active() {
             try {
+                Storage.page_setting_item='layout';
+                (((window.parent as any).glitter.pageConfig[gvc.glitter.pageConfig.length-1]) as any).gvc.notifyDataChange('left_sm_bar');
+
                 gvc.glitter.$('.editorItemActive').removeClass('editorItemActive');
                 gvc.glitter.$(`.editor_it_${widgetComponentID}`).addClass('editorItemActive');
                 (window.parent as any).glitter.share.editorViewModel.selectItem = dd;

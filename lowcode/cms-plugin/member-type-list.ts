@@ -315,7 +315,7 @@ export class MemberTypeList {
                                         view: () => {
                                             let map: any = [
                                                 BgWidget.card_main(html`
-                                                    ${html`<div class="t_39_16 fw-bold">會員名稱*</div>`}
+                                                    ${html`<div class="tx_normal fw-bold">會員名稱*</div>`}
                                                     ${BgWidget.editeInput({
                                                         gvc: gvc,
                                                         title: '',
@@ -328,7 +328,7 @@ export class MemberTypeList {
                                                     })}
                                                 `),
                                                 BgWidget.card_main(html`
-                                                    <div class="t_39_16 fw-bold" style="margin-bottom: 18px;">會員條件*</div>
+                                                    <div class="tx_normal fw-bold" style="margin-bottom: 18px;">會員條件*</div>
                                                     ${[
                                                         { title: '累積消費金額', value: 'total' },
                                                         { title: '單筆消費金額', value: 'single' },
@@ -347,7 +347,7 @@ export class MemberTypeList {
                                                                         ${vm.data.condition.type === dd.value
                                                                             ? `<i class="fa-sharp fa-solid fa-circle-dot cl_39"></i>`
                                                                             : ` <div class="c_39_checkbox"></div>`}
-                                                                        <div class="t_39_16 fw-normal">${dd.title}</div>
+                                                                        <div class="tx_normal fw-normal">${dd.title}</div>
                                                                     </div>`,
                                                                     html` <div class="d-flex position-relative mt-2" style="">
                                                                         <div class="ms-2 border-end position-absolute h-100" style="left: 0px;"></div>
@@ -367,7 +367,7 @@ export class MemberTypeList {
                                                                                                 gvc.notifyDataChange(id);
                                                                                             },
                                                                                         }),
-                                                                                        html`<div class="t_39_16" style="color:#8D8D8D;margin-top: 8px;">元</div>`,
+                                                                                        html`<div class="tx_normal" style="color:#8D8D8D;margin-top: 8px;">元</div>`,
                                                                                     ].join('');
                                                                                 } else {
                                                                                     return ``;
@@ -381,7 +381,7 @@ export class MemberTypeList {
                                                         .join('<div class="my-2"></div>')}
                                                 `),
                                                 BgWidget.card_main(html`
-                                                    <div class="t_39_16 fw-bold" style="margin-bottom: 18px;">計算期間*</div>
+                                                    <div class="tx_normal fw-bold" style="margin-bottom: 18px;">計算期間*</div>
                                                     ${[
                                                         { title: '計算期限', value: 'day' },
                                                         { title: '不計算期限', value: 'noLimit' },
@@ -399,7 +399,7 @@ export class MemberTypeList {
                                                                     ${vm.data.duration.type === dd.value
                                                                         ? `<i class="fa-sharp fa-solid fa-circle-dot cl_39"></i>`
                                                                         : ` <div class="c_39_checkbox"></div>`}
-                                                                    <div class="t_39_16 fw-normal">${dd.title}</div>
+                                                                    <div class="tx_normal fw-normal">${dd.title}</div>
                                                                 </div>`,
                                                                 html` <div class="d-flex position-relative mt-2" style="">
                                                                     <div class="ms-2 border-end position-absolute h-100" style="left: 0px;"></div>
@@ -419,7 +419,7 @@ export class MemberTypeList {
                                                                                             gvc.notifyDataChange(id);
                                                                                         },
                                                                                     }),
-                                                                                    `<div class="t_39_16" style="color:#8D8D8D;margin-top: 8px;white-space: nowrap;">天內消費</div>`,
+                                                                                    `<div class="tx_normal" style="color:#8D8D8D;margin-top: 8px;white-space: nowrap;">天內消費</div>`,
                                                                                 ].join('');
                                                                             } else {
                                                                                 return ``;
@@ -432,7 +432,7 @@ export class MemberTypeList {
                                                         .join('<div class="my-2"></div>')}
                                                 `),
                                                 BgWidget.card_main(html`
-                                                    <div class="t_39_16 fw-bold" style="margin-bottom: 18px;">會員期限*</div>
+                                                    <div class="tx_normal fw-bold" style="margin-bottom: 18px;">會員期限*</div>
                                                     ${[
                                                         { title: '沒有期限', value: 'noLimit' },
                                                         { title: '設定期限', value: 'date' },
@@ -450,7 +450,7 @@ export class MemberTypeList {
                                                                     ${vm.data.dead_line.type === dd.value
                                                                         ? `<i class="fa-sharp fa-solid fa-circle-dot cl_39"></i>`
                                                                         : ` <div class="c_39_checkbox"></div>`}
-                                                                    <div class="t_39_16 fw-normal">${dd.title}</div>
+                                                                    <div class="tx_normal fw-normal">${dd.title}</div>
                                                                 </div>`,
                                                                 html` <div class="d-flex position-relative mt-2" style="">
                                                                     <div class="ms-2 border-end position-absolute h-100" style="left: 0px;"></div>
@@ -518,7 +518,7 @@ export class MemberTypeList {
                                                                                                 gvc.notifyDataChange(id);
                                                                                             },
                                                                                         }),
-                                                                                        `<div class="t_39_16" style="color:#8D8D8D;margin-top: 8px;white-space: nowrap;">天</div>`,
+                                                                                        `<div class="tx_normal" style="color:#8D8D8D;margin-top: 8px;white-space: nowrap;">天</div>`,
                                                                                     ].join('');
                                                                                 })()}
                                                                             </div>`);
@@ -551,17 +551,17 @@ export class MemberTypeList {
                                         bind: noteID,
                                         view: () => {
                                             return BgWidget.card_main(html`
-                                                <div class="t_39_16 fw-bold">摘要</div>
-                                                <div class="t_39_16 fw-normal" style="margin-top: 18px;margin-bottom: 18px;">會員名稱: ${vm.data.tag_name || '尚未設定'}</div>
+                                                <div class="tx_normal fw-bold">摘要</div>
+                                                <div class="tx_normal fw-normal" style="margin-top: 18px;margin-bottom: 18px;">會員名稱: ${vm.data.tag_name || '尚未設定'}</div>
                                                 <div class="w-100" style="background: #DDD;height: 2px;"></div>
-                                                <div class="t_39_16 fw-normal" style="margin-top: 18px;">
+                                                <div class="tx_normal fw-normal" style="margin-top: 18px;">
                                                     會員條件: ${vm.data.condition.type === 'single' ? `單筆消費金額${vm.data.condition.value}元` : `累計消費金額${vm.data.condition.value}元`}
                                                 </div>
-                                                <div class="t_39_16 fw-normal" style="margin-top: 12px;margin-bottom: 18px;">
+                                                <div class="tx_normal fw-normal" style="margin-top: 12px;margin-bottom: 18px;">
                                                     計算期間: ${vm.data.duration.type === 'noLimit' ? `不計算期限` : `${vm.data.duration.value}天`} 天內消費
                                                 </div>
                                                 <div class="w-100" style="background: #DDD;height: 2px;"></div>
-                                                <div class="t_39_16 fw-normal" style="margin-top: 18px;">
+                                                <div class="tx_normal fw-normal" style="margin-top: 18px;">
                                                     會員期限: ${vm.data.dead_line.type === 'noLimit' ? `沒有期限` : `${vm.data.dead_line.value}天`}
                                                 </div>
                                             `);

@@ -59,6 +59,7 @@ const compression_1 = __importDefault(require("compression"));
 const user_js_1 = require("./api-public/services/user.js");
 const private_config_js_1 = require("./services/private_config.js");
 const moment_js_1 = __importDefault(require("moment/moment.js"));
+const xml_formatter_1 = __importDefault(require("xml-formatter"));
 exports.app = (0, express_1.default)();
 const logger = new logger_1.default();
 exports.app.options('/*', (req, res) => {
@@ -69,8 +70,9 @@ exports.app.options('/*', (req, res) => {
 });
 exports.app.use((0, cors_1.default)());
 exports.app.use((0, compression_1.default)());
-exports.app.use(express_1.default.raw());
-exports.app.use(express_1.default.json({ limit: '50MB' }));
+exports.app.use(express_1.default.raw({ limit: '100MB' }));
+exports.app.use(express_1.default.json({ limit: '100MB', }));
+exports.app.use(body_parser_1.default.json({ limit: '100MB' }));
 exports.app.use(createContext);
 exports.app.use(body_parser_1.default.raw({ type: '*/*' }));
 exports.app.use(contollers);
@@ -314,7 +316,7 @@ async function createAPP(dd) {
                                 <head>
                                     <title>${(_a = d.title) !== null && _a !== void 0 ? _a : "尚未設定標題"}</title>
                                     <link rel="canonical" href="${relative_root}${data.tag}">
-                                    <meta name="keywords" content="${(_b = d.keywords) !== null && _b !== void 0 ? _b : "尚未設定關鍵字"}"/>
+                                    <meta name="keywords" content="${(_b = d.keywords) !== null && _b !== void 0 ? _b : "尚未設定關鍵字"}">
                                     <link id="appImage" rel="shortcut icon" href="${(_c = d.logo) !== null && _c !== void 0 ? _c : ""}" type="image/x-icon">
                                     <link rel="icon" href="${(_d = d.logo) !== null && _d !== void 0 ? _d : ""}" type="image/png" sizes="128x128">
                                     <meta property="og:image" content="${(_e = d.image) !== null && _e !== void 0 ? _e : ""}">
@@ -332,6 +334,16 @@ window.glitterBackend='${config_1.config.domain}';
 window.preloadData=${JSON.stringify(preload)};
 window.glitter_page='${req.query.page}';
 </script>
+${[
+                            { src: 'glitterBundle/GlitterInitial.js', type: 'module' },
+                            { src: 'glitterBundle/module/html-generate.js', type: 'module' },
+                            { src: 'glitterBundle/html-component/widget.js', type: 'module' },
+                            { src: 'glitterBundle/plugins/trigger-event.js', type: 'module' },
+                            { src: 'api/pageConfig.js', type: 'module' },
+                        ].map((dd) => {
+                            return `<script src="${relative_root}${dd.src}" type="${dd.type}"></script>`;
+                        }).join('')}
+
               </head>
               ${(() => {
                             if (req.query.type === 'editor') {
@@ -389,9 +401,9 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
                                                 from \`${config_1.saasConfig.SAAS_NAME}\`.app_config
                                                 where appName = ?`, [appName]))[0]['domain'];
                 const site_map = await getSeoSiteMap(appName, req);
-                return html `<?xml version="1.0" encoding="UTF-8"?>
-                <urlset  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd http://www.google.com/schemas/sitemap-image/1.1 http://www.google.com/schemas/sitemap-image/1.1/sitemap-image.xsd" xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-                    ${(await database_2.default.query(`select page_config, tag, updated_time
+                const sitemap = html `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+${(await database_2.default.query(`select page_config, tag, updated_time
                                        from \`${config_1.saasConfig.SAAS_NAME}\`.page_config
                                        where appName = ?
                                          and page_config ->>'$.seo.type'='custom'
@@ -400,9 +412,9 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
                 ])).map((d2) => {
                     return `<url>
 <loc>${`https://${domain}/${d2.tag}`.replace(/ /g, '+')}</loc>
-<lastmod>${(0, moment_js_1.default)(new Date(d2.updated_time)).format('YYYY-MM-DDTHH:mm:SS+00:00')}</lastmod>
-<changefreq>weekly</changefreq>
-</url>`;
+<lastmod>${(0, moment_js_1.default)(new Date(d2.updated_time)).format('YYYY-MM-DD')}</lastmod>
+</url>
+`;
                 }).join('')}
                     ${article.data.map((d2) => {
                     if (!d2.content.template) {
@@ -410,19 +422,25 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
                     }
                     return `<url>
 <loc>${`https://${domain}/${d2.content.template}?article=${d2.content.tag}`.replace(/ /g, '+')}</loc>
-<lastmod>${(0, moment_js_1.default)(new Date(d2.updated_time)).format('YYYY-MM-DDTHH:mm:SS+00:00')}</lastmod>
-<changefreq>weekly</changefreq>
-</url>`;
+<lastmod>${(0, moment_js_1.default)(new Date(d2.updated_time)).format('YYYY-MM-DD')}</lastmod>
+</url>
+`;
                 }).join('')}
                     ${(site_map || []).map((d2) => {
                     return `<url>
 <loc>${`https://${domain}/${d2.url}`.replace(/ /g, '+')}</loc>
-<lastmod>${d2.updated_time ? (0, moment_js_1.default)(new Date(d2.updated_time)).format('YYYY-MM-DDTHH:mm:SS+00:00') : (0, moment_js_1.default)(new Date()).format('YYYY-MM-DDTHH:mm:SS+00:00')}</lastmod>
+<lastmod>${d2.updated_time ? (0, moment_js_1.default)(new Date(d2.updated_time)).format('YYYY-MM-DD') : (0, moment_js_1.default)(new Date()).format('YYYY-MM-DDTHH:mm:SS+00:00')}</lastmod>
 <changefreq>weekly</changefreq>
-</url>`;
+</url>
+`;
                 })}
-                </urlset>
+</urlset>
                 `;
+                return (0, xml_formatter_1.default)(sitemap, {
+                    indentation: '  ',
+                    filter: (node) => node.type !== 'Comment',
+                    collapseContent: true,
+                });
             },
             sitemap_list: async (req, resp) => {
                 let appName = dd.appName;
@@ -467,7 +485,7 @@ Sitemap: https://${domain}/sitemap.xml
 <urlset  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd http://www.google.com/schemas/sitemap-image/1.1 http://www.google.com/schemas/sitemap-image/1.1/sitemap-image.xsd" xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
         <loc>https://${domain}/index</loc>
-        <lastmod>2024-06-17T02:53:00+00:00</lastmod>
+        <lastmod>2024-06-16T02:53:00+00:00</lastmod>
         <changefreq>weekly</changefreq>
     </url>
 </urlset>`;

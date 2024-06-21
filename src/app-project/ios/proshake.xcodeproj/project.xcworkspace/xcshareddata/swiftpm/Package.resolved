@@ -1,4 +1,5 @@
 {
+  "originHash" : "df105295a6eccfb2737c8d9d94390dfe65ce8d3d9e710e0f526c34f421753961",
   "pins" : [
     {
       "identity" : "abseil-cpp-binary",
@@ -23,8 +24,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/sam38124/GlitterForIOS",
       "state" : {
-        "revision" : "f0dcbfc9c85ff865083576b83c62045fab775169",
-        "version" : "2.5.7"
+        "revision" : "ddc962aa235f18c61b534bfbdf4534d67c04bfe1",
+        "version" : "2.6.1"
       }
     },
     {
@@ -136,5 +137,5 @@
       }
     }
   ],
-  "version" : 2
+  "version" : 3
 }

@@ -51,7 +51,7 @@ export const widgetComponent = {
                                     };
                                 }
                                 else {
-                                    return { key: dd.attr, value: eval(dd.value) };
+                                    return { key: dd.attr, value: dd.value };
                                 }
                             }
                             catch (e) {
@@ -161,7 +161,7 @@ export const widgetComponent = {
                             page_config: widget.global.pageConfig,
                             document: document,
                             editorSection: widget.id
-                        }, getCreateOption());
+                        }, getCreateOption);
                     }
                     widget.data.setting.refresh = (() => {
                         try {

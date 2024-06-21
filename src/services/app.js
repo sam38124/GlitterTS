@@ -52,7 +52,7 @@ class App {
         });
     }
     async createApp(cf) {
-        var _a, _b, _c;
+        var _a, _b, _c, _d;
         try {
             cf.copyWith = (_a = cf.copyWith) !== null && _a !== void 0 ? _a : [];
             const count = await database_1.default.execute(`
@@ -91,7 +91,7 @@ class App {
                                                                                   template_config)
                               values (?, ?, ?, ${database_1.default.escape(JSON.stringify((copyAppData && copyAppData.config) || {}))},
                                       ${database_1.default.escape((_b = cf.brand) !== null && _b !== void 0 ? _b : config_1.saasConfig.SAAS_NAME)},
-                                      ${database_1.default.escape(JSON.stringify({ name: cf.name }))},
+                                      ${database_1.default.escape(JSON.stringify((_c = (copyAppData && copyAppData.theme_config)) !== null && _c !== void 0 ? _c : { name: cf.name }))},
                                       ${(cf.theme) ? database_1.default.escape(cf.theme) : 'null'},
                                       ${database_1.default.escape(JSON.stringify((copyAppData && copyAppData.template_config) || {}))})`, [
                 this.token.userID,
@@ -234,7 +234,7 @@ class App {
         catch (e) {
             await database_1.default.query(`delete from \`${config_1.saasConfig.SAAS_NAME}\`.app_config where appName=?`, [cf.appName]);
             console.log(e);
-            throw exception_1.default.BadRequestError((_c = e.code) !== null && _c !== void 0 ? _c : 'BAD_REQUEST', e, null);
+            throw exception_1.default.BadRequestError((_d = e.code) !== null && _d !== void 0 ? _d : 'BAD_REQUEST', e, null);
         }
     }
     async updateThemeConfig(body) {
@@ -340,7 +340,7 @@ class App {
         var _a;
         try {
             return (await database_1.default.execute(`
-                SELECT user, appName, created_time, dead_line, brand, template_config, template_type
+                SELECT user, appName, created_time, dead_line, brand, template_config, template_type,domain
                 FROM \`${config_1.saasConfig.SAAS_NAME}\`.app_config
                 where ${(() => {
                 const sql = [];

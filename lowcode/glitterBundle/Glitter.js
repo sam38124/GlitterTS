@@ -535,10 +535,9 @@ export class Glitter {
     set href(value) {
         const link = new URL(value, location.href);
         if ((location.origin) === (link.origin)) {
-            window.history.replaceState({}, document.title, link.search || '');
             this.getModule(new URL('../official_event/page/change-page.js', import.meta.url).href, (cl) => {
                 setTimeout(() => {
-                    cl.changePage(link.searchParams.get('page'), 'page', {});
+                    cl.changePage(link.searchParams.get('page') || location.pathname.substring(1), 'page', {});
                 });
             });
         }

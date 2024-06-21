@@ -2,6 +2,7 @@
 import {Entry} from '../Entry.js';
 import {Glitter} from './Glitter.js';
 import {GVC} from "./GVController.js";
+import {GVCType} from "./module/PageManager.js";
 
 const glitter = new Glitter(window); //glitter變數
 (window as any).glitter = glitter;
@@ -44,20 +45,43 @@ function traverseHTML(element: any, document: any) {
         if( (element.tagName.toLowerCase() === 'page-box')){
           const pageConfig=glitter.pageConfig.find((dd)=>{
               return `page${dd.id}`===element.getAttribute('id')
-          })
+          });
+            console.log(`show_page->`,glitter.pageConfig.filter((dd)=>{
+                return dd.type===GVCType.Page
+            }))
+            if(((window as any).glitter.share.to_menu) && glitter.pageConfig.filter((dd)=>{
+                return dd.type===GVCType.Page
+            }).length > 1){
+                element.style.display = "none";
+                (window as any).glitter.share.time_back=setTimeout(()=>{ window.history.back()})
+                return;
+            }
+            (window as any).glitter.share.to_menu=false
             if(pageConfig && pageConfig.initial){
-                const scroll= JSON.parse(localStorage.getItem('g_l_top') as string);
-                console.log(`isPage-BOX-Return`,scroll.y);
-                (document.querySelector('html') as any).scrollTop=scroll.y;
+                (document.querySelector('html') as any).scrollTop=pageConfig.scrollTop;
                 let count=0
                 const loopScroll=setInterval(()=>{
                     count++
                     if(count<100){
-                        (document.querySelector('html') as any).scrollTop=scroll.y
+                        (document.querySelector('html') as any).scrollTop=pageConfig.scrollTop
                     }else{
                         clearInterval(loopScroll)
                     }
-                },1)
+                })
+
+                function loop(element:any){
+                    if(element && element.onResumeEvent){
+                        element && element.onResumeEvent && element.onResumeEvent();
+                    }
+                    // 取得元素的子元素
+                    let children = element.children;
+                    if (children && children.length > 0) {
+                        for (let j = 0; j < children.length; j++) {
+                            loop(children[j])
+                        }
+                    }
+                }
+                loop(element)
 
                 return
             }
@@ -135,7 +159,6 @@ function traverseHTML(element: any, document: any) {
                             (document.querySelector(`[gvc-id="${id}"]`) as any).onResumeEvent()
                         })
 
-                    }else {
                     }
                     if ((document.querySelector(`[gvc-id="${id}"]`) as any)) {
 

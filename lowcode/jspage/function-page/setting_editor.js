@@ -254,7 +254,8 @@ export class Setting_editor {
                                             appName: 'cms_system',
                                             groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716655243577-Component 56 (6).svg',
                                             moduleName: 'IOS應用上架',
-                                        }, {
+                                        },
+                                        {
                                             icon: '',
                                             page: 'android_release',
                                             group: 'APP',
@@ -283,6 +284,15 @@ export class Setting_editor {
                                         },
                                     ];
                                     mustItem = mustItem.concat([
+                                        {
+                                            icon: '',
+                                            page: 'code_info',
+                                            group: '擴充套件',
+                                            title: 'Graph Api',
+                                            appName: 'cms_system',
+                                            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713419947572-code-solid.svg',
+                                            moduleName: '結帳事件',
+                                        },
                                         {
                                             icon: '',
                                             page: 'web_hook_checkout',
@@ -318,7 +328,7 @@ export class Setting_editor {
                                             appName: 'cms_system',
                                             groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713418629944-Component 56 (7).svg',
                                             moduleName: '模板發佈',
-                                        }
+                                        },
                                     ]);
                                     ApiPageConfig.getPrivateConfigV2('backend_list').then((res) => {
                                         res.response.result[0] && (items = res.response.result[0].value);
@@ -446,7 +456,7 @@ export class Setting_editor {
                                                                                 ${dd.title === '品牌官網' ? `<div class="my-4 border-top"></div>` : ``}
                                                                                 <li>
                                                                                     <div
-                                                                                        class="w-100 fw-500 d-flex align-items-center  fs-6 hoverBtn h_item  rounded px-2 cms_left_items"
+                                                                                        class="w-100 fw-500 d-flex align-items-center  fs-6 hoverBtn h_item  rounded px-2 tx_700"
                                                                                         style="gap:7px;color:#393939;${dd.toggle ? `border-radius: 5px;background: #F2F2F2;` : ``}"
                                                                                         onclick="${gvc.event(() => {
                                                                         if (dd.type === 'container') {

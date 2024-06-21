@@ -50,7 +50,7 @@ class Firebase {
             else {
                 for (const b of (await (firebase_admin_1.default
                     .projectManagement().listAndroidApps()))) {
-                    if ((await b.getMetadata()).projectId === cf.appID) {
+                    if ((await b.getMetadata()).packageName === cf.appID) {
                         await b.setDisplayName(cf.appDomain);
                         return (await b.getConfig());
                     }
@@ -64,50 +64,69 @@ class Firebase {
     }
     async sendMessage(cf) {
         return new Promise(async (resolve, reject) => {
+            var _a;
             if (cf.userID) {
-                const us = (await database_1.default.query(`SELECT deviceToken FROM \`${cf.app || this.app}\`.t_fcm where userID=?;`, [cf.userID]))[0];
-                cf.token = us && us['deviceToken'];
-                if (cf.userID && cf.tag && cf.title && cf.body && cf.link) {
-                    await database_1.default.query(`insert into \`${cf.app || this.app}\`.t_notice (user_id,tag,title,content,link) values (?,?,?,?,?)`, [
-                        cf.userID,
-                        cf.tag,
-                        cf.title,
-                        cf.body,
-                        cf.link
-                    ]);
+                cf.token = (await database_1.default.query(`SELECT deviceToken
+                                            FROM \`${cf.app || this.app}\`.t_fcm
+                                            where userID = ?;`, [cf.userID])).map((dd) => {
+                    return dd.deviceToken;
+                });
+                const user_cf = ((_a = ((await database_1.default.query(`select \`value\`
+                                                   from \`${cf.app || this.app}\`.t_user_public_config
+                                                   where \`key\` ='notify_setting' and user_id=?`, [cf.userID]))[0])) !== null && _a !== void 0 ? _a : { value: {} }).value;
+                if (`${user_cf[cf.tag]}` !== 'false') {
+                    if (cf.userID && cf.tag && cf.title && cf.body && cf.link) {
+                        await database_1.default.query(`insert into \`${cf.app || this.app}\`.t_notice (user_id, tag, title, content, link)
+                                        values (?, ?, ?, ?, ?)`, [
+                            cf.userID,
+                            cf.tag,
+                            cf.title,
+                            cf.body,
+                            cf.link
+                        ]);
+                    }
+                }
+                else {
+                    resolve(true);
+                    return;
                 }
             }
-            if (cf.token) {
-                firebase_admin_1.default.apps.find((dd) => {
-                    return (dd === null || dd === void 0 ? void 0 : dd.name) === 'glitter';
-                }).messaging().send({
-                    notification: {
-                        title: cf.title,
-                        body: cf.body,
-                    },
-                    android: {
+            if (typeof cf.token === 'string') {
+                cf.token = [cf.token];
+            }
+            if (Array.isArray(cf.token)) {
+                for (const token of cf.token) {
+                    firebase_admin_1.default.apps.find((dd) => {
+                        return (dd === null || dd === void 0 ? void 0 : dd.name) === 'glitter';
+                    }).messaging().send({
                         notification: {
-                            sound: 'default'
+                            title: cf.title,
+                            body: cf.body,
                         },
-                    },
-                    apns: {
-                        payload: {
-                            aps: {
+                        android: {
+                            notification: {
                                 sound: 'default'
                             },
                         },
-                    },
-                    data: {
-                        link: cf.link
-                    },
-                    "token": cf.token
-                }).then((response) => {
-                    resolve(true);
-                    console.log('成功發送推播：', response);
-                }).catch((error) => {
-                    resolve(false);
-                    console.error('發送推播時發生錯誤：', error);
-                });
+                        apns: {
+                            payload: {
+                                aps: {
+                                    sound: 'default'
+                                },
+                            },
+                        },
+                        data: {
+                            link: cf.link
+                        },
+                        "token": token
+                    }).then((response) => {
+                        resolve(true);
+                        console.log('成功發送推播：', response);
+                    }).catch((error) => {
+                        resolve(false);
+                        console.error('發送推播時發生錯誤：', error);
+                    });
+                }
             }
         });
     }

@@ -15,6 +15,7 @@ const html = String.raw;
 interface ViewModel {
     id: string;
     filterId: string;
+    tableId: string;
     type: 'list' | 'add' | 'replace' | 'select';
     data: any;
     dataList: any;
@@ -38,6 +39,7 @@ export class UserList {
             orderString: '',
             filter: {},
             filterId: glitter.getUUID(),
+            tableId: glitter.getUUID(),
         };
 
         const ListComp = new BgListComponent(gvc, vm, FilterOptions.userFilterFrame);
@@ -113,177 +115,186 @@ export class UserList {
             });
         }
 
-        return gvc.bindView(() => {
-            return {
-                bind: vm.id,
-                dataList: [{ obj: vm, key: 'type' }],
-                view: () => {
-                    if (vm.type === 'list') {
-                        return BgWidget.container(
-                            html`
-                                <div class="d-flex w-100 align-items-center">
-                                    ${BgWidget.title('顧客列表')}
-                                    <div class="flex-fill"></div>
-                                    <button
-                                        class="btn hoverBtn me-2 px-3 d-none"
-                                        style="height:35px !important;font-size: 14px;color:black;border:1px solid black;"
-                                        onclick="${gvc.event(() => {
-                                            UserList.setUserForm(gvc, () => {
-                                                gvc.notifyDataChange(vm.id);
-                                            });
-                                        })}"
-                                    >
-                                        <i class="fa-regular fa-gear me-2 "></i>
-                                        自訂資料
-                                    </button>
-                                </div>
-                                ${BgWidget.tableV2({
-                                    gvc: gvc,
-                                    getData: (vd) => {
-                                        vmi = vd;
-                                        const limit = 20;
-                                        
-                                        ApiUser.getUserListOrders({
-                                            page: vmi.page - 1,
-                                            limit: limit,
-                                            search: vm.query || undefined,
-                                            searchType: vm.queryType || 'name',
-                                            orderString: vm.orderString || '',
-                                            filter: vm.filter,
-                                        }).then((data) => {
-                                            vmi.pageSize = Math.ceil(data.response.total / limit);
-                                            vm.dataList = data.response.data;
-                                            vmi.data = getDatalist();
-                                            vmi.callback();
+ return gvc.bindView({
+            bind: vm.id,
+            dataList: [{ obj: vm, key: 'type' }],
+            view: () => {
+                if (vm.type === 'list') {
+                    return BgWidget.container(
+                        html`
+                            <div class="d-flex w-100 align-items-center">
+                                ${BgWidget.title('顧客列表')}
+                                <div class="flex-fill"></div>
+                                <button
+                                    class="btn hoverBtn me-2 px-3 d-none"
+                                    style="height:35px !important;font-size: 14px;color:black;border:1px solid black;"
+                                    onclick="${gvc.event(() => {
+                                        UserList.setUserForm(gvc, () => {
+                                            gvc.notifyDataChange(vm.id);
                                         });
-                                    },
-                                    rowClick: (data, index) => {
-                                        vm.data = vm.dataList[index];
-                                        vm.type = 'replace';
-                                    },
-                                    filter: html`
-                                        <div>
-                                            <div style="display: flex; align-items: center; gap: 10px;">
-                                                ${BgWidget.selectFilter({
-                                                    gvc,
-                                                    callback: (value: any) => {
-                                                        vm.queryType = value;
-                                                        gvc.notifyDataChange(vm.id);
-                                                    },
-                                                    default: vm.queryType || 'name',
-                                                    options: FilterOptions.userSelect,
-                                                })}
-                                                ${BgWidget.searchFilter(
-                                                    gvc.event((e, event) => {
-                                                        vm.query = e.value;
-                                                        gvc.notifyDataChange(vm.id);
-                                                    }),
-                                                    vm.query || '',
-                                                    '搜尋所有用戶'
-                                                )}
-                                                ${BgWidget.funnelFilter({
-                                                    gvc,
-                                                    callback: () => ListComp.showRightMenu(FilterOptions.userFunnel),
-                                                })}
-                                                ${BgWidget.updownFilter({
-                                                    gvc,
-                                                    callback: (value: any) => {
-                                                        vm.orderString = value;
-                                                        gvc.notifyDataChange(vm.id);
-                                                    },
-                                                    default: vm.orderString || 'default',
-                                                    options: FilterOptions.userOrderBy,
-                                                })}
-                                            </div>
-                                            <div>${ListComp.getFilterTags(FilterOptions.userFunnel)}</div>
-                                        </div>
-                                        ${gvc.bindView(() => {
-                                            return {
-                                                bind: vm.filterId,
-                                                view: () => {
-                                                    return [
-                                                        html`<span class="fs-7 fw-bold">操作選項</span
-                                                            ><button
-                                                                class="btn btn-danger fs-7 px-2"
-                                                                style="height: 30px; border: none;"
-                                                                onclick="${gvc.event(() => {
-                                                                    const dialog = new ShareDialog(gvc.glitter);
-                                                                    dialog.checkYesOrNot({
-                                                                        text: '是否確認移除所選項目?',
-                                                                        callback: (response) => {
-                                                                            if (response) {
-                                                                                dialog.dataLoading({ visible: true });
-                                                                                ApiUser.deleteUser({
-                                                                                    id: vm.dataList
-                                                                                        .filter((dd: any) => {
-                                                                                            return dd.checked;
-                                                                                        })
-                                                                                        .map((dd: any) => {
-                                                                                            return dd.id;
-                                                                                        })
-                                                                                        .join(`,`),
-                                                                                }).then((res) => {
-                                                                                    dialog.dataLoading({ visible: false });
-                                                                                    if (res.result) {
-                                                                                        vm.dataList = undefined;
-                                                                                        gvc.notifyDataChange(vm.id);
-                                                                                    } else {
-                                                                                        dialog.errorMessage({ text: '刪除失敗' });
-                                                                                    }
-                                                                                });
-                                                                            }
-                                                                        },
-                                                                    });
-                                                                })}"
-                                                            >
-                                                                批量移除
-                                                            </button>`,
-                                                    ].join(``);
+                                    })}"
+                                >
+                                    <i class="fa-regular fa-gear me-2 "></i>
+                                    自訂資料
+                                </button>
+                            </div>
+                            ${BgWidget.container(
+                                [
+                                    (() => {
+                                        const id = gvc.glitter.getUUID();
+                                        return gvc.bindView({
+                                            bind: id,
+                                            view: () => {
+                                                return html`<div>
+                                                    <div style="display: flex; align-items: center; gap: 10px;">
+                                                        ${BgWidget.selectFilter({
+                                                            gvc,
+                                                            callback: (value: any) => {
+                                                                vm.queryType = value;
+                                                                gvc.notifyDataChange(vm.tableId);
+                                                                gvc.notifyDataChange(id);
+                                                            },
+                                                            default: vm.queryType || 'name',
+                                                            options: FilterOptions.userSelect,
+                                                        })}
+                                                        ${BgWidget.searchFilter(
+                                                            gvc.event((e) => {
+                                                                vm.query = e.value;
+                                                                gvc.notifyDataChange(vm.tableId);
+                                                                gvc.notifyDataChange(id);
+                                                            }),
+                                                            vm.query || '',
+                                                            '搜尋所有用戶'
+                                                        )}
+                                                        ${BgWidget.funnelFilter({
+                                                            gvc,
+                                                            callback: () => ListComp.showRightMenu(FilterOptions.userFunnel),
+                                                        })}
+                                                        ${BgWidget.updownFilter({
+                                                            gvc,
+                                                            callback: (value: any) => {
+                                                                vm.orderString = value;
+                                                                gvc.notifyDataChange(vm.tableId);
+                                                                gvc.notifyDataChange(id);
+                                                            },
+                                                            default: vm.orderString || 'default',
+                                                            options: FilterOptions.userOrderBy,
+                                                        })}
+                                                    </div>
+                                                    <div>${ListComp.getFilterTags(FilterOptions.userFunnel)}</div>
+                                                </div>`;
+                                            },
+                                        });
+                                    })(),
+                                    gvc.bindView({
+                                        bind: vm.tableId,
+                                        view: () => {
+                                            return BgWidget.tableV2({
+                                                gvc: gvc,
+                                                getData: (vd) => {
+                                                    vmi = vd;
+                                                    const limit = 20;
+                                                    ApiUser.getUserListOrders({
+                                                        page: vmi.page - 1,
+                                                        limit: limit,
+                                                        search: vm.query || undefined,
+                                                        searchType: vm.queryType || 'name',
+                                                        orderString: vm.orderString || '',
+                                                        filter: vm.filter,
+                                                    }).then((data) => {
+                                                        vmi.pageSize = Math.ceil(data.response.total / limit);
+                                                        vm.dataList = data.response.data;
+                                                        vmi.data = getDatalist();
+                                                        vmi.callback();
+                                                    });
                                                 },
-                                                divCreate: () => {
+                                                rowClick: (data, index) => {
+                                                    vm.data = vm.dataList[index];
+                                                    vm.type = 'replace';
+                                                },
+                                                filter: gvc.bindView(() => {
                                                     return {
-                                                        class: `d-flex align-items-center p-2 py-3 ${
-                                                            !vm.dataList ||
-                                                            !vm.dataList.find((dd: any) => {
-                                                                return dd.checked;
-                                                            })
-                                                                ? `d-none`
-                                                                : ``
-                                                        }`,
-                                                        style: `height: 40px; gap: 10px; margin-top: 10px;`,
+                                                        bind: vm.filterId,
+                                                        view: () => {
+                                                            return [
+                                                                html`<span class="fs-7 fw-bold">操作選項</span
+                                                                    ><button
+                                                                        class="btn btn-danger fs-7 px-2"
+                                                                        style="height: 30px; border: none;"
+                                                                        onclick="${gvc.event(() => {
+                                                                            const dialog = new ShareDialog(gvc.glitter);
+                                                                            dialog.checkYesOrNot({
+                                                                                text: '是否確認移除所選項目?',
+                                                                                callback: (response) => {
+                                                                                    if (response) {
+                                                                                        dialog.dataLoading({ visible: true });
+                                                                                        ApiUser.deleteUser({
+                                                                                            id: vm.dataList
+                                                                                                .filter((dd: any) => {
+                                                                                                    return dd.checked;
+                                                                                                })
+                                                                                                .map((dd: any) => {
+                                                                                                    return dd.id;
+                                                                                                })
+                                                                                                .join(`,`),
+                                                                                        }).then((res) => {
+                                                                                            dialog.dataLoading({ visible: false });
+                                                                                            if (res.result) {
+                                                                                                vm.dataList = undefined;
+                                                                                                gvc.notifyDataChange(vm.id);
+                                                                                            } else {
+                                                                                                dialog.errorMessage({ text: '刪除失敗' });
+                                                                                            }
+                                                                                        });
+                                                                                    }
+                                                                                },
+                                                                            });
+                                                                        })}"
+                                                                    >
+                                                                        批量移除
+                                                                    </button>`,
+                                                            ].join(``);
+                                                        },
+                                                        divCreate: () => {
+                                                            const display = !vm.dataList || !vm.dataList.find((dd: any) => dd.checked) ? 'd-none' : '';
+                                                            return {
+                                                                class: `d-flex align-items-center p-2 ${display}`,
+                                                                style: `height: 40px; gap: 10px; margin-top: 10px;`,
+                                                            };
+                                                        },
                                                     };
-                                                },
-                                            };
-                                        })}
-                                    `,
-                                    table_style: `
-                                        background-color: #fff;
-                                        margin: 24px 0 !important;
-                                        padding: 32px 42px !important;
-                                        border-radius: 10px;
-                                        background: #fff;
-                                        box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.08);
-                                    `,
-                                })}
-                            `,
-                            1200
-                        );
-                    } else if (vm.type == 'replace') {
-                        return this.userInformationDetail({
-                            userID: vm.data.userID,
-                            callback: () => {
-                                vm.type = 'list';
-                            },
-                            gvc: gvc,
-                        });
-                    } else {
-                        return ``;
-                    }
-                },
-                divCreate: {
-                    style: 'margin: 0 32px;',
-                },
-            };
+                                                }),
+                                            });
+                                        },
+                                    }),
+                                ].join(''),
+                                1200,
+                                `
+                                    background-color: #fff;
+                                    margin: 24px 0 !important;
+                                    padding: 32px 42px !important;
+                                    border-radius: 10px;
+                                    box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.08);
+                                `
+                            )}
+                        `,
+                        1200
+                    );
+                } else if (vm.type == 'replace') {
+                    return this.userInformationDetail({
+                        userID: vm.data.userID,
+                        callback: () => {
+                            vm.type = 'list';
+                        },
+                        gvc: gvc,
+                    });
+                } else {
+                    return ``;
+                }
+            },
+            divCreate: {
+                style: 'margin: 0 32px;',
+            },
         });
     }
 
@@ -449,11 +460,41 @@ export class UserList {
         function getRebatelist(data: any) {
             return data.map((dd: any) => {
                 return [
-                    { key: '日期', value: gvc.glitter.ut.dateFormat(new Date(dd.created_time), 'yyyy-MM-dd hh:mm') },
-                    { key: '回饋金項目', value: dd.note.note ?? '' },
-                    { key: '款項', value: dd.money },
-                    { key: '到期日', value: dd.money > 0 ? '永不到期' : '-' },
-                    // { key: '餘額', value: 0 },
+                    { key: '建立日期', value: gvc.glitter.ut.dateFormat(new Date(dd.created_at), 'yyyy-MM-dd hh:mm') },
+                    {
+                        key: '到期日期',
+                        value: (() => {
+                            if (dd.origin < 0) {
+                                return html`<span class="tx_700">-</span>`;
+                            }
+                            if (dd.deadline.includes('2999-')) {
+                                return '無期限';
+                            }
+                            return gvc.glitter.ut.dateFormat(new Date(dd.deadline), 'yyyy-MM-dd hh:mm');
+                        })(),
+                    },
+                    { key: '回饋金項目', value: dd.note ?? '' },
+                    {
+                        key: '增減金額',
+                        value: (() => {
+                            if (dd.origin > 0) {
+                                return html`<span class="tx_700 text-success">+ ${dd.origin}</span>`;
+                            }
+                            return html`<span class="tx_700 text-danger">- ${dd.origin * -1}</span>`;
+                        })(),
+                    },
+                    {
+                        key: '剩餘金額',
+                        value: (() => {
+                            if (dd.origin < 0) {
+                                return html`<span class="tx_700">-</span>`;
+                            }
+                            if (dd.remain > 0) {
+                                return html`<span class="tx_700 text-success">+ ${dd.remain}</span>`;
+                            }
+                            return html`<span class="tx_700">0</span>`;
+                        })(),
+                    },
                 ];
             });
         }
@@ -504,7 +545,7 @@ export class UserList {
                                                             view: () => {
                                                                 return BgWidget.card_main(
                                                                     html`<div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                                                                        <span class="cms_left_items">顧客資訊</span>
+                                                                        <span class="tx_700">顧客資訊</span>
                                                                         <div style="display: flex; gap: 8px;">
                                                                             ${BgWidget.grayButton(
                                                                                 vmi.mode === 'edit' ? '修改關閉' : '修改啟用',
@@ -549,7 +590,7 @@ export class UserList {
                                                                                             switch (item.page) {
                                                                                                 case 'input':
                                                                                                     h += html`<div>
-                                                                                                        <div class="t_39_16">${item.title}</div>
+                                                                                                        <div class="tx_normal">${item.title}</div>
                                                                                                         <div>
                                                                                                             ${BgWidget.editeInput({
                                                                                                                 gvc: gvc,
@@ -567,7 +608,7 @@ export class UserList {
                                                                                                     break;
                                                                                                 case 'multiple_line_text':
                                                                                                     h += html`<div>
-                                                                                                        <div class="t_39_16">${item.title}</div>
+                                                                                                        <div class="tx_normal">${item.title}</div>
                                                                                                         ${BgWidget.textArea({
                                                                                                             gvc: gvc,
                                                                                                             title: '',
@@ -611,7 +652,7 @@ export class UserList {
                                                             view: () => {
                                                                 return BgWidget.card_main(
                                                                     html`<div style="display: flex; margin-bottom: 8px;">
-                                                                        <span class="cms_left_items">訂單記錄</span>
+                                                                        <span class="tx_700">訂單記錄</span>
                                                                     </div>` +
                                                                         gvc.bindView(() => {
                                                                             const id = gvc.glitter.getUUID();
@@ -663,10 +704,10 @@ export class UserList {
                                                             view: () => {
                                                                 return BgWidget.card_main(
                                                                     html`<div style="display: flex; margin-bottom: 12px;">
-                                                                        <span class="cms_left_items">回饋金</span>
+                                                                        <span class="tx_700">回饋金</span>
                                                                     </div>` +
                                                                         html`<div style="display: flex; margin-bottom: 18px; align-items: center; gap: 18px">
-                                                                            <span class="cms_left_items">現有回饋金</span>
+                                                                            <span class="tx_700">現有回饋金</span>
                                                                             <span style="font-size: 24px; font-weight: 400; color: #393939;"
                                                                                 >${gvc.bindView({
                                                                                     bind: vm.id,
@@ -686,7 +727,7 @@ export class UserList {
                                                                             >
                                                                         </div>` +
                                                                         html`<div style="display: flex; margin-bottom: 18px;">
-                                                                            <span class="cms_left_items">回饋金紀錄</span>
+                                                                            <span class="tx_700">回饋金紀錄</span>
                                                                         </div>` +
                                                                         gvc.bindView(() => {
                                                                             const id = gvc.glitter.getUUID();
@@ -701,8 +742,7 @@ export class UserList {
                                                                                                 ApiWallet.getRebate({
                                                                                                     page: vd.page - 1,
                                                                                                     limit: limit,
-                                                                                                    id: vm.data.userID,
-                                                                                                    dataType: 'all',
+                                                                                                    search: vm.data.userData.email,
                                                                                                 }).then((data) => {
                                                                                                     vd.pageSize = Math.ceil(data.response.total / limit);
                                                                                                     vm.dataList = data.response.data;
@@ -754,7 +794,7 @@ export class UserList {
                                                                                 }
                                                                                 let h = html`
                                                                                     <div class="gray-bottom-line-18">
-                                                                                        <div class="cms_left_items">會員等級</div>
+                                                                                        <div class="tx_700">會員等級</div>
                                                                                         <div style="margin-top: 12px">
                                                                                             <div class="badge bg-warning fs-7" style="max-height:34px;">
                                                                                                 ${(
@@ -785,7 +825,7 @@ export class UserList {
                                                                                                         const formatNum = (n: string | number) => parseInt(`${n}`, 10).toLocaleString();
 
                                                                                                         resolve(html`<div class="gray-bottom-line-18">
-                                                                                                            <div class="cms_left_items">消費總金額</div>
+                                                                                                            <div class="tx_700">消費總金額</div>
                                                                                                             ${total_price === 0
                                                                                                                 ? html`<div
                                                                                                                       style="font-size: 14px; font-weight: 400; color: #393939; margin-top: 12px;"
@@ -797,7 +837,7 @@ export class UserList {
                                                                                                                   >
                                                                                                                       ${formatNum(total_price)}
                                                                                                                   </div>`}
-                                                                                                            <div class="cms_left_items" style="margin-top: 18px">消費次數</div>
+                                                                                                            <div class="tx_700" style="margin-top: 18px">消費次數</div>
                                                                                                             <div style="font-size: 32px; font-weight: 400; color: #393939; margin-top: 12px;">
                                                                                                                 ${formatNum(data.response.total)}
                                                                                                             </div>
@@ -807,9 +847,8 @@ export class UserList {
                                                                                             },
                                                                                         });
                                                                                     })()}
-
                                                                                     <div class="d-none">
-                                                                                        <div class="cms_left_items">所屬分群</div>
+                                                                                        <div class="tx_700">所屬分群</div>
                                                                                         <div style="display: flex; gap: 12px; margin-top: 12px; flex-direction: column;">
                                                                                             <div>電子郵件訂閱者</div>
                                                                                             <div>已購買多次的顧客</div>
@@ -980,7 +1019,7 @@ export class UserList {
                                     自訂資料
                                 </button>
                             </div>
-                            ${BgWidget.table({
+                            ${BgWidget.tableV2({
                                 gvc: gvc,
                                 getData: (vd) => {
                                     vmi = vd;

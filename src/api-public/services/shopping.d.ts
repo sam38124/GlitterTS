@@ -36,9 +36,6 @@ export declare class Shopping {
     app: string;
     token?: IToken;
     constructor(app: string, token?: IToken);
-    deleteRebate(cf: {
-        id: string;
-    }): Promise<void>;
     getProduct(query: {
         page: number;
         limit: number;
@@ -248,6 +245,7 @@ export declare class Shopping {
         total: any;
         result?: undefined;
     }>;
+    releaseCheckout(status: 1 | 0 | -1, order_id: string): Promise<void>;
     postVariantsAndPriceValue(content: any): Promise<void>;
     getDataAnalyze(tags: string[]): Promise<any>;
     getOrderToDay(): Promise<{

@@ -7,7 +7,16 @@ exports.UpdateScript = void 0;
 const database_1 = __importDefault(require("./modules/database"));
 class UpdateScript {
     static async run() {
-        UpdateScript.migrateAccount('shop_template_black_style');
+    }
+    static async migrateRichText() {
+        const page_list = (await database_1.default.query(`select page_config,id
+                                             FROM glitter.page_config where template_type=2`, []));
+        page_list.map((d) => {
+            d.page_config = JSON.parse(JSON.stringify(d.page_config).replace(/multiple_line_text/g, 'rich_text'));
+        });
+        for (const p of page_list) {
+            await database_1.default.query(`update glitter.page_config set page_config=? where id=?`, [JSON.stringify(p.page_config), p.id]);
+        }
     }
     static async migrateAccount(appName) {
         const page_list = (await database_1.default.query(`SELECT *

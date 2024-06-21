@@ -114,7 +114,7 @@ export class Editor {
                 if (Storage.select_function === 'backend-manger') {
                     return html `
                                                 <div class="me-auto t_39_normal border-end px-4 d-flex align-items-center justify-content-center" style="height: 56px;cursor: pointer;" onclick="${gvc.event(() => {
-                        gvc.glitter.openNewTab('https://shopnex.cc/?page=blog-home-page');
+                        gvc.glitter.openNewTab('https://shopnex.cc/blog-home-page');
                     })}">
                                                     開店教學
                                                 </div>`;

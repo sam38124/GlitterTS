@@ -254,7 +254,7 @@ export class GVC {
             }
         });
         const divCreate = (_d = ((typeof map.divCreate === "function") ? map.divCreate() : map.divCreate)) !== null && _d !== void 0 ? _d : { elem: 'div' };
-        return `<${(_e = divCreate.elem) !== null && _e !== void 0 ? _e : 'div'}  class="${(_f = divCreate.class) !== null && _f !== void 0 ? _f : ""}" style="${(_g = divCreate.style) !== null && _g !== void 0 ? _g : ""}" 
+        return `<${(_e = divCreate.elem) !== null && _e !== void 0 ? _e : 'div'}  class="${(_f = divCreate.class) !== null && _f !== void 0 ? _f : ""}" style="${(_g = divCreate.style) !== null && _g !== void 0 ? _g : ""}"
  glem="bindView"  gvc-id="${gvc.id(map.bind)}"
  ${gvc.map(((_h = divCreate.option) !== null && _h !== void 0 ? _h : []).map((dd) => {
             return ` ${dd.key}="${dd.value}"`;
@@ -384,13 +384,6 @@ export function init(metaURL, fun) {
     GVC.glitter.share.GVControllerList = (_a = GVC.glitter.share.GVControllerList) !== null && _a !== void 0 ? _a : {};
     GVC.glitter.share.GVControllerList[metaURL] = (cf) => {
         var _a, _b, _c, _d, _e, _f;
-        if (window.glitter.pageConfig.length - 2 >= 0) {
-            localStorage.setItem('g_l_top', JSON.stringify({
-                y: window.scrollY,
-                id: window.glitter.pageConfig[window.glitter.pageConfig.length - 2].id
-            }));
-            window.glitter.pageConfig[window.glitter.pageConfig.length - 2].scrollTop = window.scrollY;
-        }
         const gvc = new GVC();
         cf.pageConfig.gvc = gvc;
         gvc.parameter.pageConfig = cf.pageConfig;
@@ -446,7 +439,6 @@ ${lifeCycle.onCreateView()}
         gvc.glitter.setAnimation(cf.pageConfig);
         lifeCycle.onCreate();
         gvc.glitter.defaultSetting.pageLoadingFinish();
-        PageManager.setHistory(GVC.glitter.getUrlParameter('page'), cf.c_type);
-        console.log(`cf.c_type`, cf.c_type);
+        PageManager.setHistory(cf.pageConfig.tag, cf.c_type);
     };
 }

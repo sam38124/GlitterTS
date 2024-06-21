@@ -57,15 +57,11 @@ export class Glitter {
     }
 
     set href(value) {
-
         const link = new URL(value, location.href);
-        //http://127.0.0.1:4000/proshake_v2/?section=case&page=case_survey&select_tab=post_case
-
         if ((location.origin) === (link.origin)) {
-            window.history.replaceState({}, document.title, link.search || '');
             this.getModule(new URL('../official_event/page/change-page.js', import.meta.url).href, (cl) => {
                 setTimeout(() => {
-                    cl.changePage(link.searchParams.get('page'), 'page', {})
+                    cl.changePage(link.searchParams.get('page') || location.pathname.substring(1), 'page', {})
                 })
             })
         } else {

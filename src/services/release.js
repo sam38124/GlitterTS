@@ -11,6 +11,8 @@ const aws_sdk_1 = __importDefault(require("aws-sdk"));
 const config_js_1 = __importDefault(require("../config.js"));
 const exception_js_1 = __importDefault(require("../modules/exception.js"));
 const firebase_js_1 = require("../modules/firebase.js");
+const ios_project_js_1 = require("./ios-project.js");
+const android_project_js_1 = require("./android-project.js");
 class Release {
     static async ios(cf) {
         try {
@@ -22,42 +24,13 @@ class Release {
             let data = fs_1.default.readFileSync(cf.project_router, 'utf8');
             data = data.replace(/PRODUCT_BUNDLE_IDENTIFIER([\s\S]*?);/g, `PRODUCT_BUNDLE_IDENTIFIER = ${cf.bundleID};`)
                 .replace(/INFOPLIST_KEY_CFBundleDisplayName([\s\S]*?);/g, `INFOPLIST_KEY_CFBundleDisplayName = "${cf.appName}";`);
-            const infoPlist = `<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-<dict>
-	<key>UIApplicationSceneManifest</key>
-	<dict>
-		<key>UIApplicationSupportsMultipleScenes</key>
-		<false/>
-		<key>UISceneConfigurations</key>
-		<dict>
-			<key>UIWindowSceneSessionRoleApplication</key>
-			<array>
-				<dict>
-					<key>UISceneConfigurationName</key>
-					<string>Default Configuration</string>
-					<key>UISceneDelegateClassName</key>
-					<string>$(PRODUCT_MODULE_NAME).SceneDelegate</string>
-					<key>UISceneStoryboardFile</key>
-					<string>Main</string>
-				</dict>
-			</array>
-		</dict>
-	</dict>
-</dict>
-</plist>
-`;
-            fs_1.default.writeFileSync(cf.project_router, data);
-            fs_1.default.writeFileSync(path_1.default.resolve(cf.project_router, '../../proshake/Info.plist'), infoPlist);
+            fs_1.default.writeFileSync(path_1.default.resolve(cf.project_router, '../../proshake/Info.plist'), data);
+            fs_1.default.writeFileSync(path_1.default.resolve(cf.project_router, '../../proshake/ViewController.swift'), ios_project_js_1.IosProject.getViewController(cf.domain_url));
             fs_1.default.writeFileSync(path_1.default.resolve(cf.project_router, '../../proshake/GoogleService-Info.plist'), (await firebase_js_1.Firebase.getConfig({
                 appID: cf.bundleID,
                 type: 'ios',
                 appDomain: cf.appDomain
             })));
-            fs_1.default.writeFileSync(path_1.default.resolve(cf.project_router, '../../proshake/GlitterUI/index.html'), (() => {
-                return this.getHtml(cf);
-            })());
         }
         catch (e) {
             console.log(e);
@@ -70,13 +43,69 @@ class Release {
                 appID: cf.bundleID,
                 type: 'android'
             });
-            fs_1.default.writeFileSync(path_1.default.resolve(cf.project_router, './app/src/main/assets/src/home.html'), (() => {
-                return this.getHtml(cf);
-            })());
+            fs_1.default.writeFileSync(path_1.default.resolve(cf.project_router, './app/src/main/java/com/ncdesign/kenda/MyAPP.kt'), android_project_js_1.AndroidProject.appKt(cf.domain_url));
+            fs_1.default.writeFileSync(path_1.default.resolve(cf.project_router, './app/google-services.json'), (await firebase_js_1.Firebase.getConfig({
+                appID: cf.bundleID,
+                type: 'android',
+                appDomain: cf.appDomain
+            })));
+            await this.resetProjectRouter({
+                project_router: cf.project_router,
+                targetString: 'com.ncdesign.kenda',
+                replacementString: cf.bundleID
+            });
+            fs_1.default.renameSync(path_1.default.resolve(cf.project_router, './app/src/main/java/com/ncdesign/kenda'), path_1.default.resolve(cf.project_router, 'temp_file'));
+            Release.deleteFolder(path_1.default.resolve(cf.project_router, './app/src/main/java/com'));
+            fs_1.default.mkdirSync(path_1.default.resolve(cf.project_router, `./app/src/main/java/${cf.bundleID.split('.').join('/')}`), { recursive: true });
+            fs_1.default.renameSync(path_1.default.resolve(cf.project_router, 'temp_file'), path_1.default.resolve(cf.project_router, `./app/src/main/java/${cf.bundleID.split('.').join('/')}`));
         }
         catch (e) {
             console.log(e);
         }
+    }
+    static async resetProjectRouter(cf) {
+        const replaceInFile = (filePath) => {
+            fs_1.default.readFile(filePath, 'utf8', (err, data) => {
+                if (err) {
+                    console.error(`Error reading file ${filePath}:`, err);
+                    return;
+                }
+                if (data.includes(cf.targetString)) {
+                    const result = data.replace(new RegExp(cf.targetString, 'g'), cf.replacementString);
+                    fs_1.default.writeFile(filePath, result, 'utf8', (err) => {
+                        if (err) {
+                            console.error(`Error writing file ${filePath}:`, err);
+                        }
+                        else {
+                            console.log(`Replaced in file: ${filePath}`);
+                        }
+                    });
+                }
+            });
+        };
+        const traverseDirectory = (dir) => {
+            fs_1.default.readdir(dir, { withFileTypes: true }, (err, files) => {
+                if (err) {
+                    console.error(`Error reading directory ${dir}:`, err);
+                    return;
+                }
+                files.forEach((file) => {
+                    const fullPath = path_1.default.join(dir, file.name);
+                    if (file.isDirectory()) {
+                        traverseDirectory(fullPath);
+                    }
+                    else if (file.isFile()) {
+                        replaceInFile(fullPath);
+                    }
+                });
+            });
+        };
+        return new Promise(async (resolve, reject) => {
+            traverseDirectory(cf.project_router);
+            setTimeout(() => {
+                resolve(true);
+            }, 2000);
+        });
     }
     static getHtml(cf) {
         let html = `<!DOCTYPE html>

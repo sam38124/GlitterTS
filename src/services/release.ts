@@ -5,10 +5,17 @@ import AWS from "aws-sdk";
 import config from "../config.js";
 import exception from "../modules/exception.js";
 import {Firebase} from "../modules/firebase.js";
+import {IosProject} from "./ios-project.js";
+import {AndroidProject} from "./android-project.js";
 
 export class Release {
     public static async ios(cf: {
-        appName: string, bundleID: string, appDomain: string, project_router: string, glitter_domain: string
+        appName: string,
+        bundleID: string,
+        appDomain: string,
+        project_router: string,
+        glitter_domain: string,
+        domain_url:string
     }) {
         try {
             await Firebase.appRegister({
@@ -19,44 +26,13 @@ export class Release {
             let data = fs.readFileSync(cf.project_router, 'utf8');
             data = data.replace(/PRODUCT_BUNDLE_IDENTIFIER([\s\S]*?);/g, `PRODUCT_BUNDLE_IDENTIFIER = ${cf.bundleID};`)
                 .replace(/INFOPLIST_KEY_CFBundleDisplayName([\s\S]*?);/g, `INFOPLIST_KEY_CFBundleDisplayName = "${cf.appName}";`)
-            const infoPlist = `<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-<dict>
-	<key>UIApplicationSceneManifest</key>
-	<dict>
-		<key>UIApplicationSupportsMultipleScenes</key>
-		<false/>
-		<key>UISceneConfigurations</key>
-		<dict>
-			<key>UIWindowSceneSessionRoleApplication</key>
-			<array>
-				<dict>
-					<key>UISceneConfigurationName</key>
-					<string>Default Configuration</string>
-					<key>UISceneDelegateClassName</key>
-					<string>$(PRODUCT_MODULE_NAME).SceneDelegate</string>
-					<key>UISceneStoryboardFile</key>
-					<string>Main</string>
-				</dict>
-			</array>
-		</dict>
-	</dict>
-</dict>
-</plist>
-`
-            fs.writeFileSync(cf.project_router, data);
-            fs.writeFileSync(path.resolve(cf.project_router, '../../proshake/Info.plist'), infoPlist);
+            fs.writeFileSync(path.resolve(cf.project_router, '../../proshake/Info.plist'), data);
+            fs.writeFileSync(path.resolve(cf.project_router, '../../proshake/ViewController.swift'), IosProject.getViewController(cf.domain_url));
             fs.writeFileSync(path.resolve(cf.project_router, '../../proshake/GoogleService-Info.plist'), (await Firebase.getConfig({
                 appID: cf.bundleID,
                 type: 'ios',
                 appDomain:cf.appDomain
             })) as string);
-
-
-            fs.writeFileSync(path.resolve(cf.project_router, '../../proshake/GlitterUI/index.html'), (() => {
-                return this.getHtml(cf)
-            })());
         } catch (e) {
             console.log(e)
         }
@@ -64,7 +40,8 @@ export class Release {
     }
 
     public static async android(cf: {
-        appName: string, bundleID: string, appDomain: string, project_router: string, glitter_domain: string
+        appName: string, bundleID: string, appDomain: string, project_router: string, glitter_domain: string,
+        domain_url:string
     }) {
         try {
             await Firebase.appRegister({
@@ -72,12 +49,78 @@ export class Release {
                 appID: cf.bundleID,
                 type: 'android'
             })
-            fs.writeFileSync(path.resolve(cf.project_router, './app/src/main/assets/src/home.html'), (() => {
-                return this.getHtml(cf)
-            })());
+            fs.writeFileSync(path.resolve(cf.project_router, './app/src/main/java/com/ncdesign/kenda/MyAPP.kt'), AndroidProject.appKt(cf.domain_url));
+            fs.writeFileSync(path.resolve(cf.project_router, './app/google-services.json'), (await Firebase.getConfig({
+                appID: cf.bundleID,
+                type: 'android',
+                appDomain:cf.appDomain
+            })) as string);
+            await this.resetProjectRouter({
+                project_router:cf.project_router,
+                targetString:'com.ncdesign.kenda',
+                replacementString:cf.bundleID
+            });
+            fs.renameSync(path.resolve(cf.project_router, './app/src/main/java/com/ncdesign/kenda'), path.resolve(cf.project_router, 'temp_file'));
+            Release.deleteFolder(path.resolve(cf.project_router, './app/src/main/java/com'))
+            fs.mkdirSync(path.resolve(cf.project_router, `./app/src/main/java/${cf.bundleID.split('.').join('/')}`), { recursive: true });
+            fs.renameSync(path.resolve(cf.project_router, 'temp_file'),path.resolve(cf.project_router, `./app/src/main/java/${cf.bundleID.split('.').join('/')}`));
+
         } catch (e) {
             console.log(e)
         }
+
+    }
+
+    public static async resetProjectRouter(cf:{
+        project_router:string
+        targetString:string,
+        replacementString:string
+    }){
+        const replaceInFile = (filePath:string) => {
+            fs.readFile(filePath, 'utf8', (err, data) => {
+                if (err) {
+                    console.error(`Error reading file ${filePath}:`, err);
+                    return;
+                }
+
+                if (data.includes(cf.targetString)) {
+                    const result = data.replace(new RegExp(cf.targetString, 'g'), cf.replacementString);
+
+                    fs.writeFile(filePath, result, 'utf8', (err) => {
+                        if (err) {
+                            console.error(`Error writing file ${filePath}:`, err);
+                        } else {
+                            console.log(`Replaced in file: ${filePath}`);
+                        }
+                    });
+                }
+            });
+        };
+        const traverseDirectory = (dir:string) => {
+            fs.readdir(dir, { withFileTypes: true }, (err, files) => {
+                if (err) {
+                    console.error(`Error reading directory ${dir}:`, err);
+                    return;
+                }
+
+                files.forEach((file) => {
+                    const fullPath = path.join(dir, file.name);
+
+                    if (file.isDirectory()) {
+                        traverseDirectory(fullPath);
+                    } else if (file.isFile()) {
+                        replaceInFile(fullPath);
+                    }
+                });
+            });
+        };
+
+        return new Promise(async (resolve, reject)=>{
+            traverseDirectory(cf.project_router);
+            setTimeout(()=>{
+                resolve(true)
+            },2000)
+        })
 
     }
 

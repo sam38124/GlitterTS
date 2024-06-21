@@ -13,7 +13,7 @@ export declare class Firebase {
         appDomain: string;
     }): Promise<string | undefined>;
     sendMessage(cf: {
-        token?: string;
+        token?: string | string[];
         userID?: string;
         title: string;
         tag: string;

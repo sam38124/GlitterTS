@@ -33,6 +33,9 @@ import {User} from "./api-public/services/user.js";
 import response from "./modules/response.js";
 import {Private_config} from "./services/private_config.js";
 import moment from "moment/moment.js";
+import admin from "firebase-admin";
+import xmlFormatter from "xml-formatter"
+
 
 export const app = express();
 const logger = new Logger();
@@ -48,8 +51,9 @@ app.options('/*', (req, res) => {
 // 添加路由和其他中间件
 app.use(cors());
 app.use(compression());
-app.use(express.raw());
-app.use(express.json({limit: '50MB'}));
+app.use(express.raw({limit: '100MB'}));
+app.use(express.json({limit: '100MB',}));
+app.use(bodyParser.json({limit: '100MB'}));
 app.use(createContext);
 app.use(bodyParser.raw({type: '*/*'}));
 app.use(contollers);
@@ -231,6 +235,7 @@ export async function createAPP(dd: any) {
             app_name: dd.appName,
             root_path: '/' + encodeURI(dd.appName) + '/',
             seoManager: async (req, resp) => {
+
                 try {
                     if (req.query.state === 'google_login') {
                         req.query.page = 'login'
@@ -308,7 +313,7 @@ export async function createAPP(dd: any) {
                                 <head>
                                     <title>${d.title ?? "尚未設定標題"}</title>
                                     <link rel="canonical" href="${relative_root}${data.tag}">
-                                    <meta name="keywords" content="${d.keywords ?? "尚未設定關鍵字"}"/>
+                                    <meta name="keywords" content="${d.keywords ?? "尚未設定關鍵字"}">
                                     <link id="appImage" rel="shortcut icon" href="${d.logo ?? ""}" type="image/x-icon">
                                     <link rel="icon" href="${d.logo ?? ""}" type="image/png" sizes="128x128">
                                     <meta property="og:image" content="${d.image ?? ""}">
@@ -326,6 +331,17 @@ window.glitterBackend='${config.domain}';
 window.preloadData=${JSON.stringify(preload)};
 window.glitter_page='${req.query.page}';
 </script>
+${[
+                            {src: 'glitterBundle/GlitterInitial.js',type:'module'},
+                            {src: 'glitterBundle/module/html-generate.js',type:'module'},
+                            {src: 'glitterBundle/html-component/widget.js',type:'module'},
+                            {src: 'glitterBundle/plugins/trigger-event.js',type:'module'},
+                            {src: 'api/pageConfig.js',type:'module'},
+                            // 'glitterBundle/Glitter.css'
+                        ].map((dd)=>{
+                            return `<script src="${relative_root}${dd.src}" type="${dd.type}"></script>`
+                        }).join('')}
+
               </head>
               ${(() => {
                             if (req.query.type === 'editor') {
@@ -382,42 +398,47 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
                                                 where appName = ?`, [appName]))[0]['domain'];
 
                 const site_map=await getSeoSiteMap(appName,req);
-                return html`<?xml version="1.0" encoding="UTF-8"?>
-                <urlset  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd http://www.google.com/schemas/sitemap-image/1.1 http://www.google.com/schemas/sitemap-image/1.1/sitemap-image.xsd" xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-                    ${(await db.query(`select page_config, tag, updated_time
+                const sitemap= html`<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+${(await db.query(`select page_config, tag, updated_time
                                        from \`${saasConfig.SAAS_NAME}\`.page_config
                                        where appName = ?
                                          and page_config ->>'$.seo.type'='custom'
                     `, [
-                        appName
-                    ])).map((d2: any) => {
-                        
-                        return `<url>
+                    appName
+                ])).map((d2: any) => {
+                    return `<url>
 <loc>${`https://${domain}/${d2.tag}`.replace(/ /g,'+')}</loc>
-<lastmod>${moment(new Date(d2.updated_time)).format('YYYY-MM-DDTHH:mm:SS+00:00')}</lastmod>
-<changefreq>weekly</changefreq>
-</url>`
-                    }).join('')}
+<lastmod>${moment(new Date(d2.updated_time)).format('YYYY-MM-DD')}</lastmod>
+</url>
+`
+                }).join('')}
                     ${article.data.map((d2: any) => {
-                        if(!d2.content.template){
-                            return  ``
-                        }
-                        
-                        return `<url>
+                    if(!d2.content.template){
+                        return  ``
+                    }
+
+                    return `<url>
 <loc>${`https://${domain}/${d2.content.template}?article=${d2.content.tag}`.replace(/ /g,'+')}</loc>
-<lastmod>${moment(new Date(d2.updated_time)).format('YYYY-MM-DDTHH:mm:SS+00:00')}</lastmod>
-<changefreq>weekly</changefreq>
-</url>`
-                    }).join('')}
+<lastmod>${moment(new Date(d2.updated_time)).format('YYYY-MM-DD')}</lastmod>
+</url>
+`
+                }).join('')}
                     ${(site_map || []).map((d2:any)=>{
-                        return `<url>
+                    return `<url>
 <loc>${`https://${domain}/${d2.url}`.replace(/ /g,'+')}</loc>
-<lastmod>${d2.updated_time ? moment(new Date(d2.updated_time)).format('YYYY-MM-DDTHH:mm:SS+00:00') : moment(new Date()).format('YYYY-MM-DDTHH:mm:SS+00:00')}</lastmod>
+<lastmod>${d2.updated_time ? moment(new Date(d2.updated_time)).format('YYYY-MM-DD') : moment(new Date()).format('YYYY-MM-DDTHH:mm:SS+00:00')}</lastmod>
 <changefreq>weekly</changefreq>
-</url>`
-                    })}
-                </urlset>
+</url>
+`
+                })}
+</urlset>
                 `
+                return xmlFormatter(sitemap, {
+                    indentation: '  ', // 使用兩個空格進行縮進
+                    filter: (node) => node.type !== 'Comment', // 選擇性過濾節點
+                    collapseContent: true, // 折疊內部文本
+                });
             },
             sitemap_list: async (req, resp) => {
                 let appName = dd.appName
@@ -462,7 +483,7 @@ Sitemap: https://${domain}/sitemap.xml
 <urlset  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd http://www.google.com/schemas/sitemap-image/1.1 http://www.google.com/schemas/sitemap-image/1.1/sitemap-image.xsd" xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
         <loc>https://${domain}/index</loc>
-        <lastmod>2024-06-17T02:53:00+00:00</lastmod>
+        <lastmod>2024-06-16T02:53:00+00:00</lastmod>
         <changefreq>weekly</changefreq>
     </url>
 </urlset>`

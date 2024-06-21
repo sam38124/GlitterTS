@@ -109,7 +109,7 @@ export class User {
                     };
             }
         } catch (e) {
-            console.log(e);
+            console.error(e);
             throw exception.BadRequestError('BAD_REQUEST', 'SendMail Error:' + e, null);
         }
     }
@@ -374,46 +374,14 @@ export class User {
             if (data) {
                 data.pwd = undefined;
                 data.member = await this.refreshMember(data);
-                await this.checkRebate(data.userID);
+                // await this.checkRebate(data.userID);
             }
-
             return data;
         } catch (e) {
             throw exception.BadRequestError('BAD_REQUEST', 'GET USER DATA Error:' + e, null);
         }
     }
 
-    public async checkRebate(userID: string) {
-        //超過繳費期限退還購物金
-        await db.query(
-            `update \`${this.app}\`.t_rebate
-             set status = -1
-             where userID = ?
-               and status = 1
-               and orderID in (select cart_token
-                               from \`${this.app}\`.t_checkout
-                               where (
-                                   status!=1 and created_time < (CURRENT_TIMESTAMP - INTERVAL 10 MINUTE)
-                                   )
-                                  or (
-                                   status = -2
-                                   ))`,
-            [userID]
-        );
-        //手動訂單返還購物金。
-        await db.query(
-            `update \`${this.app}\`.t_rebate
-             set status = 1
-             where userID = ?
-               and status = -1
-               and orderID in (select cart_token
-                               from \`${this.app}\`.t_checkout
-                               where (
-                                         status = 1
-                                         ))`,
-            [userID]
-        );
-    }
 
     public async refreshMember(userData: any) {
         //分級配置檔案
@@ -603,7 +571,7 @@ export class User {
             RIGHT JOIN 
                 \`${this.app}\`.t_user u ON o.email = u.account
             WHERE
-                (${obj.where.join(' AND ')})
+                (${obj.where.filter((str) => str.length > 0).join(' AND ')})
             ORDER BY ${(() => {
                 switch (obj.orderBy) {
                     case 'order_total_desc':
@@ -681,7 +649,7 @@ export class User {
                     ]
                         .filter((text) => {
                             if (query.searchType === undefined) return true;
-                            if (text.includes(`(userData, '$.${query.searchType}')`)) return true;
+                            if (text.includes(`$.${query.searchType}`)) return true;
                             return false;
                         })
                         .join(` || `)
@@ -928,11 +896,6 @@ export class User {
 
     public async resetPwd(userID: string, newPwd: string) {
         try {
-            // const data: any = (await db.execute(`select *
-            //                                      from \`${this.app}\`.t_user
-            //                                      where userID = ?
-            //                                        and status = 1`, [userID]) as any)[0]
-            //
             const result = (await db.query(
                 `update \`${this.app}\`.t_user
                                             SET ?
@@ -983,16 +946,6 @@ export class User {
             } else {
                 throw exception.BadRequestError('BAD_REQUEST', 'Auth failed', null);
             }
-            // par = {
-            //     account: par.account,
-            //     userData: JSON.stringify(par.userData)
-            // }
-            // console.log(userID)
-            //await tool.hashPwd(pwd)
-            // return (await db.query(`update \`${this.app}\`.t_user
-            //                         SET ?
-            //                         WHERE 1 = 1
-            //                           and userID = ?`, [par, userID]) as any)
         } catch (e) {
             throw exception.BadRequestError('BAD_REQUEST', 'Login Error:' + e, null);
         }
@@ -1050,6 +1003,15 @@ export class User {
         }
     }
 
+    public async checkUserIdExists(id: number) {
+        try {
+            const count = (await db.query(`select count(1) from \`${this.app}\`.t_user where userID = ?`, [id]))[0]['count(1)'];
+            return count;
+        } catch (e) {
+            throw exception.BadRequestError('BAD_REQUEST', 'CheckUserExists Error:' + e, null);
+        }
+    }
+
     public async setConfig(config: { key: string; value: any; user_id?: string }) {
         try {
             if (typeof config.value !== 'string') {
@@ -1081,7 +1043,7 @@ export class User {
                 );
             }
         } catch (e) {
-            console.log(e);
+            console.error(e);
             throw exception.BadRequestError('ERROR', 'ERROR.' + e, null);
         }
     }
@@ -1097,7 +1059,7 @@ export class User {
                 []
             );
         } catch (e) {
-            console.log(e);
+            console.error(e);
             throw exception.BadRequestError('ERROR', 'ERROR.' + e, null);
         }
     }
@@ -1114,7 +1076,7 @@ export class User {
             );
             return (data[0] && data[0].value) || {};
         } catch (e) {
-            console.log(e);
+            console.error(e);
             throw exception.BadRequestError('ERROR', 'ERROR.' + e, null);
         }
     }
@@ -1186,7 +1148,7 @@ export class User {
             response.last_time_read = last_time_read;
             return response;
         } catch (e) {
-            console.log(e);
+            console.error(e);
             throw exception.BadRequestError('ERROR', 'ERROR.' + e, null);
         }
     }

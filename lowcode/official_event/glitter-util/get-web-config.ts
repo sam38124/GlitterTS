@@ -60,7 +60,7 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                 },
                 event: () => {
                     return new Promise(async (resolve, reject) => {
-                        
+
                         const tag=await TriggerEvent.trigger({
                             gvc: gvc, widget: widget, clickEvent: object.tag, subData: subData
                         })
@@ -70,7 +70,6 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                             type: WebConfigSetting.tag,
                             search: [`key-|>${tag}`]
                         }).then((data) => {
-                            console.log(`get-web-config`,data.response.data[0])
                             resolve(data.response.data[0])
                         })
                     })

@@ -377,7 +377,7 @@ function editor(cf: {
                                                     visible:false
                                                 });
                                                 if(res.result){
-                                                    vm.data.id=res.response.id
+                                                    vm.data.id=res.response.result
                                                     await cf.widget.event('success',{
                                                         title:'添加成功'
                                                     })
@@ -501,9 +501,9 @@ function editor(cf: {
                                                         view = view.concat([
                                                             EditorElem.editeInput({
                                                                 gvc: gvc,
-                                                                title: '網誌標籤',
+                                                                title: '網誌連結',
                                                                 default: vm.data.content.tag,
-                                                                placeHolder: `請輸入頁面標題`,
+                                                                placeHolder: `請輸入網誌連結`,
                                                                 callback: (text) => {
                                                                     vm.data.content.tag = text;
                                                                 },

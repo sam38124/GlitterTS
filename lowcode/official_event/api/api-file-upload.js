@@ -9,6 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 import { TriggerEvent } from "../../glitterBundle/plugins/trigger-event.js";
 import { BaseApi } from "../../glitterBundle/api/base.js";
+import { EditorElem } from "../../glitterBundle/plugins/editor-elem.js";
 TriggerEvent.createSingleEvent(import.meta.url, (glitter) => {
     return {
         fun: (gvc, widget, object, subData, element) => {
@@ -17,10 +18,23 @@ TriggerEvent.createSingleEvent(import.meta.url, (glitter) => {
             object.uploading = (_b = object.uploading) !== null && _b !== void 0 ? _b : {};
             object.uploadFinish = (_c = object.uploadFinish) !== null && _c !== void 0 ? _c : {};
             object.error = (_d = object.error) !== null && _d !== void 0 ? _d : {};
+            object.upload_count = object.upload_count || 'single';
             const html = String.raw;
             return {
                 editor: () => {
                     return [
+                        EditorElem.select({
+                            title: '上傳數量',
+                            gvc: gvc,
+                            def: object.upload_count,
+                            array: [
+                                { title: '單個', value: "single" },
+                                { title: '多個', value: "multiple" }
+                            ],
+                            callback: (text) => {
+                                object.upload_count = text;
+                            }
+                        }),
                         TriggerEvent.editer(gvc, widget, object.accept, {
                             hover: false,
                             option: [],
@@ -53,51 +67,74 @@ TriggerEvent.createSingleEvent(import.meta.url, (glitter) => {
                             element: element
                         });
                         glitter.ut.chooseMediaCallback({
-                            single: true,
+                            single: (object.upload_count === 'single'),
                             accept: accept || '*',
                             callback(data) {
                                 return __awaiter(this, void 0, void 0, function* () {
                                     const saasConfig = window.saasConfig;
-                                    yield TriggerEvent.trigger({
+                                    (yield TriggerEvent.trigger({
                                         gvc: gvc,
                                         widget: widget,
                                         clickEvent: object.uploading,
                                         subData: subData,
                                         element: element
-                                    });
-                                    const file = data[0].file;
-                                    saasConfig.api.uploadFile(file.name).then((data) => {
-                                        const data1 = data.response;
-                                        BaseApi.create({
-                                            url: data1.url,
-                                            type: 'put',
-                                            data: file,
-                                            headers: {
-                                                "Content-Type": data1.type
-                                            }
-                                        }).then((res) => __awaiter(this, void 0, void 0, function* () {
-                                            if (res.result) {
-                                                yield TriggerEvent.trigger({
-                                                    gvc: gvc,
-                                                    widget: widget,
-                                                    clickEvent: object.uploadFinish,
-                                                    subData: data1.fullUrl,
-                                                    element: element
-                                                });
-                                                resolve(data1.fullUrl);
-                                            }
-                                            else {
-                                                yield TriggerEvent.trigger({
-                                                    gvc: gvc,
-                                                    widget: widget,
-                                                    clickEvent: object.error,
-                                                    subData: subData,
-                                                    element: element
-                                                });
-                                                resolve(false);
-                                            }
-                                        }));
-                                    });
+                                    }));
+                                    let url_stack = [];
+                                    for (const dd of data) {
+                                        const file = dd.file;
+                                        const res = yield new Promise((resolve, reject) => {
+                                            saasConfig.api.uploadFile(file.name).then((data) => {
+                                                const data1 = data.response;
+                                                BaseApi.create({
+                                                    url: data1.url,
+                                                    type: 'put',
+                                                    data: file,
+                                                    headers: {
+                                                        "Content-Type": data1.type
+                                                    }
+                                                }).then((res) => __awaiter(this, void 0, void 0, function* () {
+                                                    if (res.result) {
+                                                        resolve(data1.fullUrl);
+                                                    }
+                                                    else {
+                                                        resolve(false);
+                                                    }
+                                                }));
+                                            });
+                                        });
+                                        if (!res) {
+                                            yield TriggerEvent.trigger({
+                                                gvc: gvc,
+                                                widget: widget,
+                                                clickEvent: object.error,
+                                                subData: subData,
+                                                element: element
+                                            });
+                                            resolve(false);
+                                            return;
+                                        }
+                                        url_stack.push(res);
+                                    }
+                                    if (object.upload_count === 'single') {
+                                        yield TriggerEvent.trigger({
+                                            gvc: gvc,
+                                            widget: widget,
+                                            clickEvent: object.uploadFinish,
+                                            subData: url_stack[0],
+                                            element: element
+                                        });
+                                        resolve(url_stack[0]);
+                                    }
+                                    else {
+                                        yield TriggerEvent.trigger({
+                                            gvc: gvc,
+                                            widget: widget,
+                                            clickEvent: object.uploadFinish,
+                                            subData: url_stack,
+                                            element: element
+                                        });
+                                        resolve(url_stack);
+                                    }
                                 });
                             },
                         });

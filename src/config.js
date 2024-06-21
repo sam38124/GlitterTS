@@ -15,25 +15,25 @@ class ConfigSetting {
     }
 }
 exports.ConfigSetting = ConfigSetting;
-ConfigSetting.config_path = "";
+ConfigSetting.config_path = '';
 exports.saasConfig = {
     get SAAS_NAME() {
         return process.env.GLITTER_DB;
     },
     get DEF_DEADLINE() {
         return parseInt(process.env.DEF_DEADLINE, 10);
-    }
+    },
 };
 exports.config = {
     get domain() {
         return process.env.DOMAIN;
     },
     SECRET_KEY: 'dsklkmsadl',
-    API_PREFIX: "/api/v1",
-    API_PUBLIC_PREFIX: "/api-public/v1",
+    API_PREFIX: '/api/v1',
+    API_PUBLIC_PREFIX: '/api-public/v1',
     PARAMS_NEED_ENCRYPT_IN_LOG: ['pwd', 'email'],
     PWD_SALT_ROUND: 5,
-    LOG_PATH: path_1.default.resolve("../../log"),
+    LOG_PATH: path_1.default.resolve('../../log'),
     DB_CONN_LIMIT: 0,
     DB_QUEUE_LIMIT: 0,
     get DB_URL() {
@@ -80,7 +80,7 @@ exports.config = {
         return process.env.AWS_S3_DOMAIN + '/';
     },
     get SINGLE_TYPE() {
-        return `${process.env.SINGLE_TYPE}` == "true";
+        return `${process.env.SINGLE_TYPE}` == 'true';
     },
     getRoute: (r, type = 'normal') => {
         if (type === 'normal') {
@@ -106,19 +106,20 @@ exports.config = {
         wallet: '/wallet',
         article: '/article',
         delivery: '/delivery',
-        graph_api: '/graph_api'
+        rebate: '/rebate',
+        graph_api: '/graph_api',
     },
     route: {
-        user: "/user",
-        template: "/template",
-        app: "/app",
-        page: "/page",
-        fileManager: "/fileManager",
-        private: "/private",
-        ai: "/ai",
+        user: '/user',
+        template: '/template',
+        app: '/app',
+        page: '/page',
+        fileManager: '/fileManager',
+        private: '/private',
+        ai: '/ai',
         globalEvent: '/global-event',
-        backendServer: '/backend-server'
-    }
+        backendServer: '/backend-server',
+    },
 };
 exports.default = exports.config;
 //# sourceMappingURL=config.js.map

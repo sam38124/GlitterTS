@@ -250,7 +250,7 @@ export class GVC {
         })
         gvc.glitter.elementCallback[gvc.id(map.bind)].onDestroy = (map as any).onDestroy ?? (() => {
         })
-        gvc.glitter.elementCallback[gvc.id(map.bind)].getView = (map as any).view
+        gvc.glitter.elementCallback[gvc.id(map.bind)].getView = (map as any).view;
         gvc.glitter.elementCallback[gvc.id(map.bind)].updateAttribute = (() => {
             try {
                 const id = gvc.id(map.bind as string)
@@ -275,7 +275,7 @@ export class GVC {
 
         const divCreate = ((typeof (map as any).divCreate === "function") ? (map as any).divCreate() : (map as any).divCreate) ?? {elem: 'div'};
         // const data = map.view()
-        return `<${divCreate.elem ?? 'div'}  class="${divCreate.class ?? ""}" style="${divCreate.style ?? ""}" 
+        return `<${divCreate.elem ?? 'div'}  class="${divCreate.class ?? ""}" style="${divCreate.style ?? ""}"
  glem="bindView"  gvc-id="${gvc.id(map.bind)}"
  ${gvc.map((divCreate.option ?? []).map((dd: any) => {
             return ` ${dd.key}="${dd.value}"`
@@ -413,13 +413,6 @@ export function init(metaURL: string, fun: (gvc: GVC, glitter: Glitter, gBundle:
         pageConfig: PageConfig,
         c_type:string
     }) => {
-        if ((window as any).glitter.pageConfig.length - 2 >= 0) {
-            localStorage.setItem('g_l_top',JSON.stringify({
-                y:window.scrollY,
-                id:(window as any).glitter.pageConfig[(window as any).glitter.pageConfig.length - 2].id
-            }));
-            (window as any).glitter.pageConfig[(window as any).glitter.pageConfig.length - 2].scrollTop = window.scrollY
-        }
         const gvc = new GVC()
         cf.pageConfig.gvc=gvc;
         gvc.parameter.pageConfig = cf.pageConfig;
@@ -475,7 +468,6 @@ ${lifeCycle.onCreateView()}
         gvc.glitter.setAnimation(cf.pageConfig)
         lifeCycle.onCreate()
         gvc.glitter.defaultSetting.pageLoadingFinish()
-        PageManager.setHistory(GVC.glitter.getUrlParameter('page'), cf.c_type)
-        console.log(`cf.c_type`,cf.c_type)
+        PageManager.setHistory(cf.pageConfig.tag, cf.c_type)
     }
 }

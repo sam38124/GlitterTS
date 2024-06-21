@@ -4,7 +4,19 @@ export class UpdateScript {
     public static async run() {
         // UpdateScript.migrateTermsOfService(['3131_shop', 't_1717152410650', 't_1717141688550', 't_1717129048727', 'shop-template-clothing-v3'])
         // UpdateScript.migrateHeaderAndFooter(['3131_shop','shop-template-clothing-v3','t_1717129048727','t_1717141688550','t_1717152410650','t_1717407696327','t_1717385441550','t_1717386839537','t_1717397588096'])
-        UpdateScript.migrateAccount('shop_template_black_style')
+        // UpdateScript.migrateAccount('shop_template_black_style')
+       // await UpdateScript.migrateRichText()
+    }
+
+    public static async migrateRichText(){
+        const page_list=(await db.query(`select page_config,id
+                                             FROM glitter.page_config where template_type=2`,[]))
+        page_list.map((d: any) => {
+          d.page_config=JSON.parse(JSON.stringify(d.page_config).replace(/multiple_line_text/g,'rich_text'))
+        })
+for (const p of page_list){
+    await db.query(`update glitter.page_config set page_config=? where id=?`, [JSON.stringify(p.page_config),p.id]);
+}
     }
     public static async migrateAccount(appName:string){
         const page_list=(await db.query(`SELECT *

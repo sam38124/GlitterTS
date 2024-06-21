@@ -1,6 +1,7 @@
 'use strict';
 import { Entry } from '../Entry.js';
 import { Glitter } from './Glitter.js';
+import { GVCType } from "./module/PageManager.js";
 const glitter = new Glitter(window);
 window.glitter = glitter;
 window.rootGlitter = glitter;
@@ -31,20 +32,41 @@ function traverseHTML(element, document) {
             const pageConfig = glitter.pageConfig.find((dd) => {
                 return `page${dd.id}` === element.getAttribute('id');
             });
+            console.log(`show_page->`, glitter.pageConfig.filter((dd) => {
+                return dd.type === GVCType.Page;
+            }));
+            if ((window.glitter.share.to_menu) && glitter.pageConfig.filter((dd) => {
+                return dd.type === GVCType.Page;
+            }).length > 1) {
+                element.style.display = "none";
+                window.glitter.share.time_back = setTimeout(() => { window.history.back(); });
+                return;
+            }
+            window.glitter.share.to_menu = false;
             if (pageConfig && pageConfig.initial) {
-                const scroll = JSON.parse(localStorage.getItem('g_l_top'));
-                console.log(`isPage-BOX-Return`, scroll.y);
-                document.querySelector('html').scrollTop = scroll.y;
+                document.querySelector('html').scrollTop = pageConfig.scrollTop;
                 let count = 0;
                 const loopScroll = setInterval(() => {
                     count++;
                     if (count < 100) {
-                        document.querySelector('html').scrollTop = scroll.y;
+                        document.querySelector('html').scrollTop = pageConfig.scrollTop;
                     }
                     else {
                         clearInterval(loopScroll);
                     }
-                }, 1);
+                });
+                function loop(element) {
+                    if (element && element.onResumeEvent) {
+                        element && element.onResumeEvent && element.onResumeEvent();
+                    }
+                    let children = element.children;
+                    if (children && children.length > 0) {
+                        for (let j = 0; j < children.length; j++) {
+                            loop(children[j]);
+                        }
+                    }
+                }
+                loop(element);
                 return;
             }
             (pageConfig) && (pageConfig.initial = true);
@@ -119,8 +141,6 @@ function traverseHTML(element, document) {
                         setTimeout(() => {
                             document.querySelector(`[gvc-id="${id}"]`).onResumeEvent();
                         });
-                    }
-                    else {
                     }
                     if (document.querySelector(`[gvc-id="${id}"]`)) {
                         document.querySelector(`[gvc-id="${id}"]`).recreateView = (() => {

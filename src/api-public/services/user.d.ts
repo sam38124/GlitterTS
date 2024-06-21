@@ -22,7 +22,6 @@ export declare class User {
     loginWithLine(code: string, redirect: string): Promise<any>;
     loginWithGoogle(code: string, redirect: string): Promise<any>;
     getUserData(query: string, type?: 'userID' | 'account'): Promise<any>;
-    checkRebate(userID: string): Promise<void>;
     refreshMember(userData: any): Promise<any>;
     find30DayPeriodWith3000Spent(transactions: {
         total_amount: number;
@@ -87,6 +86,7 @@ export declare class User {
     updateAccountBack(token: string): Promise<void>;
     verifyPASS(token: string): Promise<any>;
     checkUserExists(account: string): Promise<boolean>;
+    checkUserIdExists(id: number): Promise<any>;
     setConfig(config: {
         key: string;
         value: any;

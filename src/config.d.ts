@@ -49,6 +49,7 @@ export declare const config: {
         wallet: string;
         article: string;
         delivery: string;
+        rebate: string;
         graph_api: string;
     };
     route: {

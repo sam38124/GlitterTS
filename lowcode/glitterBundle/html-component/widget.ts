@@ -46,7 +46,7 @@ export const widgetComponent = {
                                         })()`)
                                     }
                                 } else {
-                                    return {key: dd.attr, value: eval(dd.value)}
+                                    return {key: dd.attr, value: dd.value}
                                 }
 
                             } catch (e) {
@@ -98,10 +98,8 @@ export const widgetComponent = {
                         classList.push(`editorParent`)
                         classList.push(`relativePosition`)
                     }
-
                     classList.push(glitter.htmlGenerate.styleEditor(widget.data, gvc, widget as any, subData).class())
                     widget.hashTag && classList.push(`glitterTag${widget.hashTag}`);
-
                     return {
                         elem: widget.data.elem,
                         class: classList.join(' '),
@@ -157,7 +155,7 @@ export const widgetComponent = {
                             page_config: widget.global.pageConfig,
                             document: document,
                             editorSection: widget.id
-                        }, getCreateOption())
+                        }, getCreateOption)
                     }
 
                     widget.data.setting.refresh = (() => {

@@ -11,24 +11,18 @@ const ut_permission_1 = require("../utils/ut-permission");
 const financial_service_js_1 = require("../services/financial-service.js");
 const private_config_js_1 = require("../../services/private_config.js");
 const database_js_1 = __importDefault(require("../../modules/database.js"));
-const invoice_js_1 = require("../services/invoice.js");
 const user_js_1 = require("../services/user.js");
-const custom_code_js_1 = require("../services/custom-code.js");
 const ut_database_js_1 = require("../utils/ut-database.js");
 const post_js_1 = require("../services/post.js");
 const crypto_1 = __importDefault(require("crypto"));
 const redis_js_1 = __importDefault(require("../../modules/redis.js"));
+const rebate_1 = require("../services/rebate");
 const router = express_1.default.Router();
 router.get('/rebate/sum', async (req, resp) => {
     try {
         const app = req.get('g-app');
-        await new user_js_1.User(app).checkRebate(req.query.userID || req.body.token.userID);
-        return response_1.default.succ(resp, {
-            sum: (await database_js_1.default.query(`SELECT sum(money)
-                         FROM \`${app}\`.t_rebate
-                         where status in (1, 2)
-                           and userID = ?`, [req.query.userID || req.body.token.userID]))[0]['sum(money)'] || 0,
-        });
+        const data = await new rebate_1.Rebate(app).getOneRebate({ user_id: req.query.userID || req.body.token.userID });
+        return response_1.default.succ(resp, { sum: data ? data.point : 0 });
     }
     catch (err) {
         return response_1.default.fail(resp, err);
@@ -69,34 +63,33 @@ router.get('/product', async (req, resp) => {
 router.get('/rebate', async (req, resp) => {
     try {
         const app = req.get('g-app');
-        let query = [];
+        const rebateClass = new rebate_1.Rebate(app);
         if (await ut_permission_1.UtPermission.isManager(req)) {
-            req.query.search && query.push(`(userID in (select userID from \`${app}\`.t_user where (UPPER(JSON_UNQUOTE(JSON_EXTRACT(userData, '$.name')) LIKE UPPER('%${req.query.search}%')))))`);
-            if (req.query.id && `${req.query.id}`.length > 0) {
-                query.push(`userID=${database_js_1.default.escape(req.query.id)}`);
-            }
+            return response_1.default.succ(resp, await rebateClass.getRebateListByRow(req.query));
         }
-        else {
-            query.push(`userID=${database_js_1.default.escape(req.body.token.userID)}`);
+        const user = await new user_js_1.User(app).getUserData(req.body.token.userID, 'userID');
+        if (user.id) {
+            const historyList = await rebateClass.getCustomerRebateHistory({ user_id: req.body.token.userID });
+            const oldest = await rebateClass.getOldestRebate(req.body.token.userID);
+            const historyMaps = historyList
+                ? historyList.data.map((item) => {
+                    var _a;
+                    return {
+                        id: item.id,
+                        orderID: (_a = item.content.order_id) !== null && _a !== void 0 ? _a : '',
+                        userID: item.user_id,
+                        money: item.origin,
+                        status: 1,
+                        note: item.note,
+                        created_time: item.created_at,
+                        deadline: item.deadline,
+                        userData: user.userData,
+                    };
+                })
+                : [];
+            return response_1.default.succ(resp, { data: historyMaps, oldest: oldest === null || oldest === void 0 ? void 0 : oldest.data });
         }
-        query.push(`status in (1, 2)`);
-        req.query.dataType === 'all' && delete req.query.id;
-        const data = await new ut_database_js_1.UtDatabase(req.get('g-app'), `t_rebate`).querySql(query, req.query);
-        if (Array.isArray(data.data)) {
-            for (const b of data.data) {
-                let userData = (await database_js_1.default.query(`select userData
-                         from \`${app}\`.t_user
-                         where userID = ?`, [b.userID]))[0];
-                b.userData = userData && userData.userData;
-            }
-        }
-        else {
-            let userData = (await database_js_1.default.query(`select userData
-                     from \`${app}\`.t_user
-                     where userID = ?`, [data.data.userID]))[0];
-            data.data.userData = userData && userData.userData;
-        }
-        return response_1.default.succ(resp, data);
+        return response_1.default.fail(resp, '使用者不存在');
     }
     catch (err) {
         return response_1.default.fail(resp, err);
@@ -107,10 +100,6 @@ router.post('/rebate/manager', async (req, resp) => {
         if (await ut_permission_1.UtPermission.isManager(req)) {
             const app = req.get('g-app');
             let orderID = new Date().getTime();
-            for (const b of req.body.userID) {
-                await database_js_1.default.execute(`insert into \`${app}\`.t_rebate (orderID, userID, money, status, note)
-                     values (?, ?, ?, ?, ?)`, [orderID++, b, req.body.total, 2, req.body.note]);
-            }
             return response_1.default.succ(resp, {
                 result: true,
             });
@@ -126,9 +115,6 @@ router.post('/rebate/manager', async (req, resp) => {
 router.delete('/rebate', async (req, resp) => {
     try {
         if (await ut_permission_1.UtPermission.isManager(req)) {
-            await new shopping_1.Shopping(req.get('g-app'), req.body.token).deleteRebate({
-                id: req.body.id,
-            });
             return response_1.default.succ(resp, {
                 result: true,
             });
@@ -382,38 +368,23 @@ router.post('/notify', upload.single('file'), async (req, resp) => {
             }).decode(url.searchParams.get('TradeInfo')));
         }
         if (decodeData['Status'] === 'SUCCESS') {
-            const notProgress = (await database_js_1.default.query(`SELECT count(1)
-                     FROM \`${appName}\`.t_checkout
-                     where cart_token = ?
-                       and status = 0;`, [decodeData['Result']['MerchantOrderNo']]))[0]['count(1)'];
-            if (notProgress) {
-                await database_js_1.default.execute(`update \`${appName}\`.t_checkout
-                     set status=?
-                     where cart_token = ?`, [1, decodeData['Result']['MerchantOrderNo']]);
-                const cartData = (await database_js_1.default.query(`SELECT *
-                         FROM \`${appName}\`.t_checkout
-                         where cart_token = ?;`, [decodeData['Result']['MerchantOrderNo']]))[0];
-                const userData = await new user_js_1.User(appName).getUserData(cartData.email, 'account');
-                if (cartData.orderData.rebate > 0) {
-                    await database_js_1.default.query(`update \`${appName}\`.t_rebate set status=1 where orderID=?;`, [cartData.cart_token]);
-                }
-                try {
-                    await new custom_code_js_1.CustomCode(appName).checkOutHook({
-                        userData: userData,
-                        cartData: cartData,
-                    });
-                }
-                catch (e) {
-                    console.log(`webHookError`);
-                    console.log(e);
-                }
-                new invoice_js_1.Invoice(appName).postCheckoutInvoice(decodeData['Result']['MerchantOrderNo']);
-            }
+            await new shopping_1.Shopping(appName).releaseCheckout(1, decodeData['Result']['MerchantOrderNo']);
         }
         else {
-            await database_js_1.default.execute(`update \`${appName}\`.t_checkout
-                 set status=?
-                 where cart_token = ?`, [-1, decodeData['Result']['MerchantOrderNo']]);
+            await new shopping_1.Shopping(appName).releaseCheckout(-1, decodeData['Result']['MerchantOrderNo']);
+        }
+        return response_1.default.succ(resp, {});
+    }
+    catch (err) {
+        return response_1.default.fail(resp, err);
+    }
+});
+router.get('/testRelease', async (req, resp) => {
+    try {
+        const test = true;
+        const appName = req.get('g-app');
+        if (test) {
+            await new shopping_1.Shopping(appName).releaseCheckout(1, req.query.orderId + '');
         }
         return response_1.default.succ(resp, {});
     }

@@ -26,6 +26,7 @@ const fcm = require("./fcm");
 const wallet = require("./wallet");
 const article = require("./article");
 const delivery = require("./delivery");
+const rebate = require("./rebate");
 const live_source_js_1 = require("../../live_source.js");
 const public_table_check_js_1 = require("../services/public-table-check.js");
 router.use('/api-public/*', doAuthAction);
@@ -43,6 +44,7 @@ router.use(config_1.config.getRoute(config_1.config.public_route.fcm, 'public'),
 router.use(config_1.config.getRoute(config_1.config.public_route.wallet, 'public'), wallet);
 router.use(config_1.config.getRoute(config_1.config.public_route.article, 'public'), article);
 router.use(config_1.config.getRoute(config_1.config.public_route.delivery, 'public'), delivery);
+router.use(config_1.config.getRoute(config_1.config.public_route.rebate, 'public'), rebate);
 router.use(config_1.config.getRoute(config_1.config.public_route.graph_api, 'public'), require('./graph-api'));
 const whiteList = [
     { url: config_1.config.getRoute(config_1.config.public_route.chat, 'public'), method: 'POST' },

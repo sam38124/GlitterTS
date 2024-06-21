@@ -112,7 +112,7 @@ class User {
             }
         }
         catch (e) {
-            console.log(e);
+            console.error(e);
             throw exception_1.default.BadRequestError('BAD_REQUEST', 'SendMail Error:' + e, null);
         }
     }
@@ -323,36 +323,12 @@ class User {
             if (data) {
                 data.pwd = undefined;
                 data.member = await this.refreshMember(data);
-                await this.checkRebate(data.userID);
             }
             return data;
         }
         catch (e) {
             throw exception_1.default.BadRequestError('BAD_REQUEST', 'GET USER DATA Error:' + e, null);
         }
-    }
-    async checkRebate(userID) {
-        await database_1.default.query(`update \`${this.app}\`.t_rebate
-             set status = -1
-             where userID = ?
-               and status = 1
-               and orderID in (select cart_token
-                               from \`${this.app}\`.t_checkout
-                               where (
-                                   status!=1 and created_time < (CURRENT_TIMESTAMP - INTERVAL 10 MINUTE)
-                                   )
-                                  or (
-                                   status = -2
-                                   ))`, [userID]);
-        await database_1.default.query(`update \`${this.app}\`.t_rebate
-             set status = 1
-             where userID = ?
-               and status = -1
-               and orderID in (select cart_token
-                               from \`${this.app}\`.t_checkout
-                               where (
-                                         status = 1
-                                         ))`, [userID]);
     }
     async refreshMember(userData) {
         const member_list = (await this.getConfigV2({
@@ -501,7 +477,7 @@ class User {
             RIGHT JOIN 
                 \`${this.app}\`.t_user u ON o.email = u.account
             WHERE
-                (${obj.where.join(' AND ')})
+                (${obj.where.filter((str) => str.length > 0).join(' AND ')})
             ORDER BY ${(() => {
             switch (obj.orderBy) {
                 case 'order_total_desc':
@@ -568,7 +544,7 @@ class User {
                     .filter((text) => {
                     if (query.searchType === undefined)
                         return true;
-                    if (text.includes(`(userData, '$.${query.searchType}')`))
+                    if (text.includes(`$.${query.searchType}`))
                         return true;
                     return false;
                 })
@@ -852,6 +828,15 @@ class User {
             throw exception_1.default.BadRequestError('BAD_REQUEST', 'CheckUserExists Error:' + e, null);
         }
     }
+    async checkUserIdExists(id) {
+        try {
+            const count = (await database_1.default.query(`select count(1) from \`${this.app}\`.t_user where userID = ?`, [id]))[0]['count(1)'];
+            return count;
+        }
+        catch (e) {
+            throw exception_1.default.BadRequestError('BAD_REQUEST', 'CheckUserExists Error:' + e, null);
+        }
+    }
     async setConfig(config) {
         var _a, _b, _c;
         try {
@@ -873,7 +858,7 @@ class User {
             }
         }
         catch (e) {
-            console.log(e);
+            console.error(e);
             throw exception_1.default.BadRequestError('ERROR', 'ERROR.' + e, null);
         }
     }
@@ -886,7 +871,7 @@ class User {
             `, []);
         }
         catch (e) {
-            console.log(e);
+            console.error(e);
             throw exception_1.default.BadRequestError('ERROR', 'ERROR.' + e, null);
         }
     }
@@ -900,7 +885,7 @@ class User {
             return (data[0] && data[0].value) || {};
         }
         catch (e) {
-            console.log(e);
+            console.error(e);
             throw exception_1.default.BadRequestError('ERROR', 'ERROR.' + e, null);
         }
     }
@@ -958,7 +943,7 @@ class User {
             return response;
         }
         catch (e) {
-            console.log(e);
+            console.error(e);
             throw exception_1.default.BadRequestError('ERROR', 'ERROR.' + e, null);
         }
     }

@@ -75,9 +75,9 @@ export class ApiWallet {
         });
     }
 
-    public static storeRebateByManager(json: { userID: number[]; total: number; note: any }) {
+    public static storeRebateByManager(json: { userID: number[]; total: number; note: string; rebateEndDay?: string }) {
         return BaseApi.create({
-            url: getBaseUrl() + `/api-public/v1/ec/rebate/manager`,
+            url: getBaseUrl() + `/api-public/v1/rebate/batch`,
             type: 'POST',
             headers: {
                 'Content-Type': 'application/json',

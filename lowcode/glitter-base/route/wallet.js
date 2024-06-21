@@ -73,7 +73,7 @@ export class ApiWallet {
     }
     static storeRebateByManager(json) {
         return BaseApi.create({
-            url: getBaseUrl() + `/api-public/v1/ec/rebate/manager`,
+            url: getBaseUrl() + `/api-public/v1/rebate/batch`,
             type: 'POST',
             headers: {
                 'Content-Type': 'application/json',

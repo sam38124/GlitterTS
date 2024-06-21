@@ -1,11 +1,11 @@
-import {BaseApi} from '../glitterBundle/api/base.js';
-import {GVC} from '../glitterBundle/GVController.js';
-import {GlobalUser} from '../glitter-base/global/global-user.js';
-import {TriggerEvent} from '../glitterBundle/plugins/trigger-event.js';
-import {EditorElem} from '../glitterBundle/plugins/editor-elem.js';
-import {component} from '../official_view_component/official/component.js';
-import {ApiUser} from '../glitter-base/route/user.js';
-import {NormalPageEditor} from '../editor/normal-page-editor.js';
+import { BaseApi } from '../glitterBundle/api/base.js';
+import { GVC } from '../glitterBundle/GVController.js';
+import { GlobalUser } from '../glitter-base/global/global-user.js';
+import { TriggerEvent } from '../glitterBundle/plugins/trigger-event.js';
+import { EditorElem } from '../glitterBundle/plugins/editor-elem.js';
+import { component } from '../official_view_component/official/component.js';
+import { ApiUser } from '../glitter-base/route/user.js';
+import { NormalPageEditor } from '../editor/normal-page-editor.js';
 
 export class GlobalData {
     public static data = {
@@ -181,7 +181,7 @@ TriggerEvent.create(import.meta.url, {
         title: '官方事件 / 表單 / 取得網頁配置檔',
         fun: TriggerEvent.setEventRouter(import.meta.url, './glitter-util/get-web-config.js'),
     },
-    postFormConfig:{
+    postFormConfig: {
         title: '官方事件 / 表單 / 發佈表單',
         fun: TriggerEvent.setEventRouter(import.meta.url, './glitter-util/post-form-config.js'),
     },
@@ -201,30 +201,29 @@ TriggerEvent.create(import.meta.url, {
                 editor: () => {
                     object.codeVersion = 'v2';
                     const html = String.raw;
-                    return html`
-                        <div class="w-100">
-                            ${EditorElem.codeEditor({
-                                gvc: gvc,
-                                height: 500,
-                                initial: object.code,
-                                title: '代碼區塊',
-                                callback: (text) => {
-                                    object.code = text;
-                                },
-                                structStart: `((gvc,widget,object,subData,element)=>{`,
-                            })}
-                        </div>`;
+                    return html` <div class="w-100">
+                        ${EditorElem.codeEditor({
+                            gvc: gvc,
+                            height: 500,
+                            initial: object.code,
+                            title: '代碼區塊',
+                            callback: (text) => {
+                                object.code = text;
+                            },
+                            structStart: `((gvc,widget,object,subData,element)=>{`,
+                        })}
+                    </div>`;
                 },
                 event: () => {
                     return new Promise<any>(async (resolve, reject) => {
                         try {
-                            const queryWhere=`
+                            const queryWhere = `
                             /*
       ->Tag->${(widget as any).tag}
       ->Label->${widget.label}
       ->ID->${widget.id}
       */
-                            `
+                            `;
                             const a =
                                 object.codeVersion == 'v2'
                                     ? eval(`
@@ -297,27 +296,17 @@ TriggerEvent.create(import.meta.url, {
                                                                                     // gvc.notifyDataChange(id)
                                                                                 },
                                                                             }),
-                                                                            TriggerEvent.editer(
-                                                                                gvc,
-                                                                                widget,
-                                                                                dd.yesEvent,
-                                                                                {
-                                                                                    hover: true,
-                                                                                    option: [],
-                                                                                    title: '判斷式-返回true則執行事件',
-                                                                                }
-                                                                            ),
+                                                                            TriggerEvent.editer(gvc, widget, dd.yesEvent, {
+                                                                                hover: true,
+                                                                                option: [],
+                                                                                title: '判斷式-返回true則執行事件',
+                                                                            }),
                                                                             `<div class="mt-2"></div>`,
-                                                                            TriggerEvent.editer(
-                                                                                gvc,
-                                                                                widget,
-                                                                                dd.trigger,
-                                                                                {
-                                                                                    hover: true,
-                                                                                    option: [],
-                                                                                    title: '執行事件',
-                                                                                }
-                                                                            ),
+                                                                            TriggerEvent.editer(gvc, widget, dd.trigger, {
+                                                                                hover: true,
+                                                                                option: [],
+                                                                                title: '執行事件',
+                                                                            }),
                                                                         ].join('')}</div>`;
                                                                     },
                                                                 };
@@ -336,7 +325,7 @@ TriggerEvent.create(import.meta.url, {
                                         plus: {
                                             title: '添加事件判斷',
                                             event: gvc.event(() => {
-                                                object.eventList.push({yesEvent: {}, trigger: {}});
+                                                object.eventList.push({ yesEvent: {}, trigger: {} });
                                                 gvc.notifyDataChange(id);
                                             }),
                                         },
@@ -487,8 +476,7 @@ TriggerEvent.create(import.meta.url, {
                                     {
                                         topic: topic,
                                     },
-                                    (response) => {
-                                    }
+                                    (response) => {}
                                 );
                             } else {
                                 (topic as any).map((dd: any) => {
@@ -497,8 +485,7 @@ TriggerEvent.create(import.meta.url, {
                                         {
                                             topic: dd,
                                         },
-                                        (response) => {
-                                        }
+                                        (response) => {}
                                     );
                                 });
                             }
@@ -801,7 +788,7 @@ TriggerEvent.create(import.meta.url, {
         title: '訊息相關 / 客服 / 取得自動答覆問題',
         fun: TriggerEvent.setEventRouter(import.meta.url, './chat/auto-reply.js'),
     },
-    messageChange:{
+    messageChange: {
         title: '訊息相關 / 用戶 / 訊息更新',
         fun: TriggerEvent.setEventRouter(import.meta.url, './chat/message-change.js'),
     },
@@ -856,7 +843,7 @@ TriggerEvent.create(import.meta.url, {
     getBlogTag: {
         title: 'Blog / 標籤取得網誌',
         fun: TriggerEvent.setEventRouter(import.meta.url, './blog/get-blog-tag.js'),
-    }
+    },
 });
 
 function questionText(data: { title: string; content: string }[]) {
@@ -864,25 +851,21 @@ function questionText(data: { title: string; content: string }[]) {
           <h2 class="text-center my-3 mt-2" style="font-size:22px;">使用方法說明</h2>
              <div class="accordion mx-2" id="faq">
                 ${data
-        .map((dd, index) => {
-            return ` <div class="accordion-item border-0 rounded-3 shadow-sm mb-3">
+                    .map((dd, index) => {
+                        return ` <div class="accordion-item border-0 rounded-3 shadow-sm mb-3">
                   <h3 class="accordion-header">
                     <button class="accordion-button shadow-none rounded-3 ${
-                index === 0 ? '' : 'collapsed'
-            }" type="button" data-bs-toggle="collapse" data-bs-target="#q-${index}" aria-expanded="false" aria-controls="q-1">${
-                dd.title
-            }</button>
+                        index === 0 ? '' : 'collapsed'
+                    }" type="button" data-bs-toggle="collapse" data-bs-target="#q-${index}" aria-expanded="false" aria-controls="q-1">${dd.title}</button>
                   </h3>
-                  <div class="accordion-collapse collapse ${
-                index === 0 ? 'show' : ''
-            }" id="q-${index}" data-bs-parent="#faq" style="">
+                  <div class="accordion-collapse collapse ${index === 0 ? 'show' : ''}" id="q-${index}" data-bs-parent="#faq" style="">
                     <div class="accordion-body fs-sm pt-0">
                      ${dd.content}
                     </div>
                   </div>
                 </div>`;
-        })
-        .join('')}
+                    })
+                    .join('')}
               
               </div>
         </div>`;
