@@ -88,6 +88,17 @@ export class ApiUser {
             },
         });
     }
+    static getUsersDataWithEmail(email) {
+        return BaseApi.create({
+            url: getBaseUrl() + `/api-public/v1/user?email=${email}&type=account`,
+            type: 'GET',
+            headers: {
+                'g-app': getConfig().config.appName,
+                'Content-Type': 'application/json',
+                Authorization: getConfig().config.token || GlobalUser.token,
+            },
+        });
+    }
     static subScribe(email, tag) {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/user/subscribe`,

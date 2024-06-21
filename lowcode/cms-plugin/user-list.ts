@@ -142,6 +142,7 @@ export class UserList {
                                     getData: (vd) => {
                                         vmi = vd;
                                         const limit = 20;
+                                        
                                         ApiUser.getUserListOrders({
                                             page: vmi.page - 1,
                                             limit: limit,

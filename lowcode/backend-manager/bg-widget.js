@@ -874,7 +874,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
     }
     static duringInputContainer(gvc, obj, def, callback) {
         var _a, _b, _c, _d;
-        const defualt = def.length > 1 ? def : ['', ''];
+        const defualt = (def && def.length) > 1 ? def : ['', ''];
         if (obj.list.length > 1) {
             const first = obj.list[0];
             const second = obj.list[1];

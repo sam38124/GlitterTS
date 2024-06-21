@@ -139,6 +139,7 @@ export class BgListComponent {
                                         let contentHTML = '';
                                         switch (item.type) {
                                             case 'during':
+                                                
                                                 contentHTML += BgWidget.duringInputContainer(gvc, item.data, this.vm.filter[item.key], (value) => {
                                                     this.vm.filter[item.key] = value;
                                                 });

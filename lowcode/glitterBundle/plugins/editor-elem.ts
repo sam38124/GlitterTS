@@ -1673,7 +1673,7 @@ ${obj.gvc.bindView(() => {
         title: string;
         gvc: GVC;
         def: string;
-        array: string[] | { title: string; value: string }[];
+        array: string[] | { title: string; value: string; }[];
         callback: (text: string) => void;
         style?: string;
         class?: string;

@@ -247,7 +247,11 @@ router.get('/', async (req: express.Request, resp: express.Response) => {
         if (req.query.type==='list' && (await UtPermission.isManager(req))) {
             const user = new User(req.get('g-app') as string);
             return response.succ(resp, (await user.getUserList(req.query as any)));
-        } else {
+        }else if (req.query.type==='account' && (await UtPermission.isManager(req))) {
+
+            const user = new User(req.get('g-app') as string);
+            return response.succ(resp, (await user.getUserData(req.query.email as any , "account")));
+        }else {
             const user = new User(req.get('g-app') as string);
             return response.succ(resp, (await user.getUserData(req.body.token.userID)));
         }
@@ -259,7 +263,6 @@ router.get('/', async (req: express.Request, resp: express.Response) => {
 router.get('/userdata', async (req: express.Request, resp: express.Response) => {
     try {
         const user = new User(req.get('g-app') as string);
-        console.log(`userID-->`,req.query.userID )
         return response.succ(resp, (await user.getUserData(req.query.userID + "")));
     } catch (err) {
         return response.fail(resp, err);

@@ -538,10 +538,11 @@ class Shopping {
         cart.voucherList = voucherList;
     }
     async putOrder(data) {
+        var _a;
         try {
             const update = {};
             data.orderData && (update.orderData = JSON.stringify(data.orderData));
-            data.status && (update.status = data.status);
+            update.status = (_a = data.status) !== null && _a !== void 0 ? _a : 0;
             await database_js_1.default.query(`update \`${this.app}\`.t_checkout
                             set ?
                             where id = ?`, [update, data.id]);
@@ -570,22 +571,85 @@ class Shopping {
     async getCheckOut(query) {
         try {
             let querySql = ['1=1'];
+            let orderString = "order by id desc";
+            if (query.search) {
+                switch (query.searchType) {
+                    case "cart_token":
+                        querySql.push(`(cart_token like '%${query.search}%')`);
+                        break;
+                    case "name":
+                    case "invoice_number":
+                    case "phone":
+                        querySql.push(`(UPPER(JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.user_info.${query.searchType}')) LIKE ('%${query.search}%')))`);
+                        break;
+                    default: {
+                        querySql.push(`JSON_CONTAINS_PATH(orderData, 'one', '$.lineItems[*].title') AND JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.lineItems[*].${query.searchType}')) REGEXP '${query.search}'`);
+                    }
+                }
+            }
+            if (query.orderStatus) {
+                let orderArray = query.orderStatus.split(",");
+                let temp = "";
+                if (orderArray.includes("0")) {
+                    temp += "JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) IS NULL OR ";
+                }
+                temp += `JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) IN (${query.orderStatus})`;
+                querySql.push(`(${temp})`);
+            }
+            if (query.progress) {
+                let newArray = query.progress.split(",");
+                let temp = "";
+                if (newArray.includes("wait")) {
+                    temp += "JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.progress')) IS NULL OR ";
+                }
+                temp += `JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.progress')) IN (${newArray.map(status => `"${status}"`).join(',')})`;
+                querySql.push(`(${temp})`);
+            }
+            if (query.shipment) {
+                let shipment = query.shipment.split(",");
+                let temp = "";
+                if (shipment.includes("normal")) {
+                    temp += "JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.user_info.shipment')) IS NULL OR ";
+                }
+                temp += `JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.user_info.shipment')) IN (${shipment.map(status => `"${status}"`).join(',')})`;
+                querySql.push(`(${temp})`);
+            }
+            if (query.created_time) {
+                const created_time = query.created_time.split(',');
+                if (created_time.length > 1) {
+                    querySql.push(`
+                        (created_time BETWEEN ${database_js_1.default.escape(`${created_time[0]} 00:00:00`)} 
+                        AND ${database_js_1.default.escape(`${created_time[1]} 23:59:59`)})
+                    `);
+                }
+            }
+            if (query.orderString) {
+                switch (query.orderString) {
+                    case "created_time_desc":
+                        orderString = "order by created_time desc";
+                        break;
+                    case "created_time_asc":
+                        orderString = "order by created_time asc";
+                        break;
+                    case "order_total_desc":
+                        orderString = "order by CAST(JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.total')) AS SIGNED) desc";
+                        break;
+                    case "order_total_asc":
+                        orderString = "order by CAST(JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.total')) AS SIGNED) asc";
+                        break;
+                }
+                console.log(" query.orderString --", query.orderString);
+            }
+            query.status && querySql.push(`status IN (${query.status})`);
             query.email && querySql.push(`email=${database_js_1.default.escape(query.email)}`);
-            query.search &&
-                querySql.push([
-                    `((UPPER(Cart_token) LIKE UPPER('%${query.search}%'))`,
-                    `(UPPER(JSON_UNQUOTE(orderData->>'$.email')) LIKE UPPER('%${query.search}%')))`,
-                    `(UPPER(JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.user_info.name')) LIKE UPPER('%${query.search}%')))`,
-                ].join('||'));
-            query.status && querySql.push(`status=${query.status}`);
             query.id && querySql.push(`(content->>'$.id'=${query.id})`);
             let sql = `SELECT *
                        FROM \`${this.app}\`.t_checkout
                        where ${querySql.join(' and ')}
-                       order by id desc`;
+                       ${orderString}`;
             if (query.id) {
                 const data = (await database_js_1.default.query(`SELECT *
-                                              FROM (${sql}) as subqyery limit ${query.page * query.limit}, ${query.limit}`, []))[0];
+                              FROM (${sql}) as subqyery limit ${query.page * query.limit}, ${query.limit}`, []))[0];
                 return {
                     data: data,
                     result: !!data,
@@ -594,7 +658,7 @@ class Shopping {
             else {
                 return {
                     data: await database_js_1.default.query(`SELECT *
-                                           FROM (${sql}) as subqyery limit ${query.page * query.limit}, ${query.limit}`, []),
+                                   FROM (${sql}) as subqyery limit ${query.page * query.limit}, ${query.limit}`, []),
                     total: (await database_js_1.default.query(`SELECT count(1)
                                             FROM (${sql}) as subqyery`, []))[0]['count(1)'],
                 };
