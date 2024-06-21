@@ -1,14 +1,8 @@
-"use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.asyncHooks = exports.Singleton = void 0;
-const async_hooks_1 = __importDefault(require("async_hooks"));
+import asyncHooks from 'async_hooks';
 class AsyncHook {
     constructor() {
         this.store = new Map();
-        async_hooks_1.default.createHook({
+        asyncHooks.createHook({
             init: (asyncId, _, triggerAsyncId) => {
                 if (this.store.has(triggerAsyncId)) {
                     this.store.set(asyncId, this.store.get(triggerAsyncId));
@@ -22,14 +16,14 @@ class AsyncHook {
         }).enable();
     }
     createRequestContext(requestInfo) {
-        this.store.set(async_hooks_1.default.executionAsyncId(), requestInfo);
+        this.store.set(asyncHooks.executionAsyncId(), requestInfo);
         return;
     }
     getRequestContext() {
-        return this.store.get(async_hooks_1.default.executionAsyncId());
+        return this.store.get(asyncHooks.executionAsyncId());
     }
 }
-class Singleton {
+export class Singleton {
     constructor() {
         throw Error('This is singletion, please use getInstance method to get the instance');
     }
@@ -40,6 +34,4 @@ class Singleton {
         return Singleton.instance;
     }
 }
-exports.Singleton = Singleton;
-exports.asyncHooks = Singleton;
-//# sourceMappingURL=hooks.js.map
+export { Singleton as asyncHooks };

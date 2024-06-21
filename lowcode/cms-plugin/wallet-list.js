@@ -18,16 +18,7 @@ export class WalletList {
         const glitter = gvc.glitter;
         const vm = {
             type: 'list',
-            data: {
-                id: 61,
-                userID: 549313940,
-                account: 'jianzhi.wang@homee.ai',
-                userData: { name: '王建智', email: 'jianzhi.wang@homee.ai', phone: '0978028739' },
-                created_time: '2023-11-26T02:14:09.000Z',
-                role: 0,
-                company: null,
-                status: 1,
-            },
+            data: {},
             dataList: undefined,
             query: '',
         };

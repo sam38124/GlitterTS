@@ -36,17 +36,17 @@ export class MenusSetting {
                             <div class="d-flex w-100 align-items-center mb-3">
                                 ${BgWidget.title('選單管理')}
                                 <div class="flex-fill"></div>
-                                <div
-                                    class="bt_ffb40 d-none"
-                                    onclick="${gvc.event(() => {
-                            vm.type = 'add';
-                            gvc.notifyDataChange(id);
-                        })}"
-                                >
-                                    新增
-                                </div>
+                                ${(() => {
+                            const show = false;
+                            return show
+                                ? BgWidget.darkButton('新增', gvc.event(() => {
+                                    vm.type = 'add';
+                                    gvc.notifyDataChange(id);
+                                }))
+                                : '';
+                        })()}
                             </div>
-                            ${BgWidget.table({
+                            ${BgWidget.mainCard(BgWidget.tableV2({
                             gvc: gvc,
                             getData: (vd) => {
                                 vmi = vd;
@@ -72,13 +72,16 @@ export class MenusSetting {
                                 vm.type = 'replace';
                             },
                             filter: html `
-                                    ${gvc.bindView(() => {
+                                        ${gvc.bindView(() => {
                                 return {
                                     bind: filterID,
                                     view: () => {
                                         return [
-                                            `<span class="fs-7 fw-bold">操作選項</span>`,
-                                            `<button class="btn btn-danger fs-7 px-2" style="height:30px;border:none;" onclick="${gvc.event(() => {
+                                            html `<span class="fs-7 fw-bold">操作選項</span>`,
+                                            html `<button
+                                                            class="btn btn-danger fs-7 px-2"
+                                                            style="height:30px;border:none;"
+                                                            onclick="${gvc.event(() => {
                                                 const dialog = new ShareDialog(gvc.glitter);
                                                 dialog.checkYesOrNot({
                                                     text: '是否確認移除所選項目?',
@@ -109,7 +112,10 @@ export class MenusSetting {
                                                         }
                                                     },
                                                 });
-                                            })}">批量移除</button>`,
+                                            })}"
+                                                        >
+                                                            批量移除
+                                                        </button>`,
                                         ].join(``);
                                     },
                                     divCreate: () => {
@@ -125,8 +131,8 @@ export class MenusSetting {
                                     },
                                 };
                             })}
-                                `,
-                        })}
+                                    `,
+                        }))}
                         `);
                     }
                     else if (vm.type == 'add') {

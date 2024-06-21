@@ -614,6 +614,10 @@ TriggerEvent.create(import.meta.url, {
         title: '電子商務 / 取得回饋金列表',
         fun: TriggerEvent.setEventRouter(import.meta.url, './e-commerce/get-rebate-list.js'),
     },
+    getOldestRebate: {
+        title: '電子商務 / 取得最快到期一筆購物金',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './e-commerce/get-oldest-rebate.js'),
+    },
     getCount: {
         title: '電子商務 / 取得購物車數量',
         fun: TriggerEvent.setEventRouter(import.meta.url, './e-commerce/get-count.js'),

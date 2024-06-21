@@ -108,99 +108,102 @@ export class MemberTypeList {
                 dataList: [{ obj: vm, key: 'type' }],
                 view: () => {
                     if (vm.type === 'list') {
-                        return BgWidget.container(html`
-                            <div class="d-flex w-100 align-items-center mb-3">
-                                ${BgWidget.title('會員等級')}
-                                <div class="flex-fill"></div>
-                                <div
-                                    class="bt_ffb40"
-                                    onclick="${gvc.event(() => {
-                                        vm.type = 'add';
-                                        gvc.notifyDataChange(id);
-                                    })}"
-                                >
-                                    新增
+                        return BgWidget.container(
+                            html`
+                                <div class="d-flex w-100 align-items-center" style="margin-bottom: 24px;">
+                                    ${BgWidget.title('會員等級')}
+                                    <div class="flex-fill"></div>
+                                    ${BgWidget.darkButton(
+                                        '新增',
+                                        gvc.event(() => {
+                                            vm.type = 'add';
+                                            gvc.notifyDataChange(id);
+                                        })
+                                    )}
                                 </div>
-                            </div>
-                            ${BgWidget.table({
-                                gvc: gvc,
-                                getData: (vd) => {
-                                    vmi = vd;
-                                    ApiUser.getPublicConfig('member_level_config', 'manager').then((dd: any) => {
-                                        const data = dd.response.value || {};
-                                        vmi.pageSize = 1;
-                                        data.levels = (data.levels || []).filter((dd: any) => {
-                                            return dd;
-                                        });
-                                        vm.dataList = data.levels;
-                                        vmi.data = getDatalist();
-                                        vmi.loading = false;
-                                        vmi.callback();
-                                    });
-                                },
-                                rowClick: (data, index) => {
-                                    vm.index = index;
-                                    vm.type = 'replace';
-                                },
-                                filter: html`
-                                    ${gvc.bindView(() => {
-                                        return {
-                                            bind: filterID,
-                                            view: () => {
-                                                return [
-                                                    `<span class="fs-7 fw-bold">操作選項</span>`,
-                                                    `<button class="btn btn-danger fs-7 px-2" style="height:30px;border:none;" onclick="${gvc.event(() => {
-                                                        const dialog = new ShareDialog(gvc.glitter);
-                                                        dialog.checkYesOrNot({
-                                                            text: '是否確認移除所選項目?',
-                                                            callback: (response) => {
-                                                                if (response) {
-                                                                    widget.event('loading', {
-                                                                        title: '設定中...',
-                                                                    });
-                                                                    ApiUser.setPublicConfig({
-                                                                        key: 'member_level_config',
-                                                                        user_id: 'manager',
-                                                                        value: {
-                                                                            levels: vm.dataList.filter((dd: any) => {
-                                                                                return !dd.checked;
-                                                                            }),
-                                                                        },
-                                                                    }).then(() => {
-                                                                        setTimeout(() => {
-                                                                            widget.event('loading', {
-                                                                                visible: false,
-                                                                            });
-                                                                            widget.event('success', {
-                                                                                title: '設定成功',
-                                                                            });
-                                                                            gvc.notifyDataChange(id);
-                                                                        }, 500);
-                                                                    });
-                                                                }
-                                                            },
-                                                        });
-                                                    })}">批量移除</button>`,
-                                                ].join(``);
-                                            },
-                                            divCreate: () => {
+                                ${BgWidget.mainCard(
+                                    BgWidget.tableV2({
+                                        gvc: gvc,
+                                        getData: (vd) => {
+                                            vmi = vd;
+                                            ApiUser.getPublicConfig('member_level_config', 'manager').then((dd: any) => {
+                                                const data = dd.response.value || {};
+                                                vmi.pageSize = 1;
+                                                data.levels = (data.levels || []).filter((dd: any) => {
+                                                    return dd;
+                                                });
+                                                vm.dataList = data.levels;
+                                                vmi.data = getDatalist();
+                                                vmi.loading = false;
+                                                vmi.callback();
+                                            });
+                                        },
+                                        rowClick: (data, index) => {
+                                            vm.index = index;
+                                            vm.type = 'replace';
+                                        },
+                                        filter: html`
+                                            ${gvc.bindView(() => {
                                                 return {
-                                                    class: `d-flex align-items-center p-2 py-3 ${
-                                                        !vm.dataList ||
-                                                        !vm.dataList.find((dd: any) => {
-                                                            return dd.checked;
-                                                        })
-                                                            ? `d-none`
-                                                            : ``
-                                                    }`,
-                                                    style: `height:40px;gap:10px;margin-top:10px;`,
+                                                    bind: filterID,
+                                                    view: () => {
+                                                        return [
+                                                            `<span class="fs-7 fw-bold">操作選項</span>`,
+                                                            `<button class="btn btn-danger fs-7 px-2" style="height:30px;border:none;" onclick="${gvc.event(() => {
+                                                                const dialog = new ShareDialog(gvc.glitter);
+                                                                dialog.checkYesOrNot({
+                                                                    text: '是否確認移除所選項目?',
+                                                                    callback: (response) => {
+                                                                        if (response) {
+                                                                            widget.event('loading', {
+                                                                                title: '設定中...',
+                                                                            });
+                                                                            ApiUser.setPublicConfig({
+                                                                                key: 'member_level_config',
+                                                                                user_id: 'manager',
+                                                                                value: {
+                                                                                    levels: vm.dataList.filter((dd: any) => {
+                                                                                        return !dd.checked;
+                                                                                    }),
+                                                                                },
+                                                                            }).then(() => {
+                                                                                setTimeout(() => {
+                                                                                    widget.event('loading', {
+                                                                                        visible: false,
+                                                                                    });
+                                                                                    widget.event('success', {
+                                                                                        title: '設定成功',
+                                                                                    });
+                                                                                    gvc.notifyDataChange(id);
+                                                                                }, 500);
+                                                                            });
+                                                                        }
+                                                                    },
+                                                                });
+                                                            })}">批量移除</button>`,
+                                                        ].join(``);
+                                                    },
+                                                    divCreate: () => {
+                                                        return {
+                                                            class: `d-flex align-items-center p-2 py-3 ${
+                                                                !vm.dataList ||
+                                                                !vm.dataList.find((dd: any) => {
+                                                                    return dd.checked;
+                                                                })
+                                                                    ? `d-none`
+                                                                    : ``
+                                                            }`,
+                                                            style: `height:40px;gap:10px;margin-top:10px;`,
+                                                        };
+                                                    },
                                                 };
-                                            },
-                                        };
-                                    })}
-                                `,
-                            })}
-                        `);
+                                            })}
+                                        `,
+                                    })
+                                )}
+                            `,
+                            BgWidget.getContainerWidth()
+                        );
                     } else if (vm.type == 'add') {
                         return this.userInformationDetail({
                             widget: widget,
@@ -314,7 +317,7 @@ export class MemberTypeList {
                                         bind: id,
                                         view: () => {
                                             let map: any = [
-                                                BgWidget.card_main(html`
+                                                BgWidget.mainCard(html`
                                                     ${html`<div class="tx_normal fw-bold">會員名稱*</div>`}
                                                     ${BgWidget.editeInput({
                                                         gvc: gvc,
@@ -327,7 +330,7 @@ export class MemberTypeList {
                                                         },
                                                     })}
                                                 `),
-                                                BgWidget.card_main(html`
+                                                BgWidget.mainCard(html`
                                                     <div class="tx_normal fw-bold" style="margin-bottom: 18px;">會員條件*</div>
                                                     ${[
                                                         { title: '累積消費金額', value: 'total' },
@@ -380,7 +383,7 @@ export class MemberTypeList {
                                                         })
                                                         .join('<div class="my-2"></div>')}
                                                 `),
-                                                BgWidget.card_main(html`
+                                                BgWidget.mainCard(html`
                                                     <div class="tx_normal fw-bold" style="margin-bottom: 18px;">計算期間*</div>
                                                     ${[
                                                         { title: '計算期限', value: 'day' },
@@ -431,7 +434,7 @@ export class MemberTypeList {
                                                         })
                                                         .join('<div class="my-2"></div>')}
                                                 `),
-                                                BgWidget.card_main(html`
+                                                BgWidget.mainCard(html`
                                                     <div class="tx_normal fw-bold" style="margin-bottom: 18px;">會員期限*</div>
                                                     ${[
                                                         { title: '沒有期限', value: 'noLimit' },
@@ -550,7 +553,7 @@ export class MemberTypeList {
                                     return {
                                         bind: noteID,
                                         view: () => {
-                                            return BgWidget.card_main(html`
+                                            return BgWidget.mainCard(html`
                                                 <div class="tx_normal fw-bold">摘要</div>
                                                 <div class="tx_normal fw-normal" style="margin-top: 18px;margin-bottom: 18px;">會員名稱: ${vm.data.tag_name || '尚未設定'}</div>
                                                 <div class="w-100" style="background: #DDD;height: 2px;"></div>
@@ -602,7 +605,7 @@ export class MemberTypeList {
                                 )}
                             </div>`,
                         ].join('<div class="my-2"></div>'),
-                        1000
+                        BgWidget.getContainerWidth()
                     );
                 },
             };

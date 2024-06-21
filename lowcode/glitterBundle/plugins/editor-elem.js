@@ -2054,12 +2054,7 @@ ${obj.gvc.bindView(() => {
         var _a, _b;
         const gvc = obj.gvc;
         let interval = undefined;
-        return html ` <div
-            class="position-relative btn-group dropend subBt my-auto ms-1 ${(_a = obj.classS) !== null && _a !== void 0 ? _a : ''}"
-            style="${(_b = obj.style) !== null && _b !== void 0 ? _b : ''}"
-            onmouseover="${obj.gvc.event((e, event) => {
-        })}"
-        >
+        return html ` <div class="position-relative btn-group dropend subBt my-auto ms-1 ${(_a = obj.classS) !== null && _a !== void 0 ? _a : ''}" style="${(_b = obj.style) !== null && _b !== void 0 ? _b : ''}">
             <div
                 type="button"
                 class="bt"

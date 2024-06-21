@@ -91,7 +91,7 @@ class App {
                                                                                   template_config)
                               values (?, ?, ?, ${database_1.default.escape(JSON.stringify((copyAppData && copyAppData.config) || {}))},
                                       ${database_1.default.escape((_b = cf.brand) !== null && _b !== void 0 ? _b : config_1.saasConfig.SAAS_NAME)},
-                                      ${database_1.default.escape(JSON.stringify((_c = (copyAppData && copyAppData.theme_config)) !== null && _c !== void 0 ? _c : { name: cf.name }))},
+                                      ${database_1.default.escape(JSON.stringify((_c = (copyAppData && copyAppData.theme_config)) !== null && _c !== void 0 ? _c : { name: (copyAppData && copyAppData.template_config && copyAppData.template_config.name) || cf.name }))},
                                       ${(cf.theme) ? database_1.default.escape(cf.theme) : 'null'},
                                       ${database_1.default.escape(JSON.stringify((copyAppData && copyAppData.template_config) || {}))})`, [
                 this.token.userID,

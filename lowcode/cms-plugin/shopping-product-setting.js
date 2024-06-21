@@ -17,16 +17,16 @@ export class ShoppingProductSetting {
         const html = String.raw;
         const glitter = gvc.glitter;
         const vm = {
+            id: glitter.getUUID(),
             status: 'list',
             dataList: undefined,
             query: '',
         };
         let replaceData = '';
         return gvc.bindView(() => {
-            const id = glitter.getUUID();
             return {
                 dataList: [{ obj: vm, key: 'status' }],
-                bind: id,
+                bind: vm.id,
                 view: () => {
                     switch (vm.status) {
                         case 'add':
@@ -34,20 +34,14 @@ export class ShoppingProductSetting {
                         case 'list':
                             const filterID = gvc.glitter.getUUID();
                             return BgWidget.container(html `
-                                <div class="d-flex w-100 align-items-center mb-3">
-                                    ${BgWidget.title('商品管理')}
-                                    <div class="flex-fill"></div>
-                                    <button
-                                        class="btn btn-primary-c"
-                                        style="height:45px;font-size: 14px;"
-                                        onclick="${gvc.event(() => {
+                                    <div class="d-flex w-100 align-items-center" style="margin-bottom: 24px;">
+                                        ${BgWidget.title('商品管理')}
+                                        <div class="flex-fill"></div>
+                                        ${BgWidget.darkButton('新增商品', gvc.event(() => {
                                 vm.status = 'add';
-                            })}"
-                                    >
-                                        新增商品
-                                    </button>
-                                </div>
-                                ${BgWidget.table({
+                            }))}
+                                    </div>
+                                    ${BgWidget.mainCard(BgWidget.tableV2({
                                 gvc: gvc,
                                 getData: (vmi) => {
                                     ApiShop.getProduct({
@@ -90,11 +84,11 @@ export class ShoppingProductSetting {
                                                     {
                                                         key: '商品',
                                                         value: html `<img
-                                                                    class="rounded border me-4 "
-                                                                    alt=""
-                                                                    src="${dd.content.preview_image[0] || 'https://jmva.or.jp/wp-content/uploads/2018/07/noimage.png'}"
-                                                                    style="width:40px;height:40px;"
-                                                                />` + dd.content.title,
+                                                                            class="rounded border me-4 "
+                                                                            alt=""
+                                                                            src="${dd.content.preview_image[0] || 'https://jmva.or.jp/wp-content/uploads/2018/07/noimage.png'}"
+                                                                            style="width:40px;height:40px;"
+                                                                        />` + dd.content.title,
                                                     },
                                                     {
                                                         key: '狀態',
@@ -117,12 +111,12 @@ export class ShoppingProductSetting {
                                                     {
                                                         key: '類別',
                                                         value: html `<div class="d-flex align-items-center " style="height:40px;">
-                                                                ${dd.content.collection
+                                                                        ${dd.content.collection
                                                             .map((dd) => {
                                                             return `<div class="badge bg-secondary fs-7">${dd}</div>`;
                                                         })
                                                             .join(`<div class="mx-1"></div>`)}
-                                                            </div>`,
+                                                                    </div>`,
                                                     },
                                                 ].map((dd) => {
                                                     dd.value = `<div style="line-height:40px;">${dd.value}</div>`;
@@ -140,11 +134,11 @@ export class ShoppingProductSetting {
                                     vm.status = 'replace';
                                 },
                                 filter: html `
-                                        ${BgWidget.searchPlace(gvc.event((e, event) => {
+                                                ${BgWidget.searchPlace(gvc.event((e, event) => {
                                     vm.query = e.value;
-                                    gvc.notifyDataChange(id);
+                                    gvc.notifyDataChange(vm.id);
                                 }), vm.query, '搜尋所有商品')}
-                                        ${gvc.bindView(() => {
+                                                ${gvc.bindView(() => {
                                     return {
                                         bind: filterID,
                                         view: () => {
@@ -158,9 +152,9 @@ export class ShoppingProductSetting {
                                                 return [
                                                     html `<span class="fs-7 fw-bold">操作選項</span>`,
                                                     html `<button
-                                                                class="btn btn-danger fs-7 px-2"
-                                                                style="height:30px;border:none;"
-                                                                onclick="${gvc.event(() => {
+                                                                        class="btn btn-danger fs-7 px-2"
+                                                                        style="height:30px;border:none;"
+                                                                        onclick="${gvc.event(() => {
                                                         const dialog = new ShareDialog(gvc.glitter);
                                                         dialog.checkYesOrNot({
                                                             text: '是否確認移除所選項目?',
@@ -182,7 +176,7 @@ export class ShoppingProductSetting {
                                                                         });
                                                                         if (res.result) {
                                                                             vm.dataList = undefined;
-                                                                            gvc.notifyDataChange(id);
+                                                                            gvc.notifyDataChange(vm.id);
                                                                         }
                                                                         else {
                                                                             dialog.errorMessage({
@@ -194,9 +188,9 @@ export class ShoppingProductSetting {
                                                             },
                                                         });
                                                     })}"
-                                                            >
-                                                                批量移除
-                                                            </button>`,
+                                                                    >
+                                                                        批量移除
+                                                                    </button>`,
                                                 ].join(``);
                                             }
                                         },
@@ -213,9 +207,9 @@ export class ShoppingProductSetting {
                                         },
                                     };
                                 })}
-                                    `,
-                            })}
-                            `);
+                                            `,
+                            }))}
+                                `, BgWidget.getContainerWidth());
                         case 'replace':
                             return ShoppingProductSetting.editProduct({
                                 vm: vm,

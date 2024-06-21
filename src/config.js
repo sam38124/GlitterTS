@@ -1,22 +1,16 @@
 'use strict';
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.config = exports.saasConfig = exports.ConfigSetting = void 0;
-const path_1 = __importDefault(require("path"));
-const dotenv_1 = __importDefault(require("dotenv"));
-class ConfigSetting {
+import path from 'path';
+import dotenv from 'dotenv';
+export class ConfigSetting {
     static setConfig(envPath) {
         ConfigSetting.config_path = envPath;
-        dotenv_1.default.config({
+        dotenv.config({
             path: envPath,
         });
     }
 }
-exports.ConfigSetting = ConfigSetting;
 ConfigSetting.config_path = '';
-exports.saasConfig = {
+export let saasConfig = {
     get SAAS_NAME() {
         return process.env.GLITTER_DB;
     },
@@ -24,7 +18,7 @@ exports.saasConfig = {
         return parseInt(process.env.DEF_DEADLINE, 10);
     },
 };
-exports.config = {
+export const config = {
     get domain() {
         return process.env.DOMAIN;
     },
@@ -33,7 +27,7 @@ exports.config = {
     API_PUBLIC_PREFIX: '/api-public/v1',
     PARAMS_NEED_ENCRYPT_IN_LOG: ['pwd', 'email'],
     PWD_SALT_ROUND: 5,
-    LOG_PATH: path_1.default.resolve('../../log'),
+    LOG_PATH: path.resolve('../../log'),
     DB_CONN_LIMIT: 0,
     DB_QUEUE_LIMIT: 0,
     get DB_URL() {
@@ -84,10 +78,10 @@ exports.config = {
     },
     getRoute: (r, type = 'normal') => {
         if (type === 'normal') {
-            return exports.config.API_PREFIX + r;
+            return config.API_PREFIX + r;
         }
         else {
-            return exports.config.API_PUBLIC_PREFIX + r;
+            return config.API_PUBLIC_PREFIX + r;
         }
     },
     public_route: {
@@ -121,5 +115,4 @@ exports.config = {
         backendServer: '/backend-server',
     },
 };
-exports.default = exports.config;
-//# sourceMappingURL=config.js.map
+export default config;

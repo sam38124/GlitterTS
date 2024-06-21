@@ -1,8 +1,8 @@
-import {GVC} from "../glitterBundle/GVController.js";
-import {BgWidget} from "../backend-manager/bg-widget.js";
-import {ApiUser} from "../glitter-base/route/user.js";
-import {EditorElem} from "../glitterBundle/plugins/editor-elem.js";
-import {ShareDialog} from "../dialog/ShareDialog.js";
+import { GVC } from '../glitterBundle/GVController.js';
+import { BgWidget } from '../backend-manager/bg-widget.js';
+import { ApiUser } from '../glitter-base/route/user.js';
+import { EditorElem } from '../glitterBundle/plugins/editor-elem.js';
+import { ShareDialog } from '../dialog/ShareDialog.js';
 
 const html = String.raw;
 
@@ -61,9 +61,7 @@ export class AutoReply {
                                 },
                                 {
                                     key: '標題',
-                                    value: `<div style="max-width: calc(100vw - 650px);text-overflow: ellipsis;white-space: nowrap;position: relative;overflow: hidden;">
-${dd.title}
-</div>`,
+                                    value: html`<div style="max-width: calc(100vw - 650px);text-overflow: ellipsis;white-space: nowrap;position: relative;overflow: hidden;">${dd.title}</div>`,
                                 },
                                 {
                                     key: '最後更新時間',
@@ -77,30 +75,30 @@ ${dd.title}
                                             bind: id2,
                                             view: () => {
                                                 console.log(`id2=>`, id2);
-                                                return ` <div class="tx_normal">
-                                                              啟用
-                                                                </div>
-                                                                <div class="cursor_it form-check form-switch ms-1"
-                                                                     style=" ">
-                                                                    <input class=" form-check-input form-check-input-success" 
-                                                                           type="checkbox" 
-                                                                           onclick="${gvc.event((e, event) => {
-                                                                               event.stopPropagation();
-                                                                               ApiUser.getPublicConfig(dd.tag, 'manager').then((res) => {
-                                                                                   dd.toggle = !dd.toggle;
-                                                                                   res.response.value = res.response.value || {};
-                                                                                   res.response.value.updated_time = new Date();
-                                                                                   res.response.value.toggle = dd.toggle;
-                                                                                   ApiUser.setPublicConfig({
-                                                                                       key: dd.tag,
-                                                                                       value: res.response.value,
-                                                                                       user_id: 'manager',
-                                                                                   }).then(() => {
-                                                                                       gvc.notifyDataChange(id2);
-                                                                                   });
-                                                                               });
-                                                                           })}"
-                                                                            ${dd.toggle ? `checked` : ``}></div>`;
+                                                return html` <div class="tx_normal">啟用</div>
+                                                    <div class="cursor_it form-check form-switch ms-1" style=" ">
+                                                        <input
+                                                            class=" form-check-input form-check-input-success"
+                                                            type="checkbox"
+                                                            onclick="${gvc.event((e, event) => {
+                                                                event.stopPropagation();
+                                                                ApiUser.getPublicConfig(dd.tag, 'manager').then((res) => {
+                                                                    dd.toggle = !dd.toggle;
+                                                                    res.response.value = res.response.value || {};
+                                                                    res.response.value.updated_time = new Date();
+                                                                    res.response.value.toggle = dd.toggle;
+                                                                    ApiUser.setPublicConfig({
+                                                                        key: dd.tag,
+                                                                        value: res.response.value,
+                                                                        user_id: 'manager',
+                                                                    }).then(() => {
+                                                                        gvc.notifyDataChange(id2);
+                                                                    });
+                                                                });
+                                                            })}"
+                                                            ${dd.toggle ? `checked` : ``}
+                                                        />
+                                                    </div>`;
                                             },
                                             divCreate: { elem: `div`, style: `gap:4px;`, class: `d-flex` },
                                         };
@@ -110,54 +108,58 @@ ${dd.title}
                         });
                     }
 
-                    return BgWidget.container(html`
-                        <div class="d-flex w-100 align-items-center mb-3 ">
-                            ${BgWidget.title('自動寄件')}
-                            <div class="flex-fill"></div>
-                        </div>
-                        ${BgWidget.table({
-                            gvc: gvc,
-                            editable: true,
-                            getData: async (vmk) => {
-                                const appData = await ApiUser.getPublicConfig('store-information', 'manager');
-
-                                vmi = vmk;
-                                vmi.pageSize = Math.ceil(1);
-                                vm.dataList = [
-                                    'auto-email-shipment-arrival',
-                                    'auto-email-shipment',
-                                    'auto-email-payment-successful',
-                                    'auto-email-order-create',
-                                    'auto-email-order-cancel-success',
-                                    'auto-email-order-cancel-false',
-                                    'auto-email-birthday',
-                                    'auto-email-welcome',
-                                    'auto-email-verify',
-                                    'auto-email-forget',
-                                ];
-                                let index = 0;
-                                for (const b of vm.dataList) {
-                                    vm.dataList[index] = await AutoReply.getDefCompare(b);
-                                    vm.dataList[index].title = vm.dataList[index].title.replace(/@\{\{app_name\}\}/g, (appData.response.value && appData.response.value.shop_name) || '商店名稱');
-                                    index++;
-                                }
-                                vmi.data = getDatalist();
-                                vmi.loading = false;
-                                setTimeout(() => {
-                                    vmi.callback();
-                                });
-                            },
-                            rowClick: (data, index) => {
-                                vm.tag = vm.dataList[index].tag;
-                                vm.type = 'replace';
-                                gvc.notifyDataChange(id);
-                            },
-                            filter: ``,
-                        })}
-                    `);
-                },
-                divCreate: {
-                    class: `m-4`,
+                    return BgWidget.container(
+                        html`
+                            <div class="d-flex w-100 align-items-center" style="margin-bottom: 24px;">
+                                ${BgWidget.title('自動寄件')}
+                                <div class="flex-fill"></div>
+                            </div>
+                            ${BgWidget.mainCard(
+                                BgWidget.tableV2({
+                                    gvc: gvc,
+                                    editable: true,
+                                    getData: async (vmk) => {
+                                        const appData = await ApiUser.getPublicConfig('store-information', 'manager');
+                                        vmi = vmk;
+                                        vmi.pageSize = Math.ceil(1);
+                                        vm.dataList = [
+                                            'auto-email-shipment-arrival',
+                                            'auto-email-shipment',
+                                            'auto-email-payment-successful',
+                                            'auto-email-order-create',
+                                            'auto-email-order-cancel-success',
+                                            'auto-email-order-cancel-false',
+                                            'auto-email-birthday',
+                                            'auto-email-welcome',
+                                            'auto-email-verify',
+                                            'auto-email-forget',
+                                        ];
+                                        let index = 0;
+                                        for (const b of vm.dataList) {
+                                            vm.dataList[index] = await AutoReply.getDefCompare(b);
+                                            vm.dataList[index].title = vm.dataList[index].title.replace(
+                                                /@\{\{app_name\}\}/g,
+                                                (appData.response.value && appData.response.value.shop_name) || '商店名稱'
+                                            );
+                                            index++;
+                                        }
+                                        vmi.data = getDatalist();
+                                        vmi.loading = false;
+                                        setTimeout(() => {
+                                            vmi.callback();
+                                        });
+                                    },
+                                    rowClick: (data, index) => {
+                                        vm.tag = vm.dataList[index].tag;
+                                        vm.type = 'replace';
+                                        gvc.notifyDataChange(id);
+                                    },
+                                    filter: ``,
+                                })
+                            )}
+                        `,
+                        BgWidget.getContainerWidth()
+                    );
                 },
             };
         });
@@ -173,13 +175,15 @@ ${dd.title}
         };
         return [
             [
-                `<div class="d-flex align-items-center">${BgWidget.goBack(
-                    gvc.event(() => {
-                        back();
-                    })
-                )}${BgWidget.title('信件設定')}</div>`,
+                html`<div class="d-flex align-items-center">
+                    ${BgWidget.goBack(
+                        gvc.event(() => {
+                            back();
+                        })
+                    )}${BgWidget.title('信件設定')}
+                </div>`,
             ],
-            `<div style="height: 10px;"></div>`,
+            html`<div style="height: 10px;"></div>`,
             BgWidget.card(
                 gvc.bindView(() => {
                     const id = gvc.glitter.getUUID();
@@ -228,31 +232,33 @@ ${dd.title}
                     };
                 })
             ),
-            `<div style="height: 70px;"></div>`,
-            `<div class="position-fixed bottom-0 left-0 w-100 d-flex align-items-center justify-content-end p-3 border-top bg-white border" style="z-index:999;gap:10px;left: 0;background: #FFF;
-box-shadow: 0px 1px 10px 0px rgba(0, 0, 0, 0.15);">
-${BgWidget.cancel(
-    gvc.event(() => {
-        back();
-    })
-)}
-${BgWidget.save(
-    gvc.event(() => {
-        widget.event('loading', { title: '儲存中' });
-        console.log(`saveData->`, vm.data);
-        ApiUser.setPublicConfig({
-            key: tag,
-            value: vm.data,
-            user_id: 'manager',
-        }).then(() => {
-            setTimeout(() => {
-                widget.event('loading', { visible: false });
-                widget.event('success', { title: '儲存成功!' });
-            }, 1000);
-        });
-    })
-)}
-</div>`,
+            html`<div style="height: 70px;"></div>`,
+            html`<div
+                class="position-fixed bottom-0 left-0 w-100 d-flex align-items-center justify-content-end p-3 border-top bg-white border"
+                style="z-index:999;gap:10px;left: 0;background: #FFF;box-shadow: 0px 1px 10px 0px rgba(0, 0, 0, 0.15);"
+            >
+                ${BgWidget.cancel(
+                    gvc.event(() => {
+                        back();
+                    })
+                )}
+                ${BgWidget.save(
+                    gvc.event(() => {
+                        widget.event('loading', { title: '儲存中' });
+                        console.log(`saveData->`, vm.data);
+                        ApiUser.setPublicConfig({
+                            key: tag,
+                            value: vm.data,
+                            user_id: 'manager',
+                        }).then(() => {
+                            setTimeout(() => {
+                                widget.event('loading', { visible: false });
+                                widget.event('success', { title: '儲存成功!' });
+                            }, 1000);
+                        });
+                    })
+                )}
+            </div>`,
         ].join('');
     }
 

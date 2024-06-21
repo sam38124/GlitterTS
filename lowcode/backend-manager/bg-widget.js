@@ -175,7 +175,7 @@ ${(obj.style || []) && obj.style[index] ? obj.style[index] : ``}
                                 .map((dd, index) => {
                                 var _a;
                                 return html ` <th
-                                                                  class="${(_a = dd.position) !== null && _a !== void 0 ? _a : 'text-start'} tx_normal"
+                                                                  class="${(_a = dd.position) !== null && _a !== void 0 ? _a : 'text-start'} tx_700"
                                                                   style="border:none; color:#393939 !important; ${(obj.style || []) && obj.style[index] ? obj.style[index] : ``}"
                                                               >
                                                                   ${dd.key}
@@ -210,7 +210,7 @@ ${(obj.style || []) && obj.style[index] ? obj.style[index] : ``}
                                                                           ${d3.key === '●' || d3.stopDialog ? '' : html ` onclick="${gvc.event(() => { })}"`}
                                                                           style="color:#393939 !important;border:none;${(obj.style || []) && obj.style[index] ? obj.style[index] : ``}"
                                                                       >
-                                                                          <div class="my-auto" style="${(obj.style || []) && obj.style[index] ? obj.style[index] : ``}">${d3.value}</div>
+                                                                          <div class="my-1" style="${(obj.style || []) && obj.style[index] ? obj.style[index] : ``}">${d3.value}</div>
                                                                           ${index === dd.length - 1 && obj.editable
                                         ? html `
                                                                                     <i
@@ -249,20 +249,30 @@ ${(obj.style || []) && obj.style[index] ? obj.style[index] : ``}
             };
         });
     }
+    static cancel(event, text = '取消') {
+        return html `<button class="btn btn-snow" type="button" onclick="${event}">
+            <span class="tx_700">${text}</span>
+        </button> `;
+    }
+    static save(event, text = '儲存') {
+        return html ` <button class="btn btn-black" type="button" onclick="${event}">
+            <span class="tx_700_white">${text}</span>
+        </button>`;
+    }
+    static maintenance() {
+        return html `<div class="d-flex flex-column align-items-center justify-content-center vh-100 vw-100">
+            <iframe src="https://embed.lottiefiles.com/animation/99312" style="width:50vw;height:50vw;"></iframe>
+            <h3 style="margin-top: 36px;">此頁面功能維護中</h3>
+        </div>`;
+    }
     static card(htmlString, classStyle = 'p-3 bg-white rounded-3 shadow border w-100') {
         return html `<div class="${classStyle}" style="">${htmlString}</div>`;
     }
-    static cancel(event, text = '取消') {
-        return html `<div class="cursor_it bt_c39_w" onclick="${event}">${text}</div>`;
-    }
-    static save(event, text = '儲存') {
-        return html `<div class="cursor_it bt_c39" onclick="${event}">${text}</div>`;
-    }
-    static card_main(htmlString) {
+    static mainCard(htmlString) {
         return html `<div class="w-100" style="border-radius: 10px; padding: 20px; background: #FFF; box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.08);">${htmlString}</div>`;
     }
-    static container(html, width, style) {
-        return `<div class="mx-auto" style="padding:24px;${width ? `max-width:100%;width:${width}px;` : ``};color:black;${style !== null && style !== void 0 ? style : ''}">${html}</div>`;
+    static container(htmlString, width, style) {
+        return html `<div style="padding: 24px 0; margin: 0 auto; ${width ? `max-width:100%; width:${width}px;` : ``} ${style !== null && style !== void 0 ? style : ''}">${htmlString}</div>`;
     }
     static title(title) {
         return html ` <h3 class="my-auto tx_title">${title}</h3>`;
@@ -692,8 +702,17 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
     static leftLineBar() {
         return html `<div class="ms-2 border-end position-absolute h-100" style="left: 0px;"></div>`;
     }
-    static grayButton(text, event) {
-        return html `<button class="btn-gary" type="button" onclick="${event}">${text}</button>`;
+    static grayButton(text, event, icon = '') {
+        return html `<button class="btn btn-gary" type="button" onclick="${event}">
+            <i class="${icon.length > 0 ? icon : 'd-none'}"></i>
+            <span class="tx_700">${text}</span>
+        </button>`;
+    }
+    static darkButton(text, event, icon = '') {
+        return html `<button class="btn btn-black" type="button" onclick="${event}">
+            <i class="${icon.length > 0 ? icon : 'd-none'}"></i>
+            <span class="tx_700_white">${text}</span>
+        </button>`;
     }
     static searchFilter(event, vale, placeholder, margin) {
         return html `<div class="w-100 position-relative" style="margin: ${margin !== null && margin !== void 0 ? margin : 0};">
@@ -919,4 +938,20 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
         });
     }
 }
+BgWidget.getContainerWidth = () => {
+    const width = document.body.clientWidth;
+    const rateForWeb = 0.79;
+    const rateForPad = 0.92;
+    const rateForPhone = 0.95;
+    if (width >= 1440) {
+        return 1440 * rateForWeb;
+    }
+    if (width >= 1200) {
+        return 1200 * rateForWeb;
+    }
+    if (width >= 768) {
+        return width * rateForPad;
+    }
+    return width * rateForPhone;
+};
 window.glitter.setModule(import.meta.url, BgWidget);

@@ -44,372 +44,336 @@ export class ShoppingRebate {
                 dataList: [{ obj: vm, key: 'type' }],
                 view: () => {
                     if (vm.type === 'list') {
-                        return BgWidget.container(html`
-                            <div class="d-flex w-100 align-items-center mb-3 ">
-                                ${BgWidget.title('購物金紀錄')}
-                                <div class="flex-fill"></div>
-                                <button
-                                    class="btn hoverBtn me-2 px-3"
-                                    style="height:35px !important;font-size: 14px;color:black;border:1px solid black;"
-                                    onclick="${gvc.event(() => {
-                                        gvc.glitter.innerDialog((gvc2) => {
-                                            const vm = {
-                                                type: 'add',
-                                                value: '0',
-                                                note: '',
-                                                rebateEndDay: '0',
-                                            };
-                                            return html`<div class="modal-content bg-white rounded-3 p-2" style="max-width:90%;width:400px;">
-                                                <div>
-                                                    <div style="height: 50px; margin-bottom: 16px" class="d-flex align-items-center border-bottom">
-                                                        <span class="ps-2 tx_700">新增紀錄</span>
-                                                    </div>
-                                                    ${gvc.bindView(() => {
-                                                        const id = gvc.glitter.getUUID();
-                                                        return {
-                                                            bind: id,
-                                                            view: () => {
-                                                                return [
-                                                                    html`<div>
-                                                                        ${EditorElem.radio({
-                                                                            title: html`<h6 class="tx_700">類型</h6>`,
-                                                                            gvc: gvc,
-                                                                            def: vm.type,
-                                                                            array: [
-                                                                                { title: '新增', value: 'add' },
-                                                                                { title: '減少', value: 'minus' },
-                                                                            ],
-                                                                            callback: (text) => {
-                                                                                vm.type = text;
-                                                                                gvc.notifyDataChange(id);
-                                                                            },
-                                                                        })}
-                                                                    </div>`,
-                                                                    html`<div class="row">
-                                                                        <div class="col-6">
-                                                                            ${EditorElem.editeInput({
-                                                                                title: html`<h6 class="tx_700">金額</h6>`,
-                                                                                gvc: gvc,
-                                                                                default: vm.value,
-                                                                                type: 'number',
-                                                                                placeHolder: '設定數值',
-                                                                                callback: (text) => {
-                                                                                    vm.value = text;
-                                                                                    gvc.notifyDataChange(id);
-                                                                                },
-                                                                            })}
-                                                                        </div>
-                                                                        <div class="col-6">
-                                                                            ${EditorElem.editeInput({
-                                                                                title: html`<h6 class="tx_700">可使用天數</h6>`,
-                                                                                gvc: gvc,
-                                                                                default: vm.rebateEndDay,
-                                                                                type: 'number',
-                                                                                placeHolder: '設定數值',
-                                                                                callback: (text) => {
-                                                                                    vm.rebateEndDay = text;
-                                                                                    gvc.notifyDataChange(id);
-                                                                                },
-                                                                                unit: '天',
-                                                                                readonly: vm.type !== 'add',
-                                                                            })}
-                                                                            ${BgWidget.grayNote('輸入0，則為無期限', 'margin-top:6px; font-size: 14px;')}
-                                                                        </div>
-                                                                    </div>`,
-                                                                    html`<div>
-                                                                        ${EditorElem.editeText({
-                                                                            title: html`<h6 class="tx_700">備註</h6>`,
-                                                                            gvc: gvc,
-                                                                            default: vm.note,
-                                                                            placeHolder: '輸入備註',
-                                                                            callback: (text) => {
-                                                                                vm.note = text;
-                                                                                gvc.notifyDataChange(id);
-                                                                            },
-                                                                        })}
-                                                                    </div>`,
-                                                                ].join(``);
-                                                            },
-                                                            divCreate: {
-                                                                class: `p-2`,
-                                                                style: `display: flex; gap: 12px; flex-direction: column;`,
-                                                            },
-                                                        };
-                                                    })}
-                                                    <div class="modal-footer mb-0 pb-0 mt-2 pt-1">
-                                                        <button
-                                                            type="button"
-                                                            class="btn btn-outline-dark me-2"
-                                                            onclick="${gvc.event(() => {
-                                                                gvc2.closeDialog();
-                                                            })}"
-                                                        >
-                                                            取消
-                                                        </button>
-                                                        <button
-                                                            type="button"
-                                                            class="btn btn-primary-c"
-                                                            onclick="${gvc.event(() => {
-                                                                gvc.glitter.innerDialog((gvc) => {
-                                                                    let dataList: any = [];
-                                                                    return html`
-                                                                        <div>
-                                                                            ${BgWidget.container(
-                                                                                BgWidget.card(
-                                                                                    [
-                                                                                        html`
-                                                                                            <div class="d-flex w-100 align-items-center mb-3 ">
-                                                                                                ${BgWidget.goBack(
-                                                                                                    gvc.event(() => {
-                                                                                                        gvc.closeDialog();
-                                                                                                    })
-                                                                                                )}
-                                                                                                ${BgWidget.title(`選擇變動對象`)}
-                                                                                                <div class="flex-fill"></div>
-                                                                                                <button
-                                                                                                    class="btn btn-primary-c"
-                                                                                                    style="height:38px;font-size: 14px;"
-                                                                                                    onclick="${gvc.event(() => {
-                                                                                                        const dialog = new ShareDialog(gvc.glitter);
-                                                                                                        if (dataList.length > 0) {
-                                                                                                            dialog.dataLoading({
-                                                                                                                text: '發送中...',
-                                                                                                                visible: true,
-                                                                                                            });
-                                                                                                            ApiWallet.storeRebateByManager({
-                                                                                                                userID: dataList.map((dd: any) => {
-                                                                                                                    return dd.userID;
-                                                                                                                }),
-                                                                                                                total: (() => {
-                                                                                                                    if (vm.type === 'add') {
-                                                                                                                        return parseInt(vm.value, 10);
-                                                                                                                    } else {
-                                                                                                                        const minus = parseInt(vm.value, 10);
-                                                                                                                        return minus ? minus * -1 : minus;
-                                                                                                                    }
-                                                                                                                })(),
-                                                                                                                note: vm.note,
-                                                                                                                rebateEndDay: vm.rebateEndDay,
-                                                                                                            }).then((result) => {
-                                                                                                                console.log(result);
-                                                                                                                dialog.dataLoading({ visible: false });
-                                                                                                                if (result.response.result) {
-                                                                                                                    dialog.successMessage({ text: `設定成功` });
-                                                                                                                    gvc.closeDialog();
-                                                                                                                    gvc2.closeDialog();
-                                                                                                                    refresh();
-                                                                                                                } else {
-                                                                                                                    dialog.errorMessage({ text: result.response.msg });
-                                                                                                                }
-                                                                                                            });
-                                                                                                        } else {
-                                                                                                            dialog.errorMessage({ text: '請選擇變動對象!' });
-                                                                                                        }
-                                                                                                    })}"
-                                                                                                >
-                                                                                                    確認並發送
-                                                                                                </button>
-                                                                                            </div>
-                                                                                        ` +
-                                                                                            html`<div class="mx-n2">
-                                                                                                ${UserList.userManager(gvc, 'select', (data) => {
-                                                                                                    dataList = data;
-                                                                                                })}
-                                                                                                <div></div>
-                                                                                            </div>`,
-                                                                                    ].join('')
-                                                                                ),
-                                                                                900
-                                                                            )}
-                                                                            <div></div>
-                                                                        </div>
-                                                                    `;
-                                                                }, 'email');
-                                                            })}"
-                                                        >
-                                                            選擇用戶
-                                                            <i class="fa-solid fa-arrow-right ms-2"></i>
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            </div>`;
-                                        }, 'add');
-                                    })}"
-                                >
-                                    <i class="fa-regular fa-circle-plus me-2"></i>
-                                    新增紀錄
-                                </button>
-                            </div>
-                            ${BgWidget.table({
-                                gvc: gvc,
-                                getData: (vmi) => {
-                                    const limit = 15;
-                                    ApiWallet.getRebate({
-                                        page: vmi.page - 1,
-                                        limit: limit,
-                                        search: vm.query || undefined,
-                                    }).then((data) => {
-                                        vmi.pageSize = Math.ceil(data.response.total / limit);
-                                        vm.dataList = data.response.data;
-
-                                        function getDatalist() {
-                                            return data.response.data.map((dd: any) => {
-                                                return [
-                                                    {
-                                                        key: EditorElem.checkBoxOnly({
-                                                            gvc: gvc,
-                                                            def: !data.response.data.find((dd: any) => {
-                                                                return !dd.checked;
-                                                            }),
-                                                            callback: (result) => {
-                                                                data.response.data.map((dd: any) => {
-                                                                    dd.checked = result;
-                                                                });
-                                                                vmi.data = getDatalist();
-                                                                vmi.callback();
-                                                                gvc.notifyDataChange(filterID);
-                                                            },
-                                                        }),
-                                                        value: EditorElem.checkBoxOnly({
-                                                            gvc: gvc,
-                                                            def: dd.checked,
-                                                            callback: (result) => {
-                                                                dd.checked = result;
-                                                                vmi.data = getDatalist();
-                                                                vmi.callback();
-                                                                gvc.notifyDataChange(filterID);
-                                                            },
-                                                            style: 'height:25px;',
-                                                        }),
-                                                    },
-                                                    {
-                                                        key: '用戶名稱',
-                                                        value: `<span class="fs-7">${dd.name ?? '資料異常'}</span>`,
-                                                    },
-                                                    {
-                                                        key: '購物金來源',
-                                                        value: `<span class="fs-7">${dd.content.order_id ? `訂單編號：${dd.content.order_id}` : '管理員手動設定'}</span>`,
-                                                    },
-                                                    {
-                                                        key: '增減金額',
-                                                        value: (() => {
-                                                            if (dd.origin > 0) {
-                                                                return html`<span class="tx_700 text-success">+ ${dd.origin}</span>`;
-                                                            }
-                                                            return html`<span class="tx_700 text-danger">- ${dd.origin * -1}</span>`;
-                                                        })(),
-                                                    },
-                                                    {
-                                                        key: '剩餘金額',
-                                                        value: (() => {
-                                                            if (dd.origin < 0) {
-                                                                return html`<span class="tx_700">-</span>`;
-                                                            }
-                                                            if (dd.remain > 0) {
-                                                                return html`<span class="tx_700 text-success">+ ${dd.remain}</span>`;
-                                                            }
-                                                            return html`<span class="tx_700">0</span>`;
-                                                        })(),
-                                                    },
-                                                    {
-                                                        key: '備註',
-                                                        value: `<span class="fs-7">${typeof dd.note === 'string' ? dd.note : (dd.note && dd.note.note) ?? '尚未填寫備註'}</span>`,
-                                                    },
-                                                    {
-                                                        key: '建立時間',
-                                                        value: `<span class="fs-7">${glitter.ut.dateFormat(new Date(dd.created_at), 'yyyy-MM-dd hh:mm:ss')}</span>`,
-                                                    },
-                                                ];
-                                            });
-                                        }
-                                        vmi.data = getDatalist();
-                                        vmi.loading = false;
-                                        vmi.callback();
-                                    });
-                                },
-                                rowClick: (data, index) => {
-                                    vm.data = vm.dataList[index];
-                                    vm.type = 'replace';
-                                },
-                                filter: html`
-                                    ${BgWidget.searchPlace(
-                                        gvc.event((e, event) => {
-                                            vm.query = e.value;
-                                            gvc.notifyDataChange(id);
-                                        }),
-                                        vm.query || '',
-                                        '搜尋顧客信箱、姓名'
-                                    )}
-                                    ${gvc.bindView(() => {
-                                        return {
-                                            bind: filterID,
-                                            view: () => {
-                                                if (
-                                                    !vm.dataList ||
-                                                    !vm.dataList.find((dd: any) => {
-                                                        return dd.checked;
-                                                    })
-                                                ) {
-                                                    return ``;
-                                                } else {
-                                                    return [
-                                                        html`<span class="fs-7 fw-bold">操作選項</span>`,
-                                                        // html`<button
-                                                        //     class="btn btn-danger fs-7 px-2"
-                                                        //     style="height:30px;border:none;"
-                                                        //     onclick="${gvc.event(() => {
-                                                        //         const dialog = new ShareDialog(gvc.glitter);
-                                                        //         dialog.checkYesOrNot({
-                                                        //             text: '是否確認移除所選項目?',
-                                                        //             callback: (response) => {
-                                                        //                 if (response) {
-                                                        //                     dialog.dataLoading({ visible: true });
-                                                        //                     ApiWallet.deleteRebate({
-                                                        //                         id: vm.dataList
-                                                        //                             .filter((dd: any) => {
-                                                        //                                 return dd.checked;
-                                                        //                             })
-                                                        //                             .map((dd: any) => {
-                                                        //                                 return dd.id;
-                                                        //                             })
-                                                        //                             .join(`,`),
-                                                        //                     }).then((res) => {
-                                                        //                         dialog.dataLoading({ visible: false });
-                                                        //                         if (res.result) {
-                                                        //                             vm.dataList = undefined;
-                                                        //                             gvc.notifyDataChange(id);
-                                                        //                         } else {
-                                                        //                             dialog.errorMessage({ text: '刪除失敗' });
-                                                        //                         }
-                                                        //                     });
-                                                        //                 }
-                                                        //             },
-                                                        //         });
-                                                        //     })}"
-                                                        // >
-                                                        //     批量移除
-                                                        // </button>`,
-                                                    ].join(``);
-                                                }
-                                            },
-                                            divCreate: () => {
-                                                return {
-                                                    class: `d-flex align-items-center mt-2 p-2 py-3 ${
-                                                        !vm.dataList ||
-                                                        !vm.dataList.find((dd: any) => {
-                                                            return dd.checked;
-                                                        })
-                                                            ? `d-none`
-                                                            : ``
-                                                    }`,
-                                                    style: `height:40px; gap:10px; margin-top:10px;`,
+                        return BgWidget.container(
+                            html`
+                                <div class="d-flex w-100 align-items-center" style="margin-bottom: 24px;">
+                                    ${BgWidget.title('購物金紀錄')}
+                                    <div class="flex-fill"></div>
+                                    ${BgWidget.darkButton(
+                                        '新增紀錄',
+                                        gvc.event(() => {
+                                            gvc.glitter.innerDialog((gvc2) => {
+                                                const vm = {
+                                                    type: 'add',
+                                                    value: '0',
+                                                    note: '',
+                                                    rebateEndDay: '0',
                                                 };
-                                            },
-                                        };
-                                    })}
-                                `,
-                            })}
-                        `);
+                                                return html`<div class="modal-content bg-white rounded-3 p-2" style="max-width:90%;width:400px;">
+                                                    <div>
+                                                        <div style="height: 50px; margin-bottom: 16px" class="d-flex align-items-center border-bottom">
+                                                            <span class="ps-2 tx_700">新增紀錄</span>
+                                                        </div>
+                                                        ${gvc.bindView(() => {
+                                                            const id = gvc.glitter.getUUID();
+                                                            return {
+                                                                bind: id,
+                                                                view: () => {
+                                                                    return [
+                                                                        html`<div>
+                                                                            ${EditorElem.radio({
+                                                                                title: html`<h6 class="tx_700">類型</h6>`,
+                                                                                gvc: gvc,
+                                                                                def: vm.type,
+                                                                                array: [
+                                                                                    { title: '新增', value: 'add' },
+                                                                                    { title: '減少', value: 'minus' },
+                                                                                ],
+                                                                                callback: (text) => {
+                                                                                    vm.type = text;
+                                                                                    gvc.notifyDataChange(id);
+                                                                                },
+                                                                            })}
+                                                                        </div>`,
+                                                                        html`<div class="row">
+                                                                            <div class="col-6">
+                                                                                ${EditorElem.editeInput({
+                                                                                    title: html`<h6 class="tx_700">金額</h6>`,
+                                                                                    gvc: gvc,
+                                                                                    default: vm.value,
+                                                                                    type: 'number',
+                                                                                    placeHolder: '設定數值',
+                                                                                    callback: (text) => {
+                                                                                        vm.value = text;
+                                                                                        gvc.notifyDataChange(id);
+                                                                                    },
+                                                                                })}
+                                                                            </div>
+                                                                            <div class="col-6">
+                                                                                ${EditorElem.editeInput({
+                                                                                    title: html`<h6 class="tx_700">可使用天數</h6>`,
+                                                                                    gvc: gvc,
+                                                                                    default: vm.rebateEndDay,
+                                                                                    type: 'number',
+                                                                                    placeHolder: '設定數值',
+                                                                                    callback: (text) => {
+                                                                                        vm.rebateEndDay = text;
+                                                                                        gvc.notifyDataChange(id);
+                                                                                    },
+                                                                                    unit: '天',
+                                                                                    readonly: vm.type !== 'add',
+                                                                                })}
+                                                                                ${BgWidget.grayNote('輸入0，則為無期限', 'margin-top:6px; font-size: 14px;')}
+                                                                            </div>
+                                                                        </div>`,
+                                                                        html`<div>
+                                                                            ${EditorElem.editeText({
+                                                                                title: html`<h6 class="tx_700">備註</h6>`,
+                                                                                gvc: gvc,
+                                                                                default: vm.note,
+                                                                                placeHolder: '輸入備註',
+                                                                                callback: (text) => {
+                                                                                    vm.note = text;
+                                                                                    gvc.notifyDataChange(id);
+                                                                                },
+                                                                            })}
+                                                                        </div>`,
+                                                                    ].join(``);
+                                                                },
+                                                                divCreate: {
+                                                                    class: `p-2`,
+                                                                    style: `display: flex; gap: 12px; flex-direction: column;`,
+                                                                },
+                                                            };
+                                                        })}
+                                                        <div class="modal-footer mb-0 pb-0 mt-2 pt-1">
+                                                            <button
+                                                                type="button"
+                                                                class="btn btn-outline-dark me-2"
+                                                                onclick="${gvc.event(() => {
+                                                                    gvc2.closeDialog();
+                                                                })}"
+                                                            >
+                                                                取消
+                                                            </button>
+                                                            <button
+                                                                type="button"
+                                                                class="btn btn-primary-c"
+                                                                onclick="${gvc.event(() => {
+                                                                    gvc.glitter.innerDialog((gvc) => {
+                                                                        let dataList: any = [];
+                                                                        return html`
+                                                                            <div>
+                                                                                ${BgWidget.container(
+                                                                                    BgWidget.card(
+                                                                                        [
+                                                                                            html`
+                                                                                                <div class="d-flex w-100 align-items-center mb-3 ">
+                                                                                                    ${BgWidget.goBack(
+                                                                                                        gvc.event(() => {
+                                                                                                            gvc.closeDialog();
+                                                                                                        })
+                                                                                                    )}
+                                                                                                    ${BgWidget.title(`選擇變動對象`)}
+                                                                                                    <div class="flex-fill"></div>
+                                                                                                    <button
+                                                                                                        class="btn btn-primary-c"
+                                                                                                        style="height:38px;font-size: 14px;"
+                                                                                                        onclick="${gvc.event(() => {
+                                                                                                            const dialog = new ShareDialog(gvc.glitter);
+                                                                                                            if (dataList.length > 0) {
+                                                                                                                dialog.dataLoading({
+                                                                                                                    text: '發送中...',
+                                                                                                                    visible: true,
+                                                                                                                });
+                                                                                                                ApiWallet.storeRebateByManager({
+                                                                                                                    userID: dataList.map((dd: any) => {
+                                                                                                                        return dd.userID;
+                                                                                                                    }),
+                                                                                                                    total: (() => {
+                                                                                                                        if (vm.type === 'add') {
+                                                                                                                            return parseInt(vm.value, 10);
+                                                                                                                        } else {
+                                                                                                                            const minus = parseInt(vm.value, 10);
+                                                                                                                            return minus ? minus * -1 : minus;
+                                                                                                                        }
+                                                                                                                    })(),
+                                                                                                                    note: vm.note,
+                                                                                                                    rebateEndDay: vm.rebateEndDay,
+                                                                                                                }).then((result) => {
+                                                                                                                    console.log(result);
+                                                                                                                    dialog.dataLoading({ visible: false });
+                                                                                                                    if (result.response.result) {
+                                                                                                                        dialog.successMessage({ text: `設定成功` });
+                                                                                                                        gvc.closeDialog();
+                                                                                                                        gvc2.closeDialog();
+                                                                                                                        refresh();
+                                                                                                                    } else {
+                                                                                                                        dialog.errorMessage({ text: result.response.msg });
+                                                                                                                    }
+                                                                                                                });
+                                                                                                            } else {
+                                                                                                                dialog.errorMessage({ text: '請選擇變動對象!' });
+                                                                                                            }
+                                                                                                        })}"
+                                                                                                    >
+                                                                                                        確認並發送
+                                                                                                    </button>
+                                                                                                </div>
+                                                                                            ` +
+                                                                                                html`<div class="mx-n2">
+                                                                                                    ${UserList.userManager(gvc, 'select', (data) => {
+                                                                                                        dataList = data;
+                                                                                                    })}
+                                                                                                    <div></div>
+                                                                                                </div>`,
+                                                                                        ].join('')
+                                                                                    ),
+                                                                                    900
+                                                                                )}
+                                                                                <div></div>
+                                                                            </div>
+                                                                        `;
+                                                                    }, 'email');
+                                                                })}"
+                                                            >
+                                                                選擇用戶
+                                                                <i class="fa-solid fa-arrow-right ms-2"></i>
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>`;
+                                            }, 'add');
+                                        })
+                                    )}
+                                </div>
+                                ${BgWidget.mainCard(
+                                    BgWidget.tableV2({
+                                        gvc: gvc,
+                                        getData: (vmi) => {
+                                            const limit = 15;
+                                            ApiWallet.getRebate({
+                                                page: vmi.page - 1,
+                                                limit: limit,
+                                                search: vm.query || undefined,
+                                            }).then((data) => {
+                                                vmi.pageSize = Math.ceil(data.response.total / limit);
+                                                vm.dataList = data.response.data;
+
+                                                function getDatalist() {
+                                                    return data.response.data.map((dd: any) => {
+                                                        return [
+                                                            {
+                                                                key: EditorElem.checkBoxOnly({
+                                                                    gvc: gvc,
+                                                                    def: !data.response.data.find((dd: any) => {
+                                                                        return !dd.checked;
+                                                                    }),
+                                                                    callback: (result) => {
+                                                                        data.response.data.map((dd: any) => {
+                                                                            dd.checked = result;
+                                                                        });
+                                                                        vmi.data = getDatalist();
+                                                                        vmi.callback();
+                                                                        gvc.notifyDataChange(filterID);
+                                                                    },
+                                                                }),
+                                                                value: EditorElem.checkBoxOnly({
+                                                                    gvc: gvc,
+                                                                    def: dd.checked,
+                                                                    callback: (result) => {
+                                                                        dd.checked = result;
+                                                                        vmi.data = getDatalist();
+                                                                        vmi.callback();
+                                                                        gvc.notifyDataChange(filterID);
+                                                                    },
+                                                                    style: 'height:25px;',
+                                                                }),
+                                                            },
+                                                            {
+                                                                key: '用戶名稱',
+                                                                value: `<span class="fs-7">${dd.name ?? '資料異常'}</span>`,
+                                                            },
+                                                            {
+                                                                key: '購物金來源',
+                                                                value: `<span class="fs-7">${dd.content.order_id ? `訂單編號：${dd.content.order_id}` : '管理員手動設定'}</span>`,
+                                                            },
+                                                            {
+                                                                key: '增減金額',
+                                                                value: (() => {
+                                                                    if (dd.origin > 0) {
+                                                                        return html`<span class="tx_700 text-success">+ ${dd.origin}</span>`;
+                                                                    }
+                                                                    return html`<span class="tx_700 text-danger">- ${dd.origin * -1}</span>`;
+                                                                })(),
+                                                            },
+                                                            {
+                                                                key: '剩餘金額',
+                                                                value: (() => {
+                                                                    if (dd.origin < 0) {
+                                                                        return html`<span class="tx_700">-</span>`;
+                                                                    }
+                                                                    if (dd.remain > 0) {
+                                                                        return html`<span class="tx_700 text-success">+ ${dd.remain}</span>`;
+                                                                    }
+                                                                    return html`<span class="tx_700">0</span>`;
+                                                                })(),
+                                                            },
+                                                            {
+                                                                key: '備註',
+                                                                value: `<span class="fs-7">${typeof dd.note === 'string' ? dd.note : (dd.note && dd.note.note) ?? '尚未填寫備註'}</span>`,
+                                                            },
+                                                            {
+                                                                key: '建立時間',
+                                                                value: `<span class="fs-7">${glitter.ut.dateFormat(new Date(dd.created_at), 'yyyy-MM-dd hh:mm:ss')}</span>`,
+                                                            },
+                                                        ];
+                                                    });
+                                                }
+                                                vmi.data = getDatalist();
+                                                vmi.loading = false;
+                                                vmi.callback();
+                                            });
+                                        },
+                                        rowClick: (data, index) => {
+                                            vm.data = vm.dataList[index];
+                                            vm.type = 'replace';
+                                        },
+                                        filter: html`
+                                            ${BgWidget.searchPlace(
+                                                gvc.event((e, event) => {
+                                                    vm.query = e.value;
+                                                    gvc.notifyDataChange(id);
+                                                }),
+                                                vm.query || '',
+                                                '搜尋顧客信箱、姓名'
+                                            )}
+                                            ${gvc.bindView(() => {
+                                                return {
+                                                    bind: filterID,
+                                                    view: () => {
+                                                        if (
+                                                            !vm.dataList ||
+                                                            !vm.dataList.find((dd: any) => {
+                                                                return dd.checked;
+                                                            })
+                                                        ) {
+                                                            return ``;
+                                                        } else {
+                                                            return html`<span class="fs-7 fw-bold">操作選項</span>`;
+                                                        }
+                                                    },
+                                                    divCreate: () => {
+                                                        return {
+                                                            class: `d-flex align-items-center mt-2 p-2 py-3 ${
+                                                                !vm.dataList ||
+                                                                !vm.dataList.find((dd: any) => {
+                                                                    return dd.checked;
+                                                                })
+                                                                    ? `d-none`
+                                                                    : ``
+                                                            }`,
+                                                            style: `height:40px; gap:10px; margin-top:10px;`,
+                                                        };
+                                                    },
+                                                };
+                                            })}
+                                        `,
+                                    })
+                                )}
+                            `,
+                            BgWidget.getContainerWidth()
+                        );
                     } else if (vm.type == 'replace') {
                         return UserList.userInformationDetail({
                             userID: vm.data.user_id,

@@ -28,166 +28,174 @@ export class ShoppingDiscountSetting {
                 dataList: [{ obj: vm, key: 'type' }],
                 view: () => {
                     if (vm.type === 'list') {
-                        return BgWidget.container(html`
-                            <div class="d-flex w-100 align-items-center mb-3 ">
-                                ${BgWidget.title('折扣管理')}
-                                <div class="flex-fill"></div>
-                                <button
-                                    class="btn btn-primary-c "
-                                    style="height:45px;font-size: 14px;"
-                                    onclick="${gvc.event(() => {
-                                        vm.data = undefined;
-                                        vm.type = 'add';
-                                    })}"
-                                >
-                                    新增折扣
-                                </button>
-                            </div>
-                            ${BgWidget.table({
-                                gvc: gvc,
-                                getData: (vmi) => {
-                                    ApiShop.getVoucher({
-                                        page: vmi.page - 1,
-                                        limit: 20,
-                                        search: vm.query || undefined,
-                                    }).then((data) => {
-                                        vmi.pageSize = Math.ceil(data.response.total / 20);
-                                        vm.dataList = data.response.data;
+                        return BgWidget.container(
+                            html`
+                                <div class="d-flex w-100 align-items-center" style="margin-bottom: 24px;">
+                                    ${BgWidget.title('優惠券管理')}
+                                    <div class="flex-fill"></div>
+                                    ${BgWidget.darkButton(
+                                        '新增優惠券',
+                                        gvc.event(() => {
+                                            vm.data = undefined;
+                                            vm.type = 'add';
+                                        })
+                                    )}
+                                </div>
+                                ${BgWidget.mainCard(
+                                    BgWidget.tableV2({
+                                        gvc: gvc,
+                                        getData: (vmi) => {
+                                            ApiShop.getVoucher({
+                                                page: vmi.page - 1,
+                                                limit: 20,
+                                                search: vm.query || undefined,
+                                            }).then((data) => {
+                                                vmi.pageSize = Math.ceil(data.response.total / 20);
+                                                vm.dataList = data.response.data;
 
-                                        function getDatalist() {
-                                            return data.response.data.map((dd: any) => {
-                                                return [
-                                                    {
-                                                        key: EditorElem.checkBoxOnly({
-                                                            gvc: gvc,
-                                                            def: !data.response.data.find((dd: any) => {
-                                                                return !dd.checked;
-                                                            }),
-                                                            callback: (result) => {
-                                                                data.response.data.map((dd: any) => {
-                                                                    dd.checked = result;
-                                                                });
-                                                                vmi.data = getDatalist();
-                                                                vmi.callback();
-                                                                gvc.notifyDataChange(filterID);
+                                                function getDatalist() {
+                                                    return data.response.data.map((dd: any) => {
+                                                        return [
+                                                            {
+                                                                key: EditorElem.checkBoxOnly({
+                                                                    gvc: gvc,
+                                                                    def: !data.response.data.find((dd: any) => {
+                                                                        return !dd.checked;
+                                                                    }),
+                                                                    callback: (result) => {
+                                                                        data.response.data.map((dd: any) => {
+                                                                            dd.checked = result;
+                                                                        });
+                                                                        vmi.data = getDatalist();
+                                                                        vmi.callback();
+                                                                        gvc.notifyDataChange(filterID);
+                                                                    },
+                                                                }),
+                                                                value: EditorElem.checkBoxOnly({
+                                                                    gvc: gvc,
+                                                                    def: dd.checked,
+                                                                    callback: (result) => {
+                                                                        dd.checked = result;
+                                                                        vmi.data = getDatalist();
+                                                                        vmi.callback();
+                                                                        gvc.notifyDataChange(filterID);
+                                                                    },
+                                                                    style: 'height:25px;',
+                                                                }),
                                                             },
-                                                        }),
-                                                        value: EditorElem.checkBoxOnly({
-                                                            gvc: gvc,
-                                                            def: dd.checked,
-                                                            callback: (result) => {
-                                                                dd.checked = result;
-                                                                vmi.data = getDatalist();
-                                                                vmi.callback();
-                                                                gvc.notifyDataChange(filterID);
+                                                            {
+                                                                key: '標題',
+                                                                value: `<span class="fs-7">${dd.content.title}</span>`,
                                                             },
-                                                            style: 'height:25px;',
-                                                        }),
-                                                    },
-                                                    {
-                                                        key: '標題',
-                                                        value: `<span class="fs-7">${dd.content.title}</span>`,
-                                                    },
-                                                    {
-                                                        key: '狀態',
-                                                        value: dd.content.status ? `<div class="badge badge-success fs-7" >啟用中</div>` : `<div class="badge bg-secondary fs-7">已停用</div>`,
-                                                    },
-                                                    {
-                                                        key: '觸發方式',
-                                                        value: `<span class="fs-7">${dd.content.trigger === 'code' ? `輸入代碼` : `自動`}</span>`,
-                                                    },
-                                                    {
-                                                        key: '對象',
-                                                        value: `<span class="fs-7">${dd.content.for === 'product' ? `指定商品` : `商品系列`}</span>`,
-                                                    },
-                                                    {
-                                                        key: '折扣項目',
-                                                        value: `<span class="fs-7">${dd.content.method === 'percent' ? `折扣${dd.content.value}%` : `折扣$${dd.content.value}`}</span>`,
-                                                    },
-                                                ];
+                                                            {
+                                                                key: '狀態',
+                                                                value: dd.content.status ? `<div class="badge badge-success fs-7" >啟用中</div>` : `<div class="badge bg-secondary fs-7">已停用</div>`,
+                                                            },
+                                                            {
+                                                                key: '觸發方式',
+                                                                value: `<span class="fs-7">${dd.content.trigger === 'code' ? `輸入代碼` : `自動`}</span>`,
+                                                            },
+                                                            {
+                                                                key: '對象',
+                                                                value: `<span class="fs-7">${dd.content.for === 'product' ? `指定商品` : `商品系列`}</span>`,
+                                                            },
+                                                            {
+                                                                key: '折扣項目',
+                                                                value: `<span class="fs-7">${dd.content.method === 'percent' ? `折扣${dd.content.value}%` : `折扣$${dd.content.value}`}</span>`,
+                                                            },
+                                                        ];
+                                                    });
+                                                }
+
+                                                vmi.data = getDatalist();
+                                                vmi.loading = false;
+                                                vmi.callback();
                                             });
-                                        }
-
-                                        vmi.data = getDatalist();
-                                        vmi.loading = false;
-                                        vmi.callback();
-                                    });
-                                },
-                                rowClick: (data, index) => {
-                                    vm.data = vm.dataList[index].content;
-                                    vm.type = 'replace';
-                                },
-                                filter: html` ${BgWidget.searchPlace(
-                                    gvc.event((e, event) => {
-                                        vm.query = e.value;
-                                        gvc.notifyDataChange(id);
-                                    }),
-                                    vm.query || '',
-                                    '搜尋所有折扣'
-                                )}
-                                ${gvc.bindView(() => {
-                                    return {
-                                        bind: filterID,
-                                        view: () => {
-                                            if (
-                                                !vm.dataList ||
-                                                !vm.dataList.find((dd: any) => {
-                                                    return dd.checked;
-                                                })
-                                            ) {
-                                                return ``;
-                                            } else {
-                                                return [
-                                                    `<span class="fs-7 fw-bold">操作選項</span>`,
-                                                    `<button class="btn btn-danger fs-7 px-2" style="height:30px;border:none;" onclick="${gvc.event(() => {
-                                                        const dialog = new ShareDialog(gvc.glitter);
-                                                        dialog.checkYesOrNot({
-                                                            text: '是否確認移除所選項目?',
-                                                            callback: (response) => {
-                                                                if (response) {
-                                                                    dialog.dataLoading({ visible: true });
-                                                                    ApiShop.deleteVoucher({
-                                                                        id: vm.dataList
-                                                                            .filter((dd: any) => {
-                                                                                return dd.checked;
-                                                                            })
-                                                                            .map((dd: any) => {
-                                                                                return dd.id;
-                                                                            })
-                                                                            .join(`,`),
-                                                                    }).then((res) => {
-                                                                        dialog.dataLoading({ visible: false });
-                                                                        if (res.result) {
-                                                                            vm.dataList = undefined;
-                                                                            gvc.notifyDataChange(id);
-                                                                        } else {
-                                                                            dialog.errorMessage({ text: '刪除失敗' });
-                                                                        }
-                                                                    });
-                                                                }
-                                                            },
-                                                        });
-                                                    })}">批量移除</button>`,
-                                                ].join(``);
-                                            }
                                         },
-                                        divCreate: () => {
+                                        rowClick: (data, index) => {
+                                            vm.data = vm.dataList[index].content;
+                                            vm.type = 'replace';
+                                        },
+                                        filter: html` ${BgWidget.searchPlace(
+                                            gvc.event((e, event) => {
+                                                vm.query = e.value;
+                                                gvc.notifyDataChange(id);
+                                            }),
+                                            vm.query || '',
+                                            '搜尋所有折扣'
+                                        )}
+                                        ${gvc.bindView(() => {
                                             return {
-                                                class: `d-flex align-items-center p-2 py-3 ${
-                                                    !vm.dataList ||
-                                                    !vm.dataList.find((dd: any) => {
-                                                        return dd.checked;
-                                                    })
-                                                        ? `d-none`
-                                                        : ``
-                                                }`,
-                                                style: `height:40px;gap:10px;margin-top:10px;`,
+                                                bind: filterID,
+                                                view: () => {
+                                                    if (
+                                                        !vm.dataList ||
+                                                        !vm.dataList.find((dd: any) => {
+                                                            return dd.checked;
+                                                        })
+                                                    ) {
+                                                        return ``;
+                                                    } else {
+                                                        return [
+                                                            html`<span class="fs-7 fw-bold">操作選項</span>`,
+                                                            html`<button
+                                                                class="btn btn-danger fs-7 px-2"
+                                                                style="height:30px;border:none;"
+                                                                onclick="${gvc.event(() => {
+                                                                    const dialog = new ShareDialog(gvc.glitter);
+                                                                    dialog.checkYesOrNot({
+                                                                        text: '是否確認移除所選項目?',
+                                                                        callback: (response) => {
+                                                                            if (response) {
+                                                                                dialog.dataLoading({ visible: true });
+                                                                                ApiShop.deleteVoucher({
+                                                                                    id: vm.dataList
+                                                                                        .filter((dd: any) => {
+                                                                                            return dd.checked;
+                                                                                        })
+                                                                                        .map((dd: any) => {
+                                                                                            return dd.id;
+                                                                                        })
+                                                                                        .join(`,`),
+                                                                                }).then((res) => {
+                                                                                    dialog.dataLoading({ visible: false });
+                                                                                    if (res.result) {
+                                                                                        vm.dataList = undefined;
+                                                                                        gvc.notifyDataChange(id);
+                                                                                    } else {
+                                                                                        dialog.errorMessage({ text: '刪除失敗' });
+                                                                                    }
+                                                                                });
+                                                                            }
+                                                                        },
+                                                                    });
+                                                                })}"
+                                                            >
+                                                                批量移除
+                                                            </button>`,
+                                                        ].join(``);
+                                                    }
+                                                },
+                                                divCreate: () => {
+                                                    return {
+                                                        class: `d-flex align-items-center p-2 py-3 ${
+                                                            !vm.dataList ||
+                                                            !vm.dataList.find((dd: any) => {
+                                                                return dd.checked;
+                                                            })
+                                                                ? `d-none`
+                                                                : ``
+                                                        }`,
+                                                        style: `height:40px;gap:10px;margin-top:10px;`,
+                                                    };
+                                                },
                                             };
-                                        },
-                                    };
-                                })}`,
-                            })}
-                        `);
+                                        })}`,
+                                    })
+                                )}
+                            `,
+                            BgWidget.getContainerWidth()
+                        );
                     } else if (vm.type == 'replace') {
                         return this.voucherEditor({
                             vm: vm,
@@ -328,7 +336,7 @@ export class ShoppingDiscountSetting {
                     ${BgWidget.container(
                         // 優惠券設定
                         [
-                            BgWidget.card_main(
+                            BgWidget.mainCard(
                                 html` <div class="tx_700" style="margin-bottom: 18px">活動標題</div>
                                     ${EditorElem.editeInput({
                                         gvc: gvc,
@@ -341,7 +349,7 @@ export class ShoppingDiscountSetting {
                                     })}
                                     ${BgWidget.grayNote('顧客將會在「購物車」與「結帳」看見此標題', 'font-size: 14px; margin-left: 4px;')}`
                             ),
-                            BgWidget.card_main(
+                            BgWidget.mainCard(
                                 gvc.bindView(() => {
                                     const id = glitter.getUUID();
                                     return {
@@ -401,7 +409,7 @@ export class ShoppingDiscountSetting {
                                     };
                                 })
                             ),
-                            BgWidget.card_main(
+                            BgWidget.mainCard(
                                 gvc.bindView(() => {
                                     const id = glitter.getUUID();
                                     return {
@@ -708,7 +716,7 @@ export class ShoppingDiscountSetting {
                                     };
                                 })
                             ),
-                            BgWidget.card_main(
+                            BgWidget.mainCard(
                                 html`${EditorElem.radio({
                                     gvc: gvc,
                                     title: '折扣方式',
@@ -765,7 +773,7 @@ export class ShoppingDiscountSetting {
                                     },
                                 })}`
                             ),
-                            BgWidget.card_main(
+                            BgWidget.mainCard(
                                 gvc.bindView(() => {
                                     const id = glitter.getUUID();
                                     return {
@@ -792,7 +800,7 @@ export class ShoppingDiscountSetting {
                                     };
                                 })
                             ),
-                            BgWidget.card_main(
+                            BgWidget.mainCard(
                                 gvc.bindView(() => {
                                     const id = glitter.getUUID();
                                     return {
@@ -887,8 +895,8 @@ export class ShoppingDiscountSetting {
                                 })
                             ),
                         ].join(html`<div style="margin-top: 24px"></div>`),
-                        634,
-                        'padding: 0; margin: 0 !important;'
+                        undefined,
+                        'padding: 0; margin: 0 !important;  width: 68.5%;'
                     )}
                     ${BgWidget.container(
                         // 摘要預覽
@@ -901,7 +909,7 @@ export class ShoppingDiscountSetting {
                                         return { obj: voucherData, key };
                                     }),
                                     view: () => {
-                                        return BgWidget.card_main(
+                                        return BgWidget.mainCard(
                                             gvc.bindView(() => {
                                                 const id = gvc.glitter.getUUID();
                                                 return {
@@ -925,8 +933,8 @@ export class ShoppingDiscountSetting {
                                 };
                             })}
                         </div>`,
-                        304,
-                        'padding: 0; margin: 0 !important;'
+                        undefined,
+                        'padding: 0; margin: 0 !important; width: 26.5%;'
                     )}
                 </div>`,
                 // 空白容器
@@ -1013,7 +1021,7 @@ export class ShoppingDiscountSetting {
                     )}
                 </div>`,
             ].join(html`<div style="margin-top: 24px"></div>`),
-            1000
+            BgWidget.getContainerWidth()
         );
     }
 }
