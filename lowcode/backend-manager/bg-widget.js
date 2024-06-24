@@ -175,7 +175,7 @@ ${(obj.style || []) && obj.style[index] ? obj.style[index] : ``}
                                 .map((dd, index) => {
                                 var _a;
                                 return html ` <th
-                                                                  class="${(_a = dd.position) !== null && _a !== void 0 ? _a : 'text-start'} tx_normal"
+                                                                  class="${(_a = dd.position) !== null && _a !== void 0 ? _a : 'text-start'} tx_700"
                                                                   style="border:none; color:#393939 !important; ${(obj.style || []) && obj.style[index] ? obj.style[index] : ``}"
                                                               >
                                                                   ${dd.key}
@@ -210,7 +210,7 @@ ${(obj.style || []) && obj.style[index] ? obj.style[index] : ``}
                                                                           ${d3.key === '●' || d3.stopDialog ? '' : html ` onclick="${gvc.event(() => { })}"`}
                                                                           style="color:#393939 !important;border:none;${(obj.style || []) && obj.style[index] ? obj.style[index] : ``}"
                                                                       >
-                                                                          <div class="my-auto" style="${(obj.style || []) && obj.style[index] ? obj.style[index] : ``}">${d3.value}</div>
+                                                                          <div class="my-1" style="${(obj.style || []) && obj.style[index] ? obj.style[index] : ``}">${d3.value}</div>
                                                                           ${index === dd.length - 1 && obj.editable
                                         ? html `
                                                                                     <i
@@ -249,20 +249,30 @@ ${(obj.style || []) && obj.style[index] ? obj.style[index] : ``}
             };
         });
     }
+    static cancel(event, text = '取消') {
+        return html `<button class="btn btn-snow" type="button" onclick="${event}">
+            <span class="tx_700">${text}</span>
+        </button> `;
+    }
+    static save(event, text = '儲存') {
+        return html ` <button class="btn btn-black" type="button" onclick="${event}">
+            <span class="tx_700_white">${text}</span>
+        </button>`;
+    }
+    static maintenance() {
+        return html `<div class="d-flex flex-column align-items-center justify-content-center vh-100 vw-100">
+            <iframe src="https://embed.lottiefiles.com/animation/99312" style="width:50vw;height:50vw;"></iframe>
+            <h3 style="margin-top: 36px;">此頁面功能維護中</h3>
+        </div>`;
+    }
     static card(htmlString, classStyle = 'p-3 bg-white rounded-3 shadow border w-100') {
         return html `<div class="${classStyle}" style="">${htmlString}</div>`;
     }
-    static cancel(event, text = '取消') {
-        return html `<div class="cursor_it bt_c39_w" onclick="${event}">${text}</div>`;
-    }
-    static save(event, text = '儲存') {
-        return html `<div class="cursor_it bt_c39" onclick="${event}">${text}</div>`;
-    }
-    static card_main(htmlString) {
+    static mainCard(htmlString) {
         return html `<div class="w-100" style="border-radius: 10px; padding: 20px; background: #FFF; box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.08);">${htmlString}</div>`;
     }
-    static container(html, width, style) {
-        return `<div class="mx-auto" style="padding:24px;${width ? `max-width:100%;width:${width}px;` : ``};color:black;${style !== null && style !== void 0 ? style : ''}">${html}</div>`;
+    static container(htmlString, width, style) {
+        return html `<div style="padding: 24px 0; margin: 0 auto; ${width ? `max-width:100%; width:${width}px;` : ``} ${style !== null && style !== void 0 ? style : ''}">${htmlString}</div>`;
     }
     static title(title) {
         return html ` <h3 class="my-auto tx_title">${title}</h3>`;
@@ -337,18 +347,22 @@ ${(obj.style || []) && obj.style[index] ? obj.style[index] : ``}
         `;
     }
     static editeInput(obj) {
-        var _a, _b, _c, _d;
+        var _a, _b, _c, _d, _e, _f;
         obj.title = (_a = obj.title) !== null && _a !== void 0 ? _a : '';
-        return html `${obj.title ? html `<div class="tx_normal fw-normal">${obj.title}</div>` : ``}
-            <input
-                class="bgw-input ${obj.readonly ? `bgw-input-readonly` : ``}"
-                style="${(_b = obj.style) !== null && _b !== void 0 ? _b : ''}"
-                type="${(_c = obj.type) !== null && _c !== void 0 ? _c : 'text'}"
-                placeholder="${obj.placeHolder}"
-                onchange="${obj.gvc.event((e) => {
+        return html `
+            <div style="${(_b = obj.divStyle) !== null && _b !== void 0 ? _b : ''}">
+                ${obj.title ? html `<div class="tx_normal fw-normal" style="${(_c = obj.titleStyle) !== null && _c !== void 0 ? _c : ''}">${obj.title}</div>` : ``}
+                <div class="d-flex align-items-center border rounded-3 ${obj.readonly ? `bgw-input-readonly` : ``}" style="margin: 8px 0;">
+                    ${obj.startText ? html `<div class="py-2 ps-3">${obj.startText}</div>` : ''}
+                    <input
+                        class="bgw-input ${obj.readonly ? `bgw-input-readonly` : ``}"
+                        style="${(_d = obj.style) !== null && _d !== void 0 ? _d : ''}"
+                        type="${(_e = obj.type) !== null && _e !== void 0 ? _e : 'text'}"
+                        placeholder="${obj.placeHolder}"
+                        onchange="${obj.gvc.event((e) => {
             obj.callback(e.value);
         })}"
-                oninput="${obj.gvc.event((e) => {
+                        oninput="${obj.gvc.event((e) => {
             if (obj.pattern) {
                 const value = e.value;
                 const regex = new RegExp(`[^${obj.pattern}]`, 'g');
@@ -358,9 +372,13 @@ ${(obj.style || []) && obj.style[index] ? obj.style[index] : ``}
                 }
             }
         })}"
-                value="${(_d = obj.default) !== null && _d !== void 0 ? _d : ''}"
-                ${obj.readonly ? `readonly` : ``}
-            />`;
+                        value="${(_f = obj.default) !== null && _f !== void 0 ? _f : ''}"
+                        ${obj.readonly ? `readonly` : ``}
+                    />
+                    ${obj.endText ? html `<div class="py-2 pe-3">${obj.endText}</div>` : ''}
+                </div>
+            </div>
+        `;
     }
     static textArea(obj) {
         var _a, _b, _c;
@@ -692,8 +710,32 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
     static leftLineBar() {
         return html `<div class="ms-2 border-end position-absolute h-100" style="left: 0px;"></div>`;
     }
-    static grayButton(text, event) {
-        return html `<button class="btn-gary" type="button" onclick="${event}">${text}</button>`;
+    static bottomLineBar() {
+        return html `<div class="ms-2 border-end position-absolute h-100" style="left: 0px;"></div>`;
+    }
+    static grayButton(text, event, icon = '') {
+        return html `<button class="btn btn-gary" type="button" onclick="${event}">
+            <i class="${icon.length > 0 ? icon : 'd-none'}"></i>
+            <span class="tx_700">${text}</span>
+        </button>`;
+    }
+    static darkButton(text, event, icon = '') {
+        return html `<button class="btn btn-black" type="button" onclick="${event}">
+            <i class="${icon.length > 0 ? icon : 'd-none'}"></i>
+            <span class="tx_700_white">${text}</span>
+        </button>`;
+    }
+    static switchButton(gvc, def, callback) {
+        return html `<div class="form-check form-switch m-0" style="margin-top: 10px; cursor: pointer;">
+            <input
+                class="form-check-input"
+                type="checkbox"
+                onchange="${gvc.event((e) => {
+            callback(e.checked);
+        })}"
+                ${def ? `checked` : ``}
+            />
+        </div>`;
     }
     static searchFilter(event, vale, placeholder, margin) {
         return html `<div class="w-100 position-relative" style="margin: ${margin !== null && margin !== void 0 ? margin : 0};">
@@ -829,25 +871,40 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
         }
         return '';
     }
-    static multiCheckboxContainer(gvc, data, def, callback) {
+    static randomString(max) {
+        let possible = 'abcdefghijklmnopqrstuvwxyz0123456789';
+        let text = possible.charAt(Math.floor(Math.random() * (possible.length - 10)));
+        for (let i = 1; i < max; i++)
+            text += possible.charAt(Math.floor(Math.random() * possible.length));
+        return text;
+    }
+    static multiCheckboxContainer(gvc, data, def, callback, readonly) {
+        const id = gvc.glitter.getUUID();
+        const randomString = this.randomString(5);
+        let checkboxHTML = '';
         gvc.addStyle(`
-            .form-check-input:checked[type='checkbox'] {
+            .${randomString}:checked[type='checkbox'] {
                 border: 2px solid #000;
                 background-color: #fff;
                 background-image: url(${this.checkedDataImage('#000')});
                 background-position: center center;
             }
         `);
-        const id = gvc.glitter.getUUID();
-        let checkboxHTML = '';
         data.map((item) => {
             checkboxHTML += html `
                 <div class="form-check">
                     <input
-                        class="form-check-input"
+                        class="form-check-input ${randomString}"
+                        style="margin-top: 0.35rem;"
                         type="checkbox"
                         id="${id}_${item.key}"
-                        onchange="${gvc.event((e) => {
+                        onclick="${gvc.event((e, ev) => {
+                if (readonly) {
+                    ev.preventDefault();
+                    return;
+                }
+            })}"
+                        onchange="${gvc.event((e, ev) => {
                 if (e.checked) {
                     def.push(item.key);
                 }
@@ -865,15 +922,16 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
         return html ` <div style="width: 100%; display: flex; flex-direction: column; gap: 6px;">${checkboxHTML}</div> `;
     }
     static radioInputContainer(gvc, data, def, callback) {
+        const id = gvc.glitter.getUUID();
+        const randomString = this.randomString(5);
         gvc.addStyle(`
-            .form-check-input:checked[type='radio'] {
+            .${randomString}:checked[type='radio'] {
                 border: 2px solid #000;
                 background-color: #fff;
                 background-image: url(${this.dotDataImage('#000')});
                 background-position: center center;
             }
         `);
-        const id = gvc.glitter.getUUID();
         return gvc.bindView({
             bind: id,
             view: () => {
@@ -884,7 +942,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                         <div class="m-1">
                             <div class="form-check">
                                 <input
-                                    class="form-check-input"
+                                    class="${randomString}"
                                     type="radio"
                                     id="${id}_${item.key}"
                                     name="radio_${id}"
@@ -918,5 +976,27 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
             },
         });
     }
+    static spinner() {
+        return html ` <div class="d-flex align-items-center justify-content-center flex-column" style="width: 100%; height: 100vh;">
+            <div class="spinner-border" role="status"></div>
+            <span class="mt-3">載入中...</span>
+        </div>`;
+    }
 }
+BgWidget.getContainerWidth = () => {
+    const width = document.body.clientWidth;
+    const rateForWeb = 0.79;
+    const rateForPad = 0.92;
+    const rateForPhone = 0.95;
+    if (width >= 1440) {
+        return 1440 * rateForWeb;
+    }
+    if (width >= 1200) {
+        return 1200 * rateForWeb;
+    }
+    if (width >= 768) {
+        return width * rateForPad;
+    }
+    return width * rateForPhone;
+};
 window.glitter.setModule(import.meta.url, BgWidget);

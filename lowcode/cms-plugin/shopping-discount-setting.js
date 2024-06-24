@@ -31,21 +31,15 @@ export class ShoppingDiscountSetting {
                 view: () => {
                     if (vm.type === 'list') {
                         return BgWidget.container(html `
-                            <div class="d-flex w-100 align-items-center mb-3 ">
-                                ${BgWidget.title('折扣管理')}
-                                <div class="flex-fill"></div>
-                                <button
-                                    class="btn btn-primary-c "
-                                    style="height:45px;font-size: 14px;"
-                                    onclick="${gvc.event(() => {
+                                <div class="d-flex w-100 align-items-center" style="margin-bottom: 24px;">
+                                    ${BgWidget.title('優惠券管理')}
+                                    <div class="flex-fill"></div>
+                                    ${BgWidget.darkButton('新增優惠券', gvc.event(() => {
                             vm.data = undefined;
                             vm.type = 'add';
-                        })}"
-                                >
-                                    新增折扣
-                                </button>
-                            </div>
-                            ${BgWidget.table({
+                        }))}
+                                </div>
+                                ${BgWidget.mainCard(BgWidget.tableV2({
                             gvc: gvc,
                             getData: (vmi) => {
                                 ApiShop.getVoucher({
@@ -121,7 +115,7 @@ export class ShoppingDiscountSetting {
                                 vm.query = e.value;
                                 gvc.notifyDataChange(id);
                             }), vm.query || '', '搜尋所有折扣')}
-                                ${gvc.bindView(() => {
+                                        ${gvc.bindView(() => {
                                 return {
                                     bind: filterID,
                                     view: () => {
@@ -133,8 +127,11 @@ export class ShoppingDiscountSetting {
                                         }
                                         else {
                                             return [
-                                                `<span class="fs-7 fw-bold">操作選項</span>`,
-                                                `<button class="btn btn-danger fs-7 px-2" style="height:30px;border:none;" onclick="${gvc.event(() => {
+                                                html `<span class="fs-7 fw-bold">操作選項</span>`,
+                                                html `<button
+                                                                class="btn btn-danger fs-7 px-2"
+                                                                style="height:30px;border:none;"
+                                                                onclick="${gvc.event(() => {
                                                     const dialog = new ShareDialog(gvc.glitter);
                                                     dialog.checkYesOrNot({
                                                         text: '是否確認移除所選項目?',
@@ -163,7 +160,10 @@ export class ShoppingDiscountSetting {
                                                             }
                                                         },
                                                     });
-                                                })}">批量移除</button>`,
+                                                })}"
+                                                            >
+                                                                批量移除
+                                                            </button>`,
                                             ].join(``);
                                         }
                                     },
@@ -180,8 +180,8 @@ export class ShoppingDiscountSetting {
                                     },
                                 };
                             })}`,
-                        })}
-                        `);
+                        }))}
+                            `, BgWidget.getContainerWidth());
                     }
                     else if (vm.type == 'replace') {
                         return this.voucherEditor({
@@ -303,7 +303,7 @@ export class ShoppingDiscountSetting {
                 </div>`,
             html `<div class="d-flex justify-content-center" style="gap: 24px">
                     ${BgWidget.container([
-                BgWidget.card_main(html ` <div class="tx_700" style="margin-bottom: 18px">活動標題</div>
+                BgWidget.mainCard(html ` <div class="tx_700" style="margin-bottom: 18px">活動標題</div>
                                     ${EditorElem.editeInput({
                     gvc: gvc,
                     title: '',
@@ -314,7 +314,7 @@ export class ShoppingDiscountSetting {
                     },
                 })}
                                     ${BgWidget.grayNote('顧客將會在「購物車」與「結帳」看見此標題', 'font-size: 14px; margin-left: 4px;')}`),
-                BgWidget.card_main(gvc.bindView(() => {
+                BgWidget.mainCard(gvc.bindView(() => {
                     const id = glitter.getUUID();
                     return {
                         bind: id,
@@ -373,7 +373,7 @@ export class ShoppingDiscountSetting {
                         },
                     };
                 })),
-                BgWidget.card_main(gvc.bindView(() => {
+                BgWidget.mainCard(gvc.bindView(() => {
                     const id = glitter.getUUID();
                     return {
                         bind: id,
@@ -672,7 +672,7 @@ export class ShoppingDiscountSetting {
                         divCreate: {},
                     };
                 })),
-                BgWidget.card_main(html `${EditorElem.radio({
+                BgWidget.mainCard(html `${EditorElem.radio({
                     gvc: gvc,
                     title: '折扣方式',
                     def: voucherData.trigger,
@@ -728,7 +728,7 @@ export class ShoppingDiscountSetting {
                         voucherData.trigger = text;
                     },
                 })}`),
-                BgWidget.card_main(gvc.bindView(() => {
+                BgWidget.mainCard(gvc.bindView(() => {
                     const id = glitter.getUUID();
                     return {
                         bind: id,
@@ -753,7 +753,7 @@ export class ShoppingDiscountSetting {
                         },
                     };
                 })),
-                BgWidget.card_main(gvc.bindView(() => {
+                BgWidget.mainCard(gvc.bindView(() => {
                     const id = glitter.getUUID();
                     return {
                         bind: id,
@@ -845,7 +845,7 @@ export class ShoppingDiscountSetting {
                         },
                     };
                 })),
-            ].join(html `<div style="margin-top: 24px"></div>`), 634, 'padding: 0; margin: 0 !important;')}
+            ].join(html `<div style="margin-top: 24px"></div>`), undefined, 'padding: 0; margin: 0 !important; width: 68.5%;')}
                     ${BgWidget.container(html `<div>
                             ${gvc.bindView(() => {
                 const id = gvc.glitter.getUUID();
@@ -855,7 +855,7 @@ export class ShoppingDiscountSetting {
                         return { obj: voucherData, key };
                     }),
                     view: () => {
-                        return BgWidget.card_main(gvc.bindView(() => {
+                        return BgWidget.mainCard(gvc.bindView(() => {
                             const id = gvc.glitter.getUUID();
                             return {
                                 bind: id,
@@ -874,7 +874,7 @@ export class ShoppingDiscountSetting {
                     },
                 };
             })}
-                        </div>`, 304, 'padding: 0; margin: 0 !important;')}
+                        </div>`, undefined, 'padding: 0; margin: 0 !important; width: 26.5%;')}
                 </div>`,
             html `<div style="margin-bottom: 240px"></div>`,
             html ` <div class="update-bar-container">
@@ -953,7 +953,7 @@ export class ShoppingDiscountSetting {
                 }
             }))}
                 </div>`,
-        ].join(html `<div style="margin-top: 24px"></div>`), 1000);
+        ].join(html `<div style="margin-top: 24px"></div>`), BgWidget.getContainerWidth());
     }
 }
 window.glitter.setModule(import.meta.url, ShoppingDiscountSetting);

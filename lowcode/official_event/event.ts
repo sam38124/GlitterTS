@@ -83,7 +83,7 @@ TriggerEvent.create(import.meta.url, {
         subContent: questionText([
             {
                 title: '打開彈跳視窗',
-                content: `使用此事件可以開啟彈跳視窗，可以實現 表單 / 加載動畫 / 錯誤提醒 ....等效果都可以透過頁面彈窗來進行實現。`,
+                content: `使用此事件可以開啟彈跳視窗，可以實現 表單 / 載入動畫 / 錯誤提醒 ....等效果都可以透過頁面彈窗來進行實現。`,
             },
             {
                 title: '關閉彈跳視窗',
@@ -607,6 +607,10 @@ TriggerEvent.create(import.meta.url, {
     getRebateList: {
         title: '電子商務 / 取得回饋金列表',
         fun: TriggerEvent.setEventRouter(import.meta.url, './e-commerce/get-rebate-list.js'),
+    },
+    getOldestRebate: {
+        title: '電子商務 / 取得最快到期一筆購物金',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './e-commerce/get-oldest-rebate.js'),
     },
     getCount: {
         title: '電子商務 / 取得購物車數量',

@@ -272,7 +272,7 @@ body {
 }
 
 .fs-7 {
-    font-size: 0.85rem;
+    font-size: 1rem;
 }
 
 .hoverAdd:hover {
@@ -349,6 +349,12 @@ ul {
     font-weight: 700;
 }
 
+.tx_700_white {
+    font-size: 16px;
+    color: #fff;
+    font-weight: 700;
+}
+
 .tx_title {
     color: #393939;
     font-size: 24px;
@@ -407,7 +413,7 @@ ul {
     border-radius: 12px;
     background: linear-gradient(143deg, #ffb400 -22.7%, #ff6c02 114.57%);
     display: flex;
-    padding: 10px 22px 10px 23px;
+    padding: 8px 16px;
     justify-content: center;
     align-items: center;
     color: #fff;
@@ -468,25 +474,63 @@ ul {
     border: 0;
     border-radius: 10px;
     background: #eaeaea;
+    cursor: pointer;
 }
 
 .btn-gary:hover {
     background: #d0d0d0;
 }
 
+.btn-black {
+    display: flex;
+    padding: 6px 18px;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    border: 0;
+    border-radius: 10px;
+    background: #393939;
+    cursor: pointer;
+}
+
+.btn-black:hover {
+    background: #646464;
+}
+
+.btn-snow {
+    display: flex;
+    padding: 6px 18px;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    border: 0;
+    border-radius: 10px;
+    border: 1px solid #ddd;
+    background: #fff;
+    cursor: pointer;
+}
+
+.btn-snow:hover {
+    background: #d5d5d5;
+}
+
 .bgw-input {
     width: 100%;
-    margin-top: 8px;
     display: flex;
     padding: 9px 12px;
     align-items: center;
     border-radius: 10px;
-    border: 1px solid #ddd;
+    border: 0px solid #ddd;
     background-color: #fff;
+    appearance: none;
+}
+
+.bgw-input:focus {
+    outline: 0;
 }
 
 .bgw-input-readonly {
-    background-color: #f3f6ff;
+    background-color: #f7f7f7;
 }
 
 .bgw-input-readonly:focus-visible {
@@ -501,7 +545,7 @@ ul {
     padding: 14px 16px;
     background: #fff;
     box-shadow: 0px 1px 10px 0px rgba(0, 0, 0, 0.15);
-    gap: 10px;
+    gap: 14px;
     left: 0;
     bottom: 0;
     width: 100%;

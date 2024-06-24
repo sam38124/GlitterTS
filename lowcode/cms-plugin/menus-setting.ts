@@ -57,99 +57,110 @@ export class MenusSetting {
                             <div class="d-flex w-100 align-items-center mb-3">
                                 ${BgWidget.title('選單管理')}
                                 <div class="flex-fill"></div>
-                                <div
-                                    class="bt_ffb40 d-none"
-                                    onclick="${gvc.event(() => {
-                                        vm.type = 'add';
-                                        gvc.notifyDataChange(id);
-                                    })}"
-                                >
-                                    新增
-                                </div>
+                                ${(() => {
+                                    const show = false;
+                                    return show
+                                        ? BgWidget.darkButton(
+                                              '新增',
+                                              gvc.event(() => {
+                                                  vm.type = 'add';
+                                                  gvc.notifyDataChange(id);
+                                              })
+                                          )
+                                        : '';
+                                })()}
                             </div>
-                            ${BgWidget.table({
-                                gvc: gvc,
-                                getData: (vd) => {
-                                    vmi = vd;
-                                    vmi.pageSize = 1;
-                                    vm.dataList = [
-                                        {
-                                            tag: 'menu-setting',
-                                            title: '主選單',
-                                        },
-                                        {
-                                            tag: 'footer-setting',
-                                            title: '頁腳',
-                                        },
-                                    ];
-                                    vmi.data = getDatalist();
-                                    vmi.loading = false;
-                                    setTimeout(() => {
-                                        vmi.callback();
-                                    }, 100);
-                                },
-                                rowClick: (data, index) => {
-                                    vm.index = index;
-                                    vm.type = 'replace';
-                                },
-                                filter: html`
-                                    ${gvc.bindView(() => {
-                                        return {
-                                            bind: filterID,
-                                            view: () => {
-                                                return [
-                                                    `<span class="fs-7 fw-bold">操作選項</span>`,
-                                                    `<button class="btn btn-danger fs-7 px-2" style="height:30px;border:none;" onclick="${gvc.event(() => {
-                                                        const dialog = new ShareDialog(gvc.glitter);
-                                                        dialog.checkYesOrNot({
-                                                            text: '是否確認移除所選項目?',
-                                                            callback: (response) => {
-                                                                if (response) {
-                                                                    widget.event('loading', {
-                                                                        title: '設定中...',
-                                                                    });
-                                                                    ApiUser.setPublicConfig({
-                                                                        key: 'member_level_config',
-                                                                        user_id: 'manager',
-                                                                        value: {
-                                                                            levels: vm.dataList.filter((dd: any) => {
-                                                                                return !dd.checked;
-                                                                            }),
-                                                                        },
-                                                                    }).then(() => {
-                                                                        setTimeout(() => {
+                            ${BgWidget.mainCard(
+                                BgWidget.tableV2({
+                                    gvc: gvc,
+                                    getData: (vd) => {
+                                        vmi = vd;
+                                        vmi.pageSize = 1;
+                                        vm.dataList = [
+                                            {
+                                                tag: 'menu-setting',
+                                                title: '主選單',
+                                            },
+                                            {
+                                                tag: 'footer-setting',
+                                                title: '頁腳',
+                                            },
+                                        ];
+                                        vmi.data = getDatalist();
+                                        vmi.loading = false;
+                                        setTimeout(() => {
+                                            vmi.callback();
+                                        }, 100);
+                                    },
+                                    rowClick: (data, index) => {
+                                        vm.index = index;
+                                        vm.type = 'replace';
+                                    },
+                                    filter: html`
+                                        ${gvc.bindView(() => {
+                                            return {
+                                                bind: filterID,
+                                                view: () => {
+                                                    return [
+                                                        html`<span class="fs-7 fw-bold">操作選項</span>`,
+                                                        html`<button
+                                                            class="btn btn-danger fs-7 px-2"
+                                                            style="height:30px;border:none;"
+                                                            onclick="${gvc.event(() => {
+                                                                const dialog = new ShareDialog(gvc.glitter);
+                                                                dialog.checkYesOrNot({
+                                                                    text: '是否確認移除所選項目?',
+                                                                    callback: (response) => {
+                                                                        if (response) {
                                                                             widget.event('loading', {
-                                                                                visible: false,
+                                                                                title: '設定中...',
                                                                             });
-                                                                            widget.event('success', {
-                                                                                title: '設定成功',
+                                                                            ApiUser.setPublicConfig({
+                                                                                key: 'member_level_config',
+                                                                                user_id: 'manager',
+                                                                                value: {
+                                                                                    levels: vm.dataList.filter((dd: any) => {
+                                                                                        return !dd.checked;
+                                                                                    }),
+                                                                                },
+                                                                            }).then(() => {
+                                                                                setTimeout(() => {
+                                                                                    widget.event('loading', {
+                                                                                        visible: false,
+                                                                                    });
+                                                                                    widget.event('success', {
+                                                                                        title: '設定成功',
+                                                                                    });
+                                                                                    gvc.notifyDataChange(id);
+                                                                                }, 500);
                                                                             });
-                                                                            gvc.notifyDataChange(id);
-                                                                        }, 500);
-                                                                    });
-                                                                }
-                                                            },
-                                                        });
-                                                    })}">批量移除</button>`,
-                                                ].join(``);
-                                            },
-                                            divCreate: () => {
-                                                return {
-                                                    class: `d-flex align-items-center p-2 py-3 ${
-                                                        !vm.dataList ||
-                                                        !vm.dataList.find((dd: any) => {
-                                                            return dd.checked;
-                                                        })
-                                                            ? `d-none`
-                                                            : ``
-                                                    }`,
-                                                    style: `height:40px;gap:10px;margin-top:10px;`,
-                                                };
-                                            },
-                                        };
-                                    })}
-                                `,
-                            })}
+                                                                        }
+                                                                    },
+                                                                });
+                                                            })}"
+                                                        >
+                                                            批量移除
+                                                        </button>`,
+                                                    ].join(``);
+                                                },
+                                                divCreate: () => {
+                                                    return {
+                                                        class: `d-flex align-items-center p-2 py-3 ${
+                                                            !vm.dataList ||
+                                                            !vm.dataList.find((dd: any) => {
+                                                                return dd.checked;
+                                                            })
+                                                                ? `d-none`
+                                                                : ``
+                                                        }`,
+                                                        style: `height:40px;gap:10px;margin-top:10px;`,
+                                                    };
+                                                },
+                                            };
+                                        })}
+                                    `,
+                                })
+                            )}
                         `);
                     } else if (vm.type == 'add') {
                         return this.setMenu({
@@ -621,7 +632,7 @@ ${BgWidget.save(
         });
     }
 
-    public static collectionEvent(data: MenuItem, save: (data: MenuItem) => boolean){
+    public static collectionEvent(data: MenuItem, save: (data: MenuItem) => boolean) {
         const gvc: GVC = (window.parent as any).glitter.pageConfig[0].gvc;
         const rightMenu = (window.parent as any).glitter.share.NormalPageEditor;
         const id = gvc.glitter.getUUID();
@@ -666,20 +677,19 @@ ${BgWidget.save(
                 }),
                 `<div class="position-absolute bottom-0 left-0 w-100 d-flex align-items-center justify-content-end p-3 border-top" style="gap:10px;">
 ${BgWidget.cancel(
-                    gvc.event(() => {
-                        rightMenu.toggle({ visible: false });
-                    })
-                )}
+    gvc.event(() => {
+        rightMenu.toggle({ visible: false });
+    })
+)}
 ${BgWidget.save(
-                    gvc.event(() => {
-                        if(save(data) !== false){
-                            rightMenu.toggle({ visible: false });
-                        }else{
-                            gvc.notifyDataChange(id)
-                        }
-                       
-                    })
-                )}
+    gvc.event(() => {
+        if (save(data) !== false) {
+            rightMenu.toggle({ visible: false });
+        } else {
+            gvc.notifyDataChange(id);
+        }
+    })
+)}
 </div>`,
             ].join(''),
             right: true,

@@ -156,91 +156,168 @@ export class BgProject {
                                             (() => {
                                                 keyData.will_come_content =
                                                     keyData.will_come_content ||
-                                                    `<table style="height:100%!important;width:100%!important;border-spacing:0;border-collapse:collapse">
-      <tbody><tr>
-        <td style="font-family:-apple-system,BlinkMacSystemFont,&quot;Segoe UI&quot;,&quot;Roboto&quot;,&quot;Oxygen&quot;,&quot;Ubuntu&quot;,&quot;Cantarell&quot;,&quot;Fira Sans&quot;,&quot;Droid Sans&quot;,&quot;Helvetica Neue&quot;,sans-serif">
-          <table class="m_-6935525929279934079header" style="width:100%;border-spacing:0;border-collapse:collapse;margin:40px 0 20px">
-  <tbody><tr>
-    <td style="font-family:-apple-system,BlinkMacSystemFont,&quot;Segoe UI&quot;,&quot;Roboto&quot;,&quot;Oxygen&quot;,&quot;Ubuntu&quot;,&quot;Cantarell&quot;,&quot;Fira Sans&quot;,&quot;Droid Sans&quot;,&quot;Helvetica Neue&quot;,sans-serif">
-      <center>
+                                                    html`<table style="height:100%!important;width:100%!important;border-spacing:0;border-collapse:collapse">
+                                                        <tbody>
+                                                            <tr>
+                                                                <td
+                                                                    style='font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Roboto","Oxygen","Ubuntu","Cantarell","Fira Sans","Droid Sans","Helvetica Neue",sans-serif'
+                                                                >
+                                                                    <table class="m_-6935525929279934079header" style="width:100%;border-spacing:0;border-collapse:collapse;margin:40px 0 20px">
+                                                                        <tbody>
+                                                                            <tr>
+                                                                                <td
+                                                                                    style='font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Roboto","Oxygen","Ubuntu","Cantarell","Fira Sans","Droid Sans","Helvetica Neue",sans-serif'
+                                                                                >
+                                                                                    <center>
+                                                                                        <table
+                                                                                            class="m_-6935525929279934079container"
+                                                                                            style="width:560px;text-align:left;border-spacing:0;border-collapse:collapse;margin:0 auto"
+                                                                                        >
+                                                                                            <tbody>
+                                                                                                <tr>
+                                                                                                    <td
+                                                                                                        style='font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Roboto","Oxygen","Ubuntu","Cantarell","Fira Sans","Droid Sans","Helvetica Neue",sans-serif'
+                                                                                                    >
+                                                                                                        <table style="width:100%;border-spacing:0;border-collapse:collapse">
+                                                                                                            <tbody>
+                                                                                                                <tr>
+                                                                                                                    <td
+                                                                                                                        class="m_-6935525929279934079shop-name__cell"
+                                                                                                                        style='font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Roboto","Oxygen","Ubuntu","Cantarell","Fira Sans","Droid Sans","Helvetica Neue",sans-serif'
+                                                                                                                    >
+                                                                                                                        <h1 style="font-weight:normal;font-size:30px;color:#333;margin:0">
+                                                                                                                            <a href="https://glitter-ai.com/?page=index"
+                                                                                                                                ><span class="il">Glitter</span>.AI</a
+                                                                                                                            >
+                                                                                                                        </h1>
+                                                                                                                    </td>
+                                                                                                                </tr>
+                                                                                                            </tbody>
+                                                                                                        </table>
+                                                                                                    </td>
+                                                                                                </tr>
+                                                                                            </tbody>
+                                                                                        </table>
+                                                                                    </center>
+                                                                                </td>
+                                                                            </tr>
+                                                                        </tbody>
+                                                                    </table>
 
-        <table class="m_-6935525929279934079container" style="width:560px;text-align:left;border-spacing:0;border-collapse:collapse;margin:0 auto">
-          <tbody><tr>
-            <td style="font-family:-apple-system,BlinkMacSystemFont,&quot;Segoe UI&quot;,&quot;Roboto&quot;,&quot;Oxygen&quot;,&quot;Ubuntu&quot;,&quot;Cantarell&quot;,&quot;Fira Sans&quot;,&quot;Droid Sans&quot;,&quot;Helvetica Neue&quot;,sans-serif">
+                                                                    <table style="width:100%;border-spacing:0;border-collapse:collapse">
+                                                                        <tbody>
+                                                                            <tr>
+                                                                                <td
+                                                                                    style='font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Roboto","Oxygen","Ubuntu","Cantarell","Fira Sans","Droid Sans","Helvetica Neue",sans-serif;padding-bottom:40px;border-width:0'
+                                                                                >
+                                                                                    <center>
+                                                                                        <table
+                                                                                            class="m_-6935525929279934079container"
+                                                                                            style="width:560px;text-align:left;border-spacing:0;border-collapse:collapse;margin:0 auto"
+                                                                                        >
+                                                                                            <tbody>
+                                                                                                <tr>
+                                                                                                    <td
+                                                                                                        style='font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Roboto","Oxygen","Ubuntu","Cantarell","Fira Sans","Droid Sans","Helvetica Neue",sans-serif'
+                                                                                                    >
+                                                                                                        <h2 style="font-weight:normal;font-size:24px;margin:0 0 10px">
+                                                                                                            歡迎造訪 <span class="il">Glitter</span>.AI
+                                                                                                        </h2>
+                                                                                                        <p style="color:#777;line-height:150%;font-size:16px;margin:0">
+                                                                                                            你已啟用顧客帳號。下次向我們購買商品時可登入以加快結帳程序。
+                                                                                                        </p>
 
-              <table style="width:100%;border-spacing:0;border-collapse:collapse">
-                <tbody><tr>
-                  <td class="m_-6935525929279934079shop-name__cell" style="font-family:-apple-system,BlinkMacSystemFont,&quot;Segoe UI&quot;,&quot;Roboto&quot;,&quot;Oxygen&quot;,&quot;Ubuntu&quot;,&quot;Cantarell&quot;,&quot;Fira Sans&quot;,&quot;Droid Sans&quot;,&quot;Helvetica Neue&quot;,sans-serif">
-                      <h1 style="font-weight:normal;font-size:30px;color:#333;margin:0">
-                        <a href="https://glitter-ai.com/?page=index"><span class="il">Glitter</span>.AI</a>
-                      </h1>
-                  </td>
+                                                                                                        <table style="width:100%;border-spacing:0;border-collapse:collapse;margin-top:20px">
+                                                                                                            <tbody>
+                                                                                                                <tr>
+                                                                                                                    <td
+                                                                                                                        style='font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Roboto","Oxygen","Ubuntu","Cantarell","Fira Sans","Droid Sans","Helvetica Neue",sans-serif'
+                                                                                                                    >
+                                                                                                                        <table
+                                                                                                                            class="m_-6935525929279934079button m_-6935525929279934079main-action-cell"
+                                                                                                                            style="border-spacing:0;border-collapse:collapse;float:left;margin-right:15px"
+                                                                                                                        >
+                                                                                                                            <tbody>
+                                                                                                                                <tr>
+                                                                                                                                    <td
+                                                                                                                                        style='font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Roboto","Oxygen","Ubuntu","Cantarell","Fira Sans","Droid Sans","Helvetica Neue",sans-serif;border-radius:4px'
+                                                                                                                                        align="center"
+                                                                                                                                        bgcolor="#FD6A58"
+                                                                                                                                    >
+                                                                                                                                        <a
+                                                                                                                                            href="https://glitter-ai.com/?page=index"
+                                                                                                                                            class="m_-6935525929279934079button__text"
+                                                                                                                                            style="font-size:16px;text-decoration:none;display:block;color:#fff;padding:20px 25px"
+                                                                                                                                            target="_blank"
+                                                                                                                                            data-saferedirecturl="https://www.google.com/url?q=https://homee.cc/_t/c/A1030004-178DF593BC260730-3276808C?l%3DAAC31U1HQyLV6yRc418Ol6ZTVtd35pqHBs7MfVIFQDr5cyyO2sIEDkhWHwZOWThosKbnlo0vxspUzXz95nAfGCAefk7ZV5q%252F4OcvJNHMWdazV7L3oV%252FeYRwJeFSZL8IjeY9FoC4%252FftsbMqiOvv3N3fuybzH6h87aaIKXJB3xQLvRDdoUEc%252Bls9WXIWwMVLjXOm2TaM0mO0WY2bk%253D%26c%3DAABphhQuF%252Fv1oMua9CSFTngouEXUusFfuKKA%252B2VsQyoM2b7GLOICMbafbOHbq9R6gAbjuFK%252BvnPtv5UjwCIQGNQ92Tn4ZBbwZKMj8Z3tN3K1GfGK8g4OdJMbcjXvYu33KJPpHD8FHNoIR1E9%252BxLb67yVIoHfOsdRfTFnkGTlPXqCushhfwL9%252BLJjZhI0vabSZ0edxj1olnSwMe32VLib6ljdCUeFYftICVKoS%252FoQwo5BfFKozF64R1mOrnNPoMop1Jxl7XGbxVIJegWLjoR01AgtwLRdehnioWNe%252FQS2efaSSVfSFbKA%252BgjAgwB7EChxgqD1T2Df4aecH%252F5PN7dZ1Ljh9MOxgxAxYNE%253D&amp;source=gmail&amp;ust=1704369669126000&amp;usg=AOvVaw2lf2J55g8YoRh8zhgbNpwz"
+                                                                                                                                            >造訪我們的商店</a
+                                                                                                                                        >
+                                                                                                                                    </td>
+                                                                                                                                </tr>
+                                                                                                                            </tbody>
+                                                                                                                        </table>
+                                                                                                                    </td>
+                                                                                                                </tr>
+                                                                                                            </tbody>
+                                                                                                        </table>
+                                                                                                    </td>
+                                                                                                </tr>
+                                                                                            </tbody>
+                                                                                        </table>
+                                                                                    </center>
+                                                                                </td>
+                                                                            </tr>
+                                                                        </tbody>
+                                                                    </table>
+                                                                    <table
+                                                                        style="width:100%;border-spacing:0;border-collapse:collapse;border-top-width:1px;border-top-color:#e5e5e5;border-top-style:solid"
+                                                                    >
+                                                                        <tbody>
+                                                                            <tr>
+                                                                                <td
+                                                                                    style='font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Roboto","Oxygen","Ubuntu","Cantarell","Fira Sans","Droid Sans","Helvetica Neue",sans-serif;padding:35px 0'
+                                                                                >
+                                                                                    <center>
+                                                                                        <table
+                                                                                            class="m_-6935525929279934079container"
+                                                                                            style="width:560px;text-align:left;border-spacing:0;border-collapse:collapse;margin:0 auto"
+                                                                                        >
+                                                                                            <tbody>
+                                                                                                <tr>
+                                                                                                    <td
+                                                                                                        style='font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Roboto","Oxygen","Ubuntu","Cantarell","Fira Sans","Droid Sans","Helvetica Neue",sans-serif'
+                                                                                                    >
+                                                                                                        <p style="color:#999;line-height:150%;font-size:14px;margin:0">
+                                                                                                            如有任何疑問，請回覆本電子郵件或透過
+                                                                                                            <a
+                                                                                                                href="mailto:service@ncdesign.info"
+                                                                                                                style="font-size:14px;text-decoration:none;color:#fd6a58"
+                                                                                                                target="_blank"
+                                                                                                                >service@<span class="il">ncdesign</span>.info</a
+                                                                                                            >
+                                                                                                            聯絡我們
+                                                                                                        </p>
+                                                                                                    </td>
+                                                                                                </tr>
+                                                                                            </tbody>
+                                                                                        </table>
+                                                                                    </center>
+                                                                                </td>
+                                                                            </tr>
+                                                                        </tbody>
+                                                                    </table>
 
-                </tr>
-              </tbody></table>
-
-            </td>
-          </tr>
-        </tbody></table>
-
-      </center>
-    </td>
-  </tr>
-</tbody></table>
-
-          <table style="width:100%;border-spacing:0;border-collapse:collapse">
-  <tbody><tr>
-    <td style="font-family:-apple-system,BlinkMacSystemFont,&quot;Segoe UI&quot;,&quot;Roboto&quot;,&quot;Oxygen&quot;,&quot;Ubuntu&quot;,&quot;Cantarell&quot;,&quot;Fira Sans&quot;,&quot;Droid Sans&quot;,&quot;Helvetica Neue&quot;,sans-serif;padding-bottom:40px;border-width:0">
-      <center>
-        <table class="m_-6935525929279934079container" style="width:560px;text-align:left;border-spacing:0;border-collapse:collapse;margin:0 auto">
-          <tbody><tr>
-            <td style="font-family:-apple-system,BlinkMacSystemFont,&quot;Segoe UI&quot;,&quot;Roboto&quot;,&quot;Oxygen&quot;,&quot;Ubuntu&quot;,&quot;Cantarell&quot;,&quot;Fira Sans&quot;,&quot;Droid Sans&quot;,&quot;Helvetica Neue&quot;,sans-serif">
-              
-            <h2 style="font-weight:normal;font-size:24px;margin:0 0 10px">歡迎造訪 <span class="il">Glitter</span>.AI</h2>
-            <p style="color:#777;line-height:150%;font-size:16px;margin:0">你已啟用顧客帳號。下次向我們購買商品時可登入以加快結帳程序。</p>
-            
-              <table style="width:100%;border-spacing:0;border-collapse:collapse;margin-top:20px">
-                <tbody><tr>
-                  <td style="font-family:-apple-system,BlinkMacSystemFont,&quot;Segoe UI&quot;,&quot;Roboto&quot;,&quot;Oxygen&quot;,&quot;Ubuntu&quot;,&quot;Cantarell&quot;,&quot;Fira Sans&quot;,&quot;Droid Sans&quot;,&quot;Helvetica Neue&quot;,sans-serif">
-                    <table class="m_-6935525929279934079button m_-6935525929279934079main-action-cell" style="border-spacing:0;border-collapse:collapse;float:left;margin-right:15px">
-                      <tbody><tr>
-                        <td style="font-family:-apple-system,BlinkMacSystemFont,&quot;Segoe UI&quot;,&quot;Roboto&quot;,&quot;Oxygen&quot;,&quot;Ubuntu&quot;,&quot;Cantarell&quot;,&quot;Fira Sans&quot;,&quot;Droid Sans&quot;,&quot;Helvetica Neue&quot;,sans-serif;border-radius:4px" align="center" bgcolor="#FD6A58"><a href="https://glitter-ai.com/?page=index" class="m_-6935525929279934079button__text" style="font-size:16px;text-decoration:none;display:block;color:#fff;padding:20px 25px" target="_blank" data-saferedirecturl="https://www.google.com/url?q=https://homee.cc/_t/c/A1030004-178DF593BC260730-3276808C?l%3DAAC31U1HQyLV6yRc418Ol6ZTVtd35pqHBs7MfVIFQDr5cyyO2sIEDkhWHwZOWThosKbnlo0vxspUzXz95nAfGCAefk7ZV5q%252F4OcvJNHMWdazV7L3oV%252FeYRwJeFSZL8IjeY9FoC4%252FftsbMqiOvv3N3fuybzH6h87aaIKXJB3xQLvRDdoUEc%252Bls9WXIWwMVLjXOm2TaM0mO0WY2bk%253D%26c%3DAABphhQuF%252Fv1oMua9CSFTngouEXUusFfuKKA%252B2VsQyoM2b7GLOICMbafbOHbq9R6gAbjuFK%252BvnPtv5UjwCIQGNQ92Tn4ZBbwZKMj8Z3tN3K1GfGK8g4OdJMbcjXvYu33KJPpHD8FHNoIR1E9%252BxLb67yVIoHfOsdRfTFnkGTlPXqCushhfwL9%252BLJjZhI0vabSZ0edxj1olnSwMe32VLib6ljdCUeFYftICVKoS%252FoQwo5BfFKozF64R1mOrnNPoMop1Jxl7XGbxVIJegWLjoR01AgtwLRdehnioWNe%252FQS2efaSSVfSFbKA%252BgjAgwB7EChxgqD1T2Df4aecH%252F5PN7dZ1Ljh9MOxgxAxYNE%253D&amp;source=gmail&amp;ust=1704369669126000&amp;usg=AOvVaw2lf2J55g8YoRh8zhgbNpwz">造訪我們的商店</a></td>
-                      </tr>
-                    </tbody></table>
-                  </td>
-                </tr>
-              </tbody></table>
-            
-
-            </td>
-          </tr>
-        </tbody></table>
-      </center>
-    </td>
-  </tr>
-</tbody></table>
-          <table style="width:100%;border-spacing:0;border-collapse:collapse;border-top-width:1px;border-top-color:#e5e5e5;border-top-style:solid">
-  <tbody><tr>
-    <td style="font-family:-apple-system,BlinkMacSystemFont,&quot;Segoe UI&quot;,&quot;Roboto&quot;,&quot;Oxygen&quot;,&quot;Ubuntu&quot;,&quot;Cantarell&quot;,&quot;Fira Sans&quot;,&quot;Droid Sans&quot;,&quot;Helvetica Neue&quot;,sans-serif;padding:35px 0">
-      <center>
-        <table class="m_-6935525929279934079container" style="width:560px;text-align:left;border-spacing:0;border-collapse:collapse;margin:0 auto">
-          <tbody><tr>
-            <td style="font-family:-apple-system,BlinkMacSystemFont,&quot;Segoe UI&quot;,&quot;Roboto&quot;,&quot;Oxygen&quot;,&quot;Ubuntu&quot;,&quot;Cantarell&quot;,&quot;Fira Sans&quot;,&quot;Droid Sans&quot;,&quot;Helvetica Neue&quot;,sans-serif">
-              
-              <p style="color:#999;line-height:150%;font-size:14px;margin:0">如有任何疑問，請回覆本電子郵件或透過 <a href="mailto:service@ncdesign.info" style="font-size:14px;text-decoration:none;color:#fd6a58" target="_blank">service@<span class="il">ncdesign</span>.info</a> 聯絡我們</p>
-            </td>
-          </tr>
-        </tbody></table>
-      </center>
-    </td>
-  </tr>
-</tbody></table>
-
-<img src="https://ci3.googleusercontent.com/meips/ADKq_NbTVurv9Myfyz9PhnR6e2VliLt0CFlSGZQ-llBSyYXgCJk484f6C9PtRc3NQ--UqTVQLrUbxo9QnW7Jeol11m54Ffyk3C_-YGtSYbBtM-pocpNiNcD8mIkv3bNN3eh5HpLh1tiKiOpQakyoPqKg8tioAtjIe3HfGjshqtJap0HP0qao4Rdp96g8T6NDAFRUjXK3PAB6N0Hki6PwEBf3ccdaPkQ3EqMHTw-WD8MjTbiKIoAM=s0-d-e1-ft#https://cdn.shopify.com/shopifycloud/shopify/assets/themes_support/notifications/spacer-1a26dfd5c56b21ac888f9f1610ef81191b571603cb207c6c0f564148473cab3c.png" class="m_-6935525929279934079spacer CToWUd" height="1" style="min-width:600px;height:0" data-bit="iit">
-
-        </td>
-      </tr>
-    </tbody></table>`;
+                                                                    <img
+                                                                        src="https://ci3.googleusercontent.com/meips/ADKq_NbTVurv9Myfyz9PhnR6e2VliLt0CFlSGZQ-llBSyYXgCJk484f6C9PtRc3NQ--UqTVQLrUbxo9QnW7Jeol11m54Ffyk3C_-YGtSYbBtM-pocpNiNcD8mIkv3bNN3eh5HpLh1tiKiOpQakyoPqKg8tioAtjIe3HfGjshqtJap0HP0qao4Rdp96g8T6NDAFRUjXK3PAB6N0Hki6PwEBf3ccdaPkQ3EqMHTw-WD8MjTbiKIoAM=s0-d-e1-ft#https://cdn.shopify.com/shopifycloud/shopify/assets/themes_support/notifications/spacer-1a26dfd5c56b21ac888f9f1610ef81191b571603cb207c6c0f564148473cab3c.png"
+                                                                        class="m_-6935525929279934079spacer CToWUd"
+                                                                        height="1"
+                                                                        style="min-width:600px;height:0"
+                                                                        data-bit="iit"
+                                                                    />
+                                                                </td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </table>`;
                                                 keyData.will_come_title = keyData.will_come_title || '嗨！歡迎加入 Glitter.AI。';
 
                                                 return [
@@ -624,36 +701,42 @@ export class BgProject {
                                                     return ``;
                                                 } else {
                                                     return [
-                                                        `<span class="fs-7 fw-bold">操作選項</span>`,
-                                                        `<button class="btn btn-danger fs-7 px-2" style="height:30px;border:none;" onclick="${gvc.event(() => {
-                                                            const dialog = new ShareDialog(gvc.glitter);
-                                                            dialog.checkYesOrNot({
-                                                                text: '是否確認移除所選項目?',
-                                                                callback: (response) => {
-                                                                    if (response) {
-                                                                        dialog.dataLoading({ visible: true });
-                                                                        ApiUser.deleteUser({
-                                                                            id: vm.dataList
-                                                                                .filter((dd: any) => {
-                                                                                    return dd.checked;
-                                                                                })
-                                                                                .map((dd: any) => {
-                                                                                    return dd.id;
-                                                                                })
-                                                                                .join(`,`),
-                                                                        }).then((res) => {
-                                                                            dialog.dataLoading({ visible: false });
-                                                                            if (res.result) {
-                                                                                vm.dataList = undefined;
-                                                                                gvc.notifyDataChange(id);
-                                                                            } else {
-                                                                                dialog.errorMessage({ text: '刪除失敗' });
-                                                                            }
-                                                                        });
-                                                                    }
-                                                                },
-                                                            });
-                                                        })}">批量移除</button>`,
+                                                        html`<span class="fs-7 fw-bold">操作選項</span>`,
+                                                        html`<button
+                                                            class="btn btn-danger fs-7 px-2"
+                                                            style="height:30px;border:none;"
+                                                            onclick="${gvc.event(() => {
+                                                                const dialog = new ShareDialog(gvc.glitter);
+                                                                dialog.checkYesOrNot({
+                                                                    text: '是否確認移除所選項目?',
+                                                                    callback: (response) => {
+                                                                        if (response) {
+                                                                            dialog.dataLoading({ visible: true });
+                                                                            ApiUser.deleteUser({
+                                                                                id: vm.dataList
+                                                                                    .filter((dd: any) => {
+                                                                                        return dd.checked;
+                                                                                    })
+                                                                                    .map((dd: any) => {
+                                                                                        return dd.id;
+                                                                                    })
+                                                                                    .join(`,`),
+                                                                            }).then((res) => {
+                                                                                dialog.dataLoading({ visible: false });
+                                                                                if (res.result) {
+                                                                                    vm.dataList = undefined;
+                                                                                    gvc.notifyDataChange(id);
+                                                                                } else {
+                                                                                    dialog.errorMessage({ text: '刪除失敗' });
+                                                                                }
+                                                                            });
+                                                                        }
+                                                                    },
+                                                                });
+                                                            })}"
+                                                        >
+                                                            批量移除
+                                                        </button>`,
                                                     ].join(``);
                                                 }
                                             },
@@ -710,152 +793,163 @@ export class BgProject {
                 bind: id,
                 view: () => {
                     if (vm.loading) {
-                        return `<div class="w-100 d-flex align-items-center"><div class="spinner-border"></div></div>`;
+                        return html`<div class="w-100 d-flex align-items-center"><div class="spinner-border"></div></div>`;
                     }
                     vm.data.userData = vm.data.userData ?? {};
                     return BgWidget.container(
                         [
-                            `<div class="d-flex w-100 align-items-center mb-3 ">
-                ${BgWidget.goBack(
-                    gvc.event(() => {
-                        cf.callback();
-                    })
-                )} ${BgWidget.title(vm.data.userData.name ?? '匿名用戶')}
-                <div class="flex-fill"></div>
-                <button class="btn hoverBtn me-2 px-3 ${
-                    cf.type === 'readonly' ? `d-none` : ``
-                }" style="height:35px !important;font-size: 14px;color:black;border:1px solid black;" onclick="${gvc.event(() => {
-                                BgProject.setUserForm(gvc, () => {
-                                    gvc.notifyDataChange(id);
-                                });
-                            })}">
-                <i class="fa-regular fa-gear me-2 " ></i>
-                自訂資料
-</button>
-                <button class="btn btn-primary-c ${cf.type === 'readonly' ? `d-none` : ``}" style="height:35px;font-size: 14px;"
-                        onclick="${gvc.event(() => {
-                            const dialog = new ShareDialog(gvc.glitter);
-                            dialog.dataLoading({ text: '更新中', visible: true });
-                            ApiUser.updateUserDataManager(vm.data, vm.data.userID).then((response) => {
-                                dialog.dataLoading({ text: '', visible: false });
-                                if (response.result) {
-                                    dialog.successMessage({ text: '更新成功!' });
-                                    gvc.notifyDataChange(id);
-                                } else {
-                                    dialog.errorMessage({ text: '更新異常!' });
-                                }
-                            });
-                        })}">儲存
-                </button>
-            </div>`,
-                            `<div class="d-flex" style="gap:10px;">
-${BgWidget.card(
-    [
-        gvc.bindView(() => {
-            const id = gvc.glitter.getUUID();
-            const vmi: {
-                mode: 'edit' | 'read';
-            } = {
-                mode: 'read',
-            };
-            return {
-                bind: id,
-                view: () => {
-                    let map: any = [];
-                    vm.data.userID &&
-                        map.push(`
- <div class="d-flex align-items-center border-bottom pb-2">
-                                                    <div class="fw-bold fs-7"></div>
-                                                      <div class="d-flex" style="gap:10px;">
-                                                  <div class="fw-bold fs-7">用戶ID</div>
-                                    <div class="fw-normal fs-7">${vm.data.userID}</div>
- <div class="fw-bold fs-7">用戶建立時間</div>
-                                    <div class="fw-normal fs-7">${gvc.glitter.ut.dateFormat(new Date(vm.data.created_time), 'yyyy-MM-dd hh:mm')}</div>
-</div>
-                                                    <div class="flex-fill"></div>
-                                                    <i class="fa-solid fa-pencil ${cf.type === 'readonly' ? `d-none` : ``}" style="cursor:pointer;" onclick="${gvc.event(() => {
-                            vmi.mode = vmi.mode === 'edit' ? 'read' : 'edit';
-                            gvc.notifyDataChange(id);
-                        })}"></i>
+                            html`<div class="d-flex w-100 align-items-center mb-3 ">
+                                ${BgWidget.goBack(
+                                    gvc.event(() => {
+                                        cf.callback();
+                                    })
+                                )}
+                                ${BgWidget.title(vm.data.userData.name ?? '匿名用戶')}
+                                <div class="flex-fill"></div>
+                                <button
+                                    class="btn hoverBtn me-2 px-3 ${cf.type === 'readonly' ? `d-none` : ``}"
+                                    style="height:35px !important;font-size: 14px;color:black;border:1px solid black;"
+                                    onclick="${gvc.event(() => {
+                                        BgProject.setUserForm(gvc, () => {
+                                            gvc.notifyDataChange(id);
+                                        });
+                                    })}"
+                                >
+                                    <i class="fa-regular fa-gear me-2 "></i>
+                                    自訂資料
+                                </button>
+                                <button
+                                    class="btn btn-primary-c ${cf.type === 'readonly' ? `d-none` : ``}"
+                                    style="height:35px;font-size: 14px;"
+                                    onclick="${gvc.event(() => {
+                                        const dialog = new ShareDialog(gvc.glitter);
+                                        dialog.dataLoading({ text: '更新中', visible: true });
+                                        ApiUser.updateUserDataManager(vm.data, vm.data.userID).then((response) => {
+                                            dialog.dataLoading({ text: '', visible: false });
+                                            if (response.result) {
+                                                dialog.successMessage({ text: '更新成功!' });
+                                                gvc.notifyDataChange(id);
+                                            } else {
+                                                dialog.errorMessage({ text: '更新異常!' });
+                                            }
+                                        });
+                                    })}"
+                                >
+                                    儲存
+                                </button>
+                            </div>`,
+                            html`<div class="d-flex" style="gap:10px;">
+                                ${BgWidget.card(
+                                    [
+                                        gvc.bindView(() => {
+                                            const id = gvc.glitter.getUUID();
+                                            const vmi: {
+                                                mode: 'edit' | 'read';
+                                            } = {
+                                                mode: 'read',
+                                            };
+                                            return {
+                                                bind: id,
+                                                view: () => {
+                                                    let map: any = [];
+                                                    vm.data.userID &&
+                                                        map.push(html`
+                                                            <div class="d-flex align-items-center border-bottom pb-2">
+                                                                <div class="fw-bold fs-7"></div>
+                                                                <div class="d-flex" style="gap:10px;">
+                                                                    <div class="fw-bold fs-7">用戶ID</div>
+                                                                    <div class="fw-normal fs-7">${vm.data.userID}</div>
+                                                                    <div class="fw-bold fs-7">用戶建立時間</div>
+                                                                    <div class="fw-normal fs-7">${gvc.glitter.ut.dateFormat(new Date(vm.data.created_time), 'yyyy-MM-dd hh:mm')}</div>
+                                                                </div>
+                                                                <div class="flex-fill"></div>
+                                                                <i
+                                                                    class="fa-solid fa-pencil ${cf.type === 'readonly' ? `d-none` : ``}"
+                                                                    style="cursor:pointer;"
+                                                                    onclick="${gvc.event(() => {
+                                                                        vmi.mode = vmi.mode === 'edit' ? 'read' : 'edit';
+                                                                        gvc.notifyDataChange(id);
+                                                                    })}"
+                                                                ></i>
+                                                            </div>
+                                                        `);
+                                                    map.push(
+                                                        gvc.bindView(() => {
+                                                            const saasConfig: {
+                                                                config: any;
+                                                                api: any;
+                                                            } = (window.parent as any).saasConfig;
+                                                            const id = gvc.glitter.getUUID();
+                                                            return {
+                                                                bind: id,
+                                                                view: () => {
+                                                                    return new Promise(async (resolve, reject) => {
+                                                                        let data = ((await saasConfig.api.getPrivateConfig(saasConfig.config.appName, `glitterUserForm`)).response.result[0] ?? {})
+                                                                            .value;
+                                                                        if (!Array.isArray(data)) {
+                                                                            data = [];
+                                                                        }
+                                                                        resolve(
+                                                                            FormWidget.editorView({
+                                                                                gvc: gvc,
+                                                                                array: data,
+                                                                                refresh: () => {},
+                                                                                formData: vm.data.userData,
+                                                                                readonly: vmi.mode === 'edit' ? 'write' : 'read',
+                                                                            })
+                                                                        );
+                                                                    });
+                                                                },
+                                                            };
+                                                        })
+                                                    );
+                                                    return map.join('');
+                                                },
+                                            };
+                                        }),
+                                    ].join(html`<div class="my-2 bgf6 w-100" style="height:1px;"></div>`)
+                                )}
+                                <div style="width:350px;">
+                                    ${BgWidget.card(
+                                        [
+                                            html`<div class="fw-bold fs-7">電子錢包</div>
+                                                ${gvc.bindView(() => {
+                                                    return {
+                                                        bind: gvc.glitter.getUUID(),
+                                                        view: () => {
+                                                            return new Promise(async (resolve, reject) => {
+                                                                const sum = (await ApiWallet.getSum({ userID: vm.data.userID })).response.sum;
+                                                                resolve(`$${sum.toLocaleString()}`);
+                                                            });
+                                                        },
+                                                        divCreate: {
+                                                            class: `fs-7`,
+                                                        },
+                                                    };
+                                                })} `,
+                                            html`
+                                                <div class="fw-bold fs-7">回饋金</div>
+                                                <div class="fs-7">
+                                                    ${gvc.bindView(() => {
+                                                        return {
+                                                            bind: gvc.glitter.getUUID(),
+                                                            view: () => {
+                                                                return new Promise(async (resolve, reject) => {
+                                                                    const sum = (await ApiWallet.getRebateSum({ userID: vm.data.userID })).response.sum;
+                                                                    resolve(`$${sum.toLocaleString()}`);
+                                                                });
+                                                            },
+                                                            divCreate: {
+                                                                class: `fs-7 `,
+                                                            },
+                                                        };
+                                                    })}
                                                 </div>
-
-`);
-                    map.push(
-                        gvc.bindView(() => {
-                            const saasConfig: {
-                                config: any;
-                                api: any;
-                            } = (window.parent as any).saasConfig;
-                            const id = gvc.glitter.getUUID();
-
-                            return {
-                                bind: id,
-                                view: () => {
-                                    return new Promise(async (resolve, reject) => {
-                                        let data = ((await saasConfig.api.getPrivateConfig(saasConfig.config.appName, `glitterUserForm`)).response.result[0] ?? {}).value;
-                                        if (!Array.isArray(data)) {
-                                            data = [];
-                                        }
-                                        resolve(
-                                            FormWidget.editorView({
-                                                gvc: gvc,
-                                                array: data,
-                                                refresh: () => {},
-                                                formData: vm.data.userData,
-                                                readonly: vmi.mode === 'edit' ? 'write' : 'read',
-                                            })
-                                        );
-                                    });
-                                },
-                            };
-                        })
-                    );
-                    return map.join('');
-                },
-            };
-        }),
-    ].join(`<div class="my-2 bgf6 w-100" style="height:1px;"></div>`)
-)}
-<div style="width:350px;">
-${BgWidget.card(
-    [
-        `<div class="fw-bold fs-7">電子錢包</div>
-     ${gvc.bindView(() => {
-         return {
-             bind: gvc.glitter.getUUID(),
-             view: () => {
-                 return new Promise(async (resolve, reject) => {
-                     const sum = (await ApiWallet.getSum({ userID: vm.data.userID })).response.sum;
-                     resolve(`$${sum.toLocaleString()}`);
-                 });
-             },
-             divCreate: {
-                 class: `fs-7 `,
-             },
-         };
-     })}
-    `,
-        `
-     <div class="fw-bold fs-7">回饋金</div>
-     <div class="fs-7">${gvc.bindView(() => {
-         return {
-             bind: gvc.glitter.getUUID(),
-             view: () => {
-                 return new Promise(async (resolve, reject) => {
-                     const sum = (await ApiWallet.getRebateSum({ userID: vm.data.userID })).response.sum;
-                     resolve(`$${sum.toLocaleString()}`);
-                 });
-             },
-             divCreate: {
-                 class: `fs-7 `,
-             },
-         };
-     })}</div>
-    `,
-    ].join(`<div class="w-100 border-bottom my-2"></div>`)
-)}
-</div>
-</div>`,
+                                            `,
+                                        ].join(html`<div class="w-100 border-bottom my-2"></div>`)
+                                    )}
+                                </div>
+                            </div>`,
                         ].join('<div class="my-2"></div>'),
                         800
                     );
@@ -915,24 +1009,30 @@ ${BgWidget.card(
                                 },
                             };
                         }),
-                        `<div class="d-flex">
-<div class="flex-fill"></div>
-<div class=" btn-primary-c btn my-2 me-2" style="margin-left: 10px;height:35px;" onclick="${gvc.event(() => {
-                            dialog.dataLoading({ text: '設定中', visible: true });
-                            saasConfig.api.setPrivateConfig(saasConfig.config.appName, 'glitterUserForm', data).then((r: { response: any; result: boolean }) => {
-                                setTimeout(() => {
-                                    dialog.dataLoading({ visible: false });
-                                    if (r.response) {
-                                        dialog.successMessage({ text: '設定成功' });
-                                        callback();
-                                    } else {
-                                        dialog.errorMessage({ text: '設定失敗' });
-                                    }
-                                }, 1000);
-                            });
-                            gvc.closeDialog();
-                        })}">儲存設定</div>
-</div>`,
+                        html`<div class="d-flex">
+                            <div class="flex-fill"></div>
+                            <div
+                                class=" btn-primary-c btn my-2 me-2"
+                                style="margin-left: 10px;height:35px;"
+                                onclick="${gvc.event(() => {
+                                    dialog.dataLoading({ text: '設定中', visible: true });
+                                    saasConfig.api.setPrivateConfig(saasConfig.config.appName, 'glitterUserForm', data).then((r: { response: any; result: boolean }) => {
+                                        setTimeout(() => {
+                                            dialog.dataLoading({ visible: false });
+                                            if (r.response) {
+                                                dialog.successMessage({ text: '設定成功' });
+                                                callback();
+                                            } else {
+                                                dialog.errorMessage({ text: '設定失敗' });
+                                            }
+                                        }, 1000);
+                                    });
+                                    gvc.closeDialog();
+                                })}"
+                            >
+                                儲存設定
+                            </div>
+                        </div>`,
                     ].join('');
                 },
                 () => {
@@ -980,220 +1080,228 @@ ${BgWidget.card(
                             return BgProject.appReleaseForm(vm, gvc, type);
                         case 'list':
                             const filterID = gvc.glitter.getUUID();
-                            return BgWidget.container(html`
-                                <div class="d-flex w-100 align-items-center mb-3">
-                                    ${BgWidget.title(type === 'android_release' ? 'Google Play應用商城' : 'APPLE應用商城')}
-                                    <div class="flex-fill"></div>
-                                    <button
-                                        class="btn btn-primary-c"
-                                        style="height:38px;font-size: 14px;"
-                                        onclick="${gvc.event(() => {
-                                            vm.status = 'add';
-                                        })}"
-                                    >
-                                        新增送審項目
-                                    </button>
-                                </div>
-                                ${BgWidget.table({
-                                    gvc: gvc,
-                                    getData: (vmi) => {
-                                        ApiApp.getAppRelease({
-                                            page: vmi.page - 1,
-                                            limit: 50,
-                                            search: vm.query || undefined,
-                                            type: type,
-                                        }).then((data) => {
-                                            vmi.pageSize = Math.ceil(data.response.total / 50);
-                                            vm.dataList = data.response.data;
-
-                                            function getDatalist() {
-                                                return data.response.data.map(
-                                                    (dd: {
-                                                        content: {
-                                                            logo: string;
-                                                            image: {
-                                                                '6.7': string[];
-                                                                '6.5': string[];
-                                                                '5.5': string[];
-                                                            };
-                                                            type: 'apple_release';
-                                                            market_info: {
-                                                                promote_string: string;
-                                                                description: string;
-                                                                keywords: string;
-                                                                support_url: string;
-                                                                version: string;
-                                                                copy_right: string;
-                                                                market_url: string;
-                                                                title: string;
-                                                                sub_title: string;
-                                                                privacy: string;
-                                                            };
-                                                            name: string;
-                                                            bundle_id: string;
-                                                            status: 'wait' | 'finish' | 'manual' | 'error';
-                                                        };
-                                                        checked: boolean;
-                                                    }) => {
-                                                        return [
-                                                            {
-                                                                key: EditorElem.checkBoxOnly({
-                                                                    gvc: gvc,
-                                                                    def: !data.response.data.find((dd: any) => {
-                                                                        return !dd.checked;
-                                                                    }),
-                                                                    callback: (result) => {
-                                                                        data.response.data.map((dd: any) => {
-                                                                            dd.checked = result;
-                                                                        });
-                                                                        vmi.data = getDatalist();
-                                                                        vmi.callback();
-                                                                        gvc.notifyDataChange(filterID);
-                                                                    },
-                                                                }),
-                                                                value: EditorElem.checkBoxOnly({
-                                                                    gvc: gvc,
-                                                                    def: dd.checked,
-                                                                    callback: (result) => {
-                                                                        dd.checked = result;
-                                                                        vmi.data = getDatalist();
-                                                                        vmi.callback();
-                                                                        gvc.notifyDataChange(filterID);
-                                                                    },
-                                                                    style: 'height:40px;',
-                                                                }),
-                                                            },
-                                                            {
-                                                                key: 'APP',
-                                                                value: `<img class="rounded border me-4" alt="" src="${dd.content.logo}" style="width:40px;height:40px;">` + dd.content.name,
-                                                            },
-                                                            {
-                                                                key: '審核狀態',
-                                                                value: (() => {
-                                                                    switch (dd.content.status) {
-                                                                        case 'finish':
-                                                                            return `<div class="badge badge-success fs-7" >審核通過</div>`;
-                                                                        case 'error':
-                                                                            return `<div class="badge bg-danger fs-7" >審核失敗</div>`;
-                                                                        case 'wait':
-                                                                            return `<div class="badge bg-warning fs-7" style="color:black;">等待審核</div>`;
-                                                                        default:
-                                                                            return `<div class="badge bg-secondary fs-7" >手動送審</div>`;
-                                                                    }
-                                                                })(),
-                                                            },
-                                                            {
-                                                                key: '專案包',
-                                                                value: `<i class="fa-solid fa-download fs-6 ms-3" onclick="${gvc.event((e, event) => {
-                                                                    const dialog = new ShareDialog(gvc.glitter);
-                                                                    dialog.dataLoading({ visible: true });
-                                                                    ((type === 'android_release' ? ApiApp.downloadAndroidRelease : ApiApp.downloadIOSRelease) as any)({
-                                                                        app_name: dd.content.name,
-                                                                        bundle_id: dd.content.bundle_id,
-                                                                    }).then((dd: any) => {
-                                                                        dialog.dataLoading({ visible: false });
-                                                                        if (dd.result) {
-                                                                            dialog.successMessage({
-                                                                                text: '下載成功，請前往資料夾查看。',
-                                                                            });
-                                                                            (window.parent as any).glitter.openNewTab(dd.response.url);
-                                                                        } else {
-                                                                            alert('下載失敗!');
-                                                                        }
-                                                                    });
-                                                                    event.stopPropagation();
-                                                                })}"></i>`,
-                                                            },
-                                                        ].map((dd) => {
-                                                            dd.value = `<div style="line-height:40px;">${dd.value}</div>`;
-                                                            return dd;
-                                                        });
-                                                    }
-                                                );
-                                            }
-
-                                            vmi.data = getDatalist();
-                                            vmi.loading = false;
-                                            vmi.callback();
-                                        });
-                                    },
-                                    rowClick: (data, index) => {
-                                        replaceData = vm.dataList[index].content;
-                                        vm.status = 'replace';
-                                    },
-                                    filter: html`
-                                        ${BgWidget.searchPlace(
-                                            gvc.event((e, event) => {
-                                                vm.query = e.value;
-                                                gvc.notifyDataChange(id);
-                                            }),
-                                            vm.query || '',
-                                            '搜尋所有紀錄'
+                            return BgWidget.container(
+                                html`
+                                    <div class="d-flex w-100 align-items-center mb-3">
+                                        ${BgWidget.title(type === 'android_release' ? 'Google Play應用商城' : 'APPLE應用商城')}
+                                        <div class="flex-fill"></div>
+                                        ${BgWidget.darkButton(
+                                            '新增送審項目',
+                                            gvc.event(() => {
+                                                vm.status = 'add';
+                                            })
                                         )}
-                                        ${gvc.bindView(() => {
-                                            return {
-                                                bind: filterID,
-                                                view: () => {
-                                                    if (
-                                                        !vm.dataList ||
-                                                        !vm.dataList.find((dd: any) => {
-                                                            return dd.checked;
-                                                        })
-                                                    ) {
-                                                        return ``;
-                                                    } else {
-                                                        return [
-                                                            `<span class="fs-7 fw-bold">操作選項</span>`,
-                                                            `<button class="btn btn-danger fs-7 px-2" style="height:30px;border:none;" onclick="${gvc.event(() => {
-                                                                const dialog = new ShareDialog(gvc.glitter);
-                                                                dialog.checkYesOrNot({
-                                                                    text: '是否確認移除所選項目?',
-                                                                    callback: (response) => {
-                                                                        if (response) {
+                                    </div>
+                                    ${BgWidget.mainCard(
+                                        BgWidget.tableV2({
+                                            gvc: gvc,
+                                            getData: (vmi) => {
+                                                ApiApp.getAppRelease({
+                                                    page: vmi.page - 1,
+                                                    limit: 50,
+                                                    search: vm.query || undefined,
+                                                    type: type,
+                                                }).then((data) => {
+                                                    vmi.pageSize = Math.ceil(data.response.total / 50);
+                                                    vm.dataList = data.response.data;
+
+                                                    function getDatalist() {
+                                                        return data.response.data.map(
+                                                            (dd: {
+                                                                content: {
+                                                                    logo: string;
+                                                                    image: {
+                                                                        '6.7': string[];
+                                                                        '6.5': string[];
+                                                                        '5.5': string[];
+                                                                    };
+                                                                    type: 'apple_release';
+                                                                    market_info: {
+                                                                        promote_string: string;
+                                                                        description: string;
+                                                                        keywords: string;
+                                                                        support_url: string;
+                                                                        version: string;
+                                                                        copy_right: string;
+                                                                        market_url: string;
+                                                                        title: string;
+                                                                        sub_title: string;
+                                                                        privacy: string;
+                                                                    };
+                                                                    name: string;
+                                                                    bundle_id: string;
+                                                                    status: 'wait' | 'finish' | 'manual' | 'error';
+                                                                };
+                                                                checked: boolean;
+                                                            }) => {
+                                                                return [
+                                                                    {
+                                                                        key: EditorElem.checkBoxOnly({
+                                                                            gvc: gvc,
+                                                                            def: !data.response.data.find((dd: any) => {
+                                                                                return !dd.checked;
+                                                                            }),
+                                                                            callback: (result) => {
+                                                                                data.response.data.map((dd: any) => {
+                                                                                    dd.checked = result;
+                                                                                });
+                                                                                vmi.data = getDatalist();
+                                                                                vmi.callback();
+                                                                                gvc.notifyDataChange(filterID);
+                                                                            },
+                                                                        }),
+                                                                        value: EditorElem.checkBoxOnly({
+                                                                            gvc: gvc,
+                                                                            def: dd.checked,
+                                                                            callback: (result) => {
+                                                                                dd.checked = result;
+                                                                                vmi.data = getDatalist();
+                                                                                vmi.callback();
+                                                                                gvc.notifyDataChange(filterID);
+                                                                            },
+                                                                            style: 'height:40px;',
+                                                                        }),
+                                                                    },
+                                                                    {
+                                                                        key: 'APP',
+                                                                        value: `<img class="rounded border me-4" alt="" src="${dd.content.logo}" style="width:40px;height:40px;">` + dd.content.name,
+                                                                    },
+                                                                    {
+                                                                        key: '審核狀態',
+                                                                        value: (() => {
+                                                                            switch (dd.content.status) {
+                                                                                case 'finish':
+                                                                                    return `<div class="badge badge-success fs-7" >審核通過</div>`;
+                                                                                case 'error':
+                                                                                    return `<div class="badge bg-danger fs-7" >審核失敗</div>`;
+                                                                                case 'wait':
+                                                                                    return `<div class="badge bg-warning fs-7" style="color:black;">等待審核</div>`;
+                                                                                default:
+                                                                                    return `<div class="badge bg-secondary fs-7" >手動送審</div>`;
+                                                                            }
+                                                                        })(),
+                                                                    },
+                                                                    {
+                                                                        key: '專案包',
+                                                                        value: `<i class="fa-solid fa-download fs-6 ms-3" onclick="${gvc.event((e, event) => {
+                                                                            const dialog = new ShareDialog(gvc.glitter);
                                                                             dialog.dataLoading({ visible: true });
-                                                                            ApiShop.delete({
-                                                                                id: vm.dataList
-                                                                                    .filter((dd: any) => {
-                                                                                        return dd.checked;
-                                                                                    })
-                                                                                    .map((dd: any) => {
-                                                                                        return dd.id;
-                                                                                    })
-                                                                                    .join(`,`),
-                                                                            }).then((res) => {
+                                                                            ((type === 'android_release' ? ApiApp.downloadAndroidRelease : ApiApp.downloadIOSRelease) as any)({
+                                                                                app_name: dd.content.name,
+                                                                                bundle_id: dd.content.bundle_id,
+                                                                            }).then((dd: any) => {
                                                                                 dialog.dataLoading({ visible: false });
-                                                                                if (res.result) {
-                                                                                    vm.dataList = undefined;
-                                                                                    gvc.notifyDataChange(id);
+                                                                                if (dd.result) {
+                                                                                    dialog.successMessage({
+                                                                                        text: '下載成功，請前往資料夾查看。',
+                                                                                    });
+                                                                                    (window.parent as any).glitter.openNewTab(dd.response.url);
                                                                                 } else {
-                                                                                    dialog.errorMessage({ text: '刪除失敗' });
+                                                                                    alert('下載失敗!');
                                                                                 }
                                                                             });
-                                                                        }
+                                                                            event.stopPropagation();
+                                                                        })}"></i>`,
                                                                     },
+                                                                ].map((dd) => {
+                                                                    dd.value = `<div style="line-height:40px;">${dd.value}</div>`;
+                                                                    return dd;
                                                                 });
-                                                            })}">批量移除</button>`,
-                                                        ].join(``);
+                                                            }
+                                                        );
                                                     }
-                                                },
-                                                divCreate: () => {
+
+                                                    vmi.data = getDatalist();
+                                                    vmi.loading = false;
+                                                    vmi.callback();
+                                                });
+                                            },
+                                            rowClick: (data, index) => {
+                                                replaceData = vm.dataList[index].content;
+                                                vm.status = 'replace';
+                                            },
+                                            filter: html`
+                                                ${BgWidget.searchPlace(
+                                                    gvc.event((e, event) => {
+                                                        vm.query = e.value;
+                                                        gvc.notifyDataChange(id);
+                                                    }),
+                                                    vm.query || '',
+                                                    '搜尋所有紀錄'
+                                                )}
+                                                ${gvc.bindView(() => {
                                                     return {
-                                                        class: `d-flex align-items-center p-2 py-3 ${
-                                                            !vm.dataList ||
-                                                            !vm.dataList.find((dd: any) => {
-                                                                return dd.checked;
-                                                            })
-                                                                ? `d-none`
-                                                                : ``
-                                                        }`,
-                                                        style: `height:40px;gap:10px;margin-top:10px;`,
+                                                        bind: filterID,
+                                                        view: () => {
+                                                            if (
+                                                                !vm.dataList ||
+                                                                !vm.dataList.find((dd: any) => {
+                                                                    return dd.checked;
+                                                                })
+                                                            ) {
+                                                                return ``;
+                                                            } else {
+                                                                return [
+                                                                    html`<span class="fs-7 fw-bold">操作選項</span>`,
+                                                                    html`<button
+                                                                        class="btn btn-danger fs-7 px-2"
+                                                                        style="height:30px;border:none;"
+                                                                        onclick="${gvc.event(() => {
+                                                                            const dialog = new ShareDialog(gvc.glitter);
+                                                                            dialog.checkYesOrNot({
+                                                                                text: '是否確認移除所選項目?',
+                                                                                callback: (response) => {
+                                                                                    if (response) {
+                                                                                        dialog.dataLoading({ visible: true });
+                                                                                        ApiShop.delete({
+                                                                                            id: vm.dataList
+                                                                                                .filter((dd: any) => {
+                                                                                                    return dd.checked;
+                                                                                                })
+                                                                                                .map((dd: any) => {
+                                                                                                    return dd.id;
+                                                                                                })
+                                                                                                .join(`,`),
+                                                                                        }).then((res) => {
+                                                                                            dialog.dataLoading({ visible: false });
+                                                                                            if (res.result) {
+                                                                                                vm.dataList = undefined;
+                                                                                                gvc.notifyDataChange(id);
+                                                                                            } else {
+                                                                                                dialog.errorMessage({ text: '刪除失敗' });
+                                                                                            }
+                                                                                        });
+                                                                                    }
+                                                                                },
+                                                                            });
+                                                                        })}"
+                                                                    >
+                                                                        批量移除
+                                                                    </button>`,
+                                                                ].join(``);
+                                                            }
+                                                        },
+                                                        divCreate: () => {
+                                                            return {
+                                                                class: `d-flex align-items-center p-2 py-3 ${
+                                                                    !vm.dataList ||
+                                                                    !vm.dataList.find((dd: any) => {
+                                                                        return dd.checked;
+                                                                    })
+                                                                        ? `d-none`
+                                                                        : ``
+                                                                }`,
+                                                                style: `height:40px;gap:10px;margin-top:10px;`,
+                                                            };
+                                                        },
                                                     };
-                                                },
-                                            };
-                                        })}
-                                    `,
-                                })}
-                            `);
+                                                })}
+                                            `,
+                                        })
+                                    )}
+                                `,
+                                BgWidget.getContainerWidth()
+                            );
                         case 'replace':
                             return BgProject.appReleaseForm(vm, gvc, type, replaceData);
                     }
@@ -1280,15 +1388,12 @@ ${BgWidget.card(
                         })();
                     })()}
                     <div class="flex-fill"></div>
-                    <button
-                        class="btn btn-primary-c"
-                        style="height:38px;font-size: 14px;"
-                        onclick="${gvc.event(() => {
+                    ${BgWidget.darkButton(
+                        '確認發佈',
+                        gvc.event(() => {
                             save();
-                        })}"
-                    >
-                        確認發佈
-                    </button>
+                        })
+                    )}
                 </div>
                 ${gvc.bindView(() => {
                     const id = gvc.glitter.getUUID();
@@ -1299,7 +1404,7 @@ ${BgWidget.card(
                                 resolve(html` <div style="width:900px;max-width:100%;">
                                     ${[
                                         BgWidget.card(html` <div class="alert alert-info p-2 m-1" style="white-space: normal;">
-                                            <strong>請注意!!</strong><br />
+                                            <strong>請注意 !!</strong><br />
                                             模板發佈請注意上架規範守則，嚴禁發佈觸犯法律條款之內容。
                                         </div>`),
                                         BgWidget.card(
@@ -1362,22 +1467,23 @@ ${BgWidget.card(
                                                         `${EditorElem.h3('模板標籤')}
                                                     ${gvc.bindView(() => {
                                                         const id = gvc.glitter.getUUID();
-
                                                         function refreshTag() {
                                                             gvc.notifyDataChange(id);
                                                         }
-
                                                         return {
                                                             bind: id,
                                                             view: () => {
                                                                 return html` ${postMD.tag
                                                                         .map((dd, index) => {
-                                                                            return ` <div class="badge bg-warning text-dark btn "
-                                                                                 ><i
-                                                                                    class="fa-regular fa-circle-minus me-1 text-danger fw-bold" onclick="${gvc.event(() => {
+                                                                            return html` <div class="badge bg-warning text-dark btn ">
+                                                                                <i
+                                                                                    class="fa-regular fa-circle-minus me-1 text-danger fw-bold"
+                                                                                    onclick="${gvc.event(() => {
                                                                                         postMD.tag.splice(index, 1);
                                                                                         refreshTag();
-                                                                                    })}"></i>${dd}
+                                                                                    })}"
+                                                                                ></i
+                                                                                >${dd}
                                                                             </div>`;
                                                                         })
                                                                         .join('')}
@@ -1389,23 +1495,30 @@ ${BgWidget.card(
                                                                                 gvc,
                                                                                 (gvc) => {
                                                                                     let label = '';
-                                                                                    return `<div class="p-2">${EditorElem.editeInput({
-                                                                                        gvc: gvc,
-                                                                                        title: '標籤名稱',
-                                                                                        default: label,
-                                                                                        placeHolder: '請輸入標籤名稱',
-                                                                                        callback: (text) => {
-                                                                                            label = text;
-                                                                                        },
-                                                                                    })}</div>
-<div class="w-100 border-top p-2 d-flex align-items-center justify-content-end">
-<button class="btn btn-primary" style="height:35px;width:80px;" onclick="${gvc.event(() => {
-                                                                                        postMD.tag.push(label);
-                                                                                        refreshTag();
-                                                                                        gvc.closeDialog();
-                                                                                    })}">確認新增</button>
-</div>
-`;
+                                                                                    return html`<div class="p-2">
+                                                                                            ${EditorElem.editeInput({
+                                                                                                gvc: gvc,
+                                                                                                title: '標籤名稱',
+                                                                                                default: label,
+                                                                                                placeHolder: '請輸入標籤名稱',
+                                                                                                callback: (text) => {
+                                                                                                    label = text;
+                                                                                                },
+                                                                                            })}
+                                                                                        </div>
+                                                                                        <div class="w-100 border-top p-2 d-flex align-items-center justify-content-end">
+                                                                                            <button
+                                                                                                class="btn btn-primary"
+                                                                                                style="height:35px;width:80px;"
+                                                                                                onclick="${gvc.event(() => {
+                                                                                                    postMD.tag.push(label);
+                                                                                                    refreshTag();
+                                                                                                    gvc.closeDialog();
+                                                                                                })}"
+                                                                                            >
+                                                                                                確認新增
+                                                                                            </button>
+                                                                                        </div> `;
                                                                                 },
                                                                                 () => {},
                                                                                 400,
@@ -1441,11 +1554,7 @@ ${BgWidget.card(
                                                                     return (
                                                                         EditorElem.h3(html` <div class="d-flex align-items-center" style="gap:10px;">
                                                                             模板圖片 [ 首張圖片為預覽圖 ]
-                                                                            <div
-                                                                                class="d-flex align-items-center justify-content-center rounded-3"
-                                                                                style="height: 30px;width: 80px;
-"
-                                                                            >
+                                                                            <div class="d-flex align-items-center justify-content-center rounded-3" style="height: 30px;width: 80px;">
                                                                                 <button
                                                                                     class="btn ms-2 btn-primary-c ms-2"
                                                                                     style="height: 30px;width: 80px;"
@@ -1478,12 +1587,18 @@ ${BgWidget.card(
                                                 `,
                                             ].join('<div class="my-2"></div>')
                                         ),
-                                        `<div class=" align-items-center justify-content-end ${postMD.status === 'finish' ? `d-flex` : `d-none`}">
- <div class="btn btn-danger" style="height:35px;" onclick="${gvc.event(() => {
-     postMD.post_to = 'cancel';
-     save();
- })}"><i class="fa-regular fa-trash-can me-2"></i> 取消發佈</div>
-</div>`,
+                                        html`<div class=" align-items-center justify-content-end ${postMD.status === 'finish' ? `d-flex` : `d-none`}">
+                                            <div
+                                                class="btn btn-danger"
+                                                style="height:35px;"
+                                                onclick="${gvc.event(() => {
+                                                    postMD.post_to = 'cancel';
+                                                    save();
+                                                })}"
+                                            >
+                                                <i class="fa-regular fa-trash-can me-2"></i> 取消發佈
+                                            </div>
+                                        </div>`,
                                     ].join(`<div class="my-3"></div>`)}
                                 </div>`);
                             });
@@ -1615,15 +1730,12 @@ ${BgWidget.card(
                         })();
                     })()}
                     <div class="flex-fill"></div>
-                    <button
-                        class="btn btn-primary-c"
-                        style="height:38px;font-size: 14px;"
-                        onclick="${gvc.event(() => {
+                    ${BgWidget.darkButton(
+                        editorData ? `再次送審` : `確認送審`,
+                        gvc.event(() => {
                             save();
-                        })}"
-                    >
-                        ${editorData ? `再次送審` : `確認送審`}
-                    </button>
+                        })
+                    )}
                 </div>
                 ${gvc.bindView(() => {
                     const id = gvc.glitter.getUUID();
@@ -1759,46 +1871,57 @@ ${BgWidget.card(
                                         BgWidget.card(
                                             [
                                                 html` <div class="border-bottom pb-2">${BgWidget.title('商店資訊')}</div> `,
-                                                `<div class="row">${(() => {
-                                                    return ['title', 'sub_title', 'keywords', 'support_url', 'version', 'copy_right', 'market_url', 'privacy', 'promote_string', 'description']
-                                                        .map((dd) => {
-                                                            const key:
-                                                                | 'promote_string'
-                                                                | 'privacy'
-                                                                | 'description'
-                                                                | 'keywords'
-                                                                | 'support_url'
-                                                                | 'version'
-                                                                | 'copy_right'
-                                                                | 'market_url'
-                                                                | 'title'
-                                                                | 'sub_title' = dd as any;
-                                                            const title = (() => {
-                                                                switch (key) {
-                                                                    case 'copy_right':
-                                                                        return '版權';
-                                                                    case 'description':
-                                                                        return '描述';
-                                                                    case 'keywords':
-                                                                        return '關鍵字';
-                                                                    case 'market_url':
-                                                                        return '行銷 URL';
-                                                                    case 'promote_string':
-                                                                        return '行銷宣傳文字';
-                                                                    case 'support_url':
-                                                                        return '支援 URL';
-                                                                    case 'version':
-                                                                        return '版本';
-                                                                    case 'privacy':
-                                                                        return '隱私權政策網址';
-                                                                    case 'sub_title':
-                                                                        return '副標題';
-                                                                    case 'title':
-                                                                        return '商店名稱';
+                                                html`<div class="row">
+                                                    ${(() => {
+                                                        return ['title', 'sub_title', 'keywords', 'support_url', 'version', 'copy_right', 'market_url', 'privacy', 'promote_string', 'description']
+                                                            .map((dd) => {
+                                                                const key:
+                                                                    | 'promote_string'
+                                                                    | 'privacy'
+                                                                    | 'description'
+                                                                    | 'keywords'
+                                                                    | 'support_url'
+                                                                    | 'version'
+                                                                    | 'copy_right'
+                                                                    | 'market_url'
+                                                                    | 'title'
+                                                                    | 'sub_title' = dd as any;
+                                                                const title = (() => {
+                                                                    switch (key) {
+                                                                        case 'copy_right':
+                                                                            return '版權';
+                                                                        case 'description':
+                                                                            return '描述';
+                                                                        case 'keywords':
+                                                                            return '關鍵字';
+                                                                        case 'market_url':
+                                                                            return '行銷 URL';
+                                                                        case 'promote_string':
+                                                                            return '行銷宣傳文字';
+                                                                        case 'support_url':
+                                                                            return '支援 URL';
+                                                                        case 'version':
+                                                                            return '版本';
+                                                                        case 'privacy':
+                                                                            return '隱私權政策網址';
+                                                                        case 'sub_title':
+                                                                            return '副標題';
+                                                                        case 'title':
+                                                                            return '商店名稱';
+                                                                    }
+                                                                })();
+                                                                if (['promote_string', 'description'].indexOf(dd) !== -1) {
+                                                                    return `<div class="col-12">${EditorElem.editeText({
+                                                                        gvc: gvc,
+                                                                        title: title,
+                                                                        placeHolder: `請輸入${title}`,
+                                                                        default: postMD.market_info[key],
+                                                                        callback: (text) => {
+                                                                            postMD.market_info[key] = text;
+                                                                        },
+                                                                    })}</div>`;
                                                                 }
-                                                            })();
-                                                            if (['promote_string', 'description'].indexOf(dd) !== -1) {
-                                                                return `<div class="col-12">${EditorElem.editeText({
+                                                                return `<div class="col-6">${EditorElem.editeInput({
                                                                     gvc: gvc,
                                                                     title: title,
                                                                     placeHolder: `請輸入${title}`,
@@ -1807,19 +1930,10 @@ ${BgWidget.card(
                                                                         postMD.market_info[key] = text;
                                                                     },
                                                                 })}</div>`;
-                                                            }
-                                                            return `<div class="col-6">${EditorElem.editeInput({
-                                                                gvc: gvc,
-                                                                title: title,
-                                                                placeHolder: `請輸入${title}`,
-                                                                default: postMD.market_info[key],
-                                                                callback: (text) => {
-                                                                    postMD.market_info[key] = text;
-                                                                },
-                                                            })}</div>`;
-                                                        })
-                                                        .join('');
-                                                })()}</div>`,
+                                                            })
+                                                            .join('');
+                                                    })()}
+                                                </div>`,
                                             ].join('<div class="my-2"></div>')
                                         ),
                                     ].join(`<div class="my-3"></div>`)}
@@ -1847,10 +1961,9 @@ ${BgWidget.card(
                 <div class="d-flex w-100 align-items-center mb-3 ">
                     ${BgWidget.title(`購物觸發事件`)}
                     <div class="flex-fill"></div>
-                    <button
-                        class="btn btn-primary-c"
-                        style="height:38px;font-size: 14px;"
-                        onclick="${gvc.event(() => {
+                    ${BgWidget.darkButton(
+                        '儲存事件設定',
+                        gvc.event(() => {
                             const dialog = new ShareDialog(gvc.glitter);
                             dialog.dataLoading({ text: '設定中', visible: true });
                             saasConfig.api.setPrivateConfig((window.parent as any).appName, `glitter_finance_webhook`, keyData).then((r: { response: any; result: boolean }) => {
@@ -1861,10 +1974,8 @@ ${BgWidget.card(
                                     dialog.errorMessage({ text: '設定失敗' });
                                 }
                             });
-                        })}"
-                    >
-                        儲存事件設定
-                    </button>
+                        })
+                    )}
                 </div>
                 <div class="w-100 alert alert-info p-2">
                     <div class="border-bottom pb-2 mb-2"><strong>當會員完成購物時，所需執行的額外事件。</strong></div>
@@ -1881,20 +1992,21 @@ ${BgWidget.card(
                                 if (data.response.result[0]) {
                                     keyData = data.response.result[0].value;
                                 }
-                                resolve(` <div style="width:900px;max-width:100%;"> ${BgWidget.card(
-                                    [
-                                        EditorElem.codeEditor({
-                                            gvc: gvc,
-                                            height: 600,
-                                            initial: keyData.value,
-                                            title: `區段代碼`,
-                                            callback: (text) => {
-                                                keyData.value = text;
-                                            },
-                                        }),
-                                    ].join('<div class="my-2"></div>')
-                                )}
-                </div>`);
+                                resolve(html` <div style="width:900px;max-width:100%;">
+                                    ${BgWidget.card(
+                                        [
+                                            EditorElem.codeEditor({
+                                                gvc: gvc,
+                                                height: 600,
+                                                initial: keyData.value,
+                                                title: `區段代碼`,
+                                                callback: (text) => {
+                                                    keyData.value = text;
+                                                },
+                                            }),
+                                        ].join('<div class="my-2"></div>')
+                                    )}
+                                </div>`);
                             });
                         },
                         divCreate: { class: `d-flex flex-column flex-column-reverse  flex-md-row`, style: `gap:10px;` },
@@ -1918,58 +2030,56 @@ ${BgWidget.card(
                 <div class="d-flex w-100 align-items-center mb-3 ">
                     ${BgWidget.title(`SEO設定事件`)}
                     <div class="flex-fill"></div>
-                    <button
-                        class="btn btn-primary-c"
-                        style="height:38px;font-size: 14px;"
-                        onclick="${gvc.event(() => {
-                const dialog = new ShareDialog(gvc.glitter);
-                dialog.dataLoading({ text: '設定中', visible: true });
-                saasConfig.api.setPrivateConfig((window.parent as any).appName, `seo_webhook`, keyData).then((r: { response: any; result: boolean }) => {
-                    dialog.dataLoading({ visible: false });
-                    if (r.response) {
-                        dialog.successMessage({ text: '設定成功' });
-                    } else {
-                        dialog.errorMessage({ text: '設定失敗' });
-                    }
-                });
-            })}"
-                    >
-                        儲存事件設定
-                    </button>
+                    ${BgWidget.darkButton(
+                        '儲存事件設定',
+                        gvc.event(() => {
+                            const dialog = new ShareDialog(gvc.glitter);
+                            dialog.dataLoading({ text: '設定中', visible: true });
+                            saasConfig.api.setPrivateConfig((window.parent as any).appName, `seo_webhook`, keyData).then((r: { response: any; result: boolean }) => {
+                                dialog.dataLoading({ visible: false });
+                                if (r.response) {
+                                    dialog.successMessage({ text: '設定成功' });
+                                } else {
+                                    dialog.errorMessage({ text: '設定失敗' });
+                                }
+                            });
+                        })
+                    )}
                 </div>
                 <div class="w-100 alert alert-info p-2">
                     <div class="border-bottom pb-2 mb-2"><strong>自訂義頁面SEO。</strong></div>
                 </div>
                 ${gvc.bindView(() => {
-                const id = gvc.glitter.getUUID();
-                return {
-                    bind: id,
-                    view: () => {
-                        return new Promise(async (resolve, reject) => {
-                            const data = await saasConfig.api.getPrivateConfig((window.parent as any).appName, `seo_webhook`);
-                            if (data.response.result[0]) {
-                                keyData = data.response.result[0].value;
-                            }
-                            resolve(` <div style="width:900px;max-width:100%;"> ${BgWidget.card(
-                                [
-                                    EditorElem.codeEditor({
-                                        gvc: gvc,
-                                        height: 600,
-                                        structStart:`((db,req)=>{`,
-                                        initial: keyData.value,
-                                        title: `區段代碼`,
-                                        callback: (text) => {
-                                            keyData.value = text;
-                                        },
-                                    }),
-                                ].join('<div class="my-2"></div>')
-                            )}
-                </div>`);
-                        });
-                    },
-                    divCreate: { class: `d-flex flex-column flex-column-reverse  flex-md-row`, style: `gap:10px;` },
-                };
-            })}
+                    const id = gvc.glitter.getUUID();
+                    return {
+                        bind: id,
+                        view: () => {
+                            return new Promise(async (resolve, reject) => {
+                                const data = await saasConfig.api.getPrivateConfig((window.parent as any).appName, `seo_webhook`);
+                                if (data.response.result[0]) {
+                                    keyData = data.response.result[0].value;
+                                }
+                                resolve(html` <div style="width:900px;max-width:100%;">
+                                    ${BgWidget.card(
+                                        [
+                                            EditorElem.codeEditor({
+                                                gvc: gvc,
+                                                height: 600,
+                                                structStart: `((db,req)=>{`,
+                                                initial: keyData.value,
+                                                title: `區段代碼`,
+                                                callback: (text) => {
+                                                    keyData.value = text;
+                                                },
+                                            }),
+                                        ].join('<div class="my-2"></div>')
+                                    )}
+                                </div>`);
+                            });
+                        },
+                        divCreate: { class: `d-flex flex-column flex-column-reverse  flex-md-row`, style: `gap:10px;` },
+                    };
+                })}
             `,
             900
         );
@@ -1988,58 +2098,56 @@ ${BgWidget.card(
                 <div class="d-flex w-100 align-items-center mb-3 ">
                     ${BgWidget.title(`SiteMap設定`)}
                     <div class="flex-fill"></div>
-                    <button
-                        class="btn btn-primary-c"
-                        style="height:38px;font-size: 14px;"
-                        onclick="${gvc.event(() => {
-                const dialog = new ShareDialog(gvc.glitter);
-                dialog.dataLoading({ text: '設定中', visible: true });
-                saasConfig.api.setPrivateConfig((window.parent as any).appName, `sitemap_webhook`, keyData).then((r: { response: any; result: boolean }) => {
-                    dialog.dataLoading({ visible: false });
-                    if (r.response) {
-                        dialog.successMessage({ text: '設定成功' });
-                    } else {
-                        dialog.errorMessage({ text: '設定失敗' });
-                    }
-                });
-            })}"
-                    >
-                        儲存事件設定
-                    </button>
+                    ${BgWidget.darkButton(
+                        '儲存事件設定',
+                        gvc.event(() => {
+                            const dialog = new ShareDialog(gvc.glitter);
+                            dialog.dataLoading({ text: '設定中', visible: true });
+                            saasConfig.api.setPrivateConfig((window.parent as any).appName, `sitemap_webhook`, keyData).then((r: { response: any; result: boolean }) => {
+                                dialog.dataLoading({ visible: false });
+                                if (r.response) {
+                                    dialog.successMessage({ text: '設定成功' });
+                                } else {
+                                    dialog.errorMessage({ text: '設定失敗' });
+                                }
+                            });
+                        })
+                    )}
                 </div>
                 <div class="w-100 alert alert-info p-2">
                     <div class="border-bottom pb-2 mb-2"><strong>自訂義SiteMap。</strong></div>
                 </div>
                 ${gvc.bindView(() => {
-                const id = gvc.glitter.getUUID();
-                return {
-                    bind: id,
-                    view: () => {
-                        return new Promise(async (resolve, reject) => {
-                            const data = await saasConfig.api.getPrivateConfig((window.parent as any).appName, `sitemap_webhook`);
-                            if (data.response.result[0]) {
-                                keyData = data.response.result[0].value;
-                            }
-                            resolve(` <div style="width:900px;max-width:100%;"> ${BgWidget.card(
-                                [
-                                    EditorElem.codeEditor({
-                                        gvc: gvc,
-                                        height: 600,
-                                        structStart:`((db,req)=>{`,
-                                        initial: keyData.value,
-                                        title: `區段代碼`,
-                                        callback: (text) => {
-                                            keyData.value = text;
-                                        },
-                                    }),
-                                ].join('<div class="my-2"></div>')
-                            )}
-                </div>`);
-                        });
-                    },
-                    divCreate: { class: `d-flex flex-column flex-column-reverse  flex-md-row`, style: `gap:10px;` },
-                };
-            })}
+                    const id = gvc.glitter.getUUID();
+                    return {
+                        bind: id,
+                        view: () => {
+                            return new Promise(async (resolve, reject) => {
+                                const data = await saasConfig.api.getPrivateConfig((window.parent as any).appName, `sitemap_webhook`);
+                                if (data.response.result[0]) {
+                                    keyData = data.response.result[0].value;
+                                }
+                                resolve(html` <div style="width:900px;max-width:100%;">
+                                    ${BgWidget.card(
+                                        [
+                                            EditorElem.codeEditor({
+                                                gvc: gvc,
+                                                height: 600,
+                                                structStart: `((db,req)=>{`,
+                                                initial: keyData.value,
+                                                title: `區段代碼`,
+                                                callback: (text) => {
+                                                    keyData.value = text;
+                                                },
+                                            }),
+                                        ].join('<div class="my-2"></div>')
+                                    )}
+                                </div>`);
+                            });
+                        },
+                        divCreate: { class: `d-flex flex-column flex-column-reverse  flex-md-row`, style: `gap:10px;` },
+                    };
+                })}
             `,
             900
         );
@@ -2091,20 +2199,21 @@ ${BgWidget.card(
                                 if (data.response.result[0]) {
                                     keyData = data.response.result[0].value;
                                 }
-                                resolve(` <div style="width:900px;max-width:100%;"> ${BgWidget.card(
-                                    [
-                                        EditorElem.codeEditor({
-                                            gvc: gvc,
-                                            height: 600,
-                                            initial: keyData.value,
-                                            title: `區段代碼`,
-                                            callback: (text) => {
-                                                keyData.value = text;
-                                            },
-                                        }),
-                                    ].join('<div class="my-2"></div>')
-                                )}
-                </div>`);
+                                resolve(html` <div style="width:900px;max-width:100%;">
+                                    ${BgWidget.card(
+                                        [
+                                            EditorElem.codeEditor({
+                                                gvc: gvc,
+                                                height: 600,
+                                                initial: keyData.value,
+                                                title: `區段代碼`,
+                                                callback: (text) => {
+                                                    keyData.value = text;
+                                                },
+                                            }),
+                                        ].join('<div class="my-2"></div>')
+                                    )}
+                                </div>`);
                             });
                         },
                         divCreate: { class: `d-flex flex-column flex-column-reverse  flex-md-row`, style: `gap:10px;` },

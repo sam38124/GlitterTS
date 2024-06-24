@@ -35,13 +35,10 @@ export class ShoppingRebate {
                 view: () => {
                     if (vm.type === 'list') {
                         return BgWidget.container(html `
-                            <div class="d-flex w-100 align-items-center mb-3 ">
-                                ${BgWidget.title('購物金紀錄')}
-                                <div class="flex-fill"></div>
-                                <button
-                                    class="btn hoverBtn me-2 px-3"
-                                    style="height:35px !important;font-size: 14px;color:black;border:1px solid black;"
-                                    onclick="${gvc.event(() => {
+                                <div class="d-flex w-100 align-items-center" style="margin-bottom: 24px;">
+                                    ${BgWidget.title('購物金紀錄')}
+                                    <div class="flex-fill"></div>
+                                    ${BgWidget.darkButton('新增紀錄', gvc.event(() => {
                             gvc.glitter.innerDialog((gvc2) => {
                                 const vm = {
                                     type: 'add',
@@ -50,18 +47,18 @@ export class ShoppingRebate {
                                     rebateEndDay: '0',
                                 };
                                 return html `<div class="modal-content bg-white rounded-3 p-2" style="max-width:90%;width:400px;">
-                                                <div>
-                                                    <div style="height: 50px; margin-bottom: 16px" class="d-flex align-items-center border-bottom">
-                                                        <span class="ps-2 tx_700">新增紀錄</span>
-                                                    </div>
-                                                    ${gvc.bindView(() => {
+                                                    <div>
+                                                        <div style="height: 50px; margin-bottom: 16px" class="d-flex align-items-center border-bottom">
+                                                            <span class="ps-2 tx_700">新增紀錄</span>
+                                                        </div>
+                                                        ${gvc.bindView(() => {
                                     const id = gvc.glitter.getUUID();
                                     return {
                                         bind: id,
                                         view: () => {
                                             return [
                                                 html `<div>
-                                                                        ${EditorElem.radio({
+                                                                            ${EditorElem.radio({
                                                     title: html `<h6 class="tx_700">類型</h6>`,
                                                     gvc: gvc,
                                                     def: vm.type,
@@ -74,10 +71,10 @@ export class ShoppingRebate {
                                                         gvc.notifyDataChange(id);
                                                     },
                                                 })}
-                                                                    </div>`,
+                                                                        </div>`,
                                                 html `<div class="row">
-                                                                        <div class="col-6">
-                                                                            ${EditorElem.editeInput({
+                                                                            <div class="col-6">
+                                                                                ${EditorElem.editeInput({
                                                     title: html `<h6 class="tx_700">金額</h6>`,
                                                     gvc: gvc,
                                                     default: vm.value,
@@ -88,9 +85,9 @@ export class ShoppingRebate {
                                                         gvc.notifyDataChange(id);
                                                     },
                                                 })}
-                                                                        </div>
-                                                                        <div class="col-6">
-                                                                            ${EditorElem.editeInput({
+                                                                            </div>
+                                                                            <div class="col-6">
+                                                                                ${EditorElem.editeInput({
                                                     title: html `<h6 class="tx_700">可使用天數</h6>`,
                                                     gvc: gvc,
                                                     default: vm.rebateEndDay,
@@ -103,11 +100,11 @@ export class ShoppingRebate {
                                                     unit: '天',
                                                     readonly: vm.type !== 'add',
                                                 })}
-                                                                            ${BgWidget.grayNote('輸入0，則為無期限', 'margin-top:6px; font-size: 14px;')}
-                                                                        </div>
-                                                                    </div>`,
+                                                                                ${BgWidget.grayNote('輸入0，則為無期限', 'margin-top:6px; font-size: 14px;')}
+                                                                            </div>
+                                                                        </div>`,
                                                 html `<div>
-                                                                        ${EditorElem.editeText({
+                                                                            ${EditorElem.editeText({
                                                     title: html `<h6 class="tx_700">備註</h6>`,
                                                     gvc: gvc,
                                                     default: vm.note,
@@ -117,7 +114,7 @@ export class ShoppingRebate {
                                                         gvc.notifyDataChange(id);
                                                     },
                                                 })}
-                                                                    </div>`,
+                                                                        </div>`,
                                             ].join(``);
                                         },
                                         divCreate: {
@@ -126,36 +123,36 @@ export class ShoppingRebate {
                                         },
                                     };
                                 })}
-                                                    <div class="modal-footer mb-0 pb-0 mt-2 pt-1">
-                                                        <button
-                                                            type="button"
-                                                            class="btn btn-outline-dark me-2"
-                                                            onclick="${gvc.event(() => {
+                                                        <div class="modal-footer mb-0 pb-0 mt-2 pt-1">
+                                                            <button
+                                                                type="button"
+                                                                class="btn btn-outline-dark me-2"
+                                                                onclick="${gvc.event(() => {
                                     gvc2.closeDialog();
                                 })}"
-                                                        >
-                                                            取消
-                                                        </button>
-                                                        <button
-                                                            type="button"
-                                                            class="btn btn-primary-c"
-                                                            onclick="${gvc.event(() => {
+                                                            >
+                                                                取消
+                                                            </button>
+                                                            <button
+                                                                type="button"
+                                                                class="btn btn-primary-c"
+                                                                onclick="${gvc.event(() => {
                                     gvc.glitter.innerDialog((gvc) => {
                                         let dataList = [];
                                         return html `
-                                                                        <div>
-                                                                            ${BgWidget.container(BgWidget.card([
+                                                                            <div>
+                                                                                ${BgWidget.container(BgWidget.card([
                                             html `
-                                                                                            <div class="d-flex w-100 align-items-center mb-3 ">
-                                                                                                ${BgWidget.goBack(gvc.event(() => {
+                                                                                                <div class="d-flex w-100 align-items-center mb-3 ">
+                                                                                                    ${BgWidget.goBack(gvc.event(() => {
                                                 gvc.closeDialog();
                                             }))}
-                                                                                                ${BgWidget.title(`選擇變動對象`)}
-                                                                                                <div class="flex-fill"></div>
-                                                                                                <button
-                                                                                                    class="btn btn-primary-c"
-                                                                                                    style="height:38px;font-size: 14px;"
-                                                                                                    onclick="${gvc.event(() => {
+                                                                                                    ${BgWidget.title(`選擇變動對象`)}
+                                                                                                    <div class="flex-fill"></div>
+                                                                                                    <button
+                                                                                                        class="btn btn-primary-c"
+                                                                                                        style="height:38px;font-size: 14px;"
+                                                                                                        onclick="${gvc.event(() => {
                                                 const dialog = new ShareDialog(gvc.glitter);
                                                 if (dataList.length > 0) {
                                                     dialog.dataLoading({
@@ -195,38 +192,34 @@ export class ShoppingRebate {
                                                     dialog.errorMessage({ text: '請選擇變動對象!' });
                                                 }
                                             })}"
-                                                                                                >
-                                                                                                    確認並發送
-                                                                                                </button>
-                                                                                            </div>
-                                                                                        ` +
+                                                                                                    >
+                                                                                                        確認並發送
+                                                                                                    </button>
+                                                                                                </div>
+                                                                                            ` +
                                                 html `<div class="mx-n2">
-                                                                                                ${UserList.userManager(gvc, 'select', (data) => {
+                                                                                                    ${UserList.userManager(gvc, 'select', (data) => {
                                                     dataList = data;
                                                 })}
-                                                                                                <div></div>
-                                                                                            </div>`,
+                                                                                                    <div></div>
+                                                                                                </div>`,
                                         ].join('')), 900)}
-                                                                            <div></div>
-                                                                        </div>
-                                                                    `;
+                                                                                <div></div>
+                                                                            </div>
+                                                                        `;
                                     }, 'email');
                                 })}"
-                                                        >
-                                                            選擇用戶
-                                                            <i class="fa-solid fa-arrow-right ms-2"></i>
-                                                        </button>
+                                                            >
+                                                                選擇用戶
+                                                                <i class="fa-solid fa-arrow-right ms-2"></i>
+                                                            </button>
+                                                        </div>
                                                     </div>
-                                                </div>
-                                            </div>`;
+                                                </div>`;
                             }, 'add');
-                        })}"
-                                >
-                                    <i class="fa-regular fa-circle-plus me-2"></i>
-                                    新增紀錄
-                                </button>
-                            </div>
-                            ${BgWidget.table({
+                        }))}
+                                </div>
+                                ${BgWidget.mainCard(BgWidget.tableV2({
                             gvc: gvc,
                             getData: (vmi) => {
                                 const limit = 15;
@@ -318,11 +311,11 @@ export class ShoppingRebate {
                                 vm.type = 'replace';
                             },
                             filter: html `
-                                    ${BgWidget.searchPlace(gvc.event((e, event) => {
+                                            ${BgWidget.searchPlace(gvc.event((e, event) => {
                                 vm.query = e.value;
                                 gvc.notifyDataChange(id);
                             }), vm.query || '', '搜尋顧客信箱、姓名')}
-                                    ${gvc.bindView(() => {
+                                            ${gvc.bindView(() => {
                                 return {
                                     bind: filterID,
                                     view: () => {
@@ -333,9 +326,7 @@ export class ShoppingRebate {
                                             return ``;
                                         }
                                         else {
-                                            return [
-                                                html `<span class="fs-7 fw-bold">操作選項</span>`,
-                                            ].join(``);
+                                            return html `<span class="fs-7 fw-bold">操作選項</span>`;
                                         }
                                     },
                                     divCreate: () => {
@@ -351,9 +342,9 @@ export class ShoppingRebate {
                                     },
                                 };
                             })}
-                                `,
-                        })}
-                        `);
+                                        `,
+                        }))}
+                            `, BgWidget.getContainerWidth());
                     }
                     else if (vm.type == 'replace') {
                         return UserList.userInformationDetail({

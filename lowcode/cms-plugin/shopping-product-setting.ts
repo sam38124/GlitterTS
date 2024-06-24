@@ -9,220 +9,227 @@ export class ShoppingProductSetting {
     public static main(gvc: GVC) {
         const html = String.raw;
         const glitter = gvc.glitter;
-        const vm: { status: 'list' | 'add' | 'replace'; dataList: any; query: string } = {
+        const vm: {
+            id: string;
+            status: 'list' | 'add' | 'replace';
+            dataList: any;
+            query: string;
+        } = {
+            id: glitter.getUUID(),
             status: 'list',
             dataList: undefined,
             query: '',
         };
         let replaceData: any = '';
         return gvc.bindView(() => {
-            const id = glitter.getUUID();
             return {
                 dataList: [{ obj: vm, key: 'status' }],
-                bind: id,
+                bind: vm.id,
                 view: () => {
                     switch (vm.status) {
                         case 'add':
                             return ShoppingProductSetting.editProduct({ vm: vm, gvc: gvc, type: 'add' });
                         case 'list':
                             const filterID = gvc.glitter.getUUID();
-                            return BgWidget.container(html`
-                                <div class="d-flex w-100 align-items-center mb-3">
-                                    ${BgWidget.title('商品管理')}
-                                    <div class="flex-fill"></div>
-                                    <button
-                                        class="btn btn-primary-c"
-                                        style="height:45px;font-size: 14px;"
-                                        onclick="${gvc.event(() => {
-                                            vm.status = 'add';
-                                        })}"
-                                    >
-                                        新增商品
-                                    </button>
-                                </div>
-                                ${BgWidget.table({
-                                    gvc: gvc,
-                                    getData: (vmi) => {
-                                        ApiShop.getProduct({
-                                            page: vmi.page - 1,
-                                            limit: 50,
-                                            search: vm.query || undefined,
-                                        }).then((data) => {
-                                            vmi.pageSize = Math.ceil(data.response.total / 50);
-                                            vm.dataList = data.response.data;
-
-                                            function getDatalist() {
-                                                return data.response.data.map((dd: any) => {
-                                                    return [
-                                                        {
-                                                            key: EditorElem.checkBoxOnly({
-                                                                gvc: gvc,
-                                                                def: !data.response.data.find((dd: any) => {
-                                                                    return !dd.checked;
-                                                                }),
-                                                                callback: (result) => {
-                                                                    data.response.data.map((dd: any) => {
-                                                                        dd.checked = result;
-                                                                    });
-                                                                    vmi.data = getDatalist();
-                                                                    vmi.callback();
-                                                                    gvc.notifyDataChange(filterID);
-                                                                },
-                                                            }),
-                                                            value: EditorElem.checkBoxOnly({
-                                                                gvc: gvc,
-                                                                def: dd.checked,
-                                                                callback: (result) => {
-                                                                    dd.checked = result;
-                                                                    vmi.data = getDatalist();
-                                                                    vmi.callback();
-                                                                    gvc.notifyDataChange(filterID);
-                                                                },
-                                                                style: 'height:40px;',
-                                                            }),
-                                                        },
-                                                        {
-                                                            key: '商品',
-                                                            value:
-                                                                html`<img
-                                                                    class="rounded border me-4 "
-                                                                    alt=""
-                                                                    src="${dd.content.preview_image[0] || 'https://jmva.or.jp/wp-content/uploads/2018/07/noimage.png'}"
-                                                                    style="width:40px;height:40px;"
-                                                                />` + dd.content.title,
-                                                        },
-                                                        {
-                                                            key: '狀態',
-                                                            value:
-                                                                dd.content.status === 'active'
-                                                                    ? `<div class="badge badge-success fs-7">啟用中</div>`
-                                                                    : `<div class="badge bg-secondary fs-7">草稿</div>`,
-                                                        },
-                                                        {
-                                                            key: '售價',
-                                                            value: Math.min(
-                                                                ...dd.content.variants.map((dd: any) => {
-                                                                    return dd.sale_price;
-                                                                })
-                                                            ),
-                                                        },
-                                                        {
-                                                            key: '庫存',
-                                                            value: Math.min(
-                                                                ...dd.content.variants.map((dd: any) => {
-                                                                    return dd.stock;
-                                                                })
-                                                            ),
-                                                        },
-                                                        {
-                                                            key: '類別',
-                                                            value: html`<div class="d-flex align-items-center " style="height:40px;">
-                                                                ${dd.content.collection
-                                                                    .map((dd: any) => {
-                                                                        return `<div class="badge bg-secondary fs-7">${dd}</div>`;
-                                                                    })
-                                                                    .join(`<div class="mx-1"></div>`)}
-                                                            </div>`,
-                                                        },
-                                                    ].map((dd) => {
-                                                        dd.value = `<div style="line-height:40px;">${dd.value}</div>`;
-                                                        return dd;
-                                                    });
-                                                });
-                                            }
-
-                                            vmi.data = getDatalist();
-                                            vmi.loading = false;
-                                            vmi.callback();
-                                        });
-                                    },
-                                    rowClick: (data, index) => {
-                                        replaceData = vm.dataList[index].content;
-                                        vm.status = 'replace';
-                                    },
-                                    filter: html`
-                                        ${BgWidget.searchPlace(
-                                            gvc.event((e, event) => {
-                                                vm.query = e.value;
-                                                gvc.notifyDataChange(id);
-                                            }),
-                                            vm.query,
-                                            '搜尋所有商品'
+                            return BgWidget.container(
+                                html`
+                                    <div class="d-flex w-100 align-items-center" style="margin-bottom: 24px;">
+                                        ${BgWidget.title('商品管理')}
+                                        <div class="flex-fill"></div>
+                                        ${BgWidget.darkButton(
+                                            '新增商品',
+                                            gvc.event(() => {
+                                                vm.status = 'add';
+                                            })
                                         )}
-                                        ${gvc.bindView(() => {
-                                            return {
-                                                bind: filterID,
-                                                view: () => {
-                                                    if (
-                                                        !vm.dataList ||
-                                                        !vm.dataList.find((dd: any) => {
-                                                            return dd.checked;
-                                                        })
-                                                    ) {
-                                                        return ``;
-                                                    } else {
-                                                        return [
-                                                            html`<span class="fs-7 fw-bold">操作選項</span>`,
-                                                            html`<button
-                                                                class="btn btn-danger fs-7 px-2"
-                                                                style="height:30px;border:none;"
-                                                                onclick="${gvc.event(() => {
-                                                                    const dialog = new ShareDialog(gvc.glitter);
-                                                                    dialog.checkYesOrNot({
-                                                                        text: '是否確認移除所選項目?',
-                                                                        callback: (response) => {
-                                                                            if (response) {
-                                                                                dialog.dataLoading({ visible: true });
-                                                                                ApiShop.delete({
-                                                                                    id: vm.dataList
-                                                                                        .filter((dd: any) => {
-                                                                                            return dd.checked;
-                                                                                        })
-                                                                                        .map((dd: any) => {
-                                                                                            return dd.id;
-                                                                                        })
-                                                                                        .join(`,`),
-                                                                                }).then((res) => {
-                                                                                    dialog.dataLoading({
-                                                                                        visible: false,
-                                                                                    });
-                                                                                    if (res.result) {
-                                                                                        vm.dataList = undefined;
-                                                                                        gvc.notifyDataChange(id);
-                                                                                    } else {
-                                                                                        dialog.errorMessage({
-                                                                                            text: '刪除失敗',
+                                    </div>
+                                    ${BgWidget.mainCard(
+                                        BgWidget.tableV2({
+                                            gvc: gvc,
+                                            getData: (vmi) => {
+                                                ApiShop.getProduct({
+                                                    page: vmi.page - 1,
+                                                    limit: 50,
+                                                    search: vm.query || undefined,
+                                                }).then((data) => {
+                                                    vmi.pageSize = Math.ceil(data.response.total / 50);
+                                                    vm.dataList = data.response.data;
+
+                                                    function getDatalist() {
+                                                        return data.response.data.map((dd: any) => {
+                                                            return [
+                                                                {
+                                                                    key: EditorElem.checkBoxOnly({
+                                                                        gvc: gvc,
+                                                                        def: !data.response.data.find((dd: any) => {
+                                                                            return !dd.checked;
+                                                                        }),
+                                                                        callback: (result) => {
+                                                                            data.response.data.map((dd: any) => {
+                                                                                dd.checked = result;
+                                                                            });
+                                                                            vmi.data = getDatalist();
+                                                                            vmi.callback();
+                                                                            gvc.notifyDataChange(filterID);
+                                                                        },
+                                                                    }),
+                                                                    value: EditorElem.checkBoxOnly({
+                                                                        gvc: gvc,
+                                                                        def: dd.checked,
+                                                                        callback: (result) => {
+                                                                            dd.checked = result;
+                                                                            vmi.data = getDatalist();
+                                                                            vmi.callback();
+                                                                            gvc.notifyDataChange(filterID);
+                                                                        },
+                                                                        style: 'height:40px;',
+                                                                    }),
+                                                                },
+                                                                {
+                                                                    key: '商品',
+                                                                    value:
+                                                                        html`<img
+                                                                            class="rounded border me-4 "
+                                                                            alt=""
+                                                                            src="${dd.content.preview_image[0] || 'https://jmva.or.jp/wp-content/uploads/2018/07/noimage.png'}"
+                                                                            style="width:40px;height:40px;"
+                                                                        />` + dd.content.title,
+                                                                },
+                                                                {
+                                                                    key: '狀態',
+                                                                    value:
+                                                                        dd.content.status === 'active'
+                                                                            ? `<div class="badge badge-success fs-7">啟用中</div>`
+                                                                            : `<div class="badge bg-secondary fs-7">草稿</div>`,
+                                                                },
+                                                                {
+                                                                    key: '售價',
+                                                                    value: Math.min(
+                                                                        ...dd.content.variants.map((dd: any) => {
+                                                                            return dd.sale_price;
+                                                                        })
+                                                                    ),
+                                                                },
+                                                                {
+                                                                    key: '庫存',
+                                                                    value: Math.min(
+                                                                        ...dd.content.variants.map((dd: any) => {
+                                                                            return dd.stock;
+                                                                        })
+                                                                    ),
+                                                                },
+                                                                {
+                                                                    key: '類別',
+                                                                    value: html`<div class="d-flex align-items-center " style="height:40px;">
+                                                                        ${dd.content.collection
+                                                                            .map((dd: any) => {
+                                                                                return `<div class="badge bg-secondary fs-7">${dd}</div>`;
+                                                                            })
+                                                                            .join(`<div class="mx-1"></div>`)}
+                                                                    </div>`,
+                                                                },
+                                                            ].map((dd) => {
+                                                                dd.value = `<div style="line-height:40px;">${dd.value}</div>`;
+                                                                return dd;
+                                                            });
+                                                        });
+                                                    }
+
+                                                    vmi.data = getDatalist();
+                                                    vmi.loading = false;
+                                                    vmi.callback();
+                                                });
+                                            },
+                                            rowClick: (data, index) => {
+                                                replaceData = vm.dataList[index].content;
+                                                vm.status = 'replace';
+                                            },
+                                            filter: html`
+                                                ${BgWidget.searchPlace(
+                                                    gvc.event((e, event) => {
+                                                        vm.query = e.value;
+                                                        gvc.notifyDataChange(vm.id);
+                                                    }),
+                                                    vm.query,
+                                                    '搜尋所有商品'
+                                                )}
+                                                ${gvc.bindView(() => {
+                                                    return {
+                                                        bind: filterID,
+                                                        view: () => {
+                                                            if (
+                                                                !vm.dataList ||
+                                                                !vm.dataList.find((dd: any) => {
+                                                                    return dd.checked;
+                                                                })
+                                                            ) {
+                                                                return ``;
+                                                            } else {
+                                                                return [
+                                                                    html`<span class="fs-7 fw-bold">操作選項</span>`,
+                                                                    html`<button
+                                                                        class="btn btn-danger fs-7 px-2"
+                                                                        style="height:30px;border:none;"
+                                                                        onclick="${gvc.event(() => {
+                                                                            const dialog = new ShareDialog(gvc.glitter);
+                                                                            dialog.checkYesOrNot({
+                                                                                text: '是否確認移除所選項目?',
+                                                                                callback: (response) => {
+                                                                                    if (response) {
+                                                                                        dialog.dataLoading({ visible: true });
+                                                                                        ApiShop.delete({
+                                                                                            id: vm.dataList
+                                                                                                .filter((dd: any) => {
+                                                                                                    return dd.checked;
+                                                                                                })
+                                                                                                .map((dd: any) => {
+                                                                                                    return dd.id;
+                                                                                                })
+                                                                                                .join(`,`),
+                                                                                        }).then((res) => {
+                                                                                            dialog.dataLoading({
+                                                                                                visible: false,
+                                                                                            });
+                                                                                            if (res.result) {
+                                                                                                vm.dataList = undefined;
+                                                                                                gvc.notifyDataChange(vm.id);
+                                                                                            } else {
+                                                                                                dialog.errorMessage({
+                                                                                                    text: '刪除失敗',
+                                                                                                });
+                                                                                            }
                                                                                         });
                                                                                     }
-                                                                                });
-                                                                            }
-                                                                        },
-                                                                    });
-                                                                })}"
-                                                            >
-                                                                批量移除
-                                                            </button>`,
-                                                        ].join(``);
-                                                    }
-                                                },
-                                                divCreate: () => {
-                                                    return {
-                                                        class: `d-flex align-items-center p-2 py-3 ${
-                                                            !vm.dataList ||
-                                                            !vm.dataList.find((dd: any) => {
-                                                                return dd.checked;
-                                                            })
-                                                                ? `d-none`
-                                                                : ``
-                                                        }`,
-                                                        style: `height:40px; gap:10px;`,
+                                                                                },
+                                                                            });
+                                                                        })}"
+                                                                    >
+                                                                        批量移除
+                                                                    </button>`,
+                                                                ].join(``);
+                                                            }
+                                                        },
+                                                        divCreate: () => {
+                                                            return {
+                                                                class: `d-flex align-items-center p-2 py-3 ${
+                                                                    !vm.dataList ||
+                                                                    !vm.dataList.find((dd: any) => {
+                                                                        return dd.checked;
+                                                                    })
+                                                                        ? `d-none`
+                                                                        : ``
+                                                                }`,
+                                                                style: `height:40px; gap:10px;`,
+                                                            };
+                                                        },
                                                     };
-                                                },
-                                            };
-                                        })}
-                                    `,
-                                })}
-                            `);
+                                                })}
+                                            `,
+                                        })
+                                    )}
+                                `,
+                                BgWidget.getContainerWidth()
+                            );
                         case 'replace':
                             return ShoppingProductSetting.editProduct({
                                 vm: vm,

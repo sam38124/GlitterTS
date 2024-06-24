@@ -1,30 +1,29 @@
-import { BgWidget } from "./bg-widget.js";
-import { ApiUser } from "../glitter-base/route/user.js";
-import { EditorElem } from "../glitterBundle/plugins/editor-elem.js";
-import { ShareDialog } from "../dialog/ShareDialog.js";
-import { ApiPost } from "../glitter-base/route/post.js";
-import { ApiSmtp } from "../glitter-base/route/smtp.js";
-import { ApiFcm } from "../glitter-base/route/fcm.js";
-import { FormWidget } from "../official_view_component/official/form.js";
-import { Chat } from "../glitter-base/route/chat.js";
+import { BgWidget } from './bg-widget.js';
+import { ApiUser } from '../glitter-base/route/user.js';
+import { EditorElem } from '../glitterBundle/plugins/editor-elem.js';
+import { ShareDialog } from '../dialog/ShareDialog.js';
+import { ApiPost } from '../glitter-base/route/post.js';
+import { ApiSmtp } from '../glitter-base/route/smtp.js';
+import { ApiFcm } from '../glitter-base/route/fcm.js';
+import { FormWidget } from '../official_view_component/official/form.js';
+import { Chat } from '../glitter-base/route/chat.js';
 const html = String.raw;
 export class BgNotify {
-    static email(gvc, type = 'list', callback = () => {
-    }) {
+    static email(gvc, type = 'list', callback = () => { }) {
         const vm = {
-            type: "list",
+            type: 'list',
             data: {
-                "id": 61,
-                "userID": 549313940,
-                "account": "jianzhi.wang@homee.ai",
-                "userData": { "name": "王建智", "email": "jianzhi.wang@homee.ai", "phone": "0978028739" },
-                "created_time": "2023-11-26T02:14:09.000Z",
-                "role": 0,
-                "company": null,
-                "status": 1
+                id: 61,
+                userID: 549313940,
+                account: 'jianzhi.wang@homee.ai',
+                userData: { name: '王建智', email: 'jianzhi.wang@homee.ai', phone: '0978028739' },
+                created_time: '2023-11-26T02:14:09.000Z',
+                role: 0,
+                company: null,
+                status: 1,
             },
             dataList: undefined,
-            query: ''
+            query: '',
         };
         const glitter = gvc.glitter;
         const filterID = glitter.getUUID();
@@ -42,24 +41,24 @@ export class BgNotify {
                                 {
                                     key: (() => {
                                         clearInterval(interval);
-                                        if ((!vm.dataList.find((dd) => {
+                                        if (!vm.dataList.find((dd) => {
                                             return !dd.checked;
-                                        }))) {
+                                        })) {
                                             interval = setTimeout(() => {
                                                 ApiUser.getSubScribe({
                                                     page: vmi.page - 1,
                                                     limit: 100000,
-                                                    search: vm.query || undefined
+                                                    search: vm.query || undefined,
                                                 }).then((data) => {
-                                                    callback((data.response.data));
+                                                    callback(data.response.data);
                                                 });
                                             }, 10);
                                         }
                                         return EditorElem.checkBoxOnly({
                                             gvc: gvc,
-                                            def: (!vm.dataList.find((dd) => {
+                                            def: !vm.dataList.find((dd) => {
                                                 return !dd.checked;
-                                            })),
+                                            }),
                                             callback: (result) => {
                                                 vm.dataList.map((dd) => {
                                                     dd.checked = result;
@@ -70,7 +69,7 @@ export class BgNotify {
                                                 callback(vm.dataList.filter((dd) => {
                                                     return dd.checked;
                                                 }));
-                                            }
+                                            },
                                         });
                                     })(),
                                     value: EditorElem.checkBoxOnly({
@@ -85,83 +84,102 @@ export class BgNotify {
                                                 return dd.checked;
                                             }));
                                         },
-                                        style: "height:25px;"
-                                    })
+                                        style: 'height:25px;',
+                                    }),
                                 },
                                 {
                                     key: '註冊信箱',
-                                    value: `<span class="fs-7">${dd.email}</span>`
+                                    value: `<span class="fs-7">${dd.email}</span>`,
                                 },
                                 {
                                     key: '訂閱標籤',
-                                    value: `<span class="fs-7">${dd.tag}</span>`
-                                }
+                                    value: `<span class="fs-7">${dd.tag}</span>`,
+                                },
                             ];
                         });
                     }
                     return BgWidget.container(html `
-                        <div class="d-flex w-100 align-items-center mb-3 ${(type === 'select') ? `d-none` : ``}">
-                            ${BgWidget.title('已註冊信箱')}
-                            <div class="flex-fill"></div>
-                            <button class="btn hoverBtn me-2 px-3"
-                                    style="height:35px !important;font-size: 14px;color:black;border:1px solid black;"
-                                    onclick="${gvc.event(() => {
+                            <div class="d-flex w-100 align-items-center ${type === 'select' ? `d-none` : ``}" style="margin-bottom: 24px;">
+                                ${BgWidget.title('已註冊信箱')}
+                                <div class="flex-fill"></div>
+                                ${BgWidget.darkButton('新增推播信箱', gvc.event(() => {
                         gvc.glitter.innerDialog((gvc2) => {
                             let mail = '';
                             let tag = '';
-                            return `<div class="modal-content bg-white rounded-3 p-2" style="max-width:90%;width:400px;">
-                                <div class="">
-                                    <div class="ps-1 pe-1">
-                                        <div class="mb-3">
-                                            <label for="username" class="form-label">信箱</label>
-                                            <input class="form-control" type="text" id="userName" required="" placeholder="請輸入推播信箱" onchange="${gvc.event((e, event) => {
+                            return html `<div class="modal-content bg-white rounded-3 p-2" style="max-width:90%;width:400px;">
+                                                <div class="">
+                                                    <div class="ps-1 pe-1">
+                                                        <div class="mb-3">
+                                                            <label for="username" class="form-label">信箱</label>
+                                                            <input
+                                                                class="form-control"
+                                                                type="text"
+                                                                id="userName"
+                                                                required=""
+                                                                placeholder="請輸入推播信箱"
+                                                                onchange="${gvc.event((e, event) => {
                                 mail = e.value;
-                            })}">
-                                        </div>
-                                          <div class="mb-3">
-                                            <label for="username" class="form-label">標籤</label>
-                                            <input class="form-control" type="text" id="userName" required="" placeholder="請輸入註冊標籤" onchange="${gvc.event((e, event) => {
+                            })}"
+                                                            />
+                                                        </div>
+                                                        <div class="mb-3">
+                                                            <label for="username" class="form-label">標籤</label>
+                                                            <input
+                                                                class="form-control"
+                                                                type="text"
+                                                                id="userName"
+                                                                required=""
+                                                                placeholder="請輸入註冊標籤"
+                                                                onchange="${gvc.event((e, event) => {
                                 tag = e.value;
-                            })}">
-                                        </div>
-                                    </div>
-                                    <div class="modal-footer mb-0 pb-0">
-                                        <button type="button" class="btn btn-outline-dark me-2" onclick="${gvc.event(() => {
+                            })}"
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                    <div class="modal-footer mb-0 pb-0">
+                                                        <button
+                                                            type="button"
+                                                            class="btn btn-outline-dark me-2"
+                                                            onclick="${gvc.event(() => {
                                 gvc2.closeDialog();
-                            })}">取消
-                                        </button>
-                                        <button type="button" class="btn btn-primary-c" onclick="${gvc.event(() => {
+                            })}"
+                                                        >
+                                                            取消
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            class="btn btn-primary-c"
+                                                            onclick="${gvc.event(() => {
                                 dialog.dataLoading({ visible: true });
                                 ApiUser.subScribe(mail, tag).then((response) => {
                                     dialog.dataLoading({ visible: false });
                                     if (!response.result) {
-                                        dialog.errorMessage({ text: "伺服器錯誤!" });
+                                        dialog.errorMessage({ text: '伺服器錯誤!' });
                                     }
                                     else {
-                                        dialog.successMessage({ text: "更新成功!" });
+                                        dialog.successMessage({ text: '更新成功!' });
                                         gvc.notifyDataChange(id);
                                         gvc2.closeDialog();
                                     }
                                 });
-                            })}">確認添加
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>`;
+                            })}"
+                                                        >
+                                                            確認添加
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>`;
                         }, 'add');
-                    })}">
-                                <i class="fa-regular fa-circle-plus me-2"></i>
-                                新增推播信箱
-                            </button>
-                        </div>
-                        ${BgWidget.table({
+                    }))}
+                            </div>
+                            ${BgWidget.mainCard(BgWidget.tableV2({
                         gvc: gvc,
                         getData: (vmk) => {
                             vmi = vmk;
                             ApiUser.getSubScribe({
                                 page: vmi.page - 1,
                                 limit: 20,
-                                search: vm.query || undefined
+                                search: vm.query || undefined,
                             }).then((data) => {
                                 vmi.pageSize = Math.ceil(data.response.total / 20);
                                 vm.dataList = data.response.data;
@@ -185,23 +203,27 @@ export class BgNotify {
                             }));
                         },
                         filter: html `
-                                ${BgWidget.searchPlace(gvc.event((e, event) => {
+                                        ${BgWidget.searchPlace(gvc.event((e, event) => {
                             vm.query = e.value;
                             gvc.notifyDataChange(id);
                         }), vm.query || '', '搜尋信箱或者標籤')}
-                                ${gvc.bindView(() => {
+                                        ${gvc.bindView(() => {
                             return {
                                 bind: filterID,
                                 view: () => {
-                                    if (!vm.dataList || !vm.dataList.find((dd) => {
-                                        return dd.checked;
-                                    })) {
+                                    if (!vm.dataList ||
+                                        !vm.dataList.find((dd) => {
+                                            return dd.checked;
+                                        })) {
                                         return ``;
                                     }
                                     else {
                                         return [
-                                            `<span class="fs-7 fw-bold">操作選項</span>`,
-                                            `<button class="btn btn-danger fs-7 px-2" style="height:30px;border:none;" onclick="${gvc.event(() => {
+                                            html `<span class="fs-7 fw-bold">操作選項</span>`,
+                                            html `<button
+                                                                class="btn btn-danger fs-7 px-2"
+                                                                style="height:30px;border:none;"
+                                                                onclick="${gvc.event(() => {
                                                 const dialog = new ShareDialog(gvc.glitter);
                                                 dialog.checkYesOrNot({
                                                     text: '是否確認移除所選項目?',
@@ -209,11 +231,14 @@ export class BgNotify {
                                                         if (response) {
                                                             dialog.dataLoading({ visible: true });
                                                             ApiUser.deleteSubscribe({
-                                                                email: vm.dataList.filter((dd) => {
+                                                                email: vm.dataList
+                                                                    .filter((dd) => {
                                                                     return dd.checked;
-                                                                }).map((dd) => {
+                                                                })
+                                                                    .map((dd) => {
                                                                     return dd.email;
-                                                                }).join(`,`)
+                                                                })
+                                                                    .join(`,`),
                                                             }).then((res) => {
                                                                 dialog.dataLoading({ visible: false });
                                                                 if (res.result) {
@@ -221,43 +246,50 @@ export class BgNotify {
                                                                     gvc.notifyDataChange(id);
                                                                 }
                                                                 else {
-                                                                    dialog.errorMessage({ text: "刪除失敗" });
+                                                                    dialog.errorMessage({ text: '刪除失敗' });
                                                                 }
                                                             });
                                                         }
-                                                    }
+                                                    },
                                                 });
-                                            })}">批量移除</button>`
+                                            })}"
+                                                            >
+                                                                批量移除
+                                                            </button>`,
                                         ].join(``);
                                     }
                                 },
                                 divCreate: () => {
                                     return {
-                                        class: `d-flex align-items-center p-2 py-3 ${(!vm.dataList || !vm.dataList.find((dd) => {
-                                            return dd.checked;
-                                        }) || type === 'select') ? `d-none` : ``}`,
-                                        style: `height:40px;gap:10px;margin-top:10px;`
+                                        class: `d-flex align-items-center p-2 py-3 ${!vm.dataList ||
+                                            !vm.dataList.find((dd) => {
+                                                return dd.checked;
+                                            }) ||
+                                            type === 'select'
+                                            ? `d-none`
+                                            : ``}`,
+                                        style: `height:40px;gap:10px;margin-top:10px;`,
                                     };
-                                }
+                                },
                             };
                         })}
-                            `
-                    })}
-                    `);
+                                    `,
+                    }))}
+                        `, BgWidget.getContainerWidth());
                 },
                 divCreate: {
-                    class: (type === 'select') ? `m-n4` : ``
-                }
+                    class: type === 'select' ? `m-n4` : ``,
+                },
             };
         });
     }
     static emailSetting(gvc) {
         const glitter = gvc.glitter;
         const vm = {
-            type: "list",
+            type: 'list',
             data: undefined,
             dataList: undefined,
-            query: undefined
+            query: undefined,
         };
         return gvc.bindView(() => {
             const id = glitter.getUUID();
@@ -268,24 +300,22 @@ export class BgNotify {
                 view: () => {
                     if (vm.type === 'list') {
                         return BgWidget.container(html `
-                            <div class="d-flex w-100 align-items-center mb-3 ">
-                                ${BgWidget.title('信件設定')}
-                                <div class="flex-fill"></div>
-                                <button class="btn btn-primary-c btn-sm " style="height:45px;font-size: 14px;"
-                                        onclick="${gvc.event(() => {
+                                <div class="d-flex w-100 align-items-center mb-3" style="margin-bottom: 24px;">
+                                    ${BgWidget.title('信件設定')}
+                                    <div class="flex-fill"></div>
+                                    ${BgWidget.darkButton('新增信件', gvc.event(() => {
                             vm.data = undefined;
-                            vm.type = "add";
-                        })}">新增信件
-                                </button>
-                            </div>
-                            ${BgWidget.table({
+                            vm.type = 'add';
+                        }))}
+                                </div>
+                                ${BgWidget.mainCard(BgWidget.tableV2({
                             gvc: gvc,
                             getData: (vmi) => {
                                 ApiPost.getManagerPost({
                                     page: vmi.page - 1,
                                     limit: 20,
                                     search: vm.query ? [`title->${vm.query}`] : undefined,
-                                    type: 'notify-email-config'
+                                    type: 'notify-email-config',
                                 }).then((data) => {
                                     vmi.pageSize = Math.ceil(data.response.total / 20);
                                     vm.dataList = data.response.data;
@@ -295,9 +325,9 @@ export class BgNotify {
                                                 {
                                                     key: EditorElem.checkBoxOnly({
                                                         gvc: gvc,
-                                                        def: (!data.response.data.find((dd) => {
+                                                        def: !data.response.data.find((dd) => {
                                                             return !dd.checked;
-                                                        })),
+                                                        }),
                                                         callback: (result) => {
                                                             data.response.data.map((dd) => {
                                                                 dd.checked = result;
@@ -305,7 +335,7 @@ export class BgNotify {
                                                             vmi.data = getDatalist();
                                                             vmi.callback();
                                                             gvc.notifyDataChange(filterID);
-                                                        }
+                                                        },
                                                     }),
                                                     value: EditorElem.checkBoxOnly({
                                                         gvc: gvc,
@@ -316,42 +346,45 @@ export class BgNotify {
                                                             vmi.callback();
                                                             gvc.notifyDataChange(filterID);
                                                         },
-                                                        style: "height:25px;"
-                                                    })
+                                                        style: 'height:25px;',
+                                                    }),
                                                 },
                                                 {
                                                     key: '信件主旨',
-                                                    value: `<span class="fs-7">${dd.content.title}</span>`
+                                                    value: `<span class="fs-7">${dd.content.title}</span>`,
                                                 },
                                                 {
                                                     key: '信件內文',
-                                                    value: `<span class="fs-7">${(dd.content.content && dd.content.content.replace(/<[^>]*>/g, '').substring(0, 60)) || ''}...</span>`
+                                                    value: html `<span class="fs-7">${(dd.content.content && dd.content.content.replace(/<[^>]*>/g, '').substring(0, 50)) || ''}...</span>`,
                                                 },
                                                 {
                                                     key: '發送信件',
-                                                    value: `<button class="btn btn-primary-c px-4" style="width:20px !important;height: 30px;" onclick="${gvc.event((e, event) => {
+                                                    value: html `<button
+                                                                    class="btn btn-primary-c px-4"
+                                                                    style="width:20px !important;height: 30px;"
+                                                                    onclick="${gvc.event((e, event) => {
                                                         event.stopPropagation();
                                                         gvc.glitter.innerDialog((gvc) => {
                                                             let dataList = [];
-                                                            return `
-                                                                <div>
-                                                              
-                                                                ${BgWidget.container(BgWidget.card([
+                                                            return html `
+                                                                                <div>
+                                                                                    ${BgWidget.container(BgWidget.card([
                                                                 html `
-                                                                                <div class="d-flex w-100 align-items-center mb-3 ">
-                                                                                    ${BgWidget.goBack(gvc.event(() => {
+                                                                                                    <div class="d-flex w-100 align-items-center mb-3 ">
+                                                                                                        ${BgWidget.goBack(gvc.event(() => {
                                                                     gvc.closeDialog();
                                                                 }))}
-                                                                                    ${BgWidget.title(`選擇群發對象`)}
-                                                                                    <div class="flex-fill"></div>
-                                                                                    <button class="btn btn-primary-c"
-                                                                                            style="height:38px;font-size: 14px;"
-                                                                                            onclick="${gvc.event(() => {
+                                                                                                        ${BgWidget.title(`選擇群發對象`)}
+                                                                                                        <div class="flex-fill"></div>
+                                                                                                        <button
+                                                                                                            class="btn btn-primary-c"
+                                                                                                            style="height:38px;font-size: 14px;"
+                                                                                                            onclick="${gvc.event(() => {
                                                                     const dialog = new ShareDialog(gvc.glitter);
                                                                     if (dataList.length > 0) {
                                                                         dialog.dataLoading({
                                                                             text: '發送中...',
-                                                                            visible: true
+                                                                            visible: true,
                                                                         });
                                                                         ApiSmtp.send({
                                                                             email: dataList.map((dd) => {
@@ -359,32 +392,36 @@ export class BgNotify {
                                                                             }),
                                                                             name: dd.content.name,
                                                                             title: dd.content.title,
-                                                                            content: dd.content.content
+                                                                            content: dd.content.content,
                                                                         }).then(() => {
                                                                             dialog.dataLoading({
-                                                                                visible: false
+                                                                                visible: false,
                                                                             });
                                                                             dialog.successMessage({ text: `發送成功!` });
                                                                         });
                                                                     }
                                                                     else {
-                                                                        dialog.errorMessage({ text: "請選擇發送對象!" });
+                                                                        dialog.errorMessage({ text: '請選擇發送對象!' });
                                                                     }
-                                                                })}">確認並發送
-                                                                                    </button>
-                                                                                </div>
-                                                                            ` +
+                                                                })}"
+                                                                                                        >
+                                                                                                            確認並發送
+                                                                                                        </button>
+                                                                                                    </div>
+                                                                                                ` +
                                                                     BgNotify.email(gvc, 'select', (data) => {
                                                                         dataList = data;
-                                                                    })
+                                                                    }),
                                                             ].join('')), 900)}
-                                                                <div>
-                                                                `;
+                                                                                    <div></div>
+                                                                                </div>
+                                                                            `;
                                                         }, 'email');
-                                                    })}">
-<i class="fa-sharp fa-regular fa-paper-plane-top"></i>
-</button>`
-                                                }
+                                                    })}"
+                                                                >
+                                                                    <i class="fa-sharp fa-regular fa-paper-plane-top"></i>
+                                                                </button>`,
+                                                },
                                             ];
                                         });
                                     }
@@ -395,26 +432,29 @@ export class BgNotify {
                             },
                             rowClick: (data, index) => {
                                 vm.data = vm.dataList[index].content;
-                                vm.type = "replace";
+                                vm.type = 'replace';
                             },
-                            filter: html `
-                                    ${BgWidget.searchPlace(gvc.event((e, event) => {
+                            filter: html ` ${BgWidget.searchPlace(gvc.event((e, event) => {
                                 vm.query = e.value;
                                 gvc.notifyDataChange(id);
                             }), vm.query || '', '搜尋所有信件內容')}
-                                    ${gvc.bindView(() => {
+                                        ${gvc.bindView(() => {
                                 return {
                                     bind: filterID,
                                     view: () => {
-                                        if (!vm.dataList || !vm.dataList.find((dd) => {
-                                            return dd.checked;
-                                        })) {
+                                        if (!vm.dataList ||
+                                            !vm.dataList.find((dd) => {
+                                                return dd.checked;
+                                            })) {
                                             return ``;
                                         }
                                         else {
                                             return [
-                                                `<span class="fs-7 fw-bold">操作選項</span>`,
-                                                `<button class="btn btn-danger fs-7 px-2" style="height:30px;border:none;" onclick="${gvc.event(() => {
+                                                html `<span class="fs-7 fw-bold">操作選項</span>`,
+                                                html `<button
+                                                                class="btn btn-danger fs-7 px-2"
+                                                                style="height:30px;border:none;"
+                                                                onclick="${gvc.event(() => {
                                                     const dialog = new ShareDialog(gvc.glitter);
                                                     dialog.checkYesOrNot({
                                                         text: '是否確認移除所選項目?',
@@ -422,11 +462,14 @@ export class BgNotify {
                                                             if (response) {
                                                                 dialog.dataLoading({ visible: true });
                                                                 ApiPost.delete({
-                                                                    id: vm.dataList.filter((dd) => {
+                                                                    id: vm.dataList
+                                                                        .filter((dd) => {
                                                                         return dd.checked;
-                                                                    }).map((dd) => {
+                                                                    })
+                                                                        .map((dd) => {
                                                                         return dd.id;
-                                                                    }).join(`,`)
+                                                                    })
+                                                                        .join(`,`),
                                                                 }).then((res) => {
                                                                     dialog.dataLoading({ visible: false });
                                                                     if (res.result) {
@@ -434,44 +477,50 @@ export class BgNotify {
                                                                         gvc.notifyDataChange(id);
                                                                     }
                                                                     else {
-                                                                        dialog.errorMessage({ text: "刪除失敗" });
+                                                                        dialog.errorMessage({ text: '刪除失敗' });
                                                                     }
                                                                 });
                                                             }
-                                                        }
+                                                        },
                                                     });
-                                                })}">批量移除</button>`
+                                                })}"
+                                                            >
+                                                                批量移除
+                                                            </button>`,
                                             ].join(``);
                                         }
                                     },
                                     divCreate: () => {
                                         return {
-                                            class: `d-flex align-items-center p-2 py-3 ${(!vm.dataList || !vm.dataList.find((dd) => {
-                                                return dd.checked;
-                                            })) ? `d-none` : ``}`,
-                                            style: `height:40px;gap:10px;margin-top:10px;`
+                                            class: `d-flex align-items-center p-2 py-3 ${!vm.dataList ||
+                                                !vm.dataList.find((dd) => {
+                                                    return dd.checked;
+                                                })
+                                                ? `d-none`
+                                                : ``}`,
+                                            style: `height:40px;gap:10px;margin-top:10px;`,
                                         };
-                                    }
+                                    },
                                 };
-                            })}`
-                        })}
-                        `);
+                            })}`,
+                        }))}
+                            `, BgWidget.getContainerWidth());
                     }
                     else if (vm.type == 'replace') {
                         return this.emailEditor({
                             vm: vm,
                             gvc: gvc,
-                            type: 'replace'
+                            type: 'replace',
                         });
                     }
                     else {
                         return this.emailEditor({
                             vm: vm,
                             gvc: gvc,
-                            type: 'add'
+                            type: 'add',
                         });
                     }
-                }
+                },
             };
         });
     }
@@ -482,9 +531,9 @@ export class BgNotify {
         const vm = obj.vm;
         const postData = (_a = vm.data) !== null && _a !== void 0 ? _a : {
             content: '',
-            title: "",
+            title: '',
             type: 'notify-email-config',
-            name: ''
+            name: '',
         };
         gvc.addStyle(`
                         .bg-warning{
@@ -493,12 +542,15 @@ export class BgNotify {
                         }
                         `);
         return BgWidget.container(html `
-            <div class="d-flex w-100 align-items-center mb-3 ">
-                ${BgWidget.goBack(gvc.event(() => {
+                <div class="d-flex w-100 align-items-center mb-3 ">
+                    ${BgWidget.goBack(gvc.event(() => {
             vm.type = 'list';
-        }))} ${BgWidget.title(`編輯群發信件`)}
-                <div class="flex-fill"></div>
-                <button class="btn btn-primary-c" style="height:38px;font-size: 14px;"
+        }))}
+                    ${BgWidget.title(`編輯群發信件`)}
+                    <div class="flex-fill"></div>
+                    <button
+                        class="btn btn-primary-c"
+                        style="height:38px;font-size: 14px;"
                         onclick="${gvc.event(() => {
             const dialog = new ShareDialog(gvc.glitter);
             if (obj.type === 'replace') {
@@ -506,7 +558,7 @@ export class BgNotify {
                 ApiPost.put({
                     postData: postData,
                     token: window.parent.saasConfig.config.token,
-                    type: 'manager'
+                    type: 'manager',
                 }).then((re) => {
                     dialog.dataLoading({ visible: false });
                     if (re.result) {
@@ -523,7 +575,7 @@ export class BgNotify {
                 ApiPost.post({
                     postData: postData,
                     token: window.parent.saasConfig.config.token,
-                    type: 'manager'
+                    type: 'manager',
                 }).then((re) => {
                     dialog.dataLoading({ visible: false });
                     if (re.result) {
@@ -535,12 +587,14 @@ export class BgNotify {
                     }
                 });
             }
-        })}">儲存並新增
-                </button>
-            </div>
-            <div class="d-flex" style="gap:10px;">
-                <div class="" style="width:900px;">
-                    ${BgWidget.card(obj.gvc.bindView(() => {
+        })}"
+                    >
+                        儲存並新增
+                    </button>
+                </div>
+                <div class="d-flex" style="gap:10px;">
+                    <div class="" style="width:900px;">
+                        ${BgWidget.card(obj.gvc.bindView(() => {
             const bi = obj.gvc.glitter.getUUID();
             return {
                 bind: bi,
@@ -564,7 +618,11 @@ export class BgNotify {
                                 postData.title = text;
                             },
                         }),
-                        EditorElem.h3(`<div class="d-flex align-items-center">信件內文<button class=" btn ms-2 btn-primary-c ms-2" style="height: 30px;width: 60px;" onclick="${obj.gvc.event(() => {
+                        EditorElem.h3(html `<div class="d-flex align-items-center">
+                                                信件內文<button
+                                                    class=" btn ms-2 btn-primary-c ms-2"
+                                                    style="height: 30px;width: 60px;"
+                                                    onclick="${obj.gvc.event(() => {
                             postData.content = `親愛的 [使用者名稱],
 
 歡迎來到 [你的公司或社群名稱]！我們很高興你選擇了我們，並成為我們社群的一員。
@@ -593,50 +651,62 @@ export class BgNotify {
 [聯絡電子郵件]
 [聯絡電話]`.replace(/\n/g, `<br>`);
                             obj.gvc.notifyDataChange(bi);
-                        })}">範例
-                                </button></div>`), EditorElem.richText({
+                        })}"
+                                                >
+                                                    範例
+                                                </button>
+                                            </div>`),
+                        EditorElem.richText({
                             gvc: obj.gvc,
                             def: postData.content,
                             callback: (text) => {
                                 postData.content = text;
                             },
-                            style: `overflow-y: auto;`
-                        })
+                            style: `overflow-y: auto;`,
+                        }),
                     ].join('');
                 },
-                divCreate: {}
+                divCreate: {},
             };
         }))}
+                    </div>
                 </div>
-            </div>
-            ${(obj.type === 'replace') ? `
-               <div class="d-flex w-100">
-               <div class="flex-fill"></div>
-                 <button class="btn btn-danger mt-3 ${(obj.type === 'replace') ? `` : `d-none`}  ms-auto px-2" style="height:30px;width:100px;" onclick="${obj.gvc.event(() => {
-            const dialog = new ShareDialog(obj.gvc.glitter);
-            dialog.checkYesOrNot({
-                text: "是否確認刪除群發信件?",
-                callback: (response) => {
-                    if (response) {
-                        dialog.dataLoading({ visible: true });
-                        ApiPost.delete({
-                            id: postData.id
-                        }).then((res) => {
-                            dialog.dataLoading({ visible: false });
-                            if (res.result) {
-                                vm.type = 'list';
-                            }
-                            else {
-                                dialog.errorMessage({ text: "刪除失敗" });
-                            }
-                        });
-                    }
-                }
-            });
-        })}">刪除信件</button>
-</div>
-                ` : ``}
-        `, 900);
+                ${obj.type === 'replace'
+            ? html `
+                          <div class="d-flex w-100">
+                              <div class="flex-fill"></div>
+                              <button
+                                  class="btn btn-danger mt-3 ${obj.type === 'replace' ? `` : `d-none`}  ms-auto px-2"
+                                  style="height:30px;width:100px;"
+                                  onclick="${obj.gvc.event(() => {
+                const dialog = new ShareDialog(obj.gvc.glitter);
+                dialog.checkYesOrNot({
+                    text: '是否確認刪除群發信件?',
+                    callback: (response) => {
+                        if (response) {
+                            dialog.dataLoading({ visible: true });
+                            ApiPost.delete({
+                                id: postData.id,
+                            }).then((res) => {
+                                dialog.dataLoading({ visible: false });
+                                if (res.result) {
+                                    vm.type = 'list';
+                                }
+                                else {
+                                    dialog.errorMessage({ text: '刪除失敗' });
+                                }
+                            });
+                        }
+                    },
+                });
+            })}"
+                              >
+                                  刪除信件
+                              </button>
+                          </div>
+                      `
+            : ``}
+            `, 900);
     }
     static fcmEditor(obj) {
         var _a;
@@ -645,23 +715,26 @@ export class BgNotify {
         const vm = obj.vm;
         const postData = (_a = vm.data) !== null && _a !== void 0 ? _a : {
             content: '',
-            title: "",
+            title: '',
             type: 'notify-message-config',
-            name: ''
+            name: '',
         };
         gvc.addStyle(`
-                        .bg-warning{
-                        background:#ffef9d !important;
-                        color:black !important;
-                        }
-                        `);
+            .bg-warning {
+                background: #ffef9d !important;
+                color: black !important;
+            }
+        `);
         return BgWidget.container(html `
-            <div class="d-flex w-100 align-items-center mb-3 ">
-                ${BgWidget.goBack(gvc.event(() => {
+                <div class="d-flex w-100 align-items-center mb-3 ">
+                    ${BgWidget.goBack(gvc.event(() => {
             vm.type = 'list';
-        }))} ${BgWidget.title(`編輯推播通知`)}
-                <div class="flex-fill"></div>
-                <button class="btn btn-primary-c" style="height:38px;font-size: 14px;"
+        }))}
+                    ${BgWidget.title(`編輯推播通知`)}
+                    <div class="flex-fill"></div>
+                    <button
+                        class="btn btn-primary-c"
+                        style="height:38px;font-size: 14px;"
                         onclick="${gvc.event(() => {
             const dialog = new ShareDialog(gvc.glitter);
             if (obj.type === 'replace') {
@@ -669,7 +742,7 @@ export class BgNotify {
                 ApiPost.put({
                     postData: postData,
                     token: window.parent.saasConfig.config.token,
-                    type: 'manager'
+                    type: 'manager',
                 }).then((re) => {
                     dialog.dataLoading({ visible: false });
                     if (re.result) {
@@ -686,7 +759,7 @@ export class BgNotify {
                 ApiPost.post({
                     postData: postData,
                     token: window.parent.saasConfig.config.token,
-                    type: 'manager'
+                    type: 'manager',
                 }).then((re) => {
                     dialog.dataLoading({ visible: false });
                     if (re.result) {
@@ -698,12 +771,14 @@ export class BgNotify {
                     }
                 });
             }
-        })}">儲存並新增
-                </button>
-            </div>
-            <div class="d-flex" style="gap:10px;">
-                <div class="" style="width:900px;">
-                    ${BgWidget.card(obj.gvc.bindView(() => {
+        })}"
+                    >
+                        儲存並新增
+                    </button>
+                </div>
+                <div class="d-flex" style="gap:10px;">
+                    <div class="" style="width:900px;">
+                        ${BgWidget.card(obj.gvc.bindView(() => {
             const bi = obj.gvc.glitter.getUUID();
             return {
                 bind: bi,
@@ -726,59 +801,66 @@ export class BgNotify {
                             callback: (text) => {
                                 postData.content = text;
                             },
-                        })
+                        }),
                     ].join('');
                 },
-                divCreate: {}
+                divCreate: {},
             };
         }))}
+                    </div>
                 </div>
-            </div>
-            ${(obj.type === 'replace') ? `
-               <div class="d-flex w-100">
-               <div class="flex-fill"></div>
-                 <button class="btn btn-danger mt-3 ${(obj.type === 'replace') ? `` : `d-none`}  ms-auto px-2" style="height:30px;width:100px;" onclick="${obj.gvc.event(() => {
-            const dialog = new ShareDialog(obj.gvc.glitter);
-            dialog.checkYesOrNot({
-                text: "是否確認刪除樣本?",
-                callback: (response) => {
-                    if (response) {
-                        dialog.dataLoading({ visible: true });
-                        ApiPost.delete({
-                            id: postData.id
-                        }).then((res) => {
-                            dialog.dataLoading({ visible: false });
-                            if (res.result) {
-                                vm.type = 'list';
-                            }
-                            else {
-                                dialog.errorMessage({ text: "刪除失敗" });
-                            }
-                        });
-                    }
-                }
-            });
-        })}">刪除樣本</button>
-</div>
-                ` : ``}
-        `, 900);
+                ${obj.type === 'replace'
+            ? html `
+                          <div class="d-flex w-100">
+                              <div class="flex-fill"></div>
+                              <button
+                                  class="btn btn-danger mt-3 ${obj.type === 'replace' ? `` : `d-none`}  ms-auto px-2"
+                                  style="height:30px;width:100px;"
+                                  onclick="${obj.gvc.event(() => {
+                const dialog = new ShareDialog(obj.gvc.glitter);
+                dialog.checkYesOrNot({
+                    text: '是否確認刪除樣本?',
+                    callback: (response) => {
+                        if (response) {
+                            dialog.dataLoading({ visible: true });
+                            ApiPost.delete({
+                                id: postData.id,
+                            }).then((res) => {
+                                dialog.dataLoading({ visible: false });
+                                if (res.result) {
+                                    vm.type = 'list';
+                                }
+                                else {
+                                    dialog.errorMessage({ text: '刪除失敗' });
+                                }
+                            });
+                        }
+                    },
+                });
+            })}"
+                              >
+                                  刪除樣本
+                              </button>
+                          </div>
+                      `
+            : ``}
+            `, 900);
     }
-    static fcmDevice(gvc, type = 'list', callback = () => {
-    }) {
+    static fcmDevice(gvc, type = 'list', callback = () => { }) {
         const vm = {
-            type: "list",
+            type: 'list',
             data: {
-                "id": 61,
-                "userID": 549313940,
-                "account": "jianzhi.wang@homee.ai",
-                "userData": { "name": "王建智", "email": "jianzhi.wang@homee.ai", "phone": "0978028739" },
-                "created_time": "2023-11-26T02:14:09.000Z",
-                "role": 0,
-                "company": null,
-                "status": 1
+                id: 61,
+                userID: 549313940,
+                account: 'jianzhi.wang@homee.ai',
+                userData: { name: '王建智', email: 'jianzhi.wang@homee.ai', phone: '0978028739' },
+                created_time: '2023-11-26T02:14:09.000Z',
+                role: 0,
+                company: null,
+                status: 1,
             },
             dataList: undefined,
-            query: ''
+            query: '',
         };
         const glitter = gvc.glitter;
         const filterID = glitter.getUUID();
@@ -797,24 +879,24 @@ export class BgNotify {
                                 {
                                     key: (() => {
                                         clearInterval(interval);
-                                        if ((!vm.dataList.find((dd) => {
+                                        if (!vm.dataList.find((dd) => {
                                             return !dd.checked;
-                                        }))) {
+                                        })) {
                                             interval = setTimeout(() => {
                                                 ApiUser.getFCM({
                                                     page: vmi.page - 1,
                                                     limit: 100000,
-                                                    search: vm.query || undefined
+                                                    search: vm.query || undefined,
                                                 }).then((data) => {
-                                                    callback((data.response.data));
+                                                    callback(data.response.data);
                                                 });
                                             }, 10);
                                         }
                                         return EditorElem.checkBoxOnly({
                                             gvc: gvc,
-                                            def: (!vm.dataList.find((dd) => {
+                                            def: !vm.dataList.find((dd) => {
                                                 return !dd.checked;
-                                            })),
+                                            }),
                                             callback: (result) => {
                                                 vm.dataList.map((dd) => {
                                                     dd.checked = result;
@@ -825,7 +907,7 @@ export class BgNotify {
                                                 callback(vm.dataList.filter((dd) => {
                                                     return dd.checked;
                                                 }));
-                                            }
+                                            },
                                         });
                                     })(),
                                     value: EditorElem.checkBoxOnly({
@@ -840,37 +922,37 @@ export class BgNotify {
                                                 return dd.checked;
                                             }));
                                         },
-                                        style: "height:25px;"
-                                    })
+                                        style: 'height:25px;',
+                                    }),
                                 },
                                 {
                                     key: '用戶ID',
-                                    value: `<span class="fs-7">${(_a = dd.userID) !== null && _a !== void 0 ? _a : "尚未登入"}</span>`
+                                    value: `<span class="fs-7">${(_a = dd.userID) !== null && _a !== void 0 ? _a : '尚未登入'}</span>`,
                                 },
                                 {
                                     key: '用戶名稱',
-                                    value: `<span class="fs-7">${dd.userData ? dd.userData.name : "尚未登入"}</span>`
+                                    value: `<span class="fs-7">${dd.userData ? dd.userData.name : '尚未登入'}</span>`,
                                 },
                                 {
                                     key: '訂閱Token',
-                                    value: `<span class="fs-7">${dd.deviceToken.substring(0, 80)}...</span>`
-                                }
+                                    value: `<span class="fs-7">${dd.deviceToken.substring(0, 80)}...</span>`,
+                                },
                             ];
                         });
                     }
                     return BgWidget.container(html `
-                        <div class="d-flex w-100 align-items-center mb-3 ${(type === 'select') ? `d-none` : ``}">
-                            ${BgWidget.title('已訂閱裝置')}
-                            <div class="flex-fill"></div>
-                        </div>
-                        ${BgWidget.table({
+                            <div class="d-flex w-100 align-items-center mb-3 ${type === 'select' ? `d-none` : ``}">
+                                ${BgWidget.title('已訂閱裝置')}
+                                <div class="flex-fill"></div>
+                            </div>
+                            ${BgWidget.mainCard(BgWidget.tableV2({
                         gvc: gvc,
                         getData: (vmk) => {
                             vmi = vmk;
                             ApiUser.getFCM({
                                 page: vmi.page - 1,
                                 limit: 20,
-                                search: vm.query || undefined
+                                search: vm.query || undefined,
                             }).then((data) => {
                                 vmi.pageSize = Math.ceil(data.response.total / 20);
                                 vm.dataList = data.response.data;
@@ -894,17 +976,18 @@ export class BgNotify {
                             }));
                         },
                         filter: html `
-                                ${BgWidget.searchPlace(gvc.event((e, event) => {
+                                        ${BgWidget.searchPlace(gvc.event((e, event) => {
                             vm.query = e.value;
                             gvc.notifyDataChange(id);
                         }), vm.query || '', '搜尋信箱或者標籤')}
-                                ${gvc.bindView(() => {
+                                        ${gvc.bindView(() => {
                             return {
                                 bind: filterID,
                                 view: () => {
-                                    if (!vm.dataList || !vm.dataList.find((dd) => {
-                                        return dd.checked;
-                                    })) {
+                                    if (!vm.dataList ||
+                                        !vm.dataList.find((dd) => {
+                                            return dd.checked;
+                                        })) {
                                         return ``;
                                     }
                                     else {
@@ -918,11 +1001,14 @@ export class BgNotify {
                                                         if (response) {
                                                             dialog.dataLoading({ visible: true });
                                                             ApiUser.deleteSubscribe({
-                                                                email: vm.dataList.filter((dd) => {
+                                                                email: vm.dataList
+                                                                    .filter((dd) => {
                                                                     return dd.checked;
-                                                                }).map((dd) => {
+                                                                })
+                                                                    .map((dd) => {
                                                                     return dd.email;
-                                                                }).join(`,`)
+                                                                })
+                                                                    .join(`,`),
                                                             }).then((res) => {
                                                                 dialog.dataLoading({ visible: false });
                                                                 if (res.result) {
@@ -930,43 +1016,47 @@ export class BgNotify {
                                                                     gvc.notifyDataChange(id);
                                                                 }
                                                                 else {
-                                                                    dialog.errorMessage({ text: "刪除失敗" });
+                                                                    dialog.errorMessage({ text: '刪除失敗' });
                                                                 }
                                                             });
                                                         }
-                                                    }
+                                                    },
                                                 });
-                                            })}">批量移除</button>`
+                                            })}">批量移除</button>`,
                                         ].join(``);
                                     }
                                 },
                                 divCreate: () => {
                                     return {
-                                        class: `d-flex align-items-center p-2 py-3 ${(!vm.dataList || !vm.dataList.find((dd) => {
-                                            return dd.checked;
-                                        }) || type === 'select') ? `d-none` : ``}`,
-                                        style: `height:40px;gap:10px;margin-top:10px;`
+                                        class: `d-flex align-items-center p-2 py-3 ${!vm.dataList ||
+                                            !vm.dataList.find((dd) => {
+                                                return dd.checked;
+                                            }) ||
+                                            type === 'select'
+                                            ? `d-none`
+                                            : ``}`,
+                                        style: `height:40px;gap:10px;margin-top:10px;`,
                                     };
-                                }
+                                },
                             };
                         })}
-                            `
-                    })}
-                    `);
+                                    `,
+                    }))}
+                        `, BgWidget.getContainerWidth());
                 },
                 divCreate: {
-                    class: (type === 'select') ? `m-n4` : ``
-                }
+                    class: type === 'select' ? `m-n4` : ``,
+                },
             };
         });
     }
     static fcmSetting(gvc) {
         const glitter = gvc.glitter;
         const vm = {
-            type: "list",
+            type: 'list',
             data: undefined,
             dataList: undefined,
-            query: undefined
+            query: undefined,
         };
         return gvc.bindView(() => {
             const id = glitter.getUUID();
@@ -977,24 +1067,22 @@ export class BgNotify {
                 view: () => {
                     if (vm.type === 'list') {
                         return BgWidget.container(html `
-                            <div class="d-flex w-100 align-items-center mb-3 ">
-                                ${BgWidget.title('推播訊息管理')}
-                                <div class="flex-fill"></div>
-                                <button class="btn btn-primary-c " style="height:45px;font-size: 14px;"
-                                        onclick="${gvc.event(() => {
+                                <div class="d-flex w-100 align-items-center mb-3">
+                                    ${BgWidget.title('推播訊息管理')}
+                                    <div class="flex-fill"></div>
+                                    ${BgWidget.darkButton('新增推播', gvc.event(() => {
                             vm.data = undefined;
-                            vm.type = "add";
-                        })}">新增推播
-                                </button>
-                            </div>
-                            ${BgWidget.table({
+                            vm.type = 'add';
+                        }))}
+                                </div>
+                                ${BgWidget.mainCard(BgWidget.tableV2({
                             gvc: gvc,
                             getData: (vmi) => {
                                 ApiPost.getManagerPost({
                                     page: vmi.page - 1,
                                     limit: 20,
                                     search: vm.query ? [`title->${vm.query}`] : undefined,
-                                    type: 'notify-message-config'
+                                    type: 'notify-message-config',
                                 }).then((data) => {
                                     vmi.pageSize = Math.ceil(data.response.total / 20);
                                     vm.dataList = data.response.data;
@@ -1004,9 +1092,9 @@ export class BgNotify {
                                                 {
                                                     key: EditorElem.checkBoxOnly({
                                                         gvc: gvc,
-                                                        def: (!data.response.data.find((dd) => {
+                                                        def: !data.response.data.find((dd) => {
                                                             return !dd.checked;
-                                                        })),
+                                                        }),
                                                         callback: (result) => {
                                                             data.response.data.map((dd) => {
                                                                 dd.checked = result;
@@ -1014,7 +1102,7 @@ export class BgNotify {
                                                             vmi.data = getDatalist();
                                                             vmi.callback();
                                                             gvc.notifyDataChange(filterID);
-                                                        }
+                                                        },
                                                     }),
                                                     value: EditorElem.checkBoxOnly({
                                                         gvc: gvc,
@@ -1025,74 +1113,81 @@ export class BgNotify {
                                                             vmi.callback();
                                                             gvc.notifyDataChange(filterID);
                                                         },
-                                                        style: "height:25px;"
-                                                    })
+                                                        style: 'height:25px;',
+                                                    }),
                                                 },
                                                 {
                                                     key: '推播標題',
-                                                    value: `<span class="fs-7">${dd.content.title}</span>`
+                                                    value: `<span class="fs-7">${dd.content.title}</span>`,
                                                 },
                                                 {
                                                     key: '推播內文',
-                                                    value: `<span class="fs-7">${dd.content.content.replace(/<[^>]*>/g, '').substring(0, 60)}...</span>`
+                                                    value: `<span class="fs-7">${dd.content.content.replace(/<[^>]*>/g, '').substring(0, 60)}...</span>`,
                                                 },
                                                 {
                                                     key: '發送推播',
-                                                    value: `<button class="btn btn-primary-c px-4" style="width:20px !important;height: 30px;" onclick="${gvc.event((e, event) => {
+                                                    value: html `<button
+                                                                    class="btn btn-primary-c px-4"
+                                                                    style="width:20px !important;height: 30px;"
+                                                                    onclick="${gvc.event((e, event) => {
                                                         event.stopPropagation();
                                                         gvc.glitter.innerDialog((gvc) => {
                                                             let dataList = [];
-                                                            return `
-                                                                <div>
-                                                              
-                                                                ${BgWidget.container(BgWidget.card([
+                                                            return html `
+                                                                                <div>
+                                                                                    ${BgWidget.container(BgWidget.card([
                                                                 html `
-                                                                                <div class="d-flex w-100 align-items-center mb-3 ">
-                                                                                    ${BgWidget.goBack(gvc.event(() => {
+                                                                                                    <div class="d-flex w-100 align-items-center mb-3 ">
+                                                                                                        ${BgWidget.goBack(gvc.event(() => {
                                                                     gvc.closeDialog();
                                                                 }))}
-                                                                                    ${BgWidget.title(`選擇群發對象`)}
-                                                                                    <div class="flex-fill"></div>
-                                                                                    <button class="btn btn-primary-c"
-                                                                                            style="height:38px;font-size: 14px;"
-                                                                                            onclick="${gvc.event(() => {
+                                                                                                        ${BgWidget.title(`選擇群發對象`)}
+                                                                                                        <div class="flex-fill"></div>
+                                                                                                        <button
+                                                                                                            class="btn btn-primary-c"
+                                                                                                            style="height:38px;font-size: 14px;"
+                                                                                                            onclick="${gvc.event(() => {
                                                                     const dialog = new ShareDialog(gvc.glitter);
                                                                     if (dataList.length > 0) {
                                                                         dialog.dataLoading({
                                                                             text: '發送中...',
-                                                                            visible: true
+                                                                            visible: true,
                                                                         });
                                                                         ApiFcm.send({
                                                                             device_token: dataList.map((dd) => {
                                                                                 return dd.deviceToken;
                                                                             }),
                                                                             title: dd.content.title,
-                                                                            content: dd.content.content
+                                                                            content: dd.content.content,
                                                                         }).then(() => {
                                                                             dialog.dataLoading({
-                                                                                visible: false
+                                                                                visible: false,
                                                                             });
                                                                             dialog.successMessage({ text: `發送成功!` });
                                                                         });
                                                                     }
                                                                     else {
-                                                                        dialog.errorMessage({ text: "請選擇發送對象!" });
+                                                                        dialog.errorMessage({ text: '請選擇發送對象!' });
                                                                     }
-                                                                })}">確認並發送
-                                                                                    </button>
-                                                                                </div>
-                                                                            ` +
+                                                                })}"
+                                                                                                        >
+                                                                                                            確認並發送
+                                                                                                        </button>
+                                                                                                    </div>
+                                                                                                ` +
                                                                     BgNotify.fcmDevice(gvc, 'select', (data) => {
                                                                         dataList = data;
-                                                                    })
+                                                                    }),
                                                             ].join('')), 900)}
-                                                                <div>
-                                                                `;
+                                                                                    <div></div>
+                                                                                </div>
+                                                                            `;
                                                         }, 'email');
-                                                    })}">
-<i class="fa-sharp fa-regular fa-paper-plane-top"></i>
-</button>`
-                                                }
+                                                    })}"
+                                                                >
+                                                                    <i class="fa-sharp fa-regular fa-paper-plane-top"></i>
+                                                                </button>`,
+                                                },
                                             ];
                                         });
                                     }
@@ -1103,26 +1198,29 @@ export class BgNotify {
                             },
                             rowClick: (data, index) => {
                                 vm.data = vm.dataList[index].content;
-                                vm.type = "replace";
+                                vm.type = 'replace';
                             },
-                            filter: html `
-                                    ${BgWidget.searchPlace(gvc.event((e, event) => {
+                            filter: html ` ${BgWidget.searchPlace(gvc.event((e, event) => {
                                 vm.query = e.value;
                                 gvc.notifyDataChange(id);
                             }), vm.query || '', '搜尋所有信件內容')}
-                                    ${gvc.bindView(() => {
+                                        ${gvc.bindView(() => {
                                 return {
                                     bind: filterID,
                                     view: () => {
-                                        if (!vm.dataList || !vm.dataList.find((dd) => {
-                                            return dd.checked;
-                                        })) {
+                                        if (!vm.dataList ||
+                                            !vm.dataList.find((dd) => {
+                                                return dd.checked;
+                                            })) {
                                             return ``;
                                         }
                                         else {
                                             return [
-                                                `<span class="fs-7 fw-bold">操作選項</span>`,
-                                                `<button class="btn btn-danger fs-7 px-2" style="height:30px;border:none;" onclick="${gvc.event(() => {
+                                                html `<span class="fs-7 fw-bold">操作選項</span>`,
+                                                html `<button
+                                                                class="btn btn-danger fs-7 px-2"
+                                                                style="height:30px;border:none;"
+                                                                onclick="${gvc.event(() => {
                                                     const dialog = new ShareDialog(gvc.glitter);
                                                     dialog.checkYesOrNot({
                                                         text: '是否確認移除所選項目?',
@@ -1130,11 +1228,14 @@ export class BgNotify {
                                                             if (response) {
                                                                 dialog.dataLoading({ visible: true });
                                                                 ApiPost.delete({
-                                                                    id: vm.dataList.filter((dd) => {
+                                                                    id: vm.dataList
+                                                                        .filter((dd) => {
                                                                         return dd.checked;
-                                                                    }).map((dd) => {
+                                                                    })
+                                                                        .map((dd) => {
                                                                         return dd.id;
-                                                                    }).join(`,`)
+                                                                    })
+                                                                        .join(`,`),
                                                                 }).then((res) => {
                                                                     dialog.dataLoading({ visible: false });
                                                                     if (res.result) {
@@ -1142,63 +1243,68 @@ export class BgNotify {
                                                                         gvc.notifyDataChange(id);
                                                                     }
                                                                     else {
-                                                                        dialog.errorMessage({ text: "刪除失敗" });
+                                                                        dialog.errorMessage({ text: '刪除失敗' });
                                                                     }
                                                                 });
                                                             }
-                                                        }
+                                                        },
                                                     });
-                                                })}">批量移除</button>`
+                                                })}"
+                                                            >
+                                                                批量移除
+                                                            </button>`,
                                             ].join(``);
                                         }
                                     },
                                     divCreate: () => {
                                         return {
-                                            class: `d-flex align-items-center p-2 py-3 ${(!vm.dataList || !vm.dataList.find((dd) => {
-                                                return dd.checked;
-                                            })) ? `d-none` : ``}`,
-                                            style: `height:40px;gap:10px;margin-top:10px;`
+                                            class: `d-flex align-items-center p-2 py-3 ${!vm.dataList ||
+                                                !vm.dataList.find((dd) => {
+                                                    return dd.checked;
+                                                })
+                                                ? `d-none`
+                                                : ``}`,
+                                            style: `height:40px;gap:10px;margin-top:10px;`,
                                         };
-                                    }
+                                    },
                                 };
-                            })}`
-                        })}
-                        `);
+                            })}`,
+                        }))}
+                            `, BgWidget.getContainerWidth());
                     }
                     else if (vm.type == 'replace') {
                         return this.fcmEditor({
                             vm: vm,
                             gvc: gvc,
-                            type: 'replace'
+                            type: 'replace',
                         });
                     }
                     else {
                         return this.fcmEditor({
                             vm: vm,
                             gvc: gvc,
-                            type: 'add'
+                            type: 'add',
                         });
                     }
-                }
+                },
             };
         });
     }
-    static rebackMessage(gvc, type = 'list', callback = () => {
-    }) {
+    static rebackMessage(gvc, type = 'list', callback = () => { }) {
         const vm = {
-            type: "list",
+            type: 'list',
             data: {
-                "id": 61,
-                "userID": 549313940,
-                "account": "jianzhi.wang@homee.ai",
-                "userData": { "name": "王建智", "email": "jianzhi.wang@homee.ai", "phone": "0978028739" },
-                "created_time": "2023-11-26T02:14:09.000Z",
-                "role": 0,
-                "company": null,
-                "status": 1
+                id: 61,
+                userID: 549313940,
+                account: 'jianzhi.wang@homee.ai',
+                userData: { name: '王建智', email: 'jianzhi.wang@homee.ai', phone: '0978028739' },
+                created_time: '2023-11-26T02:14:09.000Z',
+                role: 0,
+                company: null,
+                status: 1,
             },
             dataList: undefined,
-            query: ''
+            query: '',
         };
         const glitter = gvc.glitter;
         const filterID = glitter.getUUID();
@@ -1217,24 +1323,24 @@ export class BgNotify {
                                 {
                                     key: (() => {
                                         clearInterval(interval);
-                                        if ((!vm.dataList.find((dd) => {
+                                        if (!vm.dataList.find((dd) => {
                                             return !dd.checked;
-                                        }))) {
+                                        })) {
                                             interval = setTimeout(() => {
                                                 ApiUser.getFCM({
                                                     page: vmi.page - 1,
                                                     limit: 100000,
-                                                    search: vm.query || undefined
+                                                    search: vm.query || undefined,
                                                 }).then((data) => {
-                                                    callback((data.response.data));
+                                                    callback(data.response.data);
                                                 });
                                             }, 10);
                                         }
                                         return EditorElem.checkBoxOnly({
                                             gvc: gvc,
-                                            def: (!vm.dataList.find((dd) => {
+                                            def: !vm.dataList.find((dd) => {
                                                 return !dd.checked;
-                                            })),
+                                            }),
                                             callback: (result) => {
                                                 vm.dataList.map((dd) => {
                                                     dd.checked = result;
@@ -1245,7 +1351,7 @@ export class BgNotify {
                                                 callback(vm.dataList.filter((dd) => {
                                                     return dd.checked;
                                                 }));
-                                            }
+                                            },
                                         });
                                     })(),
                                     value: EditorElem.checkBoxOnly({
@@ -1260,146 +1366,146 @@ export class BgNotify {
                                                 return dd.checked;
                                             }));
                                         },
-                                        style: "height:25px;"
-                                    })
+                                        style: 'height:25px;',
+                                    }),
                                 },
                                 {
                                     key: '名稱',
-                                    value: `<span class="fs-7">${dd.content.name}</span>`
+                                    value: `<span class="fs-7">${dd.content.name}</span>`,
                                 },
                                 {
                                     key: '信箱',
-                                    value: `<span class="fs-7">${dd.content.email}</span>`
+                                    value: `<span class="fs-7">${dd.content.email}</span>`,
                                 },
                                 {
                                     key: '標題',
-                                    value: `<span class="fs-7">${dd.content.title}</span>`
+                                    value: `<span class="fs-7">${dd.content.title}</span>`,
                                 },
                                 {
                                     key: '內文',
-                                    value: `<span class="fs-7">${((_a = dd.content.content) !== null && _a !== void 0 ? _a : "").substring(0, 30)}...</span>`
+                                    value: `<span class="fs-7">${((_a = dd.content.content) !== null && _a !== void 0 ? _a : '').substring(0, 30)}...</span>`,
                                 },
                             ];
                         });
                     }
                     if (vm.type === 'replace') {
                         return BgWidget.container(html `
-                            <div class="d-flex w-100 align-items-center mb-3 ">
-                                ${BgWidget.goBack(gvc.event(() => {
+                                <div class="d-flex w-100 align-items-center mb-3 ">
+                                    ${BgWidget.goBack(gvc.event(() => {
                             vm.type = 'list';
                             gvc.notifyDataChange(id);
-                        }))} ${BgWidget.title(`用戶回饋內容`)}
-                                <div class="flex-fill"></div>
-                            </div>
-                            ${BgWidget.card(` ${FormWidget.editorView({
+                        }))}
+                                    ${BgWidget.title(`用戶回饋內容`)}
+                                    <div class="flex-fill"></div>
+                                </div>
+                                ${BgWidget.card(` ${FormWidget.editorView({
                             gvc: gvc,
                             array: [
                                 {
-                                    "key": "name",
-                                    "type": "name",
-                                    "title": "姓名",
-                                    "require": "true",
-                                    "readonly": "read",
-                                    "style_data": {
-                                        "input": {
-                                            "class": "",
-                                            "style": ""
+                                    key: 'name',
+                                    type: 'name',
+                                    title: '姓名',
+                                    require: 'true',
+                                    readonly: 'read',
+                                    style_data: {
+                                        input: {
+                                            class: '',
+                                            style: '',
                                         },
-                                        "label": {
-                                            "class": "form-label fs-base ",
-                                            "style": ""
+                                        label: {
+                                            class: 'form-label fs-base ',
+                                            style: '',
                                         },
-                                        "container": {
-                                            "tag": "aboutus-container",
-                                            "class": "",
-                                            "style": "",
-                                            "stylist": [],
-                                            "dataType": "static",
-                                            "style_from": "tag",
-                                            "classDataType": "static"
-                                        }
-                                    }
+                                        container: {
+                                            tag: 'aboutus-container',
+                                            class: '',
+                                            style: '',
+                                            stylist: [],
+                                            dataType: 'static',
+                                            style_from: 'tag',
+                                            classDataType: 'static',
+                                        },
+                                    },
                                 },
                                 {
-                                    "key": "email",
-                                    "type": "email",
-                                    "title": "信箱",
-                                    "require": "true",
-                                    "readonly": "read",
-                                    "style_data": {
-                                        "input": {
-                                            "class": "",
-                                            "style": ""
+                                    key: 'email',
+                                    type: 'email',
+                                    title: '信箱',
+                                    require: 'true',
+                                    readonly: 'read',
+                                    style_data: {
+                                        input: {
+                                            class: '',
+                                            style: '',
                                         },
-                                        "label": {
-                                            "class": "form-label fs-base ",
-                                            "style": ""
+                                        label: {
+                                            class: 'form-label fs-base ',
+                                            style: '',
                                         },
-                                        "container": {
-                                            "tag": "aboutus-container",
-                                            "class": "",
-                                            "style": "",
-                                            "stylist": [],
-                                            "style_from": "tag"
-                                        }
-                                    }
+                                        container: {
+                                            tag: 'aboutus-container',
+                                            class: '',
+                                            style: '',
+                                            stylist: [],
+                                            style_from: 'tag',
+                                        },
+                                    },
                                 },
                                 {
-                                    "key": "title",
-                                    "type": "text",
-                                    "title": "標題",
-                                    "require": "true",
-                                    "readonly": "read",
-                                    "style_data": {
-                                        "input": {
-                                            "class": "",
-                                            "style": ""
+                                    key: 'title',
+                                    type: 'text',
+                                    title: '標題',
+                                    require: 'true',
+                                    readonly: 'read',
+                                    style_data: {
+                                        input: {
+                                            class: '',
+                                            style: '',
                                         },
-                                        "label": {
-                                            "class": "form-label fs-base ",
-                                            "style": ""
+                                        label: {
+                                            class: 'form-label fs-base ',
+                                            style: '',
                                         },
-                                        "container": {
-                                            "tag": "aboutus-container",
-                                            "class": "",
-                                            "style": "",
-                                            "stylist": [],
-                                            "dataType": "static",
-                                            "style_from": "tag",
-                                            "classDataType": "static"
-                                        }
-                                    }
+                                        container: {
+                                            tag: 'aboutus-container',
+                                            class: '',
+                                            style: '',
+                                            stylist: [],
+                                            dataType: 'static',
+                                            style_from: 'tag',
+                                            classDataType: 'static',
+                                        },
+                                    },
                                 },
                                 {
-                                    "key": "content",
-                                    "type": "textArea",
-                                    "title": "訊息",
-                                    "require": "true",
-                                    "readonly": "read",
-                                    "style_data": {
-                                        "input": {
-                                            "class": "",
-                                            "style": ""
+                                    key: 'content',
+                                    type: 'textArea',
+                                    title: '訊息',
+                                    require: 'true',
+                                    readonly: 'read',
+                                    style_data: {
+                                        input: {
+                                            class: '',
+                                            style: '',
                                         },
-                                        "label": {
-                                            "class": "form-label fs-base ",
-                                            "style": ""
+                                        label: {
+                                            class: 'form-label fs-base ',
+                                            style: '',
                                         },
-                                        "container": {
-                                            "class": "",
-                                            "style": ""
-                                        }
-                                    }
-                                }
+                                        container: {
+                                            class: '',
+                                            style: '',
+                                        },
+                                    },
+                                },
                             ],
-                            refresh: () => {
-                            },
-                            formData: vm.data.content
+                            refresh: () => { },
+                            formData: vm.data.content,
                         })}`)}
-                        `, 800);
+                            `, 800);
                     }
                     return BgWidget.container(html `
-                        <div class="d-flex w-100 align-items-center mb-3 ${(type === 'select') ? `d-none` : ``}">
+                        <div class="d-flex w-100 align-items-center mb-3 ${type === 'select' ? `d-none` : ``}">
                             ${BgWidget.title('回饋信件')}
                             <div class="flex-fill"></div>
                         </div>
@@ -1411,7 +1517,7 @@ export class BgNotify {
                                 page: vmi.page - 1,
                                 limit: 20,
                                 search: vm.query || undefined,
-                                type: 'userQuestion'
+                                type: 'userQuestion',
                             }).then((data) => {
                                 vmi.pageSize = Math.ceil(data.response.total / 20);
                                 vm.dataList = data.response.data;
@@ -1439,9 +1545,10 @@ export class BgNotify {
                             return {
                                 bind: filterID,
                                 view: () => {
-                                    if (!vm.dataList || !vm.dataList.find((dd) => {
-                                        return dd.checked;
-                                    })) {
+                                    if (!vm.dataList ||
+                                        !vm.dataList.find((dd) => {
+                                            return dd.checked;
+                                        })) {
                                         return ``;
                                     }
                                     else {
@@ -1455,11 +1562,14 @@ export class BgNotify {
                                                         if (response) {
                                                             dialog.dataLoading({ visible: true });
                                                             ApiPost.deleteUserPost({
-                                                                id: vm.dataList.filter((dd) => {
+                                                                id: vm.dataList
+                                                                    .filter((dd) => {
                                                                     return dd.checked;
-                                                                }).map((dd) => {
+                                                                })
+                                                                    .map((dd) => {
                                                                     return dd.id;
-                                                                }).join(`,`)
+                                                                })
+                                                                    .join(`,`),
                                                             }).then((res) => {
                                                                 dialog.dataLoading({ visible: false });
                                                                 if (res.result) {
@@ -1467,52 +1577,55 @@ export class BgNotify {
                                                                     gvc.notifyDataChange(id);
                                                                 }
                                                                 else {
-                                                                    dialog.errorMessage({ text: "刪除失敗" });
+                                                                    dialog.errorMessage({ text: '刪除失敗' });
                                                                 }
                                                             });
                                                         }
-                                                    }
+                                                    },
                                                 });
-                                            })}">批量移除</button>`
+                                            })}">批量移除</button>`,
                                         ].join(``);
                                     }
                                 },
                                 divCreate: () => {
                                     return {
-                                        class: `d-flex align-items-center p-2 py-3 ${(!vm.dataList || !vm.dataList.find((dd) => {
-                                            return dd.checked;
-                                        }) || type === 'select') ? `d-none` : ``}`,
-                                        style: `height:40px;gap:10px;margin-top:10px;`
+                                        class: `d-flex align-items-center p-2 py-3 ${!vm.dataList ||
+                                            !vm.dataList.find((dd) => {
+                                                return dd.checked;
+                                            }) ||
+                                            type === 'select'
+                                            ? `d-none`
+                                            : ``}`,
+                                        style: `height:40px;gap:10px;margin-top:10px;`,
                                     };
-                                }
+                                },
                             };
                         })}
-                            `
+                            `,
                     })}
                     `);
                 },
                 divCreate: {
-                    class: (type === 'select') ? `m-n4` : ``
-                }
+                    class: type === 'select' ? `m-n4` : ``,
+                },
             };
         });
     }
-    static customerMessage(gvc, type = 'list', callback = () => {
-    }) {
+    static customerMessage(gvc, type = 'list', callback = () => { }) {
         const vm = {
-            type: "list",
+            type: 'list',
             data: {
-                "id": 61,
-                "userID": 549313940,
-                "account": "jianzhi.wang@homee.ai",
-                "userData": { "name": "王建智", "email": "jianzhi.wang@homee.ai", "phone": "0978028739" },
-                "created_time": "2023-11-26T02:14:09.000Z",
-                "role": 0,
-                "company": null,
-                "status": 1
+                id: 61,
+                userID: 549313940,
+                account: 'jianzhi.wang@homee.ai',
+                userData: { name: '王建智', email: 'jianzhi.wang@homee.ai', phone: '0978028739' },
+                created_time: '2023-11-26T02:14:09.000Z',
+                role: 0,
+                company: null,
+                status: 1,
             },
             dataList: undefined,
-            query: ''
+            query: '',
         };
         const glitter = gvc.glitter;
         const filterID = glitter.getUUID();
@@ -1530,24 +1643,24 @@ export class BgNotify {
                                 {
                                     key: (() => {
                                         clearInterval(interval);
-                                        if ((!vm.dataList.find((dd) => {
+                                        if (!vm.dataList.find((dd) => {
                                             return !dd.checked;
-                                        }))) {
+                                        })) {
                                             interval = setTimeout(() => {
                                                 ApiUser.getFCM({
                                                     page: vmi.page - 1,
                                                     limit: 100000,
-                                                    search: vm.query || undefined
+                                                    search: vm.query || undefined,
                                                 }).then((data) => {
-                                                    callback((data.response.data));
+                                                    callback(data.response.data);
                                                 });
                                             }, 10);
                                         }
                                         return EditorElem.checkBoxOnly({
                                             gvc: gvc,
-                                            def: (!vm.dataList.find((dd) => {
+                                            def: !vm.dataList.find((dd) => {
                                                 return !dd.checked;
-                                            })),
+                                            }),
                                             callback: (result) => {
                                                 vm.dataList.map((dd) => {
                                                     dd.checked = result;
@@ -1558,7 +1671,7 @@ export class BgNotify {
                                                 callback(vm.dataList.filter((dd) => {
                                                     return dd.checked;
                                                 }));
-                                            }
+                                            },
                                         });
                                     })(),
                                     value: EditorElem.checkBoxOnly({
@@ -1573,147 +1686,148 @@ export class BgNotify {
                                                 return dd.checked;
                                             }));
                                         },
-                                        style: "height:25px;"
-                                    })
+                                        style: 'height:25px;',
+                                    }),
                                 },
                                 {
                                     key: '名稱',
-                                    value: `<span class="fs-7">${dd.user_data ? dd.user_data.userData.name : `訪客`}</span>`
+                                    value: `<span class="fs-7">${dd.user_data ? dd.user_data.userData.name : `訪客`}</span>`,
                                 },
                                 {
                                     key: '信箱',
-                                    value: `<span class="fs-7">${dd.user_data ? dd.user_data.userData.email : `...`}</span>`
+                                    value: `<span class="fs-7">${dd.user_data ? dd.user_data.userData.email : `...`}</span>`,
                                 },
                                 {
                                     key: '訊息內容',
-                                    value: `<span class="fs-7">${dd.topMessage ? dd.topMessage.text : ``}</span>`
-                                }
+                                    value: `<span class="fs-7">${dd.topMessage ? dd.topMessage.text : ``}</span>`,
+                                },
                             ];
                         });
                     }
                     if (vm.type === 'replace') {
                         return BgWidget.container(html `
-                            <div class="d-flex w-100 align-items-center mb-3 ">
-                                ${BgWidget.goBack(gvc.event(() => {
+                                <div class="d-flex w-100 align-items-center mb-3 ">
+                                    ${BgWidget.goBack(gvc.event(() => {
                             vm.type = 'list';
                             gvc.notifyDataChange(id);
-                        }))} ${BgWidget.title(`客服訊息`)}
-                                <div class="flex-fill"></div>
-                            </div>
-                            ${BgWidget.card(` ${FormWidget.editorView({
+                        }))}
+                                    ${BgWidget.title(`客服訊息`)}
+                                    <div class="flex-fill"></div>
+                                </div>
+                                ${BgWidget.card(` ${FormWidget.editorView({
                             gvc: gvc,
                             array: [
                                 {
-                                    "key": "name",
-                                    "type": "name",
-                                    "title": "姓名",
-                                    "require": "true",
-                                    "readonly": "read",
-                                    "style_data": {
-                                        "input": {
-                                            "class": "",
-                                            "style": ""
+                                    key: 'name',
+                                    type: 'name',
+                                    title: '姓名',
+                                    require: 'true',
+                                    readonly: 'read',
+                                    style_data: {
+                                        input: {
+                                            class: '',
+                                            style: '',
                                         },
-                                        "label": {
-                                            "class": "form-label fs-base ",
-                                            "style": ""
+                                        label: {
+                                            class: 'form-label fs-base ',
+                                            style: '',
                                         },
-                                        "container": {
-                                            "tag": "aboutus-container",
-                                            "class": "",
-                                            "style": "",
-                                            "stylist": [],
-                                            "dataType": "static",
-                                            "style_from": "tag",
-                                            "classDataType": "static"
-                                        }
-                                    }
+                                        container: {
+                                            tag: 'aboutus-container',
+                                            class: '',
+                                            style: '',
+                                            stylist: [],
+                                            dataType: 'static',
+                                            style_from: 'tag',
+                                            classDataType: 'static',
+                                        },
+                                    },
                                 },
                                 {
-                                    "key": "email",
-                                    "type": "email",
-                                    "title": "信箱",
-                                    "require": "true",
-                                    "readonly": "read",
-                                    "style_data": {
-                                        "input": {
-                                            "class": "",
-                                            "style": ""
+                                    key: 'email',
+                                    type: 'email',
+                                    title: '信箱',
+                                    require: 'true',
+                                    readonly: 'read',
+                                    style_data: {
+                                        input: {
+                                            class: '',
+                                            style: '',
                                         },
-                                        "label": {
-                                            "class": "form-label fs-base ",
-                                            "style": ""
+                                        label: {
+                                            class: 'form-label fs-base ',
+                                            style: '',
                                         },
-                                        "container": {
-                                            "tag": "aboutus-container",
-                                            "class": "",
-                                            "style": "",
-                                            "stylist": [],
-                                            "style_from": "tag"
-                                        }
-                                    }
+                                        container: {
+                                            tag: 'aboutus-container',
+                                            class: '',
+                                            style: '',
+                                            stylist: [],
+                                            style_from: 'tag',
+                                        },
+                                    },
                                 },
                                 {
-                                    "key": "title",
-                                    "type": "text",
-                                    "title": "標題",
-                                    "require": "true",
-                                    "readonly": "read",
-                                    "style_data": {
-                                        "input": {
-                                            "class": "",
-                                            "style": ""
+                                    key: 'title',
+                                    type: 'text',
+                                    title: '標題',
+                                    require: 'true',
+                                    readonly: 'read',
+                                    style_data: {
+                                        input: {
+                                            class: '',
+                                            style: '',
                                         },
-                                        "label": {
-                                            "class": "form-label fs-base ",
-                                            "style": ""
+                                        label: {
+                                            class: 'form-label fs-base ',
+                                            style: '',
                                         },
-                                        "container": {
-                                            "tag": "aboutus-container",
-                                            "class": "",
-                                            "style": "",
-                                            "stylist": [],
-                                            "dataType": "static",
-                                            "style_from": "tag",
-                                            "classDataType": "static"
-                                        }
-                                    }
+                                        container: {
+                                            tag: 'aboutus-container',
+                                            class: '',
+                                            style: '',
+                                            stylist: [],
+                                            dataType: 'static',
+                                            style_from: 'tag',
+                                            classDataType: 'static',
+                                        },
+                                    },
                                 },
                                 {
-                                    "key": "content",
-                                    "type": "textArea",
-                                    "title": "訊息",
-                                    "require": "true",
-                                    "readonly": "read",
-                                    "style_data": {
-                                        "input": {
-                                            "class": "",
-                                            "style": ""
+                                    key: 'content',
+                                    type: 'textArea',
+                                    title: '訊息',
+                                    require: 'true',
+                                    readonly: 'read',
+                                    style_data: {
+                                        input: {
+                                            class: '',
+                                            style: '',
                                         },
-                                        "label": {
-                                            "class": "form-label fs-base ",
-                                            "style": ""
+                                        label: {
+                                            class: 'form-label fs-base ',
+                                            style: '',
                                         },
-                                        "container": {
-                                            "class": "",
-                                            "style": ""
-                                        }
-                                    }
-                                }
+                                        container: {
+                                            class: '',
+                                            style: '',
+                                        },
+                                    },
+                                },
                             ],
-                            refresh: () => {
-                            },
-                            formData: vm.data.content
+                            refresh: () => { },
+                            formData: vm.data.content,
                         })}`)}
-                        `, 800);
+                            `, 800);
                     }
                     return BgWidget.container(html `
-                        <div class="d-flex w-100 align-items-center mb-3 ${(type === 'select') ? `d-none` : ``}">
+                        <div class="d-flex w-100 align-items-center mb-3 ${type === 'select' ? `d-none` : ``}">
                             ${BgWidget.title('客服訊息')}
                             <div class="flex-fill"></div>
-                            <button class="btn hoverBtn me-2 px-3"
-                                    style="height:35px !important;font-size: 14px;color:black;border:1px solid black;"
-                                    onclick="${gvc.event(() => {
+                            <button
+                                class="btn hoverBtn me-2 px-3"
+                                style="height:35px !important;font-size: 14px;color:black;border:1px solid black;"
+                                onclick="${gvc.event(() => {
                         EditorElem.openEditorDialog(gvc, (gvc) => {
                             const saasConfig = window.saasConfig;
                             const id = gvc.glitter.getUUID();
@@ -1732,96 +1846,108 @@ export class BgNotify {
                                             return new Promise((resolve, reject) => {
                                                 resolve(FormWidget.editorView({
                                                     gvc: gvc,
-                                                    array: [{
-                                                            "title": "機器人問答",
-                                                            "key": "question",
-                                                            "readonly": "write",
-                                                            "type": "array",
-                                                            "require": "true",
-                                                            "style_data": {
-                                                                "label": {
-                                                                    "class": "form-label fs-base ",
-                                                                    "style": ""
+                                                    array: [
+                                                        {
+                                                            title: '機器人問答',
+                                                            key: 'question',
+                                                            readonly: 'write',
+                                                            type: 'array',
+                                                            require: 'true',
+                                                            style_data: {
+                                                                label: {
+                                                                    class: 'form-label fs-base ',
+                                                                    style: '',
                                                                 },
-                                                                "input": { "class": "", "style": "" },
-                                                                "container": {
-                                                                    "class": "",
-                                                                    "style": ""
-                                                                }
+                                                                input: { class: '', style: '' },
+                                                                container: {
+                                                                    class: '',
+                                                                    style: '',
+                                                                },
                                                             },
-                                                            "referTitile": "ask",
-                                                            "plusBtn": "添加自動問答",
-                                                            "formList": [{
-                                                                    "title": "問題",
-                                                                    "key": "ask",
-                                                                    "readonly": "write",
-                                                                    "type": "text",
-                                                                    "require": "true",
-                                                                    "style_data": {
-                                                                        "label": {
-                                                                            "class": "form-label fs-base ",
-                                                                            "style": ""
+                                                            referTitile: 'ask',
+                                                            plusBtn: '添加自動問答',
+                                                            formList: [
+                                                                {
+                                                                    title: '問題',
+                                                                    key: 'ask',
+                                                                    readonly: 'write',
+                                                                    type: 'text',
+                                                                    require: 'true',
+                                                                    style_data: {
+                                                                        label: {
+                                                                            class: 'form-label fs-base ',
+                                                                            style: '',
                                                                         },
-                                                                        "input": {
-                                                                            "class": "",
-                                                                            "style": ""
+                                                                        input: {
+                                                                            class: '',
+                                                                            style: '',
                                                                         },
-                                                                        "container": {
-                                                                            "class": "",
-                                                                            "style": ""
-                                                                        }
-                                                                    }
-                                                                }, {
-                                                                    "title": "回應",
-                                                                    "key": "response",
-                                                                    "readonly": "write",
-                                                                    "type": "textArea",
-                                                                    "require": "true",
-                                                                    "style_data": {
-                                                                        "label": {
-                                                                            "class": "form-label fs-base ",
-                                                                            "style": ""
+                                                                        container: {
+                                                                            class: '',
+                                                                            style: '',
                                                                         },
-                                                                        "input": {
-                                                                            "class": "",
-                                                                            "style": ""
+                                                                    },
+                                                                },
+                                                                {
+                                                                    title: '回應',
+                                                                    key: 'response',
+                                                                    readonly: 'write',
+                                                                    type: 'textArea',
+                                                                    require: 'true',
+                                                                    style_data: {
+                                                                        label: {
+                                                                            class: 'form-label fs-base ',
+                                                                            style: '',
                                                                         },
-                                                                        "container": {
-                                                                            "class": "",
-                                                                            "style": ""
-                                                                        }
-                                                                    }
-                                                                }]
-                                                        }],
+                                                                        input: {
+                                                                            class: '',
+                                                                            style: '',
+                                                                        },
+                                                                        container: {
+                                                                            class: '',
+                                                                            style: '',
+                                                                        },
+                                                                    },
+                                                                },
+                                                            ],
+                                                        },
+                                                    ],
                                                     refresh: () => {
                                                         gvc.notifyDataChange(id);
                                                     },
-                                                    formData: keyData
+                                                    formData: keyData,
                                                 }));
                                             });
                                         },
                                         divCreate: {
-                                            class: "p-2"
-                                        }
+                                            class: 'p-2',
+                                        },
                                     };
                                 }),
-                                `<div class="d-flex">
-<div class="flex-fill"></div>
-<div class=" btn-primary-c btn my-2 me-2" style="margin-left: 10px;height:35px;" onclick="${gvc.event(() => {
+                                html `<div class="d-flex">
+                                                    <div class="flex-fill"></div>
+                                                    <div
+                                                        class=" btn-primary-c btn my-2 me-2"
+                                                        style="margin-left: 10px;height:35px;"
+                                                        onclick="${gvc.event(() => {
                                     dialog.dataLoading({ visible: true });
                                     ApiUser.setPublicConfig({
-                                        key: `robot_auto_reply`, value: keyData,
-                                        user_id: 'manager'
+                                        key: `robot_auto_reply`,
+                                        value: keyData,
+                                        user_id: 'manager',
                                     }).then((data) => {
                                         dialog.dataLoading({ visible: false });
-                                        dialog.successMessage({ text: "設定成功!" });
+                                        dialog.successMessage({ text: '設定成功!' });
                                     });
-                                })}">儲存設定</div>
-</div>`
+                                })}"
+                                                    >
+                                                        儲存設定
+                                                    </div>
+                                                </div>`,
                             ].join('');
-                        }, () => {
-                        }, 500, '自訂表單');
-                    })}">
+                        }, () => { }, 500, '自訂表單');
+                    })}"
+                            >
                                 <i class="fa-regular fa-gear me-2 "></i>
                                 機器人問答
                             </button>
@@ -1833,7 +1959,7 @@ export class BgNotify {
                             Chat.getChatRoom({
                                 page: vmi.page - 1,
                                 limit: 20,
-                                user_id: 'manager'
+                                user_id: 'manager',
                             }).then((data) => {
                                 vmi.pageSize = Math.ceil(data.response.total / 20);
                                 vm.dataList = data.response.data;
@@ -1856,37 +1982,46 @@ export class BgNotify {
                                     par: [
                                         {
                                             key: 'is_manager',
-                                            value: 'true'
+                                            value: 'true',
                                         },
                                         {
                                             key: 'chat_who',
-                                            value: vm.dataList[index].who
-                                        }
-                                    ]
+                                            value: vm.dataList[index].who,
+                                        },
+                                    ],
                                 });
                             }, '');
                         },
                         filter: html `
                                 <div style="height:50px;" class="w-100 border-bottom ">
-                                    <input class="form-control h-100 " style="border: none;"
-                                           placeholder="搜尋用戶名稱" onchange="${gvc.event((e, event) => {
+                                    <input
+                                        class="form-control h-100 "
+                                        style="border: none;"
+                                        placeholder="搜尋用戶名稱"
+                                        onchange="${gvc.event((e, event) => {
                             vm.query = e.value;
                             gvc.notifyDataChange(id);
-                        })}" value="${vm.query || ''}">
+                        })}"
+                                        value="${vm.query || ''}"
+                                    />
                                 </div>
                                 ${gvc.bindView(() => {
                             return {
                                 bind: filterID,
                                 view: () => {
-                                    if (!vm.dataList || !vm.dataList.find((dd) => {
-                                        return dd.checked;
-                                    })) {
+                                    if (!vm.dataList ||
+                                        !vm.dataList.find((dd) => {
+                                            return dd.checked;
+                                        })) {
                                         return ``;
                                     }
                                     else {
                                         return [
-                                            `<span class="fs-7 fw-bold">操作選項</span>`,
-                                            `<button class="btn btn-danger fs-7 px-2" style="height:30px;border:none;" onclick="${gvc.event(() => {
+                                            html `<span class="fs-7 fw-bold">操作選項</span>`,
+                                            html `<button
+                                                        class="btn btn-danger fs-7 px-2"
+                                                        style="height:30px;border:none;"
+                                                        onclick="${gvc.event(() => {
                                                 const dialog = new ShareDialog(gvc.glitter);
                                                 dialog.checkYesOrNot({
                                                     text: '是否確認移除所選項目?',
@@ -1894,11 +2029,14 @@ export class BgNotify {
                                                         if (response) {
                                                             dialog.dataLoading({ visible: true });
                                                             Chat.deleteChatRoom({
-                                                                id: vm.dataList.filter((dd) => {
+                                                                id: vm.dataList
+                                                                    .filter((dd) => {
                                                                     return dd.checked;
-                                                                }).map((dd) => {
+                                                                })
+                                                                    .map((dd) => {
                                                                     return dd.id;
-                                                                }).join(`,`)
+                                                                })
+                                                                    .join(`,`),
                                                             }).then((res) => {
                                                                 dialog.dataLoading({ visible: false });
                                                                 if (res.result) {
@@ -1906,33 +2044,40 @@ export class BgNotify {
                                                                     gvc.notifyDataChange(id);
                                                                 }
                                                                 else {
-                                                                    dialog.errorMessage({ text: "刪除失敗" });
+                                                                    dialog.errorMessage({ text: '刪除失敗' });
                                                                 }
                                                             });
                                                         }
-                                                    }
+                                                    },
                                                 });
-                                            })}">批量移除</button>`
+                                            })}"
+                                                    >
+                                                        批量移除
+                                                    </button>`,
                                         ].join(``);
                                     }
                                 },
                                 divCreate: () => {
                                     return {
-                                        class: `d-flex align-items-center p-2 py-3 ${(!vm.dataList || !vm.dataList.find((dd) => {
-                                            return dd.checked;
-                                        }) || type === 'select') ? `d-none` : ``}`,
-                                        style: `height:40px;gap:10px;margin-top:10px;`
+                                        class: `d-flex align-items-center p-2 py-3 ${!vm.dataList ||
+                                            !vm.dataList.find((dd) => {
+                                                return dd.checked;
+                                            }) ||
+                                            type === 'select'
+                                            ? `d-none`
+                                            : ``}`,
+                                        style: `height:40px;gap:10px;margin-top:10px;`,
                                     };
-                                }
+                                },
                             };
                         })}
-                            `
+                            `,
                     })}
                     `);
                 },
                 divCreate: {
-                    class: (type === 'select') ? `m-n4` : ``
-                }
+                    class: type === 'select' ? `m-n4` : ``,
+                },
             };
         });
     }

@@ -93,20 +93,15 @@ export class MemberTypeList {
                 view: () => {
                     if (vm.type === 'list') {
                         return BgWidget.container(html `
-                            <div class="d-flex w-100 align-items-center mb-3">
-                                ${BgWidget.title('會員等級')}
-                                <div class="flex-fill"></div>
-                                <div
-                                    class="bt_ffb40"
-                                    onclick="${gvc.event(() => {
+                                <div class="d-flex w-100 align-items-center" style="margin-bottom: 24px;">
+                                    ${BgWidget.title('會員等級')}
+                                    <div class="flex-fill"></div>
+                                    ${BgWidget.darkButton('新增', gvc.event(() => {
                             vm.type = 'add';
                             gvc.notifyDataChange(id);
-                        })}"
-                                >
-                                    新增
+                        }))}
                                 </div>
-                            </div>
-                            ${BgWidget.table({
+                                ${BgWidget.mainCard(BgWidget.tableV2({
                             gvc: gvc,
                             getData: (vd) => {
                                 vmi = vd;
@@ -127,7 +122,7 @@ export class MemberTypeList {
                                 vm.type = 'replace';
                             },
                             filter: html `
-                                    ${gvc.bindView(() => {
+                                            ${gvc.bindView(() => {
                                 return {
                                     bind: filterID,
                                     view: () => {
@@ -180,9 +175,9 @@ export class MemberTypeList {
                                     },
                                 };
                             })}
-                                `,
-                        })}
-                        `);
+                                        `,
+                        }))}
+                            `, BgWidget.getContainerWidth());
                     }
                     else if (vm.type == 'add') {
                         return this.userInformationDetail({
@@ -274,7 +269,7 @@ export class MemberTypeList {
                                 bind: id,
                                 view: () => {
                                     let map = [
-                                        BgWidget.card_main(html `
+                                        BgWidget.mainCard(html `
                                                     ${html `<div class="tx_normal fw-bold">會員名稱*</div>`}
                                                     ${BgWidget.editeInput({
                                             gvc: gvc,
@@ -287,7 +282,7 @@ export class MemberTypeList {
                                             },
                                         })}
                                                 `),
-                                        BgWidget.card_main(html `
+                                        BgWidget.mainCard(html `
                                                     <div class="tx_normal fw-bold" style="margin-bottom: 18px;">會員條件*</div>
                                                     ${[
                                             { title: '累積消費金額', value: 'total' },
@@ -342,7 +337,7 @@ export class MemberTypeList {
                                         })
                                             .join('<div class="my-2"></div>')}
                                                 `),
-                                        BgWidget.card_main(html `
+                                        BgWidget.mainCard(html `
                                                     <div class="tx_normal fw-bold" style="margin-bottom: 18px;">計算期間*</div>
                                                     ${[
                                             { title: '計算期限', value: 'day' },
@@ -395,7 +390,7 @@ export class MemberTypeList {
                                         })
                                             .join('<div class="my-2"></div>')}
                                                 `),
-                                        BgWidget.card_main(html `
+                                        BgWidget.mainCard(html `
                                                     <div class="tx_normal fw-bold" style="margin-bottom: 18px;">會員期限*</div>
                                                     ${[
                                             { title: '沒有期限', value: 'noLimit' },
@@ -510,7 +505,7 @@ export class MemberTypeList {
                             return {
                                 bind: noteID,
                                 view: () => {
-                                    return BgWidget.card_main(html `
+                                    return BgWidget.mainCard(html `
                                                 <div class="tx_normal fw-bold">摘要</div>
                                                 <div class="tx_normal fw-normal" style="margin-top: 18px;margin-bottom: 18px;">會員名稱: ${vm.data.tag_name || '尚未設定'}</div>
                                                 <div class="w-100" style="background: #DDD;height: 2px;"></div>
@@ -557,7 +552,7 @@ export class MemberTypeList {
                             });
                         }))}
                             </div>`,
-                    ].join('<div class="my-2"></div>'), 1000);
+                    ].join('<div class="my-2"></div>'), BgWidget.getContainerWidth());
                 },
             };
         });

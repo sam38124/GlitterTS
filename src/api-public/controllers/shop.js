@@ -79,6 +79,7 @@ router.get('/rebate', async (req, resp) => {
                         orderID: (_a = item.content.order_id) !== null && _a !== void 0 ? _a : '',
                         userID: item.user_id,
                         money: item.origin,
+                        remain: item.remain,
                         status: 1,
                         note: item.note,
                         created_time: item.created_at,

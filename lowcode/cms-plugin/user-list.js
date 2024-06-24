@@ -110,7 +110,7 @@ export class UserList {
             view: () => {
                 if (vm.type === 'list') {
                     return BgWidget.container(html `
-                            <div class="d-flex w-100 align-items-center">
+                            <div class="d-flex w-100 align-items-center" style="margin-bottom: 24px;">
                                 ${BgWidget.title('顧客列表')}
                                 <div class="flex-fill"></div>
                                 <button
@@ -126,7 +126,7 @@ export class UserList {
                                     自訂資料
                                 </button>
                             </div>
-                            ${BgWidget.container([
+                            ${BgWidget.mainCard([
                         (() => {
                             const id = gvc.glitter.getUUID();
                             return gvc.bindView({
@@ -251,14 +251,8 @@ export class UserList {
                                 });
                             },
                         }),
-                    ].join(''), 1200, `
-                                    background-color: #fff;
-                                    margin: 24px 0 !important;
-                                    padding: 32px 42px !important;
-                                    border-radius: 10px;
-                                    box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.08);
-                                `)}
-                        `, 1200);
+                    ].join(''))}
+                        `, BgWidget.getContainerWidth());
                 }
                 else if (vm.type == 'replace') {
                     return this.userInformationDetail({
@@ -368,8 +362,8 @@ export class UserList {
     static userInformationDetail(cf) {
         const html = String.raw;
         const gvc = cf.gvc;
-        const id = gvc.glitter.getUUID();
         const vm = {
+            id: gvc.glitter.getUUID(),
             data: undefined,
             userData: undefined,
             loading: true,
@@ -380,7 +374,7 @@ export class UserList {
                 vm.data = dd.response;
                 vm.userData = vm.data;
                 vm.loading = false;
-                gvc.notifyDataChange(id);
+                gvc.notifyDataChange(vm.id);
             });
         }
         function getOrderlist(data) {
@@ -418,7 +412,7 @@ export class UserList {
                             vm.userData = JSON.parse(JSON.stringify(vm.data));
                             vm.data = dd;
                             vm.type = 'order';
-                            gvc.notifyDataChange(id);
+                            gvc.notifyDataChange(vm.id);
                         })),
                     },
                 ];
@@ -469,18 +463,18 @@ export class UserList {
         regetData();
         return gvc.bindView(() => {
             return {
-                bind: id,
+                bind: vm.id,
                 dataList: [{ obj: vm, key: 'type' }],
                 view: () => {
                     var _a, _b;
                     if (vm.loading) {
-                        return html `<div class="w-100 h-100 d-flex align-items-center"><div class="spinner-border"></div></div>`;
+                        return BgWidget.spinner();
                     }
                     vm.data.userData = (_a = vm.data.userData) !== null && _a !== void 0 ? _a : {};
                     const saasConfig = window.parent.saasConfig;
                     switch (vm.type) {
                         case 'order':
-                            return ShoppingOrderManager.replaceOrder(gvc, vm, id);
+                            return ShoppingOrderManager.replaceOrder(gvc, vm, vm.id);
                         case 'list':
                         default:
                             vm.data = JSON.parse(JSON.stringify(vm.userData));
@@ -501,7 +495,7 @@ export class UserList {
                                         return {
                                             bind: id,
                                             view: () => {
-                                                return BgWidget.card_main(html `<div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                                return BgWidget.mainCard(html `<div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
                                                                         <span class="tx_700">顧客資訊</span>
                                                                         <div style="display: flex; gap: 8px;">
                                                                             ${BgWidget.grayButton(vmi.mode === 'edit' ? '修改關閉' : '修改啟用', gvc.event(() => {
@@ -596,7 +590,7 @@ export class UserList {
                                         return {
                                             bind: id,
                                             view: () => {
-                                                return BgWidget.card_main(html `<div style="display: flex; margin-bottom: 8px;">
+                                                return BgWidget.mainCard(html `<div style="display: flex; margin-bottom: 8px;">
                                                                         <span class="tx_700">訂單記錄</span>
                                                                     </div>` +
                                                     gvc.bindView(() => {
@@ -645,7 +639,7 @@ export class UserList {
                                         return {
                                             bind: id,
                                             view: () => {
-                                                return BgWidget.card_main(html `<div style="display: flex; margin-bottom: 12px;">
+                                                return BgWidget.mainCard(html `<div style="display: flex; margin-bottom: 12px;">
                                                                         <span class="tx_700">回饋金</span>
                                                                     </div>` +
                                                     html `<div style="display: flex; margin-bottom: 18px; align-items: center; gap: 18px">
@@ -708,14 +702,14 @@ export class UserList {
                                         };
                                     })}
                                                 </div>`,
-                                ].join(html `<div style="margin-top: 24px"></div>`), 738, 'padding: 0; margin: 0 !important;')}
+                                ].join(html `<div style="margin-top: 24px"></div>`), undefined, 'padding: 0; margin: 0 !important; width: 73.5%;')}
                                         ${BgWidget.container(html `<div>
                                                 ${gvc.bindView(() => {
                                     const id = gvc.glitter.getUUID();
                                     return {
                                         bind: id,
                                         view: () => {
-                                            return BgWidget.card_main(gvc.bindView(() => {
+                                            return BgWidget.mainCard(gvc.bindView(() => {
                                                 const id = gvc.glitter.getUUID();
                                                 return {
                                                     bind: id,
@@ -794,7 +788,7 @@ export class UserList {
                                         },
                                     };
                                 })}
-                                            </div>`, 262, 'padding: 0; margin: 0 !important;')}
+                                            </div>`, undefined, 'padding: 0; margin: 0 !important; width: 26.5%;')}
                                     </div>`,
                                 html `<div style="margin-bottom: 240px"></div>`,
                                 html ` <div class="update-bar-container">
@@ -808,7 +802,7 @@ export class UserList {
                                             regetData();
                                             dialog.successMessage({ text: '更新成功!' });
                                             vm.loading = true;
-                                            gvc.notifyDataChange(id);
+                                            gvc.notifyDataChange(vm.id);
                                         }
                                         else {
                                             dialog.errorMessage({ text: '更新異常!' });
@@ -816,7 +810,7 @@ export class UserList {
                                     });
                                 }))}
                                     </div>`,
-                            ].join(html `<div style="margin-top: 24px"></div>`), 1000);
+                            ].join(html `<div style="margin-top: 24px"></div>`), BgWidget.getContainerWidth());
                     }
                 },
                 onCreate: () => {
@@ -825,7 +819,7 @@ export class UserList {
                             vm.data = dd.response;
                             vm.userData = vm.data;
                             vm.loading = false;
-                            gvc.notifyDataChange(id);
+                            gvc.notifyDataChange(vm.id);
                         });
                     }
                 },
@@ -913,23 +907,23 @@ export class UserList {
                 view: () => {
                     if (vm.type === 'list') {
                         return BgWidget.container(html `
-                            <div class="d-flex w-100 align-items-center mb-3 ${type === 'select' ? `d-none` : ``}">
-                                ${type === 'select' ? BgWidget.title('選擇用戶') : BgWidget.title('用戶管理')}
-                                <div class="flex-fill"></div>
-                                <button
-                                    class="btn hoverBtn me-2 px-3"
-                                    style="height:35px !important;font-size: 14px;color:black;border:1px solid black;"
-                                    onclick="${gvc.event(() => {
+                                <div class="d-flex w-100 align-items-center mb-3 ${type === 'select' ? `d-none` : ``}">
+                                    ${type === 'select' ? BgWidget.title('選擇用戶') : BgWidget.title('用戶管理')}
+                                    <div class="flex-fill"></div>
+                                    <button
+                                        class="btn hoverBtn me-2 px-3"
+                                        style="height:35px !important;font-size: 14px;color:black;border:1px solid black;"
+                                        onclick="${gvc.event(() => {
                             UserList.setUserForm(gvc, () => {
                                 gvc.notifyDataChange(id);
                             });
                         })}"
-                                >
-                                    <i class="fa-regular fa-gear me-2 "></i>
-                                    自訂資料
-                                </button>
-                            </div>
-                            ${BgWidget.tableV2({
+                                    >
+                                        <i class="fa-regular fa-gear me-2 "></i>
+                                        自訂資料
+                                    </button>
+                                </div>
+                                ${BgWidget.tableV2({
                             gvc: gvc,
                             getData: (vd) => {
                                 vmi = vd;
@@ -960,11 +954,11 @@ export class UserList {
                                 }
                             },
                             filter: html `
-                                    ${BgWidget.searchPlace(gvc.event((e, event) => {
+                                        ${BgWidget.searchPlace(gvc.event((e, event) => {
                                 vm.query = e.value;
                                 gvc.notifyDataChange(id);
                             }), vm.query || '', '搜尋所有用戶')}
-                                    ${gvc.bindView(() => {
+                                        ${gvc.bindView(() => {
                                 return {
                                     bind: filterID,
                                     view: () => {
@@ -979,9 +973,9 @@ export class UserList {
                                             return [
                                                 html `<span class="fs-7 fw-bold">操作選項</span>`,
                                                 html `<button
-                                                            class="btn btn-danger fs-7 px-2"
-                                                            style="height:30px;border:none;"
-                                                            onclick="${gvc.event(() => {
+                                                                class="btn btn-danger fs-7 px-2"
+                                                                style="height:30px;border:none;"
+                                                                onclick="${gvc.event(() => {
                                                     const dialog = new ShareDialog(gvc.glitter);
                                                     dialog.checkYesOrNot({
                                                         text: '是否確認移除所選項目?',
@@ -1011,9 +1005,9 @@ export class UserList {
                                                         },
                                                     });
                                                 })}"
-                                                        >
-                                                            批量移除
-                                                        </button>`,
+                                                            >
+                                                                批量移除
+                                                            </button>`,
                                             ].join(``);
                                         }
                                     },
@@ -1031,9 +1025,9 @@ export class UserList {
                                     },
                                 };
                             })}
-                                `,
+                                    `,
                         })}
-                        `);
+                            `);
                     }
                     else if (vm.type == 'replace') {
                         return this.userInformationDetail({

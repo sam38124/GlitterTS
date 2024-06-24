@@ -7,10 +7,10 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import { BgWidget } from "../backend-manager/bg-widget.js";
-import { ApiUser } from "../glitter-base/route/user.js";
-import { EditorElem } from "../glitterBundle/plugins/editor-elem.js";
-import { ShareDialog } from "../dialog/ShareDialog.js";
+import { BgWidget } from '../backend-manager/bg-widget.js';
+import { ApiUser } from '../glitter-base/route/user.js';
+import { EditorElem } from '../glitterBundle/plugins/editor-elem.js';
+import { ShareDialog } from '../dialog/ShareDialog.js';
 const html = String.raw;
 export class AutoReply {
     static main(gvc, widget) {
@@ -55,9 +55,7 @@ export class AutoReply {
                                 },
                                 {
                                     key: '標題',
-                                    value: `<div style="max-width: calc(100vw - 650px);text-overflow: ellipsis;white-space: nowrap;position: relative;overflow: hidden;">
-${dd.title}
-</div>`,
+                                    value: html `<div style="max-width: calc(100vw - 650px);text-overflow: ellipsis;white-space: nowrap;position: relative;overflow: hidden;">${dd.title}</div>`,
                                 },
                                 {
                                     key: '最後更新時間',
@@ -71,14 +69,12 @@ ${dd.title}
                                             bind: id2,
                                             view: () => {
                                                 console.log(`id2=>`, id2);
-                                                return ` <div class="tx_normal">
-                                                              啟用
-                                                                </div>
-                                                                <div class="cursor_it form-check form-switch ms-1"
-                                                                     style=" ">
-                                                                    <input class=" form-check-input form-check-input-success" 
-                                                                           type="checkbox" 
-                                                                           onclick="${gvc.event((e, event) => {
+                                                return html ` <div class="tx_normal">啟用</div>
+                                                    <div class="cursor_it form-check form-switch ms-1" style=" ">
+                                                        <input
+                                                            class=" form-check-input form-check-input-success"
+                                                            type="checkbox"
+                                                            onclick="${gvc.event((e, event) => {
                                                     event.stopPropagation();
                                                     ApiUser.getPublicConfig(dd.tag, 'manager').then((res) => {
                                                         dd.toggle = !dd.toggle;
@@ -94,7 +90,9 @@ ${dd.title}
                                                         });
                                                     });
                                                 })}"
-                                                                            ${dd.toggle ? `checked` : ``}></div>`;
+                                                            ${dd.toggle ? `checked` : ``}
+                                                        />
+                                                    </div>`;
                                             },
                                             divCreate: { elem: `div`, style: `gap:4px;`, class: `d-flex` },
                                         };
@@ -104,11 +102,11 @@ ${dd.title}
                         });
                     }
                     return BgWidget.container(html `
-                        <div class="d-flex w-100 align-items-center mb-3 ">
-                            ${BgWidget.title('自動寄件')}
-                            <div class="flex-fill"></div>
-                        </div>
-                        ${BgWidget.table({
+                            <div class="d-flex w-100 align-items-center" style="margin-bottom: 24px;">
+                                ${BgWidget.title('自動寄件')}
+                                <div class="flex-fill"></div>
+                            </div>
+                            ${BgWidget.mainCard(BgWidget.tableV2({
                         gvc: gvc,
                         editable: true,
                         getData: (vmk) => __awaiter(this, void 0, void 0, function* () {
@@ -145,11 +143,8 @@ ${dd.title}
                             gvc.notifyDataChange(id);
                         },
                         filter: ``,
-                    })}
-                    `);
-                },
-                divCreate: {
-                    class: `m-4`,
+                    }))}
+                        `, BgWidget.getContainerWidth());
                 },
             };
         });
@@ -161,11 +156,13 @@ ${dd.title}
         };
         return [
             [
-                `<div class="d-flex align-items-center">${BgWidget.goBack(gvc.event(() => {
+                html `<div class="d-flex align-items-center">
+                    ${BgWidget.goBack(gvc.event(() => {
                     back();
-                }))}${BgWidget.title('信件設定')}</div>`,
+                }))}${BgWidget.title('信件設定')}
+                </div>`,
             ],
-            `<div style="height: 10px;"></div>`,
+            html `<div style="height: 10px;"></div>`,
             BgWidget.card(gvc.bindView(() => {
                 const id = gvc.glitter.getUUID();
                 const keyData = AutoReply.getDefCompare(tag).then((dd) => {
@@ -211,13 +208,15 @@ ${dd.title}
                     },
                 };
             })),
-            `<div style="height: 70px;"></div>`,
-            `<div class="position-fixed bottom-0 left-0 w-100 d-flex align-items-center justify-content-end p-3 border-top bg-white border" style="z-index:999;gap:10px;left: 0;background: #FFF;
-box-shadow: 0px 1px 10px 0px rgba(0, 0, 0, 0.15);">
-${BgWidget.cancel(gvc.event(() => {
+            html `<div style="height: 70px;"></div>`,
+            html `<div
+                class="position-fixed bottom-0 left-0 w-100 d-flex align-items-center justify-content-end p-3 border-top bg-white border"
+                style="z-index:999;gap:10px;left: 0;background: #FFF;box-shadow: 0px 1px 10px 0px rgba(0, 0, 0, 0.15);"
+            >
+                ${BgWidget.cancel(gvc.event(() => {
                 back();
             }))}
-${BgWidget.save(gvc.event(() => {
+                ${BgWidget.save(gvc.event(() => {
                 widget.event('loading', { title: '儲存中' });
                 console.log(`saveData->`, vm.data);
                 ApiUser.setPublicConfig({
@@ -231,7 +230,7 @@ ${BgWidget.save(gvc.event(() => {
                     }, 1000);
                 });
             }))}
-</div>`,
+            </div>`,
         ].join('');
     }
     static getDefCompare(tag) {

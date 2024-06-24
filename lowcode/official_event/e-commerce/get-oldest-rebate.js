@@ -19,8 +19,7 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                 event: () => {
                     return new Promise((resolve, reject) => __awaiter(void 0, void 0, void 0, function* () {
                         ApiWallet.getRebate({ type: 'me', limit: 100, page: 0 }).then((res) => __awaiter(void 0, void 0, void 0, function* () {
-                            console.log(res.response);
-                            resolve(res.result && res.response.data);
+                            resolve(res.result && res.response.oldest);
                         }));
                     }));
                 },

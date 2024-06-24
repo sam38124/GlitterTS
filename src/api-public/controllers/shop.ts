@@ -78,6 +78,7 @@ router.get('/rebate', async (req: express.Request, resp: express.Response) => {
                           orderID: item.content.order_id ?? '',
                           userID: item.user_id,
                           money: item.origin,
+                          remain: item.remain,
                           status: 1,
                           note: item.note,
                           created_time: item.created_at,

@@ -2452,19 +2452,7 @@ ${obj.gvc.bindView(() => {
     public static btnGroup(obj: { gvc: GVC; inner: string; style?: string; classS?: string; dropDownStyle?: string; top?: number; fontawesome: string }) {
         const gvc = obj.gvc;
         let interval: any = undefined;
-        return html` <div
-            class="position-relative btn-group dropend subBt my-auto ms-1 ${obj.classS ?? ''}"
-            style="${obj.style ?? ''}"
-            onmouseover="${obj.gvc.event((e, event) => {
-                // $(e).children('.dropdown-menu').css('position', `fixed`);
-                // $(e).children('.dropdown-menu').css('width', `191px`);
-                // $(e).children('.dropdown-menu').css('height', `139px`);
-                // $(e).children('.dropdown-menu').css('left', `${box.left + 50}px`);
-                // $(e).children('.dropdown-menu').css('left', `${0}px`);
-                // $(e).children('.dropdown-menu').css('top', `${0}px`)
-                // },1000)
-            })}"
-        >
+        return html` <div class="position-relative btn-group dropend subBt my-auto ms-1 ${obj.classS ?? ''}" style="${obj.style ?? ''}">
             <div
                 type="button"
                 class="bt"

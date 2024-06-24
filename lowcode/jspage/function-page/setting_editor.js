@@ -69,6 +69,15 @@ export class Setting_editor {
                                         },
                                         {
                                             icon: '',
+                                            page: 'rebate_setting',
+                                            group: '商店設定',
+                                            title: '購物金設定',
+                                            appName: 'cms_system',
+                                            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1716566571091-Property 1=gear-regular.svg',
+                                            moduleName: '購物金設定',
+                                        },
+                                        {
+                                            icon: '',
                                             page: 'invoice_setting',
                                             group: '商店設定',
                                             title: '電子發票',
@@ -142,19 +151,19 @@ export class Setting_editor {
                                             icon: '',
                                             page: 'discount_setting',
                                             group: '優惠促銷',
-                                            title: '折扣管理',
+                                            title: '優惠券管理',
                                             appName: 'cms_system',
                                             groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713370923228-Component 56 (3).svg',
-                                            moduleName: '折扣管理',
+                                            moduleName: '優惠券管理',
                                         },
                                         {
                                             icon: '',
                                             page: 'rebate',
                                             group: '優惠促銷',
-                                            title: '回饋金',
+                                            title: '購物金紀錄',
                                             appName: 'cms_system',
                                             groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713370923228-Component 56 (3).svg',
-                                            moduleName: '回饋金',
+                                            moduleName: '購物金紀錄',
                                         },
                                         {
                                             icon: '',
@@ -477,13 +486,9 @@ export class Setting_editor {
                                                                                         <div class="flex-fill"></div>
                                                                                         ${dd.type === 'container'
                                                                         ? !dd.toggle
-                                                                            ? `
-                                            <i class="fa-regular fa-angle-right hoverBtn me-1" aria-hidden="true"></i>
-                                            `
-                                                                            : `<i class="fa-regular fa-angle-down hoverBtn me-1" aria-hidden="true"></i>`
-                                                                        : `
-                                               ${dd.info && dd.info.icon ? `<img src="${dd.info.icon}" style="width:18px;height:18px;">` : ``}
-                                            `}
+                                                                            ? html ` <i class="fa-regular fa-angle-right hoverBtn me-1" aria-hidden="true"></i> `
+                                                                            : html `<i class="fa-regular fa-angle-down hoverBtn me-1" aria-hidden="true"></i>`
+                                                                        : html ` ${dd.info && dd.info.icon ? `<img src="${dd.info.icon}" style="width:18px;height:18px;">` : ``} `}
                                                                                     </div>
                                                                                     ${dd.type === 'container'
                                                                         ? html ` <div class="ps-4 pt-2 pb-2 ${dd.toggle ? `` : `d-none`}">${renderItems(dd.child)}</div>`
@@ -507,7 +512,7 @@ export class Setting_editor {
                                                         };
                                                     });
                                                 }
-                                                return `<div class="p-2">${renderItems(list)}</div>`;
+                                                return html `<div class="p-2">${renderItems(list)}</div>`;
                                             }
                                             return renderItems(items);
                                         },
@@ -516,7 +521,7 @@ export class Setting_editor {
                             })()}
                             </div>`;
                         })(),
-                        `<div
+                        html `<div
                             class="bg-white w-100 align-items-center  d-flex editor_item_title  start-0  z-index-9 ps-2  border-bottom border-top position-absolute bottom-0 border-end"
                             style="z-index: 999;border:none;"
                         >
@@ -587,10 +592,10 @@ export class Setting_editor {
                             }),
                             EditorElem.searchInput({
                                 gvc: gvc,
-                                title: `群組分類<div class="alert alert-info p-2 mt-2 fs-base fw-500 mb-0"
-                                             style="word-break: break-all;white-space:normal">
-                                            加入 / 進行分類:<br>例如:頁面/登入/註冊設定
-                                        </div>`,
+                                title: html `群組分類
+                                            <div class="alert alert-info p-2 mt-2 fs-base fw-500 mb-0" style="word-break: break-all;white-space:normal">
+                                                加入 / 進行分類:<br />例如:頁面/登入/註冊設定
+                                            </div>`,
                                 def: postMd.group,
                                 array: (() => {
                                     let array = [];
@@ -744,28 +749,29 @@ export class Setting_editor {
                                                             >
                                                                 ${dd.type === 'container'
                                                     ? !dd.toggle
-                                                        ? `
-                                            <i class="fa-regular fa-angle-right hoverBtn me-1" aria-hidden="true"></i>
-                                            `
-                                                        : `<i class="fa-regular fa-angle-down hoverBtn me-1" aria-hidden="true"></i>`
-                                                    : `
-                                               ${dd.info && dd.info.icon ? `<img src="${dd.info.icon}" style="width:18px;height:18px;">` : ``}
-                                            `}
+                                                        ? html ` <i class="fa-regular fa-angle-right hoverBtn me-1" aria-hidden="true"></i> `
+                                                        : html `<i class="fa-regular fa-angle-down hoverBtn me-1" aria-hidden="true"></i>`
+                                                    : html ` ${dd.info && dd.info.icon ? `<img src="${dd.info.icon}" style="width:18px;height:18px;">` : ``} `}
                                                                 ${dd.icon ? `<img src="${dd.icon}" style="width:18px;height:18px;">` : ``}
                                                                 <span>${dd.title}</span>
                                                                 <div class="flex-fill"></div>
                                                                 ${dd.type === 'container'
                                                     ? ``
-                                                    : `
-           <i class="fa-solid fa-pencil text-black hoverBtn me-2 child" onclick="${gvc.event(() => {
+                                                    : html `
+                                                                          <i
+                                                                              class="fa-solid fa-pencil text-black hoverBtn me-2 child"
+                                                                              onclick="${gvc.event(() => {
                                                         select = dd.info;
                                                         NormalPageEditor.toggle({
                                                             visible: true,
                                                             view: addPlugin(select),
                                                             title: dd.title,
                                                         });
-                                                    })}"></i>
-                                            <i class="fa-sharp fa-solid fa-trash-can text-black hoverBtn me-2 child" onclick="${gvc.event(() => {
+                                                    })}"
+                                                                          ></i>
+                                                                          <i
+                                                                              class="fa-sharp fa-solid fa-trash-can text-black hoverBtn me-2 child"
+                                                                              onclick="${gvc.event(() => {
                                                         const dialog = new ShareDialog(gvc.glitter);
                                                         dialog.checkYesOrNot({
                                                             callback: (response) => {
@@ -784,8 +790,9 @@ export class Setting_editor {
                                                             },
                                                             text: '是否確認刪除插件?',
                                                         });
-                                                    })}"></i>
-`}
+                                                    })}"
+                                                                          ></i>
+                                                                      `}
                                                                 <i class="fa-solid fa-grip-dots-vertical"></i>
                                                             </div>
                                                             ${dd.type === 'container' ? `<div class="ps-2 ${dd.toggle ? `` : `d-none`}">${renderItems(dd.child)}</div>` : ``}
