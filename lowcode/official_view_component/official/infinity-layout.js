@@ -7,11 +7,11 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import { Plugin } from "../../glitterBundle/plugins/plugin-creater.js";
-import { getInitialData } from "../initial_data.js";
-import { BaseApi } from "../../glitterBundle/api/base.js";
-import { EditorElem } from "../../glitterBundle/plugins/editor-elem.js";
-import { TriggerEvent } from "../../glitterBundle/plugins/trigger-event.js";
+import { Plugin } from '../../glitterBundle/plugins/plugin-creater.js';
+import { getInitialData } from '../initial_data.js';
+import { BaseApi } from '../../glitterBundle/api/base.js';
+import { EditorElem } from '../../glitterBundle/plugins/editor-elem.js';
+import { TriggerEvent } from '../../glitterBundle/plugins/trigger-event.js';
 Plugin.createComponent(import.meta.url, (glitter, editMode) => {
     return {
         render: (gvc, widget, setting, hoverID, subData) => {
@@ -20,36 +20,36 @@ Plugin.createComponent(import.meta.url, (glitter, editMode) => {
                 key: 'setting',
                 def: {
                     container: {
-                        style: {}
+                        style: {},
                     },
                     child: {
-                        style: {}
+                        style: {},
                     },
                     loading: {
-                        style: {}
+                        style: {},
                     },
                     list: [],
                     initial: {},
                     newData: {},
                     distance_with_data: 0,
                     loading_finish: {},
-                    loadingView: {}
+                    loadingView: {},
                 },
             });
-            const containerStyle = glitter.htmlGenerate.editor_component((config).container.style, gvc, widget, subData);
-            const childStyle = glitter.htmlGenerate.editor_component((config).child.style, gvc, widget, subData);
-            const loadingStyle = glitter.htmlGenerate.editor_component((config).loading.style, gvc, widget, subData);
+            const containerStyle = glitter.htmlGenerate.editor_component(config.container.style, gvc, widget, subData);
+            const childStyle = glitter.htmlGenerate.editor_component(config.child.style, gvc, widget, subData);
+            const loadingStyle = glitter.htmlGenerate.editor_component(config.loading.style, gvc, widget, subData);
             return {
                 view: () => {
                     return gvc.bindView(() => {
                         const id = gvc.glitter.getUUID();
                         let vm = {
                             loading: false,
-                            data: []
+                            data: [],
                         };
                         function getPageView(tag, subData, cs, style) {
                             return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
-                                (window.glitterInitialHelper).getPageData(tag, (d2) => {
+                                window.glitterInitialHelper.getPageData(tag, (d2) => {
                                     let data = d2.response.result[0];
                                     data.config.map((dd) => {
                                         glitter.htmlGenerate.renameWidgetID(dd);
@@ -59,7 +59,7 @@ Plugin.createComponent(import.meta.url, (glitter, editMode) => {
             ${new glitter.htmlGenerate(data.config, [], subData).render(gvc, undefined, {
                                         childContainer: true,
                                         class: cs,
-                                        style: style
+                                        style: style,
                                     })}
                                                 `);
                                 });
@@ -70,7 +70,10 @@ Plugin.createComponent(import.meta.url, (glitter, editMode) => {
                                 vm.loading = true;
                                 gvc.notifyDataChange(id);
                                 vm.data = (yield TriggerEvent.trigger({
-                                    gvc: gvc, widget: widget, clickEvent: config.initial, subData: subData
+                                    gvc: gvc,
+                                    widget: widget,
+                                    clickEvent: config.initial,
+                                    subData: subData,
                                 }));
                                 vm.loading = false;
                                 gvc.notifyDataChange(id);
@@ -91,14 +94,17 @@ Plugin.createComponent(import.meta.url, (glitter, editMode) => {
                                             const view = yield getPageView(widget.data.tag, b, childStyle.class(), childStyle.style());
                                             viewList.push(view);
                                         }
-                                        resolve(viewList.map((dd) => {
+                                        resolve(viewList
+                                            .map((dd) => {
                                             return dd;
-                                        }).join(``));
+                                        })
+                                            .join(``));
                                     }
                                 }));
                             },
                             divCreate: {
-                                class: containerStyle.class(), style: containerStyle.style()
+                                class: containerStyle.class(),
+                                style: containerStyle.style(),
                             },
                             onCreate: () => {
                                 return new Promise((resolve, reject) => __awaiter(void 0, void 0, void 0, function* () {
@@ -107,29 +113,29 @@ Plugin.createComponent(import.meta.url, (glitter, editMode) => {
                                         targetElement.removeEventListener('scroll', targetElement.infinityScroll);
                                     }
                                     targetElement.infinityScroll = function () {
-                                        if (targetElement.scrollTop + targetElement.clientHeight >= (targetElement.scrollHeight - config.distance_with_data)) {
+                                        if (targetElement.scrollTop + targetElement.clientHeight >= targetElement.scrollHeight - config.distance_with_data) {
                                             if (!vm.loading) {
                                                 vm.loading = true;
                                                 new Promise(() => __awaiter(this, void 0, void 0, function* () {
-                                                    const loading_finish = yield (TriggerEvent.trigger({
+                                                    const loading_finish = yield TriggerEvent.trigger({
                                                         gvc: gvc,
                                                         widget: widget,
                                                         clickEvent: config.loading_finish,
-                                                        subData: subData
-                                                    }));
+                                                        subData: subData,
+                                                    });
                                                     if (!loading_finish) {
                                                         const loadingID = gvc.glitter.getUUID();
                                                         const view = yield getPageView(config.loadingView.tag, subData, loadingStyle.class() + ` ${loadingID}`, loadingStyle.style());
-                                                        gvc.getBindViewElem(id).innerHTML += (view);
-                                                        const response = yield (TriggerEvent.trigger({
+                                                        gvc.getBindViewElem(id).innerHTML += view;
+                                                        const response = yield TriggerEvent.trigger({
                                                             gvc: gvc,
                                                             widget: widget,
                                                             clickEvent: config.newData,
-                                                            subData: subData
-                                                        }));
+                                                            subData: subData,
+                                                        });
                                                         for (const b of response) {
                                                             const view = yield getPageView(widget.data.tag, b, childStyle.class(), childStyle.style());
-                                                            gvc.getBindViewElem(id).innerHTML += (view);
+                                                            gvc.getBindViewElem(id).innerHTML += view;
                                                         }
                                                         document.querySelector('.' + loadingID).remove();
                                                         vm.loading = false;
@@ -144,7 +150,7 @@ Plugin.createComponent(import.meta.url, (glitter, editMode) => {
                                     targetElement.addEventListener('scroll', targetElement.infinityScroll);
                                     resolve(true);
                                 }));
-                            }
+                            },
                         };
                     });
                 },
@@ -158,7 +164,7 @@ Plugin.createComponent(import.meta.url, (glitter, editMode) => {
                         }, '元件容器樣式'),
                         loadingStyle.editor(gvc, () => {
                             widget.refreshComponent();
-                        }, '加載容器樣式'),
+                        }, '載入容器樣式'),
                         EditorElem.editerDialog({
                             gvc: gvc,
                             dialog: (gvc) => {
@@ -166,47 +172,47 @@ Plugin.createComponent(import.meta.url, (glitter, editMode) => {
                                     TriggerEvent.editer(gvc, widget, config.initial, {
                                         hover: false,
                                         option: [],
-                                        title: "首次加載資料來源"
+                                        title: '首次載入資料來源',
                                     }),
                                     TriggerEvent.editer(gvc, widget, config.newData, {
                                         hover: false,
                                         option: [],
-                                        title: "滾動至底部，加載新資料"
+                                        title: '滾動至底部，載入新資料',
                                     }),
                                     EditorElem.editeInput({
                                         gvc: gvc,
-                                        title: "距離底部位置",
+                                        title: '距離底部位置',
                                         default: `${config.distance_with_data}`,
-                                        placeHolder: "複製數量",
+                                        placeHolder: '複製數量',
                                         callback: (text) => {
                                             config.distance_with_data = parseInt(text, 10);
                                         },
-                                        type: 'number'
+                                        type: 'number',
                                     }),
                                     TriggerEvent.editer(gvc, widget, config.loading_finish, {
                                         hover: false,
                                         option: [],
-                                        title: "判斷是否加載完畢"
+                                        title: '判斷是否載入完畢',
                                     }),
                                 ].join('<div class="my-2"></div>');
                             },
                             width: '400px',
-                            editTitle: `資料來源設定`
+                            editTitle: `資料來源設定`,
                         }),
                         (() => {
                             const id = glitter.getUUID();
                             const data = {
-                                dataList: undefined
+                                dataList: undefined,
                             };
                             const saasConfig = window.saasConfig;
                             function getData() {
                                 BaseApi.create({
-                                    "url": saasConfig.config.url + `/api/v1/template?appName=${saasConfig.config.appName}`,
-                                    "type": "GET",
-                                    "timeout": 0,
-                                    "headers": {
-                                        "Content-Type": "application/json"
-                                    }
+                                    url: saasConfig.config.url + `/api/v1/template?appName=${saasConfig.config.appName}`,
+                                    type: 'GET',
+                                    timeout: 0,
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                    },
                                 }).then((d2) => {
                                     data.dataList = d2.response.result.filter((dd) => {
                                         return dd.group !== 'glitter-article';
@@ -233,15 +239,18 @@ Plugin.createComponent(import.meta.url, (glitter, editMode) => {
                                         bind: id,
                                         view: () => {
                                             var _a;
-                                            return [EditorElem.select({
-                                                    title: "選擇嵌入頁面",
+                                            return [
+                                                EditorElem.select({
+                                                    title: '選擇嵌入頁面',
                                                     gvc: gvc,
-                                                    def: (_a = pd.tag) !== null && _a !== void 0 ? _a : "",
+                                                    def: (_a = pd.tag) !== null && _a !== void 0 ? _a : '',
                                                     array: [
                                                         {
-                                                            title: '選擇嵌入頁面', value: ''
-                                                        }
-                                                    ].concat(data.dataList.sort((function (a, b) {
+                                                            title: '選擇嵌入頁面',
+                                                            value: '',
+                                                        },
+                                                    ].concat(data.dataList
+                                                        .sort(function (a, b) {
                                                         if (a.group.toUpperCase() < b.group.toUpperCase()) {
                                                             return -1;
                                                         }
@@ -249,25 +258,29 @@ Plugin.createComponent(import.meta.url, (glitter, editMode) => {
                                                             return 1;
                                                         }
                                                         return 0;
-                                                    })).map((dd) => {
+                                                    })
+                                                        .map((dd) => {
                                                         return {
-                                                            title: `${dd.group}-${dd.name}`, value: dd.tag
+                                                            title: `${dd.group}-${dd.name}`,
+                                                            value: dd.tag,
                                                         };
                                                     })),
                                                     callback: (text) => {
                                                         pd.tag = text;
                                                     },
-                                                }), (() => {
+                                                }),
+                                                (() => {
                                                     return TriggerEvent.editer(gvc, widget, pd.carryData, {
                                                         hover: true,
                                                         option: [],
-                                                        title: "夾帶資料<[ subData.carryData ]>"
+                                                        title: '夾帶資料<[ subData.carryData ]>',
                                                     });
-                                                })()].join(`<div class="my-2"></div>`);
+                                                })(),
+                                            ].join(`<div class="my-2"></div>`);
                                         },
                                         divCreate: {
-                                            class: `mb-2`
-                                        }
+                                            class: `mb-2`,
+                                        },
                                     };
                                 });
                             }
@@ -281,50 +294,51 @@ Plugin.createComponent(import.meta.url, (glitter, editMode) => {
                                                 EditorElem.editerDialog({
                                                     gvc: gvc,
                                                     dialog: (gvc) => {
-                                                        return setPage(widget.data) + `<div class="d-flex w-100 p-2 border-top ">
+                                                        return (setPage(widget.data) +
+                                                            `<div class="d-flex w-100 p-2 border-top ">
                                                              <div class="flex-fill"></div>
                                                              <div class="btn btn-primary-c ms-2"
                                                                   style="height:40px;width:80px;"
                                                                   onclick="${gvc.event(() => {
-                                                            gvc.closeDialog();
-                                                            widget.refreshComponent();
-                                                        })}"><i class="fa-solid fa-floppy-disk me-2"></i>儲存
+                                                                gvc.closeDialog();
+                                                                widget.refreshComponent();
+                                                            })}"><i class="fa-solid fa-floppy-disk me-2"></i>儲存
                                                              </div>
-                                                         </div>`;
+                                                         </div>`);
                                                     },
-                                                    editTitle: `預設嵌入頁面`
+                                                    editTitle: `預設嵌入頁面`,
                                                 }),
                                                 EditorElem.editerDialog({
                                                     gvc: gvc,
                                                     dialog: (gvc) => {
-                                                        return setPage(config.loadingView) + `<div class="d-flex w-100 p-2 border-top ">
+                                                        return (setPage(config.loadingView) +
+                                                            `<div class="d-flex w-100 p-2 border-top ">
                                                              <div class="flex-fill"></div>
                                                              <div class="btn btn-primary-c ms-2"
                                                                   style="height:40px;width:80px;"
                                                                   onclick="${gvc.event(() => {
-                                                            gvc.closeDialog();
-                                                            widget.refreshComponent();
-                                                        })}"><i class="fa-solid fa-floppy-disk me-2"></i>儲存
+                                                                gvc.closeDialog();
+                                                                widget.refreshComponent();
+                                                            })}"><i class="fa-solid fa-floppy-disk me-2"></i>儲存
                                                              </div>
-                                                         </div>`;
+                                                         </div>`);
                                                     },
-                                                    editTitle: `加載動畫嵌入`
+                                                    editTitle: `載入動畫嵌入`,
                                                 }),
-                                                html `
-                                                    <div class="mx-n2">
-                                                        ${gvc.bindView(() => {
+                                                html ` <div class="mx-n2">
+                                                    ${gvc.bindView(() => {
                                                     const id = glitter.getUUID();
                                                     return {
                                                         bind: id,
                                                         view: () => {
                                                             return new Promise((resolve, reject) => {
                                                                 BaseApi.create({
-                                                                    "url": saasConfig.config.url + `/api/v1/template?appName=${saasConfig.config.appName}`,
-                                                                    "type": "GET",
-                                                                    "timeout": 0,
-                                                                    "headers": {
-                                                                        "Content-Type": "application/json"
-                                                                    }
+                                                                    url: saasConfig.config.url + `/api/v1/template?appName=${saasConfig.config.appName}`,
+                                                                    type: 'GET',
+                                                                    timeout: 0,
+                                                                    headers: {
+                                                                        'Content-Type': 'application/json',
+                                                                    },
                                                                 }).then((d2) => {
                                                                     data.dataList = d2.response.result;
                                                                     let map = [
@@ -335,20 +349,22 @@ Plugin.createComponent(import.meta.url, (glitter, editMode) => {
                                                                     const def = data.dataList.find((dd) => {
                                                                         return dd.tag === widget.data.tag;
                                                                     });
-                                                                    def && map.push(`<div class="btn " style="background:white;width:calc(100% - 20px);border-radius:8px;
+                                                                    def &&
+                                                                        map.push(`<div class="btn " style="background:white;width:calc(100% - 20px);border-radius:8px;
                     min-height:45px;border:1px solid black;color:#151515;margin-left:10px;" onclick="${gvc.event(() => {
-                                                                        glitter.setUrlParameter('page', def.tag);
-                                                                        glitter.share.reloadEditor();
-                                                                    })}">${def.name}</div>`);
+                                                                            glitter.setUrlParameter('page', def.tag);
+                                                                            glitter.share.reloadEditor();
+                                                                        })}">${def.name}</div>`);
                                                                     config.list.map((d2) => {
                                                                         const def = data.dataList.find((dd) => {
                                                                             return dd.tag === d2.tag;
                                                                         });
-                                                                        def && map.push(`<div class="btn " style="background:white;width:calc(100% - 20px);border-radius:8px;
+                                                                        def &&
+                                                                            map.push(`<div class="btn " style="background:white;width:calc(100% - 20px);border-radius:8px;
                     min-height:45px;border:1px solid black;color:#151515;margin-left:10px;" onclick="${gvc.event(() => {
-                                                                            glitter.setUrlParameter('page', def.tag);
-                                                                            location.reload();
-                                                                        })}">${def.name}</div>`);
+                                                                                glitter.setUrlParameter('page', def.tag);
+                                                                                location.reload();
+                                                                            })}">${def.name}</div>`);
                                                                     });
                                                                     if (map.length === 1) {
                                                                         resolve('');
@@ -359,10 +375,10 @@ Plugin.createComponent(import.meta.url, (glitter, editMode) => {
                                                                 });
                                                             });
                                                         },
-                                                        divCreate: {}
+                                                        divCreate: {},
                                                     };
                                                 })}
-                                                    </div>`
+                                                </div>`,
                                             ].join(` <div class="my-2"></div>`);
                                         }
                                         else {
@@ -376,13 +392,13 @@ Plugin.createComponent(import.meta.url, (glitter, editMode) => {
                                                 getData();
                                             }, 100);
                                         }
-                                    }
+                                    },
                                 };
                             });
-                        })()
+                        })(),
                     ].join(`<div class="my-2"></div>`);
-                }
+                },
             };
-        }
+        },
     };
 });

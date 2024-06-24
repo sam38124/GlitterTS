@@ -896,7 +896,7 @@ export class ShoppingDiscountSetting {
                             ),
                         ].join(html`<div style="margin-top: 24px"></div>`),
                         undefined,
-                        'padding: 0; margin: 0 !important;  width: 68.5%;'
+                        'padding: 0; margin: 0 !important; width: 68.5%;'
                     )}
                     ${BgWidget.container(
                         // 摘要預覽

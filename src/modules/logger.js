@@ -1,8 +1,12 @@
 'use strict';
-import 'winston-daily-rotate-file';
-import winston from 'winston';
-import { asyncHooks } from './hooks';
-import { config } from '../config';
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+require("winston-daily-rotate-file");
+const winston_1 = __importDefault(require("winston"));
+const hooks_1 = require("./hooks");
+const config_1 = require("../config");
 const env = process.env.NODE_ENV || 'local';
 const levels = {
     error: 0,
@@ -23,25 +27,25 @@ const colors = {
     http: 'magenta',
     debug: 'white',
 };
-winston.addColors(colors);
-const format = winston.format.combine(winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss:ms' }), winston.format.colorize({ all: true }), winston.format.printf((info) => {
-    if (asyncHooks.getInstance().getRequestContext()) {
-        const reqContext = asyncHooks.getInstance().getRequestContext();
+winston_1.default.addColors(colors);
+const format = winston_1.default.format.combine(winston_1.default.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss:ms' }), winston_1.default.format.colorize({ all: true }), winston_1.default.format.printf((info) => {
+    if (hooks_1.asyncHooks.getInstance().getRequestContext()) {
+        const reqContext = hooks_1.asyncHooks.getInstance().getRequestContext();
         return `[${info.level}][${info.timestamp}][${reqContext.uuid}][${reqContext.method}][${reqContext.url}][${reqContext.ip}]${info.tag} ${info.message}`;
     }
     return `[${info.level}][${info.timestamp}]${info.tag}${info.message}`;
 }));
 const transports = [
-    new winston.transports.Console(),
+    new winston_1.default.transports.Console(),
 ];
-const winstonLogger = winston.createLogger({
+const winstonLogger = winston_1.default.createLogger({
     level: level(),
     levels,
     format,
     transports,
 });
-winstonLogger.add(new winston.transports.DailyRotateFile({
-    dirname: config.LOG_PATH,
+winstonLogger.add(new winston_1.default.transports.DailyRotateFile({
+    dirname: config_1.config.LOG_PATH,
     filename: 'error-%DATE%.log',
     level: 'error',
     datePattern: 'YYYY-MM-DD',
@@ -49,8 +53,8 @@ winstonLogger.add(new winston.transports.DailyRotateFile({
     maxFiles: '14d',
     format
 }));
-winstonLogger.add(new winston.transports.DailyRotateFile({
-    dirname: config.LOG_PATH,
+winstonLogger.add(new winston_1.default.transports.DailyRotateFile({
+    dirname: config_1.config.LOG_PATH,
     filename: 'out-%DATE%.log',
     level: 'info',
     datePattern: 'YYYY-MM-DD',
@@ -58,7 +62,7 @@ winstonLogger.add(new winston.transports.DailyRotateFile({
     maxFiles: '14d',
     format
 }));
-export default class Logger {
+class Logger {
     info(tag, message) {
         winstonLogger.info({ tag: tag, message: message });
     }
@@ -69,3 +73,5 @@ export default class Logger {
         winstonLogger.warning({ tag: tag, message: message });
     }
 }
+exports.default = Logger;
+//# sourceMappingURL=logger.js.map

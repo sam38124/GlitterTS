@@ -1,9 +1,9 @@
-import { HtmlGenerate } from "../glitterBundle/module/html-generate.js";
-import { EditorElem } from "../glitterBundle/plugins/editor-elem.js";
-import { initialCode } from "./initialCode.js";
-import { initialStyle } from "./initialStyle.js";
-import { ShareDialog } from "../dialog/ShareDialog.js";
-import { OfflineConverter } from "./util/offline-converter.js";
+import { HtmlGenerate } from '../glitterBundle/module/html-generate.js';
+import { EditorElem } from '../glitterBundle/plugins/editor-elem.js';
+import { initialCode } from './initialCode.js';
+import { initialStyle } from './initialStyle.js';
+import { ShareDialog } from '../dialog/ShareDialog.js';
+import { OfflineConverter } from './util/offline-converter.js';
 export function appSetting(gvc, viewModel, id) {
     const glitter = window.glitter;
     const tabIndex = [
@@ -26,7 +26,7 @@ ${EditorElem.arrayItem({
                                 array: viewModel.pluginList.map((dd, index) => {
                                     return {
                                         title: `<span style="color: black;">${dd.name || `區塊:${index}`}</span>`,
-                                        innerHtml: (() => {
+                                        innerHtml: () => {
                                             return ` ${HtmlGenerate.editeInput({
                                                 gvc,
                                                 title: '自定義插件名稱',
@@ -35,7 +35,7 @@ ${EditorElem.arrayItem({
                                                 callback: (text) => {
                                                     dd.name = text;
                                                     gvc.notifyDataChange(id);
-                                                }
+                                                },
                                             })}
                                                      ${HtmlGenerate.editeInput({
                                                 gvc,
@@ -44,14 +44,14 @@ ${EditorElem.arrayItem({
                                                 placeHolder: '模板路徑',
                                                 callback: (text) => {
                                                     dd.src.official = text;
-                                                }
+                                                },
                                             })}`;
-                                        }),
+                                        },
                                         expand: dd,
                                         minus: gvc.event(() => {
                                             viewModel.pluginList.splice(index, 1);
                                             gvc.notifyDataChange(id);
-                                        })
+                                        }),
                                     };
                                 }),
                                 expand: undefined,
@@ -64,22 +64,22 @@ ${EditorElem.arrayItem({
                                             src: {
                                                 official: '',
                                                 staging: '',
-                                                open: true
-                                            }
+                                                open: true,
+                                            },
                                         });
                                         gvc.notifyDataChange(id);
                                     }),
                                 },
                                 refreshComponent: () => {
                                     gvc.notifyDataChange(id);
-                                }
+                                },
                             })}
 </div>`;
                         },
-                        divCreate: {}
+                        divCreate: {},
                     };
                 });
-            })()
+            })(),
         },
         {
             title: '觸發事件 / Event',
@@ -99,7 +99,7 @@ ${EditorElem.arrayItem({
                             array: viewModel.initialJS.map((dd, index) => {
                                 return {
                                     title: `<span style="color: black;">${dd.name || `區塊:${index}`}</span>`,
-                                    innerHtml: (() => {
+                                    innerHtml: () => {
                                         return `      ${HtmlGenerate.editeInput({
                                             gvc,
                                             title: '自定義插件名稱',
@@ -108,7 +108,7 @@ ${EditorElem.arrayItem({
                                             callback: (text) => {
                                                 dd.name = text;
                                                 gvc.notifyDataChange(id);
-                                            }
+                                            },
                                         })}
                                                      ${HtmlGenerate.editeInput({
                                             gvc,
@@ -118,14 +118,14 @@ ${EditorElem.arrayItem({
                                             callback: (text) => {
                                                 dd.src.official = text;
                                                 gvc.notifyDataChange(id);
-                                            }
+                                            },
                                         })}`;
-                                    }),
+                                    },
                                     expand: dd,
                                     minus: gvc.event(() => {
                                         viewModel.initialJS.splice(index, 1);
                                         gvc.notifyDataChange(id);
-                                    })
+                                    }),
                                 };
                             }),
                             expand: undefined,
@@ -137,26 +137,26 @@ ${EditorElem.arrayItem({
                                         route: '',
                                         src: {
                                             official: '',
-                                            open: true
-                                        }
+                                            open: true,
+                                        },
                                     });
                                     gvc.notifyDataChange(id);
                                 }),
                             },
                             refreshComponent: () => {
                                 gvc.notifyDataChange(id);
-                            }
+                            },
                         })}
 </div>`;
                     },
-                    divCreate: {}
+                    divCreate: {},
                 };
-            })
+            }),
         },
         {
             title: '應用初始化 / Initial',
             index: 'pageConfig',
-            html: `<div class="alert shadow" style="background-image: linear-gradient(120deg, #a1c4fd 0%, #c2e9fb 100%);white-space: normal;word-break: break-all;">${initialCode(gvc, viewModel, id)}</div>`
+            html: `<div class="alert shadow" style="background-image: linear-gradient(120deg, #a1c4fd 0%, #c2e9fb 100%);white-space: normal;word-break: break-all;">${initialCode(gvc, viewModel, id)}</div>`,
         },
         {
             title: '後台插件 / Backend',
@@ -177,7 +177,7 @@ ${EditorElem.arrayItem({
                                 array: viewModel.backendPlugins.map((dd, index) => {
                                     return {
                                         title: `<span style="color: black;">${dd.name || `區塊:${index}`}</span>`,
-                                        innerHtml: (() => {
+                                        innerHtml: () => {
                                             return ` ${HtmlGenerate.editeInput({
                                                 gvc,
                                                 title: '自定義插件名稱',
@@ -186,7 +186,7 @@ ${EditorElem.arrayItem({
                                                 callback: (text) => {
                                                     dd.name = text;
                                                     gvc.notifyDataChange(id);
-                                                }
+                                                },
                                             })}
                                                      ${HtmlGenerate.editeInput({
                                                 gvc,
@@ -195,14 +195,14 @@ ${EditorElem.arrayItem({
                                                 placeHolder: '模板路徑',
                                                 callback: (text) => {
                                                     dd.src.official = text;
-                                                }
+                                                },
                                             })}`;
-                                        }),
+                                        },
                                         expand: dd,
                                         minus: gvc.event(() => {
                                             viewModel.backendPlugins.splice(index, 1);
                                             gvc.notifyDataChange(id);
-                                        })
+                                        }),
                                     };
                                 }),
                                 expand: undefined,
@@ -215,45 +215,49 @@ ${EditorElem.arrayItem({
                                             src: {
                                                 official: '',
                                                 staging: '',
-                                                open: true
-                                            }
+                                                open: true,
+                                            },
                                         });
                                         gvc.notifyDataChange(id);
                                     }),
                                 },
                                 refreshComponent: () => {
                                     gvc.notifyDataChange(id);
-                                }
+                                },
                             })}
 </div>`;
                         },
-                        divCreate: {}
+                        divCreate: {},
                     };
                 });
-            })()
+            })(),
         },
         {
             title: '全域設計 / Global Style',
             index: 'initialStyle',
-            html: `<div class="alert shadow" style="background-image: linear-gradient(120deg, #a1c4fd 0%, #c2e9fb 100%);white-space: normal;word-break: break-all;">${initialStyle(gvc, viewModel, id)}</div>`
-        }
+            html: `<div class="alert shadow" style="background-image: linear-gradient(120deg, #a1c4fd 0%, #c2e9fb 100%);white-space: normal;word-break: break-all;">${initialStyle(gvc, viewModel, id)}</div>`,
+        },
     ];
     return `
  <ul class="nav nav-tabs border-bottom " id="myTab" role="tablist">
   ${(() => {
-        return tabIndex.map((dd, index) => {
+        return tabIndex
+            .map((dd, index) => {
             return `<li class="nav-item" role="presentation">
-    <button class="nav-link ${(index === 0) ? `active` : ``}"  data-bs-toggle="tab" data-bs-target="#${dd.index}" type="button" role="tab" aria-controls="${dd.index}" aria-selected="${index === 0}">${dd.title}</button>
+    <button class="nav-link ${index === 0 ? `active` : ``}"  data-bs-toggle="tab" data-bs-target="#${dd.index}" type="button" role="tab" aria-controls="${dd.index}" aria-selected="${index === 0}">${dd.title}</button>
   </li>`;
-        }).join('');
+        })
+            .join('');
     })()}
 </ul>
 <div class="tab-content" id="pills-tabContent">
    ${(() => {
-        return tabIndex.map((dd, index) => {
-            return `<div class="tab-pane ${(index === 0) ? `show active` : `fade`}" id="${dd.index}" role="tabpanel" aria-labelledby="profile-tab">
+        return tabIndex
+            .map((dd, index) => {
+            return `<div class="tab-pane ${index === 0 ? `show active` : `fade`}" id="${dd.index}" role="tabpanel" aria-labelledby="profile-tab">
 ${dd.html}</div>`;
-        }).join('');
+        })
+            .join('');
     })()}
 </div>
     `;
@@ -273,7 +277,7 @@ export function appCreate(gvc, viewModel, id) {
             logo: '',
             logo_stored: '',
             prmote_string: '',
-            privacy: ''
+            privacy: '',
         },
         Android: {
             appName: '',
@@ -284,8 +288,8 @@ export function appCreate(gvc, viewModel, id) {
             logo: '',
             logo_stored: '',
             prmote_string: '',
-            privacy: ''
-        }
+            privacy: '',
+        },
     };
     function save(key, next) {
         dialog.dataLoading({ text: '設定中', visible: true });
@@ -295,7 +299,7 @@ export function appCreate(gvc, viewModel, id) {
                 next();
             }
             else {
-                dialog.errorMessage({ text: "送審失敗" });
+                dialog.errorMessage({ text: '送審失敗' });
             }
         });
     }
@@ -317,13 +321,12 @@ export function appCreate(gvc, viewModel, id) {
                 view: () => {
                     var _a, _b;
                     if (!load) {
-                        return html `
-                            <div class="d-flex align-items-center justify-content-center w-100 flex-column">
-                                <div class="spinner-border" role="status">
-                                    <span class="sr-only"></span>
-                                </div>
-                                <span class="mt-2">加載中...</span>
-                            </div>`;
+                        return html ` <div class="d-flex align-items-center justify-content-center w-100 flex-column">
+                            <div class="spinner-border" role="status">
+                                <span class="sr-only"></span>
+                            </div>
+                            <span class="mt-2">載入中...</span>
+                        </div>`;
                     }
                     return html `
                         <div class="d-flex  px-2 hi fw-bold d-flex align-items-center border-bottom border-top py-2 bgf6"
@@ -338,28 +341,30 @@ export function appCreate(gvc, viewModel, id) {
                             default: postVM.appName,
                             callback: (text) => {
                                 postVM.appName = text;
-                            }
+                            },
                         }),
                         EditorElem.editeInput({
                             gvc: gvc,
-                            title: (vm.select === 'IOS') ? 'BundleID' : 'PackageID',
-                            placeHolder: `請輸入${(vm.select === 'IOS') ? 'BundleID' : 'PackageID'}`,
+                            title: vm.select === 'IOS' ? 'BundleID' : 'PackageID',
+                            placeHolder: `請輸入${vm.select === 'IOS' ? 'BundleID' : 'PackageID'}`,
                             default: postVM.bundleName,
                             callback: (text) => {
                                 postVM.bundleName = text;
-                            }
+                            },
                         }),
                         EditorElem.uploadImage({
                             gvc: gvc,
                             title: `LOGO`,
-                            def: (_a = postVM.logo) !== null && _a !== void 0 ? _a : "",
+                            def: (_a = postVM.logo) !== null && _a !== void 0 ? _a : '',
                             callback: (data) => {
                                 postVM.logo = data;
-                            }
-                        })
-                    ].map((dd) => {
+                            },
+                        }),
+                    ]
+                        .map((dd) => {
                         return `<div class="">${dd}</div>`;
-                    }).join(``)}
+                    })
+                        .join(``)}
                         <div class="w-100 " style="height:1px;background:#e2e5f1;"></div>
                         <div class="d-flex  px-2 hi fw-bold d-flex align-items-center border-bottom border-top py-2 bgf6"
                              style="color:#151515;font-size:16px;gap:0px;">
@@ -374,7 +379,7 @@ export function appCreate(gvc, viewModel, id) {
                             default: postVM.storeName,
                             callback: (text) => {
                                 postVM.storeName = text;
-                            }
+                            },
                         }),
                         EditorElem.editeInput({
                             gvc: gvc,
@@ -383,15 +388,15 @@ export function appCreate(gvc, viewModel, id) {
                             default: postVM.keyWord,
                             callback: (text) => {
                                 postVM.keyWord = text;
-                            }
+                            },
                         }),
                         EditorElem.uploadImage({
                             gvc: gvc,
                             title: `商店Logo`,
-                            def: (_b = postVM.logo_stored) !== null && _b !== void 0 ? _b : "",
+                            def: (_b = postVM.logo_stored) !== null && _b !== void 0 ? _b : '',
                             callback: (data) => {
                                 postVM.logo_stored = data;
-                            }
+                            },
                         }),
                         EditorElem.editeText({
                             gvc: gvc,
@@ -400,7 +405,7 @@ export function appCreate(gvc, viewModel, id) {
                             default: postVM.prmote_string,
                             callback: (text) => {
                                 postVM.prmote_string = text;
-                            }
+                            },
                         }),
                         EditorElem.editeText({
                             gvc: gvc,
@@ -409,18 +414,20 @@ export function appCreate(gvc, viewModel, id) {
                             default: postVM.privacy,
                             callback: (text) => {
                                 postVM.privacy = text;
-                            }
-                        })
-                    ].map((dd) => {
+                            },
+                        }),
+                    ]
+                        .map((dd) => {
                         return `<div class="">${dd}</div>`;
-                    }).join(``)}
+                    })
+                        .join(``)}
                         </div>
                         </div>
                         </div>`;
                 },
                 divCreate: {
-                    class: `row pt-0 justify-content-start`
-                }
+                    class: `row pt-0 justify-content-start`,
+                },
             };
         });
     }
@@ -428,18 +435,19 @@ export function appCreate(gvc, viewModel, id) {
         {
             title: 'IOS',
             key: 'IOS',
-            html: getHtml('IOS')
-        }, {
+            html: getHtml('IOS'),
+        },
+        {
             title: 'Android',
             key: 'Android',
-            html: getHtml('Android')
-        }
+            html: getHtml('Android'),
+        },
     ];
     let vm = {
         select: `IOS`,
     };
     return {
-        saveEvent: (() => {
+        saveEvent: () => {
             if (vm.select === 'WEB') {
                 OfflineConverter.convertALL(glitter.share.allPageResource);
                 console.log(glitter.share.allPageResource);
@@ -447,11 +455,11 @@ export function appCreate(gvc, viewModel, id) {
             else {
                 save('IOS', () => {
                     save('Android', () => {
-                        dialog.successMessage({ text: "儲存成功" });
+                        dialog.successMessage({ text: '儲存成功' });
                     });
                 });
             }
-        }),
+        },
         html: gvc.bindView(() => {
             const id = glitter.getUUID();
             return {
@@ -459,27 +467,33 @@ export function appCreate(gvc, viewModel, id) {
                 view: () => {
                     return html `
                         <div class="d-flex border-bottom ">
-                            ${tabIndex.map((dd) => {
-                        return html `
-                                    <div class="add_item_button ${(dd.key === vm.select) ? `add_item_button_active` : ``}"
-                                         onclick="${gvc.event((e, event) => {
+                            ${tabIndex
+                        .map((dd) => {
+                        return html ` <div
+                                        class="add_item_button ${dd.key === vm.select ? `add_item_button_active` : ``}"
+                                        onclick="${gvc.event((e, event) => {
                             vm.select = dd.key;
                             gvc.notifyDataChange(id);
-                        })}" style="font-size:14px;">${dd.title}
+                        })}"
+                                        style="font-size:14px;"
+                                    >
+                                        ${dd.title}
                                     </div>`;
-                    }).join('')}
+                    })
+                        .join('')}
                         </div>
-                        <div class="px-2">${(tabIndex.find((dd) => {
+                        <div class="px-2">
+                            ${tabIndex.find((dd) => {
                         return dd.key === vm.select;
-                    })).html}
+                    }).html}
                         </div>
                     `;
                 },
                 divCreate: {
                     class: `mx-n2`,
-                }
+                },
             };
-        })
+        }),
     };
 }
 export function fileManager(gvc, id, fileVm) {
@@ -489,7 +503,7 @@ export function fileManager(gvc, id, fileVm) {
 ${gvc.bindView(() => {
         const id = glitter.getUUID();
         let load = false;
-        saasConfig.api.getPrivateConfig(saasConfig.config.appName, "glitter_fileStored").then((r) => {
+        saasConfig.api.getPrivateConfig(saasConfig.config.appName, 'glitter_fileStored').then((r) => {
             if (r.response.result[0]) {
                 fileVm.data = r.response.result[0].value.data;
             }
@@ -504,18 +518,18 @@ ${gvc.bindView(() => {
                                         <div class="spinner-border" role="status">
   <span class="sr-only"></span>
 </div>
-<span class="mt-2">加載中...</span>
+<span class="mt-2">載入中...</span>
 </div>`;
                 }
-                return ` <div class="alert alert-info m-2 p-3" style="white-space: normal;word-break: break-all;">透過資源管理工具，您能上傳多種檔案資源，在資源選擇器中快速選擇並且取用資源。</div>` +
+                return (` <div class="alert alert-info m-2 p-3" style="white-space: normal;word-break: break-all;">透過資源管理工具，您能上傳多種檔案資源，在資源選擇器中快速選擇並且取用資源。</div>` +
                     EditorElem.arrayItem({
                         gvc: gvc,
-                        title: "",
-                        array: (() => {
+                        title: '',
+                        array: () => {
                             return fileVm.data.map((dd, index) => {
                                 var _a;
                                 return {
-                                    title: (_a = dd.title) !== null && _a !== void 0 ? _a : ('資源:' + (index + 1)),
+                                    title: (_a = dd.title) !== null && _a !== void 0 ? _a : '資源:' + (index + 1),
                                     innerHtml: (gvc) => {
                                         const id = gvc.glitter.getUUID();
                                         return gvc.bindView(() => {
@@ -526,25 +540,25 @@ ${gvc.bindView(() => {
                                                     return [
                                                         EditorElem.editeInput({
                                                             gvc: gvc,
-                                                            title: "資源標題",
-                                                            default: (_a = dd.title) !== null && _a !== void 0 ? _a : "",
-                                                            placeHolder: "資源標題",
+                                                            title: '資源標題',
+                                                            default: (_a = dd.title) !== null && _a !== void 0 ? _a : '',
+                                                            placeHolder: '資源標題',
                                                             callback: (text) => {
                                                                 dd.title = text;
                                                                 gvc.notifyDataChange(id);
-                                                            }
+                                                            },
                                                         }),
                                                         EditorElem.uploadFile({
                                                             gvc: gvc,
                                                             title: `檔案上傳`,
-                                                            def: (_b = dd.src) !== null && _b !== void 0 ? _b : "",
+                                                            def: (_b = dd.src) !== null && _b !== void 0 ? _b : '',
                                                             callback: (d2) => {
                                                                 dd.src = d2;
                                                                 gvc.notifyDataChange(id);
                                                             },
-                                                        })
+                                                        }),
                                                     ].join('');
-                                                }
+                                                },
                                             };
                                         });
                                     },
@@ -555,24 +569,23 @@ ${gvc.bindView(() => {
                                     minus: gvc.event(() => {
                                         fileVm.data.splice(index, 1);
                                         gvc.notifyDataChange(id);
-                                    })
+                                    }),
                                 };
                             });
-                        }),
+                        },
                         originalArray: fileVm.data,
                         expand: fileVm,
                         plus: {
-                            title: "添加資源",
+                            title: '添加資源',
                             event: gvc.event(() => {
                                 fileVm.data.push({});
                                 gvc.notifyDataChange(id);
-                            })
+                            }),
                         },
-                        refreshComponent: () => {
-                        }
-                    });
+                        refreshComponent: () => { },
+                    }));
             },
-            divCreate: { class: `mt-2 w-100` }
+            divCreate: { class: `mt-2 w-100` },
         };
     })}
     `;
@@ -617,19 +630,19 @@ function uploadImage(obj) {
                                     },
                                     error: (err) => {
                                         dialog.dataLoading({ visible: false });
-                                        dialog.errorMessage({ text: "上傳失敗" });
+                                        dialog.errorMessage({ text: '上傳失敗' });
                                     },
                                 });
                             });
-                        }
+                        },
                     });
                 })}"></i>
                             ${obj.def && `<img src="${obj.def}"  class="ms-2" style="max-width: 150px;">`}
 `;
             },
             divCreate: {
-                class: 'flex-fill d-flex align-items-center justify-content-center'
-            }
+                class: 'flex-fill d-flex align-items-center justify-content-center',
+            },
         };
     });
 }

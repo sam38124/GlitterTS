@@ -237,7 +237,6 @@ export class ApiUser {
     }
 
     public static getUserListOrders(json: { limit: number; page: number; search?: string; id?: string; searchType?: string; orderString?: string; filter?: any; status?: number }) {
-
         const filterString = this.userListFilterString(json.filter);
         const userData = BaseApi.create({
             url:

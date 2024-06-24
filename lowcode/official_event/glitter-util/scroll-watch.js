@@ -7,7 +7,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import { TriggerEvent } from "../../glitterBundle/plugins/trigger-event.js";
+import { TriggerEvent } from '../../glitterBundle/plugins/trigger-event.js';
 TriggerEvent.createSingleEvent(import.meta.url, () => {
     return {
         fun: (gvc, widget, object, subData, element) => {
@@ -20,12 +20,12 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                         TriggerEvent.editer(gvc, widget, object.scrollTOP, {
                             hover: false,
                             option: [],
-                            title: "滾動至頂部"
+                            title: '滾動至頂部',
                         }),
                         TriggerEvent.editer(gvc, widget, object.scrollBT, {
                             hover: false,
                             option: [],
-                            title: "滾動至底部"
+                            title: '滾動至底部',
                         }),
                     ].join(`<div class="my-2"></div>`);
                 },
@@ -38,12 +38,20 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                         targetElement.scrollWatch = function () {
                             if (targetElement.scrollTop + targetElement.clientHeight >= targetElement.scrollHeight) {
                                 TriggerEvent.trigger({
-                                    gvc: gvc, widget: widget, clickEvent: object.scrollBT, subData: subData, element: element
+                                    gvc: gvc,
+                                    widget: widget,
+                                    clickEvent: object.scrollBT,
+                                    subData: subData,
+                                    element: element,
                                 });
                             }
                             else if (targetElement.scrollTop === 0) {
                                 TriggerEvent.trigger({
-                                    gvc: gvc, widget: widget, clickEvent: object.scrollTOP, subData: subData, element: element
+                                    gvc: gvc,
+                                    widget: widget,
+                                    clickEvent: object.scrollTOP,
+                                    subData: subData,
+                                    element: element,
                                 });
                             }
                         };

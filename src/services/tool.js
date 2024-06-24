@@ -1,30 +1,27 @@
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
 };
-import bcrypt from 'bcrypt';
-import _ from 'underscore';
-import config from '../config';
-import Logger from '../modules/logger';
-import crypto from 'crypto';
-import moment from 'moment';
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.toJSONSafeString = exports.getUUID = void 0;
+const bcrypt_1 = __importDefault(require("bcrypt"));
+const underscore_1 = __importDefault(require("underscore"));
+const config_1 = __importDefault(require("../config"));
+const logger_1 = __importDefault(require("../modules/logger"));
+const crypto_1 = __importDefault(require("crypto"));
+const moment_1 = __importDefault(require("moment"));
 function isNull(...args) {
     if (!args || args.length == 0) {
         return true;
     }
     for (let i = 0; i < args.length; i++) {
-        if (_.isNull(args[i]) || _.isUndefined(args[i]) || args[i].length == 0 || (_.isObject(args[i]) && _.isEmpty(args[i]))) {
+        if (underscore_1.default.isNull(args[i]) || underscore_1.default.isUndefined(args[i]) || args[i].length == 0 || (underscore_1.default.isObject(args[i]) && underscore_1.default.isEmpty(args[i]))) {
             return true;
         }
     }
     return false;
 }
-export function getUUID() {
+function getUUID() {
     let d = Date.now();
     if (typeof performance !== 'undefined' && typeof performance.now === 'function') {
         d += performance.now();
@@ -35,12 +32,13 @@ export function getUUID() {
         return "s" + (c === 'x' ? r : r & 0x3 | 0x8).toString(16);
     });
 }
+exports.getUUID = getUUID;
 function replaceDatetime(datetime) {
     if (datetime)
         return datetime.replace('T', ' ').replace('.000Z', '').replace('+00:00', '');
     return datetime;
 }
-export function toJSONSafeString(val) {
+function toJSONSafeString(val) {
     return val.replace(/[\t\n\r]/g, (match) => {
         switch (match) {
             case '\t':
@@ -54,10 +52,11 @@ export function toJSONSafeString(val) {
         }
     });
 }
+exports.toJSONSafeString = toJSONSafeString;
 function getMaskObj(obj) {
     const maskObj = {};
-    _.map(obj, (value, key) => {
-        if (config.PARAMS_NEED_ENCRYPT_IN_LOG.includes(key)) {
+    underscore_1.default.map(obj, (value, key) => {
+        if (config_1.default.PARAMS_NEED_ENCRYPT_IN_LOG.includes(key)) {
             maskObj[key] = '***********';
         }
         else {
@@ -66,24 +65,22 @@ function getMaskObj(obj) {
     });
     return maskObj;
 }
-function hashPwd(pwd) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const TAG = '[HashPwd]';
-        const logger = new Logger();
-        try {
-            bcrypt.compare;
-            const saltRounds = config.PWD_SALT_ROUND;
-            const hashPwd = yield bcrypt.hash(pwd, saltRounds);
-            return hashPwd;
-        }
-        catch (err) {
-            logger.error(TAG, `Generate admin pwd fail because ${err}`);
-            throw err;
-        }
-    });
+async function hashPwd(pwd) {
+    const TAG = '[HashPwd]';
+    const logger = new logger_1.default();
+    try {
+        bcrypt_1.default.compare;
+        const saltRounds = config_1.default.PWD_SALT_ROUND;
+        const hashPwd = await bcrypt_1.default.hash(pwd, saltRounds);
+        return hashPwd;
+    }
+    catch (err) {
+        logger.error(TAG, `Generate admin pwd fail because ${err}`);
+        throw err;
+    }
 }
 function createOrderId() {
-    const orderId = '#' + moment(new Date()).format('YYYYMMDD') + crypto.randomBytes(4).toString('hex');
+    const orderId = '#' + (0, moment_1.default)(new Date()).format('YYYYMMDD') + crypto_1.default.randomBytes(4).toString('hex');
     return orderId;
 }
 const randomString = (max) => {
@@ -93,8 +90,8 @@ const randomString = (max) => {
         text += possible.charAt(Math.floor(Math.random() * possible.length));
     return text;
 };
-const compareHash = (pwd, has) => __awaiter(void 0, void 0, void 0, function* () { return bcrypt.compare(pwd, has); });
-export default {
+const compareHash = async (pwd, has) => bcrypt_1.default.compare(pwd, has);
+exports.default = {
     isNull,
     replaceDatetime,
     toJSONSafeString,
@@ -104,3 +101,4 @@ export default {
     randomString,
     compareHash,
 };
+//# sourceMappingURL=tool.js.map

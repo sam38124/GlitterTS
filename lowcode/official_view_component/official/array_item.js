@@ -7,22 +7,21 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import { Plugin } from "../../glitterBundle/plugins/plugin-creater.js";
-import { TriggerEvent } from "../../glitterBundle/plugins/trigger-event.js";
-import { EditorElem } from "../../glitterBundle/plugins/editor-elem.js";
-import { component } from "./component.js";
-import { PageSplit } from "../../backend-manager/splitPage.js";
+import { Plugin } from '../../glitterBundle/plugins/plugin-creater.js';
+import { TriggerEvent } from '../../glitterBundle/plugins/trigger-event.js';
+import { EditorElem } from '../../glitterBundle/plugins/editor-elem.js';
+import { component } from './component.js';
+import { PageSplit } from '../../backend-manager/splitPage.js';
 export const array_item = Plugin.createComponent(import.meta.url, (glitter, editMode) => {
     return {
         render: (gvc, widget, setting, hoverID, subData) => {
             var _a, _b, _c;
             widget.data.empty = (_a = widget.data.empty) !== null && _a !== void 0 ? _a : {
-                data: {}
+                data: {},
             };
-            widget.data.empty.refreshComponent = () => {
-            };
+            widget.data.empty.refreshComponent = () => { };
             widget.data.loading = (_b = widget.data.loading) !== null && _b !== void 0 ? _b : {
-                data: {}
+                data: {},
             };
             widget.data.container = (_c = widget.data.container) !== null && _c !== void 0 ? _c : {};
             return {
@@ -33,21 +32,24 @@ export const array_item = Plugin.createComponent(import.meta.url, (glitter, edit
                     let views = undefined;
                     const vm = {
                         loading: true,
-                        data: undefined
+                        data: undefined,
                     };
                     function getData() {
                         views = '';
                         new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
                             let view = [];
-                            let createOption = (() => {
+                            let createOption = () => {
                                 return {
                                     class: glitter.htmlGenerate.styleEditor(widget.data).class(),
-                                    style: glitter.htmlGenerate.styleEditor(widget.data).style()
+                                    style: glitter.htmlGenerate.styleEditor(widget.data).style(),
                                 };
+                            };
+                            const data = yield TriggerEvent.trigger({
+                                gvc,
+                                widget,
+                                clickEvent: widget.data,
+                                subData: subData,
                             });
-                            const data = (yield TriggerEvent.trigger({
-                                gvc, widget, clickEvent: widget.data, subData: subData
-                            }));
                             vm.data = data;
                             function getView() {
                                 return __awaiter(this, void 0, void 0, function* () {
@@ -65,12 +67,12 @@ export const array_item = Plugin.createComponent(import.meta.url, (glitter, edit
                                                 try {
                                                     if (b.triggerType === 'trigger') {
                                                         const result = yield new Promise((resolve, reject) => {
-                                                            (TriggerEvent.trigger({
+                                                            TriggerEvent.trigger({
                                                                 gvc: gvc,
                                                                 widget: widget,
                                                                 clickEvent: b.evenet,
-                                                                subData
-                                                            })).then((data) => {
+                                                                subData,
+                                                            }).then((data) => {
                                                                 resolve(data);
                                                             });
                                                         });
@@ -88,22 +90,20 @@ export const array_item = Plugin.createComponent(import.meta.url, (glitter, edit
                                                         }
                                                     }
                                                 }
-                                                catch (e) {
-                                                }
+                                                catch (e) { }
                                             }
                                             try {
                                                 subData.carryData = yield TriggerEvent.trigger({
                                                     gvc: gvc,
                                                     clickEvent: carryData,
                                                     widget: widget,
-                                                    subData: subData
+                                                    subData: subData,
                                                 });
                                             }
-                                            catch (e) {
-                                            }
+                                            catch (e) { }
                                             if (!cfMap[tag]) {
                                                 cfMap[tag] = yield new Promise((resolve, reject) => {
-                                                    (window.glitterInitialHelper).getPageData(tag, (d2) => {
+                                                    window.glitterInitialHelper.getPageData(tag, (d2) => {
                                                         resolve(d2.response.result[0]);
                                                     });
                                                 });
@@ -120,7 +120,7 @@ export const array_item = Plugin.createComponent(import.meta.url, (glitter, edit
                                     resolve(data2);
                                 });
                             }
-                            getView().then(r => { });
+                            getView().then((r) => { });
                         })).then((data) => {
                             var _a;
                             vm.loading = false;
@@ -138,22 +138,24 @@ export const array_item = Plugin.createComponent(import.meta.url, (glitter, edit
                                     return component.render(gvc, widget.data.loading, setting, hoverID, subData).view() || `<span>loading...</span>`;
                                 }
                                 else if (views) {
-                                    return views + ((vm.data.pageSize) ? pageSpilt.pageSplit(vm.data.pageSize, vm.data.pageIndex + 1, (p) => {
-                                        subData.pageIndex = p - 1;
-                                        getData();
-                                    }) : ``);
+                                    return (views +
+                                        (vm.data.pageSize
+                                            ? pageSpilt.pageSplit(vm.data.pageSize, vm.data.pageIndex + 1, (p) => {
+                                                subData.pageIndex = p - 1;
+                                                getData();
+                                            })
+                                            : ``));
                                 }
                                 else {
                                     return component.render(gvc, widget.data.empty, setting, hoverID, subData).view();
                                 }
                             },
-                            onCreate: () => {
-                            },
+                            onCreate: () => { },
                             divCreate: {
                                 class: glitter.htmlGenerate.styleEditor(widget.data.container).class(),
                                 style: glitter.htmlGenerate.styleEditor(widget.data.container).style(),
-                                option: [{ key: 'arrayItem', value: "true" }]
-                            }
+                                option: [{ key: 'arrayItem', value: 'true' }],
+                            },
                         };
                     });
                 },
@@ -161,33 +163,34 @@ export const array_item = Plugin.createComponent(import.meta.url, (glitter, edit
                     return gvc.map([
                         glitter.htmlGenerate.styleEditor(widget.data.container).editor(gvc, () => {
                             widget.refreshComponent();
-                        }, "容器樣式"),
+                        }, '容器樣式'),
                         `<div class="my-2"></div>`,
                         glitter.htmlGenerate.styleEditor(widget.data).editor(gvc, () => {
                             widget.refreshComponent();
-                        }, "元件樣式"),
+                        }, '元件樣式'),
                         `<div class="alert alert-info mt-2" style="white-space:normal;">
 透過返回陣列來進行遍歷，並產生元件畫面．
 ${TriggerEvent.editer(gvc, widget, widget.data, {
                             hover: false,
                             option: [],
-                            title: "設定資料來源"
+                            title: '設定資料來源',
                         })}
 </div>`,
                         `<div class="border-white border p-2  mt-3" style="background:#a2d4ed;">
-${EditorElem.h3("嵌入模塊")}
+${EditorElem.h3('嵌入模塊')}
 ${component.render(gvc, widget, setting, hoverID, subData).editor()}
 </div>`,
                         `<div class="border-white border p-2  mt-3" style="background:#a2d4ed;">
-${EditorElem.h3("空資料顯示")}
+${EditorElem.h3('空資料顯示')}
 ${component.render(gvc, widget.data.empty, setting, hoverID, subData).editor()}
-</div>`, `<div class="border-white border p-2  mt-3" style="background:#a2d4ed;">
-${EditorElem.h3("加載中顯示")}
+</div>`,
+                        `<div class="border-white border p-2  mt-3" style="background:#a2d4ed;">
+${EditorElem.h3('載入中顯示')}
 ${component.render(gvc, widget.data.loading, setting, hoverID, subData).editor()}
 </div>`,
                     ]);
                 },
             };
-        }
+        },
     };
 });

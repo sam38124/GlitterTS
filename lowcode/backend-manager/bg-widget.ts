@@ -436,31 +436,53 @@ ${(obj.style || []) && obj.style![index] ? obj.style![index] : ``}
         `;
     }
 
-    static editeInput(obj: { gvc: GVC; title: string; default: string; placeHolder: string; callback: (text: string) => void; style?: string; type?: string; readonly?: boolean; pattern?: string }) {
+    static editeInput(obj: {
+        gvc: GVC;
+        title: string;
+        default: string;
+        placeHolder: string;
+        callback: (text: string) => void;
+        divStyle?: string;
+        titleStyle?: string;
+        style?: string;
+        type?: string;
+        readonly?: boolean;
+        pattern?: string;
+        startText?: string;
+        endText?: string;
+    }) {
         obj.title = obj.title ?? '';
-        return html`${obj.title ? html`<div class="tx_normal fw-normal">${obj.title}</div>` : ``}
-            <input
-                class="bgw-input ${obj.readonly ? `bgw-input-readonly` : ``}"
-                style="${obj.style ?? ''}"
-                type="${obj.type ?? 'text'}"
-                placeholder="${obj.placeHolder}"
-                onchange="${obj.gvc.event((e) => {
-                    obj.callback(e.value);
-                })}"
-                oninput="${obj.gvc.event((e) => {
-                    if (obj.pattern) {
-                        const value = e.value;
-                        // 只允許英文字符、數字和連字符
-                        const regex = new RegExp(`[^${obj.pattern}]`, 'g');
-                        const validValue = value.replace(regex, '');
-                        if (value !== validValue) {
-                            e.value = validValue;
-                        }
-                    }
-                })}"
-                value="${obj.default ?? ''}"
-                ${obj.readonly ? `readonly` : ``}
-            />`;
+        return html`
+            <div style="${obj.divStyle ?? ''}">
+                ${obj.title ? html`<div class="tx_normal fw-normal" style="${obj.titleStyle ?? ''}">${obj.title}</div>` : ``}
+                <div class="d-flex align-items-center border rounded-3 ${obj.readonly ? `bgw-input-readonly` : ``}" style="margin: 8px 0;">
+                    ${obj.startText ? html`<div class="py-2 ps-3">${obj.startText}</div>` : ''}
+                    <input
+                        class="bgw-input ${obj.readonly ? `bgw-input-readonly` : ``}"
+                        style="${obj.style ?? ''}"
+                        type="${obj.type ?? 'text'}"
+                        placeholder="${obj.placeHolder}"
+                        onchange="${obj.gvc.event((e) => {
+                            obj.callback(e.value);
+                        })}"
+                        oninput="${obj.gvc.event((e) => {
+                            if (obj.pattern) {
+                                const value = e.value;
+                                // 只允許英文字符、數字和連字符
+                                const regex = new RegExp(`[^${obj.pattern}]`, 'g');
+                                const validValue = value.replace(regex, '');
+                                if (value !== validValue) {
+                                    e.value = validValue;
+                                }
+                            }
+                        })}"
+                        value="${obj.default ?? ''}"
+                        ${obj.readonly ? `readonly` : ``}
+                    />
+                    ${obj.endText ? html`<div class="py-2 pe-3">${obj.endText}</div>` : ''}
+                </div>
+            </div>
+        `;
     }
 
     static textArea(obj: { gvc: GVC; title: string; default: string; placeHolder: string; callback: (text: string) => void; style?: string; type?: string; readonly?: boolean; pattern?: string }) {
@@ -806,6 +828,10 @@ ${obj.default ?? ''}</textarea
         return html`<div class="ms-2 border-end position-absolute h-100" style="left: 0px;"></div>`;
     }
 
+    static bottomLineBar() {
+        return html`<div class="ms-2 border-end position-absolute h-100" style="left: 0px;"></div>`;
+    }
+
     static grayButton(text: string, event: string, icon: string = '') {
         return html`<button class="btn btn-gary" type="button" onclick="${event}">
             <i class="${icon.length > 0 ? icon : 'd-none'}"></i>
@@ -818,6 +844,19 @@ ${obj.default ?? ''}</textarea
             <i class="${icon.length > 0 ? icon : 'd-none'}"></i>
             <span class="tx_700_white">${text}</span>
         </button>`;
+    }
+
+    static switchButton(gvc: GVC, def: boolean, callback: (value: boolean) => void) {
+        return html`<div class="form-check form-switch m-0" style="margin-top: 10px; cursor: pointer;">
+            <input
+                class="form-check-input"
+                type="checkbox"
+                onchange="${gvc.event((e) => {
+                    callback(e.checked);
+                })}"
+                ${def ? `checked` : ``}
+            />
+        </div>`;
     }
 
     static searchFilter(event: string, vale: string, placeholder: string, margin?: string) {
@@ -932,10 +971,8 @@ ${obj.default ?? ''}</textarea
     }
 
     static duringInputContainer(gvc: GVC, obj: { centerText: string; list: { key: string; type: string; placeHolder: string }[] }, def: string[], callback: (value: string[]) => void) {
-
         const defualt = (def && def.length) > 1 ? def : ['', ''];
         if (obj.list.length > 1) {
-
             const first = obj.list[0];
             const second = obj.list[1];
 
@@ -971,9 +1008,20 @@ ${obj.default ?? ''}</textarea
         return '';
     }
 
-    static multiCheckboxContainer(gvc: GVC, data: { key: string; name: string }[], def: string[], callback: (value: string[]) => void) {
+    static randomString(max: number) {
+        let possible = 'abcdefghijklmnopqrstuvwxyz0123456789';
+        let text = possible.charAt(Math.floor(Math.random() * (possible.length - 10)));
+        for (let i = 1; i < max; i++) text += possible.charAt(Math.floor(Math.random() * possible.length));
+        return text;
+    }
+
+    static multiCheckboxContainer(gvc: GVC, data: { key: string; name: string }[], def: string[], callback: (value: string[]) => void, readonly?: boolean) {
+        const id = gvc.glitter.getUUID();
+        const randomString = this.randomString(5);
+        let checkboxHTML = '';
+
         gvc.addStyle(`
-            .form-check-input:checked[type='checkbox'] {
+            .${randomString}:checked[type='checkbox'] {
                 border: 2px solid #000;
                 background-color: #fff;
                 background-image: url(${this.checkedDataImage('#000')});
@@ -981,16 +1029,21 @@ ${obj.default ?? ''}</textarea
             }
         `);
 
-        const id = gvc.glitter.getUUID();
-        let checkboxHTML = '';
         data.map((item) => {
             checkboxHTML += html`
                 <div class="form-check">
                     <input
-                        class="form-check-input"
+                        class="form-check-input ${randomString}"
+                        style="margin-top: 0.35rem;"
                         type="checkbox"
                         id="${id}_${item.key}"
-                        onchange="${gvc.event((e) => {
+                        onclick="${gvc.event((e, ev) => {
+                            if (readonly) {
+                                ev.preventDefault();
+                                return;
+                            }
+                        })}"
+                        onchange="${gvc.event((e, ev) => {
                             if (e.checked) {
                                 def.push(item.key);
                             } else {
@@ -1014,8 +1067,11 @@ ${obj.default ?? ''}</textarea
         def: { key: string; value: string },
         callback: (value: { key: string; value: string }) => void
     ) {
+        const id = gvc.glitter.getUUID();
+        const randomString = this.randomString(5);
+
         gvc.addStyle(`
-            .form-check-input:checked[type='radio'] {
+            .${randomString}:checked[type='radio'] {
                 border: 2px solid #000;
                 background-color: #fff;
                 background-image: url(${this.dotDataImage('#000')});
@@ -1023,7 +1079,6 @@ ${obj.default ?? ''}</textarea
             }
         `);
 
-        const id = gvc.glitter.getUUID();
         return gvc.bindView({
             bind: id,
             view: () => {
@@ -1033,7 +1088,7 @@ ${obj.default ?? ''}</textarea
                         <div class="m-1">
                             <div class="form-check">
                                 <input
-                                    class="form-check-input"
+                                    class="${randomString}"
                                     type="radio"
                                     id="${id}_${item.key}"
                                     name="radio_${id}"
@@ -1067,6 +1122,13 @@ ${obj.default ?? ''}</textarea
                 return html` <div style="width: 100%; display: flex; flex-direction: column; gap: 6px;">${radioInputHTML}</div> `;
             },
         });
+    }
+
+    static spinner() {
+        return html` <div class="d-flex align-items-center justify-content-center flex-column" style="width: 100%; height: 100vh;">
+            <div class="spinner-border" role="status"></div>
+            <span class="mt-3">載入中...</span>
+        </div>`;
     }
 }
 

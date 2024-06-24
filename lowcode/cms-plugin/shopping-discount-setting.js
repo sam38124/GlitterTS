@@ -845,7 +845,7 @@ export class ShoppingDiscountSetting {
                         },
                     };
                 })),
-            ].join(html `<div style="margin-top: 24px"></div>`), undefined, 'padding: 0; margin: 0 !important;  width: 68.5%;')}
+            ].join(html `<div style="margin-top: 24px"></div>`), undefined, 'padding: 0; margin: 0 !important; width: 68.5%;')}
                     ${BgWidget.container(html `<div>
                             ${gvc.bindView(() => {
                 const id = gvc.glitter.getUUID();

@@ -468,7 +468,7 @@ export class UserList {
                 view: () => {
                     var _a, _b;
                     if (vm.loading) {
-                        return html `<div class="w-100 h-100 d-flex align-items-center"><div class="spinner-border"></div></div>`;
+                        return BgWidget.spinner();
                     }
                     vm.data.userData = (_a = vm.data.userData) !== null && _a !== void 0 ? _a : {};
                     const saasConfig = window.parent.saasConfig;

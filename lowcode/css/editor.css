@@ -516,17 +516,21 @@ ul {
 
 .bgw-input {
     width: 100%;
-    margin-top: 8px;
     display: flex;
     padding: 9px 12px;
     align-items: center;
     border-radius: 10px;
-    border: 1px solid #ddd;
+    border: 0px solid #ddd;
     background-color: #fff;
+    appearance: none;
+}
+
+.bgw-input:focus {
+    outline: 0;
 }
 
 .bgw-input-readonly {
-    background-color: #f3f6ff;
+    background-color: #f7f7f7;
 }
 
 .bgw-input-readonly:focus-visible {

@@ -83,7 +83,7 @@ TriggerEvent.create(import.meta.url, {
         subContent: questionText([
             {
                 title: '打開彈跳視窗',
-                content: `使用此事件可以開啟彈跳視窗，可以實現 表單 / 加載動畫 / 錯誤提醒 ....等效果都可以透過頁面彈窗來進行實現。`,
+                content: `使用此事件可以開啟彈跳視窗，可以實現 表單 / 載入動畫 / 錯誤提醒 ....等效果都可以透過頁面彈窗來進行實現。`,
             },
             {
                 title: '關閉彈跳視窗',

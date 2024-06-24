@@ -115,7 +115,7 @@ export class UserList {
             });
         }
 
- return gvc.bindView({
+        return gvc.bindView({
             bind: vm.id,
             dataList: [{ obj: vm, key: 'type' }],
             view: () => {
@@ -497,8 +497,7 @@ export class UserList {
                 dataList: [{ obj: vm, key: 'type' }],
                 view: () => {
                     if (vm.loading) {
-                        // ! spinner position
-                        return html`<div class="w-100 h-100 d-flex align-items-center"><div class="spinner-border"></div></div>`;
+                        return BgWidget.spinner();
                     }
 
                     vm.data.userData = vm.data.userData ?? {};
