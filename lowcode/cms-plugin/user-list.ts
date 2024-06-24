@@ -384,7 +384,7 @@ export class UserList {
         });
     }
 
-    public static userInformationDetail(cf: { userID: string; gvc: GVC; callback: () => void; type?: 'readonly' | 'write' }) {
+    public static userInformationDetail(cf: { userID: string; gvc: GVC; callback: () => void; type?: 'readonly' | 'write' }):string {
         const html = String.raw;
         const gvc = cf.gvc;
         const vm: any = {

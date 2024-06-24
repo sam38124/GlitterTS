@@ -104,20 +104,22 @@ export class ApiShop {
     }
     static orderListFilterString(obj) {
         let list = [];
-        if (obj.created_time && obj.created_time.length > 1 && (obj === null || obj === void 0 ? void 0 : obj.created_time[0].length) > 0 && (obj === null || obj === void 0 ? void 0 : obj.created_time[1].length) > 0) {
-            list.push(`created_time=${obj.created_time[0]},${obj.created_time[1]}`);
-        }
-        if (obj.shipment.length > 0) {
-            list.push(`shipment=${obj.shipment.join(',')}`);
-        }
-        if (obj.progress.length > 0) {
-            list.push(`progress=${obj.progress.join(',')}`);
-        }
-        if (obj.payload.length > 0) {
-            list.push(`status=${obj.payload.join(',')}`);
-        }
-        if (obj.orderStatus.length > 0) {
-            list.push(`orderStatus=${obj.orderStatus.join(',')}`);
+        if (obj) {
+            if (obj.created_time && obj.created_time.length > 1 && (obj === null || obj === void 0 ? void 0 : obj.created_time[0].length) > 0 && (obj === null || obj === void 0 ? void 0 : obj.created_time[1].length) > 0) {
+                list.push(`created_time=${obj.created_time[0]},${obj.created_time[1]}`);
+            }
+            if (obj.shipment.length > 0) {
+                list.push(`shipment=${obj.shipment.join(',')}`);
+            }
+            if (obj.progress.length > 0) {
+                list.push(`progress=${obj.progress.join(',')}`);
+            }
+            if (obj.payload.length > 0) {
+                list.push(`status=${obj.payload.join(',')}`);
+            }
+            if (obj.orderStatus.length > 0) {
+                list.push(`orderStatus=${obj.orderStatus.join(',')}`);
+            }
         }
         return list;
     }

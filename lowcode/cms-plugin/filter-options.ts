@@ -167,4 +167,14 @@ export class FilterOptions {
         { key: 'invoice_number', value: '發票號碼' },
 
     ];
+
+    static productOrderBy = [
+        { key: 'default', value: '商品名稱' },
+        { key: 'max_price', value: '價格高 > 低' },
+        { key: 'min_price', value: '價格低 > 高' },
+        // { key: 'sale_volume_desc', value: '銷售數量多 > 少' },
+        // { key: 'sale_volume_asc', value: '銷售數量少 > 多' },
+        // { key: 'stock_desc', value: '庫存數量多 > 少' },
+        // { key: 'stock_asc', value: '庫存數量少 > 多' },
+    ];
 }

@@ -41,7 +41,7 @@ export class ShoppingOrderManager {
 
         const vm: ViewModel = {
             id: glitter.getUUID(),
-            type: 'list',
+            type: 'add',
             data: {},
             dataList: undefined,
             query: '',
@@ -49,10 +49,19 @@ export class ShoppingOrderManager {
             orderString: '',
             filter: {},
             filterId: glitter.getUUID(),
-        };
 
+        };
         const ListComp = new BgListComponent(gvc, vm, FilterOptions.orderFilterFrame);
         vm.filter = ListComp.getFilterObject();
+        let newOrder:any={
+            id: glitter.getUUID(),
+            productArray:[],
+            productCheck:[],
+            productTemp:[],
+            orderProductArray:[],
+            orderString: '',
+            query: '',
+        };
 
         return gvc.bindView(() => {
             const id = glitter.getUUID();
@@ -61,34 +70,37 @@ export class ShoppingOrderManager {
                 dataList: [{ obj: vm, key: 'type' }],
                 view: () => {
                     if (vm.type === 'list') {
-                        return BgWidget.container(
-                            html`
-                                <div class="d-flex w-100 align-items-center mb-3 ">
-                                    ${BgWidget.title('訂單管理')}
-                                    <div class="flex-fill"></div>
+            return BgWidget.container(html`
+                            <div class="d-flex w-100 align-items-center mb-3 ">
+                                ${BgWidget.title('訂單管理')}
+                                <div class="flex-fill"></div>
                                     <button
-                                        class="btn btn-primary-c d-none"
-                                        style="height:45px;font-size: 14px;"
-                                        onclick="${gvc.event(() => {
-                                            vm.type = 'add';
-                                        })}"
+                                            class="btn "
+                                            style="display: flex;
+    padding: 6px 18px;
+    align-items: center;
+    gap: 8px;border-radius: 10px;color: #FFF;
+    background: #393939;font-size: 16px;font-weight: 700;"
+                                            onclick="${gvc.event(() => {
+                                                vm.type = 'add';
+                                            })}"
                                     >
-                                        新增訂單
+                                        新增
                                     </button>
                                 </div>
-                                ${BgWidget.table({
-                                    gvc: gvc,
-                                    getData: (vmi) => {
-                                        ApiShop.getOrder({
-                                            page: vmi.page - 1,
-                                            limit: 20,
-                                            search: vm.query || undefined,
-                                            searchType: vm.queryType || 'name',
-                                            orderString: vm.orderString,
-                                            filter: vm.filter,
-                                        }).then((data) => {
-                                            vmi.pageSize = Math.ceil(data.response.total / 20);
-                                            vm.dataList = data.response.data;
+                            ${BgWidget.table({
+                                gvc: gvc,
+                                getData: (vmi) => {
+                                    ApiShop.getOrder({
+                                        page: vmi.page - 1,
+                                        limit: 20,
+                                        search: vm.query || undefined,
+                                        searchType: vm.queryType || 'name',
+                                        orderString: vm.orderString,
+                                        filter: vm.filter,
+                                    }).then((data) => {
+                                        vmi.pageSize = Math.ceil(data.response.total / 20);
+                                        vm.dataList = data.response.data;
 
                                             function getDatalist() {
                                                 return data.response.data.map((dd: any) => {
@@ -298,7 +310,197 @@ export class ShoppingOrderManager {
                         );
                     } else if (vm.type == 'replace') {
                         return this.replaceOrder(gvc, vm, id);
-                    } else {
+                    }else if (vm.type == "add") {
+                        return BgWidget.container(html`
+                            <div class="d-flex align-items-center" style="margin-bottom: 24px;">
+                                ${BgWidget.goBack(
+                                        gvc.event(() => {
+                                            vm.type = 'list';
+                                        })
+                                )}
+                                ${BgWidget.title('新增訂單')}    
+                            </div>
+                            <div style="color: #393939;width: 100%;display: flex;padding: 20px;flex-direction: column;align-items: flex-start;gap: 18px;align-self: stretch;border-radius: 10px;background: #FFF;box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.08);">
+                                <div style="font-size: 16px;font-weight: 700;">訂單內容</div>
+                                <div style="width: 100%;display: flex;align-items: center">
+                                    <div class="flex-fill d-flex align-items-center col-5" style="font-size: 16px;font-weight: 700;">商品</div>
+                                    <div class="col-3" style="display: flex;padding-right: 40px;align-items: flex-start;font-size: 16px;font-weight: 700;">單價</div>
+                                    <div class="col-2" style="font-size: 16px;font-weight: 700;">數量</div>
+                                    <div class="col-1" style="font-size: 16px;font-weight: 700;">小計</div>
+                                </div>
+                                ${gvc.bindView({
+                                    bind : "listProduct",
+                                    view : ()=>{
+                                        newOrder.productCheck
+                                        let returnHTML = "";
+                                        if (newOrder.productCheck.length){
+                                            
+                                            newOrder.productCheck.map((product:any)=>{
+                                                returnHTML += html`
+                                                    <div style="width: 100%;display: flex;align-items: center">
+                                                        <div class="flex-fill d-flex align-items-center col-5" style="font-size: 16px;font-weight: 700;">
+                                                            <div style="width: 54px;height: 54px;border-radius: 5px;
+background: url('${product}') lightgray 50% / cover no-repeat;"></div>
+                                                        </div>
+                                                        <div class="col-3" style="display: flex;padding-right: 40px;align-items: flex-start;font-size: 16px;font-weight: 700;">單價</div>
+                                                        <div class="col-2" style="font-size: 16px;font-weight: 700;">數量</div>
+                                                        <div class="col-1" style="font-size: 16px;font-weight: 700;">小計</div>
+                                                    </div>
+                                                `
+                                            })
+                                                    
+                                        }
+                                        return returnHTML
+                                    },divCreate : {style : `display: flex;flex-direction: column;align-items: flex-start;gap: 18px;align-self: stretch;` , class : ``}
+                                })}
+                                ${gvc.bindView({
+                                    bind:"addProduct",
+                                    view:()=>{
+                                        console.log(newOrder.productCheck)
+                                        return html`
+                                        <div class="w-100 d-flex justify-content-center align-items-center" style="color: #36B;" onclick="${gvc.event(()=>{
+                                            gvc.glitter.innerDialog((gvc: GVC) => {
+                                                newOrder.query = "";
+                                                newOrder.search = "";
+                                                newOrder.productArray = [];
+                                                return gvc.bindView({
+                                                    bind:"addDialog",
+                                                    dataList: [{obj: newOrder, key: 'productArray'}],
+                                                    view:()=>{
+                                                        if (newOrder.productArray.length == 0){
+                                                            ApiShop.getProduct({
+                                                                page: 0,
+                                                                limit: 20,
+                                                                search: newOrder.query,
+                                                                orderBy : newOrder.orderString
+                                                            }).then((data) => {
+                                                                newOrder.productArray = data.response.data;
+                                                                
+                                                            });
+                                                        }
+                                                        return html`
+                                                        <div style="display: flex;width: 690px;padding-bottom: 24px;flex-direction: column;align-items: flex-start;gap: 24px;border-radius: 10px;background: #FFF;">
+                                                            <div class="w-100" style="display: flex;height: 46px;padding: 12px 0 12px 20px;align-items: center;align-self: stretch;color: #393939;font-size: 16px;font-weight: 700;">搜尋商品</div>
+                                                            <div class="w-100" style="display: flex;flex-direction: column;align-items: flex-start;gap: 42px;">
+                                                                <div class="w-100" style="display: flex;padding: 0px 20px;flex-direction: column;align-items: center;gap: 18px;">
+                                                                    <div style="display: flex;justify-content: center;align-items: flex-start;gap: 12px;align-self: stretch;">
+                                                                        ${BgWidget.searchFilter(
+                                                                            gvc.event((e, event) => {
+                                                                                newOrder.query = e.value;
+                                                                                newOrder.productArray = [];
+                                                                                
+                                                                                gvc.notifyDataChange("addOrder");
+                                                                            }),
+                                                                            newOrder.query || '',
+                                                                            '輸入商品名稱或商品貨號'
+                                                                        )}
+                                                                        ${BgWidget.updownFilter({
+                                                                            gvc,
+                                                                            callback: (value: any) => {
+                                                                                newOrder.orderString = value;
+                                                                                newOrder.productArray = [];
+        
+                                                                                gvc.notifyDataChange("addOrder");
+                                                                            },
+                                                                            default: newOrder.orderString || 'default',
+                                                                            options: FilterOptions.productOrderBy,
+                                                                        })}
+                                                                    </div>
+                                                                    <div class="" style="height:350px;display: flex;justify-content: center;align-items: flex-start;padding-right: 24px;align-self: stretch;overflow-y: scroll;">
+                                                                        ${(()=>{
+                                                                            let returnHTML = ``;
+                                                                            newOrder.productArray.map((product : any , productIndex:number)=>{
+                                                                                returnHTML += gvc.bindView({
+                                                                                    bind : `product${productIndex}`,
+                                                                                    view : ()=>{
+                                                                                        return html`
+                                                                                        ${(()=>{
+                                                                                            if (product.select){
+                                                                                                return `
+                                                                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none" onclick="${gvc.event(()=>{product.select=false;gvc.notifyDataChange(`product${productIndex}`);})}">
+                                                                                                    <rect width="16" height="16" rx="3" fill="#393939"/>
+                                                                                                    <path d="M4.5 8.5L7 11L11.5 5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                                                                </svg>`
+                                                                                            }else{
+                                                                                                return `<div style="width: 16px;height: 16px;border-radius: 3px;border: 1px solid #DDD;" onclick="${gvc.event(()=>{
+                                                                                                    product.select=true;
+                                                                                                    (document.querySelector('.varitantSelect') as HTMLInputElement)!.value;
+                                                                                                    if (product.content.variants.length > 1){
+                                                                                                        product.selectIndex = (document.querySelector('.varitantSelect') as HTMLInputElement).value;
+                                                                                                    }
+                                                                                                    gvc.notifyDataChange(`product${productIndex}`);})}"></div>`
+                                                                                            }
+                                                                                        })()}
+                                                                                        <div style="width: 50px;height: 50px;border-radius: 5px;background: url('${product.content.preview_image[0]}') lightgray 50% / cover no-repeat;"></div>
+                                                                                        <div class="flex-fill d-flex flex-column">
+                                                                                                <div style="color:#393939;font-size: 14px;font-weight: 400;margin-bottom: 4px;">${product.content.title}</div>
+                                                                                                ${(()=>{
+                                                                                                if (product.content.variants.length > 1){
+                                                                                                    return `
+                                                                                                        <select class="w-100 d-flex align-items-center form-select varitantSelect" style="border-radius: 10px;border: 1px solid #DDD;padding: 6px 18px;">
+                                                                                                            ${(()=>{
+                                                                                                        let optionHTML = ``
+                                                                                                        product.content.variants.map((variant:any,index:number)=>{
+                                                                                                            optionHTML += `
+                                                                                                                    <option value="${index}" ${(()=>{if (product.selectIndex == index)return `selected`;else return ``;})()}>${variant.spec.join(", ")}</option>
+                                                                                                                `
+                                                                                                        })
+                                                                                                        return optionHTML
+                                                                                                    })()}
+                                                                                                        </select>
+                                                                                                        `;
+                                                                                                }else{
+                                                                                                    return `<div class="d-flex align-items-center" style="height: 34px;color: #8D8D8D;font-size: 14px;font-weight: 400;">單一規格</div>`
+                                                                                                    }
+                                                                                                })()}
+                                                                                            </div>
+                                                                                    `
+                                                                                    },divCreate:{ style : `display: flex;padding: 0px 12px;align-items: center;gap: 18px;align-self: stretch;`}
+                                                                                })
+                                                                            })
+                                                                            return html`
+                                                                                <div class="d-flex flex-column" style="gap: 18px;width:100%;">
+                                                                                    ${returnHTML}
+                                                                                </div>
+                                                                            `
+                                                                        })()}
+                                                                    </div>
+                                                                </div>
+                                                                <div class="w-100" style="display: flex;padding: 0px 20px;align-items: center;justify-content: end;gap: 10px;">
+                                                                    ${BgWidget.cancel( gvc.event(() => {
+                                                                    gvc.closeDialog()
+                                                                }),"取消")}
+                                                                    ${BgWidget.save( gvc.event(() => {
+                                                                        newOrder.productArray.map((product:any)=>{
+                                                                            if (product.select){
+                                                                                newOrder.productTemp.push(product);
+                                                                            }
+                                                                        })
+                                                                        
+                                                                        gvc.closeDialog()
+                                                                        
+                                                                    }))}
+                                                                </div>
+                                                            </div>
+                                                        </div>`
+                                                    },divCreate:{}
+                                                })
+                                                
+                                            }, 'addProduct',{
+                                                dismiss:()=>{
+                                                    newOrder.productCheck.push(...newOrder.productTemp)
+                                                    gvc.notifyDataChange(['listProduct','addProduct']);
+                                                }
+                                            } );
+                                        })}">新增一個商品<i class="fa-regular fa-plus" style="margin-left: 2px;font-size: 16px;"></i></div>
+                                        `
+                                    },divCreate:{style:`width: 100%;display: flex;align-items: center;margin:24px 0;` , class:``}
+                                })}
+                                
+                            </div>
+                        `
+                        ,1200);
+                    }else {
                         return ``;
                     }
                 },
@@ -473,18 +675,19 @@ export class ShoppingOrderManager {
                 }
             },
         };
-        ApiUser.getUsersDataWithEmail(orderData.email).then((res) => {
-            console.log('userData -- ', res);
-            // if ()
-            userData = res.response;
-        });
-        const child_vm: {
-            type: 'order' | 'user';
-            userID: string;
-        } = {
-            type: 'order',
-            userID: '',
-        };
+  ApiUser.getUsersDataWithEmail(orderData.email)
+            .then((res) => {
+
+                userData = res.response
+                gvc.notifyDataChange(mainViewID)
+            })
+        const child_vm:{
+            type:'order'|'user',
+            userID:string
+        }={
+            type:'order',
+            userID:''
+        }
         return gvc.bindView({
             bind: mainViewID,
             dataList: [
@@ -543,37 +746,36 @@ export class ShoppingOrderManager {
                                                             time: formatDateString(),
                                                             record: text[orderData.status],
                                                         });
-                                                    }
-                                                    if (orderData.orderData.orderStatus != origData.orderData.orderStatus) {
-                                                        let text: any = {
-                                                            '1': '訂單完成',
-                                                            '0': '訂單改為處理中',
-                                                            '-1': '訂單已取消',
-                                                        };
-                                                        editArray.push({
-                                                            time: formatDateString(),
-                                                            record: text[orderData.orderData.orderStatus],
-                                                        });
-                                                    }
-                                                    if (orderData.orderData.progress != origData.orderData.progress) {
-                                                        let text: any = {
-                                                            shipping: '訂單完成',
-                                                            wait: '訂單改為處理中',
-                                                            finish: '商品已取貨',
-                                                            returns: '商品已退貨',
-                                                            arrived: '商品已到貨',
-                                                        };
-                                                        editArray.push({
-                                                            time: formatDateString(),
-                                                            record: text[orderData.orderData.progress],
-                                                        });
-                                                    }
-                                                    if (orderData.orderData?.editRecord) {
-                                                        editArray.length && orderData.orderData.editRecord.push(...editArray);
-                                                    } else {
-                                                        editArray.length && (orderData.orderData.editRecord = editArray);
-                                                    }
-                                                }
+                })}"
+                                            >
+                                                儲存並更改
+                                            </button>
+                                        </div>
+                                        <div class="d-flex flex-column flex-column-reverse  flex-md-row"
+                                             style="gap:10px;">
+                                            <div style="width:900px;max-width:100%;gap:10px;"
+                                                 class="d-flex flex-column">
+                                                ${BgWidget.card(
+                                                        [
+                                                            html`
+                                                                <div style="display: flex;flex-direction: column;align-items: flex-start;gap: 12px;align-self: stretch;">
+                                                                    <div style="color:#393939;font-size: 16px;font-weight: 700;">
+                                                                        訂單狀態
+                                                                    </div>
+                                                                    <div class="ms-auto w-100" style="">
+                                                                        ${EditorElem.select({
+                                                                            title: ``,
+                                                                            gvc: gvc,
+                                                                            def: orderData.orderData.orderStatus??'0',
+                                                                            array: [{
+                                                                                title: '變更訂單狀態',
+                                                                                value: ''
+                                                                            }].concat(ApiShop.getOrderStatusArray()),
+                                                                            callback: (text) => {
+                                                                                orderData.orderData.orderStatus = orderData.orderData.orderStatus || '0';
+                                                                                if (text && text !== orderData.orderData.orderStatus) {
+
+                                                                                    orderData.orderData.orderStatus = text;
 
                                                 writeEdit(origData, orderData);
                                                 const dialog = new ShareDialog(gvc.glitter);
@@ -878,24 +1080,39 @@ export class ShoppingOrderManager {
                                                         <div>${formatDateString(orderData.created_time)}</div>
                                                         <div>訂單成立</div>
                                                     </div>
-                                                </div>
-                                            `)}
-                                        </div>
-                                        <div style="width:380px;max-width:100%;">
-                                            ${BgWidget.card(html`
-                                                <div class="p-2" style="color: #393939;font-size: 16px;">
-                                                    <div class="d-flex align-items-center">
-                                                        <div class="" style="font-size: 16px;font-weight: 700;">顧客資料</div>
-                                                        <div class="flex-fill"></div>
-                                                    </div>
-                                                    <div class="w-100 d-flex flex-column mt-2" style="gap:12px;">
-                                                        ${[
-                                                            `<div class="d-flex flex-column" style="gap:8px;">
-                                            <div class="d-flex align-items-center" style="color: #4D86DB;font-weight: 400; gap:8px;cursor:pointer;" onclick="${gvc.event(() => {
-                                                child_vm.userID = userData.userID;
-                                                child_vm.type = 'user';
-                                            })}">${userData?.userData?.name ?? '訪客'}
-                                                <div class="d-flex align-items-center justify-content-center" style="padding: 4px 6px;border-radius: 7px;background: #393939;color: #FFF;">高級會員</div>
+            `)}
+                                            </div>
+                                            <div style="width:380px;max-width:100%;">
+                                                ${BgWidget.card(html`
+                                                    <div class="p-2" style="color: #393939;font-size: 16px;">
+                                                        <div class="d-flex align-items-center">
+                                                            <div class="" style="font-size: 16px;font-weight: 700;">
+                                                                顧客資料
+                                                            </div>
+                                                            <div class="flex-fill"></div>
+                                                        </div>
+                                                        <div class="w-100 d-flex flex-column mt-2" style="gap:12px;">
+                                                            ${[
+                                                                `<div class="d-flex flex-column" style="gap:8px;">
+                                            <div class="d-flex align-items-center" style="color: #4D86DB;font-weight: 400; gap:8px;cursor:pointer;" onclick="${gvc.event(()=>{
+                                                                    child_vm.userID=userData.userID
+                                                                    child_vm.type='user'
+                                                                })}">${userData?.userData?.name??"訪客"}
+                                                ${(()=>{
+                                                            
+                                                    if (userData?.member){
+                                                        
+                                                        for (let i = 0 ; i < userData.member.length ; i++){
+                                                    
+                                                            if (userData.member[i].trigger){
+                                                                return`<div class="d-flex align-items-center justify-content-center" style="padding: 4px 6px;border-radius: 7px;background: #393939;color: #FFF;">${userData.member[i].tag_name}</div>`
+                                                            }
+                                                        }
+                                                    }
+                                                    
+                                                    return `<div style="border-radius: 7px;background: #EAEAEA;padding: 4px 6px;color:#393939;font-weight: 700;">訪客</div>`
+                                                })()}
+                                                
                                             </div>
                                             <div class="" style="color: #393939;font-weight: 400;">${userData?.userData?.phone ?? orderData.orderData.user_info.phone}</div>
                                             <div class="" style="color: #393939;font-weight: 400;">${userData?.userData?.email ?? orderData.orderData.user_info.email}</div>
@@ -1111,23 +1328,23 @@ export class ShoppingOrderManager {
                                             }
                                         }
 
-                                        writeEdit(origData, orderData);
-                                        const dialog = new ShareDialog(gvc.glitter);
-                                        dialog.dataLoading({ text: '上傳中', visible: true });
-                                        ApiShop.putOrder({
-                                            id: `${orderData.id}`,
-                                            order_data: orderData.orderData,
-                                            status: orderData.status,
-                                        }).then((response) => {
-                                            dialog.dataLoading({ text: '上傳中', visible: false });
-                                            if (response.result) {
-                                                dialog.successMessage({ text: '更新成功!' });
-                                                gvc.notifyDataChange(id);
-                                            } else {
-                                                dialog.errorMessage({ text: '更新異常!' });
-                                            }
-                                        });
-                                    })}"
+   writeEdit(origData, orderData)
+                                            const dialog = new ShareDialog(gvc.glitter);
+                                            dialog.dataLoading({text: '上傳中', visible: true});
+                                            ApiShop.putOrder({
+                                                id: `${orderData.id}`,
+                                                order_data: orderData.orderData,
+                                                status: orderData.status,
+                                            }).then((response) => {
+                                                dialog.dataLoading({text: '上傳中', visible: false});
+                                                if (response.result) {
+                                                    dialog.successMessage({text: '更新成功!'});
+                                                    gvc.notifyDataChange(mainViewID)
+                                                } else {
+                                                    dialog.errorMessage({text: '更新異常!'});
+                                                }
+                                            });
+                                        })}"
                                 >
                                     送出
                                 </button>
