@@ -44,7 +44,7 @@ export class ShoppingOrderManager {
 
         const vm: ViewModel = {
             id: glitter.getUUID(),
-            type: 'list',
+            type: 'add',
             data: {},
             dataList: undefined,
             query: '',
@@ -52,10 +52,19 @@ export class ShoppingOrderManager {
             orderString: '',
             filter: {},
             filterId: glitter.getUUID(),
-        };
 
+        };
         const ListComp = new BgListComponent(gvc, vm, FilterOptions.orderFilterFrame);
         vm.filter = ListComp.getFilterObject();
+        let newOrder:any={
+            id: glitter.getUUID(),
+            productArray:[],
+            productCheck:[],
+            productTemp:[],
+            orderProductArray:[],
+            orderString: '',
+            query: '',
+        };
 
         return gvc.bindView(() => {
             const id = glitter.getUUID();
@@ -68,16 +77,20 @@ export class ShoppingOrderManager {
                             <div class="d-flex w-100 align-items-center mb-3 ">
                                 ${BgWidget.title('訂單管理')}
                                 <div class="flex-fill"></div>
-                                <button
-                                        class="btn btn-primary-c d-none"
-                                        style="height:45px;font-size: 14px;"
-                                        onclick="${gvc.event(() => {
-                                            vm.type = 'add';
-                                        })}"
-                                >
-                                    新增訂單
-                                </button>
-                            </div>
+                                    <button
+                                            class="btn "
+                                            style="display: flex;
+    padding: 6px 18px;
+    align-items: center;
+    gap: 8px;border-radius: 10px;color: #FFF;
+    background: #393939;font-size: 16px;font-weight: 700;"
+                                            onclick="${gvc.event(() => {
+                                                vm.type = 'add';
+                                            })}"
+                                    >
+                                        新增
+                                    </button>
+                                </div>
                             ${BgWidget.table({
                                 gvc: gvc,
                                 getData: (vmi) => {
@@ -301,7 +314,197 @@ export class ShoppingOrderManager {
                         `, 1200);
                     } else if (vm.type == 'replace') {
                         return this.replaceOrder(gvc, vm, id);
-                    } else {
+                    }else if (vm.type == "add") {
+                        return BgWidget.container(html`
+                            <div class="d-flex align-items-center" style="margin-bottom: 24px;">
+                                ${BgWidget.goBack(
+                                        gvc.event(() => {
+                                            vm.type = 'list';
+                                        })
+                                )}
+                                ${BgWidget.title('新增訂單')}    
+                            </div>
+                            <div style="color: #393939;width: 100%;display: flex;padding: 20px;flex-direction: column;align-items: flex-start;gap: 18px;align-self: stretch;border-radius: 10px;background: #FFF;box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.08);">
+                                <div style="font-size: 16px;font-weight: 700;">訂單內容</div>
+                                <div style="width: 100%;display: flex;align-items: center">
+                                    <div class="flex-fill d-flex align-items-center col-5" style="font-size: 16px;font-weight: 700;">商品</div>
+                                    <div class="col-3" style="display: flex;padding-right: 40px;align-items: flex-start;font-size: 16px;font-weight: 700;">單價</div>
+                                    <div class="col-2" style="font-size: 16px;font-weight: 700;">數量</div>
+                                    <div class="col-1" style="font-size: 16px;font-weight: 700;">小計</div>
+                                </div>
+                                ${gvc.bindView({
+                                    bind : "listProduct",
+                                    view : ()=>{
+                                        newOrder.productCheck
+                                        let returnHTML = "";
+                                        if (newOrder.productCheck.length){
+                                            
+                                            newOrder.productCheck.map((product:any)=>{
+                                                returnHTML += html`
+                                                    <div style="width: 100%;display: flex;align-items: center">
+                                                        <div class="flex-fill d-flex align-items-center col-5" style="font-size: 16px;font-weight: 700;">
+                                                            <div style="width: 54px;height: 54px;border-radius: 5px;
+background: url('${product}') lightgray 50% / cover no-repeat;"></div>
+                                                        </div>
+                                                        <div class="col-3" style="display: flex;padding-right: 40px;align-items: flex-start;font-size: 16px;font-weight: 700;">單價</div>
+                                                        <div class="col-2" style="font-size: 16px;font-weight: 700;">數量</div>
+                                                        <div class="col-1" style="font-size: 16px;font-weight: 700;">小計</div>
+                                                    </div>
+                                                `
+                                            })
+                                                    
+                                        }
+                                        return returnHTML
+                                    },divCreate : {style : `display: flex;flex-direction: column;align-items: flex-start;gap: 18px;align-self: stretch;` , class : ``}
+                                })}
+                                ${gvc.bindView({
+                                    bind:"addProduct",
+                                    view:()=>{
+                                        console.log(newOrder.productCheck)
+                                        return html`
+                                        <div class="w-100 d-flex justify-content-center align-items-center" style="color: #36B;" onclick="${gvc.event(()=>{
+                                            gvc.glitter.innerDialog((gvc: GVC) => {
+                                                newOrder.query = "";
+                                                newOrder.search = "";
+                                                newOrder.productArray = [];
+                                                return gvc.bindView({
+                                                    bind:"addDialog",
+                                                    dataList: [{obj: newOrder, key: 'productArray'}],
+                                                    view:()=>{
+                                                        if (newOrder.productArray.length == 0){
+                                                            ApiShop.getProduct({
+                                                                page: 0,
+                                                                limit: 20,
+                                                                search: newOrder.query,
+                                                                orderBy : newOrder.orderString
+                                                            }).then((data) => {
+                                                                newOrder.productArray = data.response.data;
+                                                                
+                                                            });
+                                                        }
+                                                        return html`
+                                                        <div style="display: flex;width: 690px;padding-bottom: 24px;flex-direction: column;align-items: flex-start;gap: 24px;border-radius: 10px;background: #FFF;">
+                                                            <div class="w-100" style="display: flex;height: 46px;padding: 12px 0 12px 20px;align-items: center;align-self: stretch;color: #393939;font-size: 16px;font-weight: 700;">搜尋商品</div>
+                                                            <div class="w-100" style="display: flex;flex-direction: column;align-items: flex-start;gap: 42px;">
+                                                                <div class="w-100" style="display: flex;padding: 0px 20px;flex-direction: column;align-items: center;gap: 18px;">
+                                                                    <div style="display: flex;justify-content: center;align-items: flex-start;gap: 12px;align-self: stretch;">
+                                                                        ${BgWidget.searchFilter(
+                                                                            gvc.event((e, event) => {
+                                                                                newOrder.query = e.value;
+                                                                                newOrder.productArray = [];
+                                                                                
+                                                                                gvc.notifyDataChange("addOrder");
+                                                                            }),
+                                                                            newOrder.query || '',
+                                                                            '輸入商品名稱或商品貨號'
+                                                                        )}
+                                                                        ${BgWidget.updownFilter({
+                                                                            gvc,
+                                                                            callback: (value: any) => {
+                                                                                newOrder.orderString = value;
+                                                                                newOrder.productArray = [];
+        
+                                                                                gvc.notifyDataChange("addOrder");
+                                                                            },
+                                                                            default: newOrder.orderString || 'default',
+                                                                            options: FilterOptions.productOrderBy,
+                                                                        })}
+                                                                    </div>
+                                                                    <div class="" style="height:350px;display: flex;justify-content: center;align-items: flex-start;padding-right: 24px;align-self: stretch;overflow-y: scroll;">
+                                                                        ${(()=>{
+                                                                            let returnHTML = ``;
+                                                                            newOrder.productArray.map((product : any , productIndex:number)=>{
+                                                                                returnHTML += gvc.bindView({
+                                                                                    bind : `product${productIndex}`,
+                                                                                    view : ()=>{
+                                                                                        return html`
+                                                                                        ${(()=>{
+                                                                                            if (product.select){
+                                                                                                return `
+                                                                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none" onclick="${gvc.event(()=>{product.select=false;gvc.notifyDataChange(`product${productIndex}`);})}">
+                                                                                                    <rect width="16" height="16" rx="3" fill="#393939"/>
+                                                                                                    <path d="M4.5 8.5L7 11L11.5 5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                                                                </svg>`
+                                                                                            }else{
+                                                                                                return `<div style="width: 16px;height: 16px;border-radius: 3px;border: 1px solid #DDD;" onclick="${gvc.event(()=>{
+                                                                                                    product.select=true;
+                                                                                                    (document.querySelector('.varitantSelect') as HTMLInputElement)!.value;
+                                                                                                    if (product.content.variants.length > 1){
+                                                                                                        product.selectIndex = (document.querySelector('.varitantSelect') as HTMLInputElement).value;
+                                                                                                    }
+                                                                                                    gvc.notifyDataChange(`product${productIndex}`);})}"></div>`
+                                                                                            }
+                                                                                        })()}
+                                                                                        <div style="width: 50px;height: 50px;border-radius: 5px;background: url('${product.content.preview_image[0]}') lightgray 50% / cover no-repeat;"></div>
+                                                                                        <div class="flex-fill d-flex flex-column">
+                                                                                                <div style="color:#393939;font-size: 14px;font-weight: 400;margin-bottom: 4px;">${product.content.title}</div>
+                                                                                                ${(()=>{
+                                                                                                if (product.content.variants.length > 1){
+                                                                                                    return `
+                                                                                                        <select class="w-100 d-flex align-items-center form-select varitantSelect" style="border-radius: 10px;border: 1px solid #DDD;padding: 6px 18px;">
+                                                                                                            ${(()=>{
+                                                                                                        let optionHTML = ``
+                                                                                                        product.content.variants.map((variant:any,index:number)=>{
+                                                                                                            optionHTML += `
+                                                                                                                    <option value="${index}" ${(()=>{if (product.selectIndex == index)return `selected`;else return ``;})()}>${variant.spec.join(", ")}</option>
+                                                                                                                `
+                                                                                                        })
+                                                                                                        return optionHTML
+                                                                                                    })()}
+                                                                                                        </select>
+                                                                                                        `;
+                                                                                                }else{
+                                                                                                    return `<div class="d-flex align-items-center" style="height: 34px;color: #8D8D8D;font-size: 14px;font-weight: 400;">單一規格</div>`
+                                                                                                    }
+                                                                                                })()}
+                                                                                            </div>
+                                                                                    `
+                                                                                    },divCreate:{ style : `display: flex;padding: 0px 12px;align-items: center;gap: 18px;align-self: stretch;`}
+                                                                                })
+                                                                            })
+                                                                            return html`
+                                                                                <div class="d-flex flex-column" style="gap: 18px;width:100%;">
+                                                                                    ${returnHTML}
+                                                                                </div>
+                                                                            `
+                                                                        })()}
+                                                                    </div>
+                                                                </div>
+                                                                <div class="w-100" style="display: flex;padding: 0px 20px;align-items: center;justify-content: end;gap: 10px;">
+                                                                    ${BgWidget.cancel( gvc.event(() => {
+                                                                    gvc.closeDialog()
+                                                                }),"取消")}
+                                                                    ${BgWidget.save( gvc.event(() => {
+                                                                        newOrder.productArray.map((product:any)=>{
+                                                                            if (product.select){
+                                                                                newOrder.productTemp.push(product);
+                                                                            }
+                                                                        })
+                                                                        
+                                                                        gvc.closeDialog()
+                                                                        
+                                                                    }))}
+                                                                </div>
+                                                            </div>
+                                                        </div>`
+                                                    },divCreate:{}
+                                                })
+                                                
+                                            }, 'addProduct',{
+                                                dismiss:()=>{
+                                                    newOrder.productCheck.push(...newOrder.productTemp)
+                                                    gvc.notifyDataChange(['listProduct','addProduct']);
+                                                }
+                                            } );
+                                        })}">新增一個商品<i class="fa-regular fa-plus" style="margin-left: 2px;font-size: 16px;"></i></div>
+                                        `
+                                    },divCreate:{style:`width: 100%;display: flex;align-items: center;margin:24px 0;` , class:``}
+                                })}
+                                
+                            </div>
+                        `
+                        ,1200);
+                    }else {
                         return ``;
                     }
                 },

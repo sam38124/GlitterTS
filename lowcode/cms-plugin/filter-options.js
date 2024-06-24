@@ -144,3 +144,8 @@ FilterOptions.orderSelect = [
     { key: 'sku', value: '商品編號' },
     { key: 'invoice_number', value: '發票號碼' },
 ];
+FilterOptions.productOrderBy = [
+    { key: 'default', value: '商品名稱' },
+    { key: 'max_price', value: '價格高 > 低' },
+    { key: 'min_price', value: '價格低 > 高' },
+];
