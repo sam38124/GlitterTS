@@ -70,7 +70,7 @@ export class AutoReply {
                                             view: () => {
                                                 console.log(`id2=>`, id2);
                                                 return html ` <div class="tx_normal">啟用</div>
-                                                    <div class="cursor_it form-check form-switch ms-1" style=" ">
+                                                    <div class="cursor_pointer form-check form-switch ms-1" style=" ">
                                                         <input
                                                             class=" form-check-input form-check-input-success"
                                                             type="checkbox"

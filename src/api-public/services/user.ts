@@ -382,7 +382,6 @@ export class User {
         }
     }
 
-
     public async refreshMember(userData: any) {
         //分級配置檔案
         const member_list =
@@ -594,7 +593,6 @@ export class User {
             })()} 
             ${obj.page !== undefined && obj.limit !== undefined ? `LIMIT ${obj.page * obj.limit}, ${obj.limit}` : ''};
         `;
-        // console.log(sql);
         return sql;
     }
 
@@ -603,6 +601,10 @@ export class User {
             const querySql: string[] = ['1=1'];
             query.page = query.page ?? 0;
             query.limit = query.limit ?? 50;
+
+            if (query.id) {
+                querySql.push(`(u.userID in (${query.id}))`);
+            }
 
             if (query.created_time) {
                 const created_time = query.created_time.split(',');

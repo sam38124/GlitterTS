@@ -103,6 +103,8 @@ export class ApiShop {
         });
     }
     static orderListFilterString(obj) {
+        if (!obj)
+            return [];
         let list = [];
         if (obj) {
             if (obj.created_time && obj.created_time.length > 1 && (obj === null || obj === void 0 ? void 0 : obj.created_time[0].length) > 0 && (obj === null || obj === void 0 ? void 0 : obj.created_time[1].length) > 0) {

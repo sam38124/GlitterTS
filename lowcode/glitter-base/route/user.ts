@@ -217,6 +217,7 @@ export class ApiUser {
     }
 
     public static userListFilterString(obj: any): string[] {
+        if (!obj) return [];
         let list = [] as string[];
         if (obj.created_time.length > 1 && obj.created_time[0].length > 0 && obj.created_time[1].length > 0) {
             list.push(`created_time=${obj.created_time[0]},${obj.created_time[1]}`);

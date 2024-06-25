@@ -106,7 +106,7 @@ export class ShoppingFinanceSetting {
                                                                         return html`<div>
                                                                             ${[
                                                                                 html` <div
-                                                                                    class="d-flex align-items-center cursor_it"
+                                                                                    class="d-flex align-items-center cursor_pointer"
                                                                                     style="gap:8px;"
                                                                                     onclick="${gvc.event(() => {
                                                                                         if (keyData.TYPE !== dd.value) {
@@ -357,7 +357,7 @@ export class ShoppingFinanceSetting {
                                                                                 ? `開啟`
                                                                                 : `關閉`}
                                                                         </div>
-                                                                        <div class="cursor_it form-check form-switch" style="margin-top: 10px;">
+                                                                        <div class="cursor_pointer form-check form-switch" style="margin-top: 10px;">
                                                                             <input
                                                                                 class=" form-check-input"
                                                                                 style=" "
@@ -510,7 +510,7 @@ export class ShoppingFinanceSetting {
                                                                         return html`<div>
                                                                             ${[
                                                                                 html` <div
-                                                                                    class="d-flex align-items-center cursor_it"
+                                                                                    class="d-flex align-items-center cursor_pointer"
                                                                                     style="gap:8px;"
                                                                                     onclick="${gvc.event(() => {
                                                                                         vm.data.fincial = dd.value;

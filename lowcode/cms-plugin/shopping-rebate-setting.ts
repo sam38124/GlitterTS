@@ -1,5 +1,5 @@
 import { ShareDialog } from '../dialog/ShareDialog.js';
-import { BgWidget } from '../backend-manager/bg-widget.js';
+import { BgWidget, OptionsItem } from '../backend-manager/bg-widget.js';
 import { EditorElem } from '../glitterBundle/plugins/editor-elem.js';
 import { GVC } from '../glitterBundle/GVController.js';
 import { ApiUser } from '../glitter-base/route/user.js';
@@ -20,6 +20,7 @@ interface RebateSetting {
         value: number;
         date: number;
         unlimited: boolean;
+        level: { id: string; value: number }[];
     };
     config: {
         condition: {
@@ -56,6 +57,7 @@ export class ShoppingRebateSetting {
                     value: 100,
                     date: 30,
                     unlimited: false,
+                    level: [],
                 },
                 config: {
                     condition: {
@@ -100,8 +102,13 @@ export class ShoppingRebateSetting {
                 if (!vm.data.birth.switch) {
                     return ['生日購物金功能關閉'];
                 }
-                const birthType = vm.data.birth.type === 'base' ? '統一' : '依照會員等級';
-                return ['生日購物金功能開啟', `${birthType}給予${vm.data.birth.value}點購物金`, vm.data.birth.unlimited ? '無使用期限' : `使用期限${vm.data.birth.date}天`];
+                const given = [];
+                if (vm.data.birth.type === 'base') {
+                    given.push(`統一給予${vm.data.birth.value}點回饋金`);
+                } else {
+                    given.push(`依照會員等級給予${vm.data.birth.level.length}種購物金`);
+                }
+                return ['生日購物金功能開啟', ...given, vm.data.birth.unlimited ? '無使用期限' : `使用期限${vm.data.birth.date}天`];
             })();
 
             // 購物金使用設定
@@ -266,13 +273,116 @@ export class ShoppingRebateSetting {
                                                                                 {
                                                                                     title: '依會員等級給予',
                                                                                     value: 'levels',
-                                                                                    innerHtml: (() => {
-                                                                                        const id = glitter.getUUID();
-                                                                                        return gvc.bindView({
-                                                                                            bind: id,
-                                                                                            view: () => html`<div style="position: relative">${gvc.map([])}</div>`,
-                                                                                        });
-                                                                                    })(),
+                                                                                    innerHtml: gvc.bindView(() => {
+                                                                                        const levelVM = {
+                                                                                            id: gvc.glitter.getUUID(),
+                                                                                            loading: true,
+                                                                                            options: [] as OptionsItem[],
+                                                                                        };
+                                                                                        return {
+                                                                                            bind: levelVM.id,
+                                                                                            view: () => {
+                                                                                                if (levelVM.loading) {
+                                                                                                    return BgWidget.spinner();
+                                                                                                }
+                                                                                                return html`<div style="position: relative">
+                                                                                                        ${gvc.map(
+                                                                                                            vm.data.birth.level.map((item, index) => {
+                                                                                                                return html`
+                                                                                                                    <div class="row d-flex align-items-center">
+                                                                                                                        <div class="col-6">
+                                                                                                                            <div class="tx_normal">會員等級</div>
+                                                                                                                            ${BgWidget.select({
+                                                                                                                                gvc: gvc,
+                                                                                                                                callback: (text) => {
+                                                                                                                                    const n = vm.data.birth.level.findIndex((d) => {
+                                                                                                                                        return d.id === text;
+                                                                                                                                    });
+                                                                                                                                    if (n === -1 || n === index) {
+                                                                                                                                        item.id = text;
+                                                                                                                                    } else {
+                                                                                                                                        alert('列表存在此會員等級，請重新選擇');
+                                                                                                                                    }
+                                                                                                                                    gvc.notifyDataChange(levelVM.id);
+                                                                                                                                },
+                                                                                                                                default: item.id,
+                                                                                                                                options: levelVM.options,
+                                                                                                                                style: 'margin: 8px 0;',
+                                                                                                                            })}
+                                                                                                                        </div>
+                                                                                                                        <div class="col-5">
+                                                                                                                            ${BgWidget.editeInput({
+                                                                                                                                gvc: gvc,
+                                                                                                                                title: '購物金',
+                                                                                                                                default: `${item.value || 0}`,
+                                                                                                                                placeHolder: '請輸入購物金',
+                                                                                                                                callback: (text) => {
+                                                                                                                                    item.value = parseInt(text, 10);
+                                                                                                                                    gvc.notifyDataChange(levelVM.id);
+                                                                                                                                },
+                                                                                                                            })}
+                                                                                                                        </div>
+                                                                                                                        <div class="col-1 d-flex justify-content-start">
+                                                                                                                            <i
+                                                                                                                                class="fa-regular fa-trash fs-5 cursor_pointer"
+                                                                                                                                onclick="${gvc.event(() => {
+                                                                                                                                    vm.data.birth.level.splice(index, 1);
+                                                                                                                                    gvc.notifyDataChange(levelVM.id);
+                                                                                                                                    vm.data.birth.type = 'levels';
+                                                                                                                                })}"
+                                                                                                                            ></i>
+                                                                                                                        </div>
+                                                                                                                    </div>
+                                                                                                                `;
+                                                                                                            })
+                                                                                                        )}
+                                                                                                    </div>
+                                                                                                    ${levelVM.options.length === vm.data.birth.level.length
+                                                                                                        ? ''
+                                                                                                        : (() => {
+                                                                                                              return html`<div
+                                                                                                                  class="w-100 d-flex align-items-center justify-content-center cursor_pointer"
+                                                                                                                  style="color: #36B; font-size: 16px; font-weight: 400; margin-top: 12px;"
+                                                                                                                  onclick="${gvc.event(() => {
+                                                                                                                      const opts = levelVM.options.filter((item) => {
+                                                                                                                          return !vm.data.birth.level.find((lv) => lv.id === item.key);
+                                                                                                                      });
+                                                                                                                      if (opts.length > 0) {
+                                                                                                                          vm.data.birth.level.push({ id: opts[0].key, value: 0 });
+                                                                                                                      }
+                                                                                                                      gvc.notifyDataChange(levelVM.id);
+                                                                                                                      vm.data.birth.type = 'levels';
+                                                                                                                  })}"
+                                                                                                              >
+                                                                                                                  <div>新增一個區間</div>
+                                                                                                                  <div>
+                                                                                                                      <i
+                                                                                                                          class="fa-solid fa-plus ps-2"
+                                                                                                                          style="font-size: 16px; height: 14px; width: 14px;"
+                                                                                                                      ></i>
+                                                                                                                  </div>
+                                                                                                              </div>`;
+                                                                                                          })()}`;
+                                                                                            },
+                                                                                            onCreate: () => {
+                                                                                                if (levelVM.loading) {
+                                                                                                    ApiUser.getPublicConfig('member_level_config', 'manager').then((dd: any) => {
+                                                                                                        if (dd.result && dd.response.value) {
+                                                                                                            levelVM.options = dd.response.value.levels.map((item: { id: string; tag_name: string }) => {
+                                                                                                                return {
+                                                                                                                    key: item.id,
+                                                                                                                    value: item.tag_name,
+                                                                                                                };
+                                                                                                            });
+                                                                                                            vm.data.birth.level = vm.data.birth.level ?? [];
+                                                                                                            levelVM.loading = false;
+                                                                                                            gvc.notifyDataChange(levelVM.id);
+                                                                                                        }
+                                                                                                    });
+                                                                                                }
+                                                                                            },
+                                                                                        };
+                                                                                    }),
                                                                                 },
                                                                             ],
                                                                             callback: (text) => {

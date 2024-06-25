@@ -680,7 +680,7 @@ function editor(cf: { gvc: GVC; vm: any; is_page: boolean; widget: any }) {
                                                                             };
                                                                         })}
                                                                         <div
-                                                                            class="cursor_it bt_c39 ms-2 p-1 mt-3"
+                                                                            class="cursor_pointer bt_c39 ms-2 p-1 mt-3"
                                                                             style=""
                                                                             onclick="${gvc.event(() => {
                                                                                 cVm.type = 'collection';

@@ -343,6 +343,19 @@ ul {
     font-weight: 400;
 }
 
+.tx_normal_white {
+    font-size: 16px;
+    letter-spacing: 0.64px;
+    color: #fff;
+    font-weight: 400;
+}
+
+.tx_gray_12 {
+    font-size: 12px;
+    color: #8d8d8d;
+    font-weight: 400;
+}
+
 .tx_700 {
     font-size: 16px;
     color: #393939;
@@ -368,7 +381,7 @@ ul {
     box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.08);
 }
 
-.cursor_it {
+.cursor_pointer {
     cursor: pointer;
 }
 
@@ -475,6 +488,7 @@ ul {
     border-radius: 10px;
     background: #eaeaea;
     cursor: pointer;
+    max-height: 40px;
 }
 
 .btn-gary:hover {
@@ -491,6 +505,7 @@ ul {
     border-radius: 10px;
     background: #393939;
     cursor: pointer;
+    max-height: 40px;
 }
 
 .btn-black:hover {
@@ -591,6 +606,16 @@ ul {
     -moz-appearance: none;
 }
 
+.c_select_w_100 {
+    width: 100%;
+    min-height: 42px;
+    background-position-x: 97.5%;
+}
+
+.c_select:focus {
+    outline: 0;
+}
+
 .c_select_option {
     font-size: 16px;
     color: #393939;
@@ -635,4 +660,71 @@ ul {
     color: #393939;
     font-size: 16px;
     font-weight: 400;
+}
+
+.c_dropdown {
+    width: calc(100% - 40px);
+    position: absolute;
+    top: 38.75px;
+    background-color: #fff;
+    box-shadow: 2px 2px 10px 0px rgba(0, 0, 0, 0.15);
+}
+
+.c_dropdown_body {
+    position: relative;
+}
+
+.c_dropdown_main {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    padding: 20px;
+    overflow-y: auto;
+    max-height: 400px;
+}
+
+.c_dropdown_bar {
+    position: sticky;
+    display: flex;
+    align-items: center;
+    justify-content: end;
+    padding: 14px 16px;
+    background: #fff;
+    box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.15);
+    gap: 14px;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+}
+
+.c_dialog {
+    position: relative;
+    background-color: #fff;
+}
+
+.c_dialog_body {
+    position: relative;
+}
+
+.c_dialog_main {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    padding: 20px;
+    overflow-y: auto;
+    max-height: 400px;
+}
+
+.c_dialog_bar {
+    position: sticky;
+    display: flex;
+    align-items: center;
+    justify-content: end;
+    padding: 14px 16px;
+    background: #fff;
+    box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.15);
+    gap: 14px;
+    left: 0;
+    bottom: 0;
+    width: 100%;
 }
