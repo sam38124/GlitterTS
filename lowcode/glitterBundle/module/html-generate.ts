@@ -1241,36 +1241,36 @@ onclick="${gvc.event(() => {
                                                                                                                  style="">
                                                                                                                 <div class="d-flex align-items-center justify-content-around w-100 p-2">
                                                                                                                     ${[
-                                                                                                            {
-                                                                                                                title: '模塊資訊',
-                                                                                                                value: 'info',
-                                                                                                                icon: 'fa-solid fa-info'
-                                                                                                            },
-                                                                                                            {
-                                                                                                                title: '加載設定',
-                                                                                                                value: 'loading',
-                                                                                                                icon: 'fa-regular fa-loader'
-                                                                                                            },
-                                                                                                            {
-                                                                                                                title: '生命週期',
-                                                                                                                value: 'lifecycle',
-                                                                                                                icon: 'fa-regular fa-wave-pulse'
-                                                                                                            }
-                                                                                                            // {
-                                                                                                            //     title: '檔案上傳',
-                                                                                                            //     value: 'file',
-                                                                                                            //     icon: 'fa-solid fa-upload'
-                                                                                                            // },
-                                                                                                        ].map((dd) => {
-                                                                                                            return html`
+                                                                                                                        {
+                                                                                                                            title: '模塊資訊',
+                                                                                                                            value: 'info',
+                                                                                                                            icon: 'fa-solid fa-info'
+                                                                                                                        },
+                                                                                                                        {
+                                                                                                                            title: '加載設定',
+                                                                                                                            value: 'loading',
+                                                                                                                            icon: 'fa-regular fa-loader'
+                                                                                                                        },
+                                                                                                                        {
+                                                                                                                            title: '生命週期',
+                                                                                                                            value: 'lifecycle',
+                                                                                                                            icon: 'fa-regular fa-wave-pulse'
+                                                                                                                        }
+                                                                                                                        // {
+                                                                                                                        //     title: '檔案上傳',
+                                                                                                                        //     value: 'file',
+                                                                                                                        //     icon: 'fa-solid fa-upload'
+                                                                                                                        // },
+                                                                                                                    ].map((dd) => {
+                                                                                                                        return html`
                                                                                                                             <div class=" d-flex align-items-center justify-content-center ${(dd.value === vm.select) ? `border` : ``} rounded-3"
                                                                                                                                  style="height:36px;width:36px;cursor:pointer;
 ${(dd.value === vm.select) ? `background:linear-gradient(135deg, #667eea 0%, #764ba2 100%);background:-webkit-linear-gradient(135deg, #667eea 0%, #764ba2 100%);color:white;` : `color:#151515;`}
 "
                                                                                                                                  onclick="${gvc.event(() => {
-                                                                                                                vm.select = dd.value as any;
-                                                                                                                gvc.notifyDataChange([id, selectID])
-                                                                                                            })}"
+                                                                                                                                     vm.select = dd.value as any;
+                                                                                                                                     gvc.notifyDataChange([id, selectID])
+                                                                                                                                 })}"
                                                                                                                                  data-bs-toggle="tooltip"
                                                                                                                                  data-bs-placement="top"
                                                                                                                                  data-bs-custom-class="custom-tooltip"
@@ -1278,7 +1278,7 @@ ${(dd.value === vm.select) ? `background:linear-gradient(135deg, #667eea 0%, #76
                                                                                                                                 <i class="${dd.icon}"
                                                                                                                                    aria-hidden="true"></i>
                                                                                                                             </div>`
-                                                                                                        }).join(``)}
+                                                                                                                    }).join(``)}
                                                                                                                 </div>
                                                                                                             </div>`
                                                                                                     },
@@ -1317,75 +1317,75 @@ ${(dd.value === vm.select) ? `background:linear-gradient(135deg, #667eea 0%, #76
                                                                                                                 return html`
                                                                                                                     <div class="px-2">
                                                                                                                         ${(() => {
-                                                                                                                    const array: any = []
-                                                                                                                    if (dd.data.elem !== 'style' && dd.data.elem !== 'script') {
-                                                                                                                        array.push(
-                                                                                                                            EditorElem.select({
-                                                                                                                                title: '生成方式',
-                                                                                                                                gvc: gvc,
-                                                                                                                                def: dd.gCount ?? 'single',
-                                                                                                                                array: [{
-                                                                                                                                    title: '靜態',
-                                                                                                                                    value: 'single'
-                                                                                                                                }, {
-                                                                                                                                    title: '程式碼',
-                                                                                                                                    value: 'multiple'
-                                                                                                                                }],
-                                                                                                                                callback: (text) => {
-                                                                                                                                    dd.gCount = text
-                                                                                                                                    gvc.notifyDataChange(id)
-                                                                                                                                }
-                                                                                                                            })
-                                                                                                                        )
-                                                                                                                    }
-
-                                                                                                                    if (dd.gCount === 'multiple') {
-                                                                                                                        dd.arrayData = dd.arrayData ?? {}
-                                                                                                                        array.push(
-                                                                                                                            TriggerEvent.editer(gvc, dd, dd.arrayData, {
-                                                                                                                                hover: false,
-                                                                                                                                option: [],
-                                                                                                                                title: "設定資料來源"
-                                                                                                                            })
-                                                                                                                        )
-                                                                                                                    } else {
-                                                                                                                        dd.arrayData = undefined
-                                                                                                                    }
-                                                                                                                    return array.join(`<div class="my-2"></div>`)
-                                                                                                                })()}
-                                                                                                                        ${gvc.bindView(() => {
-                                                                                                                    const uid = gvc.glitter.getUUID();
-                                                                                                                    return {
-                                                                                                                        bind: uid,
-                                                                                                                        view: () => {
-                                                                                                                            dd.preloadEvenet = dd.preloadEvenet ?? {};
-                                                                                                                            dd.hiddenEvent = dd.hiddenEvent ?? {}
-                                                                                                                            let view: any = [TriggerEvent.editer(gvc, dd, dd.preloadEvenet, {
-                                                                                                                                title: "模塊預載事件",
-                                                                                                                                option: [],
-                                                                                                                                hover: false
-                                                                                                                            }),
-                                                                                                                                TriggerEvent.editer(gvc, dd, dd.hiddenEvent, {
-                                                                                                                                    title: "模塊隱藏事件",
-                                                                                                                                    option: [],
-                                                                                                                                    hover: false
-                                                                                                                                })]
-                                                                                                                            if ((dd.type !== 'widget') && (dd.type !== 'container')) {
-                                                                                                                                view.push(gvc.glitter.htmlGenerate.styleEditor(dd, gvc, dd, {}).editor(
-                                                                                                                                    gvc,
-                                                                                                                                    () => {
-                                                                                                                                        gvc.notifyDataChange('showView')
-                                                                                                                                    },
-                                                                                                                                    '模塊容器樣式'
-                                                                                                                                ))
+                                                                                                                            const array: any = []
+                                                                                                                            if (dd.data.elem !== 'style' && dd.data.elem !== 'script') {
+                                                                                                                                array.push(
+                                                                                                                                        EditorElem.select({
+                                                                                                                                            title: '生成方式',
+                                                                                                                                            gvc: gvc,
+                                                                                                                                            def: dd.gCount ?? 'single',
+                                                                                                                                            array: [{
+                                                                                                                                                title: '靜態',
+                                                                                                                                                value: 'single'
+                                                                                                                                            }, {
+                                                                                                                                                title: '程式碼',
+                                                                                                                                                value: 'multiple'
+                                                                                                                                            }],
+                                                                                                                                            callback: (text) => {
+                                                                                                                                                dd.gCount = text
+                                                                                                                                                gvc.notifyDataChange(id)
+                                                                                                                                            }
+                                                                                                                                        })
+                                                                                                                                )
                                                                                                                             }
-                                                                                                                            return view.join(`<div class="my-2"></div>`)
-                                                                                                                        },
-                                                                                                                        divCreate: {
-                                                                                                                            class: 'mt-2 mb-2 '
-                                                                                                                        },
-                                                                                                                    };
-                                                                                                                })}
+
+                                                                                                                            if (dd.gCount === 'multiple') {
+                                                                                                                                dd.arrayData = dd.arrayData ?? {}
+                                                                                                                                array.push(
+                                                                                                                                        TriggerEvent.editer(gvc, dd, dd.arrayData, {
+                                                                                                                                            hover: false,
+                                                                                                                                            option: [],
+                                                                                                                                            title: "設定資料來源"
+                                                                                                                                        })
+                                                                                                                                )
+                                                                                                                            } else {
+                                                                                                                                dd.arrayData = undefined
+                                                                                                                            }
+                                                                                                                            return array.join(`<div class="my-2"></div>`)
+                                                                                                                        })()}
+                                                                                                                        ${gvc.bindView(() => {
+                                                                                                                            const uid = gvc.glitter.getUUID();
+                                                                                                                            return {
+                                                                                                                                bind: uid,
+                                                                                                                                view: () => {
+                                                                                                                                    dd.preloadEvenet = dd.preloadEvenet ?? {};
+                                                                                                                                    dd.hiddenEvent = dd.hiddenEvent ?? {}
+                                                                                                                                    let view: any = [TriggerEvent.editer(gvc, dd, dd.preloadEvenet, {
+                                                                                                                                        title: "模塊預載事件",
+                                                                                                                                        option: [],
+                                                                                                                                        hover: false
+                                                                                                                                    }),
+                                                                                                                                        TriggerEvent.editer(gvc, dd, dd.hiddenEvent, {
+                                                                                                                                            title: "模塊隱藏事件",
+                                                                                                                                            option: [],
+                                                                                                                                            hover: false
+                                                                                                                                        })]
+                                                                                                                                    if ((dd.type !== 'widget') && (dd.type !== 'container')) {
+                                                                                                                                        view.push(gvc.glitter.htmlGenerate.styleEditor(dd, gvc, dd, {}).editor(
+                                                                                                                                                gvc,
+                                                                                                                                                () => {
+                                                                                                                                                    gvc.notifyDataChange('showView')
+                                                                                                                                                },
+                                                                                                                                                '模塊容器樣式'
+                                                                                                                                        ))
+                                                                                                                                    }
+                                                                                                                                    return view.join(`<div class="my-2"></div>`)
+                                                                                                                                },
+                                                                                                                                divCreate: {
+                                                                                                                                    class: 'mt-2 mb-2 '
+                                                                                                                                },
+                                                                                                                            };
+                                                                                                                        })}
                                                                                                                     </div>`
                                                                                                             case "lifecycle":
                                                                                                                 if (dd.data && dd.data.onCreateEvent) {
