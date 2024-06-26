@@ -378,26 +378,41 @@ class Shopping {
             if (getRS[0] && getRS[0].value) {
                 const configData = getRS[0].value.config;
                 if (configData.condition.type === 'total_price' && configData.condition.value > total) {
-                    return { point: 0, condition: configData.condition.value - total };
+                    return {
+                        point: 0,
+                        condition: configData.condition.value - total,
+                    };
                 }
                 if (configData.customize) {
-                    return { point: useRebate };
+                    return {
+                        point: useRebate,
+                    };
                 }
                 else {
                     if (configData.use_limit.type === 'price') {
                         const limit = configData.use_limit.value;
-                        return { point: useRebate > limit ? limit : useRebate, limit };
+                        return {
+                            point: useRebate > limit ? limit : useRebate,
+                            limit,
+                        };
                     }
                     if (configData.use_limit.type === 'percent') {
                         const limit = parseInt(`${(total * configData.use_limit.value) / 100}`, 10);
-                        return { point: useRebate > limit ? limit : useRebate, limit };
+                        return {
+                            point: useRebate > limit ? limit : useRebate,
+                            limit,
+                        };
                     }
                     if (configData.use_limit.type === 'none') {
-                        return { point: useRebate };
+                        return {
+                            point: useRebate,
+                        };
                     }
                 }
             }
-            return { point: useRebate };
+            return {
+                point: useRebate,
+            };
         }
         catch (error) {
             throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'formatUseRebate Error:' + express_1.default, null);

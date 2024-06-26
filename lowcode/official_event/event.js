@@ -74,11 +74,11 @@ TriggerEvent.create(import.meta.url, {
     },
     reloadPage: {
         title: '官方事件 / 畫面 / 頁面刷新',
-        fun: TriggerEvent.setEventRouter(import.meta.url, './page/recreate-gvc.js')
+        fun: TriggerEvent.setEventRouter(import.meta.url, './page/recreate-gvc.js'),
     },
     reload: {
         title: '官方事件 / 畫面 / 刷新瀏覽器',
-        fun: TriggerEvent.setEventRouter(import.meta.url, './page/reload.js')
+        fun: TriggerEvent.setEventRouter(import.meta.url, './page/reload.js'),
     },
     notify: {
         title: '官方事件 / 畫面 / 區塊刷新',
@@ -118,7 +118,7 @@ TriggerEvent.create(import.meta.url, {
     },
     codeArray: {
         title: '官方事件 / 開發工具 / 多項事件判斷',
-        fun: TriggerEvent.setEventRouter(import.meta.url, './glitter-util/code-array.js')
+        fun: TriggerEvent.setEventRouter(import.meta.url, './glitter-util/code-array.js'),
     },
     setURl: {
         title: '官方事件 / 開發工具 / 設定URL參數',
@@ -234,7 +234,7 @@ TriggerEvent.create(import.meta.url, {
     },
     api_text_upload: {
         title: '官方事件 / API / 文字檔上傳',
-        fun: TriggerEvent.setEventRouter(import.meta.url, './api/api-text-upload.js')
+        fun: TriggerEvent.setEventRouter(import.meta.url, './api/api-text-upload.js'),
     },
     getProduct: {
         title: '電子商務 / 選擇商品',
@@ -268,12 +268,16 @@ TriggerEvent.create(import.meta.url, {
         title: '電子商務 / 清空購物車',
         fun: TriggerEvent.setEventRouter(import.meta.url, './e-commerce/delete-cart.js'),
     },
+    getRebateMainStatus: {
+        title: '電子商務 / 取得購物金總功能是否啟用',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './e-commerce/get-rebate-main-status.js'),
+    },
     getRebate: {
-        title: '電子商務 / 取得回饋金金額',
+        title: '電子商務 / 取得購物金金額',
         fun: TriggerEvent.setEventRouter(import.meta.url, './e-commerce/get-rebate.js'),
     },
     getRebateList: {
-        title: '電子商務 / 取得回饋金列表',
+        title: '電子商務 / 取得購物金列表',
         fun: TriggerEvent.setEventRouter(import.meta.url, './e-commerce/get-rebate-list.js'),
     },
     getOldestRebate: {
@@ -301,7 +305,7 @@ TriggerEvent.create(import.meta.url, {
         fun: TriggerEvent.setEventRouter(import.meta.url, './e-commerce/set-voucher.js'),
     },
     setRebate: {
-        title: '電子商務 / 設定回饋金',
+        title: '電子商務 / 設定購物金',
         fun: TriggerEvent.setEventRouter(import.meta.url, './e-commerce/set-rebate.js'),
     },
     deleteVoucher: {

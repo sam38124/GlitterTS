@@ -309,7 +309,6 @@ export class ShoppingOrderManager {
                                 if (newOrder.productCheck.length) {
                                     newOrder.productCheck.map((product) => {
                                         returnHTML += html `
-<<<<<<< HEAD
                                                             <div style="width: 100%;display: flex;align-items: center">
                                                                 <div class="flex-fill d-flex align-items-center col-5" style="font-size: 16px;font-weight: 700;">
                                                                     <div style="width: 54px;height: 54px;"></div>
@@ -319,17 +318,6 @@ export class ShoppingOrderManager {
                                                                 <div class="col-1" style="font-size: 16px;font-weight: 700;">小計</div>
                                                             </div>
                                                         `;
-=======
-                                                    <div style="width: 100%;display: flex;align-items: center">
-                                                        <div class="flex-fill d-flex align-items-center col-5" style="font-size: 16px;font-weight: 700;">
-                                                            <div style="width: 54px;height: 54px;"></div>
-                                                        </div>
-                                                        <div class="col-3" style="display: flex;padding-right: 40px;align-items: flex-start;font-size: 16px;font-weight: 700;">單價</div>
-                                                        <div class="col-2" style="font-size: 16px;font-weight: 700;">數量</div>
-                                                        <div class="col-1" style="font-size: 16px;font-weight: 700;">小計</div>
-                                                    </div>
-                                                `;
->>>>>>> 7104c510 (update: tsc auto)
                                     });
                                 }
                                 return returnHTML;

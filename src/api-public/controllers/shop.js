@@ -21,8 +21,10 @@ const router = express_1.default.Router();
 router.get('/rebate/sum', async (req, resp) => {
     try {
         const app = req.get('g-app');
-        const data = await new rebate_1.Rebate(app).getOneRebate({ user_id: req.query.userID || req.body.token.userID });
-        return response_1.default.succ(resp, { sum: data ? data.point : 0 });
+        const rebateClass = new rebate_1.Rebate(app);
+        const data = await rebateClass.getOneRebate({ user_id: req.query.userID || req.body.token.userID });
+        const main = await rebateClass.mainStatus();
+        return response_1.default.succ(resp, { main: main, sum: data ? data.point : 0 });
     }
     catch (err) {
         return response_1.default.fail(resp, err);
@@ -204,7 +206,7 @@ router.get('/order', async (req, resp) => {
                 progress: req.query.progress,
                 orderStatus: req.query.orderStatus,
                 created_time: req.query.created_time,
-                orderString: req.query.orderString
+                orderString: req.query.orderString,
             }));
         }
         else if (await ut_permission_1.UtPermission.isAppUser(req)) {
