@@ -11,6 +11,7 @@ const ut_database_js_1 = require("../utils/ut-database.js");
 const database_js_1 = __importDefault(require("../../modules/database.js"));
 const firebase_js_1 = require("../../modules/firebase.js");
 const config_js_1 = require("../../config.js");
+const axios = require('axios');
 const router = express_1.default.Router();
 router.post('/add', async (req, resp) => {
     try {
@@ -154,6 +155,11 @@ router.delete('/delete', async (req, resp) => {
                                     return new firebase_js_1.Firebase(req.get('g-app')).sendMessage(cf);
                                 });
                             }
+                        },
+                        {
+                            key: 'axios', data: () => {
+                                return axios;
+                            }
                         }
                     ];
                     const evalString = html `
@@ -170,7 +176,7 @@ router.delete('/delete', async (req, resp) => {
                         }
                     `;
                     const myFunction = new Function(evalString);
-                    return response_js_1.default.succ(resp, (await (myFunction().execute(functionValue[0].data(), functionValue[1].data(), functionValue[2].data(), functionValue[3].data(), functionValue[4].data(), functionValue[5].data(), functionValue[6].data()))));
+                    return response_js_1.default.succ(resp, (await (myFunction().execute(functionValue[0].data(), functionValue[1].data(), functionValue[2].data(), functionValue[3].data(), functionValue[4].data(), functionValue[5].data(), functionValue[6].data(), functionValue[7].data()))));
                 });
             }
         }

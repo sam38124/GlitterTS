@@ -81,7 +81,8 @@ class Page {
             query.tag && sql.push(`id in (SELECT bind FROM  \`${config_js_1.saasConfig.SAAS_NAME}\`.t_template_tag where type='page' and tag in (${query.tag.split(',').map((dd) => {
                 return database_js_1.default.escape(dd);
             }).join(',')}))`);
-            query.search && sql.push(`JSON_EXTRACT(template_config, '$.name') = ${database_js_1.default.escape(query.search)} || id in (SELECT bind FROM  \`${config_js_1.saasConfig.SAAS_NAME}\`.t_template_tag where type='page' and tag like '%${query.search}%')`);
+            query.search && sql.push(`JSON_EXTRACT(template_config, '$.name') like ${database_js_1.default.escape(query.search)} or id in (SELECT bind FROM  \`${config_js_1.saasConfig.SAAS_NAME}\`.t_template_tag where type='page' and tag like '%${query.search}%')`);
+            console.log(`sql->`, sql);
             return await new ut_database_js_1.UtDatabase(config_js_1.saasConfig.SAAS_NAME, `page_config`).querySql(sql, query, `
             id,userID,tag,\`group\`,name, page_type, preview_image,appName,template_type,template_config
             `);

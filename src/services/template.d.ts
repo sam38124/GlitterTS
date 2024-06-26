@@ -60,6 +60,7 @@ export declare class Template {
         user_id?: string;
         me?: string;
         favorite?: string;
+        preload?: boolean;
         id?: string;
     }): Promise<any>;
     constructor(token?: IToken);

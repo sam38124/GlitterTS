@@ -298,7 +298,7 @@ export async function createAPP(dd: any) {
                                 return '../'
                             }
                         }).join('');
-                        const preload = (req.query.type === 'editor' || req.query.isIframe === 'true') ? {} : await App.preloadPageData(appName, data.tag);
+                        const preload = (req.query.type === 'editor' || req.query.isIframe === 'true') ? {} : await App.preloadPageData(appName, req.query.page as any);
                         data.page_config = data.page_config ?? {}
                         data.page_config.seo=data.page_config.seo??{}
                         const seo_detail=await getSeoDetail(appName,req);
@@ -321,6 +321,23 @@ export async function createAPP(dd: any) {
                                     <meta name="description" content="${(d.content ?? "").replace(/\n/g, '')}">
                                     <meta name="og:description" content="${(d.content ?? "").replace(/\n/g, '')}">
                                     ${d.code ?? ''}
+                                    ${(() => {
+                                        if (req.query.type === 'editor') {
+                                            return ``
+                                        } else {
+                                            return `${(data.config.globalStyle ?? []).map((dd: any) => {
+                                                try {
+                                                    if (dd.data.elem === 'link') {
+                                                        return `<link type="text/css" rel="stylesheet" href="${dd.data.attr.find((dd: any) => {
+                                                            return dd.attr === 'href'
+                                                        }).value}">`
+                                                    }
+                                                } catch (e) {
+                                                    return ``
+                                                }
+                                            }).join('')}`
+                                        }
+                                    })()}
                             `
                         })()}
                         <script>

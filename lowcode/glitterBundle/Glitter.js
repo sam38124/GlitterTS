@@ -535,10 +535,9 @@ export class Glitter {
     set href(value) {
         const link = new URL(value, location.href);
         if ((location.origin) === (link.origin)) {
+            window.history.replaceState({}, document.title, link.href);
             this.getModule(new URL('../official_event/page/change-page.js', import.meta.url).href, (cl) => {
-                setTimeout(() => {
-                    cl.changePage(link.searchParams.get('page') || location.pathname.substring(1), 'page', {});
-                });
+                cl.changePage(link.searchParams.get('page') || location.pathname.substring(1), 'page', {});
             });
         }
         else {
@@ -871,12 +870,12 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
                     script.setAttribute('type', scritem.type);
                     script.setAttribute('src', (_c = scritem.src) !== null && _c !== void 0 ? _c : undefined);
                     script.setAttribute('crossorigin', true);
-                    script.setAttribute('id', (_d = scritem.id) !== null && _d !== void 0 ? _d : undefined);
+                    scritem.id && (script.setAttribute('id', (_d = scritem.id) !== null && _d !== void 0 ? _d : undefined));
                     document.getElementsByTagName("head")[0].appendChild(script);
                 }
                 else {
                     script.setAttribute('src', (_e = scritem.src) !== null && _e !== void 0 ? _e : scritem);
-                    script.setAttribute('id', (_f = scritem.id) !== null && _f !== void 0 ? _f : undefined);
+                    scritem.id && (script.setAttribute('id', (_f = scritem.id) !== null && _f !== void 0 ? _f : undefined));
                     script.setAttribute('crossorigin', true);
                     document.getElementsByTagName("head")[0].appendChild(script);
                 }

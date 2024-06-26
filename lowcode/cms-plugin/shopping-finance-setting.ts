@@ -252,7 +252,7 @@ export class ShoppingFinanceSetting {
                                         );
                                     });
                                 },
-                                divCreate: { class: `d-flex flex-column flex-column-reverse flex-md-row`, style: `gap:10px; margin-top: 24px;` },
+                                divCreate: { class: `d-flex flex-column flex-column-reverse flex-md-row`, style: `gap:10px; margin-top: 24px;padding-bottom:100px;` },
                             };
                         })}
                         <div class="update-bar-container">

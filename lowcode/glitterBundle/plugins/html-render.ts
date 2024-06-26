@@ -192,16 +192,6 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                                 })
                             }
 
-                            gBundle.config.refresh = (() => {
-                                gBundle.editMode.initialFunction();
-                                gvc.glitter.document.querySelector(`[gvc-id="${gvc.id('MainView')}"]`).outerHTML = editorView()
-                                setTimeout(() => {
-                                    gvc.glitter.document.querySelector('.selectComponentHover').scrollIntoView({
-                                        behavior: 'auto', // 使用平滑滾動效果
-                                        block: 'center', // 將元素置中
-                                    })
-                                }, 10)
-                            })
                             resolve((
                                 (gBundle.editMode && editorView())
                                 ||
@@ -209,7 +199,8 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                                     class: ``,
                                     style: ``,
                                     app_config: gBundle.app_config,
-                                    page_config: gBundle.page_config
+                                    page_config: gBundle.page_config,
+is_page:true
                                 })
                             ));
                         }

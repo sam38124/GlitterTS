@@ -8,9 +8,11 @@ import {FormWidget} from "./form.js";
 import {ApiPageConfig} from "../../api/pageConfig.js";
 import {Storage} from "../../glitterBundle/helper/storage.js";
 
+
 export const component = Plugin.createComponent(import.meta.url, (glitter: Glitter, editMode: boolean) => {
     return {
-        render: (gvc: GVC, widget: HtmlJson, setting: HtmlJson[], hoverID: string[], subData, htmlGenerate) => {
+        render: (gvc: GVC, widget: HtmlJson, setting: HtmlJson[], hoverID: string[], subData, htmlGenerate,doc) => {
+            const document=doc || (window.document);
             widget.data.list = widget.data.list ?? []
             widget.storage = widget.storage ?? {};
             widget.storage.updateFormData = widget.storage.updateFormData ?? ((page_config: any) => {

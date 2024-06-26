@@ -114,7 +114,7 @@ export const widgetComponent = {
 
                     function getView() {
                         const htmlGenerate = new glitter.htmlGenerate(widget.data.setting, hoverID, subData, rootHtmlGenerate.root);
-                        innerText = ''
+                        innerText = '';
                         return htmlGenerate.render(gvc, {
                             containerID: id,
                             tag:(widget as any).tag,

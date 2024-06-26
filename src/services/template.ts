@@ -1,7 +1,6 @@
 import db from '../modules/database';
 import {saasConfig} from "../config";
 import exception from "../modules/exception";
-import {createAPP} from "../index";
 import {IToken} from "../models/Auth.js";
 import process from "process";
 import {UtDatabase} from "../api-public/utils/ut-database.js";
@@ -173,6 +172,7 @@ export class Template {
 
     public async getPage(config: {
         appName?: string, tag?: string, group?: string, type?: string, page_type?: string, user_id?: string, me?: string, favorite?: string,
+        preload?:boolean,
         id?:string
     }) {
 
@@ -214,6 +214,7 @@ export class Template {
                     sql += ` and \`group\` = 'glitter-article' `
                 }
             }
+
             return await db.query(sql, [])
         } catch (e: any) {
             throw exception.BadRequestError("Forbidden", "No permission." + e, null);

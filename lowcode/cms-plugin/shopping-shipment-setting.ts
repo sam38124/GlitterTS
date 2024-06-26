@@ -88,10 +88,11 @@ export class ShoppingShipmentSetting {
                                     data = await saasConfig.api.getPrivateConfig(saasConfig.config.appName, `glitter_shipment`);
                                     if (data.response.result[0]) {
                                         // keyData = data.response.result[0].value;
-                                        shipmentArray = data.response.result[0].value;
+                                        if((Array.isArray(data.response.result[0].value.weight))){
+                                            shipmentArray = data.response.result[0].value;
+                                        }
                                     }
                                 }
-                                
                                 gvc.addStyle(`
                                     /* 隱藏 Chrome, Safari, Edge 的箭頭 */
                                     input[type=number]::-webkit-outer-spin-button,
@@ -109,7 +110,6 @@ export class ShoppingShipmentSetting {
                                 resolve(gvc.bindView({
                                     bind: "addShipment",
                                     view: () => {
-
                                         return BgWidget.container(
                                                 [
                                                     BgWidget.container(html`

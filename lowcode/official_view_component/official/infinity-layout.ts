@@ -69,14 +69,12 @@ Plugin.createComponent(import.meta.url, (glitter: Glitter, editMode: boolean) =>
                                 vm.loading = true;
                                 gvc.notifyDataChange(id);
                                 vm.data = (await TriggerEvent.trigger({
-                                    gvc: gvc,
-                                    widget: widget,
-                                    clickEvent: config.initial,
-                                    subData: subData,
-                                })) as any;
-                                vm.loading = false;
-                                gvc.notifyDataChange(id);
-                            });
+                                    gvc: gvc, widget: widget, clickEvent: config.initial, subData: subData
+                                })) as any
+                                vm.loading = false
+                                alert(JSON.stringify(vm.data));
+                                gvc.notifyDataChange(id)
+                            })
                         }
 
                         initial();
@@ -88,10 +86,11 @@ Plugin.createComponent(import.meta.url, (glitter: Glitter, editMode: boolean) =>
                                     if (vm.loading) {
                                         resolve(loadingView as string);
                                     } else {
-                                        let viewList: any = [];
-                                        for (const b of vm.data) {
-                                            const view = await getPageView(widget.data.tag, b, childStyle.class(), childStyle.style());
-                                            viewList.push(view);
+                                        let viewList:any=[]
+                                        for (const b of vm.data){
+                                            console.log(`subData->`,b)
+                                            const view=await getPageView(widget.data.tag,b,childStyle.class(),childStyle.style())
+                                            viewList.push(view)
                                         }
                                         resolve(
                                             viewList

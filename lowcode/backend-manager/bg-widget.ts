@@ -434,7 +434,7 @@ ${(obj.style || []) && obj.style![index] ? obj.style![index] : ``}
                             .join('');
                     },
                     divCreate: {
-                        class: `ps-1 d-flex`,
+                        class: `ps-1 d-flex flex-wrap`,
                         style: `gap:10px;margin-top:10px;`,
                     },
                 };

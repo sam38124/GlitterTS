@@ -16,8 +16,9 @@ import { ApiPageConfig } from "../../api/pageConfig.js";
 import { Storage } from "../../glitterBundle/helper/storage.js";
 export const component = Plugin.createComponent(import.meta.url, (glitter, editMode) => {
     return {
-        render: (gvc, widget, setting, hoverID, subData, htmlGenerate) => {
+        render: (gvc, widget, setting, hoverID, subData, htmlGenerate, doc) => {
             var _a, _b, _c;
+            const document = doc || (window.document);
             widget.data.list = (_a = widget.data.list) !== null && _a !== void 0 ? _a : [];
             widget.storage = (_b = widget.storage) !== null && _b !== void 0 ? _b : {};
             widget.storage.updateFormData = (_c = widget.storage.updateFormData) !== null && _c !== void 0 ? _c : ((page_config) => {

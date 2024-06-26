@@ -10,7 +10,7 @@ import {UtDatabase} from "../utils/ut-database.js";
 import db from "../../modules/database.js";
 import {Firebase} from "../../modules/firebase.js";
 import {saasConfig} from "../../config.js";
-
+const axios = require('axios');
 
 const router: express.Router = express.Router();
 
@@ -157,6 +157,11 @@ router.delete('/delete', async (req: express.Request, resp: express.Response) =>
                                     return new Firebase(req.get('g-app') as string).sendMessage(cf)
                                 })
                             }
+                        },
+                        {
+                            key:'axios',data:()=>{
+                                return axios
+                            }
                         }
                     ];
                     const evalString = html`
@@ -174,8 +179,9 @@ router.delete('/delete', async (req: express.Request, resp: express.Response) =>
                         }
                         }
                         }
-                    `
+                    `;
                     const myFunction = new Function(evalString);
+
                     return response.succ(resp,
                         (await (myFunction().execute(
                             functionValue[0].data(),
@@ -184,7 +190,8 @@ router.delete('/delete', async (req: express.Request, resp: express.Response) =>
                             functionValue[3].data(),
                             functionValue[4].data(),
                             functionValue[5].data(),
-                            functionValue[6].data()
+                            functionValue[6].data(),
+                            functionValue[7].data()
                         ))),
                     );
                 })

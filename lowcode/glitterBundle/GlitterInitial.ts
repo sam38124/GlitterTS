@@ -42,35 +42,38 @@ let scrollInterval: any = undefined
 function traverseHTML(element: any, document: any) {
 
     try {
-        if( (element.tagName.toLowerCase() === 'page-box')){
-          const pageConfig=glitter.pageConfig.find((dd)=>{
-              return `page${dd.id}`===element.getAttribute('id')
-          });
-            console.log(`show_page->`,glitter.pageConfig.filter((dd)=>{
-                return dd.type===GVCType.Page
+        if ((element.tagName.toLowerCase() === 'page-box')) {
+            const pageConfig = glitter.pageConfig.find((dd) => {
+                return `page${dd.id}` === element.getAttribute('id')
+            });
+            console.log(`show_page->`, glitter.pageConfig.filter((dd) => {
+                return dd.type === GVCType.Page
             }))
-            if(((window as any).glitter.share.to_menu) && glitter.pageConfig.filter((dd)=>{
-                return dd.type===GVCType.Page
-            }).length > 1){
+            if (((window as any).glitter.share.to_menu) && glitter.pageConfig.filter((dd) => {
+                return dd.type === GVCType.Page
+            }).length > 1) {
                 element.style.display = "none";
-                (window as any).glitter.share.time_back=setTimeout(()=>{ window.history.back()})
+                (window as any).glitter.share.time_back = setTimeout(() => {
+                    window.history.back()
+                });
                 return;
             }
-            (window as any).glitter.share.to_menu=false
-            if(pageConfig && pageConfig.initial){
-                (document.querySelector('html') as any).scrollTop=pageConfig.scrollTop;
-                let count=0
-                const loopScroll=setInterval(()=>{
+            (window as any).glitter.share.to_menu = false
+            if (pageConfig && pageConfig.initial) {
+                const scroll_top = pageConfig.scrollTop;
+                (document.querySelector('html') as any).scrollTop = scroll_top;
+                let count = 0
+                const loopScroll = setInterval(() => {
                     count++
-                    if(count<100){
-                        (document.querySelector('html') as any).scrollTop=pageConfig.scrollTop
-                    }else{
+                    if (count < 100) {
+                        (document.querySelector('html') as any).scrollTop = scroll_top;
+                    } else {
                         clearInterval(loopScroll)
                     }
                 })
 
-                function loop(element:any){
-                    if(element && element.onResumeEvent){
+                function loop(element: any) {
+                    if (element && element.onResumeEvent) {
                         element && element.onResumeEvent && element.onResumeEvent();
                     }
                     // 取得元素的子元素
@@ -81,14 +84,15 @@ function traverseHTML(element: any, document: any) {
                         }
                     }
                 }
+
                 loop(element)
 
                 return
             }
-            (pageConfig) && (pageConfig.initial=true)
+            (pageConfig) && (pageConfig.initial = true)
 
         }
-    }catch (e) {
+    } catch (e) {
 
     }
 
@@ -110,7 +114,7 @@ function traverseHTML(element: any, document: any) {
 
             function notifyLifeCycle() {
                 try {
-                    setTimeout(()=>{
+                    setTimeout(() => {
                         glitter.elementCallback[element.getAttribute('gvc-id') as string].updateAttribute()
                     })
                 } catch (e) {
@@ -130,8 +134,11 @@ function traverseHTML(element: any, document: any) {
 
             try {
                 if ((document.querySelector(`[gvc-id="${id}"]`) as any)) {
-                    glitter.elementCallback[id].doc=document
+                    glitter.elementCallback[id].doc = document;
                     glitter.elementCallback[id].rendered = true;
+                    if (element.tagName.toLowerCase() === 'header') {
+                        console.log(`Header-start-time:`, (window as any).renderClock.stop());
+                    }
                     if (!(document.querySelector(`[gvc-id="${id}"]`) as any).wasRender) {
                         let view = glitter.elementCallback[id].getView()
                         if (typeof view === 'string') {
@@ -154,26 +161,25 @@ function traverseHTML(element: any, document: any) {
                                 notifyLifeCycle()
                             })
                         }
-                    } else if( (document.querySelector(`[gvc-id="${id}"]`) as any).onResumeEvent){
-                        setTimeout(()=>{
+                    } else if ((document.querySelector(`[gvc-id="${id}"]`) as any).onResumeEvent) {
+                        setTimeout(() => {
                             (document.querySelector(`[gvc-id="${id}"]`) as any).onResumeEvent()
                         })
 
                     }
                     if ((document.querySelector(`[gvc-id="${id}"]`) as any)) {
-
                         (document.querySelector(`[gvc-id="${id}"]`) as any).recreateView = (() => {
                             (document.querySelector(`[gvc-id="${id}"]`) as any).wasRecreate = true;
                             (document.querySelector(`[gvc-id="${id}"]`) as any).wasRender = false;
-                            const height=(document.querySelector(`[gvc-id="${id}"]`) as any).offsetHeight;
+                            const height = (document.querySelector(`[gvc-id="${id}"]`) as any).offsetHeight;
                             glitter.addStyle(`.hc_${height}{
                                 height:${height}px !important;
                                 }`);
                             (document.querySelector(`[gvc-id="${id}"]`) as any).classList.add(`hc_${height}`);
                             renderBindView();
-                            setTimeout(()=>{
-                            (document.querySelector(`[gvc-id="${id}"]`) as any).classList.remove(`hc_${height}`);
-                            },10)
+                            setTimeout(() => {
+                                (document.querySelector(`[gvc-id="${id}"]`) as any).classList.remove(`hc_${height}`);
+                            }, 10)
                         });
                         (document.querySelector(`[gvc-id="${id}"]`) as any).wasRender = true
                     }
@@ -342,27 +348,28 @@ window.addEventListener("scroll", function (event) {
     }
 });
 
-function setStyle(element:any,document:any){
-    setTimeout(()=>{
-    if(element.getAttribute&&!document.isCompoment){
-        const style=element.getAttribute('style')
-        if(style){
-            const shortCode = `c-${generateShortCode(style)}`;
-            glitter.config.style_list= glitter.config.style_list??{}
-            if(!glitter.config.style_list[shortCode]){
-                glitter.config.style_list[shortCode]=true
-                const cssText=`.${shortCode}{
+function setStyle(element: any, document: any) {
+    setTimeout(() => {
+        if (element.getAttribute && !document.isCompoment) {
+            const style = element.getAttribute('style')
+            if (style) {
+                const shortCode = `c-${generateShortCode(style)}`;
+                glitter.config.style_list = glitter.config.style_list ?? {}
+                if (!glitter.config.style_list[shortCode]) {
+                    glitter.config.style_list[shortCode] = true
+                    const cssText = `.${shortCode}{
                              ${style}
                             }`
-                glitter.addStyle(cssText)
+                    glitter.addStyle(cssText)
+                }
+                element.classList.add(shortCode);
+                element.setAttribute('style', '');
             }
-            element.classList.add(shortCode);
-            element.setAttribute('style', '');
         }
-    }
     })
 
 }
+
 function generateShortCode(str: any) {
     // 使用哈希函数生成哈希值
     const hashCode = hashCodeFromString(str);

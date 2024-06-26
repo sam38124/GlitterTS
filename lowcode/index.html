@@ -353,7 +353,7 @@
                 };
 
                 function execute() {
-                    fetch(window.glitterBackend + `/api/v1/template?appName=${appName}&tag=${encodeURIComponent( (typeof cf === 'object') ? cf.tag:tag)}`, requestOptions)
+                    fetch(window.glitterBackend + `/api/v1/template?appName=${appName}&tag=${encodeURIComponent( (typeof cf === 'object') ? cf.tag:tag)}&preload=true`, requestOptions)
                         .then(response => response.json())
                         .then(response => {
                             for (const b of response.result) {
@@ -363,6 +363,15 @@
                                     })
                                 }
                             }
+                            Object.keys(response.preload_data || {}).map((dd)=>{
+                                if(dd!=='getPlugin'){
+                                    if(!window.preloadData[dd]){
+                                        window.preloadData[dd]=response.preload_data[dd]
+                                    }else{
+                                        window.preloadData[dd].data=response.preload_data[dd].data;
+                                    }
+                                }
+                            });
                             callback({
                                 response: response, result: true
                             })

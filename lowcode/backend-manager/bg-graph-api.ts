@@ -333,7 +333,7 @@ export class BgGraphApi {
                                         callback: (text) => {
                                             postData.info.code = text;
                                         },
-                                        structStart: `((db,is_manager,is_appUser,body,query,user_data,sendMessage)=>{`,
+                                        structStart: `((db,is_manager,is_appUser,body,query,user_data,sendMessage,axios)=>{`,
                                     }),
                                 ].join(`<div class="my-2"></div>`)}`
                             )}

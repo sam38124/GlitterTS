@@ -14,7 +14,6 @@ import { getInitialData } from "../initial_data.js";
 import autosize from "../../glitterBundle/plugins/autosize.js";
 import { ApiPageConfig } from "../../api/pageConfig.js";
 import { NormalPageEditor } from "../../editor/normal-page-editor.js";
-import { AddComponent } from "../../editor/add-component.js";
 export class FormWidget {
     static settingView(obj) {
         var _a;
@@ -92,13 +91,15 @@ export class FormWidget {
                                                                             bind: gvc.glitter.getUUID(),
                                                                             view: () => {
                                                                                 return new Promise((resolve, reject) => {
-                                                                                    resolve(AddComponent.addModuleView(gvc, 'form_plugin', (tData) => {
-                                                                                        dd.appName = tData.copyApp;
-                                                                                        dd.page = tData.copy;
-                                                                                        dd.moduleName = tData.title;
-                                                                                        editor_refer.back();
-                                                                                        gvc.notifyDataChange(id);
-                                                                                    }, false, true));
+                                                                                    window.parent.glitter.getModule(new URL(window.parent.glitter.root_path + 'editor/add-component.js').href, (AddComponent) => {
+                                                                                        resolve(AddComponent.addModuleView(gvc, 'form_plugin', (tData) => {
+                                                                                            dd.appName = tData.copyApp;
+                                                                                            dd.page = tData.copy;
+                                                                                            dd.moduleName = tData.title;
+                                                                                            editor_refer.back();
+                                                                                            gvc.notifyDataChange(id);
+                                                                                        }, false, true));
+                                                                                    });
                                                                                 });
                                                                             }
                                                                         };
@@ -767,4 +768,9 @@ Plugin.createComponent(import.meta.url, (glitter, editMode) => {
         },
     };
 });
-window.glitter.setModule(import.meta.url, FormWidget);
+const interVal = setInterval(() => {
+    if (window.glitter) {
+        window.glitter.setModule(import.meta.url, FormWidget);
+        clearInterval(interVal);
+    }
+});

@@ -39,17 +39,20 @@ function traverseHTML(element, document) {
                 return dd.type === GVCType.Page;
             }).length > 1) {
                 element.style.display = "none";
-                window.glitter.share.time_back = setTimeout(() => { window.history.back(); });
+                window.glitter.share.time_back = setTimeout(() => {
+                    window.history.back();
+                });
                 return;
             }
             window.glitter.share.to_menu = false;
             if (pageConfig && pageConfig.initial) {
-                document.querySelector('html').scrollTop = pageConfig.scrollTop;
+                const scroll_top = pageConfig.scrollTop;
+                document.querySelector('html').scrollTop = scroll_top;
                 let count = 0;
                 const loopScroll = setInterval(() => {
                     count++;
                     if (count < 100) {
-                        document.querySelector('html').scrollTop = pageConfig.scrollTop;
+                        document.querySelector('html').scrollTop = scroll_top;
                     }
                     else {
                         clearInterval(loopScroll);
@@ -112,6 +115,9 @@ function traverseHTML(element, document) {
                 if (document.querySelector(`[gvc-id="${id}"]`)) {
                     glitter.elementCallback[id].doc = document;
                     glitter.elementCallback[id].rendered = true;
+                    if (element.tagName.toLowerCase() === 'header') {
+                        console.log(`Header-start-time:`, window.renderClock.stop());
+                    }
                     if (!document.querySelector(`[gvc-id="${id}"]`).wasRender) {
                         let view = glitter.elementCallback[id].getView();
                         if (typeof view === 'string') {

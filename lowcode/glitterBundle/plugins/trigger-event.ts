@@ -75,8 +75,9 @@ export class TriggerEvent {
             event: (() => void) | Promise<any>
         }
     }) {
-        const glitter = (window as any).glitter
-        const val = fun(glitter)
+        const glitter = (window as any).glitter;
+        glitter.share.componentData=glitter.share.componentData??{};
+        const val = fun(glitter);
         glitter.share.componentData[url] = val
         return val;
     }

@@ -519,6 +519,7 @@ export class BgCustomerMessage {
                                 });
                             }
                             connect();
+                            const textAreaId = gvc.glitter.getUUID();
                             const html = String.raw;
                             return {
                                 bind: viewId,
@@ -609,7 +610,7 @@ export class BgCustomerMessage {
                                                 ${gvc.bindView(() => {
                                         const id = gvc.glitter.getUUID();
                                         return {
-                                            bind: id,
+                                            bind: textAreaId,
                                             view: () => {
                                                 var _a;
                                                 return (_a = vm.message) !== null && _a !== void 0 ? _a : '';
@@ -633,32 +634,33 @@ export class BgCustomerMessage {
                                                 input.addEventListener('input', function () {
                                                     console.log(`input.scrollHeight->`, input.scrollHeight);
                                                     input.style.height = 'auto';
-                                                    input.style.height = input.scrollHeight + 'px';
+                                                    input.style.height = (input.scrollHeight) + 'px';
                                                 });
                                             },
                                         };
                                     })}
                                             </div>
-                                            <button
-                                                type="button"
-                                                class="btn btn-icon btn-lg  d-sm-inline-flex ms-1"
-                                                style="height: 36px;background: ${BgCustomerMessage.config.color};"
-                                                onclick="${gvc.event(() => {
+                                            <button type="button"
+                                                    class="btn btn-icon btn-lg  d-sm-inline-flex ms-1"
+                                                    style="height: 36px;background: ${BgCustomerMessage.config.color};"
+                                                    onclick="${gvc.event(() => {
                                         if (vm.message) {
                                             Chat.postMessage({
                                                 chat_id: cf.chat.chat_id,
                                                 user_id: cf.user_id,
                                                 message: {
                                                     text: vm.message,
-                                                    attachment: '',
-                                                },
+                                                    attachment: ''
+                                                }
+                                            }).then(() => {
+                                                vm.message = '';
+                                                const textArea = gvc.getBindViewElem(textAreaId).get(0);
+                                                textArea.focus();
                                             });
-                                            vm.message = '';
                                         }
                                         else {
                                         }
-                                    })}"
-                                            >
+                                    })}">
                                                 <i class="fa-regular fa-paper-plane-top"></i>
                                             </button>
                                         </div>`;

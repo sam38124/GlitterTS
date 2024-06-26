@@ -300,7 +300,7 @@ async function createAPP(dd) {
                                 return '../';
                             }
                         }).join('');
-                        const preload = (req.query.type === 'editor' || req.query.isIframe === 'true') ? {} : await app_js_1.App.preloadPageData(appName, data.tag);
+                        const preload = (req.query.type === 'editor' || req.query.isIframe === 'true') ? {} : await app_js_1.App.preloadPageData(appName, req.query.page);
                         data.page_config = (_h = data.page_config) !== null && _h !== void 0 ? _h : {};
                         data.page_config.seo = (_j = data.page_config.seo) !== null && _j !== void 0 ? _j : {};
                         const seo_detail = await getSeoDetail(appName, req);
@@ -324,6 +324,26 @@ async function createAPP(dd) {
                                     <meta name="description" content="${((_g = d.content) !== null && _g !== void 0 ? _g : "").replace(/\n/g, '')}">
                                     <meta name="og:description" content="${((_h = d.content) !== null && _h !== void 0 ? _h : "").replace(/\n/g, '')}">
                                     ${(_j = d.code) !== null && _j !== void 0 ? _j : ''}
+                                    ${(() => {
+                                var _a;
+                                if (req.query.type === 'editor') {
+                                    return ``;
+                                }
+                                else {
+                                    return `${((_a = data.config.globalStyle) !== null && _a !== void 0 ? _a : []).map((dd) => {
+                                        try {
+                                            if (dd.data.elem === 'link') {
+                                                return `<link type="text/css" rel="stylesheet" href="${dd.data.attr.find((dd) => {
+                                                    return dd.attr === 'href';
+                                                }).value}">`;
+                                            }
+                                        }
+                                        catch (e) {
+                                            return ``;
+                                        }
+                                    }).join('')}`;
+                                }
+                            })()}
                             `;
                         })()}
                         <script>

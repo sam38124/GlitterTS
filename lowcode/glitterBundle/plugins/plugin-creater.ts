@@ -58,14 +58,30 @@ export class Plugin {
     //V1
     public static createComponent(url: string, fun: (
         glitter: Glitter, editMode: boolean) => {
-        defaultData?: any, render: ((gvc: GVC, widget: HtmlJson, setting: any, hoverID: string[], subData?: any, htmlGenerate?: any) => {
+        defaultData?: any, render: ((gvc: GVC, widget: HtmlJson, setting: any, hoverID: string[], subData?: any, htmlGenerate?: any,document?:Document) => {
             view: () => (Promise<string> | string),
             editor: () => Promise<string> | string
         })
     }) {
-        const glitter = (window as any).glitter
-        const val = fun(glitter, isEditMode())
-        glitter.share.htmlExtension[url] = val
+
+        let val:any = {} ;
+        function setValue() {
+            let glitter = (window as any).glitter ;
+            val.render = fun(glitter, isEditMode()).render
+            glitter.share.htmlExtension = glitter.share.htmlExtension ?? {};
+            glitter.share.htmlExtension[url] = val ;
+        }
+        if((window as any).glitter){
+            setValue()
+        }else{
+            const interVal=setInterval(()=>{
+                if((window as any).glitter){
+                    setValue()
+                    clearInterval(interVal)
+                }
+            })
+        }
+
         return val;
     }
 

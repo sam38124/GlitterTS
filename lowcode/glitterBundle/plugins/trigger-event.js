@@ -69,7 +69,9 @@ export class TriggerEvent {
         };
     }
     static createSingleEvent(url, fun) {
+        var _a;
         const glitter = window.glitter;
+        glitter.share.componentData = (_a = glitter.share.componentData) !== null && _a !== void 0 ? _a : {};
         const val = fun(glitter);
         glitter.share.componentData[url] = val;
         return val;

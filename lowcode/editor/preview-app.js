@@ -59,7 +59,12 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                     </div>
                     <div class="m-2 d-flex align-items-center justify-content-center" style="height:calc(100vh - 70px);">
                         
-                        <iframe class="" src="index.html?page=${gBundle.page}&appName=${gBundle.appName}"
+                        <iframe class="" src="${(() => {
+                const url = new URL(`${glitter.root_path}${gBundle.page}${location.search}`);
+                url.searchParams.set('appName', gBundle.appName);
+                url.searchParams.delete('type');
+                return url.href;
+            })()}"
                         style="border:2px solid lightgrey;${(viewType === ViewType.mobile) ? `width: 414px;` : `width:100%;height:100%;`}
 "
                         ></iframe>

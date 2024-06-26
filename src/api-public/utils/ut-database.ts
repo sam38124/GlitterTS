@@ -15,7 +15,9 @@ export class UtDatabase {
         }
         let sql = `SELECT ${select || '*'}
                    FROM \`${this.app}\`.\`${this.table}\`
-                   where ${querySql.join(' and ')}
+                   where ${querySql.map((dd)=>{
+                       return `(${dd})`
+                   }).join(' and ')}
                    ${query.order_string ? query.order_string : `order by id desc`}`;
         if (query.id) {
             const data = (

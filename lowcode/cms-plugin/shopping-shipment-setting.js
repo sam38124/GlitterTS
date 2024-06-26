@@ -67,7 +67,9 @@ export class ShoppingShipmentSetting {
                         if (!data.response) {
                             data = yield saasConfig.api.getPrivateConfig(saasConfig.config.appName, `glitter_shipment`);
                             if (data.response.result[0]) {
-                                shipmentArray = data.response.result[0].value;
+                                if ((Array.isArray(data.response.result[0].value.weight))) {
+                                    shipmentArray = data.response.result[0].value;
+                                }
                             }
                         }
                         gvc.addStyle(`

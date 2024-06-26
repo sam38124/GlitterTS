@@ -202,8 +202,9 @@ TriggerEvent.create(import.meta.url, {
                 editor: () => {
                     object.codeVersion = 'v2';
                     const html = String.raw;
-                    return html ` <div class="w-100">
-                        ${EditorElem.codeEditor({
+                    return html `
+                        <div class="w-100">
+                            ${EditorElem.codeEditor({
                         gvc: gvc,
                         height: 500,
                         initial: object.code,
@@ -213,7 +214,7 @@ TriggerEvent.create(import.meta.url, {
                         },
                         structStart: `((gvc,widget,object,subData,element)=>{`,
                     })}
-                    </div>`;
+                        </div>`;
                 },
                 event: () => {
                     return new Promise((resolve, reject) => __awaiter(void 0, void 0, void 0, function* () {
@@ -228,13 +229,13 @@ TriggerEvent.create(import.meta.url, {
                             `;
                             const a = object.codeVersion == 'v2'
                                 ? eval(`
-                                        (()=>{
+                                        (() => {
                                             try {
                                                 return (() => {
                                                     ${queryWhere}
                                                     ${object.code}
                                                 })()
-                                            }catch (e) {
+                                            } catch (e) {
                                                 console.log(e)
                                                 return undefined
                                             }
@@ -481,13 +482,15 @@ TriggerEvent.create(import.meta.url, {
                             if (typeof topic != 'object') {
                                 gvc.glitter.runJsInterFace('regNotification', {
                                     topic: topic,
-                                }, (response) => { });
+                                }, (response) => {
+                                });
                             }
                             else {
                                 topic.map((dd) => {
                                     gvc.glitter.runJsInterFace('regNotification', {
                                         topic: dd,
-                                    }, (response) => { });
+                                    }, (response) => {
+                                    });
                                 });
                             }
                             resolve(true);
@@ -573,6 +576,10 @@ TriggerEvent.create(import.meta.url, {
     upload_file: {
         title: '官方事件 / API / 檔案上傳',
         fun: TriggerEvent.setEventRouter(import.meta.url, './api/api-file-upload.js'),
+    },
+    api_text_upload: {
+        title: '官方事件 / API / 文字檔上傳',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './api/api-text-upload.js')
     },
     getProduct: {
         title: '電子商務 / 選擇商品',

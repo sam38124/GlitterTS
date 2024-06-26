@@ -32,6 +32,7 @@ export class Main_editor {
             return {
                 bind: vid,
                 view: () => {
+                    const viewModel=glitter.share.editorViewModel
                     function checkSelect(array: any) {
                         array.map((dd: any) => {
                             if (dd.id === Storage.lastSelect) {
@@ -67,7 +68,7 @@ export class Main_editor {
                         return [
                             html`
                                 <div
-                                    class="px-3   border-bottom pb-3 fw-bold mt-2 pt-2"
+                                    class="px-3   border-bottom pb-3 fw-bold mt-2 pt-2 "
                                     style="cursor: pointer;color:#393939;"
                                     onclick="${gvc.event(() => {
                                         Storage.lastSelect = '';
@@ -76,6 +77,7 @@ export class Main_editor {
                                     })}"
                                 >
                                     <span>${viewModel.data.name}</span>
+                                  
                                 </div>
                             `,
                             `    ${(() => {
@@ -86,6 +88,7 @@ export class Main_editor {
                                         });
 
                                         function setPageConfig() {
+                                            const containerConfig=glitter.share.editorViewModel.data.config.container_config;
                                             (viewModel.data! as any).config = pageConfig.concat(
                                                 (viewModel.data! as any).config.filter((dd: any, index: number) => {
                                                     return !(dd.type !== 'code' && (dd.type !== 'widget' || (dd.data.elem !== 'style' && dd.data.elem !== 'link' && dd.data.elem !== 'script')));
@@ -97,6 +100,7 @@ export class Main_editor {
                                                 }).config = (viewModel.data! as any).config;
                                                 pageConfig = (viewModel.data! as any).config;
                                             } catch (e) {}
+                                            (viewModel.data! as any).config.container_config=containerConfig;
                                             gvc.notifyDataChange(vid);
                                         }
 
@@ -183,25 +187,8 @@ export class Main_editor {
                                                                                     onclick="${gvc.event((e, event) => {
                                                                                         lastClick.zeroing();
                                                                                         event.stopPropagation();
-
-                                                                                        function deleteBlock() {
-                                                                                            viewModel.selectItem = undefined;
-                                                                                            if (
-                                                                                                (document.querySelector('#editerCenter iframe') as any).contentWindow.document.querySelector(
-                                                                                                    `.editor_it_${og_array[index].id}`
-                                                                                                )
-                                                                                            ) {
-                                                                                                (document.querySelector('#editerCenter iframe') as any).contentWindow.glitter
-                                                                                                    .$(`.editor_it_${og_array[index].id}`)
-                                                                                                    .parent()
-                                                                                                    .remove();
-                                                                                            }
-                                                                                            og_array.splice(index, 1);
-                                                                                            setPageConfig();
-                                                                                            gvc.notifyDataChange('MainEditorLeft');
-                                                                                        }
-
-                                                                                        deleteBlock();
+                                                                                        glitter.htmlGenerate.deleteWidget(og_array,og_array[index])
+                                                                                        setPageConfig();
                                                                                     })}"
                                                                                 >
                                                                                     <i class="fa-regular fa-trash d-flex align-items-center justify-content-center "></i>
@@ -258,17 +245,54 @@ export class Main_editor {
                                                                     class="w-100 fw-500 d-flex align-items-center  fs-6 hoverBtn h_item  rounded px-2 hoverF2 mb-1"
                                                                     style="color:#36B;gap:10px;"
                                                                     onclick="${gvc.event(() => {
-                                                                        if (root) {
-                                                                            glitter.share.editorViewModel.selectContainer = glitter.share.editorViewModel.data.config;
-                                                                        } else {
-                                                                            glitter.share.editorViewModel.selectContainer = og_array;
-                                                                        }
-
-                                                                        AddComponent.closeEvent = () => {
-                                                                            setPageConfig();
-                                                                            console.log(`AddComponent.closeEvent->`, glitter.share.editorViewModel.selectContainer);
-                                                                        };
+                                                                       function setSelectContainer(){
+                                                                           if (root) {
+                                                                               // glitter.share.editorViewModel.selectContainer = glitter.share.editorViewModel.data.config;
+                                                                               glitter.share.editorViewModel.selectContainer=(glitter.share.editorViewModel.data! as any).config
+                                                                           } else {
+                                                                               glitter.share.editorViewModel.selectContainer = og_array;
+                                                                           }
+                                                                       }
+                                                                        setSelectContainer()
                                                                         AddComponent.toggle(true);
+                                                                       
+                                                                        AddComponent.addWidget=(gvc:GVC,cf:any)=>{
+                                                                            setSelectContainer();
+                                                                            (window.parent as any).glitter.share.addComponent(cf);
+                                                                          // gvc.notifyDataChange(vid)
+                                                                        }
+                                                                        AddComponent.addEvent=(gvc:GVC,tdata:any)=>{
+                                                                            setSelectContainer();
+                                                                            (window.parent as any).glitter.share.addComponent({
+                                                                                "id": gvc.glitter.getUUID(),
+                                                                                "js": "./official_view_component/official.js",
+                                                                                "css": {
+                                                                                    "class": {},
+                                                                                    "style": {}
+                                                                                },
+                                                                                "data": {
+                                                                                    'refer_app':tdata.copyApp,
+                                                                                    "tag": tdata.copy,
+                                                                                    "list": [],
+                                                                                    "carryData": {}
+                                                                                },
+                                                                                "type": "component",
+                                                                                "class": "",
+                                                                                "index": 0,
+                                                                                "label": tdata.title,
+                                                                                "style": "",
+                                                                                "bundle": {},
+                                                                                "global": [],
+                                                                                "toggle": false,
+                                                                                "stylist": [],
+                                                                                "dataType": "static",
+                                                                                "style_from": "code",
+                                                                                "classDataType": "static",
+                                                                                "preloadEvenet": {},
+                                                                                "share": {}
+                                                                            });
+                                                                            // gvc.notifyDataChange(vid)
+                                                                        }
                                                                     })}"
                                                                 >
                                                                     <i class="fa-solid fa-plus"></i>新增區段
@@ -703,8 +727,8 @@ export class Main_editor {
                                     (Storage.select_function === 'user-editor'
                                         ? html`
                                               <div
-                                                  class="px-3 mx-n2  border-bottom pb-3 fw-bold mt-2"
-                                                  style="cursor: pointer;color:#393939;"
+                                                  class="px-3 mx-n2  border-bottom pb-3 fw-bold mt-n2 pt-3 hoverF2 d-flex align-items-center"
+                                                  style="cursor: pointer;color:#393939;border-radius: 0px;gap:10px;"
                                                   onclick="${gvc.event(() => {
                                                       Storage.lastSelect = '';
                                                       (window.parent as any).glitter.share.editorViewModel.selectItem = undefined;
@@ -712,7 +736,13 @@ export class Main_editor {
                                                   })}"
                                               >
                                                   <i class="fa-solid fa-chevron-left"></i>
-                                                  <span>${viewModel.selectItem.label}</span>
+                                                  <span style="max-width: calc(100% - 50px);text-overflow: ellipsis;white-space: nowrap;overflow: hidden;">${viewModel.selectItem.label}</span>
+                                                  <div class="flex-fill"></div>
+                                                  <div class="hoverBtn  child p-1" onclick="${gvc.event(()=>{
+                                                      glitter.htmlGenerate.deleteWidget((window.parent as any).glitter.share.editorViewModel.selectContainer,viewModel.selectItem)
+                                                  })}">
+                                                      <i class="fa-regular fa-trash d-flex align-items-center justify-content-center " aria-hidden="true"></i>
+                                                  </div>
                                               </div>
                                           `
                                         : ``) +

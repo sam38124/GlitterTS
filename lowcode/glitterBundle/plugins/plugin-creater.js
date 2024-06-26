@@ -16,9 +16,25 @@ export class Plugin {
         return glitter.share.htmlExtension[url];
     }
     static createComponent(url, fun) {
-        const glitter = window.glitter;
-        const val = fun(glitter, isEditMode());
-        glitter.share.htmlExtension[url] = val;
+        let val = {};
+        function setValue() {
+            var _a;
+            let glitter = window.glitter;
+            val.render = fun(glitter, isEditMode()).render;
+            glitter.share.htmlExtension = (_a = glitter.share.htmlExtension) !== null && _a !== void 0 ? _a : {};
+            glitter.share.htmlExtension[url] = val;
+        }
+        if (window.glitter) {
+            setValue();
+        }
+        else {
+            const interVal = setInterval(() => {
+                if (window.glitter) {
+                    setValue();
+                    clearInterval(interVal);
+                }
+            });
+        }
         return val;
     }
     static createViewComponent(url, fun) {

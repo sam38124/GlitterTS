@@ -70,12 +70,10 @@ Plugin.createComponent(import.meta.url, (glitter, editMode) => {
                                 vm.loading = true;
                                 gvc.notifyDataChange(id);
                                 vm.data = (yield TriggerEvent.trigger({
-                                    gvc: gvc,
-                                    widget: widget,
-                                    clickEvent: config.initial,
-                                    subData: subData,
+                                    gvc: gvc, widget: widget, clickEvent: config.initial, subData: subData
                                 }));
                                 vm.loading = false;
+                                alert(JSON.stringify(vm.data));
                                 gvc.notifyDataChange(id);
                             }));
                         }
@@ -91,6 +89,7 @@ Plugin.createComponent(import.meta.url, (glitter, editMode) => {
                                     else {
                                         let viewList = [];
                                         for (const b of vm.data) {
+                                            console.log(`subData->`, b);
                                             const view = yield getPageView(widget.data.tag, b, childStyle.class(), childStyle.style());
                                             viewList.push(view);
                                         }

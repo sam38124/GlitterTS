@@ -59,10 +59,9 @@ export class Glitter {
     set href(value) {
         const link = new URL(value, location.href);
         if ((location.origin) === (link.origin)) {
+            window.history.replaceState({}, document.title, link.href);
             this.getModule(new URL('../official_event/page/change-page.js', import.meta.url).href, (cl) => {
-                setTimeout(() => {
-                    cl.changePage(link.searchParams.get('page') || location.pathname.substring(1), 'page', {})
-                })
+                cl.changePage(link.searchParams.get('page') || location.pathname.substring(1), 'page', {})
             })
         } else {
             location.href = value;
@@ -430,13 +429,14 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
                 } else if (scritem.type !== undefined) {
                     script.setAttribute('type', scritem.type);
                     script.setAttribute('src', scritem.src ?? undefined);
-                    script.setAttribute('crossorigin', true)
-                    script.setAttribute('id', scritem.id ?? undefined);
+                    script.setAttribute('crossorigin', true);
+                    scritem.id && (  script.setAttribute('id', scritem.id ?? undefined));
+
 
                     document.getElementsByTagName("head")[0].appendChild(script);
                 } else {
                     script.setAttribute('src', scritem.src ?? scritem);
-                    script.setAttribute('id', scritem.id ?? undefined);
+                    scritem.id && (  script.setAttribute('id', scritem.id ?? undefined));
                     script.setAttribute('crossorigin', true)
                     document.getElementsByTagName("head")[0].appendChild(script);
                 }

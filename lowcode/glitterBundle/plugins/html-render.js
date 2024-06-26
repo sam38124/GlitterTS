@@ -215,23 +215,14 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                                     page_config: gBundle.page_config
                                 });
                             }
-                            gBundle.config.refresh = (() => {
-                                gBundle.editMode.initialFunction();
-                                gvc.glitter.document.querySelector(`[gvc-id="${gvc.id('MainView')}"]`).outerHTML = editorView();
-                                setTimeout(() => {
-                                    gvc.glitter.document.querySelector('.selectComponentHover').scrollIntoView({
-                                        behavior: 'auto',
-                                        block: 'center',
-                                    });
-                                }, 10);
-                            });
                             resolve(((gBundle.editMode && editorView())
                                 ||
                                     new glitter.htmlGenerate(gBundle.config, [], gBundle.data, true).render(gvc, {
                                         class: ``,
                                         style: ``,
                                         app_config: gBundle.app_config,
-                                        page_config: gBundle.page_config
+                                        page_config: gBundle.page_config,
+                                        is_page: true
                                     })));
                         }
                     }));

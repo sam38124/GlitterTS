@@ -417,6 +417,10 @@ class App {
             appName: appName,
             tag: page
         })))[0];
+        console.log(`preload->${appName}-${page}`);
+        if (!pageData) {
+            return {};
+        }
         preloadData.component.push(pageData);
         async function loop(array) {
             var _a;
@@ -436,7 +440,7 @@ class App {
                 }
             }
         }
-        (await loop(pageData.config));
+        (await loop(pageData && pageData.config));
         let mapPush = {};
         mapPush['getPlugin'] = {
             callback: [],

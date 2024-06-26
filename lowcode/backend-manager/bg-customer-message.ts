@@ -565,9 +565,9 @@ export class BgCustomerMessage {
                                     }
                                 });
                             }
-                            connect();
-
-                            const html = String.raw;
+                            connect()
+                            const textAreaId = gvc.glitter.getUUID()
+                            const html = String.raw
                             return {
                                 bind: viewId,
                                 view: () => {
@@ -656,7 +656,7 @@ export class BgCustomerMessage {
                                                 ${gvc.bindView(() => {
                                                     const id = gvc.glitter.getUUID();
                                                     return {
-                                                        bind: id,
+                                                        bind: textAreaId,
                                                         view: () => {
                                                             return vm.message ?? '';
                                                         },
@@ -679,32 +679,37 @@ export class BgCustomerMessage {
                                                             input.addEventListener('input', function () {
                                                                 console.log(`input.scrollHeight->`, input.scrollHeight);
                                                                 input.style.height = 'auto'; // 重置高度
-                                                                input.style.height = input.scrollHeight + 'px'; // 设置为内容高度
+                                                                input.style.height = (input.scrollHeight) + 'px'; // 设置为内容高度
                                                             });
+                                                           
                                                             // autosize(gvc.getBindViewElem(id))
                                                         },
                                                     };
                                                 })}
                                             </div>
-                                            <button
-                                                type="button"
-                                                class="btn btn-icon btn-lg  d-sm-inline-flex ms-1"
-                                                style="height: 36px;background: ${BgCustomerMessage.config.color};"
-                                                onclick="${gvc.event(() => {
-                                                    if (vm.message) {
-                                                        Chat.postMessage({
-                                                            chat_id: cf.chat.chat_id,
-                                                            user_id: cf.user_id,
-                                                            message: {
-                                                                text: vm.message,
-                                                                attachment: '',
-                                                            },
-                                                        });
-                                                        vm.message = '';
-                                                    } else {
-                                                    }
-                                                })}"
-                                            >
+                                            <button type="button"
+                                                    class="btn btn-icon btn-lg  d-sm-inline-flex ms-1"
+                                                    style="height: 36px;background: ${BgCustomerMessage.config.color};"
+                                                    onclick="${gvc.event(() => {
+                                                        if (vm.message) {
+                                                            Chat.postMessage({
+                                                                chat_id: cf.chat.chat_id,
+                                                                user_id: cf.user_id,
+                                                                message: {
+                                                                    text: vm.message,
+                                                                    attachment: ''
+                                                                }
+                                                            }).then(()=>{
+                                                                vm.message = '';
+                                                                const textArea = gvc.getBindViewElem(textAreaId).get(0)
+                                                                textArea.focus();
+                                                            })
+
+
+                                                        } else {
+
+                                                        }
+                                                    })}">
                                                 <i class="fa-regular fa-paper-plane-top"></i>
                                             </button>
                                         </div>`;
