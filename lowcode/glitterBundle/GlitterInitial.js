@@ -28,7 +28,7 @@ let scrollInterval = undefined;
 function traverseHTML(element, document) {
     var _a, _b;
     try {
-        if ((element.tagName.toLowerCase() === 'page-box')) {
+        if ((element.classList.contains('page-box'))) {
             const pageConfig = glitter.pageConfig.find((dd) => {
                 return `page${dd.id}` === element.getAttribute('id');
             });
@@ -159,7 +159,8 @@ function traverseHTML(element, document) {
                             document.querySelector(`[gvc-id="${id}"]`).classList.add(`hc_${height}`);
                             renderBindView();
                             setTimeout(() => {
-                                document.querySelector(`[gvc-id="${id}"]`).classList.remove(`hc_${height}`);
+                                const elem = document.querySelector(`[gvc-id="${id}"]`);
+                                elem && elem.classList.remove(`hc_${height}`);
                             }, 10);
                         });
                         document.querySelector(`[gvc-id="${id}"]`).wasRender = true;

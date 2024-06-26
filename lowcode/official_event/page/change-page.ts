@@ -22,6 +22,7 @@ class ChangePage {
                     location.href = url.href;
                     return
                 }
+                glitter.htmlGenerate.preloadEvent(data.response.result[0].config)
                 if (type === 'home') {
                     const cf = {
                         app_config: saasConfig.appConfig,

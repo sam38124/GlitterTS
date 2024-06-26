@@ -64,6 +64,17 @@ export class TriggerEvent {
                             divCreate: {}
                         };
                     });
+                },
+                preload: () => {
+                    return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
+                        glitter.htmlGenerate.loadEvent(glitter, [
+                            {
+                                src: url,
+                                callback: (data) => __awaiter(this, void 0, void 0, function* () {
+                                })
+                            }
+                        ]);
+                    }));
                 }
             };
         };

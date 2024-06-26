@@ -16,6 +16,7 @@ import {ApiPublic} from "../api-public/services/public-table-check.js";
 import {BackendService} from "./backend-service.js";
 import {Template} from "./template.js";
 import Tool from "./tool";
+import path from "path";
 
 export class App {
     public token?: IToken;
@@ -30,7 +31,7 @@ export class App {
         })
     }
 
-    public async createApp(cf: { appName: string, copyApp: string, copyWith: string[], brand: string, name?: string, theme?: string,sub_domain:string }) {
+    public async createApp(cf: { appName: string, copyApp: string, copyWith: string[], brand: string, name?: string, theme?: string, sub_domain: string }) {
         try {
             cf.copyWith = cf.copyWith ?? []
             const count = await db.execute(`
@@ -44,9 +45,9 @@ export class App {
             const domain_count = await db.execute(`
                 select count(1)
                 from \`${saasConfig.SAAS_NAME}\`.app_config
-                where domain = ${db.escape( `${cf.sub_domain}.${config.HostedDomain}`)}
+                where domain = ${db.escape(`${cf.sub_domain}.${config.HostedDomain}`)}
             `, []);
-            if(domain_count[0]['count(1)'] === 1){
+            if (domain_count[0]['count(1)'] === 1) {
                 throw  exception.BadRequestError('HAVE_DOMAIN', 'This domain already be used.', null);
             }
 
@@ -80,8 +81,8 @@ export class App {
             ]);
 
             await this.putSubDomain({
-                app_name:cf.appName,
-                name:cf.sub_domain
+                app_name: cf.appName,
+                name: cf.sub_domain
             });
             await ApiPublic.createScheme(cf.appName)
             const trans = await db.Transaction.build();
@@ -212,7 +213,9 @@ export class App {
             await createAPP(cf)
             return true
         } catch (e: any) {
-            await db.query(`delete from \`${saasConfig.SAAS_NAME}\`.app_config where appName=?`,[cf.appName])
+            await db.query(`delete
+                            from \`${saasConfig.SAAS_NAME}\`.app_config
+                            where appName = ?`, [cf.appName])
             console.log(e)
             throw exception.BadRequestError(e.code ?? 'BAD_REQUEST', e, null);
         }
@@ -333,7 +336,7 @@ export class App {
     }) {
         try {
             return (await db.execute(`
-                SELECT user, appName, created_time, dead_line, brand, template_config, template_type,domain
+                SELECT user, appName, created_time, dead_line, brand, template_config, template_type, domain
                 FROM \`${saasConfig.SAAS_NAME}\`.app_config
                 where ${(() => {
                     const sql = []
@@ -402,20 +405,37 @@ export class App {
         const app = new App();
         const preloadData: {
             component: any,
-            appConfig: any
+            appConfig: any,
+            event:any
         } = {
             component: [],
             appConfig: (await app.getAppConfig({
                 appName: appName
-            }))
+            })),
+            event:[]
         }
         const pageData = (await (new Template(undefined).getPage({
             appName: appName,
             tag: page
         })))[0];
-        console.log(`preload->${appName}-${page}`);
-        if(!pageData){
-            return  {}
+        const event_list = fs.readFileSync(path.resolve(__dirname, '../../lowcode/official_event/event.js'), 'utf8');
+        const index=`TriggerEvent.create(import.meta.url,`;
+        const str=`(${event_list.substring(event_list.indexOf(index)+index.length)}`;
+        // 定义正则表达式
+        const regex = /TriggerEvent\.setEventRouter\(import\.meta\.url,\s*['"](.+?)['"]\)/g;
+        let str2= str
+// 使用正则表达式匹配字符串
+        const matches = [];
+        let match;
+        while ((match = regex.exec(str)) !== null) {
+            matches.push(match[0]); // 将整个匹配的字符串加入数组
+        }
+        for (const b of matches){
+            str2=str2.replace(b,`"${b}"`)
+        }
+        const event_=eval(str2)
+        if (!pageData) {
+            return {}
         }
         preloadData.component.push(pageData)
 
@@ -432,9 +452,31 @@ export class App {
                         preloadData.component.push(pageData)
                         await loop(pageData.config ?? [])
                     }
+                } else if (dd && (typeof dd === 'object')) {
+                    const data = dd
+                    // console.log(data)
+                    Object.keys(data).map((dd) => {
+                        if (dd === 'src' && data['route'] && data['src'].includes('official_event')) {
+                            if(!preloadData.event.find((dd:any)=>{
+                                return dd===event_[data['route']]
+                            })){
+                                preloadData.event.push(event_[data['route']])
+                            }
+                            // console.log(`src:${data[dd]} - route:${data['route']}`)
+                        }
+
+                        if (Array.isArray(data[dd])) {
+                            loop(data[dd])
+                        }else if(typeof data[dd]==='object'){
+                            loop([data[dd]])
+                        }
+                    })
+                }else if(Array.isArray(dd)){
+                    await loop(dd)
                 }
             }
         }
+
         (await loop(pageData && pageData.config));
         let mapPush: any = {}
         mapPush['getPlugin'] = {
@@ -448,7 +490,8 @@ export class App {
                 isRunning: true,
                 data: {response: {result: [dd]}}
             }
-        })
+        });
+        mapPush.event=preloadData.event
         return mapPush
     }
 
@@ -517,14 +560,14 @@ export class App {
         app_name: string,
         name: string
     }) {
-        const domain_name=`${cf.name}.${config.HostedDomain}`
+        const domain_name = `${cf.name}.${config.HostedDomain}`
         if ((await db.query(`SELECT count(1)
                              FROM \`${saasConfig.SAAS_NAME}\`.app_config
                              where domain =${db.escape(domain_name)}`, []))[0]['count(1)'] === 0) {
             const result = await this.addDNSRecord(domain_name);
             (await this.setSubDomain({
                 appName: cf.app_name,
-                domain:domain_name
+                domain: domain_name
             }));
             return true
         } else {
@@ -571,11 +614,13 @@ export class App {
                                            from \`${saasConfig.SAAS_NAME}\`.app_config
                                            where domain =?
                                              and user !=?`, [config.domain, this.token!.userID]))['count(1)'] > 0;
-        if (checkExists) {
+        if (checkExists || config.domain.split('.').find((dd)=>{
+            return !dd
+        })) {
             throw exception.BadRequestError('BAD_REQUEST', 'this domain already on use.', null);
         }
         try {
-            const data = await Ssh.readFile('/etc/nginx/sites-enabled/default.conf')
+            const data = await Ssh.readFile(`/etc/nginx/sites-enabled/default.conf`)
             let result: string = await new Promise((resolve, reject) => {
                 NginxConfFile.createFromSource(data as string, (err, conf) => {
                     const server: any = []
@@ -588,7 +633,7 @@ export class App {
                     resolve(conf!.toString())
                 })
             })
-result += `\n\nserver {
+            result += `\n\nserver {
     server_name ${config.domain};
     location / {
        proxy_pass http://127.0.0.1:3080/${config.appName}/;
@@ -632,6 +677,7 @@ server {
             throw exception.BadRequestError(e.code ?? 'BAD_REQUEST', e, null);
         }
     }
+
     public async setDomain(config: {
         appName: string,
         domain: string

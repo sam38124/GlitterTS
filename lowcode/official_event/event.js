@@ -1,15 +1,4 @@
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 import { TriggerEvent } from '../glitterBundle/plugins/trigger-event.js';
-import { EditorElem } from '../glitterBundle/plugins/editor-elem.js';
-import { NormalPageEditor } from '../editor/normal-page-editor.js';
 export class GlobalData {
 }
 GlobalData.data = {
@@ -58,20 +47,7 @@ TriggerEvent.create(import.meta.url, {
     },
     link: {
         title: '官方事件 / 畫面 / 頁面跳轉',
-        subContent: questionText([
-            {
-                title: '內部連結跳轉',
-                content: `使用此事件可以跳轉至GLITTER內部頁面，採用SPA的開發技術，來降低頁面延遲，使轉場的效果更加順暢。`,
-            },
-            {
-                title: '外連結跳轉',
-                content: `使用此事件可以跳轉至外部頁面。`,
-            },
-            {
-                title: 'HashTag',
-                content: `使用此事件可以滾動至此標籤的位置。`,
-            },
-        ]),
+        subContent: ``,
         fun: TriggerEvent.setEventRouter(import.meta.url, './page/change-page.js'),
     },
     goBack: {
@@ -81,86 +57,28 @@ TriggerEvent.create(import.meta.url, {
     },
     dialog: {
         title: '官方事件 / 畫面 / 彈跳視窗',
-        subContent: questionText([
-            {
-                title: '打開彈跳視窗',
-                content: `使用此事件可以開啟彈跳視窗，可以實現 表單 / 載入動畫 / 錯誤提醒 ....等效果都可以透過頁面彈窗來進行實現。`,
-            },
-            {
-                title: '關閉彈跳視窗',
-                content: `於跳轉的頁面執行 <span style="color:#295ed1;">gvc.closeDialog()</span> 即可關閉彈跳視窗。`,
-            },
-            {
-                title: '夾帶資料',
-                content: `返回要挾帶的資料並且於彈跳視窗的頁面中，透過 <span style="color:#295ed1;">gvc.getBundle().carryData</span>  ，來取得夾帶內容。`,
-            },
-        ]),
+        subContent: ``,
         fun: TriggerEvent.setEventRouter(import.meta.url, './page/dialog.js'),
     },
     close_dialog: {
         title: '官方事件 / 畫面 / 視窗關閉',
-        subContent: questionText([
-            {
-                title: '當前視窗',
-                content: `僅關閉當前的彈跳視窗。`,
-            },
-            {
-                title: '所有視窗',
-                content: `關閉所有彈跳視窗。`,
-            },
-            {
-                title: '標籤',
-                content: `關閉具有此標籤的視窗。`,
-            },
-        ]),
         fun: TriggerEvent.setEventRouter(import.meta.url, './page/close-dialog.js'),
     },
     drawer: {
         title: '官方事件 / 畫面 / 左側導覽列',
-        subContent: `<div class="d-flex flex-column w-100 align-items-center justify-content-center"
-                                             style="height:400px;">
-<video src="video/open_navagation.mov" class="mx-auto " style="max-width: 100%;height: 300px;" loop
-                                                           autoplay>
-                                                           
-</video>
-                                            <h3 class=" text-center px-4 mt-2" style="font-size:18px;">
-                                                選擇頁面並嵌入來實現導覽列的效果。
-                                            </h3>
-                                        </div>`,
         fun: TriggerEvent.setEventRouter(import.meta.url, './view/navagation.js'),
     },
     closeDrawer: {
         title: '官方事件 / 畫面 / 關閉導覽列',
-        subContent: `<div class="w-100 alert alert-light" style="white-space: normal;word-break: break-word;">透過<span class="mx-2" style="color:#295ed1;">glitter.closeDrawer()</span>來關閉左側導覽列。</div>`,
         fun: TriggerEvent.setEventRouter(import.meta.url, './page/close-drawer.js'),
     },
     reloadPage: {
         title: '官方事件 / 畫面 / 頁面刷新',
-        subContent: `<div class="w-100 alert alert-light" style="white-space: normal;word-break: break-word;">透過<span class="mx-2" style="color:#295ed1;">gvc.recreateView()</span>來刷新當前頁面。</div>`,
-        fun: (gvc, widget, object, subData, element) => {
-            return {
-                editor: () => {
-                    return ``;
-                },
-                event: () => {
-                    gvc.recreateView();
-                },
-            };
-        },
+        fun: TriggerEvent.setEventRouter(import.meta.url, './page/recreate-gvc.js')
     },
     reload: {
         title: '官方事件 / 畫面 / 刷新瀏覽器',
-        subContent: `<div class="w-100 alert alert-light" style="white-space: normal;word-break: break-word;">透過<span class="mx-2" style="color:#295ed1;">location.reload()</span>來刷新整個瀏覽器。</div>`,
-        fun: (gvc, widget, object, subData, element) => {
-            return {
-                editor: () => {
-                    return ``;
-                },
-                event: () => {
-                    location.reload();
-                },
-            };
-        },
+        fun: TriggerEvent.setEventRouter(import.meta.url, './page/reload.js')
     },
     notify: {
         title: '官方事件 / 畫面 / 區塊刷新',
@@ -196,192 +114,11 @@ TriggerEvent.create(import.meta.url, {
     },
     code: {
         title: '官方事件 / 開發工具 / 代碼區塊',
-        subContent: `<div class="w-100 alert alert-light" style="white-space: normal;word-break: break-word;">於內容編輯器中，直接輸入代碼來執行事件。</div>`,
-        fun: (gvc, widget, object, subData, element) => {
-            return {
-                editor: () => {
-                    object.codeVersion = 'v2';
-                    const html = String.raw;
-                    return html `
-                        <div class="w-100">
-                            ${EditorElem.codeEditor({
-                        gvc: gvc,
-                        height: 500,
-                        initial: object.code,
-                        title: '代碼區塊',
-                        callback: (text) => {
-                            object.code = text;
-                        },
-                        structStart: `((gvc,widget,object,subData,element)=>{`,
-                    })}
-                        </div>`;
-                },
-                event: () => {
-                    return new Promise((resolve, reject) => __awaiter(void 0, void 0, void 0, function* () {
-                        var _a;
-                        try {
-                            const queryWhere = `
-                            /*
-      ->Tag->${widget.tag}
-      ->Label->${widget.label}
-      ->ID->${widget.id}
-      */
-                            `;
-                            const a = object.codeVersion == 'v2'
-                                ? eval(`
-                                        (() => {
-                                            try {
-                                                return (() => {
-                                                    ${queryWhere}
-                                                    ${object.code}
-                                                })()
-                                            } catch (e) {
-                                                console.log(e)
-                                                return undefined
-                                            }
-                                        })()
-                                    `)
-                                : eval(object.code);
-                            if (a.then) {
-                                a.then((data) => {
-                                    resolve(data);
-                                });
-                            }
-                            else {
-                                resolve(a);
-                            }
-                        }
-                        catch (e) {
-                            resolve((_a = object.errorCode) !== null && _a !== void 0 ? _a : false);
-                        }
-                    }));
-                },
-            };
-        },
+        fun: TriggerEvent.setEventRouter(import.meta.url, './glitter-util/eval-code.js'),
     },
     codeArray: {
         title: '官方事件 / 開發工具 / 多項事件判斷',
-        fun: (gvc, widget, object, subData, element) => {
-            return {
-                editor: () => {
-                    return gvc.bindView(() => {
-                        const id = gvc.glitter.getUUID();
-                        return {
-                            bind: id,
-                            view: () => {
-                                var _a;
-                                object.eventList = (_a = object.eventList) !== null && _a !== void 0 ? _a : [];
-                                try {
-                                    return EditorElem.arrayItem({
-                                        originalArray: object.eventList,
-                                        gvc: gvc,
-                                        title: '',
-                                        array: () => {
-                                            return object.eventList.map((dd, index) => {
-                                                var _a, _b;
-                                                dd.yesEvent = (_a = dd.yesEvent) !== null && _a !== void 0 ? _a : {};
-                                                dd.trigger = (_b = dd.trigger) !== null && _b !== void 0 ? _b : {};
-                                                return {
-                                                    title: dd.title || `事件:${index + 1}`,
-                                                    expand: dd,
-                                                    innerHtml: () => {
-                                                        NormalPageEditor.toggle({
-                                                            visible: true,
-                                                            view: gvc.bindView(() => {
-                                                                return {
-                                                                    bind: gvc.glitter.getUUID(),
-                                                                    view: () => {
-                                                                        var _a;
-                                                                        return `<div class="p-2">${[
-                                                                            gvc.glitter.htmlGenerate.editeInput({
-                                                                                gvc: gvc,
-                                                                                title: '事件標題',
-                                                                                default: (_a = dd.title) !== null && _a !== void 0 ? _a : '',
-                                                                                placeHolder: '請輸入事件標題',
-                                                                                callback: (text) => {
-                                                                                    dd.title = text;
-                                                                                },
-                                                                            }),
-                                                                            TriggerEvent.editer(gvc, widget, dd.yesEvent, {
-                                                                                hover: true,
-                                                                                option: [],
-                                                                                title: '判斷式-返回true則執行事件',
-                                                                            }),
-                                                                            `<div class="mt-2"></div>`,
-                                                                            TriggerEvent.editer(gvc, widget, dd.trigger, {
-                                                                                hover: true,
-                                                                                option: [],
-                                                                                title: '執行事件',
-                                                                            }),
-                                                                        ].join('')}</div>`;
-                                                                    },
-                                                                };
-                                                            }),
-                                                            title: '設定事件',
-                                                        });
-                                                    },
-                                                    minus: gvc.event(() => {
-                                                        object.eventList.splice(index, 1);
-                                                        gvc.notifyDataChange(id);
-                                                    }),
-                                                };
-                                            });
-                                        },
-                                        expand: object,
-                                        plus: {
-                                            title: '添加事件判斷',
-                                            event: gvc.event(() => {
-                                                object.eventList.push({ yesEvent: {}, trigger: {} });
-                                                gvc.notifyDataChange(id);
-                                            }),
-                                        },
-                                        refreshComponent: () => {
-                                            gvc.notifyDataChange(id);
-                                        },
-                                        customEditor: true,
-                                    });
-                                }
-                                catch (e) {
-                                    return ``;
-                                }
-                            },
-                            divCreate: {},
-                        };
-                    });
-                },
-                event: () => {
-                    return new Promise((resolve, reject) => __awaiter(void 0, void 0, void 0, function* () {
-                        var _a;
-                        try {
-                            for (const a of object.eventList) {
-                                const result = yield TriggerEvent.trigger({
-                                    gvc: gvc,
-                                    widget: widget,
-                                    clickEvent: a.yesEvent,
-                                    subData: subData,
-                                    element: element,
-                                });
-                                if (result) {
-                                    const response = yield TriggerEvent.trigger({
-                                        gvc: gvc,
-                                        widget: widget,
-                                        clickEvent: a.trigger,
-                                        subData: subData,
-                                        element: element,
-                                    });
-                                    resolve(response);
-                                    return;
-                                }
-                            }
-                            resolve(true);
-                        }
-                        catch (e) {
-                            resolve((_a = object.errorCode) !== null && _a !== void 0 ? _a : false);
-                        }
-                    }));
-                },
-            };
-        },
+        fun: TriggerEvent.setEventRouter(import.meta.url, './glitter-util/code-array.js')
     },
     setURl: {
         title: '官方事件 / 開發工具 / 設定URL參數',
@@ -457,97 +194,15 @@ TriggerEvent.create(import.meta.url, {
     },
     registerNotify: {
         title: '官方事件 / 推播 / 註冊推播頻道',
-        fun: (gvc, widget, object, subData, element) => {
-            var _a;
-            object.getEvent = (_a = object.getEvent) !== null && _a !== void 0 ? _a : {};
-            return {
-                editor: () => {
-                    return TriggerEvent.editer(gvc, widget, object.getEvent, {
-                        option: [],
-                        title: '取得推播頻道',
-                        hover: false,
-                    });
-                },
-                event: () => {
-                    return new Promise((resolve, reject) => __awaiter(void 0, void 0, void 0, function* () {
-                        var _a;
-                        try {
-                            const topic = yield TriggerEvent.trigger({
-                                gvc,
-                                widget,
-                                clickEvent: object.getEvent,
-                                subData: subData,
-                                element,
-                            });
-                            if (typeof topic != 'object') {
-                                gvc.glitter.runJsInterFace('regNotification', {
-                                    topic: topic,
-                                }, (response) => {
-                                });
-                            }
-                            else {
-                                topic.map((dd) => {
-                                    gvc.glitter.runJsInterFace('regNotification', {
-                                        topic: dd,
-                                    }, (response) => {
-                                    });
-                                });
-                            }
-                            resolve(true);
-                        }
-                        catch (e) {
-                            resolve((_a = object.errorCode) !== null && _a !== void 0 ? _a : false);
-                        }
-                    }));
-                },
-            };
-        },
+        fun: TriggerEvent.setEventRouter(import.meta.url, './fcm/register-topic.js'),
     },
     getFcm: {
         title: '官方事件 / 推播 / 取得推播ID',
-        fun: (gvc, widget, object, subData, element) => {
-            return {
-                editor: () => {
-                    return ``;
-                },
-                event: () => {
-                    return new Promise((resolve, reject) => __awaiter(void 0, void 0, void 0, function* () {
-                        var _a;
-                        try {
-                            gvc.glitter.runJsInterFace('getFireBaseToken', {}, (response) => {
-                                resolve(response.token);
-                            });
-                        }
-                        catch (e) {
-                            resolve((_a = object.errorCode) !== null && _a !== void 0 ? _a : false);
-                        }
-                    }));
-                },
-            };
-        },
+        fun: TriggerEvent.setEventRouter(import.meta.url, './fcm/get-device-id.js'),
     },
     deleteFireBaseToken: {
         title: '官方事件 / 推播 / 移除推播註冊',
-        fun: (gvc, widget, object, subData, element) => {
-            return {
-                editor: () => {
-                    return ``;
-                },
-                event: () => {
-                    return new Promise((resolve, reject) => __awaiter(void 0, void 0, void 0, function* () {
-                        var _a;
-                        try {
-                            gvc.glitter.runJsInterFace('deleteFireBaseToken', {}, (response) => {
-                                resolve(true);
-                            });
-                        }
-                        catch (e) {
-                            resolve((_a = object.errorCode) !== null && _a !== void 0 ? _a : false);
-                        }
-                    }));
-                },
-            };
-        },
+        fun: TriggerEvent.setEventRouter(import.meta.url, './fcm/un-register-device.js'),
     },
     emailSubscription: {
         title: '官方事件 / 推播 / 信箱註冊',
@@ -862,32 +517,3 @@ TriggerEvent.create(import.meta.url, {
         fun: TriggerEvent.setEventRouter(import.meta.url, './blog/get-blog-tag.js'),
     },
 });
-function questionText(data) {
-    return `<div class="bg-secondary rounded-3 py-2 px-2 ">
-          <h2 class="text-center my-3 mt-2" style="font-size:22px;">使用方法說明</h2>
-             <div class="accordion mx-2" id="faq">
-                ${data
-        .map((dd, index) => {
-        return ` <div class="accordion-item border-0 rounded-3 shadow-sm mb-3">
-                  <h3 class="accordion-header">
-                    <button class="accordion-button shadow-none rounded-3 ${index === 0 ? '' : 'collapsed'}" type="button" data-bs-toggle="collapse" data-bs-target="#q-${index}" aria-expanded="false" aria-controls="q-1">${dd.title}</button>
-                  </h3>
-                  <div class="accordion-collapse collapse ${index === 0 ? 'show' : ''}" id="q-${index}" data-bs-parent="#faq" style="">
-                    <div class="accordion-body fs-sm pt-0">
-                     ${dd.content}
-                    </div>
-                  </div>
-                </div>`;
-    })
-        .join('')}
-              
-              </div>
-        </div>`;
-}
-function getConfig() {
-    const saasConfig = window.saasConfig;
-    return saasConfig;
-}
-function getBaseUrl() {
-    return getConfig().config.url;
-}

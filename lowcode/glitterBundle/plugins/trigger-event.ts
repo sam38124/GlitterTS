@@ -62,6 +62,18 @@ export class TriggerEvent {
                             divCreate: {}
                         }
                     })
+                },
+                preload:()=>{
+                    return new Promise(async (resolve, reject) => {
+                        glitter.htmlGenerate.loadEvent(glitter, [
+                            {
+                                src: url,
+                                callback: async (data: any) => {
+
+                                }
+                            }
+                        ])
+                    })
                 }
             }
         }

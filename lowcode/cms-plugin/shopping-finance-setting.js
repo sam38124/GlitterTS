@@ -236,7 +236,7 @@ export class ShoppingFinanceSetting {
                                                         `;
                                         },
                                         divCreate: {
-                                            style: ``,
+                                            style: `padding-bottom:100px;`,
                                             class: `w-100`,
                                         },
                                     };

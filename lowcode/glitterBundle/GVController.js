@@ -425,16 +425,16 @@ export function init(metaURL, fun) {
             }
         };
         if (cf.pageConfig.type === GVCType.Page) {
-            $('#glitterPage').append(`<page-box id="page${cf.pageConfig.id}" style="min-width: 100vw;min-height: 100vh;left: 0;top: 0;width:100vw;
+            $('#glitterPage').append(`<div id="page${cf.pageConfig.id}" style="min-width: 100vw;min-height: 100vh;left: 0;top: 0;width:100vw;
 background: ${cf.pageConfig.backGroundColor};z-index: 9999;overflow: hidden;display:none;" class="page-box">
 ${lifeCycle.onCreateView()}
-</page-box>`);
+</div>`);
         }
         else {
-            $('#glitterPage').append(`<page-box id="page${cf.pageConfig.id}" style="min-width: 100vw;min-height: 100vh;left: 0;top: 0;
+            $('#glitterPage').append(`<div id="page${cf.pageConfig.id}" style="min-width: 100vw;min-height: 100vh;left: 0;top: 0;
 background: ${cf.pageConfig.backGroundColor};display: none;z-index:99999;overflow: hidden;position: fixed;width:100vw;height: 100vh;" class="page-box">
 ${lifeCycle.onCreateView()}
-</page-box>`);
+</div>`);
         }
         gvc.glitter.setAnimation(cf.pageConfig);
         lifeCycle.onCreate();

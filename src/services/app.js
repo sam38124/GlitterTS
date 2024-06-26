@@ -41,6 +41,7 @@ const public_table_check_js_1 = require("../api-public/services/public-table-che
 const backend_service_js_1 = require("./backend-service.js");
 const template_js_1 = require("./template.js");
 const tool_1 = __importDefault(require("./tool"));
+const path_1 = __importDefault(require("path"));
 class App {
     static getAdConfig(app, key) {
         return new Promise(async (resolve, reject) => {
@@ -232,7 +233,9 @@ class App {
             return true;
         }
         catch (e) {
-            await database_1.default.query(`delete from \`${config_1.saasConfig.SAAS_NAME}\`.app_config where appName=?`, [cf.appName]);
+            await database_1.default.query(`delete
+                            from \`${config_1.saasConfig.SAAS_NAME}\`.app_config
+                            where appName = ?`, [cf.appName]);
             console.log(e);
             throw exception_1.default.BadRequestError((_d = e.code) !== null && _d !== void 0 ? _d : 'BAD_REQUEST', e, null);
         }
@@ -340,7 +343,7 @@ class App {
         var _a;
         try {
             return (await database_1.default.execute(`
-                SELECT user, appName, created_time, dead_line, brand, template_config, template_type,domain
+                SELECT user, appName, created_time, dead_line, brand, template_config, template_type, domain
                 FROM \`${config_1.saasConfig.SAAS_NAME}\`.app_config
                 where ${(() => {
                 const sql = [];
@@ -411,13 +414,27 @@ class App {
             component: [],
             appConfig: (await app.getAppConfig({
                 appName: appName
-            }))
+            })),
+            event: []
         };
         const pageData = (await (new template_js_1.Template(undefined).getPage({
             appName: appName,
             tag: page
         })))[0];
-        console.log(`preload->${appName}-${page}`);
+        const event_list = fs_1.default.readFileSync(path_1.default.resolve(__dirname, '../../lowcode/official_event/event.js'), 'utf8');
+        const index = `TriggerEvent.create(import.meta.url,`;
+        const str = `(${event_list.substring(event_list.indexOf(index) + index.length)}`;
+        const regex = /TriggerEvent\.setEventRouter\(import\.meta\.url,\s*['"](.+?)['"]\)/g;
+        let str2 = str;
+        const matches = [];
+        let match;
+        while ((match = regex.exec(str)) !== null) {
+            matches.push(match[0]);
+        }
+        for (const b of matches) {
+            str2 = str2.replace(b, `"${b}"`);
+        }
+        const event_ = eval(str2);
         if (!pageData) {
             return {};
         }
@@ -438,6 +455,27 @@ class App {
                         await loop((_a = pageData.config) !== null && _a !== void 0 ? _a : []);
                     }
                 }
+                else if (dd && (typeof dd === 'object')) {
+                    const data = dd;
+                    Object.keys(data).map((dd) => {
+                        if (dd === 'src' && data['route'] && data['src'].includes('official_event')) {
+                            if (!preloadData.event.find((dd) => {
+                                return dd === event_[data['route']];
+                            })) {
+                                preloadData.event.push(event_[data['route']]);
+                            }
+                        }
+                        if (Array.isArray(data[dd])) {
+                            loop(data[dd]);
+                        }
+                        else if (typeof data[dd] === 'object') {
+                            loop([data[dd]]);
+                        }
+                    });
+                }
+                else if (Array.isArray(dd)) {
+                    await loop(dd);
+                }
             }
         }
         (await loop(pageData && pageData.config));
@@ -454,6 +492,7 @@ class App {
                 data: { response: { result: [dd] } }
             };
         });
+        mapPush.event = preloadData.event;
         return mapPush;
     }
     async setAppConfig(config) {
@@ -571,11 +610,13 @@ class App {
                                            from \`${config_1.saasConfig.SAAS_NAME}\`.app_config
                                            where domain =?
                                              and user !=?`, [config.domain, this.token.userID]))['count(1)'] > 0;
-        if (checkExists) {
+        if (checkExists || config.domain.split('.').find((dd) => {
+            return !dd;
+        })) {
             throw exception_1.default.BadRequestError('BAD_REQUEST', 'this domain already on use.', null);
         }
         try {
-            const data = await ssh_js_1.Ssh.readFile('/etc/nginx/sites-enabled/default.conf');
+            const data = await ssh_js_1.Ssh.readFile(`/etc/nginx/sites-enabled/default.conf`);
             let result = await new Promise((resolve, reject) => {
                 nginx_conf_1.NginxConfFile.createFromSource(data, (err, conf) => {
                     const server = [];

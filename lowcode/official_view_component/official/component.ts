@@ -712,8 +712,6 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
                                 console.log(e)
                             }
                         })
-
-
                     }
 
                     const comp = false

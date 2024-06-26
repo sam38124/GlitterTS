@@ -251,7 +251,7 @@ ${(obj.style || []) && obj.style![index] ? obj.style![index] : ``}
                                                           (dd: any, index: number) =>
                                                               html` <th
                                                                   class="${dd.position ?? 'text-start'} tx_700"
-                                                                  style="border:none; color:#393939 !important; ${(obj.style || []) && obj.style![index] ? obj.style![index] : ``}"
+                                                                  style="white-space:nowrap;border:none; color:#393939 !important; ${(obj.style || []) && obj.style![index] ? obj.style![index] : ``}"
                                                               >
                                                                   ${dd.key}
                                                               </th>`

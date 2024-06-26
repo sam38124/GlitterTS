@@ -284,6 +284,7 @@ export class PageManager {
             if(['home','page'].find((dd)=>{
                 return dd===type
             })){
+                console.log(`pushState->${search}`)
                 window.history.pushState({}, glitter.document.title, search);
                 glitter.pageConfig[glitter.pageConfig.length-1].search=search
             }

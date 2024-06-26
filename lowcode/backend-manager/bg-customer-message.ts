@@ -34,44 +34,44 @@ export class BgCustomerMessage {
         return html` <div
                 class="avatar-img rounded-circle"
                 style="background-color: ${BgCustomerMessage.config
-                    .color};width: 58px;height: 58px ;cursor: pointer;display: flex;align-items: center;justify-content: center;position: fixed;left: 20px;bottom:20px;z-index: 100;"
+            .color};width: 58px;height: 58px ;cursor: pointer;display: flex;align-items: center;justify-content: center;position: fixed;left: 20px;bottom:20px;z-index: 100;"
                 onclick="${gvc.event(() => {
-                    BgCustomerMessage.toggle(true, gvc);
-                })}"
+            BgCustomerMessage.toggle(true, gvc);
+        })}"
             >
                 <i class="fa-solid fa-message-dots" style=" color: white;font-size: 30px;"></i>
                 ${gvc.bindView(() => {
-                    const id = gvc.glitter.getUUID();
-                    return {
-                        bind: id,
-                        view: () => {
-                            return new Promise((resolve, reject) => {
-                                Chat.getUnRead({ user_id: 'manager' }).then((data) => {
-                                    if (data.response.length === 0) {
-                                        resolve('');
-                                    } else {
-                                        resolve(
-                                            ` <div class="position-absolute   rounded-circle d-flex align-items-center justify-content-center fw-500 shadow-lg border-danger text-danger" style="background: white;width:28px;height: 28px;top:-5px;right: -10px;border:2px solid red;">${data.response.length}</div>`
-                                        );
-                                    }
-                                });
-                            });
-                        },
-                        onCreate: () => {
-                            setTimeout(() => {
-                                gvc.notifyDataChange(id);
-                            }, 2000);
-                        },
-                    };
-                })}
+            const id = gvc.glitter.getUUID();
+            return {
+                bind: id,
+                view: () => {
+                    return new Promise((resolve, reject) => {
+                        Chat.getUnRead({ user_id: 'manager' }).then((data) => {
+                            if (data.response.length === 0) {
+                                resolve('');
+                            } else {
+                                resolve(
+                                    ` <div class="position-absolute   rounded-circle d-flex align-items-center justify-content-center fw-500 shadow-lg border-danger text-danger" style="background: white;width:28px;height: 28px;top:-5px;right: -10px;border:2px solid red;">${data.response.length}</div>`
+                                );
+                            }
+                        });
+                    });
+                },
+                onCreate: () => {
+                    setTimeout(() => {
+                        gvc.notifyDataChange(id);
+                    }, 2000);
+                },
+            };
+        })}
             </div>
             <div
                 class="vw-100 vh-100 position-fixed left-0 top-0 d-none"
                 id="BgCustomerMessageHover"
                 style="z-index: 99999;background: rgba(0,0,0,0.5);"
                 onclick="${gvc.event(() => {
-                    BgCustomerMessage.toggle(false, gvc);
-                })}"
+            BgCustomerMessage.toggle(false, gvc);
+        })}"
             ></div>
             <div id="BgCustomerMessage" class="position-fixed left-0 top-0 h-100 bg-white shadow-lg " style="width:480px;z-index: 99999;left: -100%;">
                 <div class="w-100 d-flex align-items-center p-3 border-bottom">
@@ -81,8 +81,8 @@ export class BgCustomerMessage {
                         class="fs-5 text-black"
                         style="cursor: pointer;"
                         onclick="${gvc.event(() => {
-                            BgCustomerMessage.toggle(false, gvc);
-                        })}"
+            BgCustomerMessage.toggle(false, gvc);
+        })}"
                     >
                         <i class="fa-sharp fa-regular fa-circle-xmark" style="color:black;"></i>
                     </div>
@@ -145,10 +145,10 @@ export class BgCustomerMessage {
                                         return `<div class="d-flex align-items-center justify-content-center hoverBtn  border"
                                  style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;
                                  ${
-                                     BgCustomerMessage.vm.select_bt === dd.key
-                                         ? `background:linear-gradient(135deg, #667eea 0%, #764ba2 100%);background:-webkit-linear-gradient(135deg, #667eea 0%, #764ba2 100%);color:white;`
-                                         : ``
-                                 }
+                                            BgCustomerMessage.vm.select_bt === dd.key
+                                                ? `background:linear-gradient(135deg, #667eea 0%, #764ba2 100%);background:-webkit-linear-gradient(135deg, #667eea 0%, #764ba2 100%);color:white;`
+                                                : ``
+                                        }
                                  "
                                  data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="custom-tooltip"
                                  data-bs-title="${dd.label}" onclick="${gvc.event(() => {
@@ -191,93 +191,93 @@ export class BgCustomerMessage {
                                                             class="btn btn-primary-c "
                                                             style="height: 28px;width:40px;font-size:14px;"
                                                             onclick="${gvc.event(() => {
-                                                                dialog.dataLoading({ visible: true });
+                                                    dialog.dataLoading({ visible: true });
 
-                                                                ApiUser.setPublicConfig({
-                                                                    key: `robot_auto_reply`,
-                                                                    value: keyData,
-                                                                    user_id: 'manager',
-                                                                }).then((data: any) => {
-                                                                    dialog.dataLoading({ visible: false });
-                                                                    dialog.successMessage({ text: '設定成功!' });
-                                                                });
-                                                            })}"
+                                                    ApiUser.setPublicConfig({
+                                                        key: `robot_auto_reply`,
+                                                        value: keyData,
+                                                        user_id: 'manager',
+                                                    }).then((data: any) => {
+                                                        dialog.dataLoading({ visible: false });
+                                                        dialog.successMessage({ text: '設定成功!' });
+                                                    });
+                                                })}"
                                                         >
                                                             儲存
                                                         </button>
                                                     </div>
                                                     <div style="margin-top: -30px;">
                                                         ${FormWidget.editorView({
-                                                            gvc: gvc,
-                                                            array: [
+                                                    gvc: gvc,
+                                                    array: [
+                                                        {
+                                                            title: '',
+                                                            key: 'question',
+                                                            readonly: 'write',
+                                                            type: 'array',
+                                                            require: 'true',
+                                                            style_data: {
+                                                                label: {
+                                                                    class: 'form-label fs-base ',
+                                                                    style: '',
+                                                                },
+                                                                input: { class: '', style: '' },
+                                                                container: {
+                                                                    class: '',
+                                                                    style: '',
+                                                                },
+                                                            },
+                                                            referTitile: 'ask',
+                                                            plusBtn: '添加問答項目',
+                                                            formList: [
                                                                 {
-                                                                    title: '',
-                                                                    key: 'question',
+                                                                    title: '問題',
+                                                                    key: 'ask',
                                                                     readonly: 'write',
-                                                                    type: 'array',
+                                                                    type: 'text',
                                                                     require: 'true',
                                                                     style_data: {
                                                                         label: {
                                                                             class: 'form-label fs-base ',
                                                                             style: '',
                                                                         },
-                                                                        input: { class: '', style: '' },
+                                                                        input: {
+                                                                            class: '',
+                                                                            style: '',
+                                                                        },
                                                                         container: {
                                                                             class: '',
                                                                             style: '',
                                                                         },
                                                                     },
-                                                                    referTitile: 'ask',
-                                                                    plusBtn: '添加問答項目',
-                                                                    formList: [
-                                                                        {
-                                                                            title: '問題',
-                                                                            key: 'ask',
-                                                                            readonly: 'write',
-                                                                            type: 'text',
-                                                                            require: 'true',
-                                                                            style_data: {
-                                                                                label: {
-                                                                                    class: 'form-label fs-base ',
-                                                                                    style: '',
-                                                                                },
-                                                                                input: {
-                                                                                    class: '',
-                                                                                    style: '',
-                                                                                },
-                                                                                container: {
-                                                                                    class: '',
-                                                                                    style: '',
-                                                                                },
-                                                                            },
+                                                                },
+                                                                {
+                                                                    title: '回應',
+                                                                    key: 'response',
+                                                                    readonly: 'write',
+                                                                    type: 'textArea',
+                                                                    require: 'true',
+                                                                    style_data: {
+                                                                        label: {
+                                                                            class: 'form-label fs-base ',
+                                                                            style: '',
                                                                         },
-                                                                        {
-                                                                            title: '回應',
-                                                                            key: 'response',
-                                                                            readonly: 'write',
-                                                                            type: 'textArea',
-                                                                            require: 'true',
-                                                                            style_data: {
-                                                                                label: {
-                                                                                    class: 'form-label fs-base ',
-                                                                                    style: '',
-                                                                                },
-                                                                                input: {
-                                                                                    class: '',
-                                                                                    style: '',
-                                                                                },
-                                                                                container: {
-                                                                                    class: '',
-                                                                                    style: '',
-                                                                                },
-                                                                            },
+                                                                        input: {
+                                                                            class: '',
+                                                                            style: '',
                                                                         },
-                                                                    ],
+                                                                        container: {
+                                                                            class: '',
+                                                                            style: '',
+                                                                        },
+                                                                    },
                                                                 },
                                                             ],
-                                                            refresh: () => {},
-                                                            formData: keyData,
-                                                        })}
+                                                        },
+                                                    ],
+                                                    refresh: () => {},
+                                                    formData: keyData,
+                                                })}
                                                     </div>
                                                 `);
                                             });
@@ -333,69 +333,69 @@ export class BgCustomerMessage {
                                                             class="btn btn-primary-c "
                                                             style="height: 28px;width:40px;font-size:14px;"
                                                             onclick="${gvc.event(() => {
-                                                                dialog.dataLoading({ visible: true });
-                                                                ApiUser.setPublicConfig({
-                                                                    key: `message_setting`,
-                                                                    value: keyData,
-                                                                    user_id: 'manager',
-                                                                }).then((data: any) => {
-                                                                    dialog.dataLoading({ visible: false });
-                                                                    dialog.successMessage({ text: '設定成功!' });
-                                                                });
-                                                            })}"
+                                                    dialog.dataLoading({ visible: true });
+                                                    ApiUser.setPublicConfig({
+                                                        key: `message_setting`,
+                                                        value: keyData,
+                                                        user_id: 'manager',
+                                                    }).then((data: any) => {
+                                                        dialog.dataLoading({ visible: false });
+                                                        dialog.successMessage({ text: '設定成功!' });
+                                                    });
+                                                })}"
                                                         >
                                                             儲存
                                                         </button>
                                                     </div>
                                                     <div style="margin-top: 10px;" class="p-2">
                                                         ${[
-                                                            EditorElem.editeInput({
-                                                                gvc: gvc,
-                                                                title: '客服名稱',
-                                                                type: 'name',
-                                                                placeHolder: `請輸入客服名稱`,
-                                                                default: keyData.name,
-                                                                callback: (text) => {
-                                                                    keyData.name = text;
-                                                                },
-                                                            }),
-                                                            EditorElem.uploadImage({
-                                                                title: '大頭照',
-                                                                gvc: gvc,
-                                                                def: keyData.head || '',
-                                                                callback: (text: string) => {
-                                                                    keyData.head = text;
-                                                                },
-                                                            }),
-                                                            EditorElem.editeInput({
-                                                                gvc: gvc,
-                                                                title: '主色調',
-                                                                type: 'color',
-                                                                placeHolder: `請輸入主色調`,
-                                                                default: keyData.color,
-                                                                callback: (text) => {
-                                                                    keyData.color = text;
-                                                                },
-                                                            }),
-                                                            EditorElem.editeInput({
-                                                                gvc: gvc,
-                                                                title: '置頂標題',
-                                                                placeHolder: `請輸入置頂標題`,
-                                                                default: keyData.title,
-                                                                callback: (text) => {
-                                                                    keyData.title = text;
-                                                                },
-                                                            }),
-                                                            EditorElem.editeText({
-                                                                gvc: gvc,
-                                                                title: '置頂內文',
-                                                                placeHolder: `請輸入置頂內文`,
-                                                                default: keyData.content,
-                                                                callback: (text) => {
-                                                                    keyData.content = text;
-                                                                },
-                                                            }),
-                                                        ].join('')}
+                                                    EditorElem.editeInput({
+                                                        gvc: gvc,
+                                                        title: '客服名稱',
+                                                        type: 'name',
+                                                        placeHolder: `請輸入客服名稱`,
+                                                        default: keyData.name,
+                                                        callback: (text) => {
+                                                            keyData.name = text;
+                                                        },
+                                                    }),
+                                                    EditorElem.uploadImage({
+                                                        title: '大頭照',
+                                                        gvc: gvc,
+                                                        def: keyData.head || '',
+                                                        callback: (text: string) => {
+                                                            keyData.head = text;
+                                                        },
+                                                    }),
+                                                    EditorElem.editeInput({
+                                                        gvc: gvc,
+                                                        title: '主色調',
+                                                        type: 'color',
+                                                        placeHolder: `請輸入主色調`,
+                                                        default: keyData.color,
+                                                        callback: (text) => {
+                                                            keyData.color = text;
+                                                        },
+                                                    }),
+                                                    EditorElem.editeInput({
+                                                        gvc: gvc,
+                                                        title: '置頂標題',
+                                                        placeHolder: `請輸入置頂標題`,
+                                                        default: keyData.title,
+                                                        callback: (text) => {
+                                                            keyData.title = text;
+                                                        },
+                                                    }),
+                                                    EditorElem.editeText({
+                                                        gvc: gvc,
+                                                        title: '置頂內文',
+                                                        placeHolder: `請輸入置頂內文`,
+                                                        default: keyData.content,
+                                                        callback: (text) => {
+                                                            keyData.content = text;
+                                                        },
+                                                    }),
+                                                ].join('')}
                                                     </div>`);
                                             });
                                         },
@@ -448,18 +448,18 @@ export class BgCustomerMessage {
                                         }" style="background: ${BgCustomerMessage.config.color};">
                       <div class="d-flex align-items-center pe-3 w-100" style="gap:10px;display: flex;align-items: center;">
                         <i class="fa-solid fa-chevron-left fs-6" style="color:white;cursor: pointer;" onclick="${gvc.event(() => {
-                            if (cf.user_id === 'manager') {
-                                BgCustomerMessage.vm.type = 'list';
-                                gvc.notifyDataChange(BgCustomerMessage.id);
-                            } else {
-                                cf.goBack();
-                            }
-                        })}"></i>
+                                            if (cf.user_id === 'manager') {
+                                                BgCustomerMessage.vm.type = 'list';
+                                                gvc.notifyDataChange(BgCustomerMessage.id);
+                                            } else {
+                                                cf.goBack();
+                                            }
+                                        })}"></i>
                         <img src="${
-                            chatRoom.type === 'user'
-                                ? (chatRoom.user_data && chatRoom.user_data.head) || chatRoom.user_data.head_img || 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1704269678588-43.png'
-                                : `https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1704269678588-43.png`
-                        }" class="rounded-circle border" style="background: white;" width="40" alt="Albert Flores">
+                                            chatRoom.type === 'user'
+                                                ? (chatRoom.user_data && chatRoom.user_data.head) || chatRoom.user_data.head_img || 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1704269678588-43.png'
+                                                : `https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1704269678588-43.png`
+                                        }" class="rounded-circle border" style="background: white;" width="40" alt="Albert Flores">
                         <h6 class="mb-0 px-1 text-white">${chatRoom.type === 'user' ? (chatRoom.user_data && chatRoom.user_data.name) || '訪客' : `群組`}</h6>
                         <div class="flex-fill" style="flex: 1;"></div>
                       <i class="fa-regular fa-circle-xmark text-white fs-3 ${cf.close ? `` : `d-none`}" onclick="${gvc.event(() => {
@@ -581,12 +581,12 @@ export class BgCustomerMessage {
                                     }
                                     return html` <div class="chatContainer p-3" style="overflow-y: auto;height: calc(${cf.containerHeight} - 220px);background: white;padding-bottom:80px !important;">
                                             ${vm.data
-                                                .map((dd: any, index: number) => {
-                                                    if (dd.user_id == 'manager') {
-                                                        dd.user_data = BgCustomerMessage.config;
-                                                    }
-                                                    if (cf.user_id !== dd.user_id) {
-                                                        return html` <div class="d-flex align-items-start ${vm.data[index + 1] && vm.data[index + 1].user_id === dd.user_id ? `mb-1` : `mb-3`}">
+                                        .map((dd: any, index: number) => {
+                                            if (dd.user_id == 'manager') {
+                                                dd.user_data = BgCustomerMessage.config;
+                                            }
+                                            if (cf.user_id !== dd.user_id) {
+                                                return html` <div class="d-flex align-items-start ${vm.data[index + 1] && vm.data[index + 1].user_id === dd.user_id ? `mb-1` : `mb-3`}">
                                                             <img
                                                                 src="${(dd.user_data && dd.user_data.head) || `https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1704269678588-43.png`}"
                                                                 class="rounded-circle border"
@@ -605,31 +605,31 @@ export class BgCustomerMessage {
                                                                 </div>
                                                             </div>
                                                         </div>`;
-                                                    } else {
-                                                        return html` <div
+                                            } else {
+                                                return html` <div
                                                             class="d-flex align-items-start justify-content-end ${vm.data[index + 1] && vm.data[index + 1].user_id === dd.user_id ? `mb-1` : `mb-3`}"
                                                         >
                                                             <div class="pe-2 me-1" style="max-width: 348px;">
                                                                 <div
                                                                     class=" text-light p-3 mb-1"
                                                                     style="background:${BgCustomerMessage.config
-                                                                        .color};border-top-left-radius: .5rem; border-bottom-right-radius: .5rem; border-bottom-left-radius: .5rem;white-space: normal;"
+                                                    .color};border-top-left-radius: .5rem; border-bottom-right-radius: .5rem; border-bottom-left-radius: .5rem;white-space: normal;"
                                                                 >
                                                                     ${dd.message.text.replace(/\n/g, '<br>')}
                                                                 </div>
                                                                 <div
                                                                     class="fw-500 d-flex justify-content-end align-items-center fs-sm text-muted ${vm.data[index + 1] &&
-                                                                    vm.data[index + 1].user_id === dd.user_id
-                                                                        ? `d-none`
-                                                                        : ``}"
+                                                vm.data[index + 1].user_id === dd.user_id
+                                                    ? `d-none`
+                                                    : ``}"
                                                                     style="gap:5px;"
                                                                 >
                                                                     <span> ${gvc.glitter.ut.dateFormat(new Date(dd.created_time), 'MM/dd hh:mm')}</span>
                                                                     ${vm.last_read.find((d2: any) => {
-                                                                        return d2.user_id !== cf.user_id && new Date(d2.last_read).getTime() >= new Date(dd.created_time).getTime();
-                                                                    })
-                                                                        ? `已讀`
-                                                                        : ``}
+                                                    return d2.user_id !== cf.user_id && new Date(d2.last_read).getTime() >= new Date(dd.created_time).getTime();
+                                                })
+                                                    ? `已讀`
+                                                    : ``}
                                                                 </div>
                                                             </div>
                                                             <img
@@ -639,14 +639,14 @@ export class BgCustomerMessage {
                                                                 alt="Albert Flores"
                                                             />
                                                         </div>`;
-                                                    }
-                                                })
-                                                .join('')}
+                                            }
+                                        })
+                                        .join('')}
                                             ${vm.data.length === 0
-                                                ? `
+                                        ? `
                                             <div class="w-100 text-center"><div class="badge bg-secondary">尚未展開對話，於下方輸入訊息並傳送。</div></div>
                                             `
-                                                : ``}
+                                        : ``}
                                         </div>
                                         <div
                                             class="card-footer border-top d-flex align-items-center w-100 border-0 pt-3 pb-3 px-4 position-fixed bottom-0 position-lg-absolute"
@@ -654,62 +654,62 @@ export class BgCustomerMessage {
                                         >
                                             <div class="position-relative w-100 me-2 ">
                                                 ${gvc.bindView(() => {
-                                                    const id = gvc.glitter.getUUID();
-                                                    return {
-                                                        bind: textAreaId,
-                                                        view: () => {
-                                                            return vm.message ?? '';
-                                                        },
-                                                        divCreate: {
-                                                            elem: `textArea`,
-                                                            style: `max-height:100px;white-space: pre-wrap; word-wrap: break-word;height:40px;`,
-                                                            class: `form-control`,
-                                                            option: [
-                                                                { key: 'placeholder', value: '輸入訊息內容' },
-                                                                {
-                                                                    key: 'onchange',
-                                                                    value: gvc.event((e) => {
-                                                                        vm.message = e.value;
-                                                                    }),
-                                                                },
-                                                            ],
-                                                        },
-                                                        onCreate: () => {
-                                                            const input = gvc.getBindViewElem(id).get(0);
-                                                            input.addEventListener('input', function () {
-                                                                console.log(`input.scrollHeight->`, input.scrollHeight);
-                                                                input.style.height = 'auto'; // 重置高度
-                                                                input.style.height = (input.scrollHeight) + 'px'; // 设置为内容高度
-                                                            });
-                                                           
-                                                            // autosize(gvc.getBindViewElem(id))
-                                                        },
-                                                    };
-                                                })}
+                                        const id = gvc.glitter.getUUID();
+                                        return {
+                                            bind: textAreaId,
+                                            view: () => {
+                                                return vm.message ?? '';
+                                            },
+                                            divCreate: {
+                                                elem: `textArea`,
+                                                style: `max-height:100px;white-space: pre-wrap; word-wrap: break-word;height:40px;`,
+                                                class: `form-control`,
+                                                option: [
+                                                    { key: 'placeholder', value: '輸入訊息內容' },
+                                                    {
+                                                        key: 'onchange',
+                                                        value: gvc.event((e) => {
+                                                            vm.message = e.value;
+                                                        }),
+                                                    },
+                                                ],
+                                            },
+                                            onCreate: () => {
+                                                const input = gvc.getBindViewElem(id).get(0);
+                                                input.addEventListener('input', function () {
+                                                    console.log(`input.scrollHeight->`, input.scrollHeight);
+                                                    input.style.height = 'auto'; // 重置高度
+                                                    input.style.height = (input.scrollHeight) + 'px'; // 设置为内容高度
+                                                });
+
+                                                // autosize(gvc.getBindViewElem(id))
+                                            },
+                                        };
+                                    })}
                                             </div>
                                             <button type="button"
                                                     class="btn btn-icon btn-lg  d-sm-inline-flex ms-1"
                                                     style="height: 36px;background: ${BgCustomerMessage.config.color};"
                                                     onclick="${gvc.event(() => {
-                                                        if (vm.message) {
-                                                            Chat.postMessage({
-                                                                chat_id: cf.chat.chat_id,
-                                                                user_id: cf.user_id,
-                                                                message: {
-                                                                    text: vm.message,
-                                                                    attachment: ''
-                                                                }
-                                                            }).then(()=>{
-                                                                vm.message = '';
-                                                                const textArea = gvc.getBindViewElem(textAreaId).get(0)
-                                                                textArea.focus();
-                                                            })
+                                        if (vm.message) {
+                                            Chat.postMessage({
+                                                chat_id: cf.chat.chat_id,
+                                                user_id: cf.user_id,
+                                                message: {
+                                                    text: vm.message,
+                                                    attachment: ''
+                                                }
+                                            }).then(()=>{
+                                                vm.message = '';
+                                                const textArea = gvc.getBindViewElem(textAreaId).get(0)
+                                                textArea.focus();
+                                            })
 
 
-                                                        } else {
+                                        } else {
 
-                                                        }
-                                                    })}">
+                                        }
+                                    })}">
                                                 <i class="fa-regular fa-paper-plane-top"></i>
                                             </button>
                                         </div>`;
@@ -791,16 +791,16 @@ export class BgCustomerMessage {
                       </div></div>
 <div style="max-height: calc(100vh - 180px);overflow-y: auto;">
 ${
-    chatData
-        .map((dd: any) => {
-            if (dd.topMessage && dd.chat_id !== 'manager-preview') {
-                const unReadCount = unRead.filter((d2: any) => {
-                    return dd.chat_id === d2.chat_id;
-                }).length;
-                if (dd.chat_id)
-                    return `<a  class="d-flex align-items-center border-bottom text-decoration-none bg-faded-primary-hover py-3 px-4" style="cursor: pointer;" onclick="${gvc.event(() => {
-                        callback(dd);
-                    })}">
+                            chatData
+                                .map((dd: any) => {
+                                    if (dd.topMessage && dd.chat_id !== 'manager-preview') {
+                                        const unReadCount = unRead.filter((d2: any) => {
+                                            return dd.chat_id === d2.chat_id;
+                                        }).length;
+                                        if (dd.chat_id)
+                                            return `<a  class="d-flex align-items-center border-bottom text-decoration-none bg-faded-primary-hover py-3 px-4" style="cursor: pointer;" onclick="${gvc.event(() => {
+                                                callback(dd);
+                                            })}">
 <div class="rounded-circle position-relative " style="width: 40px;height: 40px;">
 <div class="rounded-circle text-white bg-danger ${unReadCount ? `` : `d-none`} fw-500 d-flex align-items-center justify-content-center me-2" style="min-width:18px !important;height: 18px !important;
 position: absolute;right: -15px;top:-5px;font-size:11px;">${unReadCount}</div>
@@ -814,17 +814,17 @@ position: absolute;right: -15px;top:-5px;font-size:11px;">${unReadCount}</div>
                                 <span class="fs-xs  fw-500 text-muted">${gvc.glitter.ut.dateFormat(new Date(dd.topMessage.created_time), 'MM-dd hh:mm')}</span>
                               </div>
                               <p class="fs-sm  mb-0 " style="white-space: normal;${unReadCount ? `color:black;` : `color:#585c7b !important;`}">${
-                        (dd.topMessage ? dd.topMessage.text : ``).length > 50 ? (dd.topMessage ? dd.topMessage.text : ``).substring(0, 50) + '.....' : dd.topMessage ? dd.topMessage.text : ``
-                    }</p>
+                                                (dd.topMessage ? dd.topMessage.text : ``).length > 50 ? (dd.topMessage ? dd.topMessage.text : ``).substring(0, 50) + '.....' : dd.topMessage ? dd.topMessage.text : ``
+                                            }</p>
                             </div>
                             
                           </a>`;
-            } else {
-                return ``;
-            }
-        })
-        .join('') ||
-    ` <div class="d-flex align-items-center justify-content-center flex-column w-100"
+                                    } else {
+                                        return ``;
+                                    }
+                                })
+                                .join('') ||
+                            ` <div class="d-flex align-items-center justify-content-center flex-column w-100"
                                                          style="width:700px;">
                                                         <lottie-player style="max-width: 100%;width: 300px;"
                                                                        src="https://assets10.lottiefiles.com/packages/lf20_rc6CDU.json"
@@ -834,7 +834,7 @@ position: absolute;right: -15px;top:-5px;font-size:11px;">${unReadCount}</div>
                                                             style="line-height: 200%;text-align: center;">
                                                             尚無相關訊息。</h3>
                                                     </div>`
-}
+                        }
 </div>
 `);
                         return view.join('');
@@ -883,53 +883,53 @@ position: absolute;right: -15px;top:-5px;font-size:11px;">${unReadCount}</div>
                                     class="btn w-100  rounded"
                                     style=" background-color: rgba(0, 0, 0, 0.2);"
                                     onclick="${gvc.event(() => {
-                                        goToChat('');
-                                    })}"
+                        goToChat('');
+                    })}"
                                 >
                                     返回聊天
                                 </button>
                             </div>
                         </div>
                         ${gvc.bindView(() => {
-                            const css = String.raw;
-                            const id = gvc.glitter.getUUID();
-                            return {
-                                bind: id,
-                                view: () => {
-                                    return new Promise(async (resolve, reject) => {
-                                        const returnHtml: any = [];
-                                        const robot = (await ApiUser.getPublicConfig('robot_auto_reply', 'manager')).response.value.question;
-                                        if (robot.length > 0) {
-                                            returnHtml.push(html` <div class=" fw-bold" style=" height: 60px;display: flex;align-items: center;justify-content: center;font-size: 16px;">
+                        const css = String.raw;
+                        const id = gvc.glitter.getUUID();
+                        return {
+                            bind: id,
+                            view: () => {
+                                return new Promise(async (resolve, reject) => {
+                                    const returnHtml: any = [];
+                                    const robot = (await ApiUser.getPublicConfig('robot_auto_reply', 'manager')).response.value.question;
+                                    if (robot.length > 0) {
+                                        returnHtml.push(html` <div class=" fw-bold" style=" height: 60px;display: flex;align-items: center;justify-content: center;font-size: 16px;">
                                                 <div class="" style="color: black;">即時解答</div>
                                             </div>`);
-                                        }
-                                        robot.map((dd: any) => {
-                                            returnHtml.push(`<div class="rounded-3 w-100 d-flex px-3 btn-white-primary py-2 fw-500"
+                                    }
+                                    robot.map((dd: any) => {
+                                        returnHtml.push(`<div class="rounded-3 w-100 d-flex px-3 btn-white-primary py-2 fw-500"
                                                      style=" " onclick="${gvc.event(() => {
-                                                         goToChat(dd.ask);
-                                                     })}">
+                                            goToChat(dd.ask);
+                                        })}">
                                                     <div style="white-space: normal;" class="flex-fill">${dd.ask}</div><i class="fa-solid fa-paper-plane-top"
                                                                         style="font-size:18px;"
                                                                         aria-hidden="true"></i></div>`);
-                                        });
+                                    });
 
-                                        resolve(
-                                            returnHtml.join('') &&
-                                                html` <div class="px-3 pb-3" style=" display: flex;flex-direction: column;align-items: center;justify-content: center;gap:10px;font-size: 16px;">
+                                    resolve(
+                                        returnHtml.join('') &&
+                                        html` <div class="px-3 pb-3" style=" display: flex;flex-direction: column;align-items: center;justify-content: center;gap:10px;font-size: 16px;">
                                                     ${returnHtml.join('')}
                                                 </div>`
-                                        );
-                                    });
-                                },
-                                divCreate: {
-                                    style: css`
+                                    );
+                                });
+                            },
+                            divCreate: {
+                                style: css`
                                         background-color: white;
                                     `,
-                                },
-                            };
-                            // (await ApiUser.getPublicConfig('robot_auto_reply','manager')).response.value.question
-                        })}
+                            },
+                        };
+                        // (await ApiUser.getPublicConfig('robot_auto_reply','manager')).response.value.question
+                    })}
                     `;
                 },
                 divCreate: {},
@@ -1097,44 +1097,44 @@ position: absolute;right: -15px;top:-5px;font-size:11px;">${unReadCount}</div>
                                     const btn = html` <div
                                         class="avatar-img rounded-circle position-relative"
                                         style="background-color: ${BgCustomerMessage.config
-                                            .color};width: 58px;height: 58px ;cursor: pointer;display: flex;align-items: center;justify-content: center;position: fixed;left: 20px;bottom:20px;z-index: 100;"
+                                        .color};width: 58px;height: 58px ;cursor: pointer;display: flex;align-items: center;justify-content: center;position: fixed;left: 20px;bottom:20px;z-index: 100;"
                                         onclick="${gvc.event(() => {
-                                            open = !open;
-                                            gvc.notifyDataChange(viewId);
-                                        })}"
+                                        open = !open;
+                                        gvc.notifyDataChange(viewId);
+                                    })}"
                                     >
                                         <i class="${open ? `fa-sharp fa-regular fa-xmark` : `fa-solid fa-message-dots `}" style=" color: white;font-size: 30px;"></i>
                                         ${gvc.bindView(() => {
-                                            const id = gvc.glitter.getUUID();
-                                            let unread = 0;
-                                            return {
-                                                bind: id,
-                                                view: () => {
-                                                    if (unread === 0) {
-                                                        return '';
-                                                    } else {
-                                                        return ` <div class="position-absolute   rounded-circle d-flex align-items-center justify-content-center fw-500 shadow-lg border-danger text-danger" style="background: white;width:28px;height: 28px;top:-5px;right: -10px;border:2px solid red;">${unread}</div>`;
-                                                    }
-                                                },
-                                                onCreate: () => {
-                                                    function loop() {
-                                                        setTimeout(() => {
-                                                            Chat.getUnRead({ user_id: cf.userID }).then((data) => {
-                                                                if (unread !== data.response.length) {
-                                                                    unread = data.response.length;
-                                                                    if (document.querySelector('#' + chatBtID)! as any) {
-                                                                        gvc.notifyDataChange(id);
-                                                                    }
-                                                                } else {
-                                                                    loop();
+                                        const id = gvc.glitter.getUUID();
+                                        let unread = 0;
+                                        return {
+                                            bind: id,
+                                            view: () => {
+                                                if (unread === 0) {
+                                                    return '';
+                                                } else {
+                                                    return ` <div class="position-absolute   rounded-circle d-flex align-items-center justify-content-center fw-500 shadow-lg border-danger text-danger" style="background: white;width:28px;height: 28px;top:-5px;right: -10px;border:2px solid red;">${unread}</div>`;
+                                                }
+                                            },
+                                            onCreate: () => {
+                                                function loop() {
+                                                    setTimeout(() => {
+                                                        Chat.getUnRead({ user_id: cf.userID }).then((data) => {
+                                                            if (unread !== data.response.length) {
+                                                                unread = data.response.length;
+                                                                if (document.querySelector('#' + chatBtID)! as any) {
+                                                                    gvc.notifyDataChange(id);
                                                                 }
-                                                            });
-                                                        }, 2000);
-                                                    }
-                                                    loop();
-                                                },
-                                            };
-                                        })}
+                                                            } else {
+                                                                loop();
+                                                            }
+                                                        });
+                                                    }, 2000);
+                                                }
+                                                loop();
+                                            },
+                                        };
+                                    })}
                                     </div>`;
                                     let view = [];
                                     gvc.glitter.ut.frSize(

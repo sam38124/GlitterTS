@@ -358,7 +358,12 @@ ${[
                         ].map((dd)=>{
                             return `<script src="${relative_root}${dd.src}" type="${dd.type}"></script>`
                         }).join('')}
-
+${(preload.event ?? []).map((dd:any)=>{
+                            const link=dd.fun.replace(`TriggerEvent.setEventRouter(import.meta.url, '.`,'official_event');
+                            return link.substring(0,link.length-2)
+                        }).map((dd:any)=>{
+                            return `<script src="${relative_root}${dd}" type="module"></script>`
+                        }).join('')}
               </head>
               ${(() => {
                             if (req.query.type === 'editor') {

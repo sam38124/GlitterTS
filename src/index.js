@@ -235,7 +235,7 @@ async function createAPP(dd) {
             app_name: dd.appName,
             root_path: '/' + encodeURI(dd.appName) + '/',
             seoManager: async (req, resp) => {
-                var _a, _b, _c, _d, _e, _f, _g, _h, _j;
+                var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k;
                 try {
                     if (req.query.state === 'google_login') {
                         req.query.page = 'login';
@@ -363,7 +363,12 @@ ${[
                         ].map((dd) => {
                             return `<script src="${relative_root}${dd.src}" type="${dd.type}"></script>`;
                         }).join('')}
-
+${((_k = preload.event) !== null && _k !== void 0 ? _k : []).map((dd) => {
+                            const link = dd.fun.replace(`TriggerEvent.setEventRouter(import.meta.url, '.`, 'official_event');
+                            return link.substring(0, link.length - 2);
+                        }).map((dd) => {
+                            return `<script src="${relative_root}${dd}" type="module"></script>`;
+                        }).join('')}
               </head>
               ${(() => {
                             if (req.query.type === 'editor') {
