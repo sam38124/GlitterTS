@@ -749,10 +749,11 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
         var _a;
         return html `<select
             class="c_select c_select_w_100"
-            style="${(_a = obj.style) !== null && _a !== void 0 ? _a : ''}"
+            style="${(_a = obj.style) !== null && _a !== void 0 ? _a : ''}; ${obj.readonly ? 'background: #f7f7f7;' : ''}"
             onchange="${obj.gvc.event((e) => {
             obj.callback(e.value);
         })}"
+            ${obj.readonly ? 'disabled' : ''}
         >
             ${obj.gvc.map(obj.options.map((opt) => html ` <option class="c_select_option" value="${opt.key}" ${obj.default === opt.key ? 'selected' : ''}>${opt.value}</option>`))}
         </select>`;

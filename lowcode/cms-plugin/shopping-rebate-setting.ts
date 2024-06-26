@@ -307,6 +307,7 @@ export class ShoppingRebateSetting {
                                                                                                                                 },
                                                                                                                                 default: item.id,
                                                                                                                                 options: levelVM.options,
+                                                                                                                                readonly: !vm.data.birth.switch,
                                                                                                                                 style: 'margin: 8px 0;',
                                                                                                                             })}
                                                                                                                         </div>
@@ -320,12 +321,16 @@ export class ShoppingRebateSetting {
                                                                                                                                     item.value = parseInt(text, 10);
                                                                                                                                     gvc.notifyDataChange(levelVM.id);
                                                                                                                                 },
+                                                                                                                                readonly: !vm.data.birth.switch,
                                                                                                                             })}
                                                                                                                         </div>
                                                                                                                         <div class="col-1 d-flex justify-content-start">
                                                                                                                             <i
                                                                                                                                 class="fa-regular fa-trash fs-5 cursor_pointer"
                                                                                                                                 onclick="${gvc.event(() => {
+                                                                                                                                    if (!vm.data.birth.switch) {
+                                                                                                                                        return;
+                                                                                                                                    }
                                                                                                                                     vm.data.birth.level.splice(index, 1);
                                                                                                                                     gvc.notifyDataChange(levelVM.id);
                                                                                                                                     vm.data.birth.type = 'levels';
@@ -489,6 +494,7 @@ export class ShoppingRebateSetting {
                                                                                                 },
                                                                                                 endText: '元',
                                                                                                 divStyle: 'margin-left: 22px;',
+                                                                                                readonly: vm.data.config.customize,
                                                                                             }),
                                                                                         ])}
                                                                                     </div>`,
@@ -521,6 +527,7 @@ export class ShoppingRebateSetting {
                                                                                                         },
                                                                                                         endText: '%',
                                                                                                         divStyle: 'margin-left: 22px;',
+                                                                                                        readonly: vm.data.config.customize,
                                                                                                     };
                                                                                                 })()
                                                                                             ),

@@ -16,6 +16,8 @@ import { AutoSendEmail } from './auto-send-email.js';
 import qs from 'qs';
 import jwt from 'jsonwebtoken';
 import { OAuth2Client } from 'google-auth-library';
+import { Rebate } from './rebate.js';
+import moment from 'moment';
 
 interface UserQuery {
     page?: number;
@@ -74,6 +76,15 @@ export class User {
                               VALUES (?, ?, ?, ?, ?);`,
                 [userID, account, await tool.hashPwd(pwd), userData ?? {}, 1]
             );
+
+            const getRS = await this.getConfig({ key: 'rebate_setting', user_id: 'manager' });
+            const rgs = getRS[0] && getRS[0].value.register ? getRS[0].value.register : {};
+            if (rgs && rgs.switch) {
+                await new Rebate(this.app).insertRebate(userID, rgs.value ?? 0, '新加入會員', {
+                    type: 'first_regiser',
+                    deadTime: rgs.unlimited ? undefined : moment().add(rgs.date, 'd').format('YYYY-MM-DD HH:mm:ss'),
+                });
+            }
 
             const usData: any = await this.getUserData(userID, 'userID');
             usData.pwd = undefined;

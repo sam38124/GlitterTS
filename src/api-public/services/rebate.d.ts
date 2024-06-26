@@ -5,6 +5,7 @@ interface OneUserRebate {
     recycle: number;
     pending: number;
 }
+type RebateType = 'voucher' | 'birth' | 'first_regiser' | 'manual';
 export interface IRebateSearch {
     search: string;
     limit: number;
@@ -14,7 +15,7 @@ export interface IRebateSearch {
     type?: string;
 }
 export interface RebateProof {
-    type?: string;
+    type?: RebateType;
     voucher_id?: string;
     order_id?: string;
     sku?: string;
@@ -28,6 +29,7 @@ export declare class Rebate {
     constructor(app: string, token?: IToken);
     static isValidDateTimeString(dateTimeString: string): boolean;
     static nowTime: (timeZone?: string) => string;
+    mainStatus(): Promise<boolean | undefined>;
     getOneRebate(obj: {
         user_id?: number;
         email?: string;
@@ -51,7 +53,7 @@ export declare class Rebate {
         pending: number;
     } | undefined>;
     getCustomerRebateHistory(obj: {
-        user_id?: number;
+        user_id?: number | string;
         email?: string;
     }): Promise<{
         result: boolean;
@@ -62,12 +64,12 @@ export declare class Rebate {
         message: string;
         data?: undefined;
     } | undefined>;
-    getOldestRebate(user_id: number): Promise<{
+    getOldestRebate(user_id: number | string): Promise<{
         data: any;
     } | undefined>;
-    updateOldestRebate(user_id: number, originMinus: number): Promise<void>;
-    minusCheck(user_id: number, amount: number): Promise<boolean | undefined>;
-    insertRebate(user_id: number, amount: number, note: string, proof?: RebateProof): Promise<{
+    updateOldestRebate(user_id: number | string, originMinus: number): Promise<void>;
+    minusCheck(user_id: number | string, amount: number): Promise<boolean | undefined>;
+    insertRebate(user_id: number | string, amount: number, note: string, proof?: RebateProof): Promise<{
         result: boolean;
         user_id: number;
         before_point: number;
@@ -82,7 +84,7 @@ export declare class Rebate {
         deadTime: string | undefined;
         msg: string;
     } | undefined>;
-    canUseRebate(user_id: number, type: 'voucher' | 'birth' | 'first_regiser' | 'manual', search?: {
+    canUseRebate(user_id: number, type: RebateType, search?: {
         voucher_id?: string;
         order_id?: string;
         sku?: string;

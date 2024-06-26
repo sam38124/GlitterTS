@@ -872,13 +872,14 @@ ${obj.default ?? ''}</textarea
         </div>`;
     }
 
-    static select(obj: { gvc: GVC; callback: (value: any) => void; default: string; options: OptionsItem[]; style?: string }) {
+    static select(obj: { gvc: GVC; callback: (value: any) => void; default: string; options: OptionsItem[]; style?: string; readonly?: boolean }) {
         return html`<select
             class="c_select c_select_w_100"
-            style="${obj.style ?? ''}"
+            style="${obj.style ?? ''}; ${obj.readonly ? 'background: #f7f7f7;' : ''}"
             onchange="${obj.gvc.event((e) => {
                 obj.callback(e.value);
             })}"
+            ${obj.readonly ? 'disabled' : ''}
         >
             ${obj.gvc.map(obj.options.map((opt) => html` <option class="c_select_option" value="${opt.key}" ${obj.default === opt.key ? 'selected' : ''}>${opt.value}</option>`))}
         </select>`;

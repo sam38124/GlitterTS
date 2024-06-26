@@ -44,8 +44,11 @@ const auto_send_email_js_1 = require("./auto-send-email.js");
 const qs_1 = __importDefault(require("qs"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const google_auth_library_1 = require("google-auth-library");
+const rebate_js_1 = require("./rebate.js");
+const moment_1 = __importDefault(require("moment"));
 class User {
     async createUser(account, pwd, userData, req) {
+        var _a;
         try {
             const login_config = await this.getConfigV2({
                 key: 'login_config',
@@ -77,6 +80,14 @@ class User {
             }
             await database_1.default.execute(`INSERT INTO \`${this.app}\`.\`t_user\` (\`userID\`, \`account\`, \`pwd\`, \`userData\`, \`status\`)
                               VALUES (?, ?, ?, ?, ?);`, [userID, account, await tool_1.default.hashPwd(pwd), userData !== null && userData !== void 0 ? userData : {}, 1]);
+            const getRS = await this.getConfig({ key: 'rebate_setting', user_id: 'manager' });
+            const rgs = getRS[0] && getRS[0].value.register ? getRS[0].value.register : {};
+            if (rgs && rgs.switch) {
+                await new rebate_js_1.Rebate(this.app).insertRebate(userID, (_a = rgs.value) !== null && _a !== void 0 ? _a : 0, '新加入會員', {
+                    type: 'first_regiser',
+                    deadTime: rgs.unlimited ? undefined : (0, moment_1.default)().add(rgs.date, 'd').format('YYYY-MM-DD HH:mm:ss'),
+                });
+            }
             const usData = await this.getUserData(userID, 'userID');
             usData.pwd = undefined;
             usData.token = await UserUtil_1.default.generateToken({

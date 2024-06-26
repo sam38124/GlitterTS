@@ -8,7 +8,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 import { TriggerEvent } from '../../glitterBundle/plugins/trigger-event.js';
-import { ApiShop } from "../../glitter-base/route/shopping.js";
+import { ApiShop } from '../../glitter-base/route/shopping.js';
 TriggerEvent.createSingleEvent(import.meta.url, () => {
     return {
         fun: (gvc, widget, object, subData, element) => {
@@ -22,32 +22,34 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                         TriggerEvent.editer(gvc, widget, object.rebate, {
                             hover: false,
                             option: [],
-                            title: '回饋金來源'
+                            title: '購物金來源',
                         }),
                         TriggerEvent.editer(gvc, widget, object.rebateSuccess, {
                             hover: false,
                             option: [],
-                            title: '回饋金使用成功'
+                            title: '購物金使用成功',
                         }),
                         TriggerEvent.editer(gvc, widget, object.rebateError, {
                             hover: false,
                             option: [],
-                            title: '回饋金不足'
-                        })
+                            title: '購物金使用失敗',
+                        }),
                     ].join(`<div class="my-2"></div>`);
                 },
                 event: () => {
                     return new Promise((resolve, reject) => __awaiter(void 0, void 0, void 0, function* () {
-                        const rebate = (yield TriggerEvent.trigger({
+                        const trigger_rebate = (yield TriggerEvent.trigger({
                             gvc: gvc,
                             widget: widget,
                             clickEvent: object.rebate,
-                            element: element
-                        })) || (yield ApiShop.getRebateValue()) || 0;
+                            element: element,
+                        })) || 0;
+                        const def_rebate = (yield ApiShop.getRebateValue()) || 0;
+                        const rebate = trigger_rebate !== null && trigger_rebate !== void 0 ? trigger_rebate : def_rebate;
                         ApiShop.getCart().then((res) => __awaiter(void 0, void 0, void 0, function* () {
                             const cartData = {
                                 line_items: [],
-                                total: 0
+                                total: 0,
                             };
                             for (const b of Object.keys(res)) {
                                 cartData.line_items.push({
@@ -55,7 +57,7 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                     count: res[b],
                                     spec: b.split('-').filter((dd, index) => {
                                         return index !== 0;
-                                    })
+                                    }),
                                 });
                             }
                             ApiShop.getCheckout({
@@ -63,29 +65,29 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                     return {
                                         id: dd.id,
                                         spec: dd.spec,
-                                        count: dd.count
+                                        count: dd.count,
                                     };
                                 }),
-                                use_rebate: parseInt(rebate, 10)
+                                use_rebate: parseInt(rebate, 10),
                             }).then((res) => __awaiter(void 0, void 0, void 0, function* () {
-                                if (res.result && res.response.data.use_rebate) {
-                                    yield ApiShop.setRebateValue(`${rebate}`);
+                                if (rebate == 0 || (res.result && res.response.data.use_rebate)) {
+                                    ApiShop.setRebateValue(`${rebate}`);
                                     TriggerEvent.trigger({
                                         gvc: gvc,
                                         widget: widget,
                                         clickEvent: object.rebateSuccess,
                                         subData: res.response.data,
-                                        element: element
+                                        element: element,
                                     });
                                 }
                                 else {
-                                    yield ApiShop.setRebateValue('');
+                                    ApiShop.setRebateValue('');
                                     TriggerEvent.trigger({
                                         gvc: gvc,
                                         widget: widget,
                                         clickEvent: object.rebateError,
                                         subData: res.response.data,
-                                        element: element
+                                        element: element,
                                     });
                                 }
                                 resolve(res.response.data);

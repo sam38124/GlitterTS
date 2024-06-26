@@ -30,6 +30,18 @@ class Rebate {
         const [year, month, day, hour, minute, second] = formattedDateTimeString.split(/[- :]/).map(Number);
         return date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day && date.getHours() === hour && date.getMinutes() === minute && date.getSeconds() === second;
     }
+    async mainStatus() {
+        try {
+            const getRS = await new user_js_1.User(this.app).getConfig({ key: 'rebate_setting', user_id: 'manager' });
+            return Boolean(getRS[0] && getRS[0].value.main);
+        }
+        catch (error) {
+            console.error(error);
+            if (error instanceof Error) {
+                throw exception_1.default.BadRequestError('Insert Rebate Error: ', error.message, null);
+            }
+        }
+    }
     async getOneRebate(obj) {
         const nowTime = Rebate.nowTime();
         let user_id = 0;
@@ -206,6 +218,7 @@ class Rebate {
         }
     }
     async getOldestRebate(user_id) {
+        user_id = parseInt(`${user_id}`, 10);
         const nowTime = Rebate.nowTime();
         const getSQL = `SELECT * FROM \`${this.app}\`.t_rebate_point WHERE user_id = ? AND deadline > ? AND remain > 0 ORDER BY deadline`;
         try {
@@ -220,6 +233,7 @@ class Rebate {
         }
     }
     async updateOldestRebate(user_id, originMinus) {
+        user_id = parseInt(`${user_id}`, 10);
         const nowTime = Rebate.nowTime();
         const updateSQL = `UPDATE \`${this.app}\`.t_rebate_point SET remain = ?, updated_at = ? WHERE id = ?`;
         try {
@@ -250,10 +264,12 @@ class Rebate {
         }
     }
     async minusCheck(user_id, amount) {
+        user_id = parseInt(`${user_id}`, 10);
         const getUserRebate = await this.getOneRebate({ user_id });
         return getUserRebate && getUserRebate.point + amount > 0;
     }
     async insertRebate(user_id, amount, note, proof) {
+        user_id = parseInt(`${user_id}`, 10);
         const nowTime = (proof === null || proof === void 0 ? void 0 : proof.setCreatedAt) ? proof.setCreatedAt : Rebate.nowTime();
         const deadTime = (proof === null || proof === void 0 ? void 0 : proof.deadTime) && Rebate.isValidDateTimeString(proof === null || proof === void 0 ? void 0 : proof.deadTime) ? (0, moment_timezone_1.default)(proof === null || proof === void 0 ? void 0 : proof.deadTime).format('YYYY-MM-DD HH:mm:ss') : '2999-12-31 00:00:00';
         const insertSQL = `
@@ -271,6 +287,10 @@ class Rebate {
                 amount,
                 msg: '',
             };
+            if (!(await this.mainStatus())) {
+                errorObj.msg = '購物金功能關閉中';
+                return errorObj;
+            }
             if (recentRebate + amount < 0) {
                 errorObj.msg = (proof === null || proof === void 0 ? void 0 : proof.order_id) ? '購物金餘額不足' : '扣除金額請勿大於餘額';
                 return errorObj;
@@ -284,7 +304,7 @@ class Rebate {
             }
             else {
                 await this.updateOldestRebate(user_id, amount);
-                await database_1.default.execute(insertSQL, [user_id, amount, 0, note, {}, nowTime, nowTime, null]);
+                await database_1.default.execute(insertSQL, [user_id, amount, 0, note, proof ? { type: proof.type } : {}, nowTime, nowTime, null]);
             }
             return {
                 result: true,

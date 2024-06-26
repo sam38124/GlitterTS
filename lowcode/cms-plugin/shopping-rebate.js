@@ -46,7 +46,7 @@ export class ShoppingRebate {
                                     note: '',
                                     rebateEndDay: '0',
                                 };
-                                return html `<div class="modal-content bg-white rounded-3 p-2" style="max-width:90%;width:400px;">
+                                return html `<div class="modal-content bg-white rounded-3 p-2" style="max-width: 90%; width: 400px;">
                                                     <div>
                                                         <div style="height: 50px; margin-bottom: 16px" class="d-flex align-items-center border-bottom">
                                                             <span class="ps-2 tx_700">新增紀錄</span>
@@ -141,7 +141,7 @@ export class ShoppingRebate {
                                         let dataList = [];
                                         return html `
                                                                             <div>
-                                                                                ${BgWidget.container(BgWidget.card([
+                                                                                ${BgWidget.container(BgWidget.mainCard([
                                             html `
                                                                                                 <div class="d-flex w-100 align-items-center mb-3 ">
                                                                                                     ${BgWidget.goBack(gvc.event(() => {
@@ -203,8 +203,7 @@ export class ShoppingRebate {
                                                 })}
                                                                                                     <div></div>
                                                                                                 </div>`,
-                                        ].join('')), 900)}
-                                                                                <div></div>
+                                        ].join('')), 900, 'max-height: 80vh; overflow-y: auto; padding: 0;')}
                                                                             </div>
                                                                         `;
                                     }, 'email');
@@ -267,7 +266,29 @@ export class ShoppingRebate {
                                                 },
                                                 {
                                                     key: '購物金來源',
-                                                    value: `<span class="fs-7">${dd.content.order_id ? `訂單編號：${dd.content.order_id}` : '管理員手動設定'}</span>`,
+                                                    value: (() => {
+                                                        let text = '';
+                                                        if (dd.content.order_id) {
+                                                            text = `訂單編號：${dd.content.order_id}`;
+                                                        }
+                                                        else {
+                                                            switch (dd.content.type) {
+                                                                case 'manual':
+                                                                    text = '手動設定';
+                                                                    break;
+                                                                case 'first_regiser':
+                                                                    text = '新加入會員';
+                                                                    break;
+                                                                case 'birth':
+                                                                    text = '生日禮';
+                                                                    break;
+                                                                default:
+                                                                    text = dd.origin < 0 ? '使用折抵' : '其他';
+                                                                    break;
+                                                            }
+                                                        }
+                                                        return html `<span class="fs-7">${text}</span>`;
+                                                    })(),
                                                 },
                                                 {
                                                     key: '增減金額',

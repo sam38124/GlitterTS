@@ -63,10 +63,14 @@ router.post('/', async (req, resp) => {
     try {
         if (await ut_permission_1.UtPermission.isManager(req)) {
             const app = req.get('g-app');
+            const rebateClass = new rebate_js_1.Rebate(app);
+            if (!(await rebateClass.mainStatus())) {
+                return response_1.default.succ(resp, { result: false, msg: '購物金功能關閉中' });
+            }
             const note = (_a = req.body.note) !== null && _a !== void 0 ? _a : '';
             const amount = (_b = req.body.amount) !== null && _b !== void 0 ? _b : 0;
             if (amount !== 0) {
-                const r = await new rebate_js_1.Rebate(app).insertRebate(req.body.user_id, amount, note && note.length > 0 ? note : '手動增減回饋金', req.body.proof);
+                const r = await rebateClass.insertRebate(req.body.user_id, amount, note && note.length > 0 ? note : '手動設定', req.body.proof);
                 if (r === null || r === void 0 ? void 0 : r.result) {
                     return response_1.default.succ(resp, r);
                 }
@@ -90,6 +94,9 @@ router.post('/batch', async (req, resp) => {
             const amount = (_b = req.body.total) !== null && _b !== void 0 ? _b : 0;
             const deadline = req.body.rebateEndDay !== '0' ? (0, moment_1.default)().add(req.body.rebateEndDay, 'd').format('YYYY-MM-DD HH:mm:ss') : undefined;
             const rebateClass = new rebate_js_1.Rebate(app);
+            if (!(await rebateClass.mainStatus())) {
+                return response_1.default.succ(resp, { result: false, msg: '購物金功能關閉中' });
+            }
             if (amount < 0) {
                 for (const userID of req.body.userID) {
                     if (!(await rebateClass.minusCheck(userID, amount))) {
@@ -99,7 +106,7 @@ router.post('/batch', async (req, resp) => {
                 }
             }
             for (const userID of req.body.userID) {
-                await rebateClass.insertRebate(userID, amount, note && note.length > 0 ? note : '手動增減回饋金', {
+                await rebateClass.insertRebate(userID, amount, note && note.length > 0 ? note : '手動設定', {
                     type: 'manual',
                     deadTime: deadline,
                 });

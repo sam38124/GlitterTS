@@ -59,10 +59,16 @@ router.post('/', async (req: express.Request, resp: express.Response) => {
     try {
         if (await UtPermission.isManager(req)) {
             const app = req.get('g-app') as string;
+            const rebateClass = new Rebate(app);
+
+            if (!(await rebateClass.mainStatus())) {
+                return response.succ(resp, { result: false, msg: '購物金功能關閉中' });
+            }
+
             const note = req.body.note ?? '';
             const amount = req.body.amount ?? 0;
             if (amount !== 0) {
-                const r = await new Rebate(app).insertRebate(req.body.user_id, amount, note && note.length > 0 ? note : '手動增減回饋金', req.body.proof);
+                const r = await rebateClass.insertRebate(req.body.user_id, amount, note && note.length > 0 ? note : '手動設定', req.body.proof);
                 if (r?.result) {
                     return response.succ(resp, r);
                 }
@@ -85,6 +91,10 @@ router.post('/batch', async (req: express.Request, resp: express.Response) => {
             const deadline = req.body.rebateEndDay !== '0' ? moment().add(req.body.rebateEndDay, 'd').format('YYYY-MM-DD HH:mm:ss') : undefined;
             const rebateClass = new Rebate(app);
 
+            if (!(await rebateClass.mainStatus())) {
+                return response.succ(resp, { result: false, msg: '購物金功能關閉中' });
+            }
+
             if (amount < 0) {
                 for (const userID of req.body.userID) {
                     if (!(await rebateClass.minusCheck(userID, amount))) {
@@ -95,7 +105,7 @@ router.post('/batch', async (req: express.Request, resp: express.Response) => {
             }
 
             for (const userID of req.body.userID) {
-                await rebateClass.insertRebate(userID, amount, note && note.length > 0 ? note : '手動增減回饋金', {
+                await rebateClass.insertRebate(userID, amount, note && note.length > 0 ? note : '手動設定', {
                     type: 'manual',
                     deadTime: deadline,
                 });
