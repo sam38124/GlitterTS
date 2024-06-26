@@ -272,7 +272,7 @@ export class MemberSetting {
                                                                             <div class="tx_normal">${dd.title}</div>
                                                                             <div class="d-flex align-items-center w-100" style="gap:4px;">
                                                                                 <div class="tx_normal">${vm.data[dd.value] ? `開啟` : `關閉`}</div>
-                                                                                <div class="cursor_it form-check form-switch" style="margin-top: 10px;">
+                                                                                <div class="cursor_pointer form-check form-switch" style="margin-top: 10px;">
                                                                                     <input
                                                                                         class="form-check-input"
                                                                                         type="checkbox"
@@ -325,7 +325,7 @@ export class MemberSetting {
                             return html `<div>
                                                     ${[
                                 html ` <div
-                                                            class="d-flex align-items-center cursor_it"
+                                                            class="d-flex align-items-center cursor_pointer"
                                                             style="gap:8px;"
                                                             onclick="${gvc.event(() => {
                                     vm.data.email_verify = !vm.data.email_verify;
@@ -346,7 +346,7 @@ export class MemberSetting {
                         html ` <div class="d-flex align-items-center w-100" style="gap:4px;margin-bottom: 12px;">
                                         <div class="tx_normal fw-bolder " style="">只允許登入下單</div>
                                         <div class="tx_normal ms-2">${vm.data.login_in_to_order ? `開啟` : `關閉`}</div>
-                                        <div class="cursor_it form-check form-switch m-0" style=" ">
+                                        <div class="cursor_pointer form-check form-switch m-0" style=" ">
                                             <input
                                                 class=" form-check-input"
                                                 style=" "

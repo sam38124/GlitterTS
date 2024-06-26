@@ -307,7 +307,7 @@ ${(obj.style || []) && obj.style[index] ? obj.style[index] : ``}
                         }
                         return html `
                                     <div
-                                        class="d-flex align-items-center cursor_it"
+                                        class="d-flex align-items-center cursor_pointer"
                                         onclick="${obj.gvc.event(() => {
                             if (obj.type === 'multiple') {
                                 if (obj.def.find((d2) => {
@@ -713,16 +713,18 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
     static bottomLineBar() {
         return html `<div class="ms-2 border-end position-absolute h-100" style="left: 0px;"></div>`;
     }
-    static grayButton(text, event, icon = '') {
+    static grayButton(text, event, obj) {
+        var _a;
         return html `<button class="btn btn-gary" type="button" onclick="${event}">
-            <i class="${icon.length > 0 ? icon : 'd-none'}"></i>
-            <span class="tx_700">${text}</span>
+            <i class="${obj && obj.icon && obj.icon.length > 0 ? obj.icon : 'd-none'}"></i>
+            <span class="tx_700" style="${(_a = obj === null || obj === void 0 ? void 0 : obj.textStyle) !== null && _a !== void 0 ? _a : ''}">${text}</span>
         </button>`;
     }
-    static darkButton(text, event, icon = '') {
+    static darkButton(text, event, obj) {
+        var _a;
         return html `<button class="btn btn-black" type="button" onclick="${event}">
-            <i class="${icon.length > 0 ? icon : 'd-none'}"></i>
-            <span class="tx_700_white">${text}</span>
+            <i class="${obj && obj.icon && obj.icon.length > 0 ? obj.icon : 'd-none'}"></i>
+            <span class="tx_700_white" style="${(_a = obj === null || obj === void 0 ? void 0 : obj.textStyle) !== null && _a !== void 0 ? _a : ''}">${text}</span>
         </button>`;
     }
     static switchButton(gvc, def, callback) {
@@ -739,19 +741,250 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
     }
     static searchFilter(event, vale, placeholder, margin) {
         return html `<div class="w-100 position-relative" style="margin: ${margin !== null && margin !== void 0 ? margin : 0};">
-            <i class=" fa-regular fa-magnifying-glass" style=" font-size: 18px;color: #A0A0A0;position: absolute;left:20px;top:50%;transform: translateY(-50%);" aria-hidden="true"></i>
-            <input class="form-control h-100 " style="border-radius: 10px; border: 1px solid #DDD; padding-left: 50px;" placeholder="${placeholder}" onchange="${event}" value="${vale}" />
+            <i class="fa-regular fa-magnifying-glass" style="font-size: 18px; color: #A0A0A0; position: absolute; left: 18px; top: 50%; transform: translateY(-50%);" aria-hidden="true"></i>
+            <input class="form-control h-100" style="border-radius: 10px; border: 1px solid #DDD; padding-left: 50px;" placeholder="${placeholder}" onchange="${event}" value="${vale}" />
         </div>`;
     }
-    static selectFilter(obj) {
+    static select(obj) {
+        var _a;
         return html `<select
-            class="c_select"
+            class="c_select c_select_w_100"
+            style="${(_a = obj.style) !== null && _a !== void 0 ? _a : ''}"
             onchange="${obj.gvc.event((e) => {
             obj.callback(e.value);
         })}"
         >
             ${obj.gvc.map(obj.options.map((opt) => html ` <option class="c_select_option" value="${opt.key}" ${obj.default === opt.key ? 'selected' : ''}>${opt.value}</option>`))}
         </select>`;
+    }
+    static selectFilter(obj) {
+        var _a;
+        return html `<select
+            class="c_select"
+            style="${(_a = obj.style) !== null && _a !== void 0 ? _a : ''}"
+            onchange="${obj.gvc.event((e) => {
+            obj.callback(e.value);
+        })}"
+        >
+            ${obj.gvc.map(obj.options.map((opt) => html ` <option class="c_select_option" value="${opt.key}" ${obj.default === opt.key ? 'selected' : ''}>${opt.value}</option>`))}
+        </select>`;
+    }
+    static selectDropList(obj) {
+        const vm = {
+            id: obj.gvc.glitter.getUUID(),
+            checkClass: this.randomString(5),
+            loading: true,
+            show: false,
+            def: JSON.parse(JSON.stringify(obj.default)),
+        };
+        obj.gvc.addStyle(`
+            .${vm.checkClass}:checked[type='checkbox'] {
+                border: 2px solid #000;
+                background-color: #fff;
+                background-image: url(${this.checkedDataImage('#000')});
+                background-position: center center;
+            }
+        `);
+        return obj.gvc.bindView({
+            bind: vm.id,
+            view: () => {
+                var _a;
+                const defLine = obj.options.filter((item) => {
+                    return obj.default.includes(item.key);
+                });
+                return html `<div class="c_select" style="position: relative; ${(_a = obj.style) !== null && _a !== void 0 ? _a : ''}">
+                    <div
+                        class="w-100 h-100"
+                        onclick="${obj.gvc.event(() => {
+                    vm.show = !vm.show;
+                    if (!vm.show) {
+                        obj.callback(obj.default.filter((item) => {
+                            return obj.options.find((opt) => opt.key === item);
+                        }));
+                    }
+                    obj.gvc.notifyDataChange(vm.id);
+                })}"
+                    >
+                        <div style="font-size: 15px; cursor: pointer; color: #000;">
+                            ${defLine.length > 0
+                    ? defLine
+                        .map((item) => {
+                        return item.value;
+                    })
+                        .join(' / ')
+                    : BgWidget.grayNote('（點擊選擇項目）')}
+                        </div>
+                    </div>
+                    ${vm.show
+                    ? html `<div class="c_dropdown">
+                              <div class="c_dropdown_body">
+                                  <div class="c_dropdown_main">
+                                      ${obj.gvc.map(obj.options.map((opt) => {
+                        function call() {
+                            if (obj.default.includes(opt.key)) {
+                                obj.default = obj.default.filter((item) => item !== opt.key);
+                            }
+                            else {
+                                obj.default.push(opt.key);
+                            }
+                            obj.gvc.notifyDataChange(vm.id);
+                        }
+                        return html `<div class="d-flex align-items-center" style="gap: 24px">
+                                                  <input
+                                                      class="form-check-input mt-0 ${vm.checkClass}"
+                                                      type="checkbox"
+                                                      id="${opt.key}"
+                                                      name="radio_${vm.id}"
+                                                      onclick="${obj.gvc.event(() => call())}"
+                                                      ${obj.default.includes(opt.key) ? 'checked' : ''}
+                                                  />
+                                                  <div class="form-check-label c_updown_label cursor_pointer" onclick="${obj.gvc.event(() => call())}">
+                                                      <div class="tx_normal ${opt.note ? 'mb-1' : ''}">${opt.value}</div>
+                                                      ${opt.note ? html ` <div class="tx_gray_12">${opt.note}</div> ` : ''}
+                                                  </div>
+                                              </div>`;
+                    }))}
+                                  </div>
+                                  <div class="c_dropdown_bar">
+                                      ${BgWidget.cancel(obj.gvc.event(() => {
+                        obj.callback(vm.def);
+                        vm.show = !vm.show;
+                        obj.gvc.notifyDataChange(vm.id);
+                    }))}
+                                      ${BgWidget.save(obj.gvc.event(() => {
+                        obj.callback(obj.default.filter((item) => {
+                            return obj.options.find((opt) => opt.key === item);
+                        }));
+                        vm.show = !vm.show;
+                        obj.gvc.notifyDataChange(vm.id);
+                    }), '確認')}
+                                  </div>
+                              </div>
+                          </div>`
+                    : ''}
+                </div>`;
+            },
+        });
+    }
+    static selectDropDialog(obj) {
+        return obj.gvc.glitter.innerDialog((gvc) => {
+            const vm = {
+                id: obj.gvc.glitter.getUUID(),
+                loading: true,
+                checkClass: this.randomString(5),
+                def: JSON.parse(JSON.stringify(obj.default)),
+                options: [],
+                query: '',
+                orderString: '',
+            };
+            obj.gvc.addStyle(`
+                .${vm.checkClass}:checked[type='checkbox'] {
+                    border: 2px solid #000;
+                    background-color: #fff;
+                    background-image: url(${this.checkedDataImage('#000')});
+                    background-position: center center;
+                }
+            `);
+            return html `<div style="width: 600px; overflow-y: auto;" class="bg-white shadow rounded-3">
+                ${obj.gvc.bindView({
+                bind: vm.id,
+                view: () => {
+                    if (vm.loading) {
+                        return this.spinner();
+                    }
+                    return html `<div style="width: 600px; overflow-y: auto;" class="bg-white shadow rounded-3">
+                            <div class="w-100 d-flex align-items-center p-3 border-bottom">
+                                <div class="tx_700">${obj.title}</div>
+                                <div class="flex-fill"></div>
+                                <i
+                                    class="fa-regular fa-circle-xmark fs-5 text-dark cursor_pointer"
+                                    onclick="${gvc.event(() => {
+                        obj.callback(vm.def);
+                        gvc.closeDialog();
+                    })}"
+                                ></i>
+                            </div>
+                            <div class="c_dialog">
+                                <div class="c_dialog_body">
+                                    <div class="c_dialog_main">
+                                        <div class="d-flex" style="gap: 12px;">
+                                            ${this.searchFilter(gvc.event((e, event) => {
+                        vm.query = e.value;
+                        vm.loading = true;
+                        obj.gvc.notifyDataChange(vm.id);
+                    }), vm.query || '', '搜尋')}
+                                            ${this.updownFilter({
+                        gvc,
+                        callback: (value) => {
+                            vm.orderString = value;
+                            vm.loading = true;
+                            obj.gvc.notifyDataChange(vm.id);
+                        },
+                        default: vm.orderString || 'default',
+                        options: obj.updownOptions || [],
+                    })}
+                                        </div>
+                                        ${obj.gvc.map(vm.options.map((opt) => {
+                        function call() {
+                            if (obj.default.includes(opt.key)) {
+                                obj.default = obj.default.filter((item) => item !== opt.key);
+                            }
+                            else {
+                                obj.default.push(opt.key);
+                            }
+                            obj.gvc.notifyDataChange(vm.id);
+                        }
+                        return html `<div class="d-flex align-items-center" style="gap: 24px">
+                                                    <input
+                                                        class="form-check-input mt-0 ${vm.checkClass}"
+                                                        type="checkbox"
+                                                        id="${opt.key}"
+                                                        name="radio_${vm.id}"
+                                                        onclick="${obj.gvc.event(() => call())}"
+                                                        ${obj.default.includes(opt.key) ? 'checked' : ''}
+                                                    />
+                                                    <div class="form-check-label c_updown_label cursor_pointer" onclick="${obj.gvc.event(() => call())}">
+                                                        <div class="tx_normal ${opt.note ? 'mb-1' : ''}">${opt.value}</div>
+                                                        ${opt.note ? html ` <div class="tx_gray_12">${opt.note}</div> ` : ''}
+                                                    </div>
+                                                </div>`;
+                    }))}
+                                    </div>
+                                    <div class="c_dialog_bar">
+                                        ${BgWidget.cancel(obj.gvc.event(() => {
+                        obj.callback([]);
+                        gvc.closeDialog();
+                    }), '清除全部')}
+                                        ${BgWidget.cancel(obj.gvc.event(() => {
+                        obj.callback(vm.def);
+                        gvc.closeDialog();
+                    }))}
+                                        ${BgWidget.save(obj.gvc.event(() => {
+                        obj.callback(obj.default.filter((item) => {
+                            return vm.options.find((opt) => opt.key === item);
+                        }));
+                        gvc.closeDialog();
+                    }), '確認')}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>`;
+                },
+                onCreate: () => {
+                    if (vm.loading) {
+                        obj.api({
+                            query: vm.query,
+                            orderString: vm.orderString,
+                        }).then((data) => {
+                            vm.options = data;
+                            vm.loading = false;
+                            obj.gvc.notifyDataChange(vm.id);
+                        });
+                    }
+                },
+            })}
+            </div>`;
+        }, obj.tag);
     }
     static funnelFilter(obj) {
         return html `<div
@@ -764,20 +997,21 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
         </div>`;
     }
     static updownFilter(obj) {
+        const vm = {
+            id: obj.gvc.glitter.getUUID(),
+            checkClass: this.randomString(5),
+            show: false,
+            top: 0,
+            right: 0,
+        };
         obj.gvc.addStyle(`
-            .form-check-input:checked[type='radio'] {
+            .${vm.checkClass}:checked[type='radio'] {
                 border: 2px solid #000;
                 background-color: #fff;
                 background-image: url(${this.dotDataImage('#000')});
                 background-position: center center;
             }
         `);
-        const vm = {
-            id: obj.gvc.glitter.getUUID(),
-            show: false,
-            top: 0,
-            right: 0,
-        };
         return html `<div
                 class="c_updown"
                 onclick="${obj.gvc.event((e) => {
@@ -802,7 +1036,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                                 ${obj.gvc.map(obj.options.map((opt) => {
                         return html `<div>
                                             <input
-                                                class="form-check-input"
+                                                class="form-check-input ${vm.checkClass}"
                                                 type="radio"
                                                 id="${opt.key}"
                                                 name="radio_${vm.id}"
@@ -926,6 +1160,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
         const randomString = this.randomString(5);
         gvc.addStyle(`
             .${randomString}:checked[type='radio'] {
+                margin-right: 4px;
                 border: 2px solid #000;
                 background-color: #fff;
                 background-image: url(${this.dotDataImage('#000')});
@@ -940,7 +1175,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                     var _a, _b;
                     radioInputHTML += html `
                         <div class="m-1">
-                            <div class="form-check">
+                            <div class="form-check ps-0">
                                 <input
                                     class="${randomString}"
                                     type="radio"
@@ -976,10 +1211,10 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
             },
         });
     }
-    static spinner() {
-        return html ` <div class="d-flex align-items-center justify-content-center flex-column" style="width: 100%; height: 100vh;">
-            <div class="spinner-border" role="status"></div>
-            <span class="mt-3">載入中...</span>
+    static spinner(obj) {
+        return html ` <div class="d-flex align-items-center justify-content-center flex-column w-100 my-3 mx-auto">
+            <div class="spinner-border ${obj && obj.spinnerNone ? 'd-none' : ''}" role="status"></div>
+            <span class="mt-3 ${obj && obj.textNone ? 'd-none' : ''}">載入中...</span>
         </div>`;
     }
 }

@@ -505,9 +505,14 @@ class User {
     async getUserList(query) {
         var _a, _b, _c, _d;
         try {
+            console.log('getUserList');
+            console.log(query);
             const querySql = ['1=1'];
             query.page = (_a = query.page) !== null && _a !== void 0 ? _a : 0;
             query.limit = (_b = query.limit) !== null && _b !== void 0 ? _b : 50;
+            if (query.id) {
+                querySql.push(`(u.userID in (${query.id}))`);
+            }
             if (query.created_time) {
                 const created_time = query.created_time.split(',');
                 if (created_time.length > 1) {

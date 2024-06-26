@@ -340,7 +340,7 @@ export class MemberTypeList {
                                                             return html`<div>
                                                                 ${[
                                                                     html` <div
-                                                                        class="d-flex align-items-center cursor_it"
+                                                                        class="d-flex align-items-center cursor_pointer"
                                                                         style="gap:8px;"
                                                                         onclick="${gvc.event(() => {
                                                                             vm.data.condition.type = dd.value as any;
@@ -392,7 +392,7 @@ export class MemberTypeList {
                                                         .map((dd) => {
                                                             return `<div>${[
                                                                 html` <div
-                                                                    class="d-flex align-items-center cursor_it"
+                                                                    class="d-flex align-items-center cursor_pointer"
                                                                     style="gap:8px;"
                                                                     onclick="${gvc.event(() => {
                                                                         vm.data.duration.type = dd.value as any;
@@ -443,7 +443,7 @@ export class MemberTypeList {
                                                         .map((dd) => {
                                                             return `<div>${[
                                                                 html` <div
-                                                                    class="d-flex align-items-center cursor_it"
+                                                                    class="d-flex align-items-center cursor_pointer"
                                                                     style="gap:8px;"
                                                                     onclick="${gvc.event(() => {
                                                                         vm.data.dead_line.type = dd.value as any;

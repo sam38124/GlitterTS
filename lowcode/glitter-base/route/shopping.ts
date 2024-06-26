@@ -126,6 +126,7 @@ export class ApiShop {
         });
     }
     public static orderListFilterString(obj: any): string[] {
+        if (!obj) return [];
         let list = [] as string[];
         if(obj){
             if (obj.created_time && obj.created_time.length > 1 && obj?.created_time[0].length > 0 && obj?.created_time[1].length > 0) {
@@ -148,8 +149,19 @@ export class ApiShop {
         return list;
     }
 
-    static getOrder(json: { limit: number; page: number; search?: string; email?: string;  searchType?: string; id?: string; data_from?: 'user' | 'manager'; status?: number; order?: string; orderString?: string;filter?: any; }) {
-
+    static getOrder(json: {
+        limit: number;
+        page: number;
+        search?: string;
+        email?: string;
+        searchType?: string;
+        id?: string;
+        data_from?: 'user' | 'manager';
+        status?: number;
+        order?: string;
+        orderString?: string;
+        filter?: any;
+    }) {
         const filterString = this.orderListFilterString(json.filter);
 
         return BaseApi.create({
