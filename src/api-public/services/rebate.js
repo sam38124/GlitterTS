@@ -243,7 +243,7 @@ class Rebate {
                 let minus = -originMinus;
                 do {
                     const { id, remain } = oldest === null || oldest === void 0 ? void 0 : oldest.data;
-                    if (id && (remain !== undefined)) {
+                    if (id && remain !== undefined) {
                         if (remain - minus > 0) {
                             await database_1.default.execute(updateSQL, [remain - minus, nowTime, id]);
                             minus = 0;

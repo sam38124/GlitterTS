@@ -55,10 +55,8 @@ class Schedule {
                             if (!level)
                                 continue;
                             const data = rgs.level.find((item) => item.id === level.id);
-                            console.log(0);
                             if (!data)
                                 continue;
-                            console.log(1);
                             await postUserRebate(user.userID, data.value);
                         }
                     }

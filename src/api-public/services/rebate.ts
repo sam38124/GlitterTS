@@ -307,7 +307,7 @@ export class Rebate {
                 let minus = -originMinus;
                 do {
                     const { id, remain } = oldest?.data;
-                    if(id && (remain !== undefined)){
+                    if (id && remain !== undefined) {
                         if (remain - minus > 0) {
                             await db.execute(updateSQL, [remain - minus, nowTime, id]);
                             minus = 0;
@@ -372,7 +372,7 @@ export class Rebate {
                 await db.execute(insertSQL, [user_id, amount, amount, note, proof ?? {}, nowTime, nowTime, deadTime]);
             } else {
                 await this.updateOldestRebate(user_id, amount);
-                await db.execute(insertSQL, [user_id, amount, 0, note, proof&&proof.type ? { type: proof.type } : {}, nowTime, nowTime, null]);
+                await db.execute(insertSQL, [user_id, amount, 0, note, proof && proof.type ? { type: proof.type } : {}, nowTime, nowTime, null]);
             }
 
             return {

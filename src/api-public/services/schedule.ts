@@ -20,7 +20,7 @@ export class Schedule {
 
     example(sec: number) {
         try {
-            console.log(`${this.app} 排程範例`);
+            // 排程範例
         } catch (e) {
             throw exception.BadRequestError('BAD_REQUEST', 'Example Error: ' + e, null);
         }
@@ -38,7 +38,6 @@ export class Schedule {
                 if (rgs && rgs.switch) {
                     async function postUserRebate(id: number, value: number) {
                         const used = await rebateClass.canUseRebate(id, 'birth');
-                        console.log(id, used);
                         if (used?.result) {
                             await rebateClass.insertRebate(id, value, '生日禮', {
                                 type: 'birth',
@@ -63,7 +62,6 @@ export class Schedule {
                         for (const user of users) {
                             const member = await userClass.refreshMember(user);
                             const level = member.find((dd: any) => dd.trigger);
-                            console.log(user.userID, level);
                             if (!level) continue;
                             const data = rgs.level.find((item: { id: string }) => item.id === level.id);
                             if (!data) continue;
