@@ -210,7 +210,7 @@ ${(obj.style || []) && obj.style[index] ? obj.style[index] : ``}
                                                                           ${d3.key === '●' || d3.stopDialog ? '' : html ` onclick="${gvc.event(() => { })}"`}
                                                                           style="color:#393939 !important;border:none;${(obj.style || []) && obj.style[index] ? obj.style[index] : ``}"
                                                                       >
-                                                                          <div class="my-1" style="${(obj.style || []) && obj.style[index] ? obj.style[index] : ``}">${d3.value}</div>
+                                                                          <div class="my-1 text-nowrap" style="${(obj.style || []) && obj.style[index] ? obj.style[index] : ``}">${d3.value}</div>
                                                                           ${index === dd.length - 1 && obj.editable
                                         ? html `
                                                                                     <i
@@ -272,7 +272,12 @@ ${(obj.style || []) && obj.style[index] ? obj.style[index] : ``}
         return html `<div class="w-100" style="border-radius: 10px; padding: 20px; background: #FFF; box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.08);">${htmlString}</div>`;
     }
     static container(htmlString, width, style) {
-        return html `<div style="padding: 24px 0; margin: 0 auto; ${width ? `max-width:100%; width:${width}px;` : ``} ${style !== null && style !== void 0 ? style : ''}">${htmlString}</div>`;
+        return html `<div
+            class="${document.body.clientWidth < 768 ? 'row col-12 w-100' : ''}"
+            style="padding: 24px ${document.body.clientWidth < 768 ? '0.75rem' : '0'}; margin: 0 auto; ${width ? `max-width:100%; width:${width}px;` : ``} ${style !== null && style !== void 0 ? style : ''}"
+        >
+            ${htmlString}
+        </div>`;
     }
     static title(title) {
         return html ` <h3 class="my-auto tx_title">${title}</h3>`;

@@ -55,17 +55,15 @@ export class WebConfigSetting {
                     },
                     {
                         key: '配置檔標題',
-                        value: `<span class="fs-7">${dd.content.form_title}</span>`,
+                        value: html `<span class="fs-7">${dd.content.form_title}</span>`,
                     },
                     {
                         key: '配置檔標籤',
-                        value: `<span class="fs-7"><div class="badge bg-primary text-white btn "
-                                                                                 >${dd.content.key}
-                                                                            </div></span>`,
+                        value: html `<span class="fs-7"><div class="badge bg-primary text-white btn ">${dd.content.key}</div></span>`,
                     },
                     {
                         key: '建立時間',
-                        value: `<span class="fs-7">${glitter.ut.dateFormat(new Date(dd.created_time), 'yyyy-MM-dd hh:mm')}</span>`,
+                        value: html `<span class="fs-7">${glitter.ut.dateFormat(new Date(dd.created_time), 'yyyy-MM-dd hh:mm')}</span>`,
                     },
                 ];
             });
@@ -84,7 +82,7 @@ export class WebConfigSetting {
                             vm.type = 'add';
                         }))}
                                 </div>
-                                ${BgWidget.table({
+                                ${BgWidget.mainCard(BgWidget.tableV2({
                             gvc: gvc,
                             getData: (vd) => {
                                 vmi = vd;
@@ -106,17 +104,20 @@ export class WebConfigSetting {
                                 vm.type = 'replace';
                             },
                             filter: html `
-                                        ${BgWidget.searchPlace(gvc.event((e, event) => {
+                                            ${BgWidget.searchPlace(gvc.event((e, event) => {
                                 vm.query = e.value;
                                 gvc.notifyDataChange(vm.id);
                             }), vm.query || '', '搜尋所有表單')}
-                                        ${gvc.bindView(() => {
+                                            ${gvc.bindView(() => {
                                 return {
                                     bind: filterID,
                                     view: () => {
                                         return [
-                                            `<span class="fs-7 fw-bold">操作選項</span>`,
-                                            `<button class="btn btn-danger fs-7 px-2" style="height:30px;border:none;" onclick="${gvc.event(() => {
+                                            html `<span class="fs-7 fw-bold">操作選項</span>`,
+                                            html `<button
+                                                                class="btn btn-danger fs-7 px-2"
+                                                                style="height:30px;border:none;"
+                                                                onclick="${gvc.event(() => {
                                                 const dialog = new ShareDialog(gvc.glitter);
                                                 dialog.checkYesOrNot({
                                                     text: '是否確認移除所選項目?',
@@ -145,7 +146,10 @@ export class WebConfigSetting {
                                                         }
                                                     },
                                                 });
-                                            })}">批量移除</button>`,
+                                            })}"
+                                                            >
+                                                                批量移除
+                                                            </button>`,
                                         ].join(``);
                                     },
                                     divCreate: () => {
@@ -156,13 +160,13 @@ export class WebConfigSetting {
                                                 })
                                                 ? `d-none`
                                                 : ``}`,
-                                            style: `height:40px;gap:10px;margin-top:10px;`,
+                                            style: `height: 40px; gap: 10px; margin-top: 10px;`,
                                         };
                                     },
                                 };
                             })}
-                                    `,
-                        })}
+                                        `,
+                        }))}
                             `, BgWidget.getContainerWidth());
                     }
                     else if (vm.type == 'add') {
@@ -259,9 +263,11 @@ export class WebConfigSetting {
                         BgWidget.card((() => {
                             if (viewType === 'preview') {
                                 return [
-                                    `<div class="position-relative text-center bgf6 rounded-top d-flex align-items-center justify-content-center mx-n3 mt-n3 p-3 border-top border-bottom shadow">
-                <span class="fs-6 fw-bold " style="color:black;">配置檔案設定</span>
-            </div>`,
+                                    html `<div
+                                                class="position-relative text-center bgf6 rounded-top d-flex align-items-center justify-content-center mx-n3 mt-n3 p-3 border-top border-bottom shadow"
+                                            >
+                                                <span class="fs-6 fw-bold " style="color:black;">配置檔案設定</span>
+                                            </div>`,
                                     FormWidget.editorView({
                                         gvc: gvc,
                                         array: postMd.form_format,
@@ -296,9 +302,9 @@ export class WebConfigSetting {
                                             postMd.key = text;
                                         },
                                     }),
-                                    `<div class="position-relative bgf6 d-flex align-items-center justify-content-between mx-n3 mt-2 p-2 border-top border-bottom shadow">
-                <span class="fs-6 fw-bold " style="color:black;">表單格式設定</span>
-            </div>`,
+                                    html `<div class="position-relative bgf6 d-flex align-items-center justify-content-between mx-n3 mt-2 p-2 border-top border-bottom shadow">
+                                                <span class="fs-6 fw-bold " style="color:black;">表單格式設定</span>
+                                            </div>`,
                                     FormWidget.settingView({
                                         gvc: gvc,
                                         array: postMd.form_format,
@@ -414,9 +420,11 @@ export class WebConfigSetting {
                         BgWidget.card((() => {
                             if (viewType === 'preview') {
                                 return [
-                                    `<div class="position-relative text-center bgf6 rounded-top d-flex align-items-center justify-content-center mx-n3 mt-n3 p-3 border-top border-bottom shadow">
-                <span class="fs-6 fw-bold " style="color:black;">表單樣式預覽</span>
-            </div>`,
+                                    html `<div
+                                                class="position-relative text-center bgf6 rounded-top d-flex align-items-center justify-content-center mx-n3 mt-n3 p-3 border-top border-bottom shadow"
+                                            >
+                                                <span class="fs-6 fw-bold " style="color:black;">表單樣式預覽</span>
+                                            </div>`,
                                     FormWidget.editorView({
                                         gvc: gvc,
                                         array: postMd.form_format,
@@ -447,9 +455,9 @@ export class WebConfigSetting {
                                             postMd.key = text;
                                         },
                                     }),
-                                    `<div class="position-relative bgf6 d-flex align-items-center justify-content-between mx-n3 mt-2 p-2 border-top border-bottom shadow">
-                <span class="fs-6 fw-bold " style="color:black;">表單格式設定</span>
-            </div>`,
+                                    html `<div class="position-relative bgf6 d-flex align-items-center justify-content-between mx-n3 mt-2 p-2 border-top border-bottom shadow">
+                                                <span class="fs-6 fw-bold " style="color:black;">表單格式設定</span>
+                                            </div>`,
                                     FormWidget.settingView({
                                         gvc: gvc,
                                         array: postMd.form_format,

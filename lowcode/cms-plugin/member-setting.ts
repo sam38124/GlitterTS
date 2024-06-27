@@ -330,9 +330,11 @@ export class MemberSetting {
                                                                     class="w-100"
                                                                     style="padding: 24px; background: white; box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.08); border-radius: 10px; overflow: hidden; flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 18px; display: inline-flex"
                                                                 >
-                                                                    <div style="align-self: stretch; justify-content: flex-start; align-items: center; gap: 28px; display: inline-flex">
+                                                                    <div style="align-self: stretch; justify-content: flex-start; align-items: center; gap: 10px; display: inline-flex">
                                                                         <img style="width: 46px;" src="${dd.src}" />
-                                                                        <div style="flex-direction: column; justify-content: center; align-items: flex-start; gap: 4px; display: inline-flex">
+                                                                        <div
+                                                                            style="flex-direction: column; justify-content: center; align-items: flex-start; gap: 4px; display: inline-flex; padding-left: 8px;"
+                                                                        >
                                                                             <div class="tx_normal">${dd.title}</div>
                                                                             <div class="d-flex align-items-center w-100" style="gap:4px;">
                                                                                 <div class="tx_normal">${vm.data[dd.value] ? `開啟` : `關閉`}</div>

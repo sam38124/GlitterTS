@@ -252,7 +252,7 @@ export class ShoppingFinanceSetting {
                                         );
                                     });
                                 },
-                                divCreate: { class: `d-flex flex-column flex-column-reverse flex-md-row`, style: `gap:10px; margin-top: 24px;padding-bottom:100px;` },
+                                divCreate: { class: `d-flex flex-column flex-column-reverse flex-md-row`, style: `gap: 10px; margin-top: 24px; padding-bottom: 100px;` },
                             };
                         })}
                         <div class="update-bar-container">
@@ -397,7 +397,7 @@ export class ShoppingFinanceSetting {
                                     },
                                     divCreate: {
                                         class: 'row',
-                                        style: 'margin-top: 24px;',
+                                        style: 'margin: 24px auto;',
                                     },
                                 };
                             })}
@@ -620,7 +620,7 @@ export class ShoppingFinanceSetting {
                                 divCreate: { class: `d-flex flex-column flex-column-reverse  flex-md-row`, style: `gap:10px;` },
                             };
                         })}
-
+                        <div style="margin-bottom: 240px"></div>
                         <div class="update-bar-container">
                             ${BgWidget.save(
                                 gvc.event(() => {

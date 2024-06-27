@@ -284,9 +284,6 @@ export class UserList {
                     return ``;
                 }
             },
-            divCreate: {
-                style: 'margin: 0 32px;',
-            },
         });
     }
 
@@ -523,7 +520,7 @@ export class UserList {
                                         </div>
                                         <div style="margin: 2px 15px 0">${BgWidget.grayNote(`註冊時間：${gvc.glitter.ut.dateFormat(new Date(vm.data.created_time), 'yyyy-MM-dd hh:mm')}`)}</div>`,
                                     // 左右容器
-                                    html`<div class="d-flex justify-content-center" style="gap: 24px">
+                                    html`<div class="d-flex justify-content-center ${document.body.clientWidth < 768 ? 'flex-column' : ''}" style="gap: 24px">
                                         ${BgWidget.container(
                                             [
                                                 // 顧客資料

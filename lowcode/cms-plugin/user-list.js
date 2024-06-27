@@ -267,9 +267,6 @@ export class UserList {
                     return ``;
                 }
             },
-            divCreate: {
-                style: 'margin: 0 32px;',
-            },
         });
     }
     static setUserForm(gvc, callback) {
@@ -486,7 +483,7 @@ export class UserList {
                                             ${BgWidget.title((_b = vm.data.userData.name) !== null && _b !== void 0 ? _b : '匿名用戶')}
                                         </div>
                                         <div style="margin: 2px 15px 0">${BgWidget.grayNote(`註冊時間：${gvc.glitter.ut.dateFormat(new Date(vm.data.created_time), 'yyyy-MM-dd hh:mm')}`)}</div>`,
-                                html `<div class="d-flex justify-content-center" style="gap: 24px">
+                                html `<div class="d-flex justify-content-center ${document.body.clientWidth < 768 ? 'flex-column' : ''}" style="gap: 24px">
                                         ${BgWidget.container([
                                     html `<div>
                                                     ${gvc.bindView(() => {
