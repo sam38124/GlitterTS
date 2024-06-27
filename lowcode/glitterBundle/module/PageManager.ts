@@ -170,7 +170,7 @@ export class PageManager {
                             },
                             createResource: () => {
                             },
-                            backGroundColor: option.backGroundColor ?? 'white',
+                            backGroundColor: option.backGroundColor ?? 'transparent',
                             type: GVCType.Page,
                             animation: option.animation ?? glitter.animation.none,
                             dismiss: option.dismiss ?? (() => {
@@ -309,7 +309,7 @@ export class PageManager {
                 },
                 createResource: () => {
                 },
-                backGroundColor: option.backGroundColor ?? 'white',
+                backGroundColor: option.backGroundColor ?? 'transparent',
                 type: GVCType.Page,
                 animation: option.animation || glitter.defaultSetting.pageAnimation || glitter.animation.none,
                 dismiss: option.dismiss ?? (() => {

@@ -737,7 +737,6 @@ ${obj.gvc.bindView({
                 return {
                     bind: container_id,
                     view: () => {
-
                         return new Promise(async (resolve, reject) => {
                             const view = [await new Promise((resolve, reject) => {
                                 let waitAddScript: string[] = []
@@ -1676,7 +1675,8 @@ ${e.line}
                                                         gvc: gvc,
                                                         widget: widget,
                                                         widgetComponentID: cf.widget.id,
-                                                        event: document.querySelector(`[gvc-id="${gvc.id(cf.widget.id)}"]`)
+                                                        event: document.querySelector(`[gvc-id="${gvc.id(cf.widget.id)}"]`),
+                                                        glitter:(window.parent as any).glitter
                                                     })
                                                     scrollToHover(gvc.glitter.$(`.editor_it_${cf.widget.id}`).get(0))
                                                 }
@@ -1685,7 +1685,8 @@ ${e.line}
                                                         gvc: gvc,
                                                         widget: widget,
                                                         widgetComponentID: cf.widget.id,
-                                                        event: event
+                                                        event: event,
+                                                        glitter:(window.parent as any).glitter
                                                     })
                                                 })
                                             })()
@@ -1787,7 +1788,8 @@ ${e.line}
                                                             gvc: gvc,
                                                             widget: widget,
                                                             widgetComponentID: cf.widget.id,
-                                                            event: document.querySelector(`[gvc-id="${gvc.id(component_id)}"]`)
+                                                            event: document.querySelector(`[gvc-id="${gvc.id(component_id)}"]`),
+                                                            glitter:(window.parent as any).glitter
                                                         })
                                                         scrollToHover(gvc.glitter.$(`.editor_it_${cf.widget.id}`).get(0))
                                                     }
@@ -1796,7 +1798,8 @@ ${e.line}
                                                             gvc: gvc,
                                                             widget: widget,
                                                             widgetComponentID: cf.widget.id,
-                                                            event: event
+                                                            event: event,
+                                                            glitter:(window.parent as any).glitter
                                                         })
                                                     })
                                                 })()
@@ -1946,22 +1949,26 @@ ${e.line}
         gvc: GVC,
         widgetComponentID: string,
         event?: any,
-        scroll_to_hover?: boolean
+        scroll_to_hover?: boolean,
+        glitter: Glitter
     }) {
         const dd = cf.widget;
         const gvc = cf.gvc;
         const widgetComponentID = cf.widgetComponentID;
         const event = cf.event;
-
+        let glitter = (window as any).glitter
+        while(!glitter.share.editorViewModel){
+            glitter=(window.parent as any).glitter
+        }
         function active() {
             try {
                 Storage.page_setting_item = 'layout';
-                (((window.parent as any).glitter.pageConfig[gvc.glitter.pageConfig.length - 1]) as any).gvc.notifyDataChange('left_sm_bar');
+                (glitter.pageConfig[gvc.glitter.pageConfig.length - 1] as any).gvc.notifyDataChange('left_sm_bar');
                 gvc.glitter.$('.editorItemActive').removeClass('editorItemActive');
                 gvc.glitter.$(`.editor_it_${widgetComponentID}`).addClass('editorItemActive');
-                (window.parent as any).glitter.share.editorViewModel.selectItem = dd;
+                glitter.share.editorViewModel.selectItem = dd;
                 Storage.lastSelect = dd.id;
-                (window.parent as any).glitter.share.selectEditorItem();
+                glitter.share.selectEditorItem();
                 if (cf.scroll_to_hover) {
                     setTimeout(() => {
                         scrollToHover(gvc.glitter.$(`.editor_it_${widgetComponentID}`).get(0))
@@ -1999,48 +2006,48 @@ ${e.line}
                     <div class="d-flex align-items-center justify-content-center flex-column rounded-3 position-absolute ${addID}"
                          style="background: lightgrey;color: #393939;cursor: pointer;min-height: 250px;left: 0px;top:0px;width: 100%;height: 100%;"
                          onmousedown="${gvc.event(() => {
-                    (window.parent as any).glitter.getModule(new URL(gvc.glitter.root_path + 'editor/add-component.js').href, (AddComponent: any) => {
-                        AddComponent.toggle(true);
-                        AddComponent.addWidget = (gvc: GVC, cf: any) => {
-                            (window.parent as any).glitter.share.editorViewModel.selectContainer = widget.data.setting;
-                            (window.parent as any).glitter.share.addComponent(cf);
-                            cf.gvc.glitter.document.querySelector('#' + addID).remove()
-                        };
-                        AddComponent.addEvent = (gvc: GVC, tdata: any) => {
-                            (window.parent as any).glitter.share.editorViewModel.selectContainer = widget.data.setting;
-                            (window.parent as any).glitter.share.addComponent({
-                                "id": gvc.glitter.getUUID(),
-                                "js": "./official_view_component/official.js",
-                                "css": {
-                                    "class": {},
-                                    "style": {}
-                                },
-                                "data": {
-                                    'refer_app': tdata.copyApp,
-                                    "tag": tdata.copy,
-                                    "list": [],
-                                    "carryData": {}
-                                },
-                                "type": "component",
-                                "class": "",
-                                "index": 0,
-                                "label": tdata.title,
-                                "style": "",
-                                "bundle": {},
-                                "global": [],
-                                "toggle": false,
-                                "stylist": [],
-                                "dataType": "static",
-                                "style_from": "code",
-                                "classDataType": "static",
-                                "preloadEvenet": {},
-                                "share": {}
-                            });
-                            cf.gvc.glitter.document.querySelector('#' + addID).remove()
-                        };
-                    })
+                             (window.parent as any).glitter.getModule(new URL(gvc.glitter.root_path + 'editor/add-component.js').href, (AddComponent: any) => {
+                                 AddComponent.toggle(true);
+                                 AddComponent.addWidget = (gvc: GVC, cf: any) => {
+                                     (window.parent as any).glitter.share.editorViewModel.selectContainer = widget.data.setting;
+                                     (window.parent as any).glitter.share.addComponent(cf);
+                                     cf.gvc.glitter.document.querySelector('#' + addID).remove()
+                                 };
+                                 AddComponent.addEvent = (gvc: GVC, tdata: any) => {
+                                     (window.parent as any).glitter.share.editorViewModel.selectContainer = widget.data.setting;
+                                     (window.parent as any).glitter.share.addComponent({
+                                         "id": gvc.glitter.getUUID(),
+                                         "js": "./official_view_component/official.js",
+                                         "css": {
+                                             "class": {},
+                                             "style": {}
+                                         },
+                                         "data": {
+                                             'refer_app': tdata.copyApp,
+                                             "tag": tdata.copy,
+                                             "list": [],
+                                             "carryData": {}
+                                         },
+                                         "type": "component",
+                                         "class": "",
+                                         "index": 0,
+                                         "label": tdata.title,
+                                         "style": "",
+                                         "bundle": {},
+                                         "global": [],
+                                         "toggle": false,
+                                         "stylist": [],
+                                         "dataType": "static",
+                                         "style_from": "code",
+                                         "classDataType": "static",
+                                         "preloadEvenet": {},
+                                         "share": {}
+                                     });
+                                     cf.gvc.glitter.document.querySelector('#' + addID).remove()
+                                 };
+                             })
 
-                })}">
+                         })}">
                         <i class="fa-regular fa-circle-plus text-black" style="font-size: 80px;"></i>
                         <span class="fw-500 fs-5 mt-3">添加元件</span>
                     </div>`
@@ -2060,108 +2067,108 @@ ${e.line}
                         <div class="position-absolute fs-1 plus_btn"
                              style="left:50%;transform: translateX(-50%);height:28px;width:28px;top:-40px;z-index:99999;cursor: pointer;pointer-events:all;"
                              onmousedown="${cf.gvc.event((e, event) => {
-                        HtmlGenerate.block_timer = new Date().getTime();
-                        (window.parent as any).glitter.getModule(new URL('../.././editor/add-component.js', import.meta.url).href, (AddComponent: any) => {
-                            AddComponent.toggle(true);
-                            AddComponent.addWidget = (gvc: GVC, cf: any) => {
-                                (window.parent as any).glitter.share.addWithIndex({
-                                    data: cf,
-                                    index: cf.id,
-                                    direction: -1
-                                })
-                            }
-                            AddComponent.addEvent = (gvc: GVC, tdata: any) => {
-                                (window.parent as any).glitter.share.addWithIndex({
-                                    data: {
-                                        "id": gvc.glitter.getUUID(),
-                                        "js": "./official_view_component/official.js",
-                                        "css": {
-                                            "class": {},
-                                            "style": {}
-                                        },
-                                        "data": {
-                                            'refer_app': tdata.copyApp,
-                                            "tag": tdata.copy,
-                                            "list": [],
-                                            "carryData": {}
-                                        },
-                                        "type": "component",
-                                        "class": "",
-                                        "index": 0,
-                                        "label": tdata.title,
-                                        "style": "",
-                                        "bundle": {},
-                                        "global": [],
-                                        "toggle": false,
-                                        "stylist": [],
-                                        "dataType": "static",
-                                        "style_from": "code",
-                                        "classDataType": "static",
-                                        "preloadEvenet": {},
-                                        "share": {}
-                                    },
-                                    index: cf.id,
-                                    direction: -1
-                                })
-                            }
-                        });
-                        event.stopPropagation();
-                        event.preventDefault();
-                    })}">
+                                 HtmlGenerate.block_timer = new Date().getTime();
+                                 (window.parent as any).glitter.getModule(new URL('../.././editor/add-component.js', import.meta.url).href, (AddComponent: any) => {
+                                     AddComponent.toggle(true);
+                                     AddComponent.addWidget = (gvc: GVC, cf: any) => {
+                                         (window.parent as any).glitter.share.addWithIndex({
+                                             data: cf,
+                                             index: cf.id,
+                                             direction: -1
+                                         })
+                                     }
+                                     AddComponent.addEvent = (gvc: GVC, tdata: any) => {
+                                         (window.parent as any).glitter.share.addWithIndex({
+                                             data: {
+                                                 "id": gvc.glitter.getUUID(),
+                                                 "js": "./official_view_component/official.js",
+                                                 "css": {
+                                                     "class": {},
+                                                     "style": {}
+                                                 },
+                                                 "data": {
+                                                     'refer_app': tdata.copyApp,
+                                                     "tag": tdata.copy,
+                                                     "list": [],
+                                                     "carryData": {}
+                                                 },
+                                                 "type": "component",
+                                                 "class": "",
+                                                 "index": 0,
+                                                 "label": tdata.title,
+                                                 "style": "",
+                                                 "bundle": {},
+                                                 "global": [],
+                                                 "toggle": false,
+                                                 "stylist": [],
+                                                 "dataType": "static",
+                                                 "style_from": "code",
+                                                 "classDataType": "static",
+                                                 "preloadEvenet": {},
+                                                 "share": {}
+                                             },
+                                             index: cf.id,
+                                             direction: -1
+                                         })
+                                     }
+                                 });
+                                 event.stopPropagation();
+                                 event.preventDefault();
+                             })}">
                             <img src="https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1714376322616-Frame 3137.svg"
                                  class="w-100 h-100">
                         </div>
                         <div class="position-absolute fs-1 plus_btn"
                              style="left:50%;transform: translateX(-50%);height:28px;width:28px;bottom:10px;z-index:99999;cursor: pointer;pointer-events:all;"
                              onmousedown="${cf.gvc.event((e, event) => {
-                        HtmlGenerate.block_timer = new Date().getTime();
-                        (window.parent as any).glitter.getModule(new URL('../.././editor/add-component.js', import.meta.url).href, (AddComponent: any) => {
-                            AddComponent.toggle(true);
-                            AddComponent.addWidget = (gvc: GVC, cf: any) => {
-                                (window.parent as any).glitter.share.addWithIndex({
-                                    data: cf,
-                                    index: cf.id,
-                                    direction: 1
-                                })
-                            }
-                            AddComponent.addEvent = (gvc: GVC, tdata: any) => {
-                                (window.parent as any).glitter.share.addWithIndex({
-                                    data: {
-                                        "id": gvc.glitter.getUUID(),
-                                        "js": "./official_view_component/official.js",
-                                        "css": {
-                                            "class": {},
-                                            "style": {}
-                                        },
-                                        "data": {
-                                            'refer_app': tdata.copyApp,
-                                            "tag": tdata.copy,
-                                            "list": [],
-                                            "carryData": {}
-                                        },
-                                        "type": "component",
-                                        "class": "",
-                                        "index": 0,
-                                        "label": tdata.title,
-                                        "style": "",
-                                        "bundle": {},
-                                        "global": [],
-                                        "toggle": false,
-                                        "stylist": [],
-                                        "dataType": "static",
-                                        "style_from": "code",
-                                        "classDataType": "static",
-                                        "preloadEvenet": {},
-                                        "share": {}
-                                    },
-                                    index: cf.id,
-                                    direction: 1
-                                })
-                            }
-                        });
-                        event.stopPropagation();
-                        event.preventDefault();
-                    })}">
+                                 HtmlGenerate.block_timer = new Date().getTime();
+                                 (window.parent as any).glitter.getModule(new URL('../.././editor/add-component.js', import.meta.url).href, (AddComponent: any) => {
+                                     AddComponent.toggle(true);
+                                     AddComponent.addWidget = (gvc: GVC, cf: any) => {
+                                         (window.parent as any).glitter.share.addWithIndex({
+                                             data: cf,
+                                             index: cf.id,
+                                             direction: 1
+                                         })
+                                     }
+                                     AddComponent.addEvent = (gvc: GVC, tdata: any) => {
+                                         (window.parent as any).glitter.share.addWithIndex({
+                                             data: {
+                                                 "id": gvc.glitter.getUUID(),
+                                                 "js": "./official_view_component/official.js",
+                                                 "css": {
+                                                     "class": {},
+                                                     "style": {}
+                                                 },
+                                                 "data": {
+                                                     'refer_app': tdata.copyApp,
+                                                     "tag": tdata.copy,
+                                                     "list": [],
+                                                     "carryData": {}
+                                                 },
+                                                 "type": "component",
+                                                 "class": "",
+                                                 "index": 0,
+                                                 "label": tdata.title,
+                                                 "style": "",
+                                                 "bundle": {},
+                                                 "global": [],
+                                                 "toggle": false,
+                                                 "stylist": [],
+                                                 "dataType": "static",
+                                                 "style_from": "code",
+                                                 "classDataType": "static",
+                                                 "preloadEvenet": {},
+                                                 "share": {}
+                                             },
+                                             index: cf.id,
+                                             direction: 1
+                                         })
+                                     }
+                                 });
+                                 event.stopPropagation();
+                                 event.preventDefault();
+                             })}">
                             <img src="https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1714376322616-Frame 3137.svg"
                                  class="w-100 h-100">
                         </div>
@@ -2245,7 +2252,7 @@ ${e.line}
 
 function isEditMode() {
     try {
-        return (window.parent as any).editerData !== undefined
+        return ((window as any).editerData !== undefined) || ((window.parent as any).editerData !== undefined)
     } catch (e) {
         return false
     }

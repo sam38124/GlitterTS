@@ -16,7 +16,8 @@ import { Article } from '../glitter-base/route/article.js';
 import { MenusSetting } from '../cms-plugin/menus-setting.js';
 const html = String.raw;
 export class BgBlog {
-    static contentManager(gvc, type = 'list', callback = () => { }, is_page, widget) {
+    static contentManager(gvc, type = 'list', callback = () => {
+    }, is_page, widget) {
         const html = String.raw;
         const glitter = gvc.glitter;
         const vm = {
@@ -80,9 +81,9 @@ export class BgBlog {
                         key: '預覽',
                         value: html `
                             <div
-                                class="d-flex align-items-center justify-content-center hoverBtn me-2 border"
-                                style="height:28px;width:28px;border-radius:5px;cursor:pointer;color:#151515;"
-                                onclick="${gvc.event((e, event) => {
+                                    class="d-flex align-items-center justify-content-center hoverBtn me-2 border"
+                                    style="height:28px;width:28px;border-radius:5px;cursor:pointer;color:#151515;"
+                                    onclick="${gvc.event((e, event) => {
                             const url = new URL('', glitter.share.editorViewModel.domain ? `https://${glitter.share.editorViewModel.domain}/?page=index` : location.href);
                             url.searchParams.delete('type');
                             url.searchParams.set('page', dd.tag);
@@ -172,10 +173,11 @@ export class BgBlog {
                                         else {
                                             return [
                                                 html `<span class="fs-7 fw-bold">操作選項</span>`,
-                                                html `<button
-                                                                class="btn btn-danger fs-7 px-2"
-                                                                style="height:30px;border:none;"
-                                                                onclick="${gvc.event(() => {
+                                                html `
+                                                                <button
+                                                                        class="btn btn-danger fs-7 px-2"
+                                                                        style="height:30px;border:none;"
+                                                                        onclick="${gvc.event(() => {
                                                     const dialog = new ShareDialog(gvc.glitter);
                                                     dialog.checkYesOrNot({
                                                         text: '是否確認移除所選項目?',
@@ -205,9 +207,9 @@ export class BgBlog {
                                                         },
                                                     });
                                                 })}"
-                                                            >
-                                                                批量移除
-                                                            </button>`,
+                                                                >
+                                                                    批量移除
+                                                                </button>`,
                                             ].join(``);
                                         }
                                     },
@@ -308,9 +310,9 @@ function editor(cf) {
                             ${BgWidget.title(cf.is_page ? '編輯頁面' : '編輯網誌')}
                             <div class="flex-fill"></div>
                             <button
-                                class="btn  me-2 btn-outline-secondary"
-                                style="height:35px;font-size: 14px;"
-                                onclick="${gvc.event(() => {
+                                    class="btn  me-2 btn-outline-secondary"
+                                    style="height:35px;font-size: 14px;"
+                                    onclick="${gvc.event(() => {
                     const href = (() => {
                         const url = new URL('', window.parent.glitter.share.editorViewModel.domain
                             ? `https://${window.parent.glitter.share.editorViewModel.domain}/`
@@ -329,9 +331,9 @@ function editor(cf) {
                                 <i class="fa-regular fa-eye me-2"></i>預覽網誌
                             </button>
                             <button
-                                class="btn btn-primary-c "
-                                style="height:35px;font-size: 14px;"
-                                onclick="${gvc.event(() => __awaiter(this, void 0, void 0, function* () {
+                                    class="btn btn-primary-c "
+                                    style="height:35px;font-size: 14px;"
+                                    onclick="${gvc.event(() => __awaiter(this, void 0, void 0, function* () {
                     if (!vm.data.content.tag) {
                         yield cf.widget.event('error', {
                             title: '請輸入連結',
@@ -395,6 +397,25 @@ function editor(cf) {
                     return {
                         bind: artViewID,
                         view: () => {
+                            const page_selector = EditorElem.select({
+                                title: "頁面生成類型",
+                                gvc: gvc,
+                                def: vm.data.content.generator,
+                                array: [
+                                    {
+                                        title: '富文本',
+                                        value: 'rich_text'
+                                    },
+                                    {
+                                        title: '內容編輯器',
+                                        value: 'page_editor'
+                                    }
+                                ],
+                                callback: (text) => {
+                                    vm.data.content.generator = text;
+                                    gvc.notifyDataChange(artViewID);
+                                }
+                            });
                             return [
                                 EditorElem.editeInput({
                                     gvc: gvc,
@@ -425,13 +446,83 @@ function editor(cf) {
                                 }),
                                 (() => {
                                     var _a;
-                                    return EditorElem.richText({
-                                        gvc: gvc,
-                                        def: (_a = vm.data.content.text) !== null && _a !== void 0 ? _a : '',
-                                        callback: (text) => {
-                                            vm.data.content.text = text;
-                                        },
-                                    });
+                                    if (vm.data.content.generator === 'page_editor') {
+                                        return html `
+                                                                    <div class="d-flex flex-fill align-items-end"
+                                                                         style="gap: 10px;">
+                                                                        <div style="max-width:calc(100% - 100px);"
+                                                                             class="flex-fill">
+                                                                            ${page_selector}
+                                                                        </div>
+                                                                        <div class="d-flex align-items-center"
+                                                                             style="height: 45px; gap: 10px;">
+                                                                            <div class="cursor_pointer bt_c39 p-1 "
+                                                                                 style="height: 40px;width: 150px;"><i
+                                                                                    class="fa-solid fa-pager me-2"></i>選擇預設模板
+                                                                            </div>
+                                                                            <div class="cursor_pointer bt_c39 p-1 "
+                                                                                 style="height: 40px;"
+                                                                                 onclick="${gvc.event(() => {
+                                            window.parent.glitter.innerDialog((gvc) => {
+                                                return gvc.bindView(() => {
+                                                    const id = gvc.glitter.getUUID();
+                                                    return {
+                                                        bind: id,
+                                                        view: () => {
+                                                            return html `
+                                                                                                         <iframe class="rounded-3"
+                                                                                                                 id="editor_dialog"
+                                                                                                                 src="${(() => {
+                                                                const url = new URL(window.parent.location.href);
+                                                                url.searchParams.set('function', 'user-editor');
+                                                                return url.href;
+                                                            })()}"></iframe>`;
+                                                        },
+                                                        divCreate: {
+                                                            class: `vw-100 vh-100 p-2`,
+                                                            style: `background: rgba(0,0,0,0.5);`
+                                                        },
+                                                        onCreate: () => {
+                                                            const interval = setInterval(() => {
+                                                                const iframe = window.parent.document.querySelector('#editor_dialog');
+                                                                if (iframe.contentWindow.glitter) {
+                                                                    iframe.contentWindow.glitter.share.editor_vm = {
+                                                                        close: () => {
+                                                                            gvc.closeDialog();
+                                                                        },
+                                                                        callback: (cf) => {
+                                                                            vm.data.content.config = cf.config;
+                                                                        },
+                                                                        page_data: {
+                                                                            config: vm.data.content.config || [],
+                                                                            page_config: {},
+                                                                            name: vm.data.content.name || '尚未設定頁面標題'
+                                                                        },
+                                                                        title: vm.data.content.name || '尚未設定頁面標題'
+                                                                    };
+                                                                    clearInterval(interval);
+                                                                }
+                                                            }, 100);
+                                                        }
+                                                    };
+                                                });
+                                            }, '', {
+                                                dismiss: () => {
+                                                }
+                                            });
+                                        })}"><i
+                                                                                    class="fa-regular fa-pencil me-2"></i>編輯內容
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>`;
+                                    }
+                                    return [page_selector, EditorElem.richText({
+                                            gvc: gvc,
+                                            def: (_a = vm.data.content.text) !== null && _a !== void 0 ? _a : '',
+                                            callback: (text) => {
+                                                vm.data.content.text = text;
+                                            },
+                                        })].join('<div class="my-2"></div>');
                                 })(),
                             ].join(`<div class="my-2"></div>`);
                         },
@@ -447,27 +538,37 @@ function editor(cf) {
                         view: () => {
                             try {
                                 let view = [
-                                    html ` <div class="fs-sm fw-500 d-flex align-items-center justify-content-between mb-2">
-                                                            搜尋引擎列表
-                                                            <div
-                                                                class="fw-500 fs-sm "
-                                                                style="cursor: pointer;color:rgba(0, 91, 211, 1);"
-                                                                onclick="${gvc.event(() => {
+                                    html `
+                                                                <div class="fs-sm fw-500 d-flex align-items-center justify-content-between mb-2">
+                                                                    搜尋引擎列表
+                                                                    <div
+                                                                            class="fw-500 fs-sm "
+                                                                            style="cursor: pointer;color:rgba(0, 91, 211, 1);"
+                                                                            onclick="${gvc.event(() => {
                                         toggle = !toggle;
                                         gvc.notifyDataChange(id);
                                     })}"
-                                                            >
-                                                                ${toggle ? `確認` : `編輯`}
-                                                            </div>
-                                                        </div>`,
-                                    html ` <div class="fs-6 fw-500" style="color:#1a0dab;">${vm.data.content.seo.title || '尚未設定'}</div>`,
+                                                                    >
+                                                                        ${toggle ? `確認` : `編輯`}
+                                                                    </div>
+                                                                </div>`,
+                                    html `
+                                                                <div class="fs-6 fw-500" style="color:#1a0dab;">
+                                                                    ${vm.data.content.seo.title || '尚未設定'}
+                                                                </div>`,
                                     (() => {
                                         const href = (() => {
                                             return `https://${window.parent.glitter.share.editorViewModel.domain}/${vm.data.content.template}?article=${vm.data.content.tag}`;
                                         })();
-                                        return html `<a class="fs-sm fw-500" style="color:#006621;cursor: pointer;" href="${href}">${href}</a>`;
+                                        return html `<a class="fs-sm fw-500"
+                                                                               style="color:#006621;cursor: pointer;"
+                                                                               href="${href}">${href}</a>`;
                                     })(),
-                                    html ` <div class="fs-sm fw-500" style="color:#545454;white-space: normal;">${vm.data.content.seo.content || '尚未設定'}</div>`,
+                                    html `
+                                                                <div class="fs-sm fw-500"
+                                                                     style="color:#545454;white-space: normal;">
+                                                                    ${vm.data.content.seo.content || '尚未設定'}
+                                                                </div>`,
                                 ];
                                 if (toggle) {
                                     view = view.concat([
@@ -564,13 +665,16 @@ function editor(cf) {
                                             var _a;
                                             vm.data.content.collection = (_a = vm.data.content.collection) !== null && _a !== void 0 ? _a : [];
                                             return [
-                                                EditorElem.h3(html ` <div class="d-flex align-items-center" style="gap:10px;">
-                                                                        預覽圖
-                                                                        <div class="d-flex align-items-center justify-content-center rounded-3" style="height: 30px;width: 80px;">
-                                                                            <button
-                                                                                class="btn ms-2 btn-primary-c ms-2"
-                                                                                style="height: 30px;width: 80px;"
-                                                                                onclick="${gvc.event(() => {
+                                                EditorElem.h3(html `
+                                                                            <div class="d-flex align-items-center"
+                                                                                 style="gap:10px;">
+                                                                                預覽圖
+                                                                                <div class="d-flex align-items-center justify-content-center rounded-3"
+                                                                                     style="height: 30px;width: 80px;">
+                                                                                    <button
+                                                                                            class="btn ms-2 btn-primary-c ms-2"
+                                                                                            style="height: 30px;width: 80px;"
+                                                                                            onclick="${gvc.event(() => {
                                                     EditorElem.uploadFileFunction({
                                                         gvc: gvc,
                                                         callback: (text) => {
@@ -580,24 +684,24 @@ function editor(cf) {
                                                         type: `image/*, video/*`,
                                                     });
                                                 })}"
-                                                                            >
-                                                                                添加檔案
-                                                                            </button>
-                                                                        </div>
-                                                                    </div>`),
+                                                                                    >
+                                                                                        添加檔案
+                                                                                    </button>
+                                                                                </div>
+                                                                            </div>`),
                                                 EditorElem.flexMediaManager({
                                                     gvc: gvc,
                                                     data: vm.data.content.preview_image ? [vm.data.content.preview_image] : [],
                                                 }),
                                                 html `
-                                                                        <div
-                                                                            class="d-flex mx-n3  px-2 hi fw-bold d-flex align-items-center border-bottom  py-2 border-top bgf6"
-                                                                            style="color:#151515;font-size:16px;gap:0px;height:48px;"
-                                                                        >
-                                                                            文章分類
-                                                                            <div class="flex-fill"></div>
-                                                                        </div>
-                                                                        ${gvc.bindView(() => {
+                                                                            <div
+                                                                                    class="d-flex mx-n3  px-2 hi fw-bold d-flex align-items-center border-bottom  py-2 border-top bgf6"
+                                                                                    style="color:#151515;font-size:16px;gap:0px;height:48px;"
+                                                                            >
+                                                                                文章分類
+                                                                                <div class="flex-fill"></div>
+                                                                            </div>
+                                                                            ${gvc.bindView(() => {
                                                     const tagID = gvc.glitter.getUUID();
                                                     let listTag = [];
                                                     ApiUser.getPublicConfig('blog_collection', 'manager').then((data) => {
@@ -630,18 +734,19 @@ function editor(cf) {
                                                         },
                                                     };
                                                 })}
-                                                                        <div
-                                                                            class="cursor_pointer bt_c39 ms-2 p-1 mt-3"
-                                                                            style=""
-                                                                            onclick="${gvc.event(() => {
+                                                                            <div
+                                                                                    class="cursor_pointer bt_c39 ms-2 p-1 mt-3"
+                                                                                    style=""
+                                                                                    onclick="${gvc.event(() => {
                                                     cVm.type = 'collection';
                                                     gvc.notifyDataChange(cVm.id);
                                                 })}"
-                                                                        >
-                                                                            <i class="fa-solid fa-plus me-2" aria-hidden="true"></i>
-                                                                            添加與編輯分類
-                                                                        </div>
-                                                                    `,
+                                                                            >
+                                                                                <i class="fa-solid fa-plus me-2"
+                                                                                   aria-hidden="true"></i>
+                                                                                添加與編輯分類
+                                                                            </div>
+                                                                        `,
                                             ].join(`<div class="my-2"></div>`);
                                         },
                                         divCreate: {},
@@ -653,8 +758,8 @@ function editor(cf) {
                 }))}
                                 <div class="${vm.data.id ? `d-flex` : `d-none`} align-items-center justify-content-end mt-2">
                                     <button
-                                        class="btn btn-danger btn-sm"
-                                        onclick="${gvc.event(() => {
+                                            class="btn btn-danger btn-sm"
+                                            onclick="${gvc.event(() => {
                     const dialog = new ShareDialog(gvc.glitter);
                     dialog.checkYesOrNot({
                         text: '是否確認刪除此頁面?',
@@ -686,7 +791,7 @@ function editor(cf) {
                     });
                 })}"
                                     >
-                                        刪除${cf.is_page ? '頁面' : '網誌'}
+                                            刪除${cf.is_page ? '頁面' : '網誌'}
                                     </button>
                                 </div>
                             </div>
@@ -834,35 +939,36 @@ function setCollection(cf) {
         return {
             bind: vm.id,
             view: () => {
-                return html ` <div class="d-flex align-items-center my-3">
+                return html `
+                    <div class="d-flex align-items-center my-3">
                         ${BgWidget.goBack(cf.gvc.event(() => {
                     cf.goBack();
                 }))}${BgWidget.title('分類設定')}
                     </div>
                     <div
-                        style="max-width:100%;width: 856px; padding: 20px; background: white; box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.08); border-radius: 10px; overflow: hidden; justify-content: center; align-items: center; display: inline-flex"
+                            style="max-width:100%;width: 856px; padding: 20px; background: white; box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.08); border-radius: 10px; overflow: hidden; justify-content: center; align-items: center; display: inline-flex"
                     >
                         <div style="width: 100%;  position: relative">
                             <div style="width: 100%;  left: 0px; top: 0px;  flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 20px; display: inline-flex">
                                 <div
-                                    class="w-100  ${getSelectCount({
+                                        class="w-100  ${getSelectCount({
                     items: vm.link,
                 }) > 0
                     ? ``
                     : `d-none`}"
-                                    style="height: 40px; padding: 12px 18px;background: #F7F7F7; border-radius: 10px; justify-content: flex-end; align-items: center; gap: 8px; display: inline-flex"
+                                        style="height: 40px; padding: 12px 18px;background: #F7F7F7; border-radius: 10px; justify-content: flex-end; align-items: center; gap: 8px; display: inline-flex"
                                 >
                                     <div style="flex: 1 1 0; color: #393939; font-size: 14px; font-family: Noto Sans; font-weight: 700; word-wrap: break-word">
-                                        已選取${getSelectCount({
+                                            已選取${getSelectCount({
                     items: vm.link,
                 })}項
                                     </div>
                                     <div
-                                        style="cursor:pointer;padding: 4px 14px;background: white; box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.10); border-radius: 20px; border: 1px #DDDDDD solid; justify-content: flex-start; align-items: flex-start; gap: 10px; display: flex"
+                                            style="cursor:pointer;padding: 4px 14px;background: white; box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.10); border-radius: 20px; border: 1px #DDDDDD solid; justify-content: flex-start; align-items: flex-start; gap: 10px; display: flex"
                                     >
                                         <div
-                                            style="color: #393939; font-size: 14px; font-family: Noto Sans; font-weight: 400; word-wrap: break-word"
-                                            onclick="${gvc.event(() => {
+                                                style="color: #393939; font-size: 14px; font-family: Noto Sans; font-weight: 400; word-wrap: break-word"
+                                                onclick="${gvc.event(() => {
                     vm.link = deleteSelect(vm.link);
                     gvc.notifyDataChange(vm.id);
                 })}"
@@ -871,9 +977,10 @@ function setCollection(cf) {
                                         </div>
                                     </div>
                                 </div>
-                                <div class="d-flex align-items-center" style="width: 100%; height: 22px; position: relative;gap:29px;">
+                                <div class="d-flex align-items-center"
+                                     style="width: 100%; height: 22px; position: relative;gap:29px;">
                                     <div
-                                        class="${allSelect({
+                                            class="${allSelect({
                     items: vm.link,
                     selected: !vm.link.find((dd) => {
                         return !dd.selected;
@@ -881,8 +988,8 @@ function setCollection(cf) {
                 })
                     ? `fa-solid fa-square-check`
                     : `fa-regular fa-square`}"
-                                        style="color:#393939;width: 16px; height: 16px;cursor: pointer;"
-                                        onclick="${cf.gvc.event((e, event) => {
+                                            style="color:#393939;width: 16px; height: 16px;cursor: pointer;"
+                                            onclick="${cf.gvc.event((e, event) => {
                     event.stopPropagation();
                     if (vm.link.find((dd) => {
                         return !dd.selected;
@@ -899,7 +1006,9 @@ function setCollection(cf) {
                     gvc.notifyDataChange(vm.id);
                 })}"
                                     ></div>
-                                    <div style="left: 61px; top: 0px;  color: #393939; font-size: 16px; font-family: Noto Sans; font-weight: 700; word-wrap: break-word">選單名稱</div>
+                                    <div style="left: 61px; top: 0px;  color: #393939; font-size: 16px; font-family: Noto Sans; font-weight: 700; word-wrap: break-word">
+                                        選單名稱
+                                    </div>
                                 </div>
                                 <div style="align-self: stretch; flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 18px; display: flex">
                                     ${(() => {
@@ -913,20 +1022,20 @@ function setCollection(cf) {
                                         .map((dd, index) => {
                                         dd.items;
                                         const list = html `
-                                                                        <div
-                                                                            class=" w-100 "
-                                                                            style="width: 100%; justify-content: flex-start; align-items: center; gap: 5px; display: inline-flex;cursor: pointer;"
-                                                                            onclick="${cf.gvc.event(() => {
+                                                                                <div
+                                                                                        class=" w-100 "
+                                                                                        style="width: 100%; justify-content: flex-start; align-items: center; gap: 5px; display: inline-flex;cursor: pointer;"
+                                                                                        onclick="${cf.gvc.event(() => {
                                             if (dd.items && dd.items.length > 0) {
                                                 dd.toggle = !dd.toggle;
                                                 gvc.notifyDataChange(vm.id);
                                             }
                                         })}"
-                                                                        >
-                                                                            <div
-                                                                                class="${allSelect(dd) ? `fa-solid fa-square-check` : `fa-regular fa-square`}"
-                                                                                style="color:#393939;width: 16px; height: 16px;"
-                                                                                onclick="${cf.gvc.event((e, event) => {
+                                                                                >
+                                                                                    <div
+                                                                                            class="${allSelect(dd) ? `fa-solid fa-square-check` : `fa-regular fa-square`}"
+                                                                                            style="color:#393939;width: 16px; height: 16px;"
+                                                                                            onclick="${cf.gvc.event((e, event) => {
                                             event.stopPropagation();
                                             dd.selected = !dd.selected;
                                             if (dd.selected) {
@@ -937,38 +1046,39 @@ function setCollection(cf) {
                                             }
                                             gvc.notifyDataChange(vm.id);
                                         })}"
-                                                                            ></div>
-                                                                            <div class="hoverF2 pe-2" style="width: 100%;  justify-content: flex-start; align-items: center; gap: 8px; display: flex">
-                                                                                <i
-                                                                                    class="ms-2 fa-solid fa-grip-dots-vertical cl_39 dragItem hoverBtn d-flex align-items-center justify-content-center"
-                                                                                    style="cursor: pointer;width:25px;height: 25px;"
-                                                                                ></i>
-                                                                                <div style="flex-direction: column; justify-content: center; align-items: flex-start; gap: 2px; display: inline-flex">
-                                                                                    <div style="justify-content: flex-start; align-items: center; gap: 8px; display: inline-flex">
-                                                                                        <div style="color: #393939; font-size: 16px; font-family: Noto Sans; font-weight: 400; word-wrap: break-word">
-                                                                                            ${dd.title}
-                                                                                        </div>
-                                                                                        ${dd.items && dd.items.length > 0
+                                                                                    ></div>
+                                                                                    <div class="hoverF2 pe-2"
+                                                                                         style="width: 100%;  justify-content: flex-start; align-items: center; gap: 8px; display: flex">
+                                                                                        <i
+                                                                                                class="ms-2 fa-solid fa-grip-dots-vertical cl_39 dragItem hoverBtn d-flex align-items-center justify-content-center"
+                                                                                                style="cursor: pointer;width:25px;height: 25px;"
+                                                                                        ></i>
+                                                                                        <div style="flex-direction: column; justify-content: center; align-items: flex-start; gap: 2px; display: inline-flex">
+                                                                                            <div style="justify-content: flex-start; align-items: center; gap: 8px; display: inline-flex">
+                                                                                                <div style="color: #393939; font-size: 16px; font-family: Noto Sans; font-weight: 400; word-wrap: break-word">
+                                                                                                    ${dd.title}
+                                                                                                </div>
+                                                                                                ${dd.items && dd.items.length > 0
                                             ? !dd.toggle
                                                 ? `<i class="fa-solid fa-angle-down cl_39"></i>`
                                                 : `<i class="fa-solid fa-angle-up cl_39"></i>`
                                             : ``}
-                                                                                    </div>
-                                                                                    <div style="justify-content: flex-start; align-items: center; gap: 8px; display: inline-flex">
+                                                                                            </div>
+                                                                                            <div style="justify-content: flex-start; align-items: center; gap: 8px; display: inline-flex">
+                                                                                                <div
+                                                                                                        style="color: #3366BB; font-size: 14px; font-family: Noto Sans; font-weight: 400; line-height: 14px; word-wrap: break-word"
+                                                                                                >
+                                                                                                    ${dd.title}
+                                                                                                </div>
+                                                                                                <div style="color: #159240; font-size: 14px; font-family: Noto Sans; font-weight: 400; word-wrap: break-word">
+                                                                                                    ${dd.link}
+                                                                                                </div>
+                                                                                            </div>
+                                                                                        </div>
+                                                                                        <div class="flex-fill"></div>
                                                                                         <div
-                                                                                            style="color: #3366BB; font-size: 14px; font-family: Noto Sans; font-weight: 400; line-height: 14px; word-wrap: break-word"
-                                                                                        >
-                                                                                            ${dd.title}
-                                                                                        </div>
-                                                                                        <div style="color: #159240; font-size: 14px; font-family: Noto Sans; font-weight: 400; word-wrap: break-word">
-                                                                                            ${dd.link}
-                                                                                        </div>
-                                                                                    </div>
-                                                                                </div>
-                                                                                <div class="flex-fill"></div>
-                                                                                <div
-                                                                                    class="child me-2"
-                                                                                    onclick="${cf.gvc.event((e, event) => {
+                                                                                                class="child me-2"
+                                                                                                onclick="${cf.gvc.event((e, event) => {
                                             event.stopPropagation();
                                             MenusSetting.collectionEvent({
                                                 link: '',
@@ -987,12 +1097,13 @@ function setCollection(cf) {
                                                 }
                                             });
                                         })}"
-                                                                                >
-                                                                                    <i class="fa-solid fa-plus" style="color:#393939;"></i>
-                                                                                </div>
-                                                                                <div
-                                                                                    class="child"
-                                                                                    onclick="${cf.gvc.event((e, event) => {
+                                                                                        >
+                                                                                            <i class="fa-solid fa-plus"
+                                                                                               style="color:#393939;"></i>
+                                                                                        </div>
+                                                                                        <div
+                                                                                                class="child"
+                                                                                                onclick="${cf.gvc.event((e, event) => {
                                             event.stopPropagation();
                                             const og = JSON.parse(JSON.stringify(dd));
                                             MenusSetting.collectionEvent(dd, (data) => {
@@ -1008,20 +1119,23 @@ function setCollection(cf) {
                                                 }
                                             });
                                         })}"
-                                                                                >
-                                                                                    <i class="fa-solid fa-pencil" style="color:#393939;"></i>
+                                                                                        >
+                                                                                            <i class="fa-solid fa-pencil"
+                                                                                               style="color:#393939;"></i>
+                                                                                        </div>
+                                                                                    </div>
                                                                                 </div>
-                                                                            </div>
-                                                                        </div>
-                                                                        ${dd.items && dd.items.length > 0
+                                                                                ${dd.items && dd.items.length > 0
                                             ? html `
-                                                                                  <div class=" w-100 ${dd.toggle ? `` : `d-none`}" style="padding-left: 35px;">
-                                                                                      ${renderItems(dd.items)}
-                                                                                  </div>
-                                                                              `
+                                                                                            <div class=" w-100 ${dd.toggle ? `` : `d-none`}"
+                                                                                                 style="padding-left: 35px;">
+                                                                                                ${renderItems(dd.items)}
+                                                                                            </div>
+                                                                                        `
                                             : ``}
-                                                                    `;
-                                        return html `<li class="w-100 ">${list}</li>`;
+                                                                            `;
+                                        return html `
+                                                                                <li class="w-100 ">${list}</li>`;
                                     })
                                         .join('');
                                 },
@@ -1035,7 +1149,9 @@ function setCollection(cf) {
                                         {
                                             src: `https://raw.githack.com/SortableJS/Sortable/master/Sortable.js`,
                                         },
-                                    ], () => { }, () => { });
+                                    ], () => {
+                                    }, () => {
+                                    });
                                     const interval = setInterval(() => {
                                         if (window.Sortable) {
                                             try {
@@ -1055,7 +1171,8 @@ function setCollection(cf) {
                                                     group: id,
                                                     animation: 100,
                                                     handle: '.dragItem',
-                                                    onChange: function (evt) { },
+                                                    onChange: function (evt) {
+                                                    },
                                                     onEnd: (evt) => {
                                                         swapArr(array, startIndex, evt.newIndex);
                                                         gvc.notifyDataChange(id);
@@ -1065,17 +1182,19 @@ function setCollection(cf) {
                                                     },
                                                 });
                                             }
-                                            catch (e) { }
+                                            catch (e) {
+                                            }
                                             clearInterval(interval);
                                         }
                                     }, 100);
                                 },
                             };
                         }) +
-                            html ` <div
-                                                    class=""
-                                                    style="cursor:pointer;align-self: stretch; height: 50px; flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 10px; display: flex"
-                                                    onclick="${cf.gvc.event(() => {
+                            html `
+                                                        <div
+                                                                class=""
+                                                                style="cursor:pointer;align-self: stretch; height: 50px; flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 10px; display: flex"
+                                                                onclick="${cf.gvc.event(() => {
                                 MenusSetting.collectionEvent({
                                     link: '',
                                     title: '',
@@ -1092,14 +1211,17 @@ function setCollection(cf) {
                                     }
                                 });
                             })}"
-                                                >
-                                                    <div
-                                                        style="align-self: stretch; height: 54px; border-radius: 10px; border: 1px #DDDDDD solid; justify-content: center; align-items: center; gap: 6px; display: inline-flex"
-                                                    >
-                                                        <i class="fa-solid fa-plus" style="color: #3366BB;font-size: 16px; "></i>
-                                                        <div style="color: #3366BB; font-size: 16px; font-family: Noto Sans; font-weight: 400; word-wrap: break-word">新增選單</div>
-                                                    </div>
-                                                </div>`);
+                                                        >
+                                                            <div
+                                                                    style="align-self: stretch; height: 54px; border-radius: 10px; border: 1px #DDDDDD solid; justify-content: center; align-items: center; gap: 6px; display: inline-flex"
+                                                            >
+                                                                <i class="fa-solid fa-plus"
+                                                                   style="color: #3366BB;font-size: 16px; "></i>
+                                                                <div style="color: #3366BB; font-size: 16px; font-family: Noto Sans; font-weight: 400; word-wrap: break-word">
+                                                                    新增選單
+                                                                </div>
+                                                            </div>
+                                                        </div>`);
                     }
                     return renderItems(vm.link);
                 })()}
@@ -1107,7 +1229,8 @@ function setCollection(cf) {
                             </div>
                         </div>
                     </div>
-                    <div class="position-fixed bg-body bottom-0  w-100 d-flex align-items-center justify-content-end p-3 border-top" style="gap:10px;left:0px;">
+                    <div class="position-fixed bg-body bottom-0  w-100 d-flex align-items-center justify-content-end p-3 border-top"
+                         style="gap:10px;left:0px;">
                         ${BgWidget.cancel(gvc.event(() => {
                     cf.goBack();
                 }))}
@@ -1135,14 +1258,16 @@ function addArticle(gvc, callback, for_index) {
     const html = String.raw;
     const glitter = gvc.glitter;
     return html `
-        <div class="w-100 h-100 d-flex flex-column align-items-center justify-content-center" style="background-color: rgba(0,0,0,0.5);">
+        <div class="w-100 h-100 d-flex flex-column align-items-center justify-content-center"
+             style="background-color: rgba(0,0,0,0.5);">
             <div class="m-auto rounded shadow bg-white" style="max-width: 100%;max-height: 100%;width: 360px;">
-                <div class="w-100 d-flex align-items-center border-bottom justify-content-center position-relative py-3" style="">
+                <div class="w-100 d-flex align-items-center border-bottom justify-content-center position-relative py-3"
+                     style="">
                     <h3 class="modal-title fs-5">添加網誌</h3>
                     <i
-                        class="fa-solid fa-xmark text-dark position-absolute "
-                        style="font-size:20px;transform: translateY(-50%);right: 20px;top: 50%;cursor: pointer;"
-                        onclick="${gvc.event(() => {
+                            class="fa-solid fa-xmark text-dark position-absolute "
+                            style="font-size:20px;transform: translateY(-50%);right: 20px;top: 50%;cursor: pointer;"
+                            onclick="${gvc.event(() => {
         glitter.closeDiaLog();
     })}"
                     ></i>
@@ -1182,9 +1307,9 @@ function addArticle(gvc, callback, for_index) {
                 </div>
                 <div class="d-flex w-100 mb-2 align-items-center justify-content-center">
                     <button
-                        class="btn btn-primary "
-                        style="width: calc(100% - 20px);"
-                        onclick="${gvc.event(() => {
+                            class="btn btn-primary "
+                            style="width: calc(100% - 20px);"
+                            onclick="${gvc.event(() => {
         const dialog = new ShareDialog(glitter);
         dialog.dataLoading({ text: '上傳中', visible: true });
         Article.post(tdata).then((it) => {

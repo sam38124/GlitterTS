@@ -1259,7 +1259,7 @@ export class BgNotify {
                                                                         gvc.glitter.innerDialog((gvc) => {
                                                                             let dataList: any = [];
                                                                             return html`
-                                                                                <div>
+                                                                                <div style="max-height: calc(100vh - 100px);overflow-y: auto;">
                                                                                     ${BgWidget.container(
                                                                                         BgWidget.card(
                                                                                             [

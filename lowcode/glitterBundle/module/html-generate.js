@@ -1328,7 +1328,8 @@ ${obj.gvc.bindView({
                                                         gvc: gvc,
                                                         widget: widget,
                                                         widgetComponentID: cf.widget.id,
-                                                        event: document.querySelector(`[gvc-id="${gvc.id(cf.widget.id)}"]`)
+                                                        event: document.querySelector(`[gvc-id="${gvc.id(cf.widget.id)}"]`),
+                                                        glitter: window.parent.glitter
                                                     });
                                                     scrollToHover(gvc.glitter.$(`.editor_it_${cf.widget.id}`).get(0));
                                                 };
@@ -1337,7 +1338,8 @@ ${obj.gvc.bindView({
                                                         gvc: gvc,
                                                         widget: widget,
                                                         widgetComponentID: cf.widget.id,
-                                                        event: event
+                                                        event: event,
+                                                        glitter: window.parent.glitter
                                                     });
                                                 });
                                             })()
@@ -1435,7 +1437,8 @@ ${obj.gvc.bindView({
                                                             gvc: gvc,
                                                             widget: widget,
                                                             widgetComponentID: cf.widget.id,
-                                                            event: document.querySelector(`[gvc-id="${gvc.id(component_id)}"]`)
+                                                            event: document.querySelector(`[gvc-id="${gvc.id(component_id)}"]`),
+                                                            glitter: window.parent.glitter
                                                         });
                                                         scrollToHover(gvc.glitter.$(`.editor_it_${cf.widget.id}`).get(0));
                                                     };
@@ -1444,7 +1447,8 @@ ${obj.gvc.bindView({
                                                             gvc: gvc,
                                                             widget: widget,
                                                             widgetComponentID: cf.widget.id,
-                                                            event: event
+                                                            event: event,
+                                                            glitter: window.parent.glitter
                                                         });
                                                     });
                                                 })()
@@ -1591,15 +1595,19 @@ ${obj.gvc.bindView({
         const gvc = cf.gvc;
         const widgetComponentID = cf.widgetComponentID;
         const event = cf.event;
+        let glitter = window.glitter;
+        while (!glitter.share.editorViewModel) {
+            glitter = window.parent.glitter;
+        }
         function active() {
             try {
                 Storage.page_setting_item = 'layout';
-                (window.parent.glitter.pageConfig[gvc.glitter.pageConfig.length - 1]).gvc.notifyDataChange('left_sm_bar');
+                glitter.pageConfig[gvc.glitter.pageConfig.length - 1].gvc.notifyDataChange('left_sm_bar');
                 gvc.glitter.$('.editorItemActive').removeClass('editorItemActive');
                 gvc.glitter.$(`.editor_it_${widgetComponentID}`).addClass('editorItemActive');
-                window.parent.glitter.share.editorViewModel.selectItem = dd;
+                glitter.share.editorViewModel.selectItem = dd;
                 Storage.lastSelect = dd.id;
-                window.parent.glitter.share.selectEditorItem();
+                glitter.share.selectEditorItem();
                 if (cf.scroll_to_hover) {
                     setTimeout(() => {
                         scrollToHover(gvc.glitter.$(`.editor_it_${widgetComponentID}`).get(0));
@@ -2032,7 +2040,7 @@ HtmlGenerate.hover_items = [];
 HtmlGenerate.block_timer = 0;
 function isEditMode() {
     try {
-        return window.parent.editerData !== undefined;
+        return (window.editerData !== undefined) || (window.parent.editerData !== undefined);
     }
     catch (e) {
         return false;
