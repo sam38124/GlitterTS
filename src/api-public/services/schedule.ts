@@ -99,7 +99,7 @@ export class Schedule {
 
         const scheduleList: ScheduleItem[] = [
             { second: 10, status: false, func: 'example', desc: '排程1啟用的方法' },
-            { second: 15, status: true, func: 'birthRebate', desc: '生日禮發放購物金' },
+            { second: 60 * 60, status: true, func: 'birthRebate', desc: '生日禮發放購物金' },
         ];
 
         try {

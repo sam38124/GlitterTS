@@ -15,7 +15,6 @@ class Schedule {
     }
     example(sec) {
         try {
-            console.log(`${this.app} 排程範例`);
         }
         catch (e) {
             throw exception_1.default.BadRequestError('BAD_REQUEST', 'Example Error: ' + e, null);
@@ -32,7 +31,6 @@ class Schedule {
                 if (rgs && rgs.switch) {
                     async function postUserRebate(id, value) {
                         const used = await rebateClass.canUseRebate(id, 'birth');
-                        console.log(id, used);
                         if (used === null || used === void 0 ? void 0 : used.result) {
                             await rebateClass.insertRebate(id, value, '生日禮', {
                                 type: 'birth',
@@ -51,7 +49,6 @@ class Schedule {
                         for (const user of users) {
                             const member = await userClass.refreshMember(user);
                             const level = member.find((dd) => dd.trigger);
-                            console.log(user.userID, level);
                             if (!level)
                                 continue;
                             const data = rgs.level.find((item) => item.id === level.id);
