@@ -343,7 +343,9 @@ class Rebate {
                     return { result: false, msg: '此優惠券已使用過' };
             }
             if (type === 'birth') {
-                const data = await database_1.default.query(`${SQL} AND JSON_EXTRACT(content, '$.type') = 'birth';`, []);
+                const data = await database_1.default.query(`${SQL} 
+                            AND JSON_EXTRACT(content, '$.type') = 'birth'
+                            AND YEAR(created_at) = YEAR(CURDATE());`, []);
                 if (data.length > 0)
                     return { result: false, msg: '生日購物金已發放過' };
             }

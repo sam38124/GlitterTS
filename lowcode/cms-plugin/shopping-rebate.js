@@ -175,7 +175,6 @@ export class ShoppingRebate {
                                                         note: vm.note,
                                                         rebateEndDay: vm.rebateEndDay,
                                                     }).then((result) => {
-                                                        console.log(result);
                                                         dialog.dataLoading({ visible: false });
                                                         if (result.response.result) {
                                                             dialog.successMessage({ text: `設定成功` });

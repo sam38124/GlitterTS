@@ -31,6 +31,8 @@ interface VoucherData {
     end_ISO_Date: string;
     discount_total: number;
     rebate_total: number;
+    target: string;
+    targetList: string[];
 }
 export declare class Shopping {
     app: string;

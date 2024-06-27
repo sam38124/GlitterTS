@@ -420,19 +420,6 @@ class Shopping {
         }
     }
     async checkVoucher(cart) {
-        var _a;
-        const shipment = ((_a = (await private_config_js_1.Private_config.getConfig({
-            appName: this.app,
-            key: 'glitter_shipment',
-        }))) !== null && _a !== void 0 ? _a : [
-            {
-                value: {
-                    volume: [],
-                    weight: [],
-                    selectCalc: 'volume',
-                },
-            },
-        ])[0].value;
         cart.discount = 0;
         cart.lineItems.map((dd) => {
             dd.discount_price = 0;
@@ -440,6 +427,7 @@ class Shopping {
         });
         let overlay = false;
         const code = cart.code;
+        const userData = await new user_js_1.User(this.app).getUserData(cart.email, 'account');
         const voucherList = (await this.querySql([`(content->>'$.type'='voucher')`], {
             page: 0,
             limit: 10000,
@@ -486,6 +474,16 @@ class Shopping {
         })
             .filter((dd) => {
             return dd.rule === 'min_count' ? cart.lineItems.length >= parseInt(`${dd.ruleValue}`, 10) : cart.total >= parseInt(`${dd.ruleValue}`, 10);
+        })
+            .filter((dd) => {
+            if (dd.target === 'customer') {
+                return dd.targetList.includes(userData.userID);
+            }
+            if (dd.target === 'levels') {
+                const level = userData.member.find((dd) => dd.trigger);
+                return level && dd.targetList.includes(level.id);
+            }
+            return true;
         })
             .sort(function (a, b) {
             let compareB = b

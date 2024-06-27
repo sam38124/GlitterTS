@@ -57,6 +57,7 @@ const web_socket_js_1 = require("./services/web-socket.js");
 const ut_database_js_1 = require("./api-public/utils/ut-database.js");
 const compression_1 = __importDefault(require("compression"));
 const user_js_1 = require("./api-public/services/user.js");
+const schedule_js_1 = require("./api-public/services/schedule.js");
 const private_config_js_1 = require("./services/private_config.js");
 const moment_js_1 = __importDefault(require("moment/moment.js"));
 const xml_formatter_1 = __importDefault(require("xml-formatter"));
@@ -71,7 +72,7 @@ exports.app.options('/*', (req, res) => {
 exports.app.use((0, cors_1.default)());
 exports.app.use((0, compression_1.default)());
 exports.app.use(express_1.default.raw({ limit: '100MB' }));
-exports.app.use(express_1.default.json({ limit: '100MB', }));
+exports.app.use(express_1.default.json({ limit: '100MB' }));
 exports.app.use(body_parser_1.default.json({ limit: '100MB' }));
 exports.app.use(createContext);
 exports.app.use(body_parser_1.default.raw({ type: '*/*' }));
@@ -111,7 +112,7 @@ async function createDomain(domainName) {
         CountryCode: 'TW',
         ZipCode: '427',
         PhoneNumber: '+886.978028730',
-        Email: 'sam38124@gmail.com'
+        Email: 'sam38124@gmail.com',
     };
     const domainParams = {
         DomainName: domainName,
@@ -122,7 +123,7 @@ async function createDomain(domainName) {
         TechContact: contact,
         PrivacyProtectAdminContact: true,
         PrivacyProtectRegistrantContact: true,
-        PrivacyProtectTechContact: true
+        PrivacyProtectTechContact: true,
     };
     await route53domains.registerDomain(domainParams, (err, data) => {
         if (err) {
@@ -137,7 +138,7 @@ async function setDNS(domainName) {
     const route53 = new aws_sdk_1.default.Route53();
     const domainParams = {
         Name: domainName,
-        CallerReference: Date.now().toString()
+        CallerReference: Date.now().toString(),
     };
     await route53.createHostedZone(domainParams, async (err, data) => {
         if (err) {
@@ -150,22 +151,22 @@ async function setDNS(domainName) {
                 Type: 'A',
                 ResourceRecords: [
                     {
-                        Value: `3.36.55.11`
-                    }
+                        Value: `3.36.55.11`,
+                    },
                 ],
-                TTL: 300
+                TTL: 300,
             };
             const changeBatch = {
                 Changes: [
                     {
                         Action: 'UPSERT',
-                        ResourceRecordSet: resourceRecordSet
-                    }
-                ]
+                        ResourceRecordSet: resourceRecordSet,
+                    },
+                ],
             };
             const changeParams = {
                 HostedZoneId: data.HostedZone.Id,
-                ChangeBatch: changeBatch
+                ChangeBatch: changeBatch,
             };
             await route53.changeResourceRecordSets(changeParams, (err, data) => {
                 if (err) {
@@ -191,15 +192,15 @@ async function changeDNSRecord() {
                         TTL: 300,
                         ResourceRecords: [
                             {
-                                Value: '192.0.2.1'
-                            }
-                        ]
-                    }
-                }
+                                Value: '192.0.2.1',
+                            },
+                        ],
+                    },
+                },
             ],
-            Comment: 'Adding A record for example.com'
+            Comment: 'Adding A record for example.com',
         },
-        HostedZoneId: 'Z06668613MA008TSZJ1HW'
+        HostedZoneId: 'Z06668613MA008TSZJ1HW',
     };
     route53.changeResourceRecordSets(params, function (err, data) {
         if (err) {
@@ -218,8 +219,7 @@ function createContext(req, res, next) {
     next();
 }
 async function createAppRoute() {
-    const apps = await database_2.default.execute(`SELECT appName
-                                   FROM \`${config_1.saasConfig.SAAS_NAME}\`.app_config;`, []);
+    const apps = await database_2.default.execute(`SELECT appName FROM \`${config_1.saasConfig.SAAS_NAME}\`.app_config;`, []);
     for (const dd of apps) {
         await createAPP(dd);
     }
@@ -227,6 +227,7 @@ async function createAppRoute() {
 async function createAPP(dd) {
     const html = String.raw;
     live_source_1.Live_source.liveAPP.push(dd.appName);
+    new schedule_js_1.Schedule(dd.appName).main();
     const file_path = path_1.default.resolve(__dirname, '../lowcode');
     return await glitter_util_js_1.GlitterUtil.set_frontend_v2(exports.app, [
         {
@@ -246,19 +247,19 @@ async function createAPP(dd) {
                     }
                     const brandAndMemberType = await app_js_1.App.checkBrandAndMemberType(appName);
                     let data = await seo_js_1.Seo.getPageInfo(appName, req.query.page);
-                    let customCode = await (new user_js_1.User(appName)).getConfigV2({
+                    let customCode = await new user_js_1.User(appName).getConfigV2({
                         key: 'ga4_config',
-                        user_id: 'manager'
+                        user_id: 'manager',
                     });
                     if (data && data.page_config) {
                         data.page_config = (_a = data.page_config) !== null && _a !== void 0 ? _a : {};
                         const d = (_b = data.page_config.seo) !== null && _b !== void 0 ? _b : {};
                         if (data.page_type === 'article' && data.page_config.template_type === 'product') {
-                            const pd = (await new shopping_js_1.Shopping(appName, undefined).getProduct({
+                            const pd = await new shopping_js_1.Shopping(appName, undefined).getProduct({
                                 page: 0,
                                 limit: 1,
-                                id: req.query.product_id
-                            }));
+                                id: req.query.product_id,
+                            });
                             if (pd.data.content) {
                                 const productSeo = (_c = pd.data.content.seo) !== null && _c !== void 0 ? _c : {};
                                 data = await seo_js_1.Seo.getPageInfo(appName, data.config.homePage);
@@ -272,13 +273,10 @@ async function createAPP(dd) {
                             }
                         }
                         else if (data.page_type === 'article' && data.page_config.template_type === 'blog') {
-                            let query = [
-                                `(content->>'$.type'='article')`,
-                                `(content->>'$.tag'='${req.query.article}')`,
-                            ];
+                            let query = [`(content->>'$.type'='article')`, `(content->>'$.tag'='${req.query.article}')`];
                             const article = await new ut_database_js_1.UtDatabase(appName, `t_manager_post`).querySql(query, {
                                 page: 0,
-                                limit: 1
+                                limit: 1,
                             });
                             data = await seo_js_1.Seo.getPageInfo(appName, data.config.homePage);
                             data.page_config = (_f = data.page_config) !== null && _f !== void 0 ? _f : {};
@@ -292,15 +290,18 @@ async function createAPP(dd) {
                         else if (d.type !== 'custom') {
                             data = await seo_js_1.Seo.getPageInfo(appName, data.config.homePage);
                         }
-                        const relative_root = req.query.page.split('/').map((dd, index) => {
+                        const relative_root = req.query.page
+                            .split('/')
+                            .map((dd, index) => {
                             if (index === 0) {
                                 return './';
                             }
                             else {
                                 return '../';
                             }
-                        }).join('');
-                        const preload = (req.query.type === 'editor' || req.query.isIframe === 'true') ? {} : await app_js_1.App.preloadPageData(appName, req.query.page);
+                        })
+                            .join('');
+                        const preload = req.query.type === 'editor' || req.query.isIframe === 'true' ? {} : await app_js_1.App.preloadPageData(appName, req.query.page);
                         data.page_config = (_h = data.page_config) !== null && _h !== void 0 ? _h : {};
                         data.page_config.seo = (_j = data.page_config.seo) !== null && _j !== void 0 ? _j : {};
                         const seo_detail = await getSeoDetail(appName, req);
@@ -314,15 +315,15 @@ async function createAPP(dd) {
                             const d = data.page_config.seo;
                             return html `
                                 <head>
-                                    <title>${(_a = d.title) !== null && _a !== void 0 ? _a : "尚未設定標題"}</title>
-                                    <link rel="canonical" href="${relative_root}${data.tag}">
-                                    <meta name="keywords" content="${(_b = d.keywords) !== null && _b !== void 0 ? _b : "尚未設定關鍵字"}">
-                                    <link id="appImage" rel="shortcut icon" href="${(_c = d.logo) !== null && _c !== void 0 ? _c : ""}" type="image/x-icon">
-                                    <link rel="icon" href="${(_d = d.logo) !== null && _d !== void 0 ? _d : ""}" type="image/png" sizes="128x128">
-                                    <meta property="og:image" content="${(_e = d.image) !== null && _e !== void 0 ? _e : ""}">
-                                    <meta property="og:title" content="${((_f = d.title) !== null && _f !== void 0 ? _f : "").replace(/\n/g, '')}">
-                                    <meta name="description" content="${((_g = d.content) !== null && _g !== void 0 ? _g : "").replace(/\n/g, '')}">
-                                    <meta name="og:description" content="${((_h = d.content) !== null && _h !== void 0 ? _h : "").replace(/\n/g, '')}">
+                                    <title>${(_a = d.title) !== null && _a !== void 0 ? _a : '尚未設定標題'}</title>
+                                    <link rel="canonical" href="${relative_root}${data.tag}" />
+                                    <meta name="keywords" content="${(_b = d.keywords) !== null && _b !== void 0 ? _b : '尚未設定關鍵字'}" />
+                                    <link id="appImage" rel="shortcut icon" href="${(_c = d.logo) !== null && _c !== void 0 ? _c : ''}" type="image/x-icon" />
+                                    <link rel="icon" href="${(_d = d.logo) !== null && _d !== void 0 ? _d : ''}" type="image/png" sizes="128x128" />
+                                    <meta property="og:image" content="${(_e = d.image) !== null && _e !== void 0 ? _e : ''}" />
+                                    <meta property="og:title" content="${((_f = d.title) !== null && _f !== void 0 ? _f : '').replace(/\n/g, '')}" />
+                                    <meta name="description" content="${((_g = d.content) !== null && _g !== void 0 ? _g : '').replace(/\n/g, '')}" />
+                                    <meta name="og:description" content="${((_h = d.content) !== null && _h !== void 0 ? _h : '').replace(/\n/g, '')}" />
                                     ${(_j = d.code) !== null && _j !== void 0 ? _j : ''}
                                     ${(() => {
                                 var _a;
@@ -330,7 +331,8 @@ async function createAPP(dd) {
                                     return ``;
                                 }
                                 else {
-                                    return `${((_a = data.config.globalStyle) !== null && _a !== void 0 ? _a : []).map((dd) => {
+                                    return `${((_a = data.config.globalStyle) !== null && _a !== void 0 ? _a : [])
+                                        .map((dd) => {
                                         try {
                                             if (dd.data.elem === 'link') {
                                                 return `<link type="text/css" rel="stylesheet" href="${dd.data.attr.find((dd) => {
@@ -341,9 +343,11 @@ async function createAPP(dd) {
                                         catch (e) {
                                             return ``;
                                         }
-                                    }).join('')}`;
+                                    })
+                                        .join('')}`;
                                 }
                             })()}
+                                </head>
                             `;
                         })()}
                         <script>
@@ -360,22 +364,28 @@ ${[
                             { src: 'glitterBundle/html-component/widget.js', type: 'module' },
                             { src: 'glitterBundle/plugins/trigger-event.js', type: 'module' },
                             { src: 'api/pageConfig.js', type: 'module' },
-                        ].map((dd) => {
+                        ]
+                            .map((dd) => {
                             return `<script src="${relative_root}${dd.src}" type="${dd.type}"></script>`;
-                        }).join('')}
-${((_k = preload.event) !== null && _k !== void 0 ? _k : []).map((dd) => {
+                        })
+                            .join('')}
+${((_k = preload.event) !== null && _k !== void 0 ? _k : [])
+                            .map((dd) => {
                             const link = dd.fun.replace(`TriggerEvent.setEventRouter(import.meta.url, '.`, 'official_event');
                             return link.substring(0, link.length - 2);
-                        }).map((dd) => {
+                        })
+                            .map((dd) => {
                             return `<script src="${relative_root}${dd}" type="module"></script>`;
-                        }).join('')}
+                        })
+                            .join('')}
               </head>
               ${(() => {
                             if (req.query.type === 'editor') {
                                 return ``;
                             }
                             else {
-                                return ` ${(customCode.ga4 || []).map((dd) => {
+                                return ` ${(customCode.ga4 || [])
+                                    .map((dd) => {
                                     return `<!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=${dd.code}"></script>
 <script>
@@ -385,8 +395,10 @@ ${((_k = preload.event) !== null && _k !== void 0 ? _k : []).map((dd) => {
 
   gtag('config', '${dd.code}');
 </script>`;
-                                }).join('')}    
-                ${(customCode.g_tag || []).map((dd) => {
+                                })
+                                    .join('')}    
+                ${(customCode.g_tag || [])
+                                    .map((dd) => {
                                     return `<!-- Google tag (gtag.js) -->
 <!-- Google Tag Manager -->
 <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
@@ -395,7 +407,8 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
 })(window,document,'script','dataLayer','${dd.code}');</script>
 <!-- End Google Tag Manager -->`;
-                                }).join('')}  `;
+                                })
+                                    .join('')}  `;
                             }
                         })()}     
                         `;
@@ -415,33 +428,32 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
                 if (req.query.appName) {
                     appName = req.query.appName;
                 }
-                let query = [
-                    `(content->>'$.type'='article')`
-                ];
+                let query = [`(content->>'$.type'='article')`];
                 const article = await new ut_database_js_1.UtDatabase(appName, `t_manager_post`).querySql(query, {
                     page: 0,
-                    limit: 10000
+                    limit: 10000,
                 });
                 const domain = (await database_2.default.query(`select \`domain\`
                                                 from \`${config_1.saasConfig.SAAS_NAME}\`.app_config
                                                 where appName = ?`, [appName]))[0]['domain'];
                 const site_map = await getSeoSiteMap(appName, req);
                 const sitemap = html `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
-${(await database_2.default.query(`select page_config, tag, updated_time
+                    <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+                        ${(await database_2.default.query(`select page_config, tag, updated_time
                                        from \`${config_1.saasConfig.SAAS_NAME}\`.page_config
                                        where appName = ?
                                          and page_config ->>'$.seo.type'='custom'
-                    `, [
-                    appName
-                ])).map((d2) => {
+                    `, [appName]))
+                    .map((d2) => {
                     return `<url>
 <loc>${`https://${domain}/${d2.tag}`.replace(/ /g, '+')}</loc>
 <lastmod>${(0, moment_js_1.default)(new Date(d2.updated_time)).format('YYYY-MM-DD')}</lastmod>
 </url>
 `;
-                }).join('')}
-                    ${article.data.map((d2) => {
+                })
+                    .join('')}
+                        ${article.data
+                    .map((d2) => {
                     if (!d2.content.template) {
                         return ``;
                     }
@@ -450,8 +462,9 @@ ${(await database_2.default.query(`select page_config, tag, updated_time
 <lastmod>${(0, moment_js_1.default)(new Date(d2.updated_time)).format('YYYY-MM-DD')}</lastmod>
 </url>
 `;
-                }).join('')}
-                    ${(site_map || []).map((d2) => {
+                })
+                    .join('')}
+                        ${(site_map || []).map((d2) => {
                     return `<url>
 <loc>${`https://${domain}/${d2.url}`.replace(/ /g, '+')}</loc>
 <lastmod>${d2.updated_time ? (0, moment_js_1.default)(new Date(d2.updated_time)).format('YYYY-MM-DD') : (0, moment_js_1.default)(new Date()).format('YYYY-MM-DDTHH:mm:SS+00:00')}</lastmod>
@@ -459,8 +472,7 @@ ${(await database_2.default.query(`select page_config, tag, updated_time
 </url>
 `;
                 })}
-</urlset>
-                `;
+                    </urlset> `;
                 return (0, xml_formatter_1.default)(sitemap, {
                     indentation: '  ',
                     filter: (node) => node.type !== 'Comment',
@@ -476,13 +488,12 @@ ${(await database_2.default.query(`select page_config, tag, updated_time
                                                 from \`${config_1.saasConfig.SAAS_NAME}\`.app_config
                                                 where appName = ?`, [appName]))[0]['domain'];
                 return html `<?xml version="1.0" encoding="UTF-8"?>
-                <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-                    <!-- This is the parent sitemap linking to additional sitemaps for products, collections and pages as shown below. The sitemap can not be edited manually, but is kept up to date in real time. -->
-                    <sitemap>
-                        <loc>https://${domain}/sitemap_detail.xml</loc>
-                    </sitemap>
-                </sitemapindex>
-                `;
+                    <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+                        <!-- This is the parent sitemap linking to additional sitemaps for products, collections and pages as shown below. The sitemap can not be edited manually, but is kept up to date in real time. -->
+                        <sitemap>
+                            <loc>https://${domain}/sitemap_detail.xml</loc>
+                        </sitemap>
+                    </sitemapindex> `;
             },
             robots: async (req, resp) => {
                 let appName = dd.appName;
@@ -492,11 +503,7 @@ ${(await database_2.default.query(`select page_config, tag, updated_time
                 const domain = (await database_2.default.query(`select \`domain\`
                                                 from \`${config_1.saasConfig.SAAS_NAME}\`.app_config
                                                 where appName = ?`, [appName]))[0]['domain'];
-                return html `# we use SHOPNEX as our ecommerce platform
-                
-User-agent: *
-Sitemap: https://${domain}/sitemap.xml
-                `;
+                return html `# we use SHOPNEX as our ecommerce platform User-agent: * Sitemap: https://${domain}/sitemap.xml `;
             },
             sitemap_test: async (req, resp) => {
                 let appName = dd.appName;
@@ -514,91 +521,93 @@ Sitemap: https://${domain}/sitemap.xml
         <changefreq>weekly</changefreq>
     </url>
 </urlset>`;
-            }
+            },
         },
     ]);
 }
 exports.createAPP = createAPP;
 async function getSeoDetail(appName, req) {
-    const sqlData = (await private_config_js_1.Private_config.getConfig({
-        appName: appName, key: 'seo_webhook'
-    }));
+    const sqlData = await private_config_js_1.Private_config.getConfig({
+        appName: appName,
+        key: 'seo_webhook',
+    });
     if (!sqlData[0] || !sqlData[0].value) {
         return undefined;
     }
     const html = String.raw;
     return await database_2.default.queryLambada({
-        database: appName
+        database: appName,
     }, async (db) => {
         db.execute = db.query;
         const functionValue = [
             {
-                key: 'db', data: () => {
+                key: 'db',
+                data: () => {
                     return db;
-                }
+                },
             },
             {
-                key: 'req', data: () => {
+                key: 'req',
+                data: () => {
                     return req;
-                }
-            }
+                },
+            },
         ];
         const evalString = html `
-                        return {
-                        execute:(${functionValue.map((d2) => {
+                return {
+                execute:(${functionValue
+            .map((d2) => {
             return d2.key;
-        }).join(',')})=>{
-                        try {
-                        ${sqlData[0].value.value.replace(/new\s*Promise\s*\(\s*async\s*\(\s*resolve\s*,\s*reject\s*\)\s*=>\s*\{([\s\S]*)\}\s*\)/i, 'new Promise(async (resolve, reject) => { try { $1 } catch (error) { console.log(error);reject(error); } })')}
-                        }catch (e) {
-                        console.log(e)
-                        }
-                        }
-                        }
-                    `;
+        })
+            .join(',')})=>{
+                try {
+                ${sqlData[0].value.value.replace(/new\s*Promise\s*\(\s*async\s*\(\s*resolve\s*,\s*reject\s*\)\s*=>\s*\{([\s\S]*)\}\s*\)/i, 'new Promise(async (resolve, reject) => { try { $1 } catch (error) { console.log(error);reject(error); } })')}
+                }catch (e) { console.log(e) } } }
+            `;
         const myFunction = new Function(evalString);
-        return (await (myFunction().execute(functionValue[0].data(), functionValue[1].data())));
+        return await myFunction().execute(functionValue[0].data(), functionValue[1].data());
     });
 }
 async function getSeoSiteMap(appName, req) {
-    const sqlData = (await private_config_js_1.Private_config.getConfig({
-        appName: appName, key: 'sitemap_webhook'
-    }));
+    const sqlData = await private_config_js_1.Private_config.getConfig({
+        appName: appName,
+        key: 'sitemap_webhook',
+    });
     if (!sqlData[0] || !sqlData[0].value) {
         return undefined;
     }
     const html = String.raw;
     return await database_2.default.queryLambada({
-        database: appName
+        database: appName,
     }, async (db) => {
         db.execute = db.query;
         const functionValue = [
             {
-                key: 'db', data: () => {
+                key: 'db',
+                data: () => {
                     return db;
-                }
+                },
             },
             {
-                key: 'req', data: () => {
+                key: 'req',
+                data: () => {
                     return req;
-                }
-            }
+                },
+            },
         ];
         const evalString = html `
-                        return {
-                        execute:(${functionValue.map((d2) => {
+                return {
+                execute:(${functionValue
+            .map((d2) => {
             return d2.key;
-        }).join(',')})=>{
-                        try {
-                        ${sqlData[0].value.value.replace(/new\s*Promise\s*\(\s*async\s*\(\s*resolve\s*,\s*reject\s*\)\s*=>\s*\{([\s\S]*)\}\s*\)/i, 'new Promise(async (resolve, reject) => { try { $1 } catch (error) { console.log(error);reject(error); } })')}
-                        }catch (e) {
-                        console.log(e)
-                        }
-                        }
-                        }
-                    `;
+        })
+            .join(',')})=>{
+                try {
+                ${sqlData[0].value.value.replace(/new\s*Promise\s*\(\s*async\s*\(\s*resolve\s*,\s*reject\s*\)\s*=>\s*\{([\s\S]*)\}\s*\)/i, 'new Promise(async (resolve, reject) => { try { $1 } catch (error) { console.log(error);reject(error); } })')}
+                }catch (e) { console.log(e) } } }
+            `;
         const myFunction = new Function(evalString);
-        return (await (myFunction().execute(functionValue[0].data(), functionValue[1].data())));
+        return await myFunction().execute(functionValue[0].data(), functionValue[1].data());
     });
 }
 //# sourceMappingURL=index.js.map

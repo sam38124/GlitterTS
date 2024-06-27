@@ -645,20 +645,23 @@ export class UserList {
                                                     html `<div style="display: flex; margin-bottom: 18px; align-items: center; gap: 18px">
                                                                             <span class="tx_700">現有回饋金</span>
                                                                             <span style="font-size: 24px; font-weight: 400; color: #393939;"
-                                                                                >${gvc.bindView({
-                                                        bind: vm.id,
-                                                        view: () => {
-                                                            return new Promise((resolve, reject) => {
-                                                                ApiWallet.getRebateSum({
-                                                                    userID: vm.data.userID,
-                                                                }).then((data) => {
-                                                                    if (data.result) {
-                                                                        resolve(parseInt(data.response.sum, 10).toLocaleString());
-                                                                    }
-                                                                    resolve('發生錯誤');
+                                                                                >${gvc.bindView(() => {
+                                                        const id = gvc.glitter.getUUID();
+                                                        return {
+                                                            bind: id,
+                                                            view: () => {
+                                                                return new Promise((resolve, reject) => {
+                                                                    ApiWallet.getRebateSum({
+                                                                        userID: vm.data.userID,
+                                                                    }).then((data) => {
+                                                                        if (data.result) {
+                                                                            resolve(parseInt(data.response.sum, 10).toLocaleString());
+                                                                        }
+                                                                        resolve('發生錯誤');
+                                                                    });
                                                                 });
-                                                            });
-                                                        },
+                                                            },
+                                                        };
                                                     })}</span
                                                                             >
                                                                         </div>` +
@@ -724,7 +727,7 @@ export class UserList {
                                                                                     <div class="gray-bottom-line-18">
                                                                                         <div class="tx_700">會員等級</div>
                                                                                         <div style="margin-top: 12px">
-                                                                                            <div class="badge bg-warning fs-7" style="max-height:34px;">
+                                                                                            <div class="badge bg-warning fs-7" style="max-height: 34px;">
                                                                                                 ${(vm.data.member.find((dd) => {
                                                                 return dd.trigger;
                                                             }) || {}).tag_name || '一般會員'}

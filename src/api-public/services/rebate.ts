@@ -425,7 +425,12 @@ export class Rebate {
             }
 
             if (type === 'birth') {
-                const data = await db.query(`${SQL} AND JSON_EXTRACT(content, '$.type') = 'birth';`, []);
+                const data = await db.query(
+                    `${SQL} 
+                            AND JSON_EXTRACT(content, '$.type') = 'birth'
+                            AND YEAR(created_at) = YEAR(CURDATE());`,
+                    []
+                );
                 if (data.length > 0) return { result: false, msg: '生日購物金已發放過' };
             }
 

@@ -351,9 +351,10 @@ class User {
                                             where email = ${database_1.default.escape(userData.account)}
                                               and status = 1
                                             order by id desc`, [])).map((dd) => {
-            return { total_amount: dd.total, date: dd.created_time };
+            return { total_amount: parseInt(`${dd.total}`, 10), date: dd.created_time };
         });
-        const member = member_list.reverse().map((dd) => {
+        let pass_level = true;
+        const member = member_list.map((dd) => {
             if (dd.condition.type === 'single') {
                 const time = order_list.find((d1) => {
                     return d1.total_amount >= parseInt(dd.condition.value, 10);
@@ -364,7 +365,7 @@ class User {
                         dead_line.setDate(dead_line.getDate() + 365 * 10);
                         return {
                             id: dd.id,
-                            trigger: true,
+                            trigger: pass_level,
                             tag_name: dd.tag_name,
                             dead_line: dead_line,
                             og: dd,
@@ -374,7 +375,7 @@ class User {
                         dead_line.setDate(dead_line.getDate() + dd.dead_line.value);
                         return {
                             id: dd.id,
-                            trigger: true,
+                            trigger: pass_level,
                             tag_name: dd.tag_name,
                             dead_line: dead_line,
                             og: dd,
@@ -383,11 +384,14 @@ class User {
                 }
                 else {
                     let leak = parseInt(dd.condition.value, 10);
+                    if (leak !== 0) {
+                        pass_level = false;
+                    }
                     return {
                         id: dd.id,
                         tag_name: dd.tag_name,
                         dead_line: '',
-                        trigger: leak === 0,
+                        trigger: leak === 0 && pass_level,
                         og: dd,
                         leak: leak,
                     };
@@ -401,7 +405,7 @@ class User {
                         latest.setDate(latest.getDate() + 365 * 10);
                         return {
                             id: dd.id,
-                            trigger: true,
+                            trigger: pass_level,
                             tag_name: dd.tag_name,
                             dead_line: latest,
                             og: dd,
@@ -411,7 +415,7 @@ class User {
                         latest.setDate(latest.getDate() + dd.dead_line.value);
                         return {
                             id: dd.id,
-                            trigger: true,
+                            trigger: pass_level,
                             tag_name: dd.tag_name,
                             dead_line: latest,
                             og: dd,
@@ -429,11 +433,14 @@ class User {
                             sum += dd.total_amount;
                         }
                     });
+                    if (leak !== 0) {
+                        pass_level = false;
+                    }
                     return {
                         id: dd.id,
                         tag_name: dd.tag_name,
                         dead_line: '',
-                        trigger: leak === 0,
+                        trigger: leak === 0 && pass_level,
                         leak: leak,
                         sum: sum,
                         og: dd,
@@ -441,7 +448,7 @@ class User {
                 }
             }
         });
-        return member;
+        return member.reverse();
     }
     find30DayPeriodWith3000Spent(transactions, total, duration, dead_line) {
         const ONE_YEAR_MS = dead_line * 24 * 60 * 60 * 1000;
