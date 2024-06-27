@@ -369,6 +369,7 @@ class Shopping {
             }
         }
         catch (e) {
+            console.error(e);
             throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'ToCheckout Error:' + e, null);
         }
     }

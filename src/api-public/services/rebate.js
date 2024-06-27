@@ -243,15 +243,17 @@ class Rebate {
                 let minus = -originMinus;
                 do {
                     const { id, remain } = oldest === null || oldest === void 0 ? void 0 : oldest.data;
-                    if (remain - minus > 0) {
-                        await database_1.default.execute(updateSQL, [remain - minus, nowTime, id]);
-                        minus = 0;
+                    if (id && (remain !== undefined)) {
+                        if (remain - minus > 0) {
+                            await database_1.default.execute(updateSQL, [remain - minus, nowTime, id]);
+                            minus = 0;
+                        }
+                        else {
+                            await database_1.default.execute(updateSQL, [0, nowTime, id]);
+                            minus = minus - remain;
+                        }
+                        n++;
                     }
-                    else {
-                        await database_1.default.execute(updateSQL, [0, nowTime, id]);
-                        minus = minus - remain;
-                    }
-                    n++;
                 } while (minus > 0);
             }
             return;
@@ -304,7 +306,7 @@ class Rebate {
             }
             else {
                 await this.updateOldestRebate(user_id, amount);
-                await database_1.default.execute(insertSQL, [user_id, amount, 0, note, proof ? { type: proof.type } : {}, nowTime, nowTime, null]);
+                await database_1.default.execute(insertSQL, [user_id, amount, 0, note, proof && proof.type ? { type: proof.type } : {}, nowTime, nowTime, null]);
             }
             return {
                 result: true,

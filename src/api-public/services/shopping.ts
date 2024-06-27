@@ -559,6 +559,7 @@ export class Shopping {
                 };
             }
         } catch (e) {
+            console.error(e);
             throw exception.BadRequestError('BAD_REQUEST', 'ToCheckout Error:' + e, null);
         }
     }
