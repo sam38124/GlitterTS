@@ -46,7 +46,6 @@ export class AutoReply {
                     }
                     let vmi = undefined;
                     function getDatalist() {
-                        console.log(`getDatalist->`);
                         return vm.dataList.map((dd) => {
                             return [
                                 {
@@ -55,7 +54,7 @@ export class AutoReply {
                                 },
                                 {
                                     key: '標題',
-                                    value: html `<div style="max-width: calc(100vw - 650px);text-overflow: ellipsis;white-space: nowrap;position: relative;overflow: hidden;">${dd.title}</div>`,
+                                    value: dd.title,
                                 },
                                 {
                                     key: '最後更新時間',
@@ -68,7 +67,6 @@ export class AutoReply {
                                         return {
                                             bind: id2,
                                             view: () => {
-                                                console.log(`id2=>`, id2);
                                                 return html ` <div class="tx_normal">啟用</div>
                                                     <div class="cursor_pointer form-check form-switch ms-1" style=" ">
                                                         <input
@@ -155,16 +153,14 @@ export class AutoReply {
             data: '',
             loading: false,
         };
-        return [
-            [
-                html `<div class="d-flex align-items-center">
+        return html ` ${BgWidget.container([
+            html `<div class="d-flex align-items-center w-100">
                     ${BgWidget.goBack(gvc.event(() => {
-                    back();
-                }))}${BgWidget.title('信件設定')}
+                back();
+            }))}${BgWidget.title('信件設定')}
                 </div>`,
-            ],
-            html `<div style="height: 10px;"></div>`,
-            BgWidget.card(gvc.bindView(() => {
+            BgWidget.mbContainer(24),
+            BgWidget.mainCard(gvc.bindView(() => {
                 const id = gvc.glitter.getUUID();
                 const keyData = AutoReply.getDefCompare(tag).then((dd) => {
                     vm.data = dd;
@@ -203,23 +199,15 @@ export class AutoReply {
                             }),
                         ].join('');
                     },
-                    divCreate: {
-                        class: `px-3`,
-                        style: ``,
-                    },
                 };
             })),
-            html `<div style="height: 70px;"></div>`,
-            html `<div
-                class="position-fixed bottom-0 left-0 w-100 d-flex align-items-center justify-content-end p-3 border-top bg-white border"
-                style="z-index:999;gap:10px;left: 0;background: #FFF;box-shadow: 0px 1px 10px 0px rgba(0, 0, 0, 0.15);"
-            >
-                ${BgWidget.cancel(gvc.event(() => {
+            BgWidget.mb240(),
+            html ` <div class="update-bar-container">
+                    ${BgWidget.cancel(gvc.event(() => {
                 back();
             }))}
-                ${BgWidget.save(gvc.event(() => {
+                    ${BgWidget.save(gvc.event(() => {
                 widget.event('loading', { title: '儲存中' });
-                console.log(`saveData->`, vm.data);
                 ApiUser.setPublicConfig({
                     key: tag,
                     value: vm.data,
@@ -231,8 +219,8 @@ export class AutoReply {
                     }, 1000);
                 });
             }))}
-            </div>`,
-        ].join('');
+                </div>`,
+        ].join(''), BgWidget.getContainerWidth())}`;
     }
     static getDefCompare(tag) {
         var _a;

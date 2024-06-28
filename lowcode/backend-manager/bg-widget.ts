@@ -1049,14 +1049,14 @@ ${obj.default ?? ''}</textarea
                 }
             `);
 
-            return html`<div style="width: 600px; overflow-y: auto;" class="bg-white shadow rounded-3">
+            return html`<div style="min-width: 400px; width: 600px; overflow-y: auto;" class="bg-white shadow rounded-3">
                 ${obj.gvc.bindView({
                     bind: vm.id,
                     view: () => {
                         if (vm.loading) {
                             return this.spinner();
                         }
-                        return html`<div style="width: 600px; overflow-y: auto;" class="bg-white shadow rounded-3">
+                        return html`<div style="width: 100%; overflow-y: auto;" class="bg-white shadow rounded-3">
                             <div class="w-100 d-flex align-items-center p-3 border-bottom">
                                 <div class="tx_700">${obj.title}</div>
                                 <div class="flex-fill"></div>

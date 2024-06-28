@@ -353,7 +353,7 @@ export class ShoppingDiscountSetting {
                     ${BgWidget.title(obj.type === 'add' ? '新增優惠券' : '編輯優惠券')}
                 </div>`,
                 // 左右容器
-                html`<div class="d-flex justify-content-center" style="gap: 24px">
+                html`<div class="d-flex justify-content-center ${document.body.clientWidth < 768 ? 'flex-column' : ''}" style="gap: 24px">
                     ${BgWidget.container(
                         // 優惠券設定
                         [
@@ -1060,33 +1060,29 @@ export class ShoppingDiscountSetting {
                                             const inputStyle = 'font-size: 16px; height:40px; width:200px;';
                                             return [
                                                 html` <h6 class="tx_700">有效日期</h6>`,
-                                                html`<div class="d-flex align-items-center mb-3">
-                                                    <div>
-                                                        ${EditorElem.editeInput({
-                                                            gvc: gvc,
-                                                            title: '<span class="tx_normal">開始日期</span>',
-                                                            type: 'date',
-                                                            style: inputStyle,
-                                                            default: `${voucherData.startDate}`,
-                                                            placeHolder: '',
-                                                            callback: (text) => {
-                                                                voucherData.startDate = text;
-                                                            },
-                                                        })}
-                                                    </div>
-                                                    <div class="ms-3">
-                                                        ${EditorElem.editeInput({
-                                                            gvc: gvc,
-                                                            title: '<span class="tx_normal">開始時間</span>',
-                                                            type: 'time',
-                                                            style: inputStyle,
-                                                            default: `${voucherData.startTime}`,
-                                                            placeHolder: '',
-                                                            callback: (text) => {
-                                                                voucherData.startTime = text;
-                                                            },
-                                                        })}
-                                                    </div>
+                                                html`<div class="d-flex mb-3 ${document.body.clientWidth < 768 ? 'flex-column' : ''}" style="gap: 12px">
+                                                    ${EditorElem.editeInput({
+                                                        gvc: gvc,
+                                                        title: '<span class="tx_normal">開始日期</span>',
+                                                        type: 'date',
+                                                        style: inputStyle,
+                                                        default: `${voucherData.startDate}`,
+                                                        placeHolder: '',
+                                                        callback: (text) => {
+                                                            voucherData.startDate = text;
+                                                        },
+                                                    })}
+                                                    ${EditorElem.editeInput({
+                                                        gvc: gvc,
+                                                        title: '<span class="tx_normal">開始時間</span>',
+                                                        type: 'time',
+                                                        style: inputStyle,
+                                                        default: `${voucherData.startTime}`,
+                                                        placeHolder: '',
+                                                        callback: (text) => {
+                                                            voucherData.startTime = text;
+                                                        },
+                                                    })}
                                                 </div>`,
                                                 (() => {
                                                     const endDate = voucherData.endDate ? `withEnd` : `noEnd`;
@@ -1102,33 +1098,29 @@ export class ShoppingDiscountSetting {
                                                             {
                                                                 title: '有效期限',
                                                                 value: 'withEnd',
-                                                                innerHtml: html`<div class="d-flex align-items-center mb-2">
-                                                                    <div>
-                                                                        ${EditorElem.editeInput({
-                                                                            gvc: gvc,
-                                                                            title: '<span class="tx_normal">結束日期</span>',
-                                                                            type: 'date',
-                                                                            style: inputStyle,
-                                                                            default: `${voucherData.endDate}`,
-                                                                            placeHolder: '',
-                                                                            callback: (text) => {
-                                                                                voucherData.endDate = text;
-                                                                            },
-                                                                        })}
-                                                                    </div>
-                                                                    <div class="ms-3">
-                                                                        ${EditorElem.editeInput({
-                                                                            gvc: gvc,
-                                                                            title: '<span class="tx_normal">結束時間</span>',
-                                                                            type: 'time',
-                                                                            style: inputStyle,
-                                                                            default: `${voucherData.endTime}`,
-                                                                            placeHolder: '',
-                                                                            callback: (text) => {
-                                                                                voucherData.endTime = text;
-                                                                            },
-                                                                        })}
-                                                                    </div>
+                                                                innerHtml: html`<div class="d-flex mt-3 ${document.body.clientWidth < 768 ? 'flex-column' : ''}" style="gap: 12px">
+                                                                    ${EditorElem.editeInput({
+                                                                        gvc: gvc,
+                                                                        title: '<span class="tx_normal">結束日期</span>',
+                                                                        type: 'date',
+                                                                        style: inputStyle,
+                                                                        default: `${voucherData.endDate}`,
+                                                                        placeHolder: '',
+                                                                        callback: (text) => {
+                                                                            voucherData.endDate = text;
+                                                                        },
+                                                                    })}
+                                                                    ${EditorElem.editeInput({
+                                                                        gvc: gvc,
+                                                                        title: '<span class="tx_normal">結束時間</span>',
+                                                                        type: 'time',
+                                                                        style: inputStyle,
+                                                                        default: `${voucherData.endTime}`,
+                                                                        placeHolder: '',
+                                                                        callback: (text) => {
+                                                                            voucherData.endTime = text;
+                                                                        },
+                                                                    })}
                                                                 </div>`,
                                                             },
                                                         ],
@@ -1151,39 +1143,40 @@ export class ShoppingDiscountSetting {
                     )}
                     ${BgWidget.container(
                         // 摘要預覽
-                        html`<div>
-                            ${gvc.bindView(() => {
-                                const id = gvc.glitter.getUUID();
-                                return {
-                                    bind: id,
-                                    dataList: Object.keys(voucherData).map((key) => {
-                                        return { obj: voucherData, key };
-                                    }),
-                                    view: () => {
-                                        return BgWidget.mainCard(
-                                            gvc.bindView(() => {
-                                                const id = gvc.glitter.getUUID();
-                                                return {
-                                                    bind: id,
-                                                    view: () => {
-                                                        return html`
-                                                            <h3 class="tx_700" style="margin-bottom: 18px;">摘要</h3>
-                                                            <div style="display: flex; gap: 12px; flex-direction: column;">
-                                                                ${gvc.map(
-                                                                    getVoucherTextList().map((text) => {
-                                                                        return html` <div class="${text.length > 0 ? 'tx_normal' : 'gray-top-bottom-line-6'}">${text}</div>`;
-                                                                    })
-                                                                )}
-                                                            </div>
-                                                        `;
-                                                    },
-                                                };
-                                            })
-                                        );
-                                    },
-                                };
-                            })}
-                        </div>`,
+                        gvc.bindView(() => {
+                            const id = gvc.glitter.getUUID();
+                            return {
+                                bind: id,
+                                dataList: Object.keys(voucherData).map((key) => {
+                                    return { obj: voucherData, key };
+                                }),
+                                view: () => {
+                                    return BgWidget.mainCard(
+                                        gvc.bindView(() => {
+                                            const id = gvc.glitter.getUUID();
+                                            return {
+                                                bind: id,
+                                                view: () => {
+                                                    return html`
+                                                        <h3 class="tx_700" style="margin-bottom: 18px;">摘要</h3>
+                                                        <div style="display: flex; gap: 12px; flex-direction: column;">
+                                                            ${gvc.map(
+                                                                getVoucherTextList().map((text) => {
+                                                                    return html` <div class="${text.length > 0 ? 'tx_normal' : 'gray-top-bottom-line-6'}">${text}</div>`;
+                                                                })
+                                                            )}
+                                                        </div>
+                                                    `;
+                                                },
+                                            };
+                                        })
+                                    );
+                                },
+                                divCreate: {
+                                    class: 'p-0',
+                                },
+                            };
+                        }),
                         undefined,
                         'padding: 0; margin: 0 !important; width: 26.5%;'
                     )}

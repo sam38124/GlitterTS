@@ -1547,9 +1547,6 @@ export class BgProject {
             })();
         })()}
                     <div class="flex-fill"></div>
-                    ${BgWidget.darkButton(editorData ? `再次送審` : `確認送審`, gvc.event(() => {
-            save();
-        }))}
                 </div>
                 ${gvc.bindView(() => {
             const id = gvc.glitter.getUUID();
@@ -1746,6 +1743,12 @@ export class BgProject {
                 divCreate: { class: 'd-flex flex-column flex-column-reverse flex-md-row p-0', style: 'gap: 10px;' },
             };
         })}
+                ${BgWidget.mb240()}
+                <div class="update-bar-container">
+                    ${BgWidget.save(gvc.event(() => {
+            save();
+        }), editorData ? `再次送審` : `確認送審`)}
+                </div>
             `, BgWidget.getContainerWidth({ rate: { web: 0.68 } }));
     }
     static checkoutHook(gvc) {

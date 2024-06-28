@@ -107,6 +107,9 @@ export class BgNotify {
                             let mail = '';
                             let tag = '';
                             return html `<div class="modal-content bg-white rounded-3 p-2" style="max-width:90%;width:400px;">
+                                                <div class="border-bottom ms-1 my-2 pb-2">
+                                                    <span class="tx_700">新增推播信箱</span>
+                                                </div>
                                                 <div class="">
                                                     <div class="ps-1 pe-1">
                                                         <div class="mb-3">
@@ -539,94 +542,50 @@ export class BgNotify {
             name: '',
         };
         gvc.addStyle(`
-                        .bg-warning{
-                        background:#ffef9d !important;
-                        color:black !important;
-                        }
-                        `);
+            .bg-warning {
+                background: #ffef9d !important;
+                color: black !important;
+            }
+        `);
         return BgWidget.container(html `
-                <div class="d-flex w-100 align-items-center mb-3 ">
+                <div class="d-flex w-100 align-items-center">
                     ${BgWidget.goBack(gvc.event(() => {
             vm.type = 'list';
         }))}
-                    ${BgWidget.title(`編輯群發信件`)}
+                    ${BgWidget.title('編輯群發信件')}
                     <div class="flex-fill"></div>
-                    <button
-                        class="btn btn-primary-c"
-                        style="height:38px;font-size: 14px;"
-                        onclick="${gvc.event(() => {
-            const dialog = new ShareDialog(gvc.glitter);
-            if (obj.type === 'replace') {
-                dialog.dataLoading({ text: '變更信件', visible: true });
-                ApiPost.put({
-                    postData: postData,
-                    token: window.parent.saasConfig.config.token,
-                    type: 'manager',
-                }).then((re) => {
-                    dialog.dataLoading({ visible: false });
-                    if (re.result) {
-                        vm.status = 'list';
-                        dialog.successMessage({ text: '上傳成功' });
-                    }
-                    else {
-                        dialog.errorMessage({ text: '上傳失敗' });
-                    }
-                });
-            }
-            else {
-                dialog.dataLoading({ text: '新增信件', visible: true });
-                ApiPost.post({
-                    postData: postData,
-                    token: window.parent.saasConfig.config.token,
-                    type: 'manager',
-                }).then((re) => {
-                    dialog.dataLoading({ visible: false });
-                    if (re.result) {
-                        vm.type = 'list';
-                        dialog.successMessage({ text: '上傳成功' });
-                    }
-                    else {
-                        dialog.errorMessage({ text: '上傳失敗' });
-                    }
-                });
-            }
-        })}"
-                    >
-                        儲存並新增
-                    </button>
                 </div>
-                <div class="d-flex" style="gap:10px;">
-                    <div class="" style="width:900px;">
-                        ${BgWidget.card(obj.gvc.bindView(() => {
-            const bi = obj.gvc.glitter.getUUID();
-            return {
-                bind: bi,
-                view: () => {
-                    return [
-                        EditorElem.editeInput({
-                            gvc: gvc,
-                            title: '寄件者名稱',
-                            default: postData.name,
-                            placeHolder: '請輸入寄件者名稱',
-                            callback: (text) => {
-                                postData.name = text;
-                            },
-                        }),
-                        EditorElem.editeInput({
-                            gvc: gvc,
-                            title: '信件主旨',
-                            default: postData.title,
-                            placeHolder: '請輸入信件主旨',
-                            callback: (text) => {
-                                postData.title = text;
-                            },
-                        }),
-                        EditorElem.h3(html `<div class="d-flex align-items-center">
+                ${BgWidget.container(BgWidget.mainCard([
+            obj.gvc.bindView(() => {
+                const bi = obj.gvc.glitter.getUUID();
+                return {
+                    bind: bi,
+                    view: () => {
+                        return [
+                            EditorElem.editeInput({
+                                gvc: gvc,
+                                title: '寄件者名稱',
+                                default: postData.name,
+                                placeHolder: '請輸入寄件者名稱',
+                                callback: (text) => {
+                                    postData.name = text;
+                                },
+                            }),
+                            EditorElem.editeInput({
+                                gvc: gvc,
+                                title: '信件主旨',
+                                default: postData.title,
+                                placeHolder: '請輸入信件主旨',
+                                callback: (text) => {
+                                    postData.title = text;
+                                },
+                            }),
+                            EditorElem.h3(html `<div class="d-flex align-items-center">
                                                 信件內文<button
                                                     class=" btn ms-2 btn-primary-c ms-2"
                                                     style="height: 30px;width: 60px;"
                                                     onclick="${obj.gvc.event(() => {
-                            postData.content = `親愛的 [使用者名稱],
+                                postData.content = `親愛的 [使用者名稱],
 
 歡迎來到 [你的公司或社群名稱]！我們很高興你選擇了我們，並成為我們社群的一員。
 
@@ -653,89 +612,64 @@ export class BgNotify {
 [你的公司或社群名稱]
 [聯絡電子郵件]
 [聯絡電話]`.replace(/\n/g, `<br>`);
-                            obj.gvc.notifyDataChange(bi);
-                        })}"
+                                obj.gvc.notifyDataChange(bi);
+                            })}"
                                                 >
                                                     範例
                                                 </button>
                                             </div>`),
-                        EditorElem.richText({
-                            gvc: obj.gvc,
-                            def: postData.content,
-                            callback: (text) => {
-                                postData.content = text;
-                            },
-                            style: `overflow-y: auto;`,
-                        }),
-                    ].join('');
-                },
-                divCreate: {},
-            };
-        }))}
-                    </div>
-                </div>
-                ${obj.type === 'replace'
-            ? html `
-                          <div class="d-flex w-100">
-                              <div class="flex-fill"></div>
-                              <button
-                                  class="btn btn-danger mt-3 ${obj.type === 'replace' ? `` : `d-none`}  ms-auto px-2"
-                                  style="height:30px;width:100px;"
-                                  onclick="${obj.gvc.event(() => {
-                const dialog = new ShareDialog(obj.gvc.glitter);
-                dialog.checkYesOrNot({
-                    text: '是否確認刪除群發信件?',
-                    callback: (response) => {
-                        if (response) {
-                            dialog.dataLoading({ visible: true });
-                            ApiPost.delete({
-                                id: postData.id,
-                            }).then((res) => {
-                                dialog.dataLoading({ visible: false });
-                                if (res.result) {
-                                    vm.type = 'list';
-                                }
-                                else {
-                                    dialog.errorMessage({ text: '刪除失敗' });
-                                }
-                            });
-                        }
+                            EditorElem.richText({
+                                gvc: obj.gvc,
+                                def: postData.content,
+                                callback: (text) => {
+                                    postData.content = text;
+                                },
+                                style: `overflow-y: auto;`,
+                            }),
+                        ].join('');
                     },
-                });
-            })}"
-                              >
-                                  刪除信件
-                              </button>
-                          </div>
-                      `
-            : ``}
-            `, 900);
-    }
-    static fcmEditor(obj) {
-        var _a;
-        const gvc = obj.gvc;
-        const glitter = gvc.glitter;
-        const vm = obj.vm;
-        const postData = (_a = vm.data) !== null && _a !== void 0 ? _a : {
-            content: '',
-            title: '',
-            type: 'notify-message-config',
-            name: '',
-        };
-        gvc.addStyle(`
-            .bg-warning {
-                background: #ffef9d !important;
-                color: black !important;
-            }
-        `);
-        return BgWidget.container(html `
-                <div class="d-flex w-100 align-items-center">
-                    ${BgWidget.goBack(gvc.event(() => {
-            vm.type = 'list';
-        }))}
-                    ${BgWidget.title(`編輯推播通知`)}
-                    <div class="flex-fill"></div>
-                    ${BgWidget.darkButton('儲存並新增', gvc.event(() => {
+                    divCreate: {},
+                };
+            }),
+            obj.type === 'replace'
+                ? html `
+                                      <div class="d-flex w-100">
+                                          <div class="flex-fill"></div>
+                                          <button
+                                              class="btn btn-danger mt-3 ${obj.type === 'replace' ? `` : `d-none`}  ms-auto px-2"
+                                              style="height:30px;width:100px;"
+                                              onclick="${obj.gvc.event(() => {
+                    const dialog = new ShareDialog(obj.gvc.glitter);
+                    dialog.checkYesOrNot({
+                        text: '是否確認刪除群發信件?',
+                        callback: (response) => {
+                            if (response) {
+                                dialog.dataLoading({ visible: true });
+                                ApiPost.delete({
+                                    id: postData.id,
+                                }).then((res) => {
+                                    dialog.dataLoading({ visible: false });
+                                    if (res.result) {
+                                        vm.type = 'list';
+                                    }
+                                    else {
+                                        dialog.errorMessage({ text: '刪除失敗' });
+                                    }
+                                });
+                            }
+                        },
+                    });
+                })}"
+                                          >
+                                              刪除信件
+                                          </button>
+                                      </div>
+                                  `
+                : ``,
+        ].join('')))}
+                ${BgWidget.mb240()}
+                <div class="update-bar-container">
+                    ${BgWidget.save(gvc.event(() => {
             const dialog = new ShareDialog(gvc.glitter);
             if (obj.type === 'replace') {
                 dialog.dataLoading({ text: '變更信件', visible: true });
@@ -772,6 +706,33 @@ export class BgNotify {
                 });
             }
         }))}
+                </div>
+            `, BgWidget.getContainerWidth());
+    }
+    static fcmEditor(obj) {
+        var _a;
+        const gvc = obj.gvc;
+        const glitter = gvc.glitter;
+        const vm = obj.vm;
+        const postData = (_a = vm.data) !== null && _a !== void 0 ? _a : {
+            content: '',
+            title: '',
+            type: 'notify-message-config',
+            name: '',
+        };
+        gvc.addStyle(`
+            .bg-warning {
+                background: #ffef9d !important;
+                color: black !important;
+            }
+        `);
+        return BgWidget.container(html `
+                <div class="d-flex w-100 align-items-center">
+                    ${BgWidget.goBack(gvc.event(() => {
+            vm.type = 'list';
+        }))}
+                    ${BgWidget.title(`編輯推播通知`)}
+                    <div class="flex-fill"></div>
                 </div>
                 ${BgWidget.container(html `<div class="d-flex px-0" style="gap: 10px;">
                         <div style="width: 100%">
@@ -834,7 +795,49 @@ export class BgNotify {
             }))}
                               </div>
                           `
-            : ``}`)}
+            : ``}
+                    <div class="update-bar-container">
+                        ${BgWidget.cancel(gvc.event(() => {
+            vm.type = 'list';
+        }))}
+                        ${BgWidget.save(gvc.event(() => {
+            const dialog = new ShareDialog(gvc.glitter);
+            if (obj.type === 'replace') {
+                dialog.dataLoading({ text: '變更信件', visible: true });
+                ApiPost.put({
+                    postData: postData,
+                    token: window.parent.saasConfig.config.token,
+                    type: 'manager',
+                }).then((re) => {
+                    dialog.dataLoading({ visible: false });
+                    if (re.result) {
+                        vm.status = 'list';
+                        dialog.successMessage({ text: '上傳成功' });
+                    }
+                    else {
+                        dialog.errorMessage({ text: '上傳失敗' });
+                    }
+                });
+            }
+            else {
+                dialog.dataLoading({ text: '新增信件', visible: true });
+                ApiPost.post({
+                    postData: postData,
+                    token: window.parent.saasConfig.config.token,
+                    type: 'manager',
+                }).then((re) => {
+                    dialog.dataLoading({ visible: false });
+                    if (re.result) {
+                        vm.type = 'list';
+                        dialog.successMessage({ text: '上傳成功' });
+                    }
+                    else {
+                        dialog.errorMessage({ text: '上傳失敗' });
+                    }
+                });
+            }
+        }))}
+                    </div>`)}
             `, BgWidget.getContainerWidth({ rate: { web: 0.68 } }));
     }
     static fcmDevice(gvc, type = 'list', callback = () => { }) {

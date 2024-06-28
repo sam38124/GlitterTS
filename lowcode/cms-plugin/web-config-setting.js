@@ -357,67 +357,11 @@ export class WebConfigSetting {
                         }))}
                                 ${BgWidget.title(viewType === 'preview' ? `表單預覽` : '表單設定')}
                                 <div class="flex-fill"></div>
-                                <div
-                                    class="${viewType === 'preview' ? `d-none` : `d-flex`}  align-items-center justify-content-center bg-white  me-2 border"
-                                    style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;"
-                                    data-bs-toggle="tooltip"
-                                    data-bs-placement="top"
-                                    data-bs-custom-class="custom-tooltip"
-                                    data-bs-title="預覽表單"
-                                    onclick="${gvc.event(() => {
+                                ${BgWidget.grayButton('表單預覽', gvc.event(() => {
                             cf.vm.type = 'list';
-                        })}"
-                                >
-                                    <i class="fa-regular fa-eye" aria-hidden="true"></i>
-                                </div>
-                                <button
-                                    class="btn btn-primary-c "
-                                    style="height:35px;font-size: 14px;"
-                                    onclick="${gvc.event(() => {
-                            if (!postMd.form_title) {
-                                dialog.errorMessage({ text: '請輸入表單標題' });
-                                return;
-                            }
-                            else if (postMd.form_format.length === 0) {
-                                dialog.errorMessage({ text: '請設定表單內容' });
-                                return;
-                            }
-                            dialog.dataLoading({
-                                visible: true,
-                            });
-                            if (cf.vm.type === 'add') {
-                                ApiPost.post({
-                                    postData: postMd,
-                                    type: 'manager',
-                                }).then(() => {
-                                    dialog.dataLoading({
-                                        visible: false,
-                                    });
-                                    dialog.successMessage({
-                                        text: '新增成功!',
-                                    });
-                                    cf.vm.type = 'list';
-                                });
-                            }
-                            else {
-                                ApiPost.put({
-                                    postData: postMd,
-                                    type: 'manager',
-                                }).then(() => {
-                                    dialog.dataLoading({
-                                        visible: false,
-                                    });
-                                    dialog.successMessage({
-                                        text: '更新成功!',
-                                    });
-                                });
-                            }
-                        })}"
-                                >
-                                    ${cf.vm.type === 'add' ? `儲存` : `更新`}
-                                </button>
+                        }), { icon: 'fa-regular fa-eye text-dark' })}
                             </div>`,
-                        BgWidget.card((() => {
+                        BgWidget.mainCard((() => {
                             if (viewType === 'preview') {
                                 return [
                                     html `<div
@@ -469,6 +413,49 @@ export class WebConfigSetting {
                                 ].join('');
                             }
                         })()),
+                        BgWidget.mb240(),
+                        html ` <div class="update-bar-container">
+                                ${BgWidget.save(gvc.event(() => {
+                            if (!postMd.form_title) {
+                                dialog.errorMessage({ text: '請輸入表單標題' });
+                                return;
+                            }
+                            else if (postMd.form_format.length === 0) {
+                                dialog.errorMessage({ text: '請設定表單內容' });
+                                return;
+                            }
+                            dialog.dataLoading({
+                                visible: true,
+                            });
+                            if (cf.vm.type === 'add') {
+                                ApiPost.post({
+                                    postData: postMd,
+                                    type: 'manager',
+                                }).then(() => {
+                                    dialog.dataLoading({
+                                        visible: false,
+                                    });
+                                    dialog.successMessage({
+                                        text: '新增成功!',
+                                    });
+                                    cf.vm.type = 'list';
+                                });
+                            }
+                            else {
+                                ApiPost.put({
+                                    postData: postMd,
+                                    type: 'manager',
+                                }).then(() => {
+                                    dialog.dataLoading({
+                                        visible: false,
+                                    });
+                                    dialog.successMessage({
+                                        text: '更新成功!',
+                                    });
+                                });
+                            }
+                        }), cf.vm.type === 'add' ? `儲存` : `更新`)}
+                            </div>`,
                     ].join('');
                 },
                 onCreate: () => {

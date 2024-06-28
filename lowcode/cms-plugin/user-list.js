@@ -498,27 +498,26 @@ export class UserList {
                                         <div style="margin: 2px 15px 0">${BgWidget.grayNote(`註冊時間：${gvc.glitter.ut.dateFormat(new Date(vm.data.created_time), 'yyyy-MM-dd hh:mm')}`)}</div>`,
                                 html `<div class="d-flex justify-content-center ${document.body.clientWidth < 768 ? 'flex-column' : ''}" style="gap: 24px">
                                         ${BgWidget.container([
-                                    html `<div>
-                                                    ${gvc.bindView(() => {
+                                    gvc.bindView(() => {
                                         const id = gvc.glitter.getUUID();
                                         const vmi = { mode: 'read' };
                                         return {
                                             bind: id,
                                             view: () => {
                                                 return BgWidget.mainCard(html `<div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                                                                        <span class="tx_700">顧客資訊</span>
-                                                                        <div style="display: flex; gap: 8px;">
-                                                                            ${BgWidget.grayButton(vmi.mode === 'edit' ? '修改關閉' : '修改啟用', gvc.event(() => {
+                                                                    <span class="tx_700">顧客資訊</span>
+                                                                    <div style="display: flex; gap: 8px;">
+                                                                        ${BgWidget.grayButton(vmi.mode === 'edit' ? '修改關閉' : '修改啟用', gvc.event(() => {
                                                     vmi.mode = vmi.mode === 'edit' ? 'read' : 'edit';
                                                     gvc.notifyDataChange(id);
                                                 }))}
-                                                                            ${BgWidget.grayButton('自訂資料', gvc.event(() => {
+                                                                        ${BgWidget.grayButton('自訂資料', gvc.event(() => {
                                                     UserList.setUserForm(gvc, () => {
                                                         gvc.notifyDataChange(id);
                                                     });
                                                 }))}
-                                                                        </div>
-                                                                    </div>` +
+                                                                    </div>
+                                                                </div>` +
                                                     gvc.bindView(() => {
                                                         const id = gvc.glitter.getUUID();
                                                         return {
@@ -542,9 +541,9 @@ export class UserList {
                                                                         switch (item.page) {
                                                                             case 'input':
                                                                                 h += html `<div>
-                                                                                                        <div class="tx_normal">${item.title}</div>
-                                                                                                        <div>
-                                                                                                            ${BgWidget.editeInput({
+                                                                                                    <div class="tx_normal">${item.title}</div>
+                                                                                                    <div>
+                                                                                                        ${BgWidget.editeInput({
                                                                                     gvc: gvc,
                                                                                     title: '',
                                                                                     default: vm.data.userData[item.key] || '',
@@ -555,13 +554,13 @@ export class UserList {
                                                                                     },
                                                                                     readonly: vmi.mode !== 'edit',
                                                                                 })}
-                                                                                                        </div>
-                                                                                                    </div>`;
+                                                                                                    </div>
+                                                                                                </div>`;
                                                                                 break;
                                                                             case 'multiple_line_text':
                                                                                 h += html `<div>
-                                                                                                        <div class="tx_normal">${item.title}</div>
-                                                                                                        ${BgWidget.textArea({
+                                                                                                    <div class="tx_normal">${item.title}</div>
+                                                                                                    ${BgWidget.textArea({
                                                                                     gvc: gvc,
                                                                                     title: '',
                                                                                     default: vm.data.userData[item.key] || '',
@@ -572,7 +571,7 @@ export class UserList {
                                                                                     },
                                                                                     readonly: vmi.mode !== 'edit',
                                                                                 })}
-                                                                                                    </div>`;
+                                                                                                </div>`;
                                                                                 break;
                                                                             default:
                                                                                 h += FormWidget.editorView({
@@ -591,18 +590,19 @@ export class UserList {
                                                         };
                                                     }));
                                             },
+                                            divCreate: {
+                                                class: 'p-0',
+                                            },
                                         };
-                                    })}
-                                                </div>`,
-                                    html `<div>
-                                                    ${gvc.bindView(() => {
+                                    }),
+                                    gvc.bindView(() => {
                                         const id = gvc.glitter.getUUID();
                                         return {
                                             bind: id,
                                             view: () => {
                                                 return BgWidget.mainCard(html `<div style="display: flex; margin-bottom: 8px;">
-                                                                        <span class="tx_700">訂單記錄</span>
-                                                                    </div>` +
+                                                                    <span class="tx_700">訂單記錄</span>
+                                                                </div>` +
                                                     gvc.bindView(() => {
                                                         const id = gvc.glitter.getUUID();
                                                         return {
@@ -640,22 +640,23 @@ export class UserList {
                                                         };
                                                     }));
                                             },
+                                            divCreate: {
+                                                class: 'p-0',
+                                            },
                                         };
-                                    })}
-                                                </div>`,
-                                    html `<div>
-                                                    ${gvc.bindView(() => {
+                                    }),
+                                    gvc.bindView(() => {
                                         const id = gvc.glitter.getUUID();
                                         return {
                                             bind: id,
                                             view: () => {
                                                 return BgWidget.mainCard(html `<div style="display: flex; margin-bottom: 12px;">
-                                                                        <span class="tx_700">回饋金</span>
-                                                                    </div>` +
+                                                                    <span class="tx_700">回饋金</span>
+                                                                </div>` +
                                                     html `<div style="display: flex; margin-bottom: 18px; align-items: center; gap: 18px">
-                                                                            <span class="tx_700">現有回饋金</span>
-                                                                            <span style="font-size: 24px; font-weight: 400; color: #393939;"
-                                                                                >${gvc.bindView(() => {
+                                                                        <span class="tx_700">現有回饋金</span>
+                                                                        <span style="font-size: 24px; font-weight: 400; color: #393939;"
+                                                                            >${gvc.bindView(() => {
                                                         const id = gvc.glitter.getUUID();
                                                         return {
                                                             bind: id,
@@ -673,11 +674,11 @@ export class UserList {
                                                             },
                                                         };
                                                     })}</span
-                                                                            >
-                                                                        </div>` +
+                                                                        >
+                                                                    </div>` +
                                                     html `<div style="display: flex; margin-bottom: 18px;">
-                                                                            <span class="tx_700">回饋金紀錄</span>
-                                                                        </div>` +
+                                                                        <span class="tx_700">回饋金紀錄</span>
+                                                                    </div>` +
                                                     gvc.bindView(() => {
                                                         const id = gvc.glitter.getUUID();
                                                         return {
@@ -712,12 +713,13 @@ export class UserList {
                                                         };
                                                     }));
                                             },
+                                            divCreate: {
+                                                class: 'p-0',
+                                            },
                                         };
-                                    })}
-                                                </div>`,
-                                ].join(html `<div style="margin-top: 24px;"></div>`), undefined, 'padding: 0; margin: 0 !important; width: 73.5%;')}
-                                        ${BgWidget.container(html `<div>
-                                                ${gvc.bindView(() => {
+                                    }),
+                                ].join(html `<div style="margin-top: 24px;"></div>`), undefined, 'padding: 0 !important; margin: 0 !important; width: 73.5%;')}
+                                        ${BgWidget.container(gvc.bindView(() => {
                                     const id = gvc.glitter.getUUID();
                                     return {
                                         bind: id,
@@ -729,22 +731,23 @@ export class UserList {
                                                     view: () => {
                                                         return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
                                                             var _a;
-                                                            let data = ((_a = (yield saasConfig.api.getPrivateConfig(saasConfig.config.appName, `glitterUserForm`)).response.result[0]) !== null && _a !== void 0 ? _a : {}).value;
+                                                            let data = ((_a = (yield saasConfig.api.getPrivateConfig(saasConfig.config.appName, `glitterUserForm`)).response.result[0]) !== null && _a !== void 0 ? _a : {})
+                                                                .value;
                                                             if (!Array.isArray(data)) {
                                                                 data = [];
                                                             }
                                                             let h = html `
-                                                                                    <div class="gray-bottom-line-18">
-                                                                                        <div class="tx_700">會員等級</div>
-                                                                                        <div style="margin-top: 12px">
-                                                                                            <div class="badge bg-warning fs-7" style="max-height: 34px;">
-                                                                                                ${(vm.data.member.find((dd) => {
+                                                                                <div class="gray-bottom-line-18">
+                                                                                    <div class="tx_700">會員等級</div>
+                                                                                    <div style="margin-top: 12px">
+                                                                                        <div class="badge bg-warning fs-7" style="max-height: 34px;">
+                                                                                            ${(vm.data.member.find((dd) => {
                                                                 return dd.trigger;
                                                             }) || {}).tag_name || '一般會員'}
-                                                                                            </div>
                                                                                         </div>
                                                                                     </div>
-                                                                                    ${(() => {
+                                                                                </div>
+                                                                                ${(() => {
                                                                 const id = gvc.glitter.getUUID();
                                                                 return gvc.bindView({
                                                                     bind: id,
@@ -763,45 +766,43 @@ export class UserList {
                                                                                 });
                                                                                 const formatNum = (n) => parseInt(`${n}`, 10).toLocaleString();
                                                                                 resolve(html `<div class="gray-bottom-line-18">
-                                                                                                            <div class="tx_700">消費總金額</div>
-                                                                                                            ${total_price === 0
-                                                                                    ? html `<div
-                                                                                                                      style="font-size: 14px; font-weight: 400; color: #393939; margin-top: 12px;"
-                                                                                                                  >
-                                                                                                                      此顧客還沒有任何消費紀錄
-                                                                                                                  </div>`
-                                                                                    : html `<div
-                                                                                                                      style="font-size: 32px; font-weight: 400; color: #393939; margin-top: 12px;"
-                                                                                                                  >
-                                                                                                                      ${formatNum(total_price)}
-                                                                                                                  </div>`}
-                                                                                                            <div class="tx_700" style="margin-top: 18px">消費次數</div>
-                                                                                                            <div style="font-size: 32px; font-weight: 400; color: #393939; margin-top: 12px;">
-                                                                                                                ${formatNum(data.response.total)}
-                                                                                                            </div>
-                                                                                                        </div>`);
+                                                                                                        <div class="tx_700">消費總金額</div>
+                                                                                                        ${total_price === 0
+                                                                                    ? html `<div style="font-size: 14px; font-weight: 400; color: #393939; margin-top: 12px;">
+                                                                                                                  此顧客還沒有任何消費紀錄
+                                                                                                              </div>`
+                                                                                    : html `<div style="font-size: 32px; font-weight: 400; color: #393939; margin-top: 12px;">
+                                                                                                                  ${formatNum(total_price)}
+                                                                                                              </div>`}
+                                                                                                        <div class="tx_700" style="margin-top: 18px">消費次數</div>
+                                                                                                        <div style="font-size: 32px; font-weight: 400; color: #393939; margin-top: 12px;">
+                                                                                                            ${formatNum(data.response.total)}
+                                                                                                        </div>
+                                                                                                    </div>`);
                                                                             });
                                                                         });
                                                                     },
                                                                 });
                                                             })()}
-                                                                                    <div class="d-none">
-                                                                                        <div class="tx_700">所屬分群</div>
-                                                                                        <div style="display: flex; gap: 12px; margin-top: 12px; flex-direction: column;">
-                                                                                            <div>電子郵件訂閱者</div>
-                                                                                            <div>已購買多次的顧客</div>
-                                                                                        </div>
+                                                                                <div class="d-none">
+                                                                                    <div class="tx_700">所屬分群</div>
+                                                                                    <div style="display: flex; gap: 12px; margin-top: 12px; flex-direction: column;">
+                                                                                        <div>電子郵件訂閱者</div>
+                                                                                        <div>已購買多次的顧客</div>
                                                                                     </div>
-                                                                                `;
+                                                                                </div>
+                                                                            `;
                                                             resolve(html `<div style="display:flex; gap: 18px; flex-direction: column;">${h}</div>`);
                                                         }));
                                                     },
                                                 };
                                             }));
                                         },
+                                        divCreate: {
+                                            class: 'p-0',
+                                        },
                                     };
-                                })}
-                                            </div>`, undefined, 'padding: 0; margin: 0 !important; width: 26.5%;')}
+                                }), undefined, 'padding: 0 !important; margin: 0 !important; width: 26.5%;')}
                                     </div>`,
                                 BgWidget.mb240(),
                                 html ` <div class="update-bar-container">

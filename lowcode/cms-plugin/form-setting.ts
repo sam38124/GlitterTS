@@ -1,8 +1,6 @@
-import { SeoSetting } from './seo-setting.js';
 import { GVC } from '../glitterBundle/GVController.js';
 import { EditorElem } from '../glitterBundle/plugins/editor-elem.js';
 import { BgWidget } from '../backend-manager/bg-widget.js';
-import { ApiUser } from '../glitter-base/route/user.js';
 import { ShareDialog } from '../glitterBundle/dialog/ShareDialog.js';
 import { FormWidget } from '../official_view_component/official/form.js';
 import { ApiPost } from '../glitter-base/route/post.js';
@@ -337,36 +335,42 @@ export class FormSetting {
                                                         bind: filterID,
                                                         view: () => {
                                                             return [
-                                                                `<span class="fs-7 fw-bold">操作選項</span>`,
-                                                                `<button class="btn btn-danger fs-7 px-2" style="height:30px;border:none;" onclick="${gvc.event(() => {
-                                                                    const dialog = new ShareDialog(gvc.glitter);
-                                                                    dialog.checkYesOrNot({
-                                                                        text: '是否確認移除所選項目?',
-                                                                        callback: (response) => {
-                                                                            if (response) {
-                                                                                dialog.dataLoading({ visible: true });
-                                                                                ApiPost.deleteUserPost({
-                                                                                    id: vm.dataList
-                                                                                        .filter((dd: any) => {
-                                                                                            return dd.checked;
-                                                                                        })
-                                                                                        .map((dd: any) => {
-                                                                                            return dd.id;
-                                                                                        })
-                                                                                        .join(`,`),
-                                                                                }).then((res) => {
-                                                                                    dialog.dataLoading({ visible: false });
-                                                                                    if (res.result) {
-                                                                                        vm.dataList = undefined;
-                                                                                        gvc.notifyDataChange(id);
-                                                                                    } else {
-                                                                                        dialog.errorMessage({ text: '刪除失敗' });
-                                                                                    }
-                                                                                });
-                                                                            }
-                                                                        },
-                                                                    });
-                                                                })}">批量移除</button>`,
+                                                                html`<span class="fs-7 fw-bold">操作選項</span>`,
+                                                                html`<button
+                                                                    class="btn btn-danger fs-7 px-2"
+                                                                    style="height:30px;border:none;"
+                                                                    onclick="${gvc.event(() => {
+                                                                        const dialog = new ShareDialog(gvc.glitter);
+                                                                        dialog.checkYesOrNot({
+                                                                            text: '是否確認移除所選項目?',
+                                                                            callback: (response) => {
+                                                                                if (response) {
+                                                                                    dialog.dataLoading({ visible: true });
+                                                                                    ApiPost.deleteUserPost({
+                                                                                        id: vm.dataList
+                                                                                            .filter((dd: any) => {
+                                                                                                return dd.checked;
+                                                                                            })
+                                                                                            .map((dd: any) => {
+                                                                                                return dd.id;
+                                                                                            })
+                                                                                            .join(`,`),
+                                                                                    }).then((res) => {
+                                                                                        dialog.dataLoading({ visible: false });
+                                                                                        if (res.result) {
+                                                                                            vm.dataList = undefined;
+                                                                                            gvc.notifyDataChange(id);
+                                                                                        } else {
+                                                                                            dialog.errorMessage({ text: '刪除失敗' });
+                                                                                        }
+                                                                                    });
+                                                                                }
+                                                                            },
+                                                                        });
+                                                                    })}"
+                                                                >
+                                                                    批量移除
+                                                                </button>`,
                                                             ].join(``);
                                                         },
                                                         divCreate: () => {
@@ -440,7 +444,7 @@ export class FormSetting {
                                 ${BgWidget.title(`表單內容`)}
                                 <div class="flex-fill"></div>
                             </div>`,
-                            BgWidget.card(
+                            BgWidget.mainCard(
                                 (() => {
                                     return FormWidget.editorView({
                                         gvc: gvc,
@@ -502,71 +506,25 @@ export class FormSetting {
                                 )}
                                 ${BgWidget.title(viewType === 'preview' ? `表單預覽` : '表單設定')}
                                 <div class="flex-fill"></div>
-                                <div
-                                    class="${viewType === 'preview' ? `d-none` : `d-flex`}  align-items-center justify-content-center bg-white  me-2 border"
-                                    style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;"
-                                    data-bs-toggle="tooltip"
-                                    data-bs-placement="top"
-                                    data-bs-custom-class="custom-tooltip"
-                                    data-bs-title="預覽表單"
-                                    onclick="${gvc.event(() => {
-                                        viewType = 'preview';
-                                        gvc.notifyDataChange(id);
-                                    })}"
-                                >
-                                    <i class="fa-regular fa-eye" aria-hidden="true"></i>
-                                </div>
-                                <button
-                                    class="btn btn-primary-c "
-                                    style="height:35px;font-size: 14px;"
-                                    onclick="${gvc.event(() => {
-                                        if (!postMd.form_title) {
-                                            dialog.errorMessage({ text: '請輸入表單標題' });
-                                            return;
-                                        } else if (postMd.form_format.length === 0) {
-                                            dialog.errorMessage({ text: '請設定表單內容' });
-                                            return;
-                                        }
-                                        dialog.dataLoading({
-                                            visible: true,
-                                        });
-                                        if (cf.vm.type === 'add') {
-                                            ApiPost.post({
-                                                postData: postMd,
-                                                type: 'manager',
-                                            }).then(() => {
-                                                dialog.dataLoading({
-                                                    visible: false,
-                                                });
-                                                dialog.successMessage({
-                                                    text: '新增成功!',
-                                                });
-                                            });
-                                        } else {
-                                            ApiPost.put({
-                                                postData: postMd,
-                                                type: 'manager',
-                                            }).then(() => {
-                                                dialog.dataLoading({
-                                                    visible: false,
-                                                });
-                                                dialog.successMessage({
-                                                    text: '更新成功!',
-                                                });
-                                            });
-                                        }
-                                    })}"
-                                >
-                                    ${cf.vm.type === 'add' ? `儲存` : `更新`}
-                                </button>
+                                ${viewType === 'preview'
+                                    ? ''
+                                    : BgWidget.grayButton(
+                                          '預覽表單',
+                                          gvc.event(() => {
+                                              viewType = 'preview';
+                                              gvc.notifyDataChange(id);
+                                          })
+                                      )}
                             </div>`,
-                            BgWidget.card(
+                            BgWidget.mainCard(
                                 (() => {
                                     if (viewType === 'preview') {
                                         return [
-                                            `<div class="position-relative text-center bgf6 rounded-top d-flex align-items-center justify-content-center mx-n3 mt-n3 p-3 border-top border-bottom shadow">
-                <span class="fs-6 fw-bold " style="color:black;">表單樣式預覽</span>
-            </div>`,
+                                            html`<div
+                                                class="position-relative text-center bgf6 rounded-top d-flex align-items-center justify-content-center mx-n3 mt-n3 p-3 border-top border-bottom shadow"
+                                            >
+                                                <span class="fs-6 fw-bold " style="color:black;">表單樣式預覽</span>
+                                            </div>`,
                                             FormWidget.editorView({
                                                 gvc: gvc,
                                                 array: postMd.form_format,
@@ -587,37 +545,41 @@ export class FormSetting {
                                                     postMd.form_title = text;
                                                 },
                                             }),
-                                            `${EditorElem.h3('表單標籤')}
-                                                    ${gvc.bindView(() => {
-                                                        const id = gvc.glitter.getUUID();
+                                            html`${EditorElem.h3('表單標籤')}
+                                            ${gvc.bindView(() => {
+                                                const id = gvc.glitter.getUUID();
 
-                                                        function refreshTag() {
-                                                            gvc.notifyDataChange(id);
-                                                        }
+                                                function refreshTag() {
+                                                    gvc.notifyDataChange(id);
+                                                }
 
-                                                        return {
-                                                            bind: id,
-                                                            view: () => {
-                                                                return html` ${postMd.tag
-                                                                        .map((dd, index) => {
-                                                                            return ` <div class="badge bg-warning text-dark btn "
-                                                                                 ><i
-                                                                                    class="fa-regular fa-circle-minus me-1 text-danger fw-bold" onclick="${gvc.event(() => {
-                                                                                        postMd.tag.splice(index, 1);
-                                                                                        refreshTag();
-                                                                                    })}"></i>${dd}
-                                                                            </div>`;
-                                                                        })
-                                                                        .join('')}
-                                                                    <div
-                                                                        class="badge  btn "
-                                                                        style="background: #295ed1;"
-                                                                        onclick="${gvc.event(() => {
-                                                                            EditorElem.openEditorDialog(
-                                                                                gvc,
-                                                                                (gvc) => {
-                                                                                    let label = '';
-                                                                                    return `<div class="p-2">${EditorElem.editeInput({
+                                                return {
+                                                    bind: id,
+                                                    view: () => {
+                                                        return html` ${postMd.tag
+                                                                .map((dd, index) => {
+                                                                    return html` <div class="badge bg-warning text-dark btn ">
+                                                                        <i
+                                                                            class="fa-regular fa-circle-minus me-1 text-danger fw-bold"
+                                                                            onclick="${gvc.event(() => {
+                                                                                postMd.tag.splice(index, 1);
+                                                                                refreshTag();
+                                                                            })}"
+                                                                        ></i
+                                                                        >${dd}
+                                                                    </div>`;
+                                                                })
+                                                                .join('')}
+                                                            <div
+                                                                class="badge  btn "
+                                                                style="background: #295ed1;"
+                                                                onclick="${gvc.event(() => {
+                                                                    EditorElem.openEditorDialog(
+                                                                        gvc,
+                                                                        (gvc) => {
+                                                                            let label = '';
+                                                                            return html`<div class="p-2">
+                                                                                    ${EditorElem.editeInput({
                                                                                         gvc: gvc,
                                                                                         title: '標籤名稱',
                                                                                         default: label,
@@ -625,35 +587,40 @@ export class FormSetting {
                                                                                         callback: (text) => {
                                                                                             label = text;
                                                                                         },
-                                                                                    })}</div>
-<div class="w-100 border-top p-2 d-flex align-items-center justify-content-end">
-<button class="btn btn-primary" style="height:35px;width:80px;" onclick="${gvc.event(() => {
-                                                                                        postMd.tag.push(label);
-                                                                                        refreshTag();
-                                                                                        gvc.closeDialog();
-                                                                                    })}">確認新增</button>
-</div>
-`;
-                                                                                },
-                                                                                () => {},
-                                                                                400,
-                                                                                '新增標籤'
-                                                                            );
-                                                                        })}"
-                                                                    >
-                                                                        <i class="fa-regular fa-circle-plus me-1"></i>新增標籤
-                                                                    </div>`;
-                                                            },
-                                                            divCreate: {
-                                                                class: `w-100 d-flex flex-wrap bg-secondary p-3`,
-                                                                style: `gap:5px;`,
-                                                            },
-                                                        };
-                                                    })} 
-                                                     `,
-                                            `<div class="position-relative bgf6 d-flex align-items-center justify-content-between mx-n3 mt-2 p-2 border-top border-bottom shadow">
-                <span class="fs-6 fw-bold " style="color:black;">表單格式設定</span>
-            </div>`,
+                                                                                    })}
+                                                                                </div>
+                                                                                <div class="w-100 border-top p-2 d-flex align-items-center justify-content-end">
+                                                                                    <button
+                                                                                        class="btn btn-primary"
+                                                                                        style="height:35px;width:80px;"
+                                                                                        onclick="${gvc.event(() => {
+                                                                                            postMd.tag.push(label);
+                                                                                            refreshTag();
+                                                                                            gvc.closeDialog();
+                                                                                        })}"
+                                                                                    >
+                                                                                        確認新增
+                                                                                    </button>
+                                                                                </div> `;
+                                                                        },
+                                                                        () => {},
+                                                                        400,
+                                                                        '新增標籤'
+                                                                    );
+                                                                })}"
+                                                            >
+                                                                <i class="fa-regular fa-circle-plus me-1"></i>新增標籤
+                                                            </div>`;
+                                                    },
+                                                    divCreate: {
+                                                        class: `w-100 d-flex flex-wrap bg-secondary p-3`,
+                                                        style: `gap:5px;`,
+                                                    },
+                                                };
+                                            })} `,
+                                            html`<div class="position-relative bgf6 d-flex align-items-center justify-content-between mx-n3 mt-2 p-2 border-top border-bottom shadow">
+                                                <span class="fs-6 fw-bold " style="color:black;">表單格式設定</span>
+                                            </div>`,
                                             FormWidget.settingView({
                                                 gvc: gvc,
                                                 array: postMd.form_format,
@@ -666,6 +633,49 @@ export class FormSetting {
                                     }
                                 })()
                             ),
+                            html`${BgWidget.mb240()}
+                                <div class="update-bar-container">
+                                    ${BgWidget.save(
+                                        gvc.event(() => {
+                                            if (!postMd.form_title) {
+                                                dialog.errorMessage({ text: '請輸入表單標題' });
+                                                return;
+                                            } else if (postMd.form_format.length === 0) {
+                                                dialog.errorMessage({ text: '請設定表單內容' });
+                                                return;
+                                            }
+                                            dialog.dataLoading({
+                                                visible: true,
+                                            });
+                                            if (cf.vm.type === 'add') {
+                                                ApiPost.post({
+                                                    postData: postMd,
+                                                    type: 'manager',
+                                                }).then(() => {
+                                                    dialog.dataLoading({
+                                                        visible: false,
+                                                    });
+                                                    dialog.successMessage({
+                                                        text: '新增成功!',
+                                                    });
+                                                });
+                                            } else {
+                                                ApiPost.put({
+                                                    postData: postMd,
+                                                    type: 'manager',
+                                                }).then(() => {
+                                                    dialog.dataLoading({
+                                                        visible: false,
+                                                    });
+                                                    dialog.successMessage({
+                                                        text: '更新成功!',
+                                                    });
+                                                });
+                                            }
+                                        }),
+                                        cf.vm.type === 'add' ? `儲存` : `更新`
+                                    )}
+                                </div>`,
                         ].join('');
                     },
                     onCreate: () => {

@@ -318,7 +318,7 @@ export class ShoppingDiscountSetting {
             }))}
                     ${BgWidget.title(obj.type === 'add' ? '新增優惠券' : '編輯優惠券')}
                 </div>`,
-            html `<div class="d-flex justify-content-center" style="gap: 24px">
+            html `<div class="d-flex justify-content-center ${document.body.clientWidth < 768 ? 'flex-column' : ''}" style="gap: 24px">
                     ${BgWidget.container([
                 BgWidget.mainCard(html ` <div class="tx_700" style="margin-bottom: 18px">活動標題</div>
                                     ${EditorElem.editeInput({
@@ -997,9 +997,8 @@ export class ShoppingDiscountSetting {
                             const inputStyle = 'font-size: 16px; height:40px; width:200px;';
                             return [
                                 html ` <h6 class="tx_700">有效日期</h6>`,
-                                html `<div class="d-flex align-items-center mb-3">
-                                                    <div>
-                                                        ${EditorElem.editeInput({
+                                html `<div class="d-flex mb-3 ${document.body.clientWidth < 768 ? 'flex-column' : ''}" style="gap: 12px">
+                                                    ${EditorElem.editeInput({
                                     gvc: gvc,
                                     title: '<span class="tx_normal">開始日期</span>',
                                     type: 'date',
@@ -1010,9 +1009,7 @@ export class ShoppingDiscountSetting {
                                         voucherData.startDate = text;
                                     },
                                 })}
-                                                    </div>
-                                                    <div class="ms-3">
-                                                        ${EditorElem.editeInput({
+                                                    ${EditorElem.editeInput({
                                     gvc: gvc,
                                     title: '<span class="tx_normal">開始時間</span>',
                                     type: 'time',
@@ -1023,7 +1020,6 @@ export class ShoppingDiscountSetting {
                                         voucherData.startTime = text;
                                     },
                                 })}
-                                                    </div>
                                                 </div>`,
                                 (() => {
                                     const endDate = voucherData.endDate ? `withEnd` : `noEnd`;
@@ -1039,9 +1035,8 @@ export class ShoppingDiscountSetting {
                                             {
                                                 title: '有效期限',
                                                 value: 'withEnd',
-                                                innerHtml: html `<div class="d-flex align-items-center mb-2">
-                                                                    <div>
-                                                                        ${EditorElem.editeInput({
+                                                innerHtml: html `<div class="d-flex mt-3 ${document.body.clientWidth < 768 ? 'flex-column' : ''}" style="gap: 12px">
+                                                                    ${EditorElem.editeInput({
                                                     gvc: gvc,
                                                     title: '<span class="tx_normal">結束日期</span>',
                                                     type: 'date',
@@ -1052,9 +1047,7 @@ export class ShoppingDiscountSetting {
                                                         voucherData.endDate = text;
                                                     },
                                                 })}
-                                                                    </div>
-                                                                    <div class="ms-3">
-                                                                        ${EditorElem.editeInput({
+                                                                    ${EditorElem.editeInput({
                                                     gvc: gvc,
                                                     title: '<span class="tx_normal">結束時間</span>',
                                                     type: 'time',
@@ -1065,7 +1058,6 @@ export class ShoppingDiscountSetting {
                                                         voucherData.endTime = text;
                                                     },
                                                 })}
-                                                                    </div>
                                                                 </div>`,
                                             },
                                         ],
@@ -1082,8 +1074,7 @@ export class ShoppingDiscountSetting {
                     };
                 })),
             ].join(html `<div style="margin-top: 24px;"></div>`), undefined, 'padding: 0 ; margin: 0 !important; width: 68.5%;')}
-                    ${BgWidget.container(html `<div>
-                            ${gvc.bindView(() => {
+                    ${BgWidget.container(gvc.bindView(() => {
                 const id = gvc.glitter.getUUID();
                 return {
                     bind: id,
@@ -1097,20 +1088,22 @@ export class ShoppingDiscountSetting {
                                 bind: id,
                                 view: () => {
                                     return html `
-                                                            <h3 class="tx_700" style="margin-bottom: 18px;">摘要</h3>
-                                                            <div style="display: flex; gap: 12px; flex-direction: column;">
-                                                                ${gvc.map(getVoucherTextList().map((text) => {
+                                                        <h3 class="tx_700" style="margin-bottom: 18px;">摘要</h3>
+                                                        <div style="display: flex; gap: 12px; flex-direction: column;">
+                                                            ${gvc.map(getVoucherTextList().map((text) => {
                                         return html ` <div class="${text.length > 0 ? 'tx_normal' : 'gray-top-bottom-line-6'}">${text}</div>`;
                                     }))}
-                                                            </div>
-                                                        `;
+                                                        </div>
+                                                    `;
                                 },
                             };
                         }));
                     },
+                    divCreate: {
+                        class: 'p-0',
+                    },
                 };
-            })}
-                        </div>`, undefined, 'padding: 0; margin: 0 !important; width: 26.5%;')}
+            }), undefined, 'padding: 0; margin: 0 !important; width: 26.5%;')}
                 </div>`,
             BgWidget.mb240(),
             html ` <div class="update-bar-container">

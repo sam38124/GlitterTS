@@ -150,7 +150,7 @@ export class MenusSetting {
                                                 };
                                             })}
                                         `,
-                                        style: ['width: auto;', 'width: 60px;'],
+                                        style: ['width: auto;', 'width: 50px;'],
                                     })
                                 )
                             )}

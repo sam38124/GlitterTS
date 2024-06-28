@@ -583,6 +583,7 @@ ul {
 }
 
 .update-bar-container {
+    z-index: 10;
     position: fixed;
     display: flex;
     align-items: center;
