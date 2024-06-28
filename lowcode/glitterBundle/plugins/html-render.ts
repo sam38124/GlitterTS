@@ -173,7 +173,6 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                                         }
                                     });
                                 }
-
                                 findContainer(template_config);
                                 resolve(new glitter.htmlGenerate(template_config, [], gBundle.data, true).render(gvc, {
                                     class: ``,

@@ -87,7 +87,6 @@ export class Main_editor {
                                         let pageConfig = (viewModel.data! as any).config.filter((dd: any, index: number) => {
                                             return dd.type !== 'code' && (dd.type !== 'widget' || (dd.data.elem !== 'style' && dd.data.elem !== 'link' && dd.data.elem !== 'script'));
                                         });
-
                                         function setPageConfig() {
                                             const containerConfig = glitter.share.editorViewModel.data.config.container_config;
                                             (viewModel.data! as any).config = pageConfig.concat(

@@ -353,6 +353,10 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                     if (glitter.share.editor_vm) {
                         glitter.share.editor_vm.callback(viewModel.data);
                         swal.close();
+                        swal.toast({
+                            icon: 'success',
+                            title: '儲存成功'
+                        });
                     }
                     else if (refresh) {
                         window.preloadData = {};
@@ -643,7 +647,7 @@ function initialEditor(gvc, viewModel) {
         }
         Storage.lastSelect = cf.data.id;
         HtmlGenerate.hover_items = [Storage.lastSelect];
-        const $ = document.querySelector('iframe').contentWindow.$;
+        const $ = document.querySelector('#editerCenter iframe').contentWindow.$;
         $(HtmlGenerate.renderWidgetSingle({
             widget: cf.data,
             gvc: arrayData.container.container_config.gvc,

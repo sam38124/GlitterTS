@@ -381,6 +381,10 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                 if(glitter.share.editor_vm){
                     glitter.share.editor_vm.callback(viewModel.data);
                     swal.close();
+                    swal.toast({
+                        icon:'success',
+                        title:'儲存成功'
+                    })
                 }else if (refresh) {
                     (window as any).preloadData = {};
                     (window as any).glitterInitialHelper.share = {}
@@ -703,7 +707,7 @@ function initialEditor(gvc: GVC, viewModel: any) {
         Storage.lastSelect = cf.data.id
         HtmlGenerate.hover_items = [Storage.lastSelect];
 
-        const $ = ((document.querySelector('iframe') as any).contentWindow as any).$;
+        const $ = ((document.querySelector('#editerCenter iframe') as any).contentWindow as any).$;
 
         $(HtmlGenerate.renderWidgetSingle({
             widget: cf.data,

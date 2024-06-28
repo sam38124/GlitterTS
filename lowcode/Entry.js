@@ -31,7 +31,7 @@ export class Entry {
         }
         window.renderClock = (_a = window.renderClock) !== null && _a !== void 0 ? _a : clockF();
         console.log(`Entry-time:`, window.renderClock.stop());
-        glitter.share.editerVersion = "V_8.6.8";
+        glitter.share.editerVersion = "V_8.6.9";
         glitter.share.start = (new Date());
         const vm = {
             appConfig: [],
@@ -239,6 +239,9 @@ export class Entry {
     }
     static toHtmlEditor(glitter, vm, callback) {
         var _a;
+        glitter.addMtScript([{
+                src: 'https://kit.fontawesome.com/cccedec0f8.js'
+            }], () => { }, () => { });
         const css = String.raw;
         glitter.addStyle(css `
             @media (prefers-reduced-motion: no-preference) {

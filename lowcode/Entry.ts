@@ -26,7 +26,7 @@ export class Entry {
 
         (window as any).renderClock = (window as any).renderClock ?? clockF();
         console.log(`Entry-time:`, (window as any).renderClock.stop());
-        glitter.share.editerVersion = "V_8.6.8";
+        glitter.share.editerVersion = "V_8.6.9";
         glitter.share.start = (new Date());
         const vm: {
             appConfig: any;
@@ -253,6 +253,9 @@ export class Entry {
 
     //跳轉至頁面編輯器Iframe顯示
     public static toHtmlEditor(glitter: Glitter, vm: any, callback: () => void) {
+        glitter.addMtScript([{
+            src:'https://kit.fontawesome.com/cccedec0f8.js'
+        }],()=>{},()=>{})
         const css = String.raw;
         glitter.addStyle(css`
             @media (prefers-reduced-motion: no-preference) {
