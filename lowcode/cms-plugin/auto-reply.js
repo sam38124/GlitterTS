@@ -102,11 +102,11 @@ export class AutoReply {
                         });
                     }
                     return BgWidget.container(html `
-                            <div class="d-flex w-100 align-items-center" style="margin-bottom: 24px;">
+                            <div class="d-flex w-100 align-items-center">
                                 ${BgWidget.title('自動寄件')}
                                 <div class="flex-fill"></div>
                             </div>
-                            ${BgWidget.mainCard(BgWidget.tableV2({
+                            ${BgWidget.container(BgWidget.mainCard(BgWidget.tableV2({
                         gvc: gvc,
                         editable: true,
                         getData: (vmk) => __awaiter(this, void 0, void 0, function* () {
@@ -143,7 +143,8 @@ export class AutoReply {
                             gvc.notifyDataChange(id);
                         },
                         filter: ``,
-                    }))}
+                    })))}
+                            ${BgWidget.mbContainer(120)}
                         `, BgWidget.getContainerWidth());
                 },
             };

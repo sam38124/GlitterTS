@@ -110,7 +110,7 @@ export class MemberTypeList {
                     if (vm.type === 'list') {
                         return BgWidget.container(
                             html`
-                                <div class="d-flex w-100 align-items-center" style="margin-bottom: 24px;">
+                                <div class="d-flex w-100 align-items-center">
                                     ${BgWidget.title('會員等級')}
                                     <div class="flex-fill"></div>
                                     ${BgWidget.darkButton(
@@ -121,85 +121,87 @@ export class MemberTypeList {
                                         })
                                     )}
                                 </div>
-                                ${BgWidget.mainCard(
-                                    BgWidget.tableV2({
-                                        gvc: gvc,
-                                        getData: (vd) => {
-                                            vmi = vd;
-                                            ApiUser.getPublicConfig('member_level_config', 'manager').then((dd: any) => {
-                                                const data = dd.response.value || {};
-                                                vmi.pageSize = 1;
-                                                data.levels = (data.levels || []).filter((dd: any) => {
-                                                    return dd;
+                                ${BgWidget.container(
+                                    BgWidget.mainCard(
+                                        BgWidget.tableV2({
+                                            gvc: gvc,
+                                            getData: (vd) => {
+                                                vmi = vd;
+                                                ApiUser.getPublicConfig('member_level_config', 'manager').then((dd: any) => {
+                                                    const data = dd.response.value || {};
+                                                    vmi.pageSize = 1;
+                                                    data.levels = (data.levels || []).filter((dd: any) => {
+                                                        return dd;
+                                                    });
+                                                    vm.dataList = data.levels;
+                                                    vmi.data = getDatalist();
+                                                    vmi.loading = false;
+                                                    vmi.callback();
                                                 });
-                                                vm.dataList = data.levels;
-                                                vmi.data = getDatalist();
-                                                vmi.loading = false;
-                                                vmi.callback();
-                                            });
-                                        },
-                                        rowClick: (data, index) => {
-                                            vm.index = index;
-                                            vm.type = 'replace';
-                                        },
-                                        filter: html`
-                                            ${gvc.bindView(() => {
-                                                return {
-                                                    bind: filterID,
-                                                    view: () => {
-                                                        return [
-                                                            `<span class="fs-7 fw-bold">操作選項</span>`,
-                                                            `<button class="btn btn-danger fs-7 px-2" style="height:30px;border:none;" onclick="${gvc.event(() => {
-                                                                const dialog = new ShareDialog(gvc.glitter);
-                                                                dialog.checkYesOrNot({
-                                                                    text: '是否確認移除所選項目?',
-                                                                    callback: (response) => {
-                                                                        if (response) {
-                                                                            widget.event('loading', {
-                                                                                title: '設定中...',
-                                                                            });
-                                                                            ApiUser.setPublicConfig({
-                                                                                key: 'member_level_config',
-                                                                                user_id: 'manager',
-                                                                                value: {
-                                                                                    levels: vm.dataList.filter((dd: any) => {
-                                                                                        return !dd.checked;
-                                                                                    }),
-                                                                                },
-                                                                            }).then(() => {
-                                                                                setTimeout(() => {
-                                                                                    widget.event('loading', {
-                                                                                        visible: false,
-                                                                                    });
-                                                                                    widget.event('success', {
-                                                                                        title: '設定成功',
-                                                                                    });
-                                                                                    gvc.notifyDataChange(id);
-                                                                                }, 500);
-                                                                            });
-                                                                        }
-                                                                    },
-                                                                });
-                                                            })}">批量移除</button>`,
-                                                        ].join(``);
-                                                    },
-                                                    divCreate: () => {
-                                                        return {
-                                                            class: `d-flex align-items-center p-2 py-3 ${
-                                                                !vm.dataList ||
-                                                                !vm.dataList.find((dd: any) => {
-                                                                    return dd.checked;
-                                                                })
-                                                                    ? `d-none`
-                                                                    : ``
-                                                            }`,
-                                                            style: `height:40px;gap:10px;margin-top:10px;`,
-                                                        };
-                                                    },
-                                                };
-                                            })}
-                                        `,
-                                    })
+                                            },
+                                            rowClick: (data, index) => {
+                                                vm.index = index;
+                                                vm.type = 'replace';
+                                            },
+                                            filter: html`
+                                                ${gvc.bindView(() => {
+                                                    return {
+                                                        bind: filterID,
+                                                        view: () => {
+                                                            return [
+                                                                `<span class="fs-7 fw-bold">操作選項</span>`,
+                                                                `<button class="btn btn-danger fs-7 px-2" style="height:30px;border:none;" onclick="${gvc.event(() => {
+                                                                    const dialog = new ShareDialog(gvc.glitter);
+                                                                    dialog.checkYesOrNot({
+                                                                        text: '是否確認移除所選項目?',
+                                                                        callback: (response) => {
+                                                                            if (response) {
+                                                                                widget.event('loading', {
+                                                                                    title: '設定中...',
+                                                                                });
+                                                                                ApiUser.setPublicConfig({
+                                                                                    key: 'member_level_config',
+                                                                                    user_id: 'manager',
+                                                                                    value: {
+                                                                                        levels: vm.dataList.filter((dd: any) => {
+                                                                                            return !dd.checked;
+                                                                                        }),
+                                                                                    },
+                                                                                }).then(() => {
+                                                                                    setTimeout(() => {
+                                                                                        widget.event('loading', {
+                                                                                            visible: false,
+                                                                                        });
+                                                                                        widget.event('success', {
+                                                                                            title: '設定成功',
+                                                                                        });
+                                                                                        gvc.notifyDataChange(id);
+                                                                                    }, 500);
+                                                                                });
+                                                                            }
+                                                                        },
+                                                                    });
+                                                                })}">批量移除</button>`,
+                                                            ].join(``);
+                                                        },
+                                                        divCreate: () => {
+                                                            return {
+                                                                class: `d-flex align-items-center p-2 py-3 ${
+                                                                    !vm.dataList ||
+                                                                    !vm.dataList.find((dd: any) => {
+                                                                        return dd.checked;
+                                                                    })
+                                                                        ? `d-none`
+                                                                        : ``
+                                                                }`,
+                                                                style: `height:40px;gap:10px;margin-top:10px;`,
+                                                            };
+                                                        },
+                                                    };
+                                                })}
+                                            `,
+                                        })
+                                    )
                                 )}
                             `,
                             BgWidget.getContainerWidth()

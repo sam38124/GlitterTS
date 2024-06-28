@@ -243,9 +243,10 @@ export class ShoppingFinanceSetting {
                                 }));
                             }));
                         },
-                        divCreate: { class: `d-flex flex-column flex-column-reverse flex-md-row`, style: `gap: 10px; margin-top: 24px; padding-bottom: 100px;` },
+                        divCreate: { class: `d-flex flex-column flex-column-reverse flex-md-row`, style: `gap: 10px; margin-top: 24px;` },
                     };
                 })}
+                        ${BgWidget.mb240()}
                         <div class="update-bar-container">
                             ${BgWidget.save(gvc.event(() => {
                     save(() => {
@@ -283,7 +284,10 @@ export class ShoppingFinanceSetting {
                     }
                     vm.data.support = vm.data.support || [];
                     return BgWidget.container(html `
-                            ${BgWidget.title('宅配設定')}
+                            <div class="d-flex w-100 align-items-center">
+                                ${BgWidget.title('宅配設定')}
+                                <div class="flex-fill"></div>
+                            </div>
                             ${gvc.bindView(() => {
                         const id = gvc.glitter.getUUID();
                         return {
@@ -318,7 +322,7 @@ export class ShoppingFinanceSetting {
                                 ]
                                     .map((dd) => {
                                     return html `
-                                                    <div class="col-12 col-md-4 mb-3">
+                                                    <div class="col-12 col-md-4 mb-3 p-0 p-md-2">
                                                         <div
                                                             class="w-100"
                                                             style=" padding: 24px; background: white; box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.08); border-radius: 10px; overflow: hidden; flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 18px; display: inline-flex"
@@ -377,6 +381,7 @@ export class ShoppingFinanceSetting {
                             },
                         };
                     })}
+                            ${BgWidget.mb240()}
                         `, BgWidget.getContainerWidth());
                 },
                 divCreate: {
@@ -411,192 +416,194 @@ export class ShoppingFinanceSetting {
             bind: vm.id,
             view: () => {
                 return BgWidget.container(html `
-                        <div class="d-flex w-100 align-items-center mb-3 ">
+                        <div class="d-flex w-100 align-items-center">
                             ${BgWidget.title(`發票設定`)}
                             <div class="flex-fill"></div>
                         </div>
-                        ${gvc.bindView(() => {
-                    const id = gvc.glitter.getUUID();
-                    return {
-                        bind: id,
-                        view: () => {
-                            return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
-                                var _a, _b;
-                                const data = yield saasConfig.api.getPrivateConfig(saasConfig.config.appName, `invoice_setting`);
-                                if (data.response.result[0]) {
-                                    vm.data = data.response.result[0].value;
-                                }
-                                if (vm.data.point === 'beta') {
-                                    vm.data.whiteList = (_a = vm.data.whiteList) !== null && _a !== void 0 ? _a : [];
-                                    vm.data.whiteListExpand = (_b = vm.data.whiteListExpand) !== null && _b !== void 0 ? _b : {};
-                                }
-                                resolve(gvc.bindView(() => {
+                        ${BgWidget.container([
+                    gvc.bindView(() => {
+                        const id = gvc.glitter.getUUID();
+                        return {
+                            bind: id,
+                            view: () => {
+                                return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
                                     var _a, _b;
-                                    vm.data.fincial = (_a = vm.data.fincial) !== null && _a !== void 0 ? _a : 'ezpay';
-                                    vm.data.point = (_b = vm.data.point) !== null && _b !== void 0 ? _b : 'beta';
-                                    const id = gvc.glitter.getUUID();
-                                    return {
-                                        bind: id,
-                                        view: () => {
-                                            return html `
-                                                            <div class="c_card d-flex flex-column" style="gap:18px;">
-                                                                <div class="tx_normal fw-bold">服務商選擇</div>
-                                                                ${[
-                                                {
-                                                    title: html `<div class="d-flex flex-column">
-                                                                            藍新發票
-                                                                            <span class="" style="color:#8D8D8D;font-size: 12px;">透過藍新服務商串接，於商品購買時，自動開立電子發票</span>
-                                                                        </div>`,
-                                                    value: 'ezpay',
-                                                },
-                                                {
-                                                    title: html `<div class="d-flex flex-column">
-                                                                            綠界發票
-                                                                            <span class="" style="color:#8D8D8D;font-size: 12px;">透過綠界服務商串接，於商品購買時，自動開立電子發票</span>
-                                                                        </div>`,
-                                                    value: 'ecpay',
-                                                },
-                                                {
-                                                    title: html `<div class="d-flex flex-column">
-                                                                            線下開立
-                                                                            <span class="" style="color:#8D8D8D;font-size: 12px;">顧客需填寫發票資訊，由店家自行開立發票</span>
-                                                                        </div>`,
-                                                    value: 'off_line',
-                                                },
-                                                {
-                                                    title: html `<div class="d-flex flex-column">
-                                                                            不開立電子發票
-                                                                            <span class="" style="color:#8D8D8D;font-size: 12px;">顧客不需填寫發票資訊，不需開立電子發票</span>
-                                                                        </div>`,
-                                                    value: 'nouse',
-                                                },
-                                            ]
-                                                .map((dd) => {
-                                                return html `<div>
-                                                                            ${[
-                                                    html ` <div
-                                                                                    class="d-flex align-items-center cursor_pointer"
-                                                                                    style="gap:8px;"
-                                                                                    onclick="${gvc.event(() => {
-                                                        vm.data.fincial = dd.value;
-                                                        gvc.notifyDataChange(id);
-                                                    })}"
-                                                                                >
-                                                                                    ${vm.data.fincial === dd.value
-                                                        ? `<i class="fa-sharp fa-solid fa-circle-dot cl_39"></i>`
-                                                        : ` <div class="c_39_checkbox"></div>`}
-                                                                                    <div class="tx_normal fw-normal">${dd.title}</div>
+                                    const data = yield saasConfig.api.getPrivateConfig(saasConfig.config.appName, `invoice_setting`);
+                                    if (data.response.result[0]) {
+                                        vm.data = data.response.result[0].value;
+                                    }
+                                    if (vm.data.point === 'beta') {
+                                        vm.data.whiteList = (_a = vm.data.whiteList) !== null && _a !== void 0 ? _a : [];
+                                        vm.data.whiteListExpand = (_b = vm.data.whiteListExpand) !== null && _b !== void 0 ? _b : {};
+                                    }
+                                    resolve(gvc.bindView(() => {
+                                        var _a, _b;
+                                        vm.data.fincial = (_a = vm.data.fincial) !== null && _a !== void 0 ? _a : 'ezpay';
+                                        vm.data.point = (_b = vm.data.point) !== null && _b !== void 0 ? _b : 'beta';
+                                        const id = gvc.glitter.getUUID();
+                                        return {
+                                            bind: id,
+                                            view: () => {
+                                                return html `
+                                                                    <div class="c_card d-flex flex-column" style="gap:18px;">
+                                                                        <div class="tx_normal fw-bold">服務商選擇</div>
+                                                                        ${[
+                                                    {
+                                                        title: html `<div class="d-flex flex-column">
+                                                                                    藍新發票
+                                                                                    <span class="" style="color:#8D8D8D;font-size: 12px;">透過藍新服務商串接，於商品購買時，自動開立電子發票</span>
                                                                                 </div>`,
-                                                    html ` <div class="d-flex position-relative mt-2" style="">
-                                                                                    <div class="ms-2 border-end position-absolute h-100" style="left: 0px;"></div>
-                                                                                    <div class="flex-fill " style="margin-left:30px;max-width: 518px;">
-                                                                                        ${(() => {
-                                                        var _a, _b, _c;
-                                                        if (vm.data.fincial === 'nouse' || vm.data.fincial === 'off_line' || vm.data.fincial !== dd.value) {
-                                                            return [].join('');
-                                                        }
-                                                        else {
-                                                            return [
-                                                                BgWidget.inlineCheckBox({
-                                                                    title: '站點',
-                                                                    gvc: gvc,
-                                                                    def: vm.data.point,
-                                                                    array: [
-                                                                        {
-                                                                            title: '測試區',
-                                                                            value: 'beta',
-                                                                        },
-                                                                        {
-                                                                            title: '正式區',
-                                                                            value: 'official',
-                                                                        },
-                                                                    ],
-                                                                    callback: (text) => {
-                                                                        vm.data.point = text;
-                                                                        if (vm.data.point == 'beta') {
-                                                                            vm.data.hashkey = vm.data.bhashkey;
-                                                                            vm.data.hashiv = vm.data.bhashiv;
-                                                                        }
-                                                                        else {
-                                                                            vm.data.hashkey = vm.data.ohashkey;
-                                                                            vm.data.hashiv = vm.data.ohashiv;
-                                                                        }
-                                                                        gvc.notifyDataChange(id);
-                                                                    },
-                                                                }),
-                                                                BgWidget.editeInput({
-                                                                    gvc: gvc,
-                                                                    title: '特店編號',
-                                                                    default: (_a = vm.data.merchNO) !== null && _a !== void 0 ? _a : '',
-                                                                    type: 'text',
-                                                                    placeHolder: '請輸入特店編號',
-                                                                    callback: (text) => {
-                                                                        vm.data.merchNO = text;
-                                                                    },
-                                                                }),
-                                                                BgWidget.editeInput({
-                                                                    gvc: gvc,
-                                                                    title: 'HashKey',
-                                                                    default: (_b = vm.data.hashkey) !== null && _b !== void 0 ? _b : '',
-                                                                    type: 'text',
-                                                                    placeHolder: '請輸入HashKey',
-                                                                    callback: (text) => {
-                                                                        vm.data.hashkey = text;
-                                                                        if (vm.data.point == 'beta') {
-                                                                            vm.data.bhashkey = text;
-                                                                        }
-                                                                        else {
-                                                                            vm.data.ohashkey = text;
-                                                                        }
-                                                                    },
-                                                                }),
-                                                                BgWidget.editeInput({
-                                                                    gvc: gvc,
-                                                                    title: 'HashIV',
-                                                                    default: (_c = vm.data.hashiv) !== null && _c !== void 0 ? _c : '',
-                                                                    type: 'text',
-                                                                    placeHolder: '請輸入HashIV',
-                                                                    callback: (text) => {
-                                                                        vm.data.hashiv = text;
-                                                                        if (vm.data.point == 'beta') {
-                                                                            vm.data.bhashiv = text;
-                                                                        }
-                                                                        else {
-                                                                            vm.data.ohashiv = text;
-                                                                        }
-                                                                    },
-                                                                }),
-                                                            ].join(html `<div class="" style="height: 12px;"></div>`);
-                                                        }
-                                                    })()}
-                                                                                    </div>
+                                                        value: 'ezpay',
+                                                    },
+                                                    {
+                                                        title: html `<div class="d-flex flex-column">
+                                                                                    綠界發票
+                                                                                    <span class="" style="color:#8D8D8D;font-size: 12px;">透過綠界服務商串接，於商品購買時，自動開立電子發票</span>
                                                                                 </div>`,
-                                                ].join('')}
-                                                                        </div>`;
-                                            })
-                                                .join('')}
-                                                            </div>
-                                                        `;
-                                        },
-                                        divCreate: {
-                                            style: ``,
-                                            class: `w-100`,
-                                        },
-                                    };
+                                                        value: 'ecpay',
+                                                    },
+                                                    {
+                                                        title: html `<div class="d-flex flex-column">
+                                                                                    線下開立
+                                                                                    <span class="" style="color:#8D8D8D;font-size: 12px;">顧客需填寫發票資訊，由店家自行開立發票</span>
+                                                                                </div>`,
+                                                        value: 'off_line',
+                                                    },
+                                                    {
+                                                        title: html `<div class="d-flex flex-column">
+                                                                                    不開立電子發票
+                                                                                    <span class="" style="color:#8D8D8D;font-size: 12px;">顧客不需填寫發票資訊，不需開立電子發票</span>
+                                                                                </div>`,
+                                                        value: 'nouse',
+                                                    },
+                                                ]
+                                                    .map((dd) => {
+                                                    return html `<div>
+                                                                                    ${[
+                                                        html ` <div
+                                                                                            class="d-flex align-items-center cursor_pointer"
+                                                                                            style="gap:8px;"
+                                                                                            onclick="${gvc.event(() => {
+                                                            vm.data.fincial = dd.value;
+                                                            gvc.notifyDataChange(id);
+                                                        })}"
+                                                                                        >
+                                                                                            ${vm.data.fincial === dd.value
+                                                            ? `<i class="fa-sharp fa-solid fa-circle-dot cl_39"></i>`
+                                                            : ` <div class="c_39_checkbox"></div>`}
+                                                                                            <div class="tx_normal fw-normal">${dd.title}</div>
+                                                                                        </div>`,
+                                                        html ` <div class="d-flex position-relative mt-2" style="">
+                                                                                            <div class="ms-2 border-end position-absolute h-100" style="left: 0px;"></div>
+                                                                                            <div class="flex-fill " style="margin-left:30px;max-width: 518px;">
+                                                                                                ${(() => {
+                                                            var _a, _b, _c;
+                                                            if (vm.data.fincial === 'nouse' || vm.data.fincial === 'off_line' || vm.data.fincial !== dd.value) {
+                                                                return [].join('');
+                                                            }
+                                                            else {
+                                                                return [
+                                                                    BgWidget.inlineCheckBox({
+                                                                        title: '站點',
+                                                                        gvc: gvc,
+                                                                        def: vm.data.point,
+                                                                        array: [
+                                                                            {
+                                                                                title: '測試區',
+                                                                                value: 'beta',
+                                                                            },
+                                                                            {
+                                                                                title: '正式區',
+                                                                                value: 'official',
+                                                                            },
+                                                                        ],
+                                                                        callback: (text) => {
+                                                                            vm.data.point = text;
+                                                                            if (vm.data.point == 'beta') {
+                                                                                vm.data.hashkey = vm.data.bhashkey;
+                                                                                vm.data.hashiv = vm.data.bhashiv;
+                                                                            }
+                                                                            else {
+                                                                                vm.data.hashkey = vm.data.ohashkey;
+                                                                                vm.data.hashiv = vm.data.ohashiv;
+                                                                            }
+                                                                            gvc.notifyDataChange(id);
+                                                                        },
+                                                                    }),
+                                                                    BgWidget.editeInput({
+                                                                        gvc: gvc,
+                                                                        title: '特店編號',
+                                                                        default: (_a = vm.data.merchNO) !== null && _a !== void 0 ? _a : '',
+                                                                        type: 'text',
+                                                                        placeHolder: '請輸入特店編號',
+                                                                        callback: (text) => {
+                                                                            vm.data.merchNO = text;
+                                                                        },
+                                                                    }),
+                                                                    BgWidget.editeInput({
+                                                                        gvc: gvc,
+                                                                        title: 'HashKey',
+                                                                        default: (_b = vm.data.hashkey) !== null && _b !== void 0 ? _b : '',
+                                                                        type: 'text',
+                                                                        placeHolder: '請輸入HashKey',
+                                                                        callback: (text) => {
+                                                                            vm.data.hashkey = text;
+                                                                            if (vm.data.point == 'beta') {
+                                                                                vm.data.bhashkey = text;
+                                                                            }
+                                                                            else {
+                                                                                vm.data.ohashkey = text;
+                                                                            }
+                                                                        },
+                                                                    }),
+                                                                    BgWidget.editeInput({
+                                                                        gvc: gvc,
+                                                                        title: 'HashIV',
+                                                                        default: (_c = vm.data.hashiv) !== null && _c !== void 0 ? _c : '',
+                                                                        type: 'text',
+                                                                        placeHolder: '請輸入HashIV',
+                                                                        callback: (text) => {
+                                                                            vm.data.hashiv = text;
+                                                                            if (vm.data.point == 'beta') {
+                                                                                vm.data.bhashiv = text;
+                                                                            }
+                                                                            else {
+                                                                                vm.data.ohashiv = text;
+                                                                            }
+                                                                        },
+                                                                    }),
+                                                                ].join(html `<div class="" style="height: 12px;"></div>`);
+                                                            }
+                                                        })()}
+                                                                                            </div>
+                                                                                        </div>`,
+                                                    ].join('')}
+                                                                                </div>`;
+                                                })
+                                                    .join('')}
+                                                                    </div>
+                                                                `;
+                                            },
+                                            divCreate: {
+                                                style: ``,
+                                                class: `w-100`,
+                                            },
+                                        };
+                                    }));
                                 }));
-                            }));
-                        },
-                        divCreate: { class: `d-flex flex-column flex-column-reverse  flex-md-row`, style: `gap:10px;` },
-                    };
-                })}
-                        <div style="margin-bottom: 240px"></div>
-                        <div class="update-bar-container">
-                            ${BgWidget.save(gvc.event(() => {
-                    save(() => {
-                        widget.event('success', { title: '設定成功' });
-                    });
-                }))}
-                        </div>
+                            },
+                            divCreate: { class: 'd-flex flex-column flex-column-reverse flex-md-row px-0', style: 'gap:10px;' },
+                        };
+                    }),
+                    BgWidget.mb240(),
+                    html `<div class="update-bar-container">
+                                    ${BgWidget.save(gvc.event(() => {
+                        save(() => {
+                            widget.event('success', { title: '設定成功' });
+                        });
+                    }))}
+                                </div>`,
+                ].join(''))}
                     `, BgWidget.getContainerWidth());
             },
         });

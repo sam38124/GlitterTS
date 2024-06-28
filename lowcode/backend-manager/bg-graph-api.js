@@ -34,14 +34,14 @@ export class BgGraphApi {
                         case 'list':
                             const filterID = gvc.glitter.getUUID();
                             return BgWidget.container(html `
-                                    <div class="d-flex w-100 align-items-center mb-3">
+                                    <div class="d-flex w-100 align-items-center">
                                         ${BgWidget.title('Graph API')}
                                         <div class="flex-fill"></div>
-                                        ${BgWidget.darkButton('新增API', gvc.event(() => {
+                                        ${BgWidget.darkButton('新增 API', gvc.event(() => {
                                 vm.status = 'add';
                             }))}
                                     </div>
-                                    ${BgWidget.mainCard(BgWidget.tableV2({
+                                    ${BgWidget.container(BgWidget.mainCard(BgWidget.tableV2({
                                 gvc: gvc,
                                 getData: (vmi) => {
                                     GraphApi.get({
@@ -116,7 +116,7 @@ export class BgGraphApi {
                                     vm.query = e.value;
                                     gvc.notifyDataChange(id);
                                 }), vm.query || '', '搜尋所有訂單')}
-                                            ${gvc.bindView(() => {
+                                                ${gvc.bindView(() => {
                                     return {
                                         bind: filterID,
                                         view: () => {
@@ -128,8 +128,11 @@ export class BgGraphApi {
                                             }
                                             else {
                                                 return [
-                                                    `<span class="fs-7 fw-bold">操作選項</span>`,
-                                                    `<button class="btn btn-danger fs-7 px-2" style="height:30px;border:none;" onclick="${gvc.event(() => {
+                                                    html `<span class="fs-7 fw-bold">操作選項</span>`,
+                                                    html `<button
+                                                                        class="btn btn-danger fs-7 px-2"
+                                                                        style="height:30px;border:none;"
+                                                                        onclick="${gvc.event(() => {
                                                         const dialog = new ShareDialog(gvc.glitter);
                                                         dialog.checkYesOrNot({
                                                             text: '是否確認移除所選項目?',
@@ -158,7 +161,10 @@ export class BgGraphApi {
                                                                 }
                                                             },
                                                         });
-                                                    })}">批量移除</button>`,
+                                                    })}"
+                                                                    >
+                                                                        批量移除
+                                                                    </button>`,
                                                 ].join(``);
                                             }
                                         },
@@ -170,12 +176,12 @@ export class BgGraphApi {
                                                     })
                                                     ? `d-none`
                                                     : ``}`,
-                                                style: `height:40px;gap:10px;margin-top:10px;`,
+                                                style: `height: 40px; gap: 10px; margin-top: 10px;`,
                                             };
                                         },
                                     };
                                 })}`,
-                            }))}
+                            })))}
                                 `, BgWidget.getContainerWidth());
                         case 'replace':
                             return BgGraphApi.editor({
@@ -209,16 +215,13 @@ export class BgGraphApi {
                 bind: id,
                 view: () => {
                     return BgWidget.container(html `
-                            <div class="d-flex">
+                            <div class="d-flex align-items-center">
                                 ${BgWidget.goBack(obj.gvc.event(() => {
                         obj.vm.status = 'list';
                     }))}
                                 ${BgWidget.title(obj.type === 'replace' ? `編輯API` : `新增API`)}
                                 <div class="flex-fill"></div>
-                                <button
-                                    class="btn btn-primary-c btn-sm"
-                                    style=""
-                                    onclick="${obj.gvc.event(() => {
+                                ${BgWidget.darkButton(obj.type === 'replace' ? '儲存並更改' : '儲存並新增', obj.gvc.event(() => {
                         if (obj.type === 'add') {
                             dialog.dataLoading({ visible: true });
                             GraphApi.post(postData).then((res) => {
@@ -245,13 +248,9 @@ export class BgGraphApi {
                                 dialog.successMessage({ text: '更新成功' });
                             });
                         }
-                    })}"
-                                >
-                                    ${obj.type === 'replace' ? `儲存並更改` : `儲存並新增`}
-                                </button>
+                    }))}
                             </div>
-                            <div class="my-3"></div>
-                            ${BgWidget.card(` ${[
+                            ${BgWidget.container(BgWidget.card(` ${[
                         EditorElem.editeInput({
                             gvc: gvc,
                             title: 'API名稱',
@@ -295,8 +294,9 @@ export class BgGraphApi {
                             },
                             structStart: `((db,is_manager,is_appUser,body,query,user_data,sendMessage,axios)=>{`,
                         }),
-                    ].join(`<div class="my-2"></div>`)}`)}
-                        `, 800);
+                    ].join(`<div class="my-2"></div>`)}`))}
+                            ${BgWidget.mbContainer(120)}
+                        `, BgWidget.getContainerWidth({ rate: { web: 0.6 } }));
                 },
             };
         });

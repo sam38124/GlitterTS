@@ -110,7 +110,7 @@ export class UserList {
             view: () => {
                 if (vm.type === 'list') {
                     return BgWidget.container(html `
-                            <div class="d-flex w-100 align-items-center" style="margin-bottom: 24px;">
+                            <div class="d-flex w-100 align-items-center">
                                 ${BgWidget.title('顧客列表')}
                                 <div class="flex-fill"></div>
                                 <button
@@ -126,46 +126,59 @@ export class UserList {
                                     自訂資料
                                 </button>
                             </div>
-                            ${BgWidget.mainCard([
+                            ${BgWidget.container(BgWidget.mainCard([
                         (() => {
                             const id = gvc.glitter.getUUID();
                             return gvc.bindView({
                                 bind: id,
                                 view: () => {
-                                    return html `<div>
-                                                    <div style="display: flex; align-items: center; gap: 10px;">
-                                                        ${BgWidget.selectFilter({
-                                        gvc,
-                                        callback: (value) => {
-                                            vm.queryType = value;
+                                    const filterList = [
+                                        BgWidget.selectFilter({
+                                            gvc,
+                                            callback: (value) => {
+                                                vm.queryType = value;
+                                                gvc.notifyDataChange(vm.tableId);
+                                                gvc.notifyDataChange(id);
+                                            },
+                                            default: vm.queryType || 'name',
+                                            options: FilterOptions.userSelect,
+                                        }),
+                                        BgWidget.searchFilter(gvc.event((e) => {
+                                            vm.query = e.value;
                                             gvc.notifyDataChange(vm.tableId);
                                             gvc.notifyDataChange(id);
-                                        },
-                                        default: vm.queryType || 'name',
-                                        options: FilterOptions.userSelect,
-                                    })}
-                                                        ${BgWidget.searchFilter(gvc.event((e) => {
-                                        vm.query = e.value;
-                                        gvc.notifyDataChange(vm.tableId);
-                                        gvc.notifyDataChange(id);
-                                    }), vm.query || '', '搜尋所有用戶')}
-                                                        ${BgWidget.funnelFilter({
-                                        gvc,
-                                        callback: () => ListComp.showRightMenu(FilterOptions.userFunnel),
-                                    })}
-                                                        ${BgWidget.updownFilter({
-                                        gvc,
-                                        callback: (value) => {
-                                            vm.orderString = value;
-                                            gvc.notifyDataChange(vm.tableId);
-                                            gvc.notifyDataChange(id);
-                                        },
-                                        default: vm.orderString || 'default',
-                                        options: FilterOptions.userOrderBy,
-                                    })}
-                                                    </div>
-                                                    <div>${ListComp.getFilterTags(FilterOptions.userFunnel)}</div>
-                                                </div>`;
+                                        }), vm.query || '', '搜尋所有用戶'),
+                                        BgWidget.funnelFilter({
+                                            gvc,
+                                            callback: () => ListComp.showRightMenu(FilterOptions.userFunnel),
+                                        }),
+                                        BgWidget.updownFilter({
+                                            gvc,
+                                            callback: (value) => {
+                                                vm.orderString = value;
+                                                gvc.notifyDataChange(vm.tableId);
+                                                gvc.notifyDataChange(id);
+                                            },
+                                            default: vm.orderString || 'default',
+                                            options: FilterOptions.userOrderBy,
+                                        }),
+                                    ];
+                                    const filterTags = ListComp.getFilterTags(FilterOptions.userFunnel);
+                                    if (document.body.clientWidth < 768) {
+                                        return html `<div style="display: flex; align-items: center; gap: 10px; width: 100%; justify-content: space-between">
+                                                                <div>${filterList[0]}</div>
+                                                                <div style="display: flex;">
+                                                                    <div class="me-2">${filterList[2]}</div>
+                                                                    ${filterList[3]}
+                                                                </div>
+                                                            </div>
+                                                            <div style="display: flex; margin-top: 8px;">${filterList[1]}</div>
+                                                            <div>${filterTags}</div>`;
+                                    }
+                                    else {
+                                        return html `<div style="display: flex; align-items: center; gap: 10px;">${filterList.join('')}</div>
+                                                            <div>${filterTags}</div>`;
+                                    }
                                 },
                             });
                         })(),
@@ -201,10 +214,10 @@ export class UserList {
                                             view: () => {
                                                 return [
                                                     html `<span class="fs-7 fw-bold">操作選項</span
-                                                                    ><button
-                                                                        class="btn btn-danger fs-7 px-2"
-                                                                        style="height: 30px; border: none;"
-                                                                        onclick="${gvc.event(() => {
+                                                                        ><button
+                                                                            class="btn btn-danger fs-7 px-2"
+                                                                            style="height: 30px; border: none;"
+                                                                            onclick="${gvc.event(() => {
                                                         const dialog = new ShareDialog(gvc.glitter);
                                                         dialog.checkYesOrNot({
                                                             text: '是否確認移除所選項目?',
@@ -234,9 +247,9 @@ export class UserList {
                                                             },
                                                         });
                                                     })}"
-                                                                    >
-                                                                        批量移除
-                                                                    </button>`,
+                                                                        >
+                                                                            批量移除
+                                                                        </button>`,
                                                 ].join(``);
                                             },
                                             divCreate: () => {
@@ -251,7 +264,7 @@ export class UserList {
                                 });
                             },
                         }),
-                    ].join(''))}
+                    ].join('')))}
                         `, BgWidget.getContainerWidth());
                 }
                 else if (vm.type == 'replace') {
@@ -702,7 +715,7 @@ export class UserList {
                                         };
                                     })}
                                                 </div>`,
-                                ].join(html `<div style="margin-top: 24px"></div>`), undefined, 'padding: 0; margin: 0 !important; width: 73.5%;')}
+                                ].join(html `<div style="margin-top: 24px;"></div>`), undefined, 'padding: 0; margin: 0 !important; width: 73.5%;')}
                                         ${BgWidget.container(html `<div>
                                                 ${gvc.bindView(() => {
                                     const id = gvc.glitter.getUUID();
@@ -790,7 +803,7 @@ export class UserList {
                                 })}
                                             </div>`, undefined, 'padding: 0; margin: 0 !important; width: 26.5%;')}
                                     </div>`,
-                                html `<div style="margin-bottom: 240px"></div>`,
+                                BgWidget.mb240(),
                                 html ` <div class="update-bar-container">
                                         ${BgWidget.cancel(gvc.event(() => cf.callback()))}
                                         ${BgWidget.save(gvc.event(() => {
@@ -810,7 +823,7 @@ export class UserList {
                                     });
                                 }))}
                                     </div>`,
-                            ].join(html `<div style="margin-top: 24px"></div>`), BgWidget.getContainerWidth());
+                            ].join(html `<div style="margin-top: 24px;"></div>`), BgWidget.getContainerWidth());
                     }
                 },
                 onCreate: () => {

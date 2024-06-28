@@ -81,14 +81,14 @@ export class FormSetting {
                 view: () => {
                     if (vm.type === 'list') {
                         return BgWidget.container(html `
-                                <div class="d-flex w-100 align-items-center mb-3">
+                                <div class="d-flex w-100 align-items-center">
                                     ${BgWidget.title('表單設定')}
                                     <div class="flex-fill"></div>
                                     ${BgWidget.darkButton('新增表單', gvc.event(() => {
                             vm.type = 'add';
                         }))}
                                 </div>
-                                ${BgWidget.mainCard(BgWidget.tableV2({
+                                ${BgWidget.container(BgWidget.mainCard(BgWidget.tableV2({
                             gvc: gvc,
                             getData: (vd) => {
                                 vmi = vd;
@@ -110,11 +110,11 @@ export class FormSetting {
                                 vm.type = 'replace';
                             },
                             filter: html `
-                                            ${BgWidget.searchPlace(gvc.event((e, event) => {
+                                                ${BgWidget.searchPlace(gvc.event((e, event) => {
                                 vm.query = e.value;
                                 gvc.notifyDataChange(id);
                             }), vm.query || '', '搜尋所有表單')}
-                                            ${gvc.bindView(() => {
+                                                ${gvc.bindView(() => {
                                 return {
                                     bind: filterID,
                                     view: () => {
@@ -165,8 +165,8 @@ export class FormSetting {
                                     },
                                 };
                             })}
-                                        `,
-                        }))}
+                                            `,
+                        })))}
                             `, BgWidget.getContainerWidth());
                     }
                     else if (vm.type == 'replace' || vm.type == 'add') {
@@ -249,14 +249,14 @@ export class FormSetting {
                 view: () => {
                     if (vm.type === 'list') {
                         return BgWidget.container(html `
-                                <div class="d-flex w-100 align-items-center mb-3">
+                                <div class="d-flex w-100 align-items-center">
                                     ${BgWidget.title('用戶提交表單')}
                                     <div class="flex-fill"></div>
                                     ${BgWidget.darkButton('新增表單', gvc.event(() => {
                             vm.type = 'add';
                         }))}
                                 </div>
-                                ${BgWidget.mainCard(BgWidget.tableV2({
+                                ${BgWidget.container(BgWidget.mainCard(BgWidget.tableV2({
                             gvc: gvc,
                             getData: (vd) => {
                                 vmi = vd;
@@ -278,11 +278,11 @@ export class FormSetting {
                                 vm.type = 'replace';
                             },
                             filter: html `
-                                            ${BgWidget.searchPlace(gvc.event((e, event) => {
+                                                ${BgWidget.searchPlace(gvc.event((e, event) => {
                                 vm.query = e.value;
                                 gvc.notifyDataChange(id);
                             }), vm.query || '', '搜尋所有表單')}
-                                            ${gvc.bindView(() => {
+                                                ${gvc.bindView(() => {
                                 return {
                                     bind: filterID,
                                     view: () => {
@@ -333,8 +333,8 @@ export class FormSetting {
                                     },
                                 };
                             })}
-                                        `,
-                        }))}
+                                            `,
+                        })))}
                             `, BgWidget.getContainerWidth());
                     }
                     else if (vm.type == 'replace' || vm.type == 'add') {

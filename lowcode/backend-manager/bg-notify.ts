@@ -122,7 +122,7 @@ export class BgNotify {
 
                     return BgWidget.container(
                         html`
-                            <div class="d-flex w-100 align-items-center ${type === 'select' ? `d-none` : ``}" style="margin-bottom: 24px;">
+                            <div class="d-flex w-100 align-items-center ${type === 'select' ? `d-none` : ``}">
                                 ${BgWidget.title('已註冊信箱')}
                                 <div class="flex-fill"></div>
                                 ${BgWidget.darkButton(
@@ -197,120 +197,122 @@ export class BgNotify {
                                     })
                                 )}
                             </div>
-                            ${BgWidget.mainCard(
-                                BgWidget.tableV2({
-                                    gvc: gvc,
-                                    getData: (vmk) => {
-                                        vmi = vmk;
-                                        ApiUser.getSubScribe({
-                                            page: vmi.page - 1,
-                                            limit: 20,
-                                            search: vm.query || undefined,
-                                        }).then((data) => {
-                                            vmi.pageSize = Math.ceil(data.response.total / 20);
-                                            vm.dataList = data.response.data;
-                                            vmi.data = getDatalist();
-                                            vmi.loading = false;
-                                            vmi.callback();
-                                            if (type === 'select') {
-                                                callback(
-                                                    vm.dataList.filter((dd: any) => {
-                                                        return dd.checked;
-                                                    })
-                                                );
-                                            }
-                                        });
-                                    },
-                                    rowClick: (data, index) => {
-                                        vm.dataList[index].checked = !vm.dataList[index].checked;
-                                        vmi.data = getDatalist();
-                                        vmi.callback();
-                                        gvc.notifyDataChange(filterID);
-                                        callback(
-                                            vm.dataList.filter((dd: any) => {
-                                                return dd.checked;
-                                            })
-                                        );
-                                    },
-                                    filter: html`
-                                        ${BgWidget.searchPlace(
-                                            gvc.event((e, event) => {
-                                                vm.query = e.value;
-                                                gvc.notifyDataChange(id);
-                                            }),
-                                            vm.query || '',
-                                            '搜尋信箱或者標籤'
-                                        )}
-                                        ${gvc.bindView(() => {
-                                            return {
-                                                bind: filterID,
-                                                view: () => {
-                                                    if (
-                                                        !vm.dataList ||
-                                                        !vm.dataList.find((dd: any) => {
+                            ${BgWidget.container(
+                                BgWidget.mainCard(
+                                    BgWidget.tableV2({
+                                        gvc: gvc,
+                                        getData: (vmk) => {
+                                            vmi = vmk;
+                                            ApiUser.getSubScribe({
+                                                page: vmi.page - 1,
+                                                limit: 20,
+                                                search: vm.query || undefined,
+                                            }).then((data) => {
+                                                vmi.pageSize = Math.ceil(data.response.total / 20);
+                                                vm.dataList = data.response.data;
+                                                vmi.data = getDatalist();
+                                                vmi.loading = false;
+                                                vmi.callback();
+                                                if (type === 'select') {
+                                                    callback(
+                                                        vm.dataList.filter((dd: any) => {
                                                             return dd.checked;
                                                         })
-                                                    ) {
-                                                        return ``;
-                                                    } else {
-                                                        return [
-                                                            html`<span class="fs-7 fw-bold">操作選項</span>`,
-                                                            html`<button
-                                                                class="btn btn-danger fs-7 px-2"
-                                                                style="height:30px;border:none;"
-                                                                onclick="${gvc.event(() => {
-                                                                    const dialog = new ShareDialog(gvc.glitter);
-                                                                    dialog.checkYesOrNot({
-                                                                        text: '是否確認移除所選項目?',
-                                                                        callback: (response) => {
-                                                                            if (response) {
-                                                                                dialog.dataLoading({ visible: true });
-                                                                                ApiUser.deleteSubscribe({
-                                                                                    email: vm.dataList
-                                                                                        .filter((dd: any) => {
-                                                                                            return dd.checked;
-                                                                                        })
-                                                                                        .map((dd: any) => {
-                                                                                            return dd.email;
-                                                                                        })
-                                                                                        .join(`,`),
-                                                                                }).then((res) => {
-                                                                                    dialog.dataLoading({ visible: false });
-                                                                                    if (res.result) {
-                                                                                        vm.dataList = undefined;
-                                                                                        gvc.notifyDataChange(id);
-                                                                                    } else {
-                                                                                        dialog.errorMessage({ text: '刪除失敗' });
-                                                                                    }
-                                                                                });
-                                                                            }
-                                                                        },
-                                                                    });
-                                                                })}"
-                                                            >
-                                                                批量移除
-                                                            </button>`,
-                                                        ].join(``);
-                                                    }
-                                                },
-                                                divCreate: () => {
-                                                    return {
-                                                        class: `d-flex align-items-center p-2 py-3 ${
+                                                    );
+                                                }
+                                            });
+                                        },
+                                        rowClick: (data, index) => {
+                                            vm.dataList[index].checked = !vm.dataList[index].checked;
+                                            vmi.data = getDatalist();
+                                            vmi.callback();
+                                            gvc.notifyDataChange(filterID);
+                                            callback(
+                                                vm.dataList.filter((dd: any) => {
+                                                    return dd.checked;
+                                                })
+                                            );
+                                        },
+                                        filter: html`
+                                            ${BgWidget.searchPlace(
+                                                gvc.event((e, event) => {
+                                                    vm.query = e.value;
+                                                    gvc.notifyDataChange(id);
+                                                }),
+                                                vm.query || '',
+                                                '搜尋信箱或者標籤'
+                                            )}
+                                            ${gvc.bindView(() => {
+                                                return {
+                                                    bind: filterID,
+                                                    view: () => {
+                                                        if (
                                                             !vm.dataList ||
                                                             !vm.dataList.find((dd: any) => {
                                                                 return dd.checked;
-                                                            }) ||
-                                                            type === 'select'
-                                                                ? `d-none`
-                                                                : ``
-                                                        }`,
-                                                        style: `height:40px;gap:10px;margin-top:10px;`,
-                                                    };
-                                                },
-                                            };
-                                        })}
-                                    `,
-                                })
+                                                            })
+                                                        ) {
+                                                            return ``;
+                                                        } else {
+                                                            return [
+                                                                html`<span class="fs-7 fw-bold">操作選項</span>`,
+                                                                html`<button
+                                                                    class="btn btn-danger fs-7 px-2"
+                                                                    style="height:30px;border:none;"
+                                                                    onclick="${gvc.event(() => {
+                                                                        const dialog = new ShareDialog(gvc.glitter);
+                                                                        dialog.checkYesOrNot({
+                                                                            text: '是否確認移除所選項目?',
+                                                                            callback: (response) => {
+                                                                                if (response) {
+                                                                                    dialog.dataLoading({ visible: true });
+                                                                                    ApiUser.deleteSubscribe({
+                                                                                        email: vm.dataList
+                                                                                            .filter((dd: any) => {
+                                                                                                return dd.checked;
+                                                                                            })
+                                                                                            .map((dd: any) => {
+                                                                                                return dd.email;
+                                                                                            })
+                                                                                            .join(`,`),
+                                                                                    }).then((res) => {
+                                                                                        dialog.dataLoading({ visible: false });
+                                                                                        if (res.result) {
+                                                                                            vm.dataList = undefined;
+                                                                                            gvc.notifyDataChange(id);
+                                                                                        } else {
+                                                                                            dialog.errorMessage({ text: '刪除失敗' });
+                                                                                        }
+                                                                                    });
+                                                                                }
+                                                                            },
+                                                                        });
+                                                                    })}"
+                                                                >
+                                                                    批量移除
+                                                                </button>`,
+                                                            ].join(``);
+                                                        }
+                                                    },
+                                                    divCreate: () => {
+                                                        return {
+                                                            class: `d-flex align-items-center p-2 py-3 ${
+                                                                !vm.dataList ||
+                                                                !vm.dataList.find((dd: any) => {
+                                                                    return dd.checked;
+                                                                }) ||
+                                                                type === 'select'
+                                                                    ? `d-none`
+                                                                    : ``
+                                                            }`,
+                                                            style: `height:40px;gap:10px;margin-top:10px;`,
+                                                        };
+                                                    },
+                                                };
+                                            })}
+                                        `,
+                                    })
+                                )
                             )}
                         `,
                         BgWidget.getContainerWidth()
@@ -346,7 +348,7 @@ export class BgNotify {
                     if (vm.type === 'list') {
                         return BgWidget.container(
                             html`
-                                <div class="d-flex w-100 align-items-center mb-3" style="margin-bottom: 24px;">
+                                <div class="d-flex w-100 align-items-center mb-3">
                                     ${BgWidget.title('信件設定')}
                                     <div class="flex-fill"></div>
                                     ${BgWidget.darkButton(
@@ -357,217 +359,222 @@ export class BgNotify {
                                         })
                                     )}
                                 </div>
-                                ${BgWidget.mainCard(
-                                    BgWidget.tableV2({
-                                        gvc: gvc,
-                                        getData: (vmi) => {
-                                            ApiPost.getManagerPost({
-                                                page: vmi.page - 1,
-                                                limit: 20,
-                                                search: vm.query ? [`title->${vm.query}`] : undefined,
-                                                type: 'notify-email-config',
-                                            }).then((data) => {
-                                                vmi.pageSize = Math.ceil(data.response.total / 20);
-                                                vm.dataList = data.response.data;
+                                ${BgWidget.container(
+                                    BgWidget.mainCard(
+                                        BgWidget.tableV2({
+                                            gvc: gvc,
+                                            getData: (vmi) => {
+                                                ApiPost.getManagerPost({
+                                                    page: vmi.page - 1,
+                                                    limit: 20,
+                                                    search: vm.query ? [`title->${vm.query}`] : undefined,
+                                                    type: 'notify-email-config',
+                                                }).then((data) => {
+                                                    vmi.pageSize = Math.ceil(data.response.total / 20);
+                                                    vm.dataList = data.response.data;
 
-                                                function getDatalist() {
-                                                    return data.response.data.map((dd: any) => {
-                                                        return [
-                                                            {
-                                                                key: EditorElem.checkBoxOnly({
-                                                                    gvc: gvc,
-                                                                    def: !data.response.data.find((dd: any) => {
-                                                                        return !dd.checked;
-                                                                    }),
-                                                                    callback: (result) => {
-                                                                        data.response.data.map((dd: any) => {
-                                                                            dd.checked = result;
-                                                                        });
-                                                                        vmi.data = getDatalist();
-                                                                        vmi.callback();
-                                                                        gvc.notifyDataChange(filterID);
-                                                                    },
-                                                                }),
-                                                                value: EditorElem.checkBoxOnly({
-                                                                    gvc: gvc,
-                                                                    def: dd.checked,
-                                                                    callback: (result) => {
-                                                                        dd.checked = result;
-                                                                        vmi.data = getDatalist();
-                                                                        vmi.callback();
-                                                                        gvc.notifyDataChange(filterID);
-                                                                    },
-                                                                    style: 'height:25px;',
-                                                                }),
-                                                            },
-                                                            {
-                                                                key: '信件主旨',
-                                                                value: `<span class="fs-7">${dd.content.title}</span>`,
-                                                            },
-                                                            {
-                                                                key: '信件內文',
-                                                                value: html`<span class="fs-7">${(dd.content.content && dd.content.content.replace(/<[^>]*>/g, '').substring(0, 50)) || ''}...</span>`,
-                                                            },
-                                                            {
-                                                                key: '發送信件',
-                                                                value: html`<button
-                                                                    class="btn btn-primary-c px-4"
-                                                                    style="width:20px !important;height: 30px;"
-                                                                    onclick="${gvc.event((e, event) => {
-                                                                        event.stopPropagation();
-                                                                        gvc.glitter.innerDialog((gvc) => {
-                                                                            let dataList: any = [];
-                                                                            return html`
-                                                                                <div>
-                                                                                    ${BgWidget.container(
-                                                                                        BgWidget.card(
-                                                                                            [
-                                                                                                html`
-                                                                                                    <div class="d-flex w-100 align-items-center mb-3 ">
-                                                                                                        ${BgWidget.goBack(
-                                                                                                            gvc.event(() => {
-                                                                                                                gvc.closeDialog();
-                                                                                                            })
-                                                                                                        )}
-                                                                                                        ${BgWidget.title(`選擇群發對象`)}
-                                                                                                        <div class="flex-fill"></div>
-                                                                                                        <button
-                                                                                                            class="btn btn-primary-c"
-                                                                                                            style="height:38px;font-size: 14px;"
-                                                                                                            onclick="${gvc.event(() => {
-                                                                                                                const dialog = new ShareDialog(gvc.glitter);
-                                                                                                                if (dataList.length > 0) {
-                                                                                                                    dialog.dataLoading({
-                                                                                                                        text: '發送中...',
-                                                                                                                        visible: true,
-                                                                                                                    });
-                                                                                                                    ApiSmtp.send({
-                                                                                                                        email: dataList.map((dd: any) => {
-                                                                                                                            return dd.email;
-                                                                                                                        }),
-                                                                                                                        name: dd.content.name,
-                                                                                                                        title: dd.content.title,
-                                                                                                                        content: dd.content.content,
-                                                                                                                    }).then(() => {
-                                                                                                                        dialog.dataLoading({
-                                                                                                                            visible: false,
-                                                                                                                        });
-                                                                                                                        dialog.successMessage({ text: `發送成功!` });
-                                                                                                                    });
-                                                                                                                } else {
-                                                                                                                    dialog.errorMessage({ text: '請選擇發送對象!' });
-                                                                                                                }
-                                                                                                            })}"
-                                                                                                        >
-                                                                                                            確認並發送
-                                                                                                        </button>
-                                                                                                    </div>
-                                                                                                ` +
-                                                                                                    BgNotify.email(gvc, 'select', (data) => {
-                                                                                                        dataList = data;
-                                                                                                    }),
-                                                                                            ].join('')
-                                                                                        ),
-                                                                                        900
-                                                                                    )}
-                                                                                    <div></div>
-                                                                                </div>
-                                                                            `;
-                                                                        }, 'email');
-                                                                    })}"
-                                                                >
-                                                                    <i class="fa-sharp fa-regular fa-paper-plane-top"></i>
-                                                                </button>`,
-                                                            },
-                                                        ];
-                                                    });
-                                                }
-                                                vmi.data = getDatalist();
-                                                vmi.loading = false;
-                                                vmi.callback();
-                                            });
-                                        },
-                                        rowClick: (data, index) => {
-                                            vm.data = vm.dataList[index].content;
-                                            vm.type = 'replace';
-                                        },
-                                        filter: html` ${BgWidget.searchPlace(
-                                            gvc.event((e, event) => {
-                                                vm.query = e.value;
-                                                gvc.notifyDataChange(id);
-                                            }),
-                                            vm.query || '',
-                                            '搜尋所有信件內容'
-                                        )}
-                                        ${gvc.bindView(() => {
-                                            return {
-                                                bind: filterID,
-                                                view: () => {
-                                                    if (
-                                                        !vm.dataList ||
-                                                        !vm.dataList.find((dd: any) => {
-                                                            return dd.checked;
-                                                        })
-                                                    ) {
-                                                        return ``;
-                                                    } else {
-                                                        return [
-                                                            html`<span class="fs-7 fw-bold">操作選項</span>`,
-                                                            html`<button
-                                                                class="btn btn-danger fs-7 px-2"
-                                                                style="height:30px;border:none;"
-                                                                onclick="${gvc.event(() => {
-                                                                    const dialog = new ShareDialog(gvc.glitter);
-                                                                    dialog.checkYesOrNot({
-                                                                        text: '是否確認移除所選項目?',
-                                                                        callback: (response) => {
-                                                                            if (response) {
-                                                                                dialog.dataLoading({ visible: true });
-                                                                                ApiPost.delete({
-                                                                                    id: vm.dataList
-                                                                                        .filter((dd: any) => {
-                                                                                            return dd.checked;
-                                                                                        })
-                                                                                        .map((dd: any) => {
-                                                                                            return dd.id;
-                                                                                        })
-                                                                                        .join(`,`),
-                                                                                }).then((res) => {
-                                                                                    dialog.dataLoading({ visible: false });
-                                                                                    if (res.result) {
-                                                                                        vm.dataList = undefined;
-                                                                                        gvc.notifyDataChange(id);
-                                                                                    } else {
-                                                                                        dialog.errorMessage({ text: '刪除失敗' });
-                                                                                    }
-                                                                                });
-                                                                            }
+                                                    function getDatalist() {
+                                                        return data.response.data.map((dd: any) => {
+                                                            return [
+                                                                {
+                                                                    key: EditorElem.checkBoxOnly({
+                                                                        gvc: gvc,
+                                                                        def: !data.response.data.find((dd: any) => {
+                                                                            return !dd.checked;
+                                                                        }),
+                                                                        callback: (result) => {
+                                                                            data.response.data.map((dd: any) => {
+                                                                                dd.checked = result;
+                                                                            });
+                                                                            vmi.data = getDatalist();
+                                                                            vmi.callback();
+                                                                            gvc.notifyDataChange(filterID);
                                                                         },
-                                                                    });
-                                                                })}"
-                                                            >
-                                                                批量移除
-                                                            </button>`,
-                                                        ].join(``);
+                                                                    }),
+                                                                    value: EditorElem.checkBoxOnly({
+                                                                        gvc: gvc,
+                                                                        def: dd.checked,
+                                                                        callback: (result) => {
+                                                                            dd.checked = result;
+                                                                            vmi.data = getDatalist();
+                                                                            vmi.callback();
+                                                                            gvc.notifyDataChange(filterID);
+                                                                        },
+                                                                        style: 'height:25px;',
+                                                                    }),
+                                                                },
+                                                                {
+                                                                    key: '信件主旨',
+                                                                    value: `<span class="fs-7">${dd.content.title}</span>`,
+                                                                },
+                                                                {
+                                                                    key: '信件內文',
+                                                                    value: html`<span class="fs-7"
+                                                                        >${(dd.content.content && dd.content.content.replace(/<[^>]*>/g, '').substring(0, 50)) || ''}...</span
+                                                                    >`,
+                                                                },
+                                                                {
+                                                                    key: '發送信件',
+                                                                    value: html`<button
+                                                                        class="btn btn-primary-c px-4"
+                                                                        style="width:20px !important;height: 30px;"
+                                                                        onclick="${gvc.event((e, event) => {
+                                                                            event.stopPropagation();
+                                                                            gvc.glitter.innerDialog((gvc) => {
+                                                                                let dataList: any = [];
+                                                                                return html`
+                                                                                    <div>
+                                                                                        ${BgWidget.container(
+                                                                                            BgWidget.card(
+                                                                                                [
+                                                                                                    html`
+                                                                                                        <div class="d-flex w-100 align-items-center mb-3 ">
+                                                                                                            ${BgWidget.goBack(
+                                                                                                                gvc.event(() => {
+                                                                                                                    gvc.closeDialog();
+                                                                                                                })
+                                                                                                            )}
+                                                                                                            ${BgWidget.title(`選擇群發對象`)}
+                                                                                                            <div class="flex-fill"></div>
+                                                                                                            <button
+                                                                                                                class="btn btn-primary-c"
+                                                                                                                style="height:38px;font-size: 14px;"
+                                                                                                                onclick="${gvc.event(() => {
+                                                                                                                    const dialog = new ShareDialog(gvc.glitter);
+                                                                                                                    if (dataList.length > 0) {
+                                                                                                                        dialog.dataLoading({
+                                                                                                                            text: '發送中...',
+                                                                                                                            visible: true,
+                                                                                                                        });
+                                                                                                                        ApiSmtp.send({
+                                                                                                                            email: dataList.map((dd: any) => {
+                                                                                                                                return dd.email;
+                                                                                                                            }),
+                                                                                                                            name: dd.content.name,
+                                                                                                                            title: dd.content.title,
+                                                                                                                            content: dd.content.content,
+                                                                                                                        }).then(() => {
+                                                                                                                            dialog.dataLoading({
+                                                                                                                                visible: false,
+                                                                                                                            });
+                                                                                                                            dialog.successMessage({ text: `發送成功!` });
+                                                                                                                        });
+                                                                                                                    } else {
+                                                                                                                        dialog.errorMessage({ text: '請選擇發送對象!' });
+                                                                                                                    }
+                                                                                                                })}"
+                                                                                                            >
+                                                                                                                確認並發送
+                                                                                                            </button>
+                                                                                                        </div>
+                                                                                                    ` +
+                                                                                                        BgNotify.email(gvc, 'select', (data) => {
+                                                                                                            dataList = data;
+                                                                                                        }),
+                                                                                                ].join('')
+                                                                                            ),
+                                                                                            900
+                                                                                        )}
+                                                                                        <div></div>
+                                                                                    </div>
+                                                                                `;
+                                                                            }, 'email');
+                                                                        })}"
+                                                                    >
+                                                                        <i class="fa-sharp fa-regular fa-paper-plane-top"></i>
+                                                                    </button>`,
+                                                                },
+                                                            ];
+                                                        });
                                                     }
-                                                },
-                                                divCreate: () => {
-                                                    return {
-                                                        class: `d-flex align-items-center p-2 py-3 ${
+                                                    vmi.data = getDatalist();
+                                                    vmi.loading = false;
+                                                    vmi.callback();
+                                                });
+                                            },
+                                            rowClick: (data, index) => {
+                                                vm.data = vm.dataList[index].content;
+                                                vm.type = 'replace';
+                                            },
+                                            filter: html` ${BgWidget.searchPlace(
+                                                gvc.event((e, event) => {
+                                                    vm.query = e.value;
+                                                    gvc.notifyDataChange(id);
+                                                }),
+                                                vm.query || '',
+                                                '搜尋所有信件內容'
+                                            )}
+                                            ${gvc.bindView(() => {
+                                                return {
+                                                    bind: filterID,
+                                                    view: () => {
+                                                        if (
                                                             !vm.dataList ||
                                                             !vm.dataList.find((dd: any) => {
                                                                 return dd.checked;
                                                             })
-                                                                ? `d-none`
-                                                                : ``
-                                                        }`,
-                                                        style: `height:40px;gap:10px;margin-top:10px;`,
-                                                    };
-                                                },
-                                            };
-                                        })}`,
-                                    })
+                                                        ) {
+                                                            return ``;
+                                                        } else {
+                                                            return [
+                                                                html`<span class="fs-7 fw-bold">操作選項</span>`,
+                                                                html`<button
+                                                                    class="btn btn-danger fs-7 px-2"
+                                                                    style="height:30px;border:none;"
+                                                                    onclick="${gvc.event(() => {
+                                                                        const dialog = new ShareDialog(gvc.glitter);
+                                                                        dialog.checkYesOrNot({
+                                                                            text: '是否確認移除所選項目?',
+                                                                            callback: (response) => {
+                                                                                if (response) {
+                                                                                    dialog.dataLoading({ visible: true });
+                                                                                    ApiPost.delete({
+                                                                                        id: vm.dataList
+                                                                                            .filter((dd: any) => {
+                                                                                                return dd.checked;
+                                                                                            })
+                                                                                            .map((dd: any) => {
+                                                                                                return dd.id;
+                                                                                            })
+                                                                                            .join(`,`),
+                                                                                    }).then((res) => {
+                                                                                        dialog.dataLoading({ visible: false });
+                                                                                        if (res.result) {
+                                                                                            vm.dataList = undefined;
+                                                                                            gvc.notifyDataChange(id);
+                                                                                        } else {
+                                                                                            dialog.errorMessage({ text: '刪除失敗' });
+                                                                                        }
+                                                                                    });
+                                                                                }
+                                                                            },
+                                                                        });
+                                                                    })}"
+                                                                >
+                                                                    批量移除
+                                                                </button>`,
+                                                            ].join(``);
+                                                        }
+                                                    },
+                                                    divCreate: () => {
+                                                        return {
+                                                            class: `d-flex align-items-center p-2 py-3 ${
+                                                                !vm.dataList ||
+                                                                !vm.dataList.find((dd: any) => {
+                                                                    return dd.checked;
+                                                                })
+                                                                    ? `d-none`
+                                                                    : ``
+                                                            }`,
+                                                            style: `height:40px;gap:10px;margin-top:10px;`,
+                                                        };
+                                                    },
+                                                };
+                                            })}`,
+                                        })
+                                    )
                                 )}
+                                ${BgWidget.mbContainer(120)}
                             `,
                             BgWidget.getContainerWidth()
                         );
@@ -637,9 +644,9 @@ export class BgNotify {
                                     dialog.dataLoading({ visible: false });
                                     if (re.result) {
                                         vm.status = 'list';
-                                        dialog.successMessage({ text: `上傳成功...` });
+                                        dialog.successMessage({ text: '上傳成功' });
                                     } else {
-                                        dialog.errorMessage({ text: `上傳失敗...` });
+                                        dialog.errorMessage({ text: '上傳失敗' });
                                     }
                                 });
                             } else {
@@ -652,9 +659,9 @@ export class BgNotify {
                                     dialog.dataLoading({ visible: false });
                                     if (re.result) {
                                         vm.type = 'list';
-                                        dialog.successMessage({ text: `上傳成功...` });
+                                        dialog.successMessage({ text: '上傳成功' });
                                     } else {
-                                        dialog.errorMessage({ text: `上傳失敗...` });
+                                        dialog.errorMessage({ text: '上傳失敗' });
                                     }
                                 });
                             }
@@ -808,7 +815,7 @@ export class BgNotify {
 
         return BgWidget.container(
             html`
-                <div class="d-flex w-100 align-items-center mb-3 ">
+                <div class="d-flex w-100 align-items-center">
                     ${BgWidget.goBack(
                         gvc.event(() => {
                             vm.type = 'list';
@@ -816,10 +823,9 @@ export class BgNotify {
                     )}
                     ${BgWidget.title(`編輯推播通知`)}
                     <div class="flex-fill"></div>
-                    <button
-                        class="btn btn-primary-c"
-                        style="height:38px;font-size: 14px;"
-                        onclick="${gvc.event(() => {
+                    ${BgWidget.darkButton(
+                        '儲存並新增',
+                        gvc.event(() => {
                             const dialog = new ShareDialog(gvc.glitter);
                             if (obj.type === 'replace') {
                                 dialog.dataLoading({ text: '變更信件', visible: true });
@@ -831,9 +837,9 @@ export class BgNotify {
                                     dialog.dataLoading({ visible: false });
                                     if (re.result) {
                                         vm.status = 'list';
-                                        dialog.successMessage({ text: `上傳成功...` });
+                                        dialog.successMessage({ text: '上傳成功' });
                                     } else {
-                                        dialog.errorMessage({ text: `上傳失敗...` });
+                                        dialog.errorMessage({ text: '上傳失敗' });
                                     }
                                 });
                             } else {
@@ -846,88 +852,86 @@ export class BgNotify {
                                     dialog.dataLoading({ visible: false });
                                     if (re.result) {
                                         vm.type = 'list';
-                                        dialog.successMessage({ text: `上傳成功...` });
+                                        dialog.successMessage({ text: '上傳成功' });
                                     } else {
-                                        dialog.errorMessage({ text: `上傳失敗...` });
+                                        dialog.errorMessage({ text: '上傳失敗' });
                                     }
                                 });
                             }
-                        })}"
-                    >
-                        儲存並新增
-                    </button>
+                        })
+                    )}
                 </div>
-                <div class="d-flex" style="gap:10px;">
-                    <div class="" style="width:900px;">
-                        ${BgWidget.card(
-                            obj.gvc.bindView(() => {
-                                const bi = obj.gvc.glitter.getUUID();
-                                return {
-                                    bind: bi,
-                                    view: () => {
-                                        return [
-                                            EditorElem.editeInput({
-                                                gvc: gvc,
-                                                title: '推播標題',
-                                                default: postData.title,
-                                                placeHolder: '請輸入推播標題',
-                                                callback: (text) => {
-                                                    postData.title = text;
-                                                },
-                                            }),
-                                            EditorElem.editeText({
-                                                gvc: gvc,
-                                                title: '推播主旨',
-                                                default: postData.content,
-                                                placeHolder: '請輸入推播內容',
-                                                callback: (text) => {
-                                                    postData.content = text;
-                                                },
-                                            }),
-                                        ].join('');
-                                    },
-                                    divCreate: {},
-                                };
-                            })
-                        )}
+                ${BgWidget.container(html`<div class="d-flex px-0" style="gap: 10px;">
+                        <div style="width: 100%">
+                            ${BgWidget.mainCard(
+                                obj.gvc.bindView(() => {
+                                    const bi = obj.gvc.glitter.getUUID();
+                                    return {
+                                        bind: bi,
+                                        view: () => {
+                                            return [
+                                                EditorElem.editeInput({
+                                                    gvc: gvc,
+                                                    title: '推播標題',
+                                                    default: postData.title,
+                                                    placeHolder: '請輸入推播標題',
+                                                    callback: (text) => {
+                                                        postData.title = text;
+                                                    },
+                                                }),
+                                                EditorElem.editeText({
+                                                    gvc: gvc,
+                                                    title: '推播主旨',
+                                                    default: postData.content,
+                                                    placeHolder: '請輸入推播內容',
+                                                    callback: (text) => {
+                                                        postData.content = text;
+                                                    },
+                                                }),
+                                            ].join('');
+                                        },
+                                        divCreate: {},
+                                    };
+                                })
+                            )}
+                        </div>
                     </div>
-                </div>
-                ${obj.type === 'replace'
-                    ? html`
-                          <div class="d-flex w-100">
-                              <div class="flex-fill"></div>
-                              <button
-                                  class="btn btn-danger mt-3 ${obj.type === 'replace' ? `` : `d-none`}  ms-auto px-2"
-                                  style="height:30px;width:100px;"
-                                  onclick="${obj.gvc.event(() => {
-                                      const dialog = new ShareDialog(obj.gvc.glitter);
-                                      dialog.checkYesOrNot({
-                                          text: '是否確認刪除樣本?',
-                                          callback: (response) => {
-                                              if (response) {
-                                                  dialog.dataLoading({ visible: true });
-                                                  ApiPost.delete({
-                                                      id: postData.id,
-                                                  }).then((res) => {
-                                                      dialog.dataLoading({ visible: false });
-                                                      if (res.result) {
-                                                          vm.type = 'list';
-                                                      } else {
-                                                          dialog.errorMessage({ text: '刪除失敗' });
-                                                      }
-                                                  });
-                                              }
-                                          },
-                                      });
-                                  })}"
-                              >
-                                  刪除樣本
-                              </button>
-                          </div>
-                      `
-                    : ``}
+                    ${obj.type === 'replace'
+                        ? html`
+                              <div class="d-flex w-100">
+                                  <div class="flex-fill"></div>
+                                  <button
+                                      class="btn btn-danger mt-3 ${obj.type === 'replace' ? `` : `d-none`}  ms-auto px-2"
+                                      style="height:30px;width:100px;"
+                                      onclick="${obj.gvc.event(() => {
+                                          const dialog = new ShareDialog(obj.gvc.glitter);
+                                          dialog.checkYesOrNot({
+                                              text: '是否確認刪除樣本?',
+                                              callback: (response) => {
+                                                  if (response) {
+                                                      dialog.dataLoading({ visible: true });
+                                                      ApiPost.delete({
+                                                          id: postData.id,
+                                                      }).then((res) => {
+                                                          dialog.dataLoading({ visible: false });
+                                                          if (res.result) {
+                                                              vm.type = 'list';
+                                                          } else {
+                                                              dialog.errorMessage({ text: '刪除失敗' });
+                                                          }
+                                                      });
+                                                  }
+                                              },
+                                          });
+                                      })}"
+                                  >
+                                      刪除樣本
+                                  </button>
+                              </div>
+                          `
+                        : ``}`)}
             `,
-            900
+            BgWidget.getContainerWidth({ rate: { web: 0.68 } })
         );
     }
 
@@ -1040,118 +1044,120 @@ export class BgNotify {
 
                     return BgWidget.container(
                         html`
-                            <div class="d-flex w-100 align-items-center mb-3 ${type === 'select' ? `d-none` : ``}">
+                            <div class="d-flex w-100 align-items-center ${type === 'select' ? `d-none` : ``}">
                                 ${BgWidget.title('已訂閱裝置')}
                                 <div class="flex-fill"></div>
                             </div>
-                            ${BgWidget.mainCard(
-                                BgWidget.tableV2({
-                                    gvc: gvc,
-                                    getData: (vmk) => {
-                                        vmi = vmk;
-                                        ApiUser.getFCM({
-                                            page: vmi.page - 1,
-                                            limit: 20,
-                                            search: vm.query || undefined,
-                                        }).then((data) => {
-                                            vmi.pageSize = Math.ceil(data.response.total / 20);
-                                            vm.dataList = data.response.data;
-                                            vmi.data = getDatalist();
-                                            vmi.loading = false;
-                                            vmi.callback();
-                                            if (type === 'select') {
-                                                callback(
-                                                    vm.dataList.filter((dd: any) => {
-                                                        return dd.checked;
-                                                    })
-                                                );
-                                            }
-                                        });
-                                    },
-                                    rowClick: (data, index) => {
-                                        vm.dataList[index].checked = !vm.dataList[index].checked;
-                                        vmi.data = getDatalist();
-                                        vmi.callback();
-                                        gvc.notifyDataChange(filterID);
-                                        callback(
-                                            vm.dataList.filter((dd: any) => {
-                                                return dd.checked;
-                                            })
-                                        );
-                                    },
-                                    filter: html`
-                                        ${BgWidget.searchPlace(
-                                            gvc.event((e, event) => {
-                                                vm.query = e.value;
-                                                gvc.notifyDataChange(id);
-                                            }),
-                                            vm.query || '',
-                                            '搜尋信箱或者標籤'
-                                        )}
-                                        ${gvc.bindView(() => {
-                                            return {
-                                                bind: filterID,
-                                                view: () => {
-                                                    if (
-                                                        !vm.dataList ||
-                                                        !vm.dataList.find((dd: any) => {
+                            ${BgWidget.container(
+                                BgWidget.mainCard(
+                                    BgWidget.tableV2({
+                                        gvc: gvc,
+                                        getData: (vmk) => {
+                                            vmi = vmk;
+                                            ApiUser.getFCM({
+                                                page: vmi.page - 1,
+                                                limit: 20,
+                                                search: vm.query || undefined,
+                                            }).then((data) => {
+                                                vmi.pageSize = Math.ceil(data.response.total / 20);
+                                                vm.dataList = data.response.data;
+                                                vmi.data = getDatalist();
+                                                vmi.loading = false;
+                                                vmi.callback();
+                                                if (type === 'select') {
+                                                    callback(
+                                                        vm.dataList.filter((dd: any) => {
                                                             return dd.checked;
                                                         })
-                                                    ) {
-                                                        return ``;
-                                                    } else {
-                                                        return [
-                                                            `<span class="fs-7 fw-bold">操作選項</span>`,
-                                                            `<button class="btn btn-danger fs-7 px-2" style="height:30px;border:none;" onclick="${gvc.event(() => {
-                                                                const dialog = new ShareDialog(gvc.glitter);
-                                                                dialog.checkYesOrNot({
-                                                                    text: '是否確認移除所選項目?',
-                                                                    callback: (response) => {
-                                                                        if (response) {
-                                                                            dialog.dataLoading({ visible: true });
-                                                                            ApiUser.deleteSubscribe({
-                                                                                email: vm.dataList
-                                                                                    .filter((dd: any) => {
-                                                                                        return dd.checked;
-                                                                                    })
-                                                                                    .map((dd: any) => {
-                                                                                        return dd.email;
-                                                                                    })
-                                                                                    .join(`,`),
-                                                                            }).then((res) => {
-                                                                                dialog.dataLoading({ visible: false });
-                                                                                if (res.result) {
-                                                                                    vm.dataList = undefined;
-                                                                                    gvc.notifyDataChange(id);
-                                                                                } else {
-                                                                                    dialog.errorMessage({ text: '刪除失敗' });
-                                                                                }
-                                                                            });
-                                                                        }
-                                                                    },
-                                                                });
-                                                            })}">批量移除</button>`,
-                                                        ].join(``);
-                                                    }
-                                                },
-                                                divCreate: () => {
-                                                    return {
-                                                        class: `d-flex align-items-center p-2 py-3 ${
+                                                    );
+                                                }
+                                            });
+                                        },
+                                        rowClick: (data, index) => {
+                                            vm.dataList[index].checked = !vm.dataList[index].checked;
+                                            vmi.data = getDatalist();
+                                            vmi.callback();
+                                            gvc.notifyDataChange(filterID);
+                                            callback(
+                                                vm.dataList.filter((dd: any) => {
+                                                    return dd.checked;
+                                                })
+                                            );
+                                        },
+                                        filter: html`
+                                            ${BgWidget.searchPlace(
+                                                gvc.event((e, event) => {
+                                                    vm.query = e.value;
+                                                    gvc.notifyDataChange(id);
+                                                }),
+                                                vm.query || '',
+                                                '搜尋信箱或者標籤'
+                                            )}
+                                            ${gvc.bindView(() => {
+                                                return {
+                                                    bind: filterID,
+                                                    view: () => {
+                                                        if (
                                                             !vm.dataList ||
                                                             !vm.dataList.find((dd: any) => {
                                                                 return dd.checked;
-                                                            }) ||
-                                                            type === 'select'
-                                                                ? `d-none`
-                                                                : ``
-                                                        }`,
-                                                        style: `height:40px;gap:10px;margin-top:10px;`,
-                                                    };
-                                                },
-                                            };
-                                        })}
-                                    `,
-                                })
+                                                            })
+                                                        ) {
+                                                            return ``;
+                                                        } else {
+                                                            return [
+                                                                `<span class="fs-7 fw-bold">操作選項</span>`,
+                                                                `<button class="btn btn-danger fs-7 px-2" style="height:30px;border:none;" onclick="${gvc.event(() => {
+                                                                    const dialog = new ShareDialog(gvc.glitter);
+                                                                    dialog.checkYesOrNot({
+                                                                        text: '是否確認移除所選項目?',
+                                                                        callback: (response) => {
+                                                                            if (response) {
+                                                                                dialog.dataLoading({ visible: true });
+                                                                                ApiUser.deleteSubscribe({
+                                                                                    email: vm.dataList
+                                                                                        .filter((dd: any) => {
+                                                                                            return dd.checked;
+                                                                                        })
+                                                                                        .map((dd: any) => {
+                                                                                            return dd.email;
+                                                                                        })
+                                                                                        .join(`,`),
+                                                                                }).then((res) => {
+                                                                                    dialog.dataLoading({ visible: false });
+                                                                                    if (res.result) {
+                                                                                        vm.dataList = undefined;
+                                                                                        gvc.notifyDataChange(id);
+                                                                                    } else {
+                                                                                        dialog.errorMessage({ text: '刪除失敗' });
+                                                                                    }
+                                                                                });
+                                                                            }
+                                                                        },
+                                                                    });
+                                                                })}">批量移除</button>`,
+                                                            ].join(``);
+                                                        }
+                                                    },
+                                                    divCreate: () => {
+                                                        return {
+                                                            class: `d-flex align-items-center p-2 py-3 ${
+                                                                !vm.dataList ||
+                                                                !vm.dataList.find((dd: any) => {
+                                                                    return dd.checked;
+                                                                }) ||
+                                                                type === 'select'
+                                                                    ? `d-none`
+                                                                    : ``
+                                                            }`,
+                                                            style: `height:40px;gap:10px;margin-top:10px;`,
+                                                        };
+                                                    },
+                                                };
+                                            })}
+                                        `,
+                                    })
+                                )
                             )}
                         `,
                         BgWidget.getContainerWidth()
@@ -1187,7 +1193,7 @@ export class BgNotify {
                     if (vm.type === 'list') {
                         return BgWidget.container(
                             html`
-                                <div class="d-flex w-100 align-items-center mb-3">
+                                <div class="d-flex w-100 align-items-center">
                                     ${BgWidget.title('推播訊息管理')}
                                     <div class="flex-fill"></div>
                                     ${BgWidget.darkButton(
@@ -1198,216 +1204,218 @@ export class BgNotify {
                                         })
                                     )}
                                 </div>
-                                ${BgWidget.mainCard(
-                                    BgWidget.tableV2({
-                                        gvc: gvc,
-                                        getData: (vmi) => {
-                                            ApiPost.getManagerPost({
-                                                page: vmi.page - 1,
-                                                limit: 20,
-                                                search: vm.query ? [`title->${vm.query}`] : undefined,
-                                                type: 'notify-message-config',
-                                            }).then((data) => {
-                                                vmi.pageSize = Math.ceil(data.response.total / 20);
-                                                vm.dataList = data.response.data;
+                                ${BgWidget.container(
+                                    BgWidget.mainCard(
+                                        BgWidget.tableV2({
+                                            gvc: gvc,
+                                            getData: (vmi) => {
+                                                ApiPost.getManagerPost({
+                                                    page: vmi.page - 1,
+                                                    limit: 20,
+                                                    search: vm.query ? [`title->${vm.query}`] : undefined,
+                                                    type: 'notify-message-config',
+                                                }).then((data) => {
+                                                    vmi.pageSize = Math.ceil(data.response.total / 20);
+                                                    vm.dataList = data.response.data;
 
-                                                function getDatalist() {
-                                                    return data.response.data.map((dd: any) => {
-                                                        return [
-                                                            {
-                                                                key: EditorElem.checkBoxOnly({
-                                                                    gvc: gvc,
-                                                                    def: !data.response.data.find((dd: any) => {
-                                                                        return !dd.checked;
-                                                                    }),
-                                                                    callback: (result) => {
-                                                                        data.response.data.map((dd: any) => {
-                                                                            dd.checked = result;
-                                                                        });
-                                                                        vmi.data = getDatalist();
-                                                                        vmi.callback();
-                                                                        gvc.notifyDataChange(filterID);
-                                                                    },
-                                                                }),
-                                                                value: EditorElem.checkBoxOnly({
-                                                                    gvc: gvc,
-                                                                    def: dd.checked,
-                                                                    callback: (result) => {
-                                                                        dd.checked = result;
-                                                                        vmi.data = getDatalist();
-                                                                        vmi.callback();
-                                                                        gvc.notifyDataChange(filterID);
-                                                                    },
-                                                                    style: 'height:25px;',
-                                                                }),
-                                                            },
-                                                            {
-                                                                key: '推播標題',
-                                                                value: `<span class="fs-7">${dd.content.title}</span>`,
-                                                            },
-                                                            {
-                                                                key: '推播內文',
-                                                                value: `<span class="fs-7">${dd.content.content.replace(/<[^>]*>/g, '').substring(0, 60)}...</span>`,
-                                                            },
-                                                            {
-                                                                key: '發送推播',
-                                                                value: html`<button
-                                                                    class="btn btn-primary-c px-4"
-                                                                    style="width:20px !important;height: 30px;"
-                                                                    onclick="${gvc.event((e, event) => {
-                                                                        event.stopPropagation();
-                                                                        gvc.glitter.innerDialog((gvc) => {
-                                                                            let dataList: any = [];
-                                                                            return html`
-                                                                                <div style="max-height: calc(100vh - 100px);overflow-y: auto;">
-                                                                                    ${BgWidget.container(
-                                                                                        BgWidget.card(
-                                                                                            [
-                                                                                                html`
-                                                                                                    <div class="d-flex w-100 align-items-center mb-3 ">
-                                                                                                        ${BgWidget.goBack(
-                                                                                                            gvc.event(() => {
-                                                                                                                gvc.closeDialog();
-                                                                                                            })
-                                                                                                        )}
-                                                                                                        ${BgWidget.title(`選擇群發對象`)}
-                                                                                                        <div class="flex-fill"></div>
-                                                                                                        <button
-                                                                                                            class="btn btn-primary-c"
-                                                                                                            style="height:38px;font-size: 14px;"
-                                                                                                            onclick="${gvc.event(() => {
-                                                                                                                const dialog = new ShareDialog(gvc.glitter);
-                                                                                                                if (dataList.length > 0) {
-                                                                                                                    dialog.dataLoading({
-                                                                                                                        text: '發送中...',
-                                                                                                                        visible: true,
-                                                                                                                    });
-                                                                                                                    ApiFcm.send({
-                                                                                                                        device_token: dataList.map((dd: any) => {
-                                                                                                                            return dd.deviceToken;
-                                                                                                                        }),
-                                                                                                                        title: dd.content.title,
-                                                                                                                        content: dd.content.content,
-                                                                                                                    }).then(() => {
-                                                                                                                        dialog.dataLoading({
-                                                                                                                            visible: false,
-                                                                                                                        });
-                                                                                                                        dialog.successMessage({ text: `發送成功!` });
-                                                                                                                    });
-                                                                                                                } else {
-                                                                                                                    dialog.errorMessage({ text: '請選擇發送對象!' });
-                                                                                                                }
-                                                                                                            })}"
-                                                                                                        >
-                                                                                                            確認並發送
-                                                                                                        </button>
-                                                                                                    </div>
-                                                                                                ` +
-                                                                                                    BgNotify.fcmDevice(gvc, 'select', (data) => {
-                                                                                                        dataList = data;
-                                                                                                    }),
-                                                                                            ].join('')
-                                                                                        ),
-                                                                                        900
-                                                                                    )}
-                                                                                    <div></div>
-                                                                                </div>
-                                                                            `;
-                                                                        }, 'email');
-                                                                    })}"
-                                                                >
-                                                                    <i class="fa-sharp fa-regular fa-paper-plane-top"></i>
-                                                                </button>`,
-                                                            },
-                                                        ];
-                                                    });
-                                                }
-
-                                                vmi.data = getDatalist();
-                                                vmi.loading = false;
-                                                vmi.callback();
-                                            });
-                                        },
-                                        rowClick: (data, index) => {
-                                            vm.data = vm.dataList[index].content;
-                                            vm.type = 'replace';
-                                        },
-                                        filter: html` ${BgWidget.searchPlace(
-                                            gvc.event((e, event) => {
-                                                vm.query = e.value;
-                                                gvc.notifyDataChange(id);
-                                            }),
-                                            vm.query || '',
-                                            '搜尋所有信件內容'
-                                        )}
-                                        ${gvc.bindView(() => {
-                                            return {
-                                                bind: filterID,
-                                                view: () => {
-                                                    if (
-                                                        !vm.dataList ||
-                                                        !vm.dataList.find((dd: any) => {
-                                                            return dd.checked;
-                                                        })
-                                                    ) {
-                                                        return ``;
-                                                    } else {
-                                                        return [
-                                                            html`<span class="fs-7 fw-bold">操作選項</span>`,
-                                                            html`<button
-                                                                class="btn btn-danger fs-7 px-2"
-                                                                style="height:30px;border:none;"
-                                                                onclick="${gvc.event(() => {
-                                                                    const dialog = new ShareDialog(gvc.glitter);
-                                                                    dialog.checkYesOrNot({
-                                                                        text: '是否確認移除所選項目?',
-                                                                        callback: (response) => {
-                                                                            if (response) {
-                                                                                dialog.dataLoading({ visible: true });
-                                                                                ApiPost.delete({
-                                                                                    id: vm.dataList
-                                                                                        .filter((dd: any) => {
-                                                                                            return dd.checked;
-                                                                                        })
-                                                                                        .map((dd: any) => {
-                                                                                            return dd.id;
-                                                                                        })
-                                                                                        .join(`,`),
-                                                                                }).then((res) => {
-                                                                                    dialog.dataLoading({ visible: false });
-                                                                                    if (res.result) {
-                                                                                        vm.dataList = undefined;
-                                                                                        gvc.notifyDataChange(id);
-                                                                                    } else {
-                                                                                        dialog.errorMessage({ text: '刪除失敗' });
-                                                                                    }
-                                                                                });
-                                                                            }
+                                                    function getDatalist() {
+                                                        return data.response.data.map((dd: any) => {
+                                                            return [
+                                                                {
+                                                                    key: EditorElem.checkBoxOnly({
+                                                                        gvc: gvc,
+                                                                        def: !data.response.data.find((dd: any) => {
+                                                                            return !dd.checked;
+                                                                        }),
+                                                                        callback: (result) => {
+                                                                            data.response.data.map((dd: any) => {
+                                                                                dd.checked = result;
+                                                                            });
+                                                                            vmi.data = getDatalist();
+                                                                            vmi.callback();
+                                                                            gvc.notifyDataChange(filterID);
                                                                         },
-                                                                    });
-                                                                })}"
-                                                            >
-                                                                批量移除
-                                                            </button>`,
-                                                        ].join(``);
+                                                                    }),
+                                                                    value: EditorElem.checkBoxOnly({
+                                                                        gvc: gvc,
+                                                                        def: dd.checked,
+                                                                        callback: (result) => {
+                                                                            dd.checked = result;
+                                                                            vmi.data = getDatalist();
+                                                                            vmi.callback();
+                                                                            gvc.notifyDataChange(filterID);
+                                                                        },
+                                                                        style: 'height:25px;',
+                                                                    }),
+                                                                },
+                                                                {
+                                                                    key: '推播標題',
+                                                                    value: `<span class="fs-7">${dd.content.title}</span>`,
+                                                                },
+                                                                {
+                                                                    key: '推播內文',
+                                                                    value: `<span class="fs-7">${dd.content.content.replace(/<[^>]*>/g, '').substring(0, 60)}...</span>`,
+                                                                },
+                                                                {
+                                                                    key: '發送推播',
+                                                                    value: html`<button
+                                                                        class="btn btn-primary-c px-4"
+                                                                        style="width:20px !important;height: 30px;"
+                                                                        onclick="${gvc.event((e, event) => {
+                                                                            event.stopPropagation();
+                                                                            gvc.glitter.innerDialog((gvc) => {
+                                                                                let dataList: any = [];
+                                                                                return html`
+                                                                                    <div style="max-height: calc(100vh - 100px);overflow-y: auto;">
+                                                                                        ${BgWidget.container(
+                                                                                            BgWidget.card(
+                                                                                                [
+                                                                                                    html`
+                                                                                                        <div class="d-flex w-100 align-items-center mb-3 ">
+                                                                                                            ${BgWidget.goBack(
+                                                                                                                gvc.event(() => {
+                                                                                                                    gvc.closeDialog();
+                                                                                                                })
+                                                                                                            )}
+                                                                                                            ${BgWidget.title(`選擇群發對象`)}
+                                                                                                            <div class="flex-fill"></div>
+                                                                                                            <button
+                                                                                                                class="btn btn-primary-c"
+                                                                                                                style="height:38px;font-size: 14px;"
+                                                                                                                onclick="${gvc.event(() => {
+                                                                                                                    const dialog = new ShareDialog(gvc.glitter);
+                                                                                                                    if (dataList.length > 0) {
+                                                                                                                        dialog.dataLoading({
+                                                                                                                            text: '發送中...',
+                                                                                                                            visible: true,
+                                                                                                                        });
+                                                                                                                        ApiFcm.send({
+                                                                                                                            device_token: dataList.map((dd: any) => {
+                                                                                                                                return dd.deviceToken;
+                                                                                                                            }),
+                                                                                                                            title: dd.content.title,
+                                                                                                                            content: dd.content.content,
+                                                                                                                        }).then(() => {
+                                                                                                                            dialog.dataLoading({
+                                                                                                                                visible: false,
+                                                                                                                            });
+                                                                                                                            dialog.successMessage({ text: `發送成功!` });
+                                                                                                                        });
+                                                                                                                    } else {
+                                                                                                                        dialog.errorMessage({ text: '請選擇發送對象!' });
+                                                                                                                    }
+                                                                                                                })}"
+                                                                                                            >
+                                                                                                                確認並發送
+                                                                                                            </button>
+                                                                                                        </div>
+                                                                                                    ` +
+                                                                                                        BgNotify.fcmDevice(gvc, 'select', (data) => {
+                                                                                                            dataList = data;
+                                                                                                        }),
+                                                                                                ].join('')
+                                                                                            ),
+                                                                                            900
+                                                                                        )}
+                                                                                        <div></div>
+                                                                                    </div>
+                                                                                `;
+                                                                            }, 'email');
+                                                                        })}"
+                                                                    >
+                                                                        <i class="fa-sharp fa-regular fa-paper-plane-top"></i>
+                                                                    </button>`,
+                                                                },
+                                                            ];
+                                                        });
                                                     }
-                                                },
-                                                divCreate: () => {
-                                                    return {
-                                                        class: `d-flex align-items-center p-2 py-3 ${
+
+                                                    vmi.data = getDatalist();
+                                                    vmi.loading = false;
+                                                    vmi.callback();
+                                                });
+                                            },
+                                            rowClick: (data, index) => {
+                                                vm.data = vm.dataList[index].content;
+                                                vm.type = 'replace';
+                                            },
+                                            filter: html` ${BgWidget.searchPlace(
+                                                gvc.event((e, event) => {
+                                                    vm.query = e.value;
+                                                    gvc.notifyDataChange(id);
+                                                }),
+                                                vm.query || '',
+                                                '搜尋所有信件內容'
+                                            )}
+                                            ${gvc.bindView(() => {
+                                                return {
+                                                    bind: filterID,
+                                                    view: () => {
+                                                        if (
                                                             !vm.dataList ||
                                                             !vm.dataList.find((dd: any) => {
                                                                 return dd.checked;
                                                             })
-                                                                ? `d-none`
-                                                                : ``
-                                                        }`,
-                                                        style: `height:40px;gap:10px;margin-top:10px;`,
-                                                    };
-                                                },
-                                            };
-                                        })}`,
-                                    })
+                                                        ) {
+                                                            return ``;
+                                                        } else {
+                                                            return [
+                                                                html`<span class="fs-7 fw-bold">操作選項</span>`,
+                                                                html`<button
+                                                                    class="btn btn-danger fs-7 px-2"
+                                                                    style="height:30px;border:none;"
+                                                                    onclick="${gvc.event(() => {
+                                                                        const dialog = new ShareDialog(gvc.glitter);
+                                                                        dialog.checkYesOrNot({
+                                                                            text: '是否確認移除所選項目?',
+                                                                            callback: (response) => {
+                                                                                if (response) {
+                                                                                    dialog.dataLoading({ visible: true });
+                                                                                    ApiPost.delete({
+                                                                                        id: vm.dataList
+                                                                                            .filter((dd: any) => {
+                                                                                                return dd.checked;
+                                                                                            })
+                                                                                            .map((dd: any) => {
+                                                                                                return dd.id;
+                                                                                            })
+                                                                                            .join(`,`),
+                                                                                    }).then((res) => {
+                                                                                        dialog.dataLoading({ visible: false });
+                                                                                        if (res.result) {
+                                                                                            vm.dataList = undefined;
+                                                                                            gvc.notifyDataChange(id);
+                                                                                        } else {
+                                                                                            dialog.errorMessage({ text: '刪除失敗' });
+                                                                                        }
+                                                                                    });
+                                                                                }
+                                                                            },
+                                                                        });
+                                                                    })}"
+                                                                >
+                                                                    批量移除
+                                                                </button>`,
+                                                            ].join(``);
+                                                        }
+                                                    },
+                                                    divCreate: () => {
+                                                        return {
+                                                            class: `d-flex align-items-center p-2 py-3 ${
+                                                                !vm.dataList ||
+                                                                !vm.dataList.find((dd: any) => {
+                                                                    return dd.checked;
+                                                                })
+                                                                    ? `d-none`
+                                                                    : ``
+                                                            }`,
+                                                            style: `height:40px;gap:10px;margin-top:10px;`,
+                                                        };
+                                                    },
+                                                };
+                                            })}`,
+                                        })
+                                    )
                                 )}
                             `,
                             BgWidget.getContainerWidth()

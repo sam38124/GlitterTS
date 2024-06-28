@@ -33,7 +33,7 @@ export class ShoppingDiscountSetting {
                 view: () => {
                     if (vm.type === 'list') {
                         return BgWidget.container(html `
-                                <div class="d-flex w-100 align-items-center" style="margin-bottom: 24px;">
+                                <div class="d-flex w-100 align-items-center">
                                     ${BgWidget.title('優惠券管理')}
                                     <div class="flex-fill"></div>
                                     ${BgWidget.darkButton('新增優惠券', gvc.event(() => {
@@ -41,7 +41,7 @@ export class ShoppingDiscountSetting {
                             vm.type = 'add';
                         }))}
                                 </div>
-                                ${BgWidget.mainCard(BgWidget.tableV2({
+                                ${BgWidget.container(BgWidget.mainCard(BgWidget.tableV2({
                             gvc: gvc,
                             getData: (vmi) => {
                                 ApiShop.getVoucher({
@@ -87,7 +87,9 @@ export class ShoppingDiscountSetting {
                                                 },
                                                 {
                                                     key: '狀態',
-                                                    value: dd.content.status ? `<div class="badge badge-success fs-7" >啟用中</div>` : `<div class="badge bg-secondary fs-7">已停用</div>`,
+                                                    value: dd.content.status
+                                                        ? `<div class="badge badge-success fs-7" >啟用中</div>`
+                                                        : `<div class="badge bg-secondary fs-7">已停用</div>`,
                                                 },
                                                 {
                                                     key: '觸發方式',
@@ -117,7 +119,7 @@ export class ShoppingDiscountSetting {
                                 vm.query = e.value;
                                 gvc.notifyDataChange(id);
                             }), vm.query || '', '搜尋所有折扣')}
-                                        ${gvc.bindView(() => {
+                                            ${gvc.bindView(() => {
                                 return {
                                     bind: filterID,
                                     view: () => {
@@ -131,9 +133,9 @@ export class ShoppingDiscountSetting {
                                             return [
                                                 html `<span class="fs-7 fw-bold">操作選項</span>`,
                                                 html `<button
-                                                                class="btn btn-danger fs-7 px-2"
-                                                                style="height:30px;border:none;"
-                                                                onclick="${gvc.event(() => {
+                                                                    class="btn btn-danger fs-7 px-2"
+                                                                    style="height:30px;border:none;"
+                                                                    onclick="${gvc.event(() => {
                                                     const dialog = new ShareDialog(gvc.glitter);
                                                     dialog.checkYesOrNot({
                                                         text: '是否確認移除所選項目?',
@@ -163,9 +165,9 @@ export class ShoppingDiscountSetting {
                                                         },
                                                     });
                                                 })}"
-                                                            >
-                                                                批量移除
-                                                            </button>`,
+                                                                >
+                                                                    批量移除
+                                                                </button>`,
                                             ].join(``);
                                         }
                                     },
@@ -182,7 +184,8 @@ export class ShoppingDiscountSetting {
                                     },
                                 };
                             })}`,
-                        }))}
+                        })))}
+                                ${BgWidget.mbContainer(120)}
                             `, BgWidget.getContainerWidth());
                     }
                     else if (vm.type == 'replace') {
@@ -1078,7 +1081,7 @@ export class ShoppingDiscountSetting {
                         },
                     };
                 })),
-            ].join(html `<div style="margin-top: 24px"></div>`), undefined, 'padding: 0; margin: 0 !important; width: 68.5%;')}
+            ].join(html `<div style="margin-top: 24px;"></div>`), undefined, 'padding: 0 ; margin: 0 !important; width: 68.5%;')}
                     ${BgWidget.container(html `<div>
                             ${gvc.bindView(() => {
                 const id = gvc.glitter.getUUID();
@@ -1109,7 +1112,7 @@ export class ShoppingDiscountSetting {
             })}
                         </div>`, undefined, 'padding: 0; margin: 0 !important; width: 26.5%;')}
                 </div>`,
-            html `<div style="margin-bottom: 240px"></div>`,
+            BgWidget.mb240(),
             html ` <div class="update-bar-container">
                     ${obj.type === 'replace'
                 ? BgWidget.cancel(gvc.event(() => {
@@ -1186,7 +1189,7 @@ export class ShoppingDiscountSetting {
                 }
             }))}
                 </div>`,
-        ].join(html `<div style="margin-top: 24px"></div>`), BgWidget.getContainerWidth());
+        ].join(html `<div style="margin-top: 24px;"></div>`), BgWidget.getContainerWidth());
     }
 }
 window.glitter.setModule(import.meta.url, ShoppingDiscountSetting);

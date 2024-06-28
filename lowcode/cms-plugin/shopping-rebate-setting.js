@@ -496,7 +496,7 @@ export class ShoppingRebateSetting {
                                     },
                                 });
                             })()),
-                        ].join(html `<div style="margin-top: 24px"></div>`), undefined, 'padding: 0 !important; margin: 0 !important; width: 73.5%;')}
+                        ].join(html `<div style="margin-top: 24px;"></div>`), undefined, 'padding: 0 !important; margin: 0 !important; width: 73.5%;')}
                                         ${BgWidget.container(gvc.bindView(() => {
                             const id = gvc.glitter.getUUID();
                             return {
@@ -527,7 +527,7 @@ export class ShoppingRebateSetting {
                             };
                         }), undefined, 'padding: 0 !important; margin: 0 !important; width: 26.5%;')}
                                     </div>`,
-                        html `<div style="margin-bottom: 240px"></div>`,
+                        BgWidget.mb240(),
                         html `<div class="update-bar-container">
                                         ${BgWidget.cancel(gvc.event(() => {
                             dialog.checkYesOrNot({

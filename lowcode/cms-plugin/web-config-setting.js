@@ -75,14 +75,14 @@ export class WebConfigSetting {
                 view: () => {
                     if (vm.type === 'list') {
                         return BgWidget.container(html `
-                                <div class="d-flex w-100 align-items-center" style="margin-bottom: 24px;">
+                                <div class="d-flex w-100 align-items-center">
                                     ${BgWidget.title('網站配置檔')}
                                     <div class="flex-fill"></div>
                                     ${BgWidget.darkButton('新增配置檔', gvc.event(() => {
                             vm.type = 'add';
                         }))}
                                 </div>
-                                ${BgWidget.mainCard(BgWidget.tableV2({
+                                ${BgWidget.container(BgWidget.mainCard(BgWidget.tableV2({
                             gvc: gvc,
                             getData: (vd) => {
                                 vmi = vd;
@@ -104,20 +104,20 @@ export class WebConfigSetting {
                                 vm.type = 'replace';
                             },
                             filter: html `
-                                            ${BgWidget.searchPlace(gvc.event((e, event) => {
+                                                ${BgWidget.searchPlace(gvc.event((e, event) => {
                                 vm.query = e.value;
                                 gvc.notifyDataChange(vm.id);
                             }), vm.query || '', '搜尋所有表單')}
-                                            ${gvc.bindView(() => {
+                                                ${gvc.bindView(() => {
                                 return {
                                     bind: filterID,
                                     view: () => {
                                         return [
                                             html `<span class="fs-7 fw-bold">操作選項</span>`,
                                             html `<button
-                                                                class="btn btn-danger fs-7 px-2"
-                                                                style="height:30px;border:none;"
-                                                                onclick="${gvc.event(() => {
+                                                                    class="btn btn-danger fs-7 px-2"
+                                                                    style="height:30px;border:none;"
+                                                                    onclick="${gvc.event(() => {
                                                 const dialog = new ShareDialog(gvc.glitter);
                                                 dialog.checkYesOrNot({
                                                     text: '是否確認移除所選項目?',
@@ -147,9 +147,9 @@ export class WebConfigSetting {
                                                     },
                                                 });
                                             })}"
-                                                            >
-                                                                批量移除
-                                                            </button>`,
+                                                                >
+                                                                    批量移除
+                                                                </button>`,
                                         ].join(``);
                                     },
                                     divCreate: () => {
@@ -165,8 +165,8 @@ export class WebConfigSetting {
                                     },
                                 };
                             })}
-                                        `,
-                        }))}
+                                            `,
+                        })))}
                             `, BgWidget.getContainerWidth());
                     }
                     else if (vm.type == 'add') {

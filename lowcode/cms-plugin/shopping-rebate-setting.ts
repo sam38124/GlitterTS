@@ -556,7 +556,7 @@ export class ShoppingRebateSetting {
                                                         });
                                                     })()
                                                 ),
-                                            ].join(html`<div style="margin-top: 24px"></div>`),
+                                            ].join(html`<div style="margin-top: 24px;"></div>`),
                                             undefined,
                                             'padding: 0 !important; margin: 0 !important; width: 73.5%;'
                                         )}
@@ -600,7 +600,7 @@ export class ShoppingRebateSetting {
                                         )}
                                     </div>`,
                                     // 空白容器
-                                    html`<div style="margin-bottom: 240px"></div>`,
+                                    BgWidget.mb240(),
                                     // 儲存資料
                                     html`<div class="update-bar-container">
                                         ${BgWidget.cancel(

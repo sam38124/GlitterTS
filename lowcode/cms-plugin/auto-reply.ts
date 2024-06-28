@@ -110,53 +110,56 @@ export class AutoReply {
 
                     return BgWidget.container(
                         html`
-                            <div class="d-flex w-100 align-items-center" style="margin-bottom: 24px;">
+                            <div class="d-flex w-100 align-items-center">
                                 ${BgWidget.title('自動寄件')}
                                 <div class="flex-fill"></div>
                             </div>
-                            ${BgWidget.mainCard(
-                                BgWidget.tableV2({
-                                    gvc: gvc,
-                                    editable: true,
-                                    getData: async (vmk) => {
-                                        const appData = await ApiUser.getPublicConfig('store-information', 'manager');
-                                        vmi = vmk;
-                                        vmi.pageSize = Math.ceil(1);
-                                        vm.dataList = [
-                                            'auto-email-shipment-arrival',
-                                            'auto-email-shipment',
-                                            'auto-email-payment-successful',
-                                            'auto-email-order-create',
-                                            'auto-email-order-cancel-success',
-                                            'auto-email-order-cancel-false',
-                                            'auto-email-birthday',
-                                            'auto-email-welcome',
-                                            'auto-email-verify',
-                                            'auto-email-forget',
-                                        ];
-                                        let index = 0;
-                                        for (const b of vm.dataList) {
-                                            vm.dataList[index] = await AutoReply.getDefCompare(b);
-                                            vm.dataList[index].title = vm.dataList[index].title.replace(
-                                                /@\{\{app_name\}\}/g,
-                                                (appData.response.value && appData.response.value.shop_name) || '商店名稱'
-                                            );
-                                            index++;
-                                        }
-                                        vmi.data = getDatalist();
-                                        vmi.loading = false;
-                                        setTimeout(() => {
-                                            vmi.callback();
-                                        });
-                                    },
-                                    rowClick: (data, index) => {
-                                        vm.tag = vm.dataList[index].tag;
-                                        vm.type = 'replace';
-                                        gvc.notifyDataChange(id);
-                                    },
-                                    filter: ``,
-                                })
+                            ${BgWidget.container(
+                                BgWidget.mainCard(
+                                    BgWidget.tableV2({
+                                        gvc: gvc,
+                                        editable: true,
+                                        getData: async (vmk) => {
+                                            const appData = await ApiUser.getPublicConfig('store-information', 'manager');
+                                            vmi = vmk;
+                                            vmi.pageSize = Math.ceil(1);
+                                            vm.dataList = [
+                                                'auto-email-shipment-arrival',
+                                                'auto-email-shipment',
+                                                'auto-email-payment-successful',
+                                                'auto-email-order-create',
+                                                'auto-email-order-cancel-success',
+                                                'auto-email-order-cancel-false',
+                                                'auto-email-birthday',
+                                                'auto-email-welcome',
+                                                'auto-email-verify',
+                                                'auto-email-forget',
+                                            ];
+                                            let index = 0;
+                                            for (const b of vm.dataList) {
+                                                vm.dataList[index] = await AutoReply.getDefCompare(b);
+                                                vm.dataList[index].title = vm.dataList[index].title.replace(
+                                                    /@\{\{app_name\}\}/g,
+                                                    (appData.response.value && appData.response.value.shop_name) || '商店名稱'
+                                                );
+                                                index++;
+                                            }
+                                            vmi.data = getDatalist();
+                                            vmi.loading = false;
+                                            setTimeout(() => {
+                                                vmi.callback();
+                                            });
+                                        },
+                                        rowClick: (data, index) => {
+                                            vm.tag = vm.dataList[index].tag;
+                                            vm.type = 'replace';
+                                            gvc.notifyDataChange(id);
+                                        },
+                                        filter: ``,
+                                    })
+                                )
                             )}
+                            ${BgWidget.mbContainer(120)}
                         `,
                         BgWidget.getContainerWidth()
                     );

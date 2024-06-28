@@ -268,8 +268,8 @@ ${(obj.style || []) && obj.style[index] ? obj.style[index] : ``}
     static card(htmlString, classStyle = 'p-3 bg-white rounded-3 shadow border w-100') {
         return html `<div class="${classStyle}" style="">${htmlString}</div>`;
     }
-    static mainCard(htmlString) {
-        return html `<div class="w-100" style="border-radius: 10px; padding: 20px; background: #FFF; box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.08);">${htmlString}</div>`;
+    static mainCard(htmlString, classString, styleString) {
+        return html `<div class="main-card ${classString !== null && classString !== void 0 ? classString : ''}" style="${styleString !== null && styleString !== void 0 ? styleString : ''}">${htmlString !== null && htmlString !== void 0 ? htmlString : ''}</div>`;
     }
     static container(htmlString, width, style) {
         return html `<div
@@ -1061,6 +1061,9 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                 }
                 return '';
             },
+            divCreate: {
+                style: vm.show ? '' : 'd-none',
+            },
         })}`;
     }
     static arrowDownDataImage(color) {
@@ -1223,12 +1226,30 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
             <span class="mt-3 ${obj && obj.textNone ? 'd-none' : ''}">載入中...</span>
         </div>`;
     }
+    static mbContainer(margin_bottom_px) {
+        return html `<div style="margin-bottom: ${margin_bottom_px}px"></div>`;
+    }
+    static mb240() {
+        return html `<div style="margin-bottom: 240px"></div>`;
+    }
+    static alertInfo(title, messageList) {
+        let h = '';
+        if (messageList && messageList.length > 0) {
+            messageList.map((str) => {
+                h += html `<p class="mb-1">${str}</p>`;
+            });
+        }
+        return html `<div class="w-100 alert alert-info p-3 mb-0">
+            <div class="fs-5 mb-0"><strong>${title}</strong></div>
+            <div class="mt-2">${h}</div>
+        </div>`;
+    }
 }
-BgWidget.getContainerWidth = () => {
+BgWidget.getContainerWidth = (obj) => {
     const width = document.body.clientWidth;
-    const rateForWeb = 0.79;
-    const rateForPad = 0.92;
-    const rateForPhone = 0.95;
+    const rateForWeb = obj && obj.rate && obj.rate.web ? obj.rate.web : 0.79;
+    const rateForPad = obj && obj.rate && obj.rate.pad ? obj.rate.pad : 0.92;
+    const rateForPhone = obj && obj.rate && obj.rate.phone ? obj.rate.phone : 0.95;
     if (width >= 1440) {
         return 1440 * rateForWeb;
     }

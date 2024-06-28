@@ -24,11 +24,12 @@ export interface OptionsItem {
 }
 
 export class BgWidget {
-    static getContainerWidth = () => {
+    static getContainerWidth = (obj?: { rate?: { web?: number; pad?: number; phone?: number } }) => {
         const width = document.body.clientWidth;
-        const rateForWeb = 0.79;
-        const rateForPad = 0.92;
-        const rateForPhone = 0.95;
+        const rateForWeb = obj && obj.rate && obj.rate.web ? obj.rate.web : 0.79;
+        const rateForPad = obj && obj.rate && obj.rate.pad ? obj.rate.pad : 0.92;
+        const rateForPhone = obj && obj.rate && obj.rate.phone ? obj.rate.phone : 0.95;
+
         if (width >= 1440) {
             return 1440 * rateForWeb;
         }
@@ -353,8 +354,8 @@ ${(obj.style || []) && obj.style![index] ? obj.style![index] : ``}
         return html`<div class="${classStyle}" style="">${htmlString}</div>`;
     }
 
-    static mainCard(htmlString: string) {
-        return html`<div class="w-100" style="border-radius: 10px; padding: 20px; background: #FFF; box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.08);">${htmlString}</div>`;
+    static mainCard(htmlString: string, classString?: string, styleString?: string) {
+        return html`<div class="main-card ${classString ?? ''}" style="${styleString ?? ''}">${htmlString ?? ''}</div>`;
     }
 
     static container(htmlString: string, width?: number, style?: string) {
@@ -1234,6 +1235,9 @@ ${obj.default ?? ''}</textarea
                     }
                     return '';
                 },
+                divCreate: {
+                    style: vm.show ? '' : 'd-none',
+                },
             })}`;
     }
 
@@ -1411,6 +1415,27 @@ ${obj.default ?? ''}</textarea
         return html` <div class="d-flex align-items-center justify-content-center flex-column w-100 my-3 mx-auto">
             <div class="spinner-border ${obj && obj.spinnerNone ? 'd-none' : ''}" role="status"></div>
             <span class="mt-3 ${obj && obj.textNone ? 'd-none' : ''}">載入中...</span>
+        </div>`;
+    }
+
+    static mbContainer(margin_bottom_px: number) {
+        return html`<div style="margin-bottom: ${margin_bottom_px}px"></div>`;
+    }
+
+    static mb240() {
+        return html`<div style="margin-bottom: 240px"></div>`;
+    }
+
+    static alertInfo(title: string, messageList?: string[]) {
+        let h = '';
+        if (messageList && messageList.length > 0) {
+            messageList.map((str) => {
+                h += html`<p class="mb-1">${str}</p>`;
+            });
+        }
+        return html`<div class="w-100 alert alert-info p-3 mb-0">
+            <div class="fs-5 mb-0"><strong>${title}</strong></div>
+            <div class="mt-2">${h}</div>
         </div>`;
     }
 }
