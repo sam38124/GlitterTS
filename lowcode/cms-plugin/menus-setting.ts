@@ -37,6 +37,10 @@ export class MenusSetting {
                         key: '選單名稱',
                         value: html`<span class="tx_normal">${dd.title}</span>`,
                     },
+                    {
+                        key: '編輯',
+                        value: html`<i class="fa-solid fa-pencil text-dark"></i>`,
+                    },
                 ];
             });
         }
@@ -146,6 +150,7 @@ export class MenusSetting {
                                                 };
                                             })}
                                         `,
+                                        style: ['width: auto;', 'width: 60px;'],
                                     })
                                 )
                             )}
