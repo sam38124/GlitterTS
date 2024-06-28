@@ -357,11 +357,9 @@ class App {
         }
     }
     static async checkBrandAndMemberType(app) {
-        const a = (await database_1.default.query(`SELECT brand
+        let brand = (await database_1.default.query(`SELECT brand
                                      FROM \`${config_1.saasConfig.SAAS_NAME}\`.app_config
-                                     where appName = ? `, [app]))[0];
-        console.log(app);
-        let brand = a['brand'];
+                                     where appName = ? `, [app]))[0]['brand'];
         const userID = (await database_1.default.query(`SELECT user
                                         FROM \`${config_1.saasConfig.SAAS_NAME}\`.app_config
                                         where appName = ?`, [app]))[0]['user'];

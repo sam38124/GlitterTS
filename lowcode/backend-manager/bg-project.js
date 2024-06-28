@@ -1423,7 +1423,7 @@ export class BgProject {
                                             bind: id,
                                             view: () => {
                                                 return (EditorElem.h3(html ` <div class="d-flex align-items-center" style="gap: 10px;">
-                                                                            模板圖片 [ 首張圖片為預覽圖 ]
+                                                                            模板圖片（首張圖片為預覽圖）
                                                                             <div class="d-flex align-items-center justify-content-center rounded-3" style="height: 30px;width: 80px;">
                                                                                 <button
                                                                                     class="btn ms-2 btn-primary-c ms-2"
@@ -1455,17 +1455,11 @@ export class BgProject {
                                 ].join('')}
                                                 `,
                             ].join('<div class="my-2"></div>')),
-                            html `<div class=" align-items-center justify-content-end ${postMD.status === 'finish' ? `d-flex` : `d-none`}">
-                                            <div
-                                                class="btn btn-danger"
-                                                style="height:35px;"
-                                                onclick="${gvc.event(() => {
+                            html `<div class="${postMD.status === 'finish' ? `d-flex align-items-center justify-content-end` : `d-none`}">
+                                            ${BgWidget.redButton('取消發佈', gvc.event(() => {
                                 postMD.post_to = 'cancel';
                                 save();
-                            })}"
-                                            >
-                                                <i class="fa-regular fa-trash-can me-2"></i> 取消發佈
-                                            </div>
+                            }), { icon: 'fa-regular fa-trash-can' })}
                                         </div>`,
                         ].join(`<div class="my-3"></div>`)}
                                 </div>`);

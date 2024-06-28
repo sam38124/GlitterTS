@@ -491,7 +491,7 @@ ul {
     cursor: pointer;
 }
 
-.btn-gary {
+.btn-gray {
     display: flex;
     padding: 6px 18px;
     justify-content: center;
@@ -504,7 +504,7 @@ ul {
     max-height: 40px;
 }
 
-.btn-gary:hover {
+.btn-gray:hover {
     background: #d0d0d0;
 }
 
@@ -523,6 +523,23 @@ ul {
 
 .btn-black:hover {
     background: #646464;
+}
+
+.btn-red {
+    display: flex;
+    padding: 6px 18px;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    border: 0;
+    border-radius: 10px;
+    background: #e72020;
+    cursor: pointer;
+    max-height: 40px;
+}
+
+.btn-red:hover {
+    background: #e35656;
 }
 
 .btn-snow {

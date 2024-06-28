@@ -898,12 +898,11 @@ export class BgNotify {
                     </div>
                     ${obj.type === 'replace'
                         ? html`
-                              <div class="d-flex w-100">
+                              <div class="d-flex w-100 mt-2">
                                   <div class="flex-fill"></div>
-                                  <button
-                                      class="btn btn-danger mt-3 ${obj.type === 'replace' ? `` : `d-none`}  ms-auto px-2"
-                                      style="height:30px;width:100px;"
-                                      onclick="${obj.gvc.event(() => {
+                                  ${BgWidget.redButton(
+                                      '刪除樣本',
+                                      obj.gvc.event(() => {
                                           const dialog = new ShareDialog(obj.gvc.glitter);
                                           dialog.checkYesOrNot({
                                               text: '是否確認刪除樣本?',
@@ -923,10 +922,8 @@ export class BgNotify {
                                                   }
                                               },
                                           });
-                                      })}"
-                                  >
-                                      刪除樣本
-                                  </button>
+                                      })
+                                  )}
                               </div>
                           `
                         : ``}`)}
